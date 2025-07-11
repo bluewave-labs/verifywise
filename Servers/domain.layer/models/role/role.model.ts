@@ -1,4 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { IRoleAttributes } from "../../interfaces/i.role";
 
 export type Role = {
   id?: number;
@@ -10,7 +11,7 @@ export type Role = {
 @Table({
   tableName: "roles"
 })
-export class RoleModel extends Model<Role> {
+export class RoleModel extends Model<Role> implements IRoleAttributes {
 
   @Column({
     type: DataType.INTEGER,
@@ -40,4 +41,15 @@ export class RoleModel extends Model<Role> {
     type: DataType.DATE
   })
   created_at?: Date;
+
+  static async createRole(
+    name: string,
+    description: string
+  ): Promise<RoleModel> {
+    const role = new RoleModel()
+    role.name = name
+    role.description = description
+    role.created_at = new Date()
+    return role
+  }
 }

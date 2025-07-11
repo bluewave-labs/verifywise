@@ -1,8 +1,9 @@
 import { Role, RoleModel } from "../domain.layer/models/role/role.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
+import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
 
-export const getAllRolesQuery = async (): Promise<Role[]> => {
+export const getAllRolesQuery = async (): Promise<RoleModel[]> => {
   const roles = await sequelize.query(
     "SELECT * FROM roles ORDER BY created_at DESC, id ASC",
     {
@@ -13,7 +14,7 @@ export const getAllRolesQuery = async (): Promise<Role[]> => {
   return roles;
 };
 
-export const getRoleByIdQuery = async (id: number): Promise<Role | null> => {
+export const getRoleByIdQuery = async (id: number): Promise<RoleModel | null> => {
   const result = await sequelize.query("SELECT * FROM roles WHERE id = :id", {
     replacements: { id },
     mapToModel: true,
@@ -23,9 +24,9 @@ export const getRoleByIdQuery = async (id: number): Promise<Role | null> => {
 };
 
 export const createNewRoleQuery = async (
-  role: Partial<Role>,
+  role: Partial<IRoleAttributes>,
   transaction: Transaction
-): Promise<Role> => {
+): Promise<RoleModel> => {
   const result = await sequelize.query(
     `INSERT INTO roles(name, description) VALUES (:name, :description) RETURNING *`,
     {
@@ -44,7 +45,7 @@ export const createNewRoleQuery = async (
 
 export const updateRoleByIdQuery = async (
   id: number,
-  role: Partial<Role>,
+  role: Partial<RoleModel>,
   transaction: Transaction
 ): Promise<Role | null> => {
   const updateRole: Partial<Record<keyof Role, any>> = {};

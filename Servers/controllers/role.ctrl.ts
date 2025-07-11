@@ -9,6 +9,7 @@ import {
   updateRoleByIdQuery,
 } from "../utils/role.utils";
 import { sequelize } from "../database/db";
+import { RoleModel } from "../domain.layer/models/role/role.model";
 
 export async function getAllRoles(req: Request, res: Response): Promise<any> {
   try {
@@ -47,8 +48,9 @@ export async function createRole(req: Request, res: Response): Promise<any> {
       name: string;
       description: string;
     } = req.body;
+    const roleObj = await RoleModel.createRole(newRole.name, newRole.description)
 
-    const createdRole = await createNewRoleQuery(newRole, transaction);
+    const createdRole = await createNewRoleQuery(roleObj, transaction);
 
     if (createdRole) {
       await transaction.commit();
@@ -73,8 +75,9 @@ export async function updateRoleById(
       name: string;
       description: string;
     } = req.body;
+    const roleObj = await RoleModel.createRole(updatedRole.name, updatedRole.description)
 
-    const role = await updateRoleByIdQuery(roleId, updatedRole, transaction);
+    const role = await updateRoleByIdQuery(roleId, roleObj, transaction);
 
     if (role) {
       await transaction.commit();

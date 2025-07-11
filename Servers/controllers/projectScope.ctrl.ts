@@ -53,7 +53,38 @@ export async function createProjectScope(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const projectScope = req.body as Partial<ProjectScopeModel>;
+    const {
+      assessmentId,
+      describeAiEnvironment,
+      isNewAiTechnology,
+      usesPersonalData,
+      projectScopeDocuments,
+      technologyType,
+      hasOngoingMonitoring,
+      unintendedOutcomes,
+      technologyDocumentation,
+      is_demo = false,
+    } = req.body;
+
+    // Use the model's validation method to create a new project scope
+    const projectScope = await ProjectScopeModel.createNewProjectScope(
+      assessmentId,
+      describeAiEnvironment,
+      isNewAiTechnology,
+      usesPersonalData,
+      projectScopeDocuments,
+      technologyType,
+      hasOngoingMonitoring,
+      unintendedOutcomes,
+      technologyDocumentation,
+      is_demo
+    );
+
+    // Validate the project scope data before saving
+    await projectScope.validateProjectScopeData();
+
+    // Check if the project scope can be modified (demo restrictions)
+    projectScope.canBeModified();
 
     const createdProjectScope = await createProjectScopeQuery(
       projectScope,
@@ -79,11 +110,32 @@ export async function updateProjectScopeById(
   const transaction = await sequelize.transaction();
   try {
     const projectScopeId = parseInt(req.params.id);
-    const projectScope = req.body as Partial<ProjectScopeModel>;
+
+    // First, get the existing project scope to validate it can be modified
+    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId);
+
+    if (!existingProjectScope) {
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("Project scope not found"));
+    }
+
+    // Create a ProjectScopeModel instance from the existing data
+    const projectScopeModel = new ProjectScopeModel(existingProjectScope);
+
+    // Check if the project scope can be modified (demo restrictions)
+    projectScopeModel.canBeModified();
+
+    const updateData = req.body;
+
+    // Use the model's update method with validation
+    await projectScopeModel.updateProjectScope(updateData);
+
+    // Validate the updated project scope data
+    await projectScopeModel.validateProjectScopeData();
 
     const updatedProjectScope = await updateProjectScopeByIdQuery(
       projectScopeId,
-      projectScope,
+      projectScopeModel,
       transaction
     );
 
@@ -106,6 +158,20 @@ export async function deleteProjectScopeById(
   const transaction = await sequelize.transaction();
   try {
     const projectScopeId = parseInt(req.params.id);
+
+    // First, get the existing project scope to validate it can be deleted
+    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId);
+
+    if (!existingProjectScope) {
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("Project scope not found"));
+    }
+
+    // Create a ProjectScopeModel instance from the existing data
+    const projectScopeModel = new ProjectScopeModel(existingProjectScope);
+
+    // Check if the project scope can be modified (demo restrictions)
+    projectScopeModel.canBeModified();
 
     const deletedProjectScope = await deleteProjectScopeByIdQuery(
       projectScopeId,

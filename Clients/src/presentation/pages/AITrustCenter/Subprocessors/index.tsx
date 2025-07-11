@@ -17,10 +17,9 @@ import {
 // Helper component for Subprocessor Table Row
 const SubprocessorTableRow: React.FC<{
   subprocessor: any;
-  enabled: boolean;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
-}> = ({ subprocessor, enabled, onDelete, onEdit }) => {
+}> = ({ subprocessor, onDelete, onEdit }) => {
   const styles = useStyles();
   
   return (
@@ -146,7 +145,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
                   <SubprocessorTableRow
                     key={sp.id}
                     subprocessor={sp}
-                    enabled={enabled}
                     onDelete={handleDelete}
                     onEdit={handleEdit}
                   />

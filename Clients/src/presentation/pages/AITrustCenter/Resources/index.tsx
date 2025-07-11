@@ -70,12 +70,11 @@ const ModalButton: React.FC<{
 // Helper component for Resource Table Row
 const ResourceTableRow: React.FC<{
   resource: any;
-  enabled: boolean;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
   onMakeVisible: (id: number) => void;
   onDownload: (id: number) => void;
-}> = ({ resource, enabled, onDelete, onEdit, onMakeVisible, onDownload }) => {
+}> = ({ resource, onDelete, onEdit, onMakeVisible, onDownload }) => {
   const styles = useStyles();
   
   return (
@@ -218,7 +217,6 @@ const TrustCenterResources: React.FC = () => {
                   <ResourceTableRow
                     key={resource.id}
                     resource={resource}
-                    enabled={enabled}
                     onDelete={handleDeleteResource}
                     onEdit={handleEditResource}
                     onMakeVisible={handleMakeVisible}

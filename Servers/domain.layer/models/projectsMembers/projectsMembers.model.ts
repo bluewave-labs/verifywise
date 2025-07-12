@@ -3,21 +3,19 @@ import {
   DataType,
   ForeignKey,
   Model,
-  PrimaryKey,
   Table,
 } from "sequelize-typescript";
 import { ProjectModel } from "../project/project.model";
 import { UserModel } from "../user/user.model";
-
-export type ProjectsMembers = {
-  user_id: number;
-  project_id: number;
-};
+import { IProjectsMembers } from "../../interfaces/i.projectMember";
 
 @Table({
   tableName: "project_members",
 })
-export class ProjectsMembersModel extends Model<ProjectsMembers> {
+export class ProjectsMembersModel
+  extends Model<ProjectsMembersModel>
+  implements IProjectsMembers
+{
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,

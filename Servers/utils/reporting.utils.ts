@@ -1,24 +1,17 @@
 import { sequelize } from "../database/db";
-import {
-  ProjectsMembers,
-  ProjectsMembersModel,
-} from "../domain.layer/models/projectsMembers/projectsMembers.model";
+import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { QueryTypes, Transaction } from "sequelize";
 import {
   getAllTopicsQuery,
   getAllSubTopicsQuery,
   getAllQuestionsQuery,
-  getControlStructByControlCategoryIdForAProjectQuery,
-  getAllControlCategoriesQuery,
-  getControlByIdForProjectQuery,
-  getControlByIdQuery,
-  getSubControlsByIdQuery,
   getComplianceEUByProjectIdQuery,
 } from "./eu.utils";
 import { TopicStructEUModel } from "../domain.layer/frameworks/EU-AI-Act/topicStructEU.model";
 import { AnnexStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexStructISO.model";
 import { ClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/clauseStructISO.model";
+import { IProjectsMembers } from "../domain.layer/interfaces/i.projectMember";
 
 /**
  * Retrieves all project risk data from the `projectrisks` table,
@@ -48,7 +41,7 @@ export const getProjectRisksReportQuery = async (projectId: number, tenant: stri
 export const getMembersByProjectIdQuery = async (
   projectId: number,
   tenant: string
-): Promise<ProjectsMembers[]> => {
+): Promise<IProjectsMembers[]> => {
   const members = await sequelize.query(
     `SELECT * FROM "${tenant}".projects_members WHERE project_id = :project_id`,
     {

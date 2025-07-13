@@ -13,9 +13,9 @@ import { setExpiration } from "../../../../application/authentication/authSlice"
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
+import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
-const isMultiTenant = ENV_VARs.IS_MULTI_TENANT || false;
 
 // Define the shape of form values
 interface FormValues {
@@ -36,6 +36,7 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
+  const { isMultiTenant } = useIsMultiTenant()
 
   const loginText = isDemoApp
     ? "Click on Sign in button directly to continue"
@@ -270,7 +271,7 @@ const Login: React.FC = () => {
             >
               Sign in
             </Button>
-            <Stack
+            {isMultiTenant && <Stack
               sx={{
                 display: "flex",
                 flexDirection: "row",
@@ -292,12 +293,12 @@ const Login: React.FC = () => {
                   cursor: "pointer",
                 }}
                 onClick={() =>
-                  navigate(isMultiTenant ? "/register" : "/admin-reg")
+                  navigate("/register")
                 }
               >
                 Register here
               </Typography>
-            </Stack>
+            </Stack>}
           </Stack>
         </Stack>
       </form>

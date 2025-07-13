@@ -27,7 +27,7 @@ interface AlertState {
 }
 
 const Organization = () => {
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName, organizationId } = useContext(VerifyWiseContext);
   const isEditingDisabled =
     !allowedRoles.organizations.edit.includes(userRoleName);
   const isCreatingDisabled =
@@ -39,7 +39,6 @@ const Organization = () => {
   >(null);
   const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
-  const [organizationId, setOrganizationId] = useState<number | null>(null);
   const [organizationExists, setOrganizationExists] = useState(false);
   const [alert, setAlert] = useState<AlertState | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -47,26 +46,14 @@ const Organization = () => {
   const fetchOrganization = useCallback(async () => {
     try {
       const organizations = await GetMyOrganization({
-        routeUrl: "/organizations",
+        routeUrl: `/organizations/${organizationId}`,
       });
-      if (
-        Array.isArray(organizations.data.data) &&
-        organizations.data.data.length > 0
-      ) {
-        const org = organizations.data.data[0];
-        setOrganizationId(org.id);
-        setOrganizationName(org.name || "");
-        setOrganizationExists(true);
-        setHasChanges(false);
-      } else {
-        setOrganizationExists(false);
-        setOrganizationId(null);
-        setOrganizationName("");
-        setHasChanges(false);
-      }
+      const org = organizations.data.data;
+      setOrganizationName(org.name || "");
+      setOrganizationExists(true);
+      setHasChanges(false);
     } catch (error) {
       setOrganizationExists(false);
-      setOrganizationId(null);
       setOrganizationName("");
       setHasChanges(false);
     }
@@ -128,7 +115,6 @@ const Organization = () => {
         isToast: false,
       });
       if (response && response.id) {
-        setOrganizationId(response.id);
         setOrganizationName(response.name || "");
         setOrganizationExists(true);
         setHasChanges(false);
@@ -174,7 +160,6 @@ const Organization = () => {
         isToast: false,
       });
       if (response && response.id) {
-        setOrganizationId(response.id);
         setOrganizationName(response.name || "");
         setHasChanges(false);
       }

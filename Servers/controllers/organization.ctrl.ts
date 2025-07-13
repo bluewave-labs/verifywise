@@ -11,10 +11,15 @@ import {
   getOrganizationByIdQuery,
   getOrganizationMembersQuery,
   getOrganizationProjectsQuery,
+  getOrganizationsExistsQuery,
   removeMemberFromOrganizationQuery,
   removeProjectFromOrganizationQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
+import { invite } from "./vwmailer.ctrl";
+import { createNewTenant } from "../scripts/createNewTenant";
+import { createNewUserQuery } from "../utils/user.utils";
+import { createNewUserWrapper } from "./user.ctrl";
 import {
   ValidationException,
   BusinessLogicException,
@@ -73,6 +78,18 @@ export async function getAllOrganizations(
       `Failed to retrieve organizations: ${(error as Error).message}`
     );
     logger.error("❌ Error in getAllOrganizations:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getOrganizationsExists(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const organizationsExists = await getOrganizationsExistsQuery();
+    return res.status(200).json(STATUS_CODE[200](organizationsExists));
+  } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -248,16 +265,24 @@ export async function createOrganization(
   );
   logger.debug("🛠️ Creating new organization");
   try {
-    const { name, logo, members, projects, is_demo } = req.body;
+    const body = req.body as {
+      name: string;
+      logo: string;
+      userEmail: string;
+      userName: string;
+      userSurname: string;
+      userPassword: string;
+    };
+
+    if (!body.name) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Organization name is required"));
+    }
 
     // Use the OrganizationModel's createNewOrganization method with validation
-    const organizationModel = await OrganizationModel.createNewOrganization(
-      name,
-      logo,
-      members,
-      projects,
-      is_demo
-    );
+    const organizationModel = await OrganizationModel.createNewOrganization(body.name, body.logo);
 
     // Validate the organization data before saving
     await organizationModel.validateOrganizationData();
@@ -269,6 +294,19 @@ export async function createOrganization(
     );
 
     if (createdOrganization) {
+      const organization_id = createdOrganization.id!;
+      await createNewTenant(organization_id, transaction);
+      const user = await createNewUserWrapper(
+        {
+          email: body.userEmail,
+          name: body.userName,
+          surname: body.userSurname,
+          password: body.userPassword,
+          roleId: 1, // Assuming 1 is the default role ID for Admin
+          organizationId: organization_id,
+        },
+        transaction
+      )
       await transaction.commit();
       logStructured(
         "successful",
@@ -277,7 +315,7 @@ export async function createOrganization(
         "organization.ctrl.ts"
       );
       await logEvent("Create", `Organization created: ${name}`);
-      return res.status(201).json(STATUS_CODE[201](createdOrganization));
+      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 
     logStructured(
@@ -331,8 +369,7 @@ export async function createOrganization(
     );
     await logEvent(
       "Error",
-      `Unexpected error during organization creation: ${
-        (error as Error).message
+      `Unexpected error during organization creation: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in createOrganization:", error);
@@ -624,8 +661,7 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during update for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in updateOrganizationById:", error);
@@ -709,8 +745,7 @@ export async function deleteOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during delete for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in deleteOrganizationById:", error);

@@ -40,7 +40,7 @@ export async function getAllControls(
   logger.debug("🔍 Fetching all controls");
 
   try {
-    const controls = await getAllControlsQuery();
+    const controls = await getAllControlsQuery(req.tenantId!);
 
     if (controls && controls.length > 0) {
       logStructured(
@@ -91,7 +91,7 @@ export async function getControlById(
   logger.debug(`🔍 Looking up control with ID: ${controlId}`);
 
   try {
-    const control = await getControlByIdQuery(controlId);
+    const control = await getControlByIdQuery(controlId, req.tenantId!);
 
     if (control) {
       logStructured(
@@ -140,6 +140,7 @@ export async function createControl(req: Request, res: Response): Promise<any> {
     is_demo = false,
   } = req.body;
 
+  // const createdControl = await createNewControlQuery(newControl, req.tenantId!, transaction);
   logStructured(
     "processing",
     `starting control creation: ${title}`,
@@ -168,6 +169,7 @@ export async function createControl(req: Request, res: Response): Promise<any> {
 
     const createdControl = await createNewControlQuery(
       controlModel,
+      req.tenantId!,
       transaction
     );
 
@@ -256,7 +258,7 @@ export async function updateControlById(
 
   try {
     // First, get the existing control to validate permissions and current state
-    const existingControl = await getControlByIdQuery(controlId);
+    const existingControl = await getControlByIdQuery(controlId, req.tenantId!);
 
     if (!existingControl) {
       logStructured(
@@ -308,6 +310,7 @@ export async function updateControlById(
     const updatedControl = await updateControlByIdQuery(
       controlId,
       controlModel,
+      req.tenantId!,
       transaction
     );
 
@@ -400,7 +403,7 @@ export async function deleteControlById(
 
   try {
     // First, get the existing control to validate permissions and current state
-    const existingControl = await getControlByIdQuery(controlId);
+    const existingControl = await getControlByIdQuery(controlId, req.tenantId!);
 
     if (!existingControl) {
       logStructured(
@@ -458,7 +461,7 @@ export async function deleteControlById(
         );
     }
 
-    const deletedControl = await deleteControlByIdQuery(controlId, transaction);
+    const deletedControl = await deleteControlByIdQuery(controlId, req.tenantId!, transaction);
 
     if (deletedControl) {
       await transaction.commit();
@@ -470,7 +473,7 @@ export async function deleteControlById(
       );
       await logEvent(
         "Delete",
-        `Control deleted: ID ${controlId}, title: ${existingControl.title}`
+        `Control deleted: ID ${controlId}, title: ${existingControl?.title}`
       );
       return res.status(200).json(STATUS_CODE[200](controlModel.toJSON()));
     }
@@ -555,7 +558,7 @@ export async function saveControls(
     logger.debug(`💾 Saving controls for ID ${controlId}`);
 
     // Get the existing control to validate permissions and current state
-    const existingControl = await getControlByIdQuery(controlId);
+    const existingControl = await getControlByIdQuery(controlId, req.tenantId!);
 
     if (!existingControl) {
       logStructured(
@@ -615,16 +618,30 @@ export async function saveControls(
     // Validate the updated control data
     await controlModel.validateControlData();
 
+    // {
+    //   title: Control.title,
+    //   description: Control.description,
+    //   order_no: Control.order_no,
+    //   status: Control.status,
+    //   approver: Control.approver,
+    //   risk_review: Control.risk_review,
+    //   owner: Control.owner,
+    //   reviewer: Control.reviewer,
+    //   due_date: Control.due_date,
+    //   implementation_details: Control.implementation_details,
+    //   control_category_id: Control.control_category_id,
+    // }
     // now we need to create the control for the control category, and use the control category id as the foreign key
     const control: any = await updateControlByIdQuery(
       controlId,
       controlModel,
+      req.tenantId!,
       transaction
     );
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
-      await deleteFileById(f, transaction);
+      await deleteFileById(f, req.tenantId!, transaction);
     }
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
@@ -645,6 +662,7 @@ export async function saveControls(
             Control.user_id,
             Control.project_id,
             "Compliance tracker group",
+            req.tenantId!,
             transaction
           );
           evidenceUploadedFiles.push({
@@ -665,6 +683,7 @@ export async function saveControls(
             Control.user_id,
             Control.project_id,
             "Compliance tracker group",
+            req.tenantId!,
             transaction
           );
           feedbackUploadedFiles.push({
@@ -703,10 +722,11 @@ export async function saveControls(
             feedback_description: subcontrol.feedback_description,
             control_id: subcontrol.control_id,
           },
+          req.tenantId!,
           transaction,
           evidenceUploadedFiles,
           feedbackUploadedFiles,
-          filesToDelete
+          filesToDelete,
         );
         subControlResp.push(subcontrolToSave);
       }
@@ -715,7 +735,7 @@ export async function saveControls(
       ...{ control, subControls: subControlResp },
     };
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(controlId, "controls", transaction);
+    await updateProjectUpdatedByIdQuery(controlId, "controls", req.tenantId!, transaction);
 
     await transaction.commit();
 
@@ -794,10 +814,10 @@ export async function getComplianceById(
 
   try {
     const control = (await getControlByIdQuery(
-      parseInt(control_id)
+      parseInt(control_id), req.tenantId!
     )) as IControl;
     if (control && control.id) {
-      const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+      const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
       control.subControls = subControls;
       logStructured(
         "successful",
@@ -854,12 +874,11 @@ export async function getControlsByControlCategoryId(
 
   try {
     const controls = (await getAllControlsByControlGroupQuery(
-      controlCategoryId
+      controlCategoryId, req.tenantId!
     )) as IControl[];
-
     for (const control of controls) {
       if (control && control.id !== undefined) {
-        const subControls = await getAllSubcontrolsByControlIdQuery(control.id);
+        const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
         let numberOfSubcontrols = 0;
         let numberOfDoneSubcontrols = 0;
 

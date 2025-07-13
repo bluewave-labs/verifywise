@@ -30,7 +30,7 @@ export async function getAllProjectScopes(
   logger.debug("🔍 Fetching all project scopes");
 
   try {
-    const projectScopes = await getAllProjectScopesQuery();
+    const projectScopes = await getAllProjectScopesQuery(req.tenantId!);
 
     if (projectScopes && projectScopes.length > 0) {
       logStructured(
@@ -84,7 +84,7 @@ export async function getProjectScopeById(
   logger.debug(`🔍 Looking up project scope with ID: ${projectScopeId}`);
 
   try {
-    const projectScope = await getProjectScopeByIdQuery(projectScopeId);
+    const projectScope = await getProjectScopeByIdQuery(projectScopeId, req.tenantId!);
 
     if (projectScope) {
       logStructured(
@@ -173,6 +173,7 @@ export async function createProjectScope(
 
     const createdProjectScope = await createProjectScopeQuery(
       projectScope,
+      req.tenantId!,
       transaction
     );
 
@@ -268,7 +269,7 @@ export async function updateProjectScopeById(
 
   try {
     // First, get the existing project scope to validate it can be modified
-    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId);
+    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId, req.tenantId!);
 
     if (!existingProjectScope) {
       logStructured(
@@ -302,6 +303,7 @@ export async function updateProjectScopeById(
     const updatedProjectScope = await updateProjectScopeByIdQuery(
       projectScopeId,
       projectScopeModel,
+      req.tenantId!,
       transaction
     );
 
@@ -397,7 +399,7 @@ export async function deleteProjectScopeById(
 
   try {
     // First, get the existing project scope to validate it can be deleted
-    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId);
+    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId, req.tenantId!);
 
     if (!existingProjectScope) {
       logStructured(
@@ -422,6 +424,7 @@ export async function deleteProjectScopeById(
 
     const deletedProjectScope = await deleteProjectScopeByIdQuery(
       projectScopeId,
+      req.tenantId!,
       transaction
     );
 

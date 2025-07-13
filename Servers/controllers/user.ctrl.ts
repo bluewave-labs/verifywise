@@ -29,7 +29,10 @@ import { sequelize } from "../database/db";
 import {
   ValidationException,
   BusinessLogicException,
+  ConflictException,
 } from "../domain.layer/exceptions/custom.exception";
+import { getTenantHash } from "../tools/getTenantHash";
+import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 
@@ -38,7 +41,9 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
   logger.debug('🔍 Fetching all users');
 
   try {
-    const users = (await getAllUsersQuery()) as UserModel[];
+    const users = (await getAllUsersQuery(
+      req.organizationId!
+    )) as UserModel[];
 
     if (users && users.length > 0) {
       await logEvent('Read', `Retrieved ${users.length} users`);
@@ -110,9 +115,54 @@ async function getUserById(req: Request, res: Response) {
   }
 }
 
+async function createNewUserWrapper(
+  body: {
+    name: string;
+    surname: string;
+    email: string;
+    password: string;
+    roleId: number;
+    organizationId: number;
+  },
+  transaction: Transaction
+) {
+  const { name, surname, email, password, roleId, organizationId } = body;
+
+  // Check if user already exists
+  const existingUser = await getUserByEmailQuery(email);
+  if (existingUser) {
+    throw new ConflictException("User with this email already exists",)
+  }
+
+  // Create user using the enhanced UserModel method
+  const userModel = await UserModel.createNewUser(
+    name,
+    surname,
+    email,
+    password,
+    roleId,
+    organizationId
+  );
+
+  // Validate user data before saving
+  await userModel.validateUserData();
+
+  // Check email uniqueness
+  const isEmailUnique = await UserModel.validateEmailUniqueness(email);
+  if (!isEmailUnique) {
+    throw new ConflictException("Email already exists");
+  }
+
+  const user = (await createNewUserQuery(
+    userModel,
+    transaction
+  )) as UserModel;
+  return user;
+}
+
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  const { name, surname, email, password, roleId } = req.body;
+  const { name, surname, email, password, roleId, organizationId } = req.body;
 
   logStructured('processing', `starting user creation for ${email}`, 'createNewUser', 'user.ctrl.ts');
   logger.debug(`🛠️ Creating user: ${email}`);
@@ -128,7 +178,8 @@ async function createNewUser(req: Request, res: Response) {
         .json(STATUS_CODE[409]('User with this email already exists'));
     }
 
-    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId);
+    // const user = await createNewUserWrapper(req.body, transaction);
+    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId, organizationId);
     await userModel.validateUserData();
 
     const isEmailUnique = await UserModel.validateEmailUniqueness(email);
@@ -154,6 +205,10 @@ async function createNewUser(req: Request, res: Response) {
     return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ConflictException) {
+      return res.status(409).json(STATUS_CODE[409](error.message));
+    }
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
@@ -206,12 +261,16 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           id: user.id,
           email: email,
           roleName: (userData as any).role_name,
+          tenantId: getTenantHash((userData as any).organization_id.toString()),
+          organizationId: (userData as any).organization_id,
         });
 
         const refreshToken = generateRefreshToken({
           id: user.id,
           email: email,
           roleName: (userData as any).role_name,
+          tenantId: getTenantHash((userData as any).organization_id.toString()),
+          organizationId: (userData as any).organization_id,
         });
 
         res.cookie('refresh_token', refreshToken, {
@@ -279,6 +338,8 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       id: decoded.id,
       email: decoded.email,
       roleName: decoded.roleName,
+      tenantId: decoded.tenantId,
+      organizationId: decoded.organizationId,
     });
 
     logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');
@@ -308,7 +369,7 @@ async function resetPassword(req: Request, res: Response) {
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
-    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id)
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, _user.organization_id!);
 
     if (user) {
       await user.updatePassword(newPassword);
@@ -690,6 +751,7 @@ export {
   getAllUsers,
   getUserByEmail,
   getUserById,
+  createNewUserWrapper,
   createNewUser,
   loginUser,
   resetPassword,

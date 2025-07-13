@@ -40,7 +40,6 @@ const initialState: FormValues = {
 // Initial state for organization form values
 const initialOrganizationState: OrganizationFormValues = {
   organizationName: "",
-  organizationEmail: "",
 };
 
 const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
@@ -294,16 +293,6 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
                 value={organizationValues.organizationName}
                 onChange={handleOrganizationChange("organizationName")}
                 error={organizationErrors.organizationName}
-              />
-              <Field
-                label="Organization email"
-                isRequired
-                placeholder="admin@organization.com"
-                sx={fieldStyles}
-                type="email"
-                value={organizationValues.organizationEmail}
-                onChange={handleOrganizationChange("organizationEmail")}
-                error={organizationErrors.organizationEmail}
               />
               <Button
                 type="submit"

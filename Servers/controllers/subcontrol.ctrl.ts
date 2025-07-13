@@ -17,7 +17,7 @@ export async function getAllSubcontrols(
   res: Response
 ): Promise<any> {
   try {
-    const subcontrols = await getAllSubcontrolsQuery();
+    const subcontrols = await getAllSubcontrolsQuery(req.tenantId!);
 
     if (subcontrols) {
       return res.status(200).json(STATUS_CODE[200](subcontrols));
@@ -36,7 +36,7 @@ export async function getSubcontrolById(
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    const subcontrol = await getSubcontrolByIdQuery(subcontrolId);
+    const subcontrol = await getSubcontrolByIdQuery(subcontrolId, req.tenantId!);
 
     if (subcontrol) {
       return res.status(200).json(STATUS_CODE[200](subcontrol));
@@ -65,6 +65,7 @@ export async function createNewSubcontrol(
       subcontrol,
       project_id,
       user_id,
+      req.tenantId!,
       transaction,
       (
         req.files as {
@@ -105,6 +106,7 @@ export async function updateSubcontrolById(
     const updatedSubcontrol = await updateSubcontrolByIdQuery(
       subcontrolId,
       subcontrol,
+      req.tenantId!,
       transaction
     );
 
@@ -130,6 +132,7 @@ export async function deleteSubcontrolById(
 
     const deletedSubcontrol = await deleteSubcontrolByIdQuery(
       subcontrolId,
+      req.tenantId!,
       transaction
     );
 

@@ -36,7 +36,7 @@ export async function getAssessmentsByProjectId(
   try {
     const projectFrameworkId = parseInt(req.params.id);
     const assessments = await getAssessmentsEUByProjectIdQuery(
-      projectFrameworkId
+      projectFrameworkId, req.tenantId!
     );
     // send calculated progress
     return res.status(200).json(STATUS_CODE[200](assessments));
@@ -52,7 +52,7 @@ export async function getCompliancesByProjectId(
   try {
     const projectFrameworkId = parseInt(req.params.id);
     const complainces = await getComplianceEUByProjectIdQuery(
-      projectFrameworkId
+      projectFrameworkId, req.tenantId!
     );
     // send calculated progress
     return res.status(200).json(STATUS_CODE[200](complainces));
@@ -70,7 +70,8 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
     }
     const topic = await getTopicByIdForProjectQuery(
       topicId,
-      projectFrameworkId
+      projectFrameworkId,
+      req.tenantId!
     );
     if (topic) {
       return res.status(200).json(STATUS_CODE[200](topic));
@@ -93,7 +94,8 @@ export async function getControlById(
     }
     const topic = await getControlByIdForProjectQuery(
       controlId,
-      projectFrameworkId
+      projectFrameworkId,
+      req.tenantId!
     );
     if (topic) {
       return res.status(200).json(STATUS_CODE[200](topic));
@@ -130,12 +132,13 @@ export async function saveControls(
         due_date: Control.due_date,
         implementation_details: Control.implementation_details,
       },
+      req.tenantId!,
       transaction
     );
 
     const filesToDelete = JSON.parse(Control.delete || "[]") as number[];
     for (let f of filesToDelete) {
-      await deleteFileById(f, transaction);
+      await deleteFileById(f, req.tenantId!, transaction);
     }
 
     // now we need to iterate over subcontrols inside the control, and create a subcontrol for each subcontrol
@@ -156,6 +159,7 @@ export async function saveControls(
             Control.user_id,
             Control.project_id,
             "Compliance tracker group",
+            req.tenantId!,
             transaction
           );
           evidenceUploadedFiles.push({
@@ -176,6 +180,7 @@ export async function saveControls(
             Control.user_id,
             Control.project_id,
             "Compliance tracker group",
+            req.tenantId!,
             transaction
           );
           feedbackUploadedFiles.push({
@@ -213,6 +218,7 @@ export async function saveControls(
           evidenceUploadedFiles,
           feedbackUploadedFiles,
           filesToDelete,
+          req.tenantId!,
           transaction
         );
         if (subcontrolToSave) {
@@ -224,7 +230,7 @@ export async function saveControls(
       ...{ control, subControls: subControlResp },
     };
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(controlId, "controls", transaction);
+    await updateProjectUpdatedByIdQuery(controlId, "controls", req.tenantId!, transaction);
     await transaction.commit();
 
     return res.status(200).json(STATUS_CODE[200]({ response }));
@@ -246,6 +252,7 @@ export async function updateQuestionById(
     const question = (await updateQuestionEUByIdQuery(
       questionId,
       body,
+      req.tenantId!,
       transaction
     )) as AnswerEU;
 
@@ -255,7 +262,7 @@ export async function updateQuestionById(
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "answers", transaction);
+    await updateProjectUpdatedByIdQuery(questionId, "answers", req.tenantId!, transaction);
     await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));
@@ -274,6 +281,7 @@ export async function deleteAssessmentsByProjectId(
     const projectFrameworkId = parseInt(req.params.id);
     const result = await deleteAssessmentEUByProjectIdQuery(
       projectFrameworkId,
+      req.tenantId!,
       transaction
     );
 
@@ -298,6 +306,7 @@ export async function deleteCompliancesByProjectId(
     const projectFrameworkId = parseInt(req.params.id);
     const result = await deleteComplianeEUByProjectIdQuery(
       projectFrameworkId,
+      req.tenantId!,
       transaction
     );
 
@@ -326,7 +335,7 @@ export async function getProjectAssessmentProgress(
     //   return res.status(404).json(STATUS_CODE[404](project));
     // }
     const { totalAssessments, answeredAssessments } =
-      await countAnswersEUByProjectId(projectFrameworkId);
+      await countAnswersEUByProjectId(projectFrameworkId, req.tenantId!);
     return res.status(200).json(
       STATUS_CODE[200]({
         totalQuestions: parseInt(totalAssessments),
@@ -351,7 +360,7 @@ export async function getProjectComplianceProgress(
     //   return res.status(404).json(STATUS_CODE[404](project));
     // }
     const { totalSubcontrols, doneSubcontrols } =
-      await countSubControlsEUByProjectId(projectFrameworkId);
+      await countSubControlsEUByProjectId(projectFrameworkId, req.tenantId!);
     return res.status(200).json(
       STATUS_CODE[200]({
         allsubControls: parseInt(totalSubcontrols),
@@ -374,7 +383,7 @@ export async function getAllProjectsAssessmentProgress(
     if (!userId || !role) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role });
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
@@ -388,7 +397,7 @@ export async function getAllProjectsAssessmentProgress(
             return;
           }
           const { totalAssessments, answeredAssessments } =
-            await countAnswersEUByProjectId(projectFrameworkId);
+            await countAnswersEUByProjectId(projectFrameworkId, req.tenantId!);
           totalNumberOfQuestions += parseInt(totalAssessments);
           totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
         })
@@ -418,7 +427,7 @@ export async function getAllProjectsComplianceProgress(
     if (!userId || !role) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role });
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
@@ -432,7 +441,7 @@ export async function getAllProjectsComplianceProgress(
             return;
           }
           const { totalSubcontrols, doneSubcontrols } =
-            await countSubControlsEUByProjectId(projectFrameworkId);
+            await countSubControlsEUByProjectId(projectFrameworkId, req.tenantId!);
           totalNumberOfSubcontrols += parseInt(totalSubcontrols);
           totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
         })
@@ -456,7 +465,7 @@ export async function getAllControlCategories(
   res: Response
 ): Promise<any> {
   try {
-    const controlCategories = await getAllControlCategoriesQuery();
+    const controlCategories = await getAllControlCategoriesQuery(req.tenantId!);
     return res.status(200).json(controlCategories);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -472,7 +481,8 @@ export async function getControlsByControlCategoryId(
     const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     const controls = await getControlStructByControlCategoryIdForAProjectQuery(
       controlCategoryId,
-      projectFrameworkId
+      projectFrameworkId,
+      req.tenantId!
     );
     return res.status(200).json(controls);
   } catch (error) {
@@ -482,7 +492,7 @@ export async function getControlsByControlCategoryId(
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   try {
-    const topics = await getAllTopicsQuery();
+    const topics = await getAllTopicsQuery(req.tenantId!);
     return res.status(200).json(topics);
   } catch (error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

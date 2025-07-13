@@ -30,7 +30,7 @@ export async function getAllFrameworks(
   logger.debug("🔍 Fetching all frameworks");
 
   try {
-    const frameworks = await getAllFrameworksQuery();
+    const frameworks = await getAllFrameworksQuery(req.tenantId!);
 
     if (frameworks && frameworks.length > 0) {
       await logEvent("Read", `Retrieved ${frameworks.length} frameworks`);
@@ -81,7 +81,7 @@ export async function getFrameworkById(
   logger.debug(`🔍 Looking up framework with ID: ${frameworkId}`);
 
   try {
-    const framework = await getAllFrameworkByIdQuery(frameworkId);
+    const framework = await getAllFrameworkByIdQuery(frameworkId, req.tenantId!);
 
     if (framework) {
       logStructured(
@@ -726,6 +726,7 @@ export async function addFrameworkToProject(
     const result = await addFrameworkToProjectQuery(
       frameworkId,
       projectId,
+      req.tenantId!,
       transaction
     );
 
@@ -829,6 +830,7 @@ export async function deleteFrameworkFromProject(
     const result = await deleteFrameworkFromProjectQuery(
       frameworkId,
       projectId,
+      req.tenantId!,
       transaction
     );
 

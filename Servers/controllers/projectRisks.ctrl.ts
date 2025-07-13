@@ -31,7 +31,7 @@ export async function getAllProjectRisks(
   );
   logger.debug(`🔍 Fetching all project risks for project ID: ${projectId}`);
   try {
-    const projectRisks = await getAllProjectRisksQuery(projectId);
+    const projectRisks = await getAllProjectRisksQuery(projectId, req.tenantId!);
 
     if (projectRisks) {
       logStructured(
@@ -87,7 +87,7 @@ export async function getProjectRiskById(
   );
   logger.debug(`🔍 Looking up project risk with ID: ${projectRiskId}`);
   try {
-    const projectRisk = await getProjectRiskByIdQuery(projectRiskId);
+    const projectRisk = await getProjectRiskByIdQuery(projectRiskId, req.tenantId!);
 
     if (projectRisk) {
       logStructured(
@@ -139,7 +139,7 @@ export async function getNonMitigatedProjectRisks(
     `🔍 Fetching non-mitigated project risks for project ID: ${projectId}`
   );
   try {
-    const projectRisks = await getNonMitigatedProjectRisksQuery(projectId);
+    const projectRisks = await getNonMitigatedProjectRisksQuery(projectId, req.tenantId!);
     logStructured(
       "successful",
       `non-mitigated project risks fetched for project ID: ${projectId}`,
@@ -194,6 +194,7 @@ export async function createProjectRisk(
 
     const newProjectRisk = await createProjectRiskQuery(
       projectRiskModel,
+      req.tenantId!,
       transaction
     );
 
@@ -301,6 +302,7 @@ export async function updateProjectRiskById(
     const updatedProjectRisk = await updateProjectRiskByIdQuery(
       projectRiskId,
       projectRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -390,6 +392,7 @@ export async function deleteProjectRiskById(
   try {
     const deletedProjectRisk = await deleteProjectRiskByIdQuery(
       projectRiskId,
+      req.tenantId!,
       transaction
     );
 

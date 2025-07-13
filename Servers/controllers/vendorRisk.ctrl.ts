@@ -23,7 +23,7 @@ export async function getAllVendorRisksAllProjects(
   });
 
   try {
-    const risks = await getAllVendorRisksAllProjectsQuery();
+    const risks = await getAllVendorRisksAllProjectsQuery(req.tenantId!);
     await logSuccess({
       eventType: 'Read',
       description: 'Retrieved all vendor risks across all projects',
@@ -54,7 +54,7 @@ export async function getAllVendorRisks(
   });
 
   try {
-    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId);
+    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId, req.tenantId!);
 
     if (vendorRisks) {
       await logSuccess({
@@ -96,7 +96,7 @@ export async function getVendorRiskById(
   });
 
   try {
-    const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId);
+    const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId, req.tenantId!);
 
     if (vendorRisk) {
       await logSuccess({
@@ -142,6 +142,7 @@ export async function createVendorRisk(
 
     const createdVendorRisk = await createNewVendorRiskQuery(
       newVendorRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -193,6 +194,7 @@ export async function updateVendorRiskById(
     const vendorRisk = await updateVendorRiskByIdQuery(
       vendorRiskId,
       updatedVendorRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -241,6 +243,7 @@ export async function deleteVendorRiskById(
   try {
     const deletedVendorRisk = await deleteVendorRiskByIdQuery(
       vendorRiskId,
+      req.tenantId!,
       transaction
     );
 

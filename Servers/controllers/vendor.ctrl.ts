@@ -21,7 +21,7 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
   });
 
   try {
-    const vendors = await getAllVendorsQuery();
+    const vendors = await getAllVendorsQuery(req.tenantId!);
 
     if (vendors) {
       await logSuccess({
@@ -60,7 +60,7 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
   });
 
   try {
-    const vendor = await getVendorByIdQuery(vendorId);
+    const vendor = await getVendorByIdQuery(vendorId, req.tenantId!);
 
     if (vendor) {
       await logSuccess({
@@ -102,7 +102,7 @@ export async function getVendorByProjectId(
   });
 
   try {
-    const vendor = await getVendorByProjectIdQuery(vendorId);
+    const vendor = await getVendorByProjectIdQuery(vendorId, req.tenantId!);
 
     if (vendor !== null) {
       await logSuccess({
@@ -156,7 +156,7 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       );
     }
 
-    const createdVendor = await createNewVendorQuery(newVendor, transaction);
+    const createdVendor = await createNewVendorQuery(newVendor, req.tenantId!, transaction);
 
     if (createdVendor) {
       await transaction.commit();
@@ -234,7 +234,7 @@ export async function updateVendorById(
       userId,
       role,
       transaction,
-    });
+    }, req.tenantId!);
 
     if (vendor) {
       await transaction.commit();
@@ -280,7 +280,7 @@ export async function deleteVendorById(
   });
 
   try {
-    const deletedVendor = await deleteVendorByIdQuery(vendorId, transaction);
+    const deletedVendor = await deleteVendorByIdQuery(vendorId, req.tenantId!, transaction);
 
     if (deletedVendor) {
       await transaction.commit();

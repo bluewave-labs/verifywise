@@ -4,7 +4,6 @@ import {
 } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 import { createNewQuestionsQuery } from "./question.utils";
-import { Question } from "../domain.layer/models/question/question.model";
 import { QueryTypes, Transaction } from "sequelize";
 
 export const getAllSubtopicsQuery = async (): Promise<Subtopic[]> => {

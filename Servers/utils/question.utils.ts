@@ -1,12 +1,14 @@
-import { QuestionModel } from "../domain.layer/models/question/question.model";
+import {
+  Question,
+  QuestionModel,
+} from "../domain.layer/models/question/question.model";
 import { sequelize } from "../database/db";
 import { deleteFileById, getFileById } from "./fileUpload.utils";
 import { Request } from "express";
 import { QueryTypes, Transaction } from "sequelize";
-import { IQuestion } from "../domain.layer/interfaces/i.question";
 
 export const getAllQuestionsQuery = async (): Promise<
-  (IQuestion & { evidence_files: Object[] })[]
+  (Question & { evidence_files: Object[] })[]
 > => {
   const questions = await sequelize.query(
     "SELECT * FROM questions ORDER BY created_at DESC, id ASC",
@@ -32,7 +34,7 @@ export const getAllQuestionsQuery = async (): Promise<
 
 export const getQuestionByIdQuery = async (
   id: number
-): Promise<IQuestion & { evidence_files: Object[] }> => {
+): Promise<Question & { evidence_files: Object[] }> => {
   const result = await sequelize.query(
     "SELECT * FROM questions WHERE id = :id",
     {
@@ -70,9 +72,9 @@ export interface UploadedFile {
 }
 
 export const createNewQuestionQuery = async (
-  question: QuestionModel,
+  question: Question,
   transaction: Transaction
-): Promise<QuestionModel> => {
+): Promise<Question> => {
   const result = await sequelize.query(
     `INSERT INTO questions (
       subtopic_id, question, answer_type, evidence_required,
@@ -112,7 +114,7 @@ export const addFileToQuestion = async (
   }[],
   deletedFiles: number[],
   transaction: Transaction
-): Promise<QuestionModel> => {
+): Promise<Question> => {
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
     `SELECT evidence_files FROM questions WHERE id = :id`,
@@ -164,17 +166,16 @@ export const addFileToQuestion = async (
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  question: Partial<QuestionModel>,
+  question: Partial<Question>,
   transaction: Transaction
-): Promise<QuestionModel | null> => {
-  const updateQuestion: Partial<Record<keyof QuestionModel, any>> = {};
+): Promise<Question | null> => {
+  const updateQuestion: Partial<Record<keyof Question, any>> = {};
   const setClause = ["answer", "status"]
     .filter((f) => {
-      if (question[f as keyof QuestionModel] !== undefined) {
-        updateQuestion[f as keyof QuestionModel] =
-          question[f as keyof QuestionModel];
+      if (question[f as keyof Question] !== undefined) {
+        updateQuestion[f as keyof Question] = question[f as keyof Question];
         if (f === "answer" && !question[f]) {
-          updateQuestion[f as keyof QuestionModel] = "";
+          updateQuestion[f as keyof Question] = "";
         }
         return true;
       }
@@ -223,7 +224,7 @@ export const deleteQuestionByIdQuery = async (
 
 export const getQuestionBySubTopicIdQuery = async (
   subTopicId: number
-): Promise<IQuestion[]> => {
+): Promise<Question[]> => {
   const result = await sequelize.query(
     `SELECT * FROM questions WHERE subtopic_id = :subtopic_id ORDER BY created_at DESC, id ASC`,
     {
@@ -237,7 +238,7 @@ export const getQuestionBySubTopicIdQuery = async (
 
 export const getQuestionByTopicIdQuery = async (
   topicId: number
-): Promise<IQuestion[]> => {
+): Promise<Question[]> => {
   const result = await sequelize.query(
     `SELECT * FROM questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
     {
@@ -275,7 +276,7 @@ export const createNewQuestionsQuery = async (
       :subtopic_id, :question, :answer_type, :evidence_required,
       :hint, :is_required, :priority_level, :answer, :order_no, :input_type
     ) RETURNING *`;
-  let createdQuestions: IQuestion[] = [];
+  let createdQuestions: Question[] = [];
   for (let question of questions) {
     const result = await sequelize.query(query, {
       replacements: {

@@ -11,11 +11,11 @@ type AllClauses = ClauseStructISOModel & {
   subClauses: SubClauses[];
 };
 
-export async function getClausesMarkdown(frameworkId: number): Promise<string> {
+export async function getClausesMarkdown(frameworkId: number, tenant: string): Promise<string> {
   let rows: string = ``;
   try {
     const reportData = (await getClausesReportQuery(
-      frameworkId
+      frameworkId, tenant
     )) as AllClauses[];
     rows =
       reportData.length > 0

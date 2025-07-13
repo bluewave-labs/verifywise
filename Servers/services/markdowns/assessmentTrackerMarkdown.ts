@@ -26,11 +26,13 @@ type AllTopics = TopicStructEU & {
 export async function getAssessmentTrackerMarkdown(
   projectId: number,
   frameworkId: number,
-  data: ReportBodyData
+  data: ReportBodyData,
+  tenant: string
 ): Promise<string> {
   const assessmentReportData = await getAssessmentTrackerReportData(
     projectId,
-    frameworkId
+    frameworkId,
+    tenant
   );
 
   const assessmentMD = `
@@ -56,13 +58,15 @@ ${assessmentReportData}
  */
 export async function getAssessmentTrackerReportData(
   projectId: number,
-  frameworkId: number
+  frameworkId: number,
+  tenant: string
 ): Promise<string> {
   let rows: string = ``;
   try {
     const reportData = (await getAssessmentReportQuery(
       projectId,
-      frameworkId
+      frameworkId,
+      tenant
     )) as AllTopics[];
 
     if (reportData.length > 0) {

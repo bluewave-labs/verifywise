@@ -1,36 +1,27 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { compileMjmlToHtml } from "../tools/mjmlCompiler";
 
-// Create a transporter object using the default SMTP transport
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587, // Use 587 for STARTTLS
-  secure: false, // Use TLS
-  auth: {
-    user: process.env.EMAIL_ID,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-  tls: {
-    ciphers: 'SSLv3'
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function to send an email
 export const sendEmail = async (
   to: string,
   subject: string,
-  text: string,
   template: string,
   data: Record<string, string>
 ) => {
   // Compile MJML template to HTML
   const html = compileMjmlToHtml(template, data);
 
+  if (!process.env.EMAIL_ID) {
+    throw new Error("Email ID is not set in environment variables");
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_ID,
-    to, subject, text, html
+    to, subject, html
   };
 
   // Send mail with defined transport object
-  return await transporter.sendMail(mailOptions);
+  return await resend.emails.send(mailOptions);
 };

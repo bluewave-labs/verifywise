@@ -21,7 +21,7 @@ export async function getAllQuestions(
   res: Response
 ): Promise<any> {
   try {
-    const questions = await getAllQuestionsQuery();
+    const questions = await getAllQuestionsQuery(req.tenantId!);
 
     if (questions) {
       return res.status(200).json(STATUS_CODE[200](questions));
@@ -40,7 +40,7 @@ export async function getQuestionById(
   try {
     const questionId = parseInt(req.params.id);
 
-    const question = await getQuestionByIdQuery(questionId);
+    const question = await getQuestionByIdQuery(questionId, req.tenantId!);
 
     if (question) {
       return res.status(200).json(STATUS_CODE[200](question));
@@ -76,6 +76,7 @@ export async function createQuestion(
 
     const createdQuestion = await createNewQuestionQuery(
       newQuestion,
+      req.tenantId!,
       transaction
     );
 
@@ -103,6 +104,7 @@ export async function updateQuestionById(
     const question = (await updateQuestionByIdQuery(
       questionId,
       body,
+      req.tenantId!,
       transaction
     )) as Question;
 
@@ -112,7 +114,7 @@ export async function updateQuestionById(
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "answers", transaction);
+    await updateProjectUpdatedByIdQuery(questionId, "answers", req.tenantId!, transaction);
     await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));
@@ -132,6 +134,7 @@ export async function deleteQuestionById(
 
     const deletedQuestion = await deleteQuestionByIdQuery(
       questionId,
+      req.tenantId!,
       transaction
     );
 
@@ -156,7 +159,7 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
         .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
     }
 
-    const questions = await getQuestionBySubTopicIdQuery(subtopicId);
+    const questions = await getQuestionBySubTopicIdQuery(subtopicId, req.tenantId!);
     if (questions && questions.length !== 0) {
       return res.status(200).json(STATUS_CODE[200](questions));
     }
@@ -180,7 +183,7 @@ export async function getQuestionsByTopicId(req: Request, res: Response) {
         .json(STATUS_CODE[400]({ message: "Invalid topic ID" }));
     }
 
-    const questions = await getQuestionByTopicIdQuery(topicId);
+    const questions = await getQuestionByTopicIdQuery(topicId, req.tenantId!);
     if (questions && questions.length !== 0) {
       return res.status(200).json(STATUS_CODE[200](questions));
     }

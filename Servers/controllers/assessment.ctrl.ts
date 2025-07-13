@@ -36,7 +36,7 @@ export async function getAllAssessments(
   res: Response
 ): Promise<any> {
   try {
-    const assessments = await getAllAssessmentsQuery();
+    const assessments = await getAllAssessmentsQuery(req.tenantId!);
 
     if (assessments) {
       return res.status(200).json(STATUS_CODE[200](assessments));
@@ -54,7 +54,7 @@ export async function getAssessmentById(
 ): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
-    const assessment = await getAssessmentByIdQuery(assessmentId);
+    const assessment = await getAssessmentByIdQuery(assessmentId, req.tenantId!);
 
     if (assessment) {
       return res.status(200).json(STATUS_CODE[200](assessment));
@@ -83,6 +83,13 @@ export async function createAssessment(
         })
       );
     }
+
+    // const createdAssessment = await createNewAssessmentQuery(
+    //   newAssessment,
+    //   false,
+    //   req.tenantId!,
+    //   transaction
+    // );
 
     // Use AssessmentModel's CreateNewAssessment method
     const createdAssessment = await AssessmentModel.CreateNewAssessment(
@@ -136,6 +143,13 @@ export async function updateAssessmentById(
       );
     }
 
+    // const assessment = await updateAssessmentByIdQuery(
+    //   assessmentId,
+    //   updatedAssessment,
+    //   req.tenantId!,
+    //   transaction
+    // );
+
     // Validate required fields
     if (!assessmentData.project_id) {
       return res.status(400).json(
@@ -188,6 +202,7 @@ export async function deleteAssessmentById(
     const assessmentId = parseInt(req.params.id);
     const deletedAssessment = await deleteAssessmentByIdQuery(
       assessmentId,
+      req.tenantId!,
       transaction
     );
 
@@ -207,18 +222,18 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
   try {
     const assessmentId = parseInt(req.params.id);
     const assessment = (await getAssessmentByIdQuery(
-      assessmentId
+      assessmentId, req.tenantId!
     )) as AssessmentModel;
     const topics = (await getTopicByAssessmentIdQuery(
-      assessment!.id!
+      assessment!.id!, req.tenantId!
     )) as TopicModel[];
     for (let topic of topics) {
       const subTopics = (await getSubTopicByTopicIdQuery(
-        topic.id!
+        topic.id!, req.tenantId!
       )) as SubtopicModel[];
 
       for (let subTopic of subTopics) {
-        const questions = await getQuestionBySubTopicIdQuery(subTopic.id!);
+        const questions = await getQuestionBySubTopicIdQuery(subTopic.id!, req.tenantId!);
         (subTopic.dataValues as any)["questions"] = questions;
       }
       (topic.dataValues as any)["subTopics"] = subTopics;
@@ -234,7 +249,7 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
 export async function getAssessmentByProjectId(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
   try {
-    const assessments = await getAssessmentByProjectIdQuery(projectId);
+    const assessments = await getAssessmentByProjectIdQuery(projectId, req.tenantId!);
     if (assessments && assessments.length !== 0) {
       return res.status(200).json(STATUS_CODE[200](assessments));
     } else {

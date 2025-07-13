@@ -22,9 +22,10 @@ export interface ProjectRiskProps {
 
 export async function getProjectRiskMarkdown (
     projectId: number,
-    data: ReportBodyData
+    data: ReportBodyData,
+    tenant: string
   ) : Promise<string> {
-  const reportData = await getProjectRiskReportData(projectId);
+  const reportData = await getProjectRiskReportData(projectId, tenant);
 
   const projectRiskMD = `
 ${data.organizationName || 'VerifyWise'} project risk report
@@ -49,11 +50,12 @@ ${reportData}
  * @returns Promise<string> - Project risk table markdown
  */
 export async function getProjectRiskReportData (
-  projectId: number
+  projectId: number,
+  tenant: string
 ) : Promise<string> {
   let rows: string =``;
   try {
-    const reportData = await getProjectRisksReportQuery(projectId) as ProjectRiskProps[];
+    const reportData = await getProjectRisksReportQuery(projectId, tenant) as ProjectRiskProps[];
 
     rows = (reportData.length > 0) 
     ? reportData.map((risk: ProjectRiskProps) => 

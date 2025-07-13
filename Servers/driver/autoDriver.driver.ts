@@ -19,11 +19,10 @@ import { HighRiskRole } from "../domain.layer/enums/high-risk-role.enum";
 import { AiRiskClassification } from "../domain.layer/enums/ai-risk-classification.enum";
 import { createAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
 
-export async function insertMockData(userId: number | null = null) {
+export async function insertMockData(tenant: string, organization: number, userId: number | null = null) {
   const transaction = await sequelize.transaction();
   try {
-    let users = (await getData("users", transaction)) as UserModel[];
-    console.log("insertMockData users ", users);
+    let users = (await getData("users", "public", transaction)) as UserModel[];
     if (users.length < 2) {
       let u1 = await createNewUserQuery(
         await UserModel.createNewUser(
@@ -31,7 +30,8 @@ export async function insertMockData(userId: number | null = null) {
           "Doe",
           `john.doe.${Date.now()}@example.com`,
           "MyJH4rTm!@.45L0wm",
-          1
+          1,
+          organization
         ),
         transaction,
         true // is demo
@@ -42,7 +42,8 @@ export async function insertMockData(userId: number | null = null) {
           "Smith",
           `alice.smith.${Date.now()}@example.com`,
           "MyJH4rTm!@.45L0wm",
-          2
+          2,
+          organization
         ),
         transaction,
         true // is demo
@@ -50,9 +51,7 @@ export async function insertMockData(userId: number | null = null) {
       users.push(u1, u2);
     }
 
-    let projects = (
-      (await getData("projects", transaction)) as ProjectModel[]
-    )[0];
+    let projects = ((await getData("projects", tenant, transaction)) as ProjectModel[])[0];
     if (!projects) {
       const owner = userId ?? users[0].id!;
       // create project
@@ -74,6 +73,7 @@ export async function insertMockData(userId: number | null = null) {
           return acc;
         }, []),
         [1, 2], // frameworks
+        tenant,
         transaction,
         true // is demo
       );
@@ -110,11 +110,12 @@ export async function insertMockData(userId: number | null = null) {
           approval_status: "In Progress",
           date_of_assessment: new Date(Date.now()),
         },
+        tenant,
         transaction
       );
 
       // create vendor
-      let vendor = ((await getData("vendors", transaction)) as Vendor[])[0];
+      let vendor = ((await getData("vendors", tenant, transaction)) as Vendor[])[0];
       if (!vendor) {
         vendor = await createNewVendorQuery(
           {
@@ -130,11 +131,12 @@ export async function insertMockData(userId: number | null = null) {
             risk_status: "Very high risk",
             review_date: new Date(Date.now()),
           },
+          tenant,
           transaction,
           true // is demo
         );
       } else {
-        await addVendorProjects(vendor.id!, [project.id!], transaction);
+        await addVendorProjects(vendor.id!, [project.id!], tenant, transaction);
       }
 
       // ---- no need of is demo
@@ -150,12 +152,13 @@ export async function insertMockData(userId: number | null = null) {
           action_owner: users[0].id!,
           risk_level: "High risk",
         },
+        tenant,
         transaction
       );
 
       // create eu framework
-      await createEUFrameworkQuery(project.id!, true, transaction, true);
-      await createISOFrameworkQuery(project.id!, true, transaction, true);
+      await createEUFrameworkQuery(project.id!, true, tenant, transaction, true);
+      await createISOFrameworkQuery(project.id!, true, tenant, transaction, true);
     } else {
       // project already exists, delete it and insert a new one
     }
@@ -216,18 +219,15 @@ export async function insertMockData(userId: number | null = null) {
   }
 }
 
-export async function deleteMockData() {
+export async function deleteMockData(tenant: string) {
   const transaction = await sequelize.transaction();
   try {
-    const demoProject = (await getData(
-      "projects",
-      transaction
-    )) as ProjectModel[];
+    const demoProject = (await getData("projects", tenant, transaction)) as ProjectModel[];
     for (let project of demoProject) {
-      await deleteProjectByIdQuery(project.id!, transaction);
+      await deleteProjectByIdQuery(project.id!, tenant, transaction);
     }
     // delete vendor related data
-    await deleteDemoVendorsData(transaction);
+    await deleteDemoVendorsData(tenant, transaction);
     
     // Delete AI Trust Centre demo data
     await sequelize.query(

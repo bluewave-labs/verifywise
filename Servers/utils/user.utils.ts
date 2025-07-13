@@ -53,10 +53,13 @@ import {
  *
  * @throws {Error} If there is an error executing the SQL query.
  */
-export const getAllUsersQuery = async (): Promise<UserModel[]> => {
+export const getAllUsersQuery = async (
+  organization_id: number
+): Promise<UserModel[]> => {
   const users = await sequelize.query(
-    "SELECT * FROM users ORDER BY created_at DESC, id ASC",
+    "SELECT * FROM users WHERE organization_id = :organization_id ORDER BY created_at DESC, id ASC",
     {
+      replacements: { organization_id }, // Assuming you want to fetch users without filtering by organization
       mapToModel: true,
       model: UserModel,
     }
@@ -132,12 +135,25 @@ export const getUserByEmailQuery = async (
  * ```
  */
 export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
-  const user = await sequelize.query("SELECT * FROM users WHERE id = :id", {
+  const user = await sequelize.query("SELECT * FROM public.users WHERE id = :id", {
     replacements: { id },
     mapToModel: true,
     model: UserModel,
   });
   return user[0];
+};
+
+export const doesUserBelongsToOrganizationQuery = async (
+  userId: number,
+  organizationId: number
+) => {
+  const result = await sequelize.query(
+    "SELECT COUNT(*) > 0 AS belongs FROM public.users WHERE id = :userId AND organization_id = :organizationId",
+    {
+      replacements: { userId, organizationId }
+    }
+  ) as [{ belongs: boolean }[], number];
+  return result[0][0];
 };
 
 /**
@@ -165,7 +181,7 @@ export const createNewUserQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<UserModel> => {
-  const { name, surname, email, password_hash, role_id } = user;
+  const { name, surname, email, password_hash, role_id, organization_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
@@ -178,8 +194,8 @@ export const createNewUserQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo)
-        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo) RETURNING *`,
+      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id)
+        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo, :organization_id) RETURNING *`,
       {
         replacements: {
           name,
@@ -190,6 +206,7 @@ export const createNewUserQuery = async (
           created_at,
           last_login,
           is_demo,
+          organization_id
         },
         mapToModel: true,
         model: UserModel,

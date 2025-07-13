@@ -9,9 +9,16 @@ export interface IQuestion {
   evidence_required: boolean; // gets assigned from the structure
   is_required: boolean; // gets assigned from the structure
   dropdown_options?: any[]; // gets assigned from the structure
-  evidence_files?: Object[]; // gets assigned from the structure
+  evidence_files?: {
+    id: string;
+    fileName: string;
+    project_id: number;
+    uploaded_by: number;
+    uploaded_time: Date;
+  }[]; // gets assigned from the structure
   answer?: string; // won't get any values, will be filled by user
   subtopic_id: number; // when subtopic is created, its id will be stored and assign here as FK
+  is_demo?: boolean;
   created_at?: Date;
   status?: "Not started" | "In progress" | "Done";
 }

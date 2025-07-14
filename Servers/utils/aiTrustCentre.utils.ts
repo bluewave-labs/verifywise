@@ -13,7 +13,8 @@ import { IAITrustCentreResources } from "../domain.layer/interfaces/i.aiTrustCen
 import { IAITrustCentreSubprocessors } from "../domain.layer/interfaces/i.aiTrustCentreSubprocessors";
 import { IAITrustCentrePublic } from "../domain.layer/interfaces/i.aiTrustCentrePublic";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
-import { deleteFileById } from "./fileUpload.utils";
+import { deleteFileById, uploadFile } from "./fileUpload.utils";
+import { UploadedFile } from "./question.utils";
 
 export const getIsVisibleQuery = async (
   tenant: string
@@ -196,6 +197,29 @@ export const createAITrustCentreSubprocessorQuery = async (
   return result[0];
 }
 
+export const uploadCompanyLogoQuery = async (
+  file: number,
+  tenant: string,
+  transaction: Transaction
+) => {
+  const currentLogo = await sequelize.query(
+    `SELECT logo FROM "${tenant}".ai_trust_center LIMIT 1;`,
+    { transaction }
+  ) as [{ logo: number }[], number];
+  const deleteFileId = currentLogo[0][0]?.logo;
+
+  const result = await sequelize.query(
+    `UPDATE "${tenant}".ai_trust_center SET logo = :fileId RETURNING logo;`,
+    { replacements: { fileId: file }, transaction }
+  ) as [{ file_id: number }[], number];
+
+  if (deleteFileId) {
+    await deleteFileById(deleteFileId, tenant, transaction);
+  }
+
+  return result[0][0];
+}
+
 export const updateAITrustCentreOverviewQuery = async (
   overview: Partial<IAITrustCentreOverview>,
   tenant: string,
@@ -205,7 +229,7 @@ export const updateAITrustCentreOverviewQuery = async (
 
   const metadata = [
     { key: "intro", tableName: "ai_trust_center_intro", columns: ["purpose_visible", "purpose_text", "our_statement_visible", "our_statement_text", "our_mission_visible", "our_mission_text"] },
-    { key: "compliance_badges", tableName: "ai_trust_center_compliance_badges", columns: ["SOC2_Type_I", "SOC2_Type_II", "ISO_27001", "ISO_42001", "CCPA", "GDPR", "HIPAA", "EU_AI_Act"] },
+    { key: "compliance_badges", tableName: "ai_trust_center_compliance_badges", columns: ["soc2_type_i", "SOC2_type_ii", "iso_27001", "iso_42001", "ccpa", "gdpr", "hipaa", "eu_ai_act"] },
     { key: "company_description", tableName: "ai_trust_center_company_description", columns: ["background_visible", "background_text", "core_benefits_visible", "core_benefits_text", "compliance_doc_visible", "compliance_doc_text"] },
     { key: "terms_and_contact", tableName: "ai_trust_center_terms_and_contact", columns: ["terms_visible", "terms_text", "privacy_visible", "privacy_text", "email_visible", "email_text"] },
     { key: "info", tableName: "ai_trust_center", columns: ["title", "header_color", "visible", "intro_visible", "compliance_badges_visible", "company_description_visible", "terms_and_contact_visible", "resources_visible", "subprocessor_visible"] }
@@ -218,7 +242,7 @@ export const updateAITrustCentreOverviewQuery = async (
         .filter((f) => {
           const section = overview[key as keyof IAITrustCentreOverview];
           if (section && (section as Record<string, any>)[f] !== undefined) {
-            updatedData[f] = (section as Record<string, any>)[f];
+            updatedData[f] = (section as Record<string, any>)[f.toLowerCase()];
             return true;
           }
         })

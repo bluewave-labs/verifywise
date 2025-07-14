@@ -23,14 +23,14 @@ export interface IAITrustCentreOverview {
   },
   compliance_badges: {
     id?: number;
-    SOC2_Type_I: boolean;
-    SOC2_Type_II: boolean;
-    ISO_27001: boolean;
-    ISO_42001: boolean;
-    CCPA: boolean;
-    GDPR: boolean;
-    HIPAA: boolean;
-    EU_AI_Act: boolean;
+    soc2_type_i: boolean;
+    soc2_type_ii: boolean;
+    iso_27001: boolean;
+    isoISO_42001: boolean;
+    ccpa: boolean;
+    gdpr: boolean;
+    hipaa: boolean;
+    eu_ai_act: boolean;
   },
   company_description: {
     id?: number;

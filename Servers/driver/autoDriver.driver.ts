@@ -186,14 +186,14 @@ export async function insertMockData(tenant: string, organization: number, userI
         our_mission_text: 'To build trust through responsible AI innovation and transparent governance. We strive to be the gold standard in AI ethics and compliance, ensuring our technology serves humanity while protecting individual rights and privacy.'
       },
       compliance_badges: {
-        SOC2_Type_I: true,
-        SOC2_Type_II: true,
-        ISO_27001: true,
-        ISO_42001: true,
-        CCPA: true,
-        GDPR: true,
-        HIPAA: true,
-        EU_AI_Act: true
+        soc2_type_i: true,
+        soc2_type_ii: true,
+        iso_27001: true,
+        isoISO_42001: true,
+        ccpa: true,
+        gdpr: true,
+        hipaa: true,
+        eu_ai_act: true
       },
       company_description: {
         background_visible: true,

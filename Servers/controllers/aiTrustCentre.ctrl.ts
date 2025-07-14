@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
-import { createAITrustCentreResourceQuery, createAITrustCentreSubprocessorQuery, deleteAITrustCentreResourceQuery, deleteAITrustCentreSubprocessorQuery, getAITrustCentreOverviewQuery, getAITrustCentrePublicPageQuery, getAITrustCentreResourcesQuery, getAITrustCentreSubprocessorsQuery, updateAITrustCentreOverviewQuery, updateAITrustCentreResourceQuery, updateAITrustCentreSubprocessorQuery } from "../utils/aiTrustCentre.utils";
+import { createAITrustCentreResourceQuery, createAITrustCentreSubprocessorQuery, deleteAITrustCentreResourceQuery, deleteAITrustCentreSubprocessorQuery, getAITrustCentreOverviewQuery, getAITrustCentrePublicPageQuery, getAITrustCentreResourcesQuery, getAITrustCentreSubprocessorsQuery, updateAITrustCentreOverviewQuery, updateAITrustCentreResourceQuery, updateAITrustCentreSubprocessorQuery, uploadCompanyLogoQuery } from "../utils/aiTrustCentre.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { IAITrustCentreOverview } from "../domain.layer/interfaces/i.aiTrustCentreOverview";
@@ -81,6 +81,7 @@ export async function createAITrustResource(
   try {
     const body = req.body as Partial<IAITrustCentreResources>;
 
+    console.log(req.files);
     const file = await uploadFile((req.files as UploadedFile[])[0], req.userId!, null, "AI trust center group", req.tenantId!, transaction);
 
     if (!file || !file.id) {
@@ -152,6 +153,60 @@ export async function createAITrustSubprocessor(
       return res.status(503).json(
         STATUS_CODE[503]({
           message: "Failed to create AI Trust Centre subprocessor",
+        })
+      );
+    }
+  } catch (error) {
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function uploadCompanyLogo(
+  req: RequestWithFile,
+  res: Response
+) {
+  const transaction = await sequelize.transaction();
+  try {
+    const attachment = (req.file as UploadedFile);
+
+    if (!attachment || attachment.mimetype.includes("image/") === false) {
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "Invalid file, please upload an image file.",
+        })
+      );
+    }
+
+    const file = await uploadFile(attachment, req.userId!, null, "AI trust center group", req.tenantId!, transaction);
+    const fileId = file?.id || undefined;
+
+    if (!fileId) {
+      await transaction.rollback();
+      return res.status(400).json(
+        STATUS_CODE[400]({
+          message: "File upload failed",
+        })
+      );
+    }
+
+    const upload = await uploadCompanyLogoQuery(
+      fileId,
+      req.tenantId!,
+      transaction
+    )
+
+    if (upload) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200]({
+        message: "Company logo uploaded successfully",
+        ...upload
+      }));
+    } else {
+      await transaction.rollback();
+      return res.status(503).json(
+        STATUS_CODE[503]({
+          message: "Failed to upload company logo",
         })
       );
     }

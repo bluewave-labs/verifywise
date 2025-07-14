@@ -25,55 +25,55 @@ export class AITrustCenterComplianceBadgesModel extends Model<AITrustCenterCompl
     allowNull: false,
     defaultValue: true,
   })
-  SOC2_Type_I!: boolean;
+  soc2_type_i!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  SOC2_Type_II!: boolean;
+  soc2_type_ii!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  ISO_27001!: boolean;
+  iso_27001!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  ISO_42001!: boolean;
+  isoISO_42001!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  CCPA!: boolean;
+  ccpa!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  GDPR!: boolean;
+  gdpr!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  HIPAA!: boolean;
+  hipaa!: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  EU_AI_Act!: boolean;
+  eu_ai_act!: boolean;
 
 }

@@ -65,6 +65,7 @@ export interface RequestWithFile extends Request {
   | {
     [key: string]: UploadedFile[];
   };
+  file?: UploadedFile;
 }
 
 export interface UploadedFile {

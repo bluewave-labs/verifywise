@@ -316,11 +316,11 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
   }
 }
 
-export async function getProjecById(req: Request, res: Response): Promise<any> {
+export async function getProjectStatsById(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
   logProcessing({
-    description: `starting getProjecById for project ID ${projectId}`,
-    functionName: "getProjecById",
+    description: `starting getProjectStatsById for project ID ${projectId}`,
+    functionName: "getProjectStatsById",
     fileName: "projec.ctrl.ts",
   });
 
@@ -345,7 +345,7 @@ export async function getProjecById(req: Request, res: Response): Promise<any> {
     await logSuccess({
       eventType: "Read",
       description: `Retrieved project stats for project ID ${projectId}`,
-      functionName: "getProjecById",
+      functionName: "getProjectStatsById",
       fileName: "projec.ctrl.ts",
     });
 
@@ -354,7 +354,7 @@ export async function getProjecById(req: Request, res: Response): Promise<any> {
     await logFailure({
       eventType: "Read",
       description: "Failed to retrieve project stats",
-      functionName: "getProjecById",
+      functionName: "getProjectStatsById",
       fileName: "projec.ctrl.ts",
       error: error as Error,
     });

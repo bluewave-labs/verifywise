@@ -5,32 +5,46 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
 
-from .config import ConfigManager, HuggingFaceModelConfig
+from .config import HuggingFaceModelConfig
 
 
 class ModelLoader:
     """Handles loading and inference for language models."""
 
-    def __init__(self, config_manager: Optional[ConfigManager] = None):
+    def __init__(
+        self,
+        model_id: str,
+        device: str = "cuda",
+        max_length: int = 512,
+        temperature: float = 0.7,
+        top_p: float = 0.9,
+    ):
         """Initialize the model loader.
 
         Args:
-            config_manager (Optional[ConfigManager]): Configuration manager instance.
-                If None, uses the default config manager.
+            model_id (str): Hugging Face model ID
+            device (str, optional): Device to load model on. Defaults to "cuda".
+            max_length (int, optional): Maximum sequence length. Defaults to 512.
+            temperature (float, optional): Sampling temperature. Defaults to 0.7.
+            top_p (float, optional): Top-p sampling parameter. Defaults to 0.9.
         """
-        if config_manager is None:
-            config_manager = ConfigManager()
+        self.model_config = HuggingFaceModelConfig(
+            enabled=True,
+            model_id=model_id,
+            device=device,
+            max_length=max_length,
+            temperature=temperature,
+            top_p=top_p,
+        )
 
-        self.config = config_manager.get_model_config()
         self.model: Optional[PreTrainedModel] = None
         self.tokenizer: Optional[PreTrainedTokenizer] = None
 
-        if self.config.huggingface.enabled:
-            self._initialize_huggingface_model()
+        self._initialize_huggingface_model()
 
     def _initialize_huggingface_model(self) -> None:
         """Initialize the Hugging Face model and tokenizer."""
-        config = self.config.huggingface
+        config = self.model_config
 
         # Set device
         device = config.device
@@ -63,20 +77,11 @@ class ModelLoader:
         """
         return f"<|system|>You are a helpful AI assistant.<|user|>{prompt}<|assistant|>"
 
-    def generate(
-        self,
-        prompts: Union[str, List[str]],
-        max_length: Optional[int] = None,
-        temperature: Optional[float] = None,
-        top_p: Optional[float] = None,
-    ) -> List[str]:
-        """Generate responses for the given prompts.
+    def predict(self, prompts: Union[str, List[str]]) -> List[str]:
+        """Generate responses for the given prompts using model configuration parameters.
 
         Args:
-            prompts (Union[str, List[str]]): Input prompt(s) for generation
-            max_length (Optional[int]): Override config max_length if provided
-            temperature (Optional[float]): Override config temperature if provided
-            top_p (Optional[float]): Override config top_p if provided
+            prompts (Union[str, List[str]]): Input prompt(s) for prediction
 
         Returns:
             List[str]: Generated responses
@@ -95,10 +100,7 @@ class ModelLoader:
         formatted_prompts = [self._format_prompt(p) for p in prompts]
 
         # Get generation config from model config
-        config = self.config.huggingface
-        max_length = max_length or config.max_length
-        temperature = temperature or config.temperature
-        top_p = top_p or config.top_p
+        config = self.model_config
 
         # Tokenize inputs
         inputs = self.tokenizer(
@@ -114,9 +116,9 @@ class ModelLoader:
             generation_kwargs = {
                 "input_ids": inputs["input_ids"],
                 "attention_mask": inputs.get("attention_mask", None),
-                "max_new_tokens": max_length,
-                "temperature": temperature,
-                "top_p": top_p,
+                "max_new_tokens": config.max_length,
+                "temperature": config.temperature,
+                "top_p": config.top_p,
                 "do_sample": True,
                 "pad_token_id": self.tokenizer.pad_token_id,
                 "eos_token_id": self.tokenizer.eos_token_id,

@@ -185,13 +185,6 @@ export const createNewUserQuery = async (
   const created_at = new Date();
   const last_login = new Date();
 
-  if (role_id === 1) {
-    const organizations = await getAllOrganizationsQuery(transaction);
-    if (organizations.length === 0) {
-      await createOrganizationQuery({ name: "My Organization" }, transaction);
-    }
-  }
-
   try {
     const result = await sequelize.query(
       `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id)

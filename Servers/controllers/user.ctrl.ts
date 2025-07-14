@@ -45,19 +45,16 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
       req.organizationId!
     )) as UserModel[];
 
-    if (users && users.length > 0) {
-      await logEvent('Read', `Retrieved ${users.length} users`);
+    if (users && users.length > 0) {   
       return res
         .status(200)
         .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
-    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts');
-    await logEvent('Read', 'No users found');
+    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts'); 
     return res.status(204).json(STATUS_CODE[204](users));
   } catch (error) {
-    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');
-    await logEvent('Error', `Failed to retrieve users: ${(error as Error).message}`);
+    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');  
     logger.error('❌ Error in getAllUsers:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -74,17 +71,14 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
-      await logEvent('Read', `User retrieved by email: ${email}`);
+      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');   
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
-    await logEvent('Read', `No user found with email: ${email}`);
+    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
-    await logEvent('Error', `Failed to retrieve user by email: ${email}`);
+    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
     logger.error('❌ Error in getUserByEmail:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -99,17 +93,14 @@ async function getUserById(req: Request, res: Response) {
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
-      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
-      await logEvent('Read', `User retrieved by ID: ${id}`);
+      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');      
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
-    await logEvent('Read', `No user found with ID: ${id}`);
+    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Failed to retrieve user by ID: ${id}`);
+    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
     logger.error('❌ Error in getUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -282,7 +273,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         });
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
-        await logEvent('Read', `User logged in: ${email}`, user.id);
+       
 
         return res.status(202).json(
           STATUS_CODE[202]({
@@ -290,18 +281,15 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           })
         );
       } else {
-        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
-        await logEvent('Error', `Password mismatch for ${email}`);
+        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');      
         return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
       }
     }
 
-    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
-    await logEvent('Error', `Login failed — user not found: ${email}`);
+    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');  
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
-    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected login error for ${email}: ${(error as Error).message}`);
+    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');   
     logger.error('❌ Error in loginUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -315,22 +303,19 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');
-      await logEvent('Error', 'Refresh token missing in request');
+      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');     
       return res.status(400).json(STATUS_CODE[400]('Refresh token is required'));
     }
 
     const decoded = getRefreshTokenPayload(refreshToken);
 
     if (!decoded) {
-      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');
-      await logEvent('Error', 'Invalid refresh token used');
+      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');    
       return res.status(401).json(STATUS_CODE[401]('Invalid refresh token'));
     }
 
     if (decoded.expire < Date.now()) {
-      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');
-      await logEvent('Error', `Expired refresh token used by ${decoded.email}`);
+      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');     
       return res.status(406).json(STATUS_CODE[406]({ message: 'Token expired' }));
     }
 
@@ -342,8 +327,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       organizationId: decoded.organizationId,
     });
 
-    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');
-    await logEvent('Read', `Access token refreshed for ${decoded.email}`);
+    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');   
 
     return res.status(200).json(
       STATUS_CODE[200]({
@@ -351,8 +335,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       })
     );
   } catch (error) {
-    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during token refresh: ${(error as Error).message}`);
+    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');  
     logger.error('❌ Error in refreshAccessToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -609,8 +592,7 @@ async function calculateProgress(
       });
     }
 
-    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
-    await logEvent('Read', `Progress calculated for user ID ${id}`);
+    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
 
     return res.status(200).json({
       assessmentsMetadata,
@@ -621,8 +603,7 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
-    await logEvent('Error', `Progress calculation failed for user ID ${id}: ${(error as Error).message}`);
+    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
     logger.error('❌ Error in calculateProgress:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }

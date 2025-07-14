@@ -12,9 +12,9 @@ import {
   getQuestionBySubTopicIdQuery,
   getQuestionByTopicIdQuery,
 } from "../utils/question.utils";
-import { Question } from "../domain.layer/models/question/question.model";
 import { updateProjectUpdatedByIdQuery } from "../utils/project.utils";
 import { sequelize } from "../database/db";
+import { QuestionModel } from "../domain.layer/models/question/question.model";
 
 export async function getAllQuestions(
   req: Request,
@@ -58,7 +58,7 @@ export async function createQuestion(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const newQuestion: Question = req.body;
+    const newQuestion: QuestionModel = req.body;
 
     if (
       !newQuestion.subtopic_id ||
@@ -99,14 +99,14 @@ export async function updateQuestionById(
   const transaction = await sequelize.transaction();
   try {
     const questionId = parseInt(req.params.id);
-    const body: Partial<Question> = req.body;
+    const body: Partial<QuestionModel> = req.body;
 
     const question = (await updateQuestionByIdQuery(
       questionId,
       body,
       req.tenantId!,
       transaction
-    )) as Question;
+    )) as QuestionModel;
 
     if (!question) {
       await transaction.rollback();
@@ -114,7 +114,12 @@ export async function updateQuestionById(
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "answers", req.tenantId!, transaction);
+    await updateProjectUpdatedByIdQuery(
+      questionId,
+      "answers",
+      req.tenantId!,
+      transaction
+    );
     await transaction.commit();
 
     return res.status(202).json(STATUS_CODE[202](question));
@@ -159,7 +164,10 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
         .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
     }
 
-    const questions = await getQuestionBySubTopicIdQuery(subtopicId, req.tenantId!);
+    const questions = await getQuestionBySubTopicIdQuery(
+      subtopicId,
+      req.tenantId!
+    );
     if (questions && questions.length !== 0) {
       return res.status(200).json(STATUS_CODE[200](questions));
     }

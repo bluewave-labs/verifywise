@@ -22,28 +22,6 @@ export async function getAITrustCentreOverview(
 }
 
 /**
- * Creates a new AI Trust Center overview.
- *
- * @param {any} data - The AI Trust Center overview data to be created.
- * @param {string} [authToken=getAuthToken()] - Optional auth token.
- * @returns {Promise<any>} The response from the API.
- */
-export async function createAITrustCentreOverview(
-  data: any,
-  authToken = getAuthToken()
-): Promise<any> {
-  try {
-    const response = await apiServices.post("/aiTrustCentre/overview", data, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error creating AI Trust Center overview:", error);
-    throw error;
-  }
-}
-
-/**
  * Updates the AI Trust Center overview.
  *
  * @param {any} data - The AI Trust Center overview data to be updated.
@@ -63,4 +41,32 @@ export async function updateAITrustCentreOverview(
     console.error("Error updating AI Trust Center overview:", error);
     throw error;
   }
-} 
+}
+
+/**
+ * Uploads the AI Trust Center logo.
+ *
+ * @param {File} logoFile - The logo file to upload.
+ * @param {string} [authToken=getAuthToken()] - Optional auth token.
+ * @returns {Promise<any>} The response from the API.
+ */
+export async function uploadAITrustCentreLogo(
+  logoFile: File,
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const formData = new FormData();
+    formData.append('logo', logoFile);
+
+    const response = await apiServices.post("/aiTrustCentre/logo", formData, {
+      headers: { 
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "multipart/form-data"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading AI Trust Center logo:", error);
+    throw error;
+  }
+}

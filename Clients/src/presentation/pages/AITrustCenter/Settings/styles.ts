@@ -135,9 +135,6 @@ export const useStyles = () => {
       height: 34,
       borderRadius: 2,
       background: 'transparent',
-      '&:hover': {
-        background: theme.palette.error.light,
-      },
     },
     replaceButton: {
       color: theme.palette.text.primary,

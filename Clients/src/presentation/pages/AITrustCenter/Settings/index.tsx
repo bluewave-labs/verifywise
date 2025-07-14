@@ -5,7 +5,9 @@ import Toggle from '../../../components/Inputs/Toggle';
 import Field from '../../../components/Inputs/Field';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import SaveIcon from '@mui/icons-material/Save';
+import DualButtonModal from '../../../vw-v2-components/Dialogs/DualButtonModal';
 import { useAITrustCentreOverview } from "../../../../application/hooks/useAITrustCentreOverview";
+import { uploadAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";
 
 const AITrustCenterSettings: React.FC = () => {
   const styles = useStyles();
@@ -14,6 +16,9 @@ const AITrustCenterSettings: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const [originalData, setOriginalData] = React.useState<any>(null);
   const [formData, setFormData] = React.useState<any>(null);
+  const [logoUploading, setLogoUploading] = React.useState(false);
+  const [logoError, setLogoError] = React.useState<string | null>(null);
+  const [isRemoveLogoModalOpen, setIsRemoveLogoModalOpen] = React.useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -55,20 +60,63 @@ const AITrustCenterSettings: React.FC = () => {
     });
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      // reader.onload = (ev) => setLogo(ev.target?.result as string);
-      reader.readAsDataURL(file);
+      setLogoUploading(true);
+      setLogoError(null);
+      
+      try {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          throw new Error('Please select a valid image file');
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error('File size must be less than 5MB');
+        }
+
+        const response = await uploadAITrustCentreLogo(file);
+        console.log('Logo uploaded successfully:', response);
+        
+        // Update the form data with the new logo URL if provided in response
+        if (response?.data?.logo_url) {
+          setFormData((prev: any) => ({
+            ...prev,
+            info: {
+              ...prev?.info,
+              logo_url: response.data.logo_url,
+            },
+          }));
+        }
+        
+        // Show success message
+        setSaveSuccess(true);
+      } catch (error: any) {
+        console.error('Error uploading logo:', error);
+        setLogoError(error.message || 'Failed to upload logo');
+      } finally {
+        setLogoUploading(false);
+        // Clear the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
     }
   };
 
-  const handleRemoveLogo = () => {
-    // setLogo(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const handleRemoveLogo = async () => {
+    setIsRemoveLogoModalOpen(true);
   };
 
+  const handleRemoveLogoConfirm = async () => {
+    // TO Do
+  };
+
+  const handleRemoveLogoCancel = () => {
+    setIsRemoveLogoModalOpen(false);
+  };
 
   const handleSave = async () => {
     if (!formData) return;
@@ -99,6 +147,10 @@ const AITrustCenterSettings: React.FC = () => {
 
   const handleSuccessClose = () => {
     setSaveSuccess(false);
+  };
+
+  const handleLogoErrorClose = () => {
+    setLogoError(null);
   };
 
   // Show loading state while data is being fetched
@@ -147,19 +199,22 @@ const AITrustCenterSettings: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: 2,
-              background: 'linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%)',
+              background: formData?.info?.logo_url 
+                ? `url(${formData.info.logo_url}) center/contain no-repeat`
+                : 'linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%)',
               color: '#333',
               fontWeight: 600,
               fontSize: 16,
               boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
             }}>
+              {/* {!formData?.info?.logo_url && 'Logo'} */}
             </Box>
             <MUIButton
               variant="outlined"
               component="label"
               sx={styles.replaceButton}
             >
-              Replace
+              {logoUploading ? <CircularProgress size={20} /> : 'Replace'}
               <input
                 type="file"
                 accept="image/*"
@@ -230,7 +285,7 @@ const AITrustCenterSettings: React.FC = () => {
       {/* Save Button Row */}
       <Stack>
         <CustomizableButton
-           sx={{
+          sx={{
             ...styles.saveButton,
             backgroundColor: hasUnsavedChanges ? "#13715B" : "#ccc",
             border: `1px solid ${hasUnsavedChanges ? "#13715B" : "#ccc"}`,
@@ -242,6 +297,8 @@ const AITrustCenterSettings: React.FC = () => {
           text="Save"
         />
       </Stack>
+      
+      {/* Success Snackbar */}
       <Snackbar
         open={saveSuccess}
         autoHideDuration={4000}
@@ -264,6 +321,49 @@ const AITrustCenterSettings: React.FC = () => {
           Settings saved successfully
         </Alert>
       </Snackbar>
+
+      {/* Error Snackbar for Logo Upload */}
+      <Snackbar
+        open={!!logoError}
+        autoHideDuration={6000}
+        onClose={handleLogoErrorClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleLogoErrorClose} 
+          severity="error" 
+          sx={{ 
+            width: '100%',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            '& .MuiAlert-icon': {
+              color: '#dc2626',
+            }
+          }}
+        >
+          {logoError}
+        </Alert>
+      </Snackbar>
+
+      {/* Remove Logo Confirmation Modal */}
+      {isRemoveLogoModalOpen && (
+        <DualButtonModal
+          title="Confirm Logo Removal"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to remove the company logo? This action cannot be undone.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Remove"
+          onCancel={handleRemoveLogoCancel}
+          onProceed={handleRemoveLogoConfirm}
+          proceedButtonColor="error"
+          proceedButtonVariant="contained"
+          TitleFontSize={0}
+        />
+      )}
     </Box>
   );
 };

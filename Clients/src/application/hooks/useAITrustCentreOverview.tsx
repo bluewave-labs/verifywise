@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAITrustCentreOverview, createAITrustCentreOverview, updateAITrustCentreOverview } from '../repository/aiTrustCentre.repository';
+import { getAITrustCentreOverview, updateAITrustCentreOverview } from '../repository/aiTrustCentre.repository';
 
 interface AITrustCentreOverviewData {
   info?: {
@@ -55,7 +55,6 @@ interface UseAITrustCentreOverviewReturn {
   loading: boolean;
   error: string | null;
   fetchOverview: () => Promise<any>;
-  saveOverview: (data: AITrustCentreOverviewData) => Promise<void>;
   updateOverview: (data: Partial<AITrustCentreOverviewData>) => Promise<void>;
 }
 
@@ -81,23 +80,6 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     } catch (err: any) {
       setError(err.message || 'Failed to fetch AI Trust Centre overview');
       console.error('Error fetching AI Trust Centre overview:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const saveOverview = useCallback(async (overviewData: AITrustCentreOverviewData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await createAITrustCentreOverview(overviewData);
-      if (response && response.data) {
-        setData(response.data);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to save AI Trust Centre overview');
-      console.error('Error saving AI Trust Centre overview:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -131,7 +113,6 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     loading,
     error,
     fetchOverview,
-    saveOverview,
     updateOverview,
   };
 }; 

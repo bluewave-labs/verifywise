@@ -1,0 +1,74 @@
+name: Build and Push Images to GitHub Container Registry
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-push:
+    if: ${{ startsWith(github.event.release.tag_name, 'saas-') }}
+    runs-on: ubuntu-latest
+
+    env:
+      FULL_TAG: ${{ github.event.release.tag_name }}
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Extract Tag Name
+        id: get_tag
+        run: echo "TAG=${FULL_TAG#saas-}" >> $GITHUB_ENV
+
+      - name: Debug GitHub Token Access
+        run: |
+          if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
+            echo "GITHUB_TOKEN is NOT available"
+            exit 1
+          else
+            echo "GITHUB_TOKEN is available"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Clients image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Clients
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:latest
+
+      - name: Build and push Servers image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Servers
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-backend-saas:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/verifywise-backend-saas:latest
+
+      - name: Build and push BiasAndFairnessServers image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./BiasAndFairnessServers
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:${{ env.TAG }}
+            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:latest

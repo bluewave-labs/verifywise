@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { getTokenPayload } from "../utils/jwt.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
+import { getTenantHash } from "../tools/getTenantHash";
+import { doesUserBelongsToOrganizationQuery } from "../utils/user.utils";
 import { asyncLocalStorage } from '../utils/context/context';
 
 const authenticateJWT = async (
@@ -42,9 +44,21 @@ const authenticateJWT = async (
     ) {
       return res.status(400).json({ message: 'Invalid token' });
     }
+
+    const belongs = await doesUserBelongsToOrganizationQuery(decoded.id, decoded.organizationId);
+    if (!belongs.belongs) {
+      return res.status(403).json({ message: 'User does not belong to this organization' });
+    }
+
+    if (decoded.tenantId !== getTenantHash(decoded.organizationId)) {
+      return res.status(400).json({ message: 'Invalid token' });
+    }
+
     req.userId = decoded.id;
     req.role = decoded.roleName;
-    
+    req.tenantId = decoded.tenantId;
+    req.organizationId = decoded.organizationId;
+
     // Initialize AsyncLocalStorage context here
     asyncLocalStorage.run({ userId: decoded.id }, () => {
       next();

@@ -23,10 +23,11 @@ type AllAnnexes = AnnexStructISOModel & {
 
 export async function getClausesAndAnnexesMarkdown(
   projectFrameworkId: number,
-  data: ReportBodyData
+  data: ReportBodyData,
+  tenant: string
 ): Promise<string> {
   const clausesAndAnnexesReportData = await getClausesAndAnnexesReportData(
-    projectFrameworkId
+    projectFrameworkId, tenant
   );
 
   const markdown = `
@@ -45,15 +46,16 @@ ${clausesAndAnnexesReportData}
 }
 
 export async function getClausesAndAnnexesReportData(
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<string> {
   let annexRows: string = ``;
   let clausesReportData: string = ``;
   try {
     const annexesReportData = (await getAnnexesReportQuery(
-      projectFrameworkId
+      projectFrameworkId, tenant
     )) as AllAnnexes[];
-    clausesReportData = await getClausesMarkdown(projectFrameworkId);
+    clausesReportData = await getClausesMarkdown(projectFrameworkId, tenant);
 
     if (annexesReportData.length > 0) {
       annexRows = annexesReportData

@@ -11,7 +11,7 @@ import { RequestParams } from "../../domain/interfaces/iRequestParams";
  * @throws Will throw an error if the request fails.
  */
 export async function GetMyOrganization({
-  routeUrl = "/organizations",
+  routeUrl,
   signal,
   authToken = getAuthToken(),
   responseType = "json",

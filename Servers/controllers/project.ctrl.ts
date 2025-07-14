@@ -37,24 +37,25 @@ export async function getAllProjects(
     const projects = (await getAllProjectsQuery({
       userId,
       role,
-    })) as IProjectAttributes[];
+    }, req.tenantId!)) as IProjectAttributes[];
 
     if (projects && projects.length > 0) {
-      await Promise.all(
-        projects.map(async (project) => {
-          // calculating compliances
-          const { totalSubcontrols, doneSubcontrols } =
-            await countSubControlsByProjectId(project.id!);
-          project.totalSubcontrols = parseInt(totalSubcontrols);
-          project.doneSubcontrols = parseInt(doneSubcontrols);
+      // await Promise.all(
+      //   projects.map(async (project) => {
+      //     // calculating compliances
+      //     const { totalSubcontrols, doneSubcontrols } =
+      //       await countSubControlsByProjectId(project.id!, req.tenantId!);
+      //     project.dataValues.totalSubcontrols = parseInt(totalSubcontrols);
+      //     project.dataValues.doneSubcontrols = parseInt(doneSubcontrols);
 
-          // calculating assessments
-          const { totalAssessments, answeredAssessments } =
-            await countAnswersByProjectId(project.id!);
-          project.totalAssessments = parseInt(totalAssessments);
-          project.answeredAssessments = parseInt(answeredAssessments);
-        })
-      );
+      //     // calculating assessments
+      //     const { totalAssessments, answeredAssessments } =
+      //       await countAnswersByProjectId(project.id!, req.tenantId!);
+      //     project.dataValues.totalAssessments = parseInt(totalAssessments);
+      //     project.dataValues.answeredAssessments =
+      //       parseInt(answeredAssessments);
+      //   })
+      // );
       return res.status(200).json(STATUS_CODE[200](projects));
     } else {
       return res.status(200).json(STATUS_CODE[200](projects));
@@ -72,7 +73,7 @@ export async function getProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    const project = await getProjectByIdQuery(projectId);
+    const project = await getProjectByIdQuery(projectId, req.tenantId!);
 
     if (project) {
       return res.status(200).json(STATUS_CODE[200](project));
@@ -108,6 +109,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       newProject,
       newProject.members,
       newProject.framework,
+      req.tenantId!,
       transaction
     );
     const frameworks: { [key: string]: Object } = {};
@@ -116,6 +118,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         const eu = await createEUFrameworkQuery(
           createdProject.id!,
           newProject.enable_ai_data_insertion,
+          req.tenantId!,
           transaction
         );
         frameworks["eu"] = eu;
@@ -123,6 +126,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         const iso42001 = await createISOFrameworkQuery(
           createdProject.id!,
           newProject.enable_ai_data_insertion, // false
+          req.tenantId!,
           transaction
         );
         frameworks["iso42001"] = iso42001;
@@ -172,6 +176,7 @@ export async function updateProjectById(
       projectId,
       updatedProject,
       members,
+      req.tenantId!,
       transaction
     );
 
@@ -195,7 +200,7 @@ export async function deleteProjectById(
   try {
     const projectId = parseInt(req.params.id);
 
-    const deletedProject = await deleteProjectByIdQuery(projectId, transaction);
+    const deletedProject = await deleteProjectByIdQuery(projectId, req.tenantId!, transaction);
 
     if (deletedProject) {
       await transaction.commit();
@@ -216,7 +221,7 @@ export async function getProjectStatsById(
   const projectId = parseInt(req.params.id);
 
   // first getting the project by id
-  const project: any = await getProjectByIdQuery(projectId);
+  const project: any = await getProjectByIdQuery(projectId, req.tenantId!);
 
   const project_owner = project.owner; // (A user's id) Now, we get the user by this
   const ownerUser: any = getUserByIdQuery(project_owner);
@@ -245,7 +250,7 @@ export async function getProjectRisksCalculations(
   try {
     const projectId = parseInt(req.params.id);
 
-    const projectRisksCalculations = await calculateProjectRisks(projectId);
+    const projectRisksCalculations = await calculateProjectRisks(projectId, req.tenantId!);
 
     if (projectRisksCalculations) {
       return res.status(200).json(STATUS_CODE[200](projectRisksCalculations));
@@ -264,7 +269,7 @@ export async function getVendorRisksCalculations(
   try {
     const projectId = parseInt(req.params.id);
 
-    const vendorRisksCalculations = await calculateVendirRisks(projectId);
+    const vendorRisksCalculations = await calculateVendirRisks(projectId, req.tenantId!);
 
     if (vendorRisksCalculations) {
       return res.status(200).json(STATUS_CODE[200](vendorRisksCalculations));
@@ -279,20 +284,20 @@ export async function getVendorRisksCalculations(
 export async function getCompliances(req: Request, res: Response) {
   const projectId = parseInt(req.params.projid);
   try {
-    const project = await getProjectByIdQuery(projectId);
+    const project = await getProjectByIdQuery(projectId, req.tenantId!);
     if (project) {
       const controlCategories = (await getControlCategoryByProjectIdQuery(
-        project.id!
+        project.id!, req.tenantId!
       )) as IControlCategory[];
       for (const category of controlCategories) {
         if (category) {
           const controls = (await getAllControlsByControlGroupQuery(
-            category.id
+            category.id, req.tenantId!
           )) as IControl[];
           for (const control of controls) {
             if (control && control.id) {
               const subControls = await getAllSubcontrolsByControlIdQuery(
-                control.id
+                control.id, req.tenantId!
               );
               control.numberOfSubcontrols = subControls.length;
               control.numberOfDoneSubcontrols = subControls.filter(
@@ -316,10 +321,10 @@ export async function getCompliances(req: Request, res: Response) {
 export async function projectComplianceProgress(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
   try {
-    const project = await getProjectByIdQuery(projectId);
+    const project = await getProjectByIdQuery(projectId, req.tenantId!);
     if (project) {
       const { totalSubcontrols, doneSubcontrols } =
-        await countSubControlsByProjectId(project.id!);
+        await countSubControlsByProjectId(project.id!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           allsubControls: totalSubcontrols,
@@ -337,10 +342,10 @@ export async function projectComplianceProgress(req: Request, res: Response) {
 export async function projectAssessmentProgress(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
   try {
-    const project = await getProjectByIdQuery(projectId);
+    const project = await getProjectByIdQuery(projectId, req.tenantId!);
     if (project) {
       const { totalAssessments, answeredAssessments } =
-        await countAnswersByProjectId(project.id!);
+        await countAnswersByProjectId(project.id!, req.tenantId!);
       return res.status(200).json(
         STATUS_CODE[200]({
           totalQuestions: totalAssessments,
@@ -366,13 +371,13 @@ export async function allProjectsComplianceProgress(
     if (!userId || !role) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role });
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
           // calculating compliances
           const { totalSubcontrols, doneSubcontrols } =
-            await countSubControlsByProjectId(project.id!);
+            await countSubControlsByProjectId(project.id!, req.tenantId!);
           totalNumberOfSubcontrols += parseInt(totalSubcontrols);
           totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
         })
@@ -402,13 +407,13 @@ export async function allProjectsAssessmentProgress(
     if (!userId || !role) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const projects = await getAllProjectsQuery({ userId, role });
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
         projects.map(async (project) => {
           // // calculating assessments
           const { totalAssessments, answeredAssessments } =
-            await countAnswersByProjectId(project.id!);
+            await countAnswersByProjectId(project.id!, req.tenantId!);
           totalNumberOfQuestions = parseInt(totalAssessments);
           totalNumberOfAnsweredQuestions = parseInt(answeredAssessments);
         })

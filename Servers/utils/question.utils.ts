@@ -7,11 +7,13 @@ import { deleteFileById, getFileById } from "./fileUpload.utils";
 import { Request } from "express";
 import { QueryTypes, Transaction } from "sequelize";
 
-export const getAllQuestionsQuery = async (): Promise<
+export const getAllQuestionsQuery = async (
+  tenant: string
+): Promise<
   (Question & { evidence_files: Object[] })[]
 > => {
   const questions = await sequelize.query(
-    "SELECT * FROM questions ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM "${tenant}".questions ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: QuestionModel,
@@ -33,10 +35,11 @@ export const getAllQuestionsQuery = async (): Promise<
 };
 
 export const getQuestionByIdQuery = async (
-  id: number
+  id: number,
+  tenant: string
 ): Promise<Question & { evidence_files: Object[] }> => {
   const result = await sequelize.query(
-    "SELECT * FROM questions WHERE id = :id",
+    `SELECT * FROM "${tenant}".questions WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -58,10 +61,10 @@ export const getQuestionByIdQuery = async (
 
 export interface RequestWithFile extends Request {
   files?:
-    | UploadedFile[]
-    | {
-        [key: string]: UploadedFile[];
-      };
+  | UploadedFile[]
+  | {
+    [key: string]: UploadedFile[];
+  };
 }
 
 export interface UploadedFile {
@@ -73,10 +76,11 @@ export interface UploadedFile {
 
 export const createNewQuestionQuery = async (
   question: Question,
+  tenant: string,
   transaction: Transaction
 ): Promise<Question> => {
   const result = await sequelize.query(
-    `INSERT INTO questions (
+    `INSERT INTO "${tenant}".questions (
       subtopic_id, question, answer_type, evidence_required,
       hint, is_required, priority_level, answer
     ) VALUES (
@@ -113,11 +117,12 @@ export const addFileToQuestion = async (
     uploaded_time: Date;
   }[],
   deletedFiles: number[],
+  tenant: string,
   transaction: Transaction
 ): Promise<Question> => {
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
-    `SELECT evidence_files FROM questions WHERE id = :id`,
+    `SELECT evidence_files FROM "${tenant}".questions WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -149,7 +154,7 @@ export const addFileToQuestion = async (
 
   // update
   const result = await sequelize.query(
-    `UPDATE questions SET evidence_files = :evidence_files WHERE id = :id RETURNING *;`,
+    `UPDATE "${tenant}".questions SET evidence_files = :evidence_files WHERE id = :id RETURNING *;`,
     {
       replacements: {
         evidence_files: JSON.stringify(evidenceFiles),
@@ -167,6 +172,7 @@ export const addFileToQuestion = async (
 export const updateQuestionByIdQuery = async (
   id: number,
   question: Partial<Question>,
+  tenant: string,
   transaction: Transaction
 ): Promise<Question | null> => {
   const updateQuestion: Partial<Record<keyof Question, any>> = {};
@@ -183,7 +189,7 @@ export const updateQuestionByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE questions SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".questions SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateQuestion.id = id;
 
@@ -200,10 +206,11 @@ export const updateQuestionByIdQuery = async (
 
 export const deleteQuestionByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    "DELETE FROM questions WHERE id = :id RETURNING *",
+    `DELETE FROM "${tenant}".questions WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -215,7 +222,7 @@ export const deleteQuestionByIdQuery = async (
   if (result.length) {
     Promise.all(
       (result[0].evidence_files || []).map(async (f) => {
-        await deleteFileById(parseInt(f.id), transaction);
+        await deleteFileById(parseInt(f.id), tenant, transaction);
       })
     );
   }
@@ -223,10 +230,11 @@ export const deleteQuestionByIdQuery = async (
 };
 
 export const getQuestionBySubTopicIdQuery = async (
-  subTopicId: number
+  subTopicId: number,
+  tenant: string
 ): Promise<Question[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM questions WHERE subtopic_id = :subtopic_id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".questions WHERE subtopic_id = :subtopic_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { subtopic_id: subTopicId },
       mapToModel: true,
@@ -237,10 +245,11 @@ export const getQuestionBySubTopicIdQuery = async (
 };
 
 export const getQuestionByTopicIdQuery = async (
-  topicId: number
+  topicId: number,
+  tenant: string
 ): Promise<Question[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM questions WHERE subtopic_id IN (SELECT id FROM subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM "${tenant}".questions WHERE subtopic_id IN (SELECT id FROM "${tenant}".subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { topic_id: topicId },
       mapToModel: true,
@@ -266,10 +275,11 @@ export const createNewQuestionsQuery = async (
     answer: string;
   }[],
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction
 ) => {
   let query = `
-    INSERT INTO questions(
+    INSERT INTO "${tenant}".questions(
       subtopic_id, question, answer_type, evidence_required,
       hint, is_required, priority_level, answer, order_no, input_type
     ) VALUES (

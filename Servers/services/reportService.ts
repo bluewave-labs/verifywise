@@ -66,9 +66,10 @@ export function getFormattedReportName(name: string, type: string) {
 */
 export async function isAuthorizedUser(
   projectId: number,
-  userId: number
+  userId: number,
+  tenant: string
 ): Promise<any> {
-  const members = await getMembersByProjectIdQuery(projectId);
+  const members = await getMembersByProjectIdQuery(projectId, tenant);
   const membersArray = members.map((m) => m.user_id);
 
   if (!membersArray.includes(userId)) {
@@ -86,39 +87,45 @@ export async function getReportData(
   frameworkId: number,
   reportType: string,
   reportBody: ReportBodyData,
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<any> {
   let markdownFormattedData;
   switch (reportType) {
     case ReportType.PROJECTRISK_REPORT:
       markdownFormattedData = await getProjectRiskMarkdown(
         projectId,
-        reportBody
+        reportBody,
+        tenant
       );
       break;
     case ReportType.ASSESSMENT_REPORT:
       markdownFormattedData = await getAssessmentTrackerMarkdown(
         projectId,
         frameworkId,
-        reportBody
+        reportBody,
+        tenant
       );
       break;
     case ReportType.VENDOR_REPORT:
       markdownFormattedData = await getVendorReportMarkdown(
         projectId,
-        reportBody
+        reportBody,
+        tenant
       );
       break;
     case ReportType.CLAUSES_AND_ANNEXES_REPORT:
       markdownFormattedData = await getClausesAndAnnexesMarkdown(
         projectFrameworkId,
-        reportBody
+        reportBody,
+        tenant
       );
       break;
     case ReportType.COMPLIANCE_REPORT:
       markdownFormattedData = await getComplianceMarkdown(
         projectFrameworkId,
-        reportBody
+        reportBody,
+        tenant
       );
       break;
     case ReportType.ALL_REPORT:
@@ -126,7 +133,8 @@ export async function getReportData(
         frameworkId,
         projectFrameworkId,
         projectId,
-        reportBody
+        reportBody,
+        tenant
       );
       break;
     default:

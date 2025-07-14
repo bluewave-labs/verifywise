@@ -12,10 +12,11 @@ import { ReportBodyData } from "../reportService";
 
 export async function getVendorReportMarkdown(
     projectId: number,
-    data: ReportBodyData
+    data: ReportBodyData,
+    tenant: string
   ): Promise<string> {
-    const vendorReportData = await getVendorReportData(projectId);
-    const riskReportData = await getVendorRiskReportData(projectId);
+    const vendorReportData = await getVendorReportData(projectId, tenant);
+    const riskReportData = await getVendorRiskReportData(projectId, tenant);
       
   return `
 ${data.organizationName || 'VerifyWise'} vendors and vendor risks report
@@ -37,11 +38,12 @@ ${riskReportData}
  * @returns Promise<string> - Vendor table
 */
 export async function getVendorReportData(
-  projectId: number
+  projectId: number,
+  tenant: string
 ): Promise<string> {
   let vendorRows: string = ``;
   try {
-    const vendorData = await getVendorByProjectIdQuery(projectId);
+    const vendorData = await getVendorByProjectIdQuery(projectId, tenant);
     vendorRows =
       vendorData && vendorData.length > 0
         ? await Promise.all(
@@ -74,11 +76,12 @@ ${vendorRows}
  * @returns Promise<string> - Vendor risk table
 */
 export async function getVendorRiskReportData(
-  projectId: number
+  projectId: number,
+  tenant: string
 ): Promise<string> {
   let riskRows: string = ``;
   try {
-    const riskData = await getVendorRisksByProjectIdQuery(projectId);
+    const riskData = await getVendorRisksByProjectIdQuery(projectId, tenant);
     riskRows =
       riskData && riskData.length > 0
         ? await Promise.all(

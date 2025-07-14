@@ -97,7 +97,7 @@ cd Servers
 npm install
 ```
 
-Go to the root directory and copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking. 
+Go to the root directory and copy the contents of .env.dev to the .env file. For security, you must set a strong and unpredictable JWT_SECRET in your .env file. This secret is used to sign and verify your JWT tokens, so it must be kept private and cryptographically secure. You can generate a 256-bit base64-encoded secret using `openssl rand -base64 32`.
 
 ```
 cd ..

@@ -316,12 +316,12 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
   }
 }
 
-export async function getProjectStatsById(req: Request, res: Response): Promise<any> {
+export async function getProjecById(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
   logProcessing({
-    description: `starting getProjectStatsById for project ID ${projectId}`,
-    functionName: "getProjectStatsById",
-    fileName: "projectStats.ctrl.ts",
+    description: `starting getProjecById for project ID ${projectId}`,
+    functionName: "getProjecById",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -345,8 +345,8 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
     await logSuccess({
       eventType: "Read",
       description: `Retrieved project stats for project ID ${projectId}`,
-      functionName: "getProjectStatsById",
-      fileName: "projectStats.ctrl.ts",
+      functionName: "getProjecById",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(202).json(STATUS_CODE[202](overviewDetails));
@@ -354,8 +354,8 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
     await logFailure({
       eventType: "Read",
       description: "Failed to retrieve project stats",
-      functionName: "getProjectStatsById",
-      fileName: "projectStats.ctrl.ts",
+      functionName: "getProjecById",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 
@@ -368,7 +368,7 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
   logProcessing({
     description: `starting getProjectRisksCalculations for project ID ${projectId}`,
     functionName: "getProjectRisksCalculations",
-    fileName: "projectStats.ctrl.ts",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -378,7 +378,7 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       eventType: "Read",
       description: `Calculated risks for project ID ${projectId}`,
       functionName: "getProjectRisksCalculations",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(projectRisksCalculations ? 200 : 204).json(
@@ -389,7 +389,7 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       eventType: "Read",
       description: "Failed to calculate project risks",
       functionName: "getProjectRisksCalculations",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 
@@ -402,7 +402,7 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
   logProcessing({
     description: `starting getVendorRisksCalculations for project ID ${projectId}`,
     functionName: "getVendorRisksCalculations",
-    fileName: "projectStats.ctrl.ts",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -412,7 +412,7 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       eventType: "Read",
       description: `Calculated vendor risks for project ID ${projectId}`,
       functionName: "getVendorRisksCalculations",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(vendorRisksCalculations ? 200 : 204).json(
@@ -423,7 +423,7 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       eventType: "Read",
       description: "Failed to calculate vendor risks",
       functionName: "getVendorRisksCalculations",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 
@@ -436,7 +436,7 @@ export async function getCompliances(req: Request, res: Response) {
   logProcessing({
     description: `starting getCompliances for project ID ${projectId}`,
     functionName: "getCompliances",
-    fileName: "projectStats.ctrl.ts",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -466,7 +466,7 @@ export async function getCompliances(req: Request, res: Response) {
         eventType: "Read",
         description: `Retrieved compliance data for project ID ${projectId}`,
         functionName: "getCompliances",
-        fileName: "projectStats.ctrl.ts",
+        fileName: "projec.ctrl.ts",
       });
 
       return res.status(200).json(STATUS_CODE[200](controlCategories));
@@ -476,7 +476,7 @@ export async function getCompliances(req: Request, res: Response) {
       eventType: "Read",
       description: `Project not found for compliance lookup: ID ${projectId}`,
       functionName: "getCompliances",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -485,7 +485,7 @@ export async function getCompliances(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to fetch compliance data",
       functionName: "getCompliances",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 
@@ -498,7 +498,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
   logProcessing({
     description: `starting projectComplianceProgress for ID ${projectId}`,
     functionName: "projectComplianceProgress",
-    fileName: "projectStats.ctrl.ts",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -511,7 +511,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
         eventType: "Read",
         description: `Compliance progress calculated for project ID ${projectId}`,
         functionName: "projectComplianceProgress",
-        fileName: "projectStats.ctrl.ts",
+        fileName: "projec.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -526,7 +526,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       eventType: "Read",
       description: `Project not found: ID ${projectId}`,
       functionName: "projectComplianceProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -535,7 +535,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to get compliance progress",
       functionName: "projectComplianceProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 
@@ -548,7 +548,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
   logProcessing({
     description: `starting projectAssessmentProgress for ID ${projectId}`,
     functionName: "projectAssessmentProgress",
-    fileName: "projectStats.ctrl.ts",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -561,7 +561,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
         eventType: "Read",
         description: `Assessment progress calculated for project ID ${projectId}`,
         functionName: "projectAssessmentProgress",
-        fileName: "projectStats.ctrl.ts",
+        fileName: "projec.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -576,7 +576,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       eventType: "Read",
       description: `Project not found: ID ${projectId}`,
       functionName: "projectAssessmentProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -585,7 +585,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to get assessment progress",
       functionName: "projectAssessmentProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 
@@ -599,7 +599,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
   logProcessing({
     description: "starting allProjectsComplianceProgress",
     functionName: "allProjectsComplianceProgress",
-    fileName: "projectStats.ctrl.ts",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -623,7 +623,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
         eventType: "Read",
         description: "Compliance progress calculated across all projects",
         functionName: "allProjectsComplianceProgress",
-        fileName: "projectStats.ctrl.ts",
+        fileName: "projec.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -638,7 +638,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
       eventType: "Read",
       description: "No projects found for compliance progress",
       functionName: "allProjectsComplianceProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -647,7 +647,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
       eventType: "Read",
       description: "Failed to get compliance progress for all projects",
       functionName: "allProjectsComplianceProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 
@@ -661,7 +661,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
   logProcessing({
     description: "starting allProjectsAssessmentProgress",
     functionName: "allProjectsAssessmentProgress",
-    fileName: "projectStats.ctrl.ts",
+    fileName: "projec.ctrl.ts",
   });
 
   try {
@@ -685,7 +685,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
         eventType: "Read",
         description: "Assessment progress calculated across all projects",
         functionName: "allProjectsAssessmentProgress",
-        fileName: "projectStats.ctrl.ts",
+        fileName: "projec.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -700,7 +700,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       eventType: "Read",
       description: "No projects found for assessment progress",
       functionName: "allProjectsAssessmentProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -709,7 +709,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       eventType: "Read",
       description: "Failed to get assessment progress for all projects",
       functionName: "allProjectsAssessmentProgress",
-      fileName: "projectStats.ctrl.ts",
+      fileName: "projec.ctrl.ts",
       error: error as Error,
     });
 

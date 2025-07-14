@@ -4341,7 +4341,7 @@ paths:
   
   /training:
     get:
-      summary: Routes to all the training modules
+      summary: Returns all the training modules
       tags: [training]
       security:
        - JWTAuth: []
@@ -4359,7 +4359,7 @@ paths:
                  data:
                   type: object
                   items:
-                    $ref:
+                    $ref: "#components/schemas/TrainingModule"
         "204":
           description: no content to display
           content:
@@ -4371,6 +4371,8 @@ paths:
                   example: no content
                 data:
                   type: object
+                  items:
+                    $ref: "#components/schemas/TrainingModule"
         "500":
           description: internal server error
           content:
@@ -4421,6 +4423,7 @@ paths:
 
   /training/training-id/{id}:
     get:
+      description: Get training module by id
       tags: [training]
       security:
         - JWTAuth: []
@@ -4442,8 +4445,9 @@ paths:
                    message:
                      type: string
                      example: ok
+                       
                  data:
-                   $ref:
+                   $ref: "#components/schemas/TrainingModule"
         
         "404":
            description: no content to display
@@ -4480,6 +4484,12 @@ paths:
             type: integer
           required: true
           description: update the training data of one particular instance
+      requestBody:
+        description: body of the training module
+        content:
+          application/json:
+            schema:
+              $ref: "#components/schemas/TrainingModule"            
       response:
         "202":
           description: training data
@@ -4489,9 +4499,93 @@ paths:
                 type: object
                 properties:
                   message:
+                   type: object
+                   example: accepted
+                  data:
+                    $ref: "#components/schemas/TrainingModule"
+        "400":
+          description: Need to add all the fields
+          content:
+            application/json:
+              schema:
+                type: string
+                message:
+                  type: string
+                  example: "All fields are required to get updated"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
                     type: string
-                    example: salut!
+                    example: not found
+                  data:
+                    type: object
+        
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [training]
+      security:
+       - JWTAuth: []
+      parameters:
+       - in: path
+         name: id
+         schema:
+           type: integer
+         required: true
+         description: id of the training to delete
+      responses:
+       "202":
+         description: training data
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 message:
+                   type: string
+                   example: accepted
+                 data:
+                   type: boolean
+                   example: true
+       "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+       "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
 
+
+                
 
 components:
   securitySchemes:
@@ -5040,3 +5134,30 @@ components:
         orderNo:
           type: integer
           example: 1
+
+    TrainingModule:
+      properties:
+        id:
+         type: integer
+         example: 1
+        training_name:
+          type: string
+          example: "AI Training"
+        duration:
+           type: string
+           example: "6 weeks"
+        provider:
+           type: string
+           example: "Verifywise open source AI governance"
+        department:
+          type: string
+          example: "Maths Department"
+        status:
+          type: string
+          enum: [Planned,In Progress, Completed]
+        people:
+          type: integer
+          example: 10
+        description:
+           type: string
+           example: "A training module requiring 6 weeks"

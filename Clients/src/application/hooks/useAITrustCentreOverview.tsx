@@ -2,43 +2,51 @@ import { useState, useEffect, useCallback } from 'react';
 import { getAITrustCentreOverview, createAITrustCentreOverview, updateAITrustCentreOverview } from '../repository/aiTrustCentre.repository';
 
 interface AITrustCentreOverviewData {
-  intro?: {
+  info?: {
+    company_description_visible: boolean;
+    compliance_badges_visible: boolean;
+    header_color: string;
+    id: number;
     intro_visible: boolean;
-    purpose_visible: boolean;
-    purpose_text?: string;
-    our_statement_visible: boolean;
-    our_statement_text?: string;
+    resources_visible: boolean;
+    subprocessor_visible: boolean;
+    terms_and_contact_visible: boolean;
+    title: string;
+    visible: boolean;
+  };
+  intro?: {
+    our_mission_text: string;
     our_mission_visible: boolean;
-    our_mission_text?: string;
+    our_statement_text: string;
+    our_statement_visible: boolean;
+    purpose_text: string;
+    purpose_visible: boolean;
   };
   compliance_badges?: {
-    badges_visible: boolean;
-    SOC2_Type_I: boolean;
-    SOC2_Type_II: boolean;
-    ISO_27001: boolean;
-    ISO_42001: boolean;
-    CCPA: boolean;
-    GDPR: boolean;
-    HIPAA: boolean;
-    EU_AI_Act: boolean;
+    ccpa: boolean;
+    eu_ai_act: boolean;
+    gdpr: boolean;
+    hipaa: boolean;
+    iso_27001: boolean;
+    iso_42001: boolean;
+    soc2_type_i: boolean;
+    soc2_type_ii: boolean;
   };
-  company_info?: {
-    company_info_visible: boolean;
+  company_description?: {
+    background_text: string;
     background_visible: boolean;
-    background_text?: string;
-    core_benefit_visible: boolean;
-    core_benefit_text?: string;
+    compliance_doc_text: string;
     compliance_doc_visible: boolean;
-    compliance_doc_text?: string;
+    core_benefits_text: string;
+    core_benefits_visible: boolean;
   };
   terms_and_contact?: {
-    is_visible: boolean;
-    has_terms_of_service: boolean;
-    terms_of_service?: string;
-    has_privacy_policy: boolean;
-    privacy_policy?: string;
-    has_company_email: boolean;
-    company_email?: string;
+    email_text: string;
+    email_visible: boolean;
+    privacy_text: string;
+    privacy_visible: boolean;
+    terms_text: string;
+    terms_visible: boolean;
   };
 }
 
@@ -46,7 +54,7 @@ interface UseAITrustCentreOverviewReturn {
   data: AITrustCentreOverviewData | null;
   loading: boolean;
   error: string | null;
-  fetchOverview: () => Promise<void>;
+  fetchOverview: () => Promise<any>;
   saveOverview: (data: AITrustCentreOverviewData) => Promise<void>;
   updateOverview: (data: Partial<AITrustCentreOverviewData>) => Promise<void>;
 }
@@ -61,14 +69,19 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     setError(null);
     try {
       const response = await getAITrustCentreOverview();
-      if (response && response.data) {
-        setData(response.data);
+      // debugger;
+      if (response && response.data && response.data.overview) {
+        setData(response.data.overview);
+      } else if (response && response.overview) {
+        setData(response.overview);
       } else {
         setData(null);
       }
+      return response; // Return the response
     } catch (err: any) {
       setError(err.message || 'Failed to fetch AI Trust Centre overview');
       console.error('Error fetching AI Trust Centre overview:', err);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -97,8 +110,8 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     try {
       const response = await updateAITrustCentreOverview(overviewData);
       console.log('Update response:', response);
-      // Refetch the data from the database to ensure we have the latest state
-      await fetchOverview();
+      // Don't refetch immediately - let the component handle the state update
+      // await fetchOverview();
     } catch (err: any) {
       setError(err.message || 'Failed to update AI Trust Centre overview');
       console.error('Error updating AI Trust Centre overview:', err);
@@ -106,7 +119,7 @@ export const useAITrustCentreOverview = (): UseAITrustCentreOverviewReturn => {
     } finally {
       setLoading(false);
     }
-  }, [fetchOverview]);
+  }, []);
 
   // Fetch data on mount
   useEffect(() => {

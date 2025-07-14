@@ -15,11 +15,8 @@ import {
 } from './styles';
 
 import {
-  INITIAL_FORM_DATA,
   COMPLIANCE_BADGES,
   SUCCESS_MESSAGE,
-  FORM_SECTIONS,
-  TOGGLE_FIELDS
 } from './constants';
 
 // Helper component for TextField with consistent styling
@@ -91,33 +88,32 @@ const ComplianceBadge: React.FC<{
 );
 
 const AITrustCenterOverview: React.FC = () => {
-  const { data, loading, error, updateOverview } = useAITrustCentreOverview();
+  const { loading, error, updateOverview, fetchOverview } = useAITrustCentreOverview();
 
   // Local state for form data and notifications
   const [saveSuccess, setSaveSuccess] = React.useState(false);
-  const [formData, setFormData] = React.useState(INITIAL_FORM_DATA);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
-  const [originalData, setOriginalData] = React.useState(INITIAL_FORM_DATA);
+  const [originalData, setOriginalData] = React.useState<any>(null);
+  const [formData, setFormData] = React.useState<any>(null);
 
-  // Load saved form data from localStorage on component mount
+  // Fetch overview data on component mount
   React.useEffect(() => {
-    const savedFormData = localStorage.getItem('aiTrustCentreFormData');
-    if (savedFormData) {
+    const loadData = async () => {
       try {
-        const parsedData = JSON.parse(savedFormData);
-        setFormData(parsedData);
-        setOriginalData(parsedData);
-        console.log('Loaded saved form data from localStorage:', parsedData);
+        const response = await fetchOverview();
+        console.log('Overview data fetched successfully');
+        console.log('Raw API Response:', response);
+        
+        // Extract the overview data from the nested response
+        const overviewData = response?.data?.overview || response?.overview || response;
+        setFormData(overviewData);
+        setOriginalData(overviewData);
       } catch (error) {
-        console.error('Error parsing saved form data:', error);
+        console.error('Error fetching overview data:', error);
       }
-    }
-  }, []);
-
-  // Save form data to localStorage whenever it changes
-  React.useEffect(() => {
-    localStorage.setItem('aiTrustCentreFormData', JSON.stringify(formData));
-  }, [formData]);
+    };
+    loadData();
+  }, [fetchOverview]);
 
   // Check for unsaved changes
   React.useEffect(() => {
@@ -125,35 +121,9 @@ const AITrustCenterOverview: React.FC = () => {
     setHasUnsavedChanges(hasChanges);
   }, [formData, originalData]);
 
-  // Update form data when API data is loaded
-  React.useEffect(() => {
-    if (data) {
-      console.log('AI Trust Centre data loaded from API:', data);
-      
-      const apiData = (data as any).data || data;
-      
-      const updateData = (prevData: typeof INITIAL_FORM_DATA) => ({
-        intro: { ...prevData.intro, ...(apiData.intro || {}) },
-        compliance_badges: { ...prevData.compliance_badges, ...(apiData.compliance_badges || {}) },
-        company_info: { ...prevData.company_info, ...(apiData.company_info || {}) },
-        terms_and_contact: { ...prevData.terms_and_contact, ...(apiData.terms_and_contact || {}) },
-      });
-      
-      setFormData(updateData);
-      setOriginalData(updateData);
-    }
-  }, [data]);
-
   // Generic handler for form field changes
-  const handleFieldChange = (section: keyof typeof formData, field: string, value: boolean | string) => {
-    const isToggleField = Object.values(TOGGLE_FIELDS).includes(field as any);
-    
-    if (!isToggleField) {
-      const sectionEnabled = getSectionEnabled(section);
-      if (!sectionEnabled) return;
-    }
-    
-    setFormData(prev => ({
+  const handleFieldChange = (section: string, field: string, value: boolean | string) => {
+    setFormData((prev: any) => ({
       ...prev,
       [section]: {
         ...prev[section],
@@ -162,20 +132,10 @@ const AITrustCenterOverview: React.FC = () => {
     }));
   };
 
-  // Helper function to check if a section is enabled
-  const getSectionEnabled = (section: keyof typeof formData): boolean => {
-    const sectionMap = {
-      [FORM_SECTIONS.INTRO]: formData.intro.intro_visible,
-      [FORM_SECTIONS.COMPLIANCE_BADGES]: formData.compliance_badges.badges_visible,
-      [FORM_SECTIONS.COMPANY_INFO]: formData.company_info.company_info_visible,
-      [FORM_SECTIONS.TERMS_AND_CONTACT]: formData.terms_and_contact.is_visible,
-    };
-    return sectionMap[section] ?? true;
-  };
-
   // Helper function to safely get compliance badge value
   const getComplianceBadgeValue = (badgeKey: string): boolean => {
-    return formData.compliance_badges[badgeKey as keyof typeof formData.compliance_badges] as boolean || false;
+    if (!formData?.compliance_badges) return false;
+    return formData.compliance_badges[badgeKey] as boolean || false;
   };
 
   // Handle save
@@ -183,51 +143,22 @@ const AITrustCenterOverview: React.FC = () => {
     try {
       console.log('Saving AI Trust Centre data:', formData);
       
-      const dataToSend = {
-        intro: {
-          intro_visible: formData.intro.intro_visible,
-          purpose_visible: formData.intro.purpose_visible,
-          purpose_text: formData.intro.purpose_text || '',
-          our_statement_visible: formData.intro.our_statement_visible,
-          our_statement_text: formData.intro.our_statement_text || '',
-          our_mission_visible: formData.intro.our_mission_visible,
-          our_mission_text: formData.intro.our_mission_text || '',
-        },
-        compliance_badges: {
-          badges_visible: formData.compliance_badges.badges_visible,
-          SOC2_Type_I: formData.compliance_badges.SOC2_Type_I,
-          SOC2_Type_II: formData.compliance_badges.SOC2_Type_II,
-          ISO_27001: formData.compliance_badges.ISO_27001,
-          ISO_42001: formData.compliance_badges.ISO_42001,
-          CCPA: formData.compliance_badges.CCPA,
-          GDPR: formData.compliance_badges.GDPR,
-          HIPAA: formData.compliance_badges.HIPAA,
-          EU_AI_Act: formData.compliance_badges.EU_AI_Act,
-        },
-        company_info: {
-          company_info_visible: formData.company_info.company_info_visible,
-          background_visible: formData.company_info.background_visible,
-          background_text: formData.company_info.background_text || '',
-          core_benefit_visible: formData.company_info.core_benefit_visible,
-          core_benefit_text: formData.company_info.core_benefit_text || '',
-          compliance_doc_visible: formData.company_info.compliance_doc_visible,
-          compliance_doc_text: formData.company_info.compliance_doc_text || '',
-        },
-        terms_and_contact: {
-          is_visible: formData.terms_and_contact.is_visible,
-          has_terms_of_service: formData.terms_and_contact.has_terms_of_service,
-          terms_of_service: formData.terms_and_contact.terms_of_service || '',
-          has_privacy_policy: formData.terms_and_contact.has_privacy_policy,
-          privacy_policy: formData.terms_and_contact.privacy_policy || '',
-          has_company_email: formData.terms_and_contact.has_company_email,
-          company_email: formData.terms_and_contact.company_email || '',
-        },
+      // Prepare the data to send, ensuring all sections are included
+      const dataToSave = {
+        intro: formData.intro,
+        compliance_badges: formData.compliance_badges,
+        company_description: formData.company_description,
+        terms_and_contact: formData.terms_and_contact,
+        info: formData.info
       };
       
-      await updateOverview(dataToSend);
-      setSaveSuccess(true);
-      setOriginalData(formData);
+      // Call the updateOverview function from the hook
+      await updateOverview(dataToSave);
+      
+      // Update local state to reflect the saved data
+      setOriginalData({ ...formData }); // Create a deep copy
       setHasUnsavedChanges(false);
+      setSaveSuccess(true);
       
       console.log('AI Trust Centre data saved successfully');
     } catch (error) {
@@ -240,7 +171,7 @@ const AITrustCenterOverview: React.FC = () => {
     setSaveSuccess(false);
   };
 
-  if (loading && !data) {
+  if (loading || !formData) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
         <CircularProgress />
@@ -256,62 +187,64 @@ const AITrustCenterOverview: React.FC = () => {
         </Alert>
       )}
       
+
+      
       {/* Introduction Section */}
-      <SectionPaper sx={{ opacity: formData.intro.intro_visible ? 1 : 0.5 }}>
+      <SectionPaper sx={{ opacity: formData.info?.intro_visible ? 1 : 0.5 }}>
         <SectionHeader
           title="Introduction"
-          checked={formData.intro.intro_visible}
-          onToggle={(checked) => handleFieldChange(FORM_SECTIONS.INTRO, TOGGLE_FIELDS.INTRO_VISIBLE, checked)}
+          checked={formData.info?.intro_visible || false}
+          onToggle={(checked) => handleFieldChange('info', 'intro_visible', checked)}
         />
         <Box display="flex" gap={8} mt={2}>
           <ToggleCard
             label="Purpose of our trust center"
-            checked={formData.intro.purpose_visible}
-            onToggle={(_, checked) => handleFieldChange(FORM_SECTIONS.INTRO, 'purpose_visible', checked)}
-            disabled={!formData.intro.intro_visible}
+            checked={formData.intro?.purpose_visible || false}
+            onToggle={(_, checked) => handleFieldChange('intro', 'purpose_visible', checked)}
+            disabled={!formData.info?.intro_visible}
           >
             <StyledTextField
-              value={formData.intro.purpose_text}
-              onChange={(value) => formData.intro.intro_visible && formData.intro.purpose_visible && handleFieldChange(FORM_SECTIONS.INTRO, 'purpose_text', value)}
+              value={formData.intro?.purpose_text || ''}
+              onChange={(value) => formData.info?.intro_visible && formData.intro?.purpose_visible && handleFieldChange('intro', 'purpose_text', value)}
               placeholder="Include a section to summarize the purpose of the Trust Center. Clearly communicate the company's commitment to responsible AI use, data privacy, and ethical AI practices."
-              disabled={!formData.intro.intro_visible || !formData.intro.purpose_visible}
+              disabled={!formData.info?.intro_visible || !formData.intro?.purpose_visible}
             />
           </ToggleCard>
           <ToggleCard
             label="Our statement"
-            checked={formData.intro.our_statement_visible}
-            onToggle={(_, checked) => handleFieldChange(FORM_SECTIONS.INTRO, 'our_statement_visible', checked)}
-            disabled={!formData.intro.intro_visible}
+            checked={formData.intro?.our_statement_visible || false}
+            onToggle={(_, checked) => handleFieldChange('intro', 'our_statement_visible', checked)}
+            disabled={!formData.info?.intro_visible}
           >
             <StyledTextField
-              value={formData.intro.our_statement_text}
-              onChange={(value) => formData.intro.intro_visible && formData.intro.our_statement_visible && handleFieldChange(FORM_SECTIONS.INTRO, 'our_statement_text', value)}
+              value={formData.intro?.our_statement_text || ''}
+              onChange={(value) => formData.info?.intro_visible && formData.intro?.our_statement_visible && handleFieldChange('intro', 'our_statement_text', value)}
               placeholder="Provide a brief statement about the company's AI applications and their significance. Mention the main objectives, like data security, ethical AI, and trust-building with customers."
-              disabled={!formData.intro.intro_visible || !formData.intro.our_statement_visible}
+              disabled={!formData.info?.intro_visible || !formData.intro?.our_statement_visible}
             />
           </ToggleCard>
           <ToggleCard
             label="Our mission"
-            checked={formData.intro.our_mission_visible}
-            onToggle={(_, checked) => handleFieldChange(FORM_SECTIONS.INTRO, 'our_mission_visible', checked)}
-            disabled={!formData.intro.intro_visible}
+            checked={formData.intro?.our_mission_visible || false}
+            onToggle={(_, checked) => handleFieldChange('intro', 'our_mission_visible', checked)}
+            disabled={!formData.info?.intro_visible}
           >
             <StyledTextField
-              value={formData.intro.our_mission_text}
-              onChange={(value) => formData.intro.intro_visible && formData.intro.our_mission_visible && handleFieldChange(FORM_SECTIONS.INTRO, 'our_mission_text', value)}
+              value={formData.intro?.our_mission_text || ''}
+              onChange={(value) => formData.info?.intro_visible && formData.intro?.our_mission_visible && handleFieldChange('intro', 'our_mission_text', value)}
               placeholder="Input a mission statement reflecting your values related to AI governance and ethics."
-              disabled={!formData.intro.intro_visible || !formData.intro.our_mission_visible}
+              disabled={!formData.info?.intro_visible || !formData.intro?.our_mission_visible}
             />
           </ToggleCard>
         </Box>
       </SectionPaper>
 
       {/* Compliance Badges Section */}
-      <SectionPaper sx={{ opacity: formData.compliance_badges.badges_visible ? 1 : 0.5 }}>
+      <SectionPaper sx={{ opacity: formData.info?.compliance_badges_visible ? 1 : 0.5 }}>
         <SectionHeader
           title="Compliance and certification badges"
-          checked={formData.compliance_badges.badges_visible}
-          onToggle={(checked) => handleFieldChange(FORM_SECTIONS.COMPLIANCE_BADGES, TOGGLE_FIELDS.BADGES_VISIBLE, checked)}
+          checked={formData.info?.compliance_badges_visible || false}
+          onToggle={(checked) => handleFieldChange('info', 'compliance_badges_visible', checked)}
         />
         <Typography sx={styles.sectionDescription}>
           Compliance badges for certifications and standards (e.g., EU AI Act, NIST, SOC2, ISO 27001, GDPR).
@@ -328,70 +261,70 @@ const AITrustCenterOverview: React.FC = () => {
               key={badge.key}
               badge={badge}
               checked={getComplianceBadgeValue(badge.key)}
-              onChange={(checked) => handleFieldChange(FORM_SECTIONS.COMPLIANCE_BADGES, badge.key, checked)}
-              disabled={!formData.compliance_badges.badges_visible}
+              onChange={(checked) => handleFieldChange('compliance_badges', badge.key, checked)}
+              disabled={!formData.info?.compliance_badges_visible}
             />
           ))}
         </Box>
       </SectionPaper>
 
       {/* Company Info Section */}
-      <SectionPaper sx={{ opacity: formData.company_info.company_info_visible ? 1 : 0.5 }}>
+      <SectionPaper sx={{ opacity: formData.info?.company_description_visible ? 1 : 0.5 }}>
         <SectionHeader
           title="Company description and values"
-          checked={formData.company_info.company_info_visible}
-          onToggle={(checked) => handleFieldChange(FORM_SECTIONS.COMPANY_INFO, TOGGLE_FIELDS.COMPANY_INFO_VISIBLE, checked)}
-          label={formData.company_info.company_info_visible ? "Enabled and visible" : "Disabled"}
+          checked={formData.info?.company_description_visible || false}
+          onToggle={(checked) => handleFieldChange('info', 'company_description_visible', checked)}
+          label={formData.info?.company_description_visible ? "Enabled and visible" : "Disabled"}
         />
         <Box display="flex" gap={8} mt={2}>
           <ToggleCard
             label="Background"
-            checked={formData.company_info.background_visible}
-            onToggle={(_, checked) => handleFieldChange(FORM_SECTIONS.COMPANY_INFO, 'background_visible', checked)}
-            disabled={!formData.company_info.company_info_visible}
+            checked={formData.company_description?.background_visible || false}
+            onToggle={(_, checked) => handleFieldChange('company_description', 'background_visible', checked)}
+            disabled={!formData.info?.company_description_visible}
           >
             <StyledTextField
-              value={formData.company_info.background_text}
-              onChange={(value) => formData.company_info.company_info_visible && formData.company_info.background_visible && handleFieldChange(FORM_SECTIONS.COMPANY_INFO, 'background_text', value)}
+              value={formData.company_description?.background_text || ''}
+              onChange={(value) => formData.info?.company_description_visible && formData.company_description?.background_visible && handleFieldChange('company_description', 'background_text', value)}
               placeholder="Explain your company, what you do, and why trust in AI is essential to you."
-              disabled={!formData.company_info.company_info_visible || !formData.company_info.background_visible}
+              disabled={!formData.info?.company_description_visible || !formData.company_description?.background_visible}
             />
           </ToggleCard>
           <ToggleCard
             label="Core benefits"
-            checked={formData.company_info.core_benefit_visible}
-            onToggle={(_, checked) => handleFieldChange(FORM_SECTIONS.COMPANY_INFO, 'core_benefit_visible', checked)}
-            disabled={!formData.company_info.company_info_visible}
+            checked={formData.company_description?.core_benefits_visible || false}
+            onToggle={(_, checked) => handleFieldChange('company_description', 'core_benefits_visible', checked)}
+            disabled={!formData.info?.company_description_visible}
           >
             <StyledTextField
-              value={formData.company_info.core_benefit_text}
-              onChange={(value) => formData.company_info.company_info_visible && formData.company_info.core_benefit_visible && handleFieldChange(FORM_SECTIONS.COMPANY_INFO, 'core_benefit_text', value)}
+              value={formData.company_description?.core_benefits_text || ''}
+              onChange={(value) => formData.info?.company_description_visible && formData.company_description?.core_benefits_visible && handleFieldChange('company_description', 'core_benefits_text', value)}
               placeholder="Explain key benefits like efficiency, security, customer support, and ethical AI practices. You can also detail your AI offering functionality, use cases, and benefits to users."
-              disabled={!formData.company_info.company_info_visible || !formData.company_info.core_benefit_visible}
+              disabled={!formData.info?.company_description_visible || !formData.company_description?.core_benefits_visible}
             />
           </ToggleCard>
           <ToggleCard
             label="Compliance documentation"
-            checked={formData.company_info.compliance_doc_visible}
-            onToggle={(_, checked) => handleFieldChange(FORM_SECTIONS.COMPANY_INFO, 'compliance_doc_visible', checked)}
-            disabled={!formData.company_info.company_info_visible}
+            checked={formData.company_description?.compliance_doc_visible || false}
+            onToggle={(_, checked) => handleFieldChange('company_description', 'compliance_doc_visible', checked)}
+            disabled={!formData.info?.company_description_visible}
           >
             <StyledTextField
-              value={formData.company_info.compliance_doc_text}
-              onChange={(value) => formData.company_info.company_info_visible && formData.company_info.compliance_doc_visible && handleFieldChange(FORM_SECTIONS.COMPANY_INFO, 'compliance_doc_text', value)}
+              value={formData.company_description?.compliance_doc_text || ''}
+              onChange={(value) => formData.info?.company_description_visible && formData.company_description?.compliance_doc_visible && handleFieldChange('company_description', 'compliance_doc_text', value)}
               placeholder="Access our comprehensive compliance documentation and certifications."
-              disabled={!formData.company_info.company_info_visible || !formData.company_info.compliance_doc_visible}
+              disabled={!formData.info?.company_description_visible || !formData.company_description?.compliance_doc_visible}
             />
           </ToggleCard>
         </Box>
       </SectionPaper>
 
       {/* Privacy Policy Section */}
-      <SectionPaper sx={{ opacity: formData.terms_and_contact.is_visible ? 1 : 0.5 }}>
+      <SectionPaper sx={{ opacity: formData.info?.terms_and_contact_visible ? 1 : 0.5 }}>
         <SectionHeader
           title="Privacy policy, terms of service, and contact information"
-          checked={formData.terms_and_contact.is_visible}
-          onToggle={(checked) => handleFieldChange(FORM_SECTIONS.TERMS_AND_CONTACT, TOGGLE_FIELDS.IS_VISIBLE, checked)}
+          checked={formData.info?.terms_and_contact_visible || false}
+          onToggle={(checked) => handleFieldChange('info', 'terms_and_contact_visible', checked)}
         />
         <Typography sx={styles.sectionDescription}>
           Include links to essential documents like the Privacy Policy and Terms of Service. Also include email address for privacy/security related questions and incidents.
@@ -402,9 +335,9 @@ const AITrustCenterOverview: React.FC = () => {
               <FormControlLabel 
                 control={
                   <Checkbox 
-                    checked={formData.terms_and_contact.has_terms_of_service}
-                    onChange={(_, checked) => handleFieldChange(FORM_SECTIONS.TERMS_AND_CONTACT, 'has_terms_of_service', checked)}
-                    disabled={!formData.terms_and_contact.is_visible}
+                    checked={formData.terms_and_contact?.terms_visible || false}
+                    onChange={(_, checked) => handleFieldChange('terms_and_contact', 'terms_visible', checked)}
+                    disabled={!formData.info?.terms_and_contact_visible}
                   />
                 } 
                 label="Terms of service" 
@@ -414,9 +347,9 @@ const AITrustCenterOverview: React.FC = () => {
                 id="terms-of-service-input"
                 placeholder="Enter terms of service URL..."
                 width={458}
-                value={formData.terms_and_contact.terms_of_service || ''}
-                onChange={(e) => formData.terms_and_contact.is_visible && handleFieldChange(FORM_SECTIONS.TERMS_AND_CONTACT, 'terms_of_service', e.target.value)}
-                disabled={!formData.terms_and_contact.has_terms_of_service || !formData.terms_and_contact.is_visible}
+                value={formData.terms_and_contact?.terms_text || ''}
+                onChange={(e) => formData.info?.terms_and_contact_visible && handleFieldChange('terms_and_contact', 'terms_text', e.target.value)}
+                disabled={!formData.terms_and_contact?.terms_visible || !formData.info?.terms_and_contact_visible}
                 sx={styles.privacyField}
               />
             </Stack>
@@ -424,9 +357,9 @@ const AITrustCenterOverview: React.FC = () => {
               <FormControlLabel 
                 control={
                   <Checkbox 
-                    checked={formData.terms_and_contact.has_privacy_policy}
-                    onChange={(_, checked) => handleFieldChange(FORM_SECTIONS.TERMS_AND_CONTACT, 'has_privacy_policy', checked)}
-                    disabled={!formData.terms_and_contact.is_visible}
+                    checked={formData.terms_and_contact?.privacy_visible || false}
+                    onChange={(_, checked) => handleFieldChange('terms_and_contact', 'privacy_visible', checked)}
+                    disabled={!formData.info?.terms_and_contact_visible}
                   />
                 } 
                 label="Privacy policy" 
@@ -436,9 +369,9 @@ const AITrustCenterOverview: React.FC = () => {
                 id="privacy-policy-input"
                 placeholder="Enter privacy policy URL..."
                 width={458}
-                value={formData.terms_and_contact.privacy_policy || ''}
-                onChange={(e) => formData.terms_and_contact.is_visible && handleFieldChange(FORM_SECTIONS.TERMS_AND_CONTACT, 'privacy_policy', e.target.value)}
-                disabled={!formData.terms_and_contact.has_privacy_policy || !formData.terms_and_contact.is_visible}
+                value={formData.terms_and_contact?.privacy_text || ''}
+                onChange={(e) => formData.info?.terms_and_contact_visible && handleFieldChange('terms_and_contact', 'privacy_text', e.target.value)}
+                disabled={!formData.terms_and_contact?.privacy_visible || !formData.info?.terms_and_contact_visible}
                 sx={styles.privacyField}
               />
             </Stack>
@@ -446,9 +379,9 @@ const AITrustCenterOverview: React.FC = () => {
               <FormControlLabel 
                 control={
                   <Checkbox 
-                    checked={formData.terms_and_contact.has_company_email}
-                    onChange={(_, checked) => handleFieldChange(FORM_SECTIONS.TERMS_AND_CONTACT, 'has_company_email', checked)}
-                    disabled={!formData.terms_and_contact.is_visible}
+                    checked={formData.terms_and_contact?.email_visible || false}
+                    onChange={(_, checked) => handleFieldChange('terms_and_contact', 'email_visible', checked)}
+                    disabled={!formData.info?.terms_and_contact_visible}
                   />
                 } 
                 label="Company email" 
@@ -458,9 +391,9 @@ const AITrustCenterOverview: React.FC = () => {
                 id="company-email-input"
                 placeholder="Enter company email..."
                 width={458}
-                value={formData.terms_and_contact.company_email || ''}
-                onChange={(e) => formData.terms_and_contact.is_visible && handleFieldChange(FORM_SECTIONS.TERMS_AND_CONTACT, 'company_email', e.target.value)}
-                disabled={!formData.terms_and_contact.has_company_email || !formData.terms_and_contact.is_visible}
+                value={formData.terms_and_contact?.email_text || ''}
+                onChange={(e) => formData.info?.terms_and_contact_visible && handleFieldChange('terms_and_contact', 'email_text', e.target.value)}
+                disabled={!formData.terms_and_contact?.email_visible || !formData.info?.terms_and_contact_visible}
                 sx={styles.privacyField}
               />
             </Stack>

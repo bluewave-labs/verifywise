@@ -1,69 +1,12 @@
-export const INITIAL_FORM_DATA = {
-  intro: {
-    intro_visible: true,
-    purpose_visible: true,
-    purpose_text: '',
-    our_statement_visible: false,
-    our_statement_text: '',
-    our_mission_visible: true,
-    our_mission_text: '',
-  },
-  compliance_badges: {
-    badges_visible: true,
-    SOC2_Type_I: true,
-    SOC2_Type_II: true,
-    ISO_27001: true,
-    ISO_42001: true,
-    CCPA: true,
-    GDPR: true,
-    HIPAA: true,
-    EU_AI_Act: true,
-  },
-  company_info: {
-    company_info_visible: false,
-    background_visible: false,
-    background_text: '',
-    core_benefit_visible: false,
-    core_benefit_text: '',
-    compliance_doc_visible: false,
-    compliance_doc_text: '',
-  },
-  terms_and_contact: {
-    is_visible: true,
-    has_terms_of_service: true,
-    terms_of_service: '',
-    has_privacy_policy: true,
-    privacy_policy: '',
-    has_company_email: true,
-    company_email: '',
-  },
-};
-
 export const COMPLIANCE_BADGES = [
-  { key: 'SOC2_Type_I', label: 'SOC2 Type I' },
-  { key: 'SOC2_Type_II', label: 'SOC2 Type II' },
-  { key: 'ISO_27001', label: 'ISO 27001' },
-  { key: 'ISO_42001', label: 'ISO 42001' },
-  { key: 'CCPA', label: 'CCPA' },
-  { key: 'GDPR', label: 'GDPR' },
-  { key: 'HIPAA', label: 'HIPAA' },
-  { key: 'EU_AI_Act', label: 'EU AI Act' },
+  { key: 'soc2_type_i', label: 'SOC2 Type I' },
+  { key: 'soc2_type_ii', label: 'SOC2 Type II' },
+  { key: 'iso_27001', label: 'ISO 27001' },
+  { key: 'iso_42001', label: 'ISO 42001' },
+  { key: 'ccpa', label: 'CCPA' },
+  { key: 'gdpr', label: 'GDPR' },
+  { key: 'hipaa', label: 'HIPAA' },
+  { key: 'eu_ai_act', label: 'EU AI Act' },
 ];
 
 export const SUCCESS_MESSAGE = 'AI Trust Centre data saved successfully!';
-
-// Constants for form sections
-export const FORM_SECTIONS = {
-  INTRO: 'intro',
-  COMPLIANCE_BADGES: 'compliance_badges',
-  COMPANY_INFO: 'company_info',
-  TERMS_AND_CONTACT: 'terms_and_contact',
-} as const;
-
-// Constants for toggle fields
-export const TOGGLE_FIELDS = {
-  INTRO_VISIBLE: 'intro_visible',
-  BADGES_VISIBLE: 'badges_visible',
-  COMPANY_INFO_VISIBLE: 'company_info_visible',
-  IS_VISIBLE: 'is_visible',
-} as const; 

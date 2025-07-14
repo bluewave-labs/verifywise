@@ -45,20 +45,25 @@ class ModelLoader:
     def _initialize_huggingface_model(self) -> None:
         """Initialize the Hugging Face model and tokenizer."""
         config = self.model_config
-
+        
         # Set device
         device = config.device
         if device == "cuda" and not torch.cuda.is_available():
             print("CUDA not available, falling back to CPU")
             device = "cpu"
-
+        
         # Load tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(
+        tokenizer = AutoTokenizer.from_pretrained(
             config.model_id, trust_remote_code=True
         )
-        if not self.tokenizer.pad_token_id:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-
+        if not hasattr(tokenizer, "pad_token_id") or tokenizer.pad_token_id is None:
+            if hasattr(tokenizer, "eos_token"):
+                tokenizer.pad_token = tokenizer.eos_token
+            else:
+                raise ValueError("Tokenizer must have either pad_token or eos_token")
+        
+        self.tokenizer = tokenizer
+        
         # Load model
         self.model = AutoModelForCausalLM.from_pretrained(
             config.model_id,

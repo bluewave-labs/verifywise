@@ -42,6 +42,7 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
     return res.status(204).json(STATUS_CODE[204](vendors));
   } catch (error) {
     await logFailure({
+      eventType: 'Read',      
       description: 'Failed to retrieve vendors',
       functionName: 'getAllVendors',
       fileName: 'vendor.ctrl.ts',
@@ -81,6 +82,7 @@ export async function getVendorById(req: Request, res: Response): Promise<any> {
     return res.status(404).json(STATUS_CODE[404](vendor));
   } catch (error) {
     await logFailure({
+      eventType: 'Read',
       description: 'Failed to retrieve vendor by ID',
       functionName: 'getVendorById',
       fileName: 'vendor.ctrl.ts',
@@ -123,6 +125,7 @@ export async function getVendorByProjectId(
     return res.status(404).json(STATUS_CODE[404]([]));
   } catch (error) {
     await logFailure({
+      eventType: 'Read',
       description: 'Failed to retrieve vendor by project ID',
       functionName: 'getVendorByProjectId',
       fileName: 'vendor.ctrl.ts',
@@ -144,6 +147,7 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
 
     if (!newVendor.vendor_name || !newVendor.vendor_provides) {
       await logFailure({
+        eventType: 'Create',
         description: 'Validation failed: Missing vendorName or vendorProvides',
         functionName: 'createVendor',
         fileName: 'vendor.ctrl.ts',
@@ -179,6 +183,7 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
   } catch (error) {
     await transaction.rollback();
     await logFailure({
+      eventType: 'Create',
       description: 'Failed to create vendor',
       functionName: 'createVendor',
       fileName: 'vendor.ctrl.ts',
@@ -204,6 +209,7 @@ export async function updateVendorById(
     const { userId, role } = req;
     if (!userId || !role) {
       await logFailure({
+        eventType: 'Update',
         description: 'Unauthorized access attempt to update vendor',
         functionName: 'updateVendorById',
         fileName: 'vendor.ctrl.ts',
@@ -257,6 +263,7 @@ export async function updateVendorById(
   } catch (error) {
     await transaction.rollback();
     await logFailure({
+      eventType: 'Update',
       description: 'Failed to update vendor',
       functionName: 'updateVendorById',
       fileName: 'vendor.ctrl.ts',
@@ -303,6 +310,7 @@ export async function deleteVendorById(
   } catch (error) {
     await transaction.rollback();
     await logFailure({
+      eventType: 'Delete',
       description: 'Failed to delete vendor',
       functionName: 'deleteVendorById',
       fileName: 'vendor.ctrl.ts',

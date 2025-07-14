@@ -390,9 +390,17 @@ export async function deleteQuestionById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-  try {
-    const questionId = parseInt(req.params.id);
+  const questionId = parseInt(req.params.id);
 
+  logStructured(
+    "processing",
+    `deleting question ID: ${questionId}`,
+    "deleteQuestionById",
+    "question.ctrl.ts"
+  );
+  logger.debug(`🗑️ Delete requested for question ID ${questionId}`);
+
+  try {
     const deletedQuestion = await deleteQuestionByIdQuery(
       questionId,
       req.tenantId!,
@@ -401,20 +409,62 @@ export async function deleteQuestionById(
 
     if (deletedQuestion) {
       await transaction.commit();
+      logStructured(
+        "successful",
+        `question deleted: ID ${questionId}`,
+        "deleteQuestionById",
+        "question.ctrl.ts"
+      );
+      await logEvent("Delete", `Question deleted: ID ${questionId}`);
       return res.status(202).json(STATUS_CODE[202](deletedQuestion));
     }
 
+    logStructured(
+      "successful",
+      `no question found to delete: ID ${questionId}`,
+      "deleteQuestionById",
+      "question.ctrl.ts"
+    );
+    await logEvent("Read", `No question found to delete: ID ${questionId}`);
+    await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     await transaction.rollback();
+    logStructured(
+      "error",
+      `failed to delete question: ID ${questionId}`,
+      "deleteQuestionById",
+      "question.ctrl.ts"
+    );
+    await logEvent(
+      "Error",
+      `Failed to delete question ID ${questionId}: ${(error as Error).message}`
+    );
+    logger.error("❌ Error in deleteQuestionById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function getQuestionsBySubtopicId(req: Request, res: Response) {
+  const subtopicId = parseInt(req.params.id);
+
+  logStructured(
+    "processing",
+    `fetching questions by subtopic ID: ${subtopicId}`,
+    "getQuestionsBySubtopicId",
+    "question.ctrl.ts"
+  );
+  logger.debug(`🔍 Looking up questions for subtopic ID: ${subtopicId}`);
+
   try {
-    const subtopicId = parseInt(req.params.id);
     if (isNaN(subtopicId)) {
+      logStructured(
+        "error",
+        `invalid subtopic ID: ${req.params.id}`,
+        "getQuestionsBySubtopicId",
+        "question.ctrl.ts"
+      );
+      await logEvent("Error", `Invalid subtopic ID provided: ${req.params.id}`);
       return res
         .status(400)
         .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
@@ -424,40 +474,114 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
       subtopicId,
       req.tenantId!
     );
+
     if (questions && questions.length !== 0) {
+      logStructured(
+        "successful",
+        `retrieved ${questions.length} questions for subtopic ID: ${subtopicId}`,
+        "getQuestionsBySubtopicId",
+        "question.ctrl.ts"
+      );
+      await logEvent(
+        "Read",
+        `Retrieved ${questions.length} questions for subtopic ID: ${subtopicId}`
+      );
       return res.status(200).json(STATUS_CODE[200](questions));
     }
 
+    logStructured(
+      "successful",
+      `no questions found for subtopic ID: ${subtopicId}`,
+      "getQuestionsBySubtopicId",
+      "question.ctrl.ts"
+    );
+    await logEvent("Read", `No questions found for subtopic ID: ${subtopicId}`);
     return res.status(404).json(
       STATUS_CODE[404]({
         message: "No questions found for the given subtopic ID",
       })
     );
   } catch (error) {
+    logStructured(
+      "error",
+      `failed to fetch questions for subtopic ID: ${subtopicId}`,
+      "getQuestionsBySubtopicId",
+      "question.ctrl.ts"
+    );
+    await logEvent(
+      "Error",
+      `Failed to retrieve questions for subtopic ID ${subtopicId}: ${(error as Error).message}`
+    );
+    logger.error("❌ Error in getQuestionsBySubtopicId:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function getQuestionsByTopicId(req: Request, res: Response) {
+  const topicId = parseInt(req.params.id);
+
+  logStructured(
+    "processing",
+    `fetching questions by topic ID: ${topicId}`,
+    "getQuestionsByTopicId",
+    "question.ctrl.ts"
+  );
+  logger.debug(`🔍 Looking up questions for topic ID: ${topicId}`);
+
   try {
-    const topicId = parseInt(req.params.id);
     if (isNaN(topicId)) {
+      logStructured(
+        "error",
+        `invalid topic ID: ${req.params.id}`,
+        "getQuestionsByTopicId",
+        "question.ctrl.ts"
+      );
+      await logEvent("Error", `Invalid topic ID provided: ${req.params.id}`);
       return res
         .status(400)
         .json(STATUS_CODE[400]({ message: "Invalid topic ID" }));
     }
 
     const questions = await getQuestionByTopicIdQuery(topicId, req.tenantId!);
+
     if (questions && questions.length !== 0) {
+      logStructured(
+        "successful",
+        `retrieved ${questions.length} questions for topic ID: ${topicId}`,
+        "getQuestionsByTopicId",
+        "question.ctrl.ts"
+      );
+      await logEvent(
+        "Read",
+        `Retrieved ${questions.length} questions for topic ID: ${topicId}`
+      );
       return res.status(200).json(STATUS_CODE[200](questions));
     }
 
+    logStructured(
+      "successful",
+      `no questions found for topic ID: ${topicId}`,
+      "getQuestionsByTopicId",
+      "question.ctrl.ts"
+    );
+    await logEvent("Read", `No questions found for topic ID: ${topicId}`);
     return res.status(404).json(
       STATUS_CODE[404]({
         message: "No questions found for the given topic id",
       })
     );
   } catch (error) {
+    logStructured(
+      "error",
+      `failed to fetch questions for topic ID: ${topicId}`,
+      "getQuestionsByTopicId",
+      "question.ctrl.ts"
+    );
+    await logEvent(
+      "Error",
+      `Failed to retrieve questions for topic ID ${topicId}: ${(error as Error).message}`
+    );
+    logger.error("❌ Error in getQuestionsByTopicId:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

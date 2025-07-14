@@ -145,8 +145,7 @@ export const createNewSubTopicsQuery = async (
   transaction: Transaction
 ) => {
   const createdSubTopics = [];
-  let query =
-    `INSERT INTO "${tenant}".subtopics(topic_id, title, order_no) VALUES (:topic_id, :title, :order_no) RETURNING *;`;
+  let query = `INSERT INTO "${tenant}".subtopics(topic_id, title, order_no) VALUES (:topic_id, :title, :order_no) RETURNING *;`;
   for (let subTopicStruct of subTopics) {
     const result = await sequelize.query(query, {
       replacements: {

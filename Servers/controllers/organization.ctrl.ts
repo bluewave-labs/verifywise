@@ -310,11 +310,11 @@ export async function createOrganization(
       await transaction.commit();
       logStructured(
         "successful",
-        `organization created: ${name}`,
+        `organization created: ${createdOrganization.name}`,
         "createOrganization",
         "organization.ctrl.ts"
       );
-      await logEvent("Create", `Organization created: ${name}`);
+      await logEvent("Create", `Organization created: ${createdOrganization.name}`);
       return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 

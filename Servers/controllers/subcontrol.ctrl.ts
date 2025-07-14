@@ -9,8 +9,8 @@ import {
   updateSubcontrolByIdQuery,
 } from "../utils/subControl.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
-import { Subcontrol } from "../domain.layer/models/subcontrol/subcontrol.model";
 import { sequelize } from "../database/db";
+import { SubcontrolModel } from "../domain.layer/models/subcontrol/subcontrol.model";
 
 export async function getAllSubcontrols(
   req: Request,
@@ -36,7 +36,10 @@ export async function getSubcontrolById(
   try {
     const subcontrolId = parseInt(req.params.id);
 
-    const subcontrol = await getSubcontrolByIdQuery(subcontrolId, req.tenantId!);
+    const subcontrol = await getSubcontrolByIdQuery(
+      subcontrolId,
+      req.tenantId!
+    );
 
     if (subcontrol) {
       return res.status(200).json(STATUS_CODE[200](subcontrol));
@@ -54,8 +57,10 @@ export async function createNewSubcontrol(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   try {
-    const subcontrol: Subcontrol & { user_id: number; project_id: number } =
-      req.body;
+    const subcontrol: SubcontrolModel & {
+      user_id: number;
+      project_id: number;
+    } = req.body;
 
     const controlIdFK = subcontrol.control_id;
     const project_id = subcontrol.project_id;
@@ -98,7 +103,7 @@ export async function updateSubcontrolById(
   const transaction = await sequelize.transaction();
   try {
     const subcontrolId = parseInt(req.params.id);
-    const subcontrol: Partial<Subcontrol> & {
+    const subcontrol: Partial<SubcontrolModel> & {
       user_id: number;
       project_id: number;
     } = req.body;

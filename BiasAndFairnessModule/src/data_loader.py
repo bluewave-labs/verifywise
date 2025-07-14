@@ -40,7 +40,9 @@ class DataLoader:
             try:
                 dataset = load_dataset(self.dataset_config.source, split=split)
             except Exception as e:
-                raise ValueError(f"Could not load split:'{split}' for dataset '{self.dataset_config.source}'. Error: {e}")
+                raise ValueError(
+                    f"Could not load split:'{split}' for dataset '{self.dataset_config.source}'. Error: {e}"
+                )
             if isinstance(dataset, Dataset):
                 # Convert to pandas DataFrame
                 self.data = pd.DataFrame(dataset)

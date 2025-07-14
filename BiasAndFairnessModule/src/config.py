@@ -9,19 +9,9 @@ from .common import read_yaml
 class SamplingConfig(BaseModel):
     """Configuration for dataset sampling."""
 
-    enabled: bool = Field(
-        default=True,
-        description="Whether sampling is enabled"
-        )
-    n_samples: int = Field(
-        default=5000,
-        gt=0,
-        description="Number of samples to use"
-        )
-    random_seed: int = Field(
-        default=42,
-        description="Random seed for reproducibility"
-        )
+    enabled: bool = Field(default=True, description="Whether sampling is enabled")
+    n_samples: int = Field(default=5000, gt=0, description="Number of samples to use")
+    random_seed: int = Field(default=42, description="Random seed for reproducibility")
 
 
 class DatasetConfig(BaseModel):
@@ -31,9 +21,7 @@ class DatasetConfig(BaseModel):
     source: str = Field(
         ..., description="Source of the dataset (e.g., huggingface path)"
     )
-    split: str = Field(
-        default="train", description="Split of the dataset to use"
-    )
+    split: str = Field(default="train", description="Split of the dataset to use")
     platform: str = Field(
         default="huggingface", description="Platform where the dataset is hosted"
     )
@@ -63,12 +51,34 @@ class ClosedSourceModelConfig(BaseModel):
     )
 
 
+class HuggingFaceModelConfig(BaseModel):
+    """Configuration for Hugging Face models."""
+
+    enabled: bool = Field(default=True, description="Whether to use Hugging Face model")
+    model_id: str = Field(
+        default="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        description="Model ID from Hugging Face Hub",
+    )
+    device: str = Field(
+        default="cuda", description="Device to run the model on (cuda or cpu)"
+    )
+    max_length: int = Field(
+        default=512, gt=0, description="Maximum sequence length for model input"
+    )
+    temperature: float = Field(
+        default=0.7, gt=0, le=1.0, description="Sampling temperature"
+    )
+    top_p: float = Field(
+        default=0.9, gt=0, le=1.0, description="Top-p sampling parameter"
+    )
+
+
 class ModelConfig(BaseModel):
     """Configuration for model settings."""
 
-    closed_source: ClosedSourceModelConfig = Field(
-        default_factory=lambda: ClosedSourceModelConfig(),
-        description="Closed source model configuration",
+    huggingface: HuggingFaceModelConfig = Field(
+        default_factory=lambda: HuggingFaceModelConfig(),
+        description="Hugging Face model configuration",
     )
 
 

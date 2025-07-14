@@ -492,3 +492,227 @@ export async function getCompliances(req: Request, res: Response) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+export async function projectComplianceProgress(req: Request, res: Response) {
+  const projectId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting projectComplianceProgress for ID ${projectId}`,
+    functionName: "projectComplianceProgress",
+    fileName: "projectStats.ctrl.ts",
+  });
+
+  try {
+    const project = await getProjectByIdQuery(projectId, req.tenantId!);
+    if (project) {
+      const { totalSubcontrols, doneSubcontrols } =
+        await countSubControlsByProjectId(project.id!, req.tenantId!);
+
+      await logSuccess({
+        eventType: "Read",
+        description: `Compliance progress calculated for project ID ${projectId}`,
+        functionName: "projectComplianceProgress",
+        fileName: "projectStats.ctrl.ts",
+      });
+
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          allsubControls: totalSubcontrols,
+          allDonesubControls: doneSubcontrols,
+        })
+      );
+    }
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Project not found: ID ${projectId}`,
+      functionName: "projectComplianceProgress",
+      fileName: "projectStats.ctrl.ts",
+    });
+
+    return res.status(404).json(STATUS_CODE[404](project));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to get compliance progress",
+      functionName: "projectComplianceProgress",
+      fileName: "projectStats.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function projectAssessmentProgress(req: Request, res: Response) {
+  const projectId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting projectAssessmentProgress for ID ${projectId}`,
+    functionName: "projectAssessmentProgress",
+    fileName: "projectStats.ctrl.ts",
+  });
+
+  try {
+    const project = await getProjectByIdQuery(projectId, req.tenantId!);
+    if (project) {
+      const { totalAssessments, answeredAssessments } =
+        await countAnswersByProjectId(project.id!, req.tenantId!);
+
+      await logSuccess({
+        eventType: "Read",
+        description: `Assessment progress calculated for project ID ${projectId}`,
+        functionName: "projectAssessmentProgress",
+        fileName: "projectStats.ctrl.ts",
+      });
+
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          totalQuestions: totalAssessments,
+          answeredQuestions: answeredAssessments,
+        })
+      );
+    }
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Project not found: ID ${projectId}`,
+      functionName: "projectAssessmentProgress",
+      fileName: "projectStats.ctrl.ts",
+    });
+
+    return res.status(404).json(STATUS_CODE[404](project));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to get assessment progress",
+      functionName: "projectAssessmentProgress",
+      fileName: "projectStats.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function allProjectsComplianceProgress(req: Request, res: Response) {
+  let totalNumberOfSubcontrols = 0;
+  let totalNumberOfDoneSubcontrols = 0;
+  logProcessing({
+    description: "starting allProjectsComplianceProgress",
+    functionName: "allProjectsComplianceProgress",
+    fileName: "projectStats.ctrl.ts",
+  });
+
+  try {
+    const { userId, role } = req;
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
+    if (projects && projects.length > 0) {
+      await Promise.all(
+        projects.map(async (project) => {
+          const { totalSubcontrols, doneSubcontrols } =
+            await countSubControlsByProjectId(project.id!, req.tenantId!);
+          totalNumberOfSubcontrols += parseInt(totalSubcontrols);
+          totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
+        })
+      );
+
+      await logSuccess({
+        eventType: "Read",
+        description: "Compliance progress calculated across all projects",
+        functionName: "allProjectsComplianceProgress",
+        fileName: "projectStats.ctrl.ts",
+      });
+
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          allsubControls: totalNumberOfSubcontrols,
+          allDonesubControls: totalNumberOfDoneSubcontrols,
+        })
+      );
+    }
+
+    await logSuccess({
+      eventType: "Read",
+      description: "No projects found for compliance progress",
+      functionName: "allProjectsComplianceProgress",
+      fileName: "projectStats.ctrl.ts",
+    });
+
+    return res.status(404).json(STATUS_CODE[404](projects));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to get compliance progress for all projects",
+      functionName: "allProjectsComplianceProgress",
+      fileName: "projectStats.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function allProjectsAssessmentProgress(req: Request, res: Response) {
+  let totalNumberOfQuestions = 0;
+  let totalNumberOfAnsweredQuestions = 0;
+  logProcessing({
+    description: "starting allProjectsAssessmentProgress",
+    functionName: "allProjectsAssessmentProgress",
+    fileName: "projectStats.ctrl.ts",
+  });
+
+  try {
+    const { userId, role } = req;
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
+    if (projects && projects.length > 0) {
+      await Promise.all(
+        projects.map(async (project) => {
+          const { totalAssessments, answeredAssessments } =
+            await countAnswersByProjectId(project.id!, req.tenantId!);
+          totalNumberOfQuestions += parseInt(totalAssessments);
+          totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
+        })
+      );
+
+      await logSuccess({
+        eventType: "Read",
+        description: "Assessment progress calculated across all projects",
+        functionName: "allProjectsAssessmentProgress",
+        fileName: "projectStats.ctrl.ts",
+      });
+
+      return res.status(200).json(
+        STATUS_CODE[200]({
+          totalQuestions: totalNumberOfQuestions,
+          answeredQuestions: totalNumberOfAnsweredQuestions,
+        })
+      );
+    }
+
+    await logSuccess({
+      eventType: "Read",
+      description: "No projects found for assessment progress",
+      functionName: "allProjectsAssessmentProgress",
+      fileName: "projectStats.ctrl.ts",
+    });
+
+    return res.status(404).json(STATUS_CODE[404](projects));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to get assessment progress for all projects",
+      functionName: "allProjectsAssessmentProgress",
+      fileName: "projectStats.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}

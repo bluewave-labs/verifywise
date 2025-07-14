@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils import PreTrainedTokenizer
 
@@ -45,13 +45,13 @@ class ModelLoader:
     def _initialize_huggingface_model(self) -> None:
         """Initialize the Hugging Face model and tokenizer."""
         config = self.model_config
-        
+
         # Set device
         device = config.device
         if device == "cuda" and not torch.cuda.is_available():
             print("CUDA not available, falling back to CPU")
             device = "cpu"
-        
+
         # Load tokenizer
         tokenizer = AutoTokenizer.from_pretrained(
             config.model_id, trust_remote_code=True
@@ -61,9 +61,9 @@ class ModelLoader:
                 tokenizer.pad_token = tokenizer.eos_token
             else:
                 raise ValueError("Tokenizer must have either pad_token or eos_token")
-        
+
         self.tokenizer = tokenizer
-        
+
         # Load model
         self.model = AutoModelForCausalLM.from_pretrained(
             config.model_id,
@@ -71,7 +71,7 @@ class ModelLoader:
             trust_remote_code=True,
         ).to(device)
 
-    def _format_prompt(self, prompt: str) -> str:
+    def _format_prompt(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """Format the prompt for TinyLlama chat model.
 
         Args:
@@ -80,9 +80,11 @@ class ModelLoader:
         Returns:
             str: Formatted prompt following TinyLlama chat format
         """
-        return f"<|system|>You are a helpful AI assistant.<|user|>{prompt}<|assistant|>"
+        return f"<|system|>{system_prompt}<|user|>{prompt}<|assistant|>"
 
-    def predict(self, prompts: Union[str, List[str]]) -> List[str]:
+    def predict(
+        self, prompts: Union[str, List[str]], system_prompt: Optional[str] = None
+    ) -> List[str]:
         """Generate responses for the given prompts using model configuration parameters.
 
         Args:
@@ -102,7 +104,7 @@ class ModelLoader:
             prompts = [prompts]
 
         # Format prompts for chat
-        formatted_prompts = [self._format_prompt(p) for p in prompts]
+        formatted_prompts = [self._format_prompt(p, system_prompt) for p in prompts]
 
         # Get generation config from model config
         config = self.model_config
@@ -118,17 +120,18 @@ class ModelLoader:
 
         # Generate
         with torch.no_grad():
-            generation_kwargs = {
-                "input_ids": inputs["input_ids"],
-                "attention_mask": inputs.get("attention_mask", None),
-                "max_new_tokens": config.max_length,
-                "temperature": config.temperature,
-                "top_p": config.top_p,
-                "do_sample": True,
-                "pad_token_id": self.tokenizer.pad_token_id,
-                "eos_token_id": self.tokenizer.eos_token_id,
-            }
-            outputs = self.model.generate(**generation_kwargs)
+            generation_kwargs = GenerationConfig(
+                max_new_tokens=config.max_length,
+                temperature=config.temperature,
+                top_p=config.top_p,
+                do_sample=True,
+                pad_token_id=self.tokenizer.pad_token_id,
+                eos_token_id=self.tokenizer.eos_token_id,
+            )
+            outputs = self.model.generate(
+                **inputs,
+                generation_config=generation_kwargs,
+            )
 
         # Decode outputs and extract only the assistant's response
         responses = []

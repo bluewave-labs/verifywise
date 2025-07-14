@@ -15,6 +15,11 @@ interface IAITrustCentreSubprocessors {
 }
 
 export interface IAITrustCentrePublic {
+  info: {
+    title: string;
+    header_color: string;
+    logo: number;
+  },
   intro: {
     purpose: string;
     statement: string;

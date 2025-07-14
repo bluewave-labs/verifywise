@@ -111,6 +111,10 @@ export const getAITrustCentrePublicPageQuery = async (
     }
   }
 
+  const infoQuery = await sequelize.query(`SELECT title, header_color, logo FROM "${tenant}".ai_trust_center LIMIT 1;`) as [{ title: string, header_color: string, logo: number }[], number];
+
+  output["info"] = infoQuery[0][0] || {};
+
   return output
 }
 

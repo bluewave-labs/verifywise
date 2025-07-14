@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
-import { createAITrustCentreResourceQuery, createAITrustCentreSubprocessorQuery, deleteAITrustCentreResourceQuery, deleteAITrustCentreSubprocessorQuery, getAITrustCentreOverviewQuery, getAITrustCentrePublicPageQuery, getAITrustCentreResourcesQuery, getAITrustCentreSubprocessorsQuery, updateAITrustCentreOverviewQuery, updateAITrustCentreResourceQuery, updateAITrustCentreSubprocessorQuery, uploadCompanyLogoQuery } from "../utils/aiTrustCentre.utils";
+import { createAITrustCentreResourceQuery, createAITrustCentreSubprocessorQuery, deleteAITrustCentreResourceQuery, deleteAITrustCentreSubprocessorQuery, deleteCompanyLogoQuery, getAITrustCentreOverviewQuery, getAITrustCentrePublicPageQuery, getAITrustCentreResourcesQuery, getAITrustCentreSubprocessorsQuery, updateAITrustCentreOverviewQuery, updateAITrustCentreResourceQuery, updateAITrustCentreSubprocessorQuery, uploadCompanyLogoQuery } from "../utils/aiTrustCentre.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { IAITrustCentreOverview } from "../domain.layer/interfaces/i.aiTrustCentreOverview";
@@ -393,6 +393,33 @@ export async function deleteAITrustSubprocessor(
       return res.status(503).json(
         STATUS_CODE[503]({
           message: "Failed to delete AI Trust Centre subprocessor",
+        })
+      );
+    }
+  } catch (error) {
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function deleteCompanyLogo(
+  req: Request,
+  res: Response
+) {
+  const transaction = await sequelize.transaction();
+  try {
+    const isDeleted = await deleteCompanyLogoQuery(req.tenantId!, transaction);
+
+    if (isDeleted) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200]({
+        message: "Company logo deleted successfully"
+      }));
+    } else {
+      await transaction.rollback();
+      return res.status(503).json(
+        STATUS_CODE[503]({
+          message: "Failed to delete company logo",
         })
       );
     }

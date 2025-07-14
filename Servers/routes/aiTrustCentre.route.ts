@@ -9,6 +9,7 @@ import {
   createAITrustSubprocessor,
   deleteAITrustResource,
   deleteAITrustSubprocessor,
+  deleteCompanyLogo,
   getAITrustCentreOverview,
   getAITrustCentrePublicPage,
   getAITrustCentreResources,
@@ -35,6 +36,7 @@ router.put("/overview", authenticateJWT, updateAITrustOverview);
 router.put("/resources/:id", authenticateJWT, validateId("id"), upload.single("file"), updateAITrustResource);
 router.put("/subprocessors/:id", authenticateJWT, validateId("id"), updateAITrustSubprocessor);
 
+router.delete("/logo", authenticateJWT, deleteCompanyLogo);
 router.delete("/resources/:id", authenticateJWT, validateId("id"), deleteAITrustResource);
 router.delete("/subprocessors/:id", authenticateJWT, validateId("id"), deleteAITrustSubprocessor);
 

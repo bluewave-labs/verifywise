@@ -372,3 +372,26 @@ export const deleteAITrustCentreSubprocessorQuery = async (
   });
   return result[0].length > 0;
 }
+
+export const deleteCompanyLogoQuery = async (
+  tenant: string,
+  transaction: Transaction
+) => {
+  const currentLogo = await sequelize.query(
+    `SELECT logo FROM "${tenant}".ai_trust_center LIMIT 1;`,
+    { transaction }
+  ) as [{ logo: number }[], number];
+  
+  const deleteFileId = currentLogo[0][0]?.logo;
+
+  if (deleteFileId) {
+    await deleteFileById(deleteFileId, tenant, transaction);
+  }
+
+  const result = await sequelize.query(
+    `UPDATE "${tenant}".ai_trust_center SET logo = NULL RETURNING logo;`,
+    { transaction }
+  ) as [{ logo: number }[], number];
+
+  return result[0][0]?.logo === null;
+}

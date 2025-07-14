@@ -14,6 +14,7 @@ import {
   getAITrustCentrePublicPage,
   getAITrustCentreResources,
   getAITrustCentreSubprocessors,
+  getCompanyLogo,
   updateAITrustOverview,
   updateAITrustResource,
   updateAITrustSubprocessor,
@@ -27,6 +28,7 @@ router.get("/overview", authenticateJWT, getAITrustCentreOverview);
 router.get("/resources", authenticateJWT, getAITrustCentreResources);
 router.get("/subprocessors", authenticateJWT, getAITrustCentreSubprocessors);
 router.get("/:hash", validateVisibility, getAITrustCentrePublicPage);
+router.get("/:hash/logo", validateVisibility, getCompanyLogo);
 
 router.post("/resources", authenticateJWT, upload.single("file"), createAITrustResource);
 router.post("/subprocessors", authenticateJWT, createAITrustSubprocessor);

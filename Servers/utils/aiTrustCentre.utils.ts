@@ -14,7 +14,6 @@ import { IAITrustCentreSubprocessors } from "../domain.layer/interfaces/i.aiTrus
 import { IAITrustCentrePublic } from "../domain.layer/interfaces/i.aiTrustCentrePublic";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { deleteFileById, uploadFile } from "./fileUpload.utils";
-import { UploadedFile } from "./question.utils";
 
 export const getIsVisibleQuery = async (
   tenant: string
@@ -25,6 +24,14 @@ export const getIsVisibleQuery = async (
   } catch (error) {
     return false;
   }
+}
+
+export const getCompanyLogoQuery = async (
+  tenant: string
+) => {
+  const result = await sequelize.query(`SELECT content, type FROM "${tenant}".ai_trust_center AS ai INNER JOIN "${tenant}".files f ON ai.logo = f.id LIMIT 1;`) as [{ content: Buffer }[], number];
+
+  return result[0][0] || null;
 }
 
 export const getAITrustCentrePublicPageQuery = async (
@@ -381,17 +388,18 @@ export const deleteCompanyLogoQuery = async (
     `SELECT logo FROM "${tenant}".ai_trust_center LIMIT 1;`,
     { transaction }
   ) as [{ logo: number }[], number];
-  
-  const deleteFileId = currentLogo[0][0]?.logo;
 
-  if (deleteFileId) {
-    await deleteFileById(deleteFileId, tenant, transaction);
-  }
+  const deleteFileId = currentLogo[0][0]?.logo;
 
   const result = await sequelize.query(
     `UPDATE "${tenant}".ai_trust_center SET logo = NULL RETURNING logo;`,
     { transaction }
   ) as [{ logo: number }[], number];
 
-  return result[0][0]?.logo === null;
+  let deleted = false;
+  if (deleteFileId) {
+    deleted = await deleteFileById(deleteFileId, tenant, transaction);
+  }
+
+  return deleted && result[0][0].logo === null;
 }

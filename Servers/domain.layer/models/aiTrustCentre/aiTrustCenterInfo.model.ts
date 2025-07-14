@@ -26,7 +26,14 @@ export class AITrustCenterInfoModel extends Model<AITrustCenterInfoModel> implem
     type: DataType.INTEGER,
     allowNull: true,
   })
-  logo!: number;
+  logo?: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  visible!: boolean;
 
   @Column({
     type: DataType.STRING,

@@ -2,8 +2,9 @@ export interface IAITrustCentreOverview {
   info: {
     id?: number;
     title: string;
-    logo: number;
+    logo?: number;
     header_color: string;
+    visible: boolean;
     intro_visible: boolean;
     compliance_badges_visible: boolean;
     company_description_visible: boolean;

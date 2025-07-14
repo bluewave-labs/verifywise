@@ -17,6 +17,7 @@ import { Vendor } from "../domain.layer/models/vendor/vendor.model";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { HighRiskRole } from "../domain.layer/enums/high-risk-role.enum";
 import { AiRiskClassification } from "../domain.layer/enums/ai-risk-classification.enum";
+import { updateAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
 // import { createAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
 
 export async function insertMockData(tenant: string, organization: number, userId: number | null = null) {
@@ -164,53 +165,53 @@ export async function insertMockData(tenant: string, organization: number, userI
     }
 
     // Insert AI Trust Centre demo data
-    // console.log("Starting AI Trust Centre demo data insertion...");
-    // try {
-    //   await createAITrustCentreOverviewQuery({
-    //   intro: {
-    //     intro_visible: true,
-    //     purpose_visible: true,
-    //     purpose_text: 'Our Trust Center demonstrates our commitment to responsible AI practices and data privacy. We believe in transparency, ethical AI development, and building trust with our customers through clear communication about our AI governance practices.',
-    //     our_statement_visible: true,
-    //     our_statement_text: 'We are committed to ethical AI development and transparent data practices. Our AI solutions are designed with privacy, security, and fairness at their core, ensuring that we build trust with our customers while delivering innovative technology.',
-    //     our_mission_visible: true,
-    //     our_mission_text: 'To build trust through responsible AI innovation and transparent governance. We strive to be the gold standard in AI ethics and compliance, ensuring our technology serves humanity while protecting individual rights and privacy.'
-    //   },
-    //   compliance_badges: {
-    //     badges_visible: true,
-    //     SOC2_Type_I: true,
-    //     SOC2_Type_II: true,
-    //     ISO_27001: true,
-    //     ISO_42001: true,
-    //     CCPA: true,
-    //     GDPR: true,
-    //     HIPAA: true,
-    //     EU_AI_Act: true
-    //   },
-    //   company_info: {
-    //     company_info_visible: true,
-    //     background_visible: true,
-    //     background_text: 'We are a leading AI company focused on ethical and responsible AI development. Our team of experts combines deep technical knowledge with a strong commitment to AI governance, ensuring that our solutions not only deliver exceptional results but also maintain the highest standards of privacy and security.',
-    //     core_benefit_visible: true,
-    //     core_benefit_text: 'Our AI solutions provide enhanced security, efficiency, and customer support while maintaining the highest ethical standards. We offer comprehensive AI governance tools, automated compliance monitoring, and transparent reporting capabilities that help organizations build trust with their stakeholders.',
-    //     compliance_doc_visible: true,
-    //     compliance_doc_text: 'Access our comprehensive compliance documentation and certifications. Our compliance vault contains detailed audit reports, technical documentation, and governance frameworks that demonstrate our unwavering commitment to AI governance best practices.'
-    //   },
-    //   terms_and_contact: {
-    //     is_visible: true,
-    //     has_terms_of_service: true,
-    //     terms_of_service: 'https://example.com/terms-of-service',
-    //     has_privacy_policy: true,
-    //     privacy_policy: 'https://example.com/privacy-policy',
-    //     has_company_email: true,
-    //     company_email: 'privacy@example.com'
-    //   }
-    // }, transaction);
-    // console.log("AI Trust Centre demo data inserted successfully");
-    // } catch (error) {
-    //   console.error("Error inserting AI Trust Centre demo data:", error);
-    //   throw error;
-    // }
+    await updateAITrustCentreOverviewQuery({
+      info: {
+        title: 'AI Trust Centre',
+        header_color: '#4A90E2',
+        visible: true,
+        intro_visible: true,
+        compliance_badges_visible: true,
+        company_description_visible: true,
+        terms_and_contact_visible: true,
+        resources_visible: true,
+        subprocessor_visible: true
+      },
+      intro: {
+        purpose_visible: true,
+        purpose_text: 'Our Trust Center demonstrates our commitment to responsible AI practices and data privacy. We believe in transparency, ethical AI development, and building trust with our customers through clear communication about our AI governance practices.',
+        our_statement_visible: true,
+        our_statement_text: 'We are committed to ethical AI development and transparent data practices. Our AI solutions are designed with privacy, security, and fairness at their core, ensuring that we build trust with our customers while delivering innovative technology.',
+        our_mission_visible: true,
+        our_mission_text: 'To build trust through responsible AI innovation and transparent governance. We strive to be the gold standard in AI ethics and compliance, ensuring our technology serves humanity while protecting individual rights and privacy.'
+      },
+      compliance_badges: {
+        SOC2_Type_I: true,
+        SOC2_Type_II: true,
+        ISO_27001: true,
+        ISO_42001: true,
+        CCPA: true,
+        GDPR: true,
+        HIPAA: true,
+        EU_AI_Act: true
+      },
+      company_description: {
+        background_visible: true,
+        background_text: 'We are a leading AI company focused on ethical and responsible AI development. Our team of experts combines deep technical knowledge with a strong commitment to AI governance, ensuring that our solutions not only deliver exceptional results but also maintain the highest standards of privacy and security.',
+        core_benefits_visible: true,
+        core_benefits_text: 'Our AI solutions provide enhanced security, efficiency, and customer support while maintaining the highest ethical standards. We offer comprehensive AI governance tools, automated compliance monitoring, and transparent reporting capabilities that help organizations build trust with their stakeholders.',
+        compliance_doc_visible: true,
+        compliance_doc_text: 'Access our comprehensive compliance documentation and certifications. Our compliance vault contains detailed audit reports, technical documentation, and governance frameworks that demonstrate our unwavering commitment to AI governance best practices.'
+      },
+      terms_and_contact: {
+        terms_visible: true,
+        terms_text: 'https://example.com/terms-of-service',
+        privacy_visible: true,
+        privacy_text: 'https://example.com/privacy-policy',
+        email_visible: true,
+        email_text: 'privacy@example.com'
+      }
+    }, tenant, transaction);
 
     await transaction.commit();
   } catch (error) {
@@ -228,25 +229,7 @@ export async function deleteMockData(tenant: string) {
     }
     // delete vendor related data
     await deleteDemoVendorsData(tenant, transaction);
-    
-    // Delete AI Trust Centre demo data
-    await sequelize.query(
-      `DELETE FROM ai_trust_center_terms_and_contact WHERE organization_id = 1`,
-      { transaction }
-    );
-    await sequelize.query(
-      `DELETE FROM ai_trust_centre_company_info WHERE organization_id = 1`,
-      { transaction }
-    );
-    await sequelize.query(
-      `DELETE FROM ai_trust_centre_compliance_badges WHERE organization_id = 1`,
-      { transaction }
-    );
-    await sequelize.query(
-      `DELETE FROM ai_trust_centre_intro WHERE organization_id = 1`,
-      { transaction }
-    );
-    
+
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();

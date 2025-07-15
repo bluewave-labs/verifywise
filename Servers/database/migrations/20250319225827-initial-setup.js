@@ -864,6 +864,126 @@ module.exports = {
         defaultValue: false,
       }
     });
+
+    await queryInterface.createTable('tiers', {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: {
+        type: Sequelize.ENUM('Tier 1', 'Tier 2', 'Tier 3'),
+        allowNull: false,
+      },
+      price: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      features: {
+        type: Sequelize.JSON,
+        allowNull: false,
+      },
+      created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      updated_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+    });
+
+    await queryInterface.createTable("subscriptions", {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      organization_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "organizations",
+          key: "id",
+        },
+      },
+      tier_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "tiers",
+          key: "id",
+        },
+      },
+      stripe_sub_id: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      status: {
+        type: Sequelize.ENUM("active", "inactive", "canceled"),
+        allowNull: false,
+      },
+      start_date: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      end_date: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+    });
+
+    await queryInterface.createTable('subscription_history', {
+      id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+      },
+      organization_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "organizations",
+          key: "id",
+        },
+      },
+      subscription_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "subscriptions",
+          key: "id",
+        },
+      },
+      action: {
+        type: Sequelize.ENUM("created", "upgraded", "downgraded", "canceled"),
+        allowNull: false,
+      },
+      timestamp: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      previous_tier_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "tiers",
+          key: "id",
+        },
+      },
+      new_tier_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "tiers",
+          key: "id",
+        },
+      },
+    });
   },
 
   async down(queryInterface, Sequelize) {
@@ -884,5 +1004,8 @@ module.exports = {
     await queryInterface.dropTable('projects');
     await queryInterface.dropTable('users');
     await queryInterface.dropTable('roles');
+    await queryInterface.dropTable('tiers');
+    await queryInterface.dropTable('subscriptions');
+    await queryInterface.dropTable('subscription_history');
   }
 };

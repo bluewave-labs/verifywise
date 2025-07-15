@@ -9,8 +9,8 @@ import {
   getSubTopicByTopicIdQuery,
   updateSubtopicByIdQuery,
 } from "../utils/subtopic.utils";
-import { Subtopic } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
+import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 
 export async function getAllSubtopics(
   req: Request,
@@ -55,7 +55,7 @@ export async function createNewSubtopic(
   const transaction = await sequelize.transaction();
   try {
     const subtopic = await createNewSubtopicQuery(
-      req.body as Subtopic,
+      req.body as SubtopicModel,
       req.tenantId!,
       transaction
     );
@@ -82,7 +82,7 @@ export async function updateSubtopicById(
 
     const subtopic = await updateSubtopicByIdQuery(
       subtopicId,
-      req.body as Subtopic,
+      req.body as SubtopicModel,
       req.tenantId!,
       transaction
     );
@@ -107,7 +107,11 @@ export async function deleteSubtopicById(
   try {
     const subtopicId = parseInt(req.params.id);
 
-    const subtopic = await deleteSubtopicByIdQuery(subtopicId, req.tenantId!, transaction);
+    const subtopic = await deleteSubtopicByIdQuery(
+      subtopicId,
+      req.tenantId!,
+      transaction
+    );
 
     if (subtopic) {
       await transaction.commit();

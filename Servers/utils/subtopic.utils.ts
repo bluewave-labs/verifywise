@@ -1,14 +1,12 @@
-import {
-  Subtopic,
-  SubtopicModel,
-} from "../domain.layer/models/subtopic/subtopic.model";
+import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 import { createNewQuestionsQuery } from "./question.utils";
 import { QueryTypes, Transaction } from "sequelize";
+import { ISubtopic } from "../domain.layer/interfaces/i.subtopic";
 
 export const getAllSubtopicsQuery = async (
   tenant: string
-): Promise<Subtopic[]> => {
+): Promise<ISubtopic[]> => {
   const subtopics = await sequelize.query(
     `SELECT * FROM "${tenant}".subtopics ORDER BY created_at DESC, id ASC`,
     {
@@ -22,7 +20,7 @@ export const getAllSubtopicsQuery = async (
 export const getSubtopicByIdQuery = async (
   id: number,
   tenant: string
-): Promise<Subtopic | null> => {
+): Promise<ISubtopic | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".subtopics WHERE id = :id`,
     {
@@ -35,10 +33,10 @@ export const getSubtopicByIdQuery = async (
 };
 
 export const createNewSubtopicQuery = async (
-  subtopic: Subtopic,
+  subtopic: SubtopicModel,
   tenant: string,
   transaction: Transaction
-): Promise<Subtopic> => {
+): Promise<SubtopicModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".subtopics (topic_id, title) VALUES (:topic_id, :title) RETURNING *`,
     {
@@ -54,18 +52,19 @@ export const createNewSubtopicQuery = async (
 
 export const updateSubtopicByIdQuery = async (
   id: number,
-  subtopic: Partial<Subtopic>,
+  subtopic: Partial<SubtopicModel>,
   tenant: string,
   transaction: Transaction
-): Promise<Subtopic | null> => {
-  const updateSubTopic: Partial<Record<keyof Subtopic, any>> = {};
+): Promise<SubtopicModel | null> => {
+  const updateSubTopic: Partial<Record<keyof SubtopicModel, any>> = {};
   const setClause = ["title"]
     .filter((f) => {
       if (
-        subtopic[f as keyof Subtopic] !== undefined &&
-        subtopic[f as keyof Subtopic]
+        subtopic[f as keyof SubtopicModel] !== undefined &&
+        subtopic[f as keyof SubtopicModel]
       ) {
-        updateSubTopic[f as keyof Subtopic] = subtopic[f as keyof Subtopic];
+        updateSubTopic[f as keyof SubtopicModel] =
+          subtopic[f as keyof SubtopicModel];
         return true;
       }
     })
@@ -108,7 +107,7 @@ export const deleteSubtopicByIdQuery = async (
 export const getSubTopicByTopicIdQuery = async (
   topicId: number,
   tenant: string
-): Promise<Subtopic[]> => {
+): Promise<ISubtopic[]> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".subtopics WHERE topic_id = :topic_id ORDER BY created_at DESC, id ASC`,
     {

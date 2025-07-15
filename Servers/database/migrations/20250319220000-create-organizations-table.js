@@ -8,6 +8,8 @@ module.exports = {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         logo VARCHAR(512),
+        is_subscribed BOOLEAN NOT NULL DEFAULT FALSE,
+        subscription_id INTEGER NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       );

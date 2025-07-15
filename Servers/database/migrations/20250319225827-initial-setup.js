@@ -984,6 +984,18 @@ module.exports = {
         },
       },
     });
+
+    await queryInterface.addConstraint("organizations", {
+      type: "FOREIGN KEY",
+      name: "fk_organizations_subscription_id",
+      fields: ["subscription_id"],
+      references: {
+        table: "subscriptions",
+        field: "id",
+      },
+      onDelete: "SET NULL",
+      onUpdate: "CASCADE",
+    });
   },
 
   async down(queryInterface, Sequelize) {

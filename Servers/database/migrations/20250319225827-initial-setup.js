@@ -967,22 +967,6 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      previous_tier_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: "tiers",
-          key: "id",
-        },
-      },
-      new_tier_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: "tiers",
-          key: "id",
-        },
-      },
     });
 
     await queryInterface.addConstraint("organizations", {

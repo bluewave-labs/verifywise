@@ -34,15 +34,11 @@ export const useAITrustCentreResources = (): UseAITrustCentreResourcesReturn => 
       console.log('Resources response:', response);
       
       // Handle the nested response structure: response.data.data.resources
-      if (response && response.data && response.data.data && response.data.data.resources) {
-        setResources(response.data.data.resources);
-      } else if (response && response.data && response.data.resources) {
-        setResources(response.data.resources);
-      } else if (response && response.resources) {
-        setResources(response.resources);
-      } else {
-        setResources([]);
-      }
+      const resources = response?.data?.data?.resources || 
+                       response?.data?.resources || 
+                       response?.resources || 
+                       [];
+      setResources(resources);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch AI Trust Centre resources';
       setError(errorMessage);

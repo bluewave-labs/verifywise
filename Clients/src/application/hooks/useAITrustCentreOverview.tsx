@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAITrustCentreOverview, updateAITrustCentreOverview } from '../repository/aiTrustCentre.repository';
 
-interface AITrustCentreOverviewData {
+export interface AITrustCentreOverviewData {
   info?: {
     company_description_visible: boolean;
     compliance_badges_visible: boolean;

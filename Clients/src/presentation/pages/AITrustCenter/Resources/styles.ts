@@ -1,4 +1,5 @@
 import { keyframes } from "@mui/system";
+import { SxProps, Theme } from '@mui/material';
 
 // Flash animation
 export const flashAnimation = keyframes`
@@ -13,10 +14,44 @@ export const flashAnimation = keyframes`
   }
 `;
 
-export const useStyles = () => ({
+type StylesType = {
+  description: SxProps<Theme>;
+  container: SxProps<Theme>;
+  resourcesHeader: SxProps<Theme>;
+  title: SxProps<Theme>;
+  toggleRow: SxProps<Theme>;
+  toggleLabel: SxProps<Theme>;
+  tableWrapper: SxProps<Theme>;
+  tableContainer: SxProps<Theme>;
+  tableCell: SxProps<Theme>;
+  tableRow: (isFlashing: boolean) => SxProps<Theme>;
+  resourceName: SxProps<Theme>;
+  resourceType: SxProps<Theme>;
+  visibilityIcon: SxProps<Theme>;
+  visibilityOffIcon: SxProps<Theme>;
+  emptyStateText: SxProps<Theme>;
+  overlay: SxProps<Theme>;
+  buttonContainer: SxProps<Theme>;
+  addButton: SxProps<Theme>;
+  modalPaper: SxProps<Theme>;
+  modalTitle: SxProps<Theme>;
+  modalContent: SxProps<Theme>;
+  modalLabel: SxProps<Theme>;
+  closeButton: SxProps<Theme>;
+  fieldStyle: SxProps<Theme>;
+  fileUploadButton: SxProps<Theme>;
+  fileName: SxProps<Theme>;
+  existingFileName: SxProps<Theme>;
+  modalActionButton: SxProps<Theme>;
+  modalCancelButton: SxProps<Theme>;
+  successAlert: SxProps<Theme>;
+  errorAlert: SxProps<Theme>;
+};
+
+export const useStyles = (theme: Theme): StylesType => ({
   description: {
-    fontSize: 14,
-    color: '#667085',
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.secondary,
     lineHeight: 1.5,
     mb: 3,
   },
@@ -35,8 +70,8 @@ export const useStyles = () => ({
 
   title: {
     fontWeight: 600,
-    fontSize: 16,
-    color: '#344054',
+    fontSize: theme.typography.h6.fontSize,
+    color: theme.palette.text.primary,
   },
 
   toggleRow: {
@@ -46,8 +81,8 @@ export const useStyles = () => ({
   },
 
   toggleLabel: {
-    fontSize: 13,
-    color: '#344054',
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.primary,
     fontWeight: 600,
   },
 
@@ -57,21 +92,21 @@ export const useStyles = () => ({
   },
 
   tableContainer: {
-    borderRadius: 2,
+    borderRadius: theme.shape.borderRadius,
     boxShadow: 'none',
-    border: '1px solid #E5E7EB',
+    border: `1px solid ${theme.palette.divider}`,
   },
 
   tableCell: {
-    fontSize: 12,
+    fontSize: theme.typography.caption.fontSize,
     fontWeight: 600,
-    color: '#667085',
-    backgroundColor: '#F9FAFB',
-    borderBottom: '1px solid #E5E7EB',
+    color: theme.palette.text.secondary,
+    backgroundColor: theme.palette.grey[50],
+    borderBottom: `1px solid ${theme.palette.divider}`,
   },
   tableRow: (isFlashing: boolean) => ({
     '&:hover': {
-      backgroundColor: '#F9FAFB',
+      backgroundColor: theme.palette.grey[50],
     },
     '& .MuiTableCell-root': {
       padding: '8px 10px !important',
@@ -82,29 +117,29 @@ export const useStyles = () => ({
   }),
 
   resourceName: {
-    fontSize: 13,
+    fontSize: theme.typography.body2.fontSize,
     fontWeight: 500,
-    color: '#344054',
+    color: theme.palette.text.primary,
   },
 
   resourceType: {
-    fontSize: 13,
-    color: '#667085',
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.secondary,
   },
 
   visibilityIcon: {
-    color: '#52AB43',
+    color: theme.palette.success.main,
     fontSize: 20,
   },
 
   visibilityOffIcon: {
-    color: '#F04438',
+    color: theme.palette.error.main,
     fontSize: 20,
   },
 
   emptyStateText: {
-    fontSize: 13,
-    color: '#667085',
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.secondary,
     fontStyle: 'italic',
   },
 
@@ -128,21 +163,21 @@ export const useStyles = () => ({
     width: "fit-content",
     gap: 2,
     backgroundColor: '#13715B',
-    border: '1px solid #13715B',
+    border: `1px solid #13715B`,
     mt: 10,
   },
 
   // Modal styles
   modalPaper: {
-    borderRadius: 2,
+    borderRadius: theme.shape.borderRadius,
     padding: 0,
-    boxShadow: '0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08)',
+    boxShadow: theme.shadows[4],
   },
 
   modalTitle: {
-    fontSize: 16,
+    fontSize: theme.typography.h6.fontSize,
     fontWeight: 600,
-    color: '#344054',
+    color: theme.palette.text.primary,
     padding: '16px 24px',
     display: 'flex',
     justifyContent: 'space-between',
@@ -154,14 +189,14 @@ export const useStyles = () => ({
   },
 
   modalLabel: {
-    fontSize: 13,
+    fontSize: theme.typography.body2.fontSize,
     fontWeight: 500,
-    color: '#344054',
+    color: theme.palette.text.primary,
     mb: 1,
   },
 
   closeButton: {
-    color: '#667085',
+    color: theme.palette.text.secondary,
     padding: 0,
     '&:hover': {
       backgroundColor: 'transparent',
@@ -170,7 +205,7 @@ export const useStyles = () => ({
   },
 
   fieldStyle: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.palette.background.paper,
     '& input': {
       padding: '0 14px',
     },
@@ -179,21 +214,21 @@ export const useStyles = () => ({
   fileUploadButton: {
     mt: 10,
     backgroundColor: '#13715B',
-    border: '1px solid #13715B',
-    color: '#FFFFFF',
+    border: `1px solid #13715B`,
+    color: '#fff',
   },
 
   fileName: {
-    fontSize: 13,
-    color: '#52AB43',
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.success.main,
     fontWeight: 500,
     mt: 1,
     ml: 1,
   },
 
   existingFileName: {
-    fontSize: 13,
-    color: '#667085',
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.secondary,
     fontWeight: 400,
     mt: 1,
     ml: 1,
@@ -202,37 +237,37 @@ export const useStyles = () => ({
 
   modalActionButton: {
     backgroundColor: '#13715B',
-    border: '1px solid #13715B',
+    border: `1px solid #13715B`,
     gap: 1,
     '&:hover': {
-      backgroundColor: '#0F5A4A',
+      backgroundColor: '#13715B',
     },
     '&:disabled': {
-      backgroundColor: '#ccc',
-      border: '1px solid #ccc',
-      color: '#667085 !important',
+      backgroundColor: theme.palette.grey[300],
+      border: `1px solid ${theme.palette.grey[300]}`,
+      color: `${theme.palette.text.secondary} !important`,
     },
   },
 
   modalCancelButton: {
-    border: '1px solid #D0D5DD',
-    color: '#344054',
-    backgroundColor: '#FFFFFF',
+    border: `1px solid ${theme.palette.divider}`,
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.background.paper,
     '&:hover': {
-      backgroundColor: '#F9FAFB',
-      border: '1px solid #667085',
+      backgroundColor: theme.palette.grey[50],
+      border: `1px solid ${theme.palette.text.secondary}`,
     },
   },
 
   successAlert: {
-    backgroundColor: '#ECFDF3',
-    color: '#027A48',
-    border: '1px solid #A6F4C7',
+    backgroundColor: theme.palette.success.light,
+    color: theme.palette.success.dark,
+    border: `1px solid ${theme.palette.success.main}`,
   },
 
   errorAlert: {
-    backgroundColor: '#FEF3F2',
-    color: '#B42318',
-    border: '1px solid #FDA29B',
+    backgroundColor: theme.palette.error.light,
+    color: theme.palette.error.dark,
+    border: `1px solid ${theme.palette.error.main}`,
   },
 }); 

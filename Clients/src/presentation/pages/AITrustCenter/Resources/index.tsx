@@ -15,9 +15,8 @@ import { useAITrustCentreResources } from '../../../../application/hooks/useAITr
 import { handleDownload as downloadFile } from '../../../../application/tools/fileDownload';
 import { handleAlert } from '../../../../application/tools/alertUtils';
 import { TABLE_COLUMNS, WARNING_MESSAGES } from './constants';
-
-// Import the type from the hook
-type AITrustCentreOverviewData = Parameters<ReturnType<typeof useAITrustCentreOverview>['updateOverview']>[0];
+import { AITrustCentreOverviewData } from '../../../../application/hooks/useAITrustCentreOverview';
+import { useTheme } from '@mui/material/styles';
 
 interface Resource {
   id: number;
@@ -35,7 +34,8 @@ const ResourceTableRow: React.FC<{
   onDownload: (id: number) => void;
   isFlashing: boolean;
 }> = ({ resource, onDelete, onEdit, onMakeVisible, onDownload, isFlashing }) => {
-  const styles = useStyles();
+  const theme = useTheme();
+  const styles = useStyles(theme);
   
   return (
     <TableRow sx={styles.tableRow(isFlashing)}>
@@ -70,11 +70,6 @@ const ResourceTableRow: React.FC<{
   );
 };
 
-const TrustCenterResources: React.FC = () => {
-  const { loading: overviewLoading, error: overviewError, updateOverview, fetchOverview } = useAITrustCentreOverview();
-  const { resources, loading: resourcesLoading, error: resourcesError, createResource, deleteResource, updateResource } = useAITrustCentreResources();
-  const styles = useStyles();
-  
 interface FormData {
   intro?: Record<string, unknown>;
   compliance_badges?: Record<string, unknown>;
@@ -84,6 +79,12 @@ interface FormData {
     resources_visible?: boolean;
   };
 }
+
+const TrustCenterResources: React.FC = () => {
+  const { loading: overviewLoading, error: overviewError, updateOverview, fetchOverview } = useAITrustCentreOverview();
+  const { resources, loading: resourcesLoading, error: resourcesError, createResource, deleteResource, updateResource } = useAITrustCentreResources();
+  const theme = useTheme();
+  const styles = useStyles(theme);
 
 // State management
 const [formData, setFormData] = useState<FormData | null>(null);
@@ -112,6 +113,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
         setFormData(overviewData);
       } catch (error) {
         console.error('Error fetching overview data:', error);
+        handleAlert({
+          variant: "error",
+          body: "Failed to load overview data. Please refresh the page.",
+          setAlert,
+        });
       }
     };
     loadData();
@@ -194,7 +200,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!formData?.info?.resources_visible) return;
-    const file = e.target.files && e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
         setAddResourceError('Please upload a PDF file');
@@ -207,7 +213,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
 
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!formData?.info?.resources_visible) return;
-    const file = e.target.files && e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
         setEditResourceError('Please upload a PDF file');

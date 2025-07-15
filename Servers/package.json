@@ -60,7 +60,6 @@
     "@types/winston": "^2.4.4",
     "@types/yamljs": "^0.2.34",
     "jest": "^30.0.2",
-    "nodemon": "^3.1.7",
     "npm-run-all": "^4.1.5",
     "sequelize-cli": "^6.6.2",
     "swagger-jsdoc": "^6.2.8",

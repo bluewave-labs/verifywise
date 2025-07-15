@@ -36,7 +36,7 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
-  const { isMultiTenant } = useIsMultiTenant()
+  const { isMultiTenant } = useIsMultiTenant();
 
   const loginText = isDemoApp
     ? "Click on Sign in button directly to continue"
@@ -249,7 +249,7 @@ const Login: React.FC = () => {
               />
               <Typography
                 sx={{
-                  color: theme.palette.primary.main,
+                  color: singleTheme.buttons.primary.contained.backgroundColor,
                   fontSize: 13,
                   fontWeight: "bold",
                   cursor: "pointer",
@@ -267,38 +267,39 @@ const Login: React.FC = () => {
               type="submit"
               disableRipple
               variant="contained"
-              sx={singleTheme.buttons.primary}
+              sx={singleTheme.buttons.primary.contained}
             >
               Sign in
             </Button>
-            {isMultiTenant && <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: theme.spacing(1),
-              }}
-            >
-              <Typography
-                sx={{ fontSize: 14, color: theme.palette.text.secondary }}
-              >
-                Don't have an account yet?
-              </Typography>
-              <Typography
+            {isMultiTenant && (
+              <Stack
                 sx={{
-                  color: theme.palette.primary.main,
-                  fontSize: 14,
-                  fontWeight: "bold",
-                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: theme.spacing(1),
                 }}
-                onClick={() =>
-                  navigate("/register")
-                }
               >
-                Register here
-              </Typography>
-            </Stack>}
+                <Typography
+                  sx={{ fontSize: 14, color: theme.palette.text.secondary }}
+                >
+                  Don't have an account yet?
+                </Typography>
+                <Typography
+                  sx={{
+                    color:
+                      singleTheme.buttons.primary.contained.backgroundColor,
+                    fontSize: 14,
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate("/register")}
+                >
+                  Register here
+                </Typography>
+              </Stack>
+            )}
           </Stack>
         </Stack>
       </form>

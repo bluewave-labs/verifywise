@@ -11,6 +11,7 @@ import { useState, lazy, Suspense } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -118,7 +119,7 @@ const ResetPassword = () => {
             <span
               style={{
                 fontWeight: "bold",
-                color: "#1570EF",
+                color: singleTheme.buttons.primary.contained.backgroundColor,
                 cursor: "pointer",
               }}
             >

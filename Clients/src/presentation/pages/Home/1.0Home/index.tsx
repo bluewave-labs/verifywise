@@ -150,7 +150,7 @@ const Home = () => {
             {projects.length === 0 && (
               <CustomizableButton
                 variant="contained"
-                text="Insert demo data"
+                text="Create demo project"
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
@@ -183,7 +183,7 @@ const Home = () => {
         </Stack>
         <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
           {projects?.length === 0 || !projects ? (
-            <NoProject message="There no projects available." />
+            <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />
           ) : projects?.length <= 3 ? (
             <>
               <Box

@@ -147,12 +147,11 @@ export const getAITrustCentreOverviewQuery = async (
 export const getAITrustCentreResourcesQuery = async (
   tenant: string
 ) => {
-  const query = `SELECT * FROM "${tenant}".ai_trust_center_resources ORDER BY id ASC;`;
-  const resources = await sequelize.query(query, {
-    mapToModel: true,
-    model: AITrustCenterResourcesModel, // Using the same model for resources
-  });
-  return resources;
+  const query = `SELECT ai.*, f.filename FROM "${tenant}".ai_trust_center_resources ai
+    JOIN "${tenant}".files f ON ai.file_id = f.id
+  ORDER BY id ASC;`;
+  const resources = await sequelize.query(query) as [(AITrustCenterResourcesModel & { filename: string })[], number];
+  return resources[0];
 }
 
 export const getAITrustCentreSubprocessorsQuery = async (

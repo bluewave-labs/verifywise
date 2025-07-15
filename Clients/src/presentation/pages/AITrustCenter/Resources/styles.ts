@@ -1,132 +1,218 @@
-import { useTheme } from '@mui/material/styles';
+import { keyframes } from "@mui/system";
 
-export const useStyles = () => {
-  const theme = useTheme();
+// Flash animation
+export const flashAnimation = keyframes`
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(82, 171, 67, 0.2); // Light green color
+  }
+  100% {
+    background-color: transparent;
+  }
+`;
 
-  return {
-    title: {
-      fontWeight: 600,
-      marginBottom: theme.spacing(2),
-      fontSize: 13,
+export const useStyles = () => ({
+  description: {
+    fontSize: 14,
+    color: '#667085',
+    lineHeight: 1.5,
+    mb: 3,
+  },
+
+  container: {
+    mt: 3,
+  },
+
+  resourcesHeader: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    mb: 2,
+    padding: '10px 0',
+  },
+
+  title: {
+    fontWeight: 600,
+    fontSize: 16,
+    color: '#344054',
+  },
+
+  toggleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+  },
+
+  toggleLabel: {
+    fontSize: 13,
+    color: '#344054',
+    fontWeight: 500,
+  },
+
+  tableWrapper: {
+    position: 'relative',
+    mb: 3,
+  },
+
+  tableContainer: {
+    borderRadius: 2,
+    boxShadow: 'none',
+    border: '1px solid #E5E7EB',
+  },
+
+  tableCell: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#667085',
+    backgroundColor: '#F9FAFB',
+    borderBottom: '1px solid #E5E7EB',
+  },
+
+  tableRow: (isFlashing: boolean) => ({
+    '&:hover': {
+      backgroundColor: '#F9FAFB',
     },
-    description: {
-      color: theme.palette.text.secondary,
-      fontSize: 13,
-      marginBottom: theme.spacing(3),
+    padding: '8px 10px',
+    ...(isFlashing && {
+      animation: `${flashAnimation} 2s ease-in-out`,
+    }),
+  }),
+
+  resourceName: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#344054',
+  },
+
+  resourceType: {
+    fontSize: 13,
+    color: '#667085',
+  },
+
+  visibilityIcon: {
+    color: '#52AB43',
+    fontSize: 20,
+  },
+
+  visibilityOffIcon: {
+    color: '#F04438',
+    fontSize: 20,
+  },
+
+  emptyStateText: {
+    fontSize: 13,
+    color: '#667085',
+    fontStyle: 'italic',
+  },
+
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    zIndex: 1,
+  },
+
+  buttonContainer: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+  },
+
+  addButton: {
+    alignSelf: "flex-end",
+    width: "fit-content",
+    gap: 2,
+    backgroundColor: '#13715B',
+    border: '1px solid #13715B',
+  },
+
+  // Modal styles
+  modalPaper: {
+    borderRadius: 2,
+    padding: 0,
+    boxShadow: '0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08)',
+  },
+
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#344054',
+    padding: '16px 24px',
+    borderBottom: '1px solid #E5E7EB',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  modalContent: {
+    padding: '24px',
+  },
+
+  modalLabel: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#344054',
+    mb: 1,
+  },
+
+  closeButton: {
+    color: '#667085',
+    padding: 0,
+    '&:hover': {
+      backgroundColor: 'transparent',
+      opacity: 0.8,
     },
-    container: {
-      background: '#fff',
-      borderRadius: theme.shape.borderRadius,
-      boxShadow: '0 1px 4px rgba(16,30,54,0.04)',
-      padding: theme.spacing(4),
-      marginTop: theme.spacing(2),
+  },
+
+  fieldStyle: {
+    backgroundColor: '#FFFFFF',
+    '& input': {
+      padding: '0 14px',
     },
-    resourcesHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: theme.spacing(2),
+  },
+
+  fileUploadButton: {
+    border: '1px solid #D0D5DD',
+    color: '#344054',
+    backgroundColor: '#FFFFFF',
+    '&:hover': {
+      backgroundColor: '#F9FAFB',
+      border: '1px solid #667085',
     },
-    toggleLabel: {
-      fontWeight: 600,
-      fontSize: 13,
-      color: theme.palette.text.primary,
-      marginRight: 5,
+  },
+
+  modalActionButton: {
+    backgroundColor: '#13715B',
+    border: '1px solid #13715B',
+    gap: 1,
+    '&:hover': {
+      backgroundColor: '#0F5A4A',
     },
-    resourceName: {
-      fontWeight: 500,
-      fontSize: 13,
-      color: '#475467',
-      marginLeft: 0,
+  },
+
+  modalCancelButton: {
+    border: '1px solid #D0D5DD',
+    color: '#344054',
+    backgroundColor: '#FFFFFF',
+    '&:hover': {
+      backgroundColor: '#F9FAFB',
+      border: '1px solid #667085',
     },
-    resourceType: {
-      fontSize: 13,
-      color: '#475467',
-    },
-    saveBtn: {
-      alignSelf: 'flex-end',
-      width: 'fit-content',
-      backgroundColor: '#13715B',
-      border: '1px solid #13715B',
-      gap: 2,
-    },
-    toggleRow: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      marginBottom: theme.spacing(2),
-    },
-    // Table styles
-    tableContainer: {
-      boxShadow: 'none',
-    },
-    tableCell: {
-      fontWeight: 600,
-      fontSize: 13,
-    },
-    // Overlay styles
-    overlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      bgcolor: 'rgba(255,255,255,0.6)',
-      zIndex: 2,
-      pointerEvents: 'none',
-      borderRadius: 2,
-    },
-    // Modal styles
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      bgcolor: 'rgba(0,0,0,0.12)',
-      zIndex: 1300,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    modal: {
-      bgcolor: '#fff',
-      borderRadius: 2,
-      boxShadow: 3,
-      p: 6,
-      minWidth: 350,
-      maxWidth: 400,
-      width: '100%',
-      position: 'relative',
-    },
-    // Modal input styles
-    modalInput: {
-      width: '100%',
-      padding: '8px',
-      borderRadius: 4,
-      border: '1px solid #E0E0E0',
-      fontSize: 13,
-    },
-    modalInputDisabled: {
-      backgroundColor: '#f5f5f5',
-      color: '#666',
-      cursor: 'not-allowed',
-    },
-    modalInputEnabled: {
-      backgroundColor: '#fff',
-      color: '#000',
-      cursor: 'text',
-    },
-    // Modal button styles
-    modalButton: {
-      backgroundColor: '#13715B',
-      border: '1px solid #13715B',
-      cursor: 'pointer',
-    },
-    modalButtonDisabled: {
-      backgroundColor: '#ccc',
-      border: '1px solid #ccc',
-      cursor: 'not-allowed',
-    },
-  };
-}; 
+  },
+
+  successAlert: {
+    backgroundColor: '#ECFDF3',
+    color: '#027A48',
+    border: '1px solid #A6F4C7',
+  },
+
+  errorAlert: {
+    backgroundColor: '#FEF3F2',
+    color: '#B42318',
+    border: '1px solid #FDA29B',
+  },
+}); 

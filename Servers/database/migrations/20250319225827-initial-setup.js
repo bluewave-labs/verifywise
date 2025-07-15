@@ -935,12 +935,16 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
+      updated_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
     });
 
     await queryInterface.createTable('subscription_history', {
       id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        autoIncrement: true,
         primaryKey: true,
       },
       organization_id: {
@@ -1003,5 +1007,6 @@ module.exports = {
     await queryInterface.dropTable('tiers');
     await queryInterface.dropTable('subscriptions');
     await queryInterface.dropTable('subscription_history');
+    await queryInterface.removeConstraint('organizations', 'fk_organizations_subscription_id');
   }
 };

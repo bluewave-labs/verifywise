@@ -1,142 +1,129 @@
 import React, { useState } from "react";
-import { Alert, Snackbar, Box, Typography, IconButton, Dialog, Table, TableBody, Stack, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { 
+  Alert, 
+  Snackbar, 
+  Box, 
+  Typography, 
+  IconButton, 
+  Dialog, 
+  Table, 
+  TableBody, 
+  Stack, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper, 
+  CircularProgress,
+  DialogTitle,
+  DialogContent
+} from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import Toggle from '../../../components/Inputs/Toggle';
 import { useStyles } from './styles';
-import FileUploadComponent from '../../../components/FileUpload';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import IconButtonComponent from '../../../components/IconButton';
+import Field from '../../../components/Inputs/Field';
 import { useAITrustCentreOverview } from '../../../../application/hooks/useAITrustCentreOverview';
+import { useAITrustCentreResources } from '../../../../application/hooks/useAITrustCentreResources';
+import { TABLE_COLUMNS, WARNING_MESSAGES } from './constants';
 
-import {
-  INITIAL_RESOURCES,
-  TABLE_COLUMNS,
-  WARNING_MESSAGES
-} from './constants';
+// Import the type from the hook
+type AITrustCentreOverviewData = Parameters<ReturnType<typeof useAITrustCentreOverview>['updateOverview']>[0];
 
-// Helper component for Modal Input
-const ModalInput: React.FC<{
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  enabled: boolean;
-}> = ({ label, value, onChange, enabled }) => {
-  const styles = useStyles();
-  
-  return (
-    <Box>
-      <Typography fontSize={13} mb={1}>{label}</Typography>
-      <input
-        style={{
-          ...styles.modalInput,
-          ...(enabled ? styles.modalInputEnabled : styles.modalInputDisabled)
-        }}
-        value={value}
-        onChange={e => enabled && onChange(e.target.value)}
-        placeholder=""
-        disabled={!enabled}
-      />
-    </Box>
-  );
-};
-
-// Helper component for Modal Button
-const ModalButton: React.FC<{
-  text: string;
-  onClick: () => void;
-  enabled: boolean;
-  width?: number;
-  icon?: React.ReactNode;
-}> = ({ text, onClick, enabled, width = 140, icon }) => {
-  const styles = useStyles();
-  
-  return (
-    <CustomizableButton
-      variant="contained"
-      sx={{
-        ...(enabled ? styles.modalButton : styles.modalButtonDisabled),
-        width,
-      }}
-      text={text}
-      onClick={onClick}
-      isDisabled={!enabled}
-      icon={icon}
-    />
-  );
-};
+interface Resource {
+  id: number;
+  name: string;
+  description: string;
+  visible: boolean;
+}
 
 // Helper component for Resource Table Row
 const ResourceTableRow: React.FC<{
-  resource: any;
+  resource: Resource;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
   onMakeVisible: (id: number) => void;
   onDownload: (id: number) => void;
-}> = ({ resource, onDelete, onEdit, onMakeVisible, onDownload }) => {
+  isFlashing: boolean;
+}> = ({ resource, onDelete, onEdit, onMakeVisible, onDownload, isFlashing }) => {
   const styles = useStyles();
   
   return (
-    <TableRow key={resource.name}>
+    <TableRow sx={styles.tableRow(isFlashing)}>
       <TableCell>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography sx={styles.resourceName}>{resource.name}</Typography>
-        </Box>
+        <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
       <TableCell>
-        <Typography sx={styles.resourceType}>{resource.type}</Typography>
+        <Typography sx={styles.resourceType}>{resource.description}</Typography>
       </TableCell>
       <TableCell>
         {resource.visible ? (
-          <VisibilityIcon sx={{ color: '#12B76A' }} />
+          <VisibilityIcon sx={styles.visibilityIcon} />
         ) : (
-          <VisibilityOffIcon sx={{ color: '#F04438' }} />
+          <VisibilityOffIcon sx={styles.visibilityOffIcon} />
         )}
       </TableCell>
       <TableCell>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButtonComponent
-            id={resource.id}
-            onDelete={() => onDelete(resource.id)}
-            onEdit={() => onEdit(resource.id)}
-            onMouseEvent={() => {}}
-            onMakeVisible={() => onMakeVisible(resource.id)}
-            onDownload={() => onDownload(resource.id)}
-            isVisible={resource.visible}
-            warningTitle={WARNING_MESSAGES.deleteTitle}
-            warningMessage={WARNING_MESSAGES.deleteMessage}
-            type="Resource"
-          />
-        </Box>
+        <IconButtonComponent
+          id={resource.id}
+          onDelete={() => onDelete(resource.id)}
+          onEdit={() => onEdit(resource.id)}
+          onMouseEvent={() => {}}
+          onMakeVisible={() => onMakeVisible(resource.id)}
+          onDownload={() => onDownload(resource.id)}
+          isVisible={resource.visible}
+          warningTitle={WARNING_MESSAGES.deleteTitle}
+          warningMessage={WARNING_MESSAGES.deleteMessage}
+          type="Resource"
+        />
       </TableCell>
     </TableRow>
   );
 };
 
 const TrustCenterResources: React.FC = () => {
-  const { loading, error, updateOverview, fetchOverview } = useAITrustCentreOverview();
+  const { loading: overviewLoading, error: overviewError, updateOverview, fetchOverview } = useAITrustCentreOverview();
+  const { resources, loading: resourcesLoading, error: resourcesError, createResource, deleteResource, updateResource } = useAITrustCentreResources();
   const styles = useStyles();
-  const [enabled, setEnabled] = useState(true);
-  const [resources, setResources] = useState(INITIAL_RESOURCES);
-  const [uploadDialog, setUploadDialog] = useState({ open: false, idx: -1 });
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newResource, setNewResource] = useState<{ name: string; type: string; file: File | null }>({ name: '', type: '', file: null });
-  const [formData, setFormData] = React.useState<any>(null);
-  const [saveSuccess, setSaveSuccess] = React.useState(false);
+  
+interface FormData {
+  intro?: Record<string, unknown>;
+  compliance_badges?: Record<string, unknown>;
+  company_description?: Record<string, unknown>;
+  terms_and_contact?: Record<string, unknown>;
+  info?: {
+    resources_visible?: boolean;
+  };
+}
 
+// State management
+const [formData, setFormData] = useState<FormData | null>(null);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [newResource, setNewResource] = useState<{ name: string; description: string; file: File | null }>({ name: '', description: '', file: null });
+  const [editResource, setEditResource] = useState<{ id: number; name: string; description: string; visible: boolean }>({ id: 0, name: '', description: '', visible: true });
+  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
+  
+  // Success/Error states
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [addResourceSuccess, setAddResourceSuccess] = useState(false);
+  const [addResourceError, setAddResourceError] = useState<string | null>(null);
+  const [deleteResourceSuccess, setDeleteResourceSuccess] = useState(false);
+  const [deleteResourceError, setDeleteResourceError] = useState<string | null>(null);
+  const [editResourceSuccess, setEditResourceSuccess] = useState(false);
+  const [editResourceError, setEditResourceError] = useState<string | null>(null);
+
+  // Load overview data on component mount
   React.useEffect(() => {
     const loadData = async () => {
       try {
         const response = await fetchOverview();
-        console.log('Overview data fetched successfully');
-        console.log('Raw API Response:', response);
-        
-        // Extract the overview data from the nested response
         const overviewData = response?.data?.overview || response?.overview || response;
         setFormData(overviewData);
-        // setOriginalData(overviewData);
       } catch (error) {
         console.error('Error fetching overview data:', error);
       }
@@ -144,141 +131,208 @@ const TrustCenterResources: React.FC = () => {
     loadData();
   }, [fetchOverview]);
 
-  /**
-   * Handle field change
-   * @param section - The section of the data to update
-   * @param field - The field to update
-   * @param value - The value to set
-   */
+  // Handle field change and auto-save
   const handleFieldChange = (section: string, field: string, value: boolean | string) => {
-    setFormData((prev: any) => {
+    setFormData((prev: FormData | null) => {
+      if (!prev) return prev;
       const updatedData = {
         ...prev,
         [section]: {
-          ...prev[section],
+          ...prev[section as keyof FormData],
           [field]: value,
         },
       };
-      
-      // Call handleSave with the updated data
       handleSave(updatedData);
       return updatedData;
     });
   };
 
-  /**
-   * Save the data to the server
-   * @param data - The data to save
-   */
-  const handleSave = async (data?: any) => {
+  // Save data to server
+  const handleSave = async (data?: FormData) => {
     try {
       const dataToUse = data || formData;
-      console.log('Saving AI Trust Centre data:', dataToUse);
+      if (!dataToUse) return;
       
-      // Prepare the data to send, ensuring all sections are included
+      // Only send the info section with the resources_visible field
       const dataToSave = {
-        intro: dataToUse.intro,
-        compliance_badges: dataToUse.compliance_badges,
-        company_description: dataToUse.company_description,
-        terms_and_contact: dataToUse.terms_and_contact,
-        info: dataToUse.info
-      };
+        info: {
+          resources_visible: dataToUse.info?.resources_visible ?? false
+        }
+      } as Partial<AITrustCentreOverviewData>;
       
-      // Call the updateOverview function from the hook
       await updateOverview(dataToSave);
       setSaveSuccess(true);
-      
-      console.log('AI Trust Centre data saved successfully');
     } catch (error) {
       console.error('Save failed:', error);
     }
   };
 
-    // Handle success notification close
-    const handleSuccessClose = () => {
-      setSaveSuccess(false);
-    };
-  
+  // Modal handlers
   const handleOpenAddModal = () => {
-    // if (!enabled) return;
-    // setAddModalOpen(true);
-    // setNewResource({ name: '', type: '', file: null });
+    if (!formData?.info?.resources_visible) return;
+    setAddModalOpen(true);
+    setNewResource({ name: '', description: '', file: null });
+    setAddResourceError(null);
   };
   
-  const handleCloseAddModal = () => setAddModalOpen(false);
+  const handleCloseAddModal = () => {
+    setAddModalOpen(false);
+    setNewResource({ name: '', description: '', file: null });
+    setAddResourceError(null);
+  };
+
+  const handleOpenEditModal = (resource: any) => {
+    if (!formData?.info?.resources_visible) return;
+    setEditResource({
+      id: resource.id,
+      name: resource.name,
+      description: resource.description,
+      visible: resource.visible
+    });
+    setEditModalOpen(true);
+    setEditResourceError(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setEditResource({ id: 0, name: '', description: '', visible: true });
+    setEditResourceError(null);
+  };
   
+  // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // if (!enabled) return;
-    // const file = e.target.files && e.target.files[0];
-    // if (file) setNewResource((prev) => ({ ...prev, file }));
+    if (!formData?.info?.resources_visible) return;
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        setAddResourceError('Please upload a PDF file');
+        return;
+      }
+      setNewResource((prev) => ({ ...prev, file }));
+      setAddResourceError(null);
+    }
   };
   
-  const handleAddResource = () => {
-    // if (!enabled || !newResource.name || !newResource.type) return;
-    // setResources([
-    //   ...resources,
-    //   {
-    //     id: Date.now(),
-    //     name: newResource.name,
-    //     type: newResource.type,
-    //     visible: false,
-    //     file: newResource.file
-    //       ? { name: newResource.file.name, size: `${(newResource.file.size / 1024 / 1024).toFixed(1)}MB` }
-    //       : null,
-    //     uploaded: !!newResource.file,
-    //   },
-    // ]);
-    // setAddModalOpen(false);
+  // Resource operations
+  const handleAddResource = async () => {
+    if (!formData?.info?.resources_visible || !newResource.name || !newResource.description || !newResource.file) {
+      setAddResourceError('Please fill in all fields and upload a file');
+      return;
+    }
+
+    try {
+      await createResource(newResource.file, newResource.name, newResource.description);
+      setAddResourceSuccess(true);
+      setAddModalOpen(false);
+      setNewResource({ name: '', description: '', file: null });
+      setAddResourceError(null);
+    } catch (error: any) {
+      setAddResourceError(error.message || 'Failed to create resource');
+    }
+  };
+
+  const handleSaveEditResource = async () => {
+    if (!formData?.info?.resources_visible || !editResource.name || !editResource.description) {
+      setEditResourceError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await updateResource(editResource.id, editResource.name, editResource.description, editResource.visible);
+      setEditResourceSuccess(true);
+      setEditModalOpen(false);
+      setEditResource({ id: 0, name: '', description: '', visible: true });
+      setEditResourceError(null);
+      
+      setFlashingRowId(editResource.id);
+      setTimeout(() => setFlashingRowId(null), 2000);
+    } catch (error: any) {
+      setEditResourceError(error.message || 'Failed to update resource');
+    }
   };
   
   const handleEditResource = (resourceId: number) => {
-    // if (!enabled) return;
-    // console.log('edit resource', resourceId);
+    if (!formData?.info?.resources_visible) return;
+    const resource = resources.find(r => r.id === resourceId);
+    if (resource) {
+      handleOpenEditModal(resource);
+    }
   };
   
-  const handleDeleteResource = (resourceId: number) => {
-    // if (!enabled) return;
-    // setResources(resources.filter(resource => resource.id !== resourceId));
+  const handleDeleteResource = async (resourceId: number) => {
+    if (!formData?.info?.resources_visible) return;
+    try {
+      await deleteResource(resourceId);
+      setDeleteResourceSuccess(true);
+    } catch (error: any) {
+      setDeleteResourceError(error.message || 'Failed to delete resource');
+    }
   };
   
-  const handleMakeVisible = (resourceId: number) => {
-    if (!enabled) return;
-    setResources(resources.map(resource =>
-      resource.id === resourceId
-        ? { ...resource, visible: !resource.visible }
-        : resource
-    ));
+  const handleMakeVisible = async (resourceId: number) => {
+    if (!formData?.info?.resources_visible) return;
+    const resource = resources.find(r => r.id === resourceId);
+    if (resource) {
+      try {
+        await updateResource(resourceId, resource.name, resource.description, !resource.visible);
+        setFlashingRowId(resourceId);
+        setTimeout(() => setFlashingRowId(null), 2000);
+      } catch (error: any) {
+        setEditResourceError(error.message || 'Failed to update resource visibility');
+      }
+    }
   };
   
   const handleDownload = (resourceId: number) => {
-    // if (!enabled) return;
-    // const resource = resources.find(r => r.id === resourceId);
-    // if (resource && resource.file) {
-    //   // Download logic here
-    // }
+    if (!formData?.info?.resources_visible) return;
+    console.log('download resource', resourceId);
   };
+
+  // Show loading state
+  if (overviewLoading || resourcesLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Show error state
+  if (overviewError || resourcesError) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Typography color="error">
+          {overviewError || resourcesError}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box>
       <Typography sx={styles.description}>
         Provide easy access to documentation and policies relevant to your AI governance, data security, compliance, and ethical practices. This section should act as a centralized repository where your customers, partners, and stakeholders can download, review, and understand key policy documents.
       </Typography>
+      
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
-          <Typography variant="subtitle1" sx={styles.title}>
-            Resources and documents
-          </Typography>
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle checked={formData?.info?.resources_visible} onChange={(_, checked) => handleFieldChange('info', 'resources_visible', checked)} />
+            <Toggle 
+              checked={formData?.info?.resources_visible ?? false} 
+              onChange={(_, checked) => handleFieldChange('info', 'resources_visible', checked)} 
+            />
           </Box>
         </Box>
-        <Box sx={{ position: 'relative' }}>
-          <TableContainer component={Paper} sx={{ 
-            ...styles.tableContainer,
-            opacity: enabled ? 1 : 0.5, 
-            pointerEvents: enabled ? 'auto' : 'none' 
-          }}>
+        
+        <Box sx={styles.tableWrapper}>
+          <TableContainer 
+            component={Paper} 
+            sx={{
+              ...styles.tableContainer,
+              ...(formData?.info?.resources_visible ? {} : { opacity: 0.5, pointerEvents: 'none' })
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow>
@@ -288,116 +342,296 @@ const TrustCenterResources: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {resources.map((resource) => (
-                  <ResourceTableRow
-                    key={resource.id}
-                    resource={resource}
-                    onDelete={handleDeleteResource}
-                    onEdit={handleEditResource}
-                    onMakeVisible={handleMakeVisible}
-                    onDownload={handleDownload}
-                  />
-                ))}
+                {resources.length > 0 ? (
+                  resources.map((resource) => (
+                    <ResourceTableRow
+                      key={resource.id}
+                      resource={resource}
+                      onDelete={handleDeleteResource}
+                      onEdit={handleEditResource}
+                      onMakeVisible={handleMakeVisible}
+                      onDownload={handleDownload}
+                      isFlashing={flashingRowId === resource.id}
+                    />
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <Typography sx={styles.emptyStateText}>
+                        No resources found. Add your first resource to get started.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
-          {!enabled && <Box sx={styles.overlay} />}
+          {!formData?.info?.resources_visible && <Box sx={styles.overlay} />}
         </Box>
-        <Stack sx={{ width: "100%", mt: 4 }}>
+        
+        <Stack>
           <CustomizableButton
-            sx={styles.saveBtn}
+            sx={styles.addButton}
             variant="contained"
             onClick={handleOpenAddModal}
-            isDisabled={!enabled}
+            isDisabled={!formData?.info?.resources_visible}
             text="Add new resource"
             icon={<AddIcon />}
           />
         </Stack>
-        
+
         {/* Add Resource Modal */}
-        {addModalOpen && (
-          <Box sx={styles.modalOverlay}>
-            <Box sx={styles.modal}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
-                <Typography fontWeight={600} fontSize={16}>Add a new resource</Typography>
-                <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
-                  <CloseIcon />
-                </IconButton>
-              </Stack>
-              <Stack spacing={3}>
-                <ModalInput
-                  label="Resource name"
-                  value={newResource.name}
-                  onChange={(value) => setNewResource(r => ({ ...r, name: value }))}
-                  enabled={enabled}
+        <Dialog 
+          open={addModalOpen} 
+          onClose={handleCloseAddModal}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: styles.modalPaper
+          }}
+        >
+          <DialogTitle sx={styles.modalTitle}>
+            Add a new resource
+            <IconButton
+              onClick={handleCloseAddModal}
+              sx={styles.closeButton}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          
+          <DialogContent sx={styles.modalContent}>
+            <Stack spacing={3}>
+              <Field
+                id="resource-name"
+                label="Resource name"
+                value={newResource.name}
+                onChange={(e) => setNewResource(r => ({ ...r, name: e.target.value }))}
+                disabled={!formData?.info?.resources_visible}
+                isRequired
+                sx={styles.fieldStyle}
+                placeholder="Enter resource name"
+              />
+              <Field
+                id="resource-description"
+                label="Type or purpose of resource"
+                value={newResource.description}
+                onChange={(e) => setNewResource(r => ({ ...r, description: e.target.value }))}
+                disabled={!formData?.info?.resources_visible}
+                isRequired
+                sx={styles.fieldStyle}
+                placeholder="Enter resource description"
+              />
+              <Box>
+                <CustomizableButton
+                  text={newResource.file ? newResource.file.name : 'Upload a file'}
+                  variant="outlined"
+                  onClick={() => document.getElementById('resource-file-input')?.click()}
+                  isDisabled={!formData?.info?.resources_visible}
+                  sx={styles.fileUploadButton}
                 />
-                <ModalInput
-                  label="Type or purpose of resource"
-                  value={newResource.type}
-                  onChange={(value) => setNewResource(r => ({ ...r, type: value }))}
-                  enabled={enabled}
+                <input
+                  id="resource-file-input"
+                  type="file"
+                  accept="application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                  disabled={!formData?.info?.resources_visible}
                 />
-                <Box>
-                  <ModalButton
-                    text={newResource.file ? newResource.file.name : 'Upload a file'}
-                    onClick={() => document.getElementById('resource-file-input')?.click()}
-                    enabled={enabled}
-                    width={160}
-                  />
-                  <input
-                    id="resource-file-input"
-                    type="file"
-                    accept="application/pdf"
-                    style={{ display: 'none' }}
-                    onChange={handleFileChange}
-                    disabled={!enabled}
-                  />
-                </Box>
-                <Box display="flex" justifyContent="flex-end">
-                  <ModalButton
-                    text="Add resource"
-                    onClick={handleAddResource}
-                    enabled={enabled && !!newResource.name && !!newResource.type}
-                  />
-                </Box>
-              </Stack>
-            </Box>
-          </Box>
-        )}
-        
-        <Dialog open={uploadDialog.open} onClose={() => setUploadDialog({ open: false, idx: -1 })} maxWidth="xs">
-          <FileUploadComponent
-            open={uploadDialog.open}
-            onClose={() => setUploadDialog({ open: false, idx: -1 })}
-            onSuccess={() => {}}
-            allowedFileTypes={["application/pdf"]}
-          />
+              </Box>
+              <Box display="flex" justifyContent="flex-end">
+                <CustomizableButton
+                  text="Add resource"
+                  variant="contained"
+                  onClick={handleAddResource}
+                  isDisabled={!formData?.info?.resources_visible || !newResource.name || !newResource.description || !newResource.file}
+                  sx={styles.modalActionButton}
+                />
+              </Box>
+            </Stack>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Resource Modal */}
+        <Dialog 
+          open={editModalOpen} 
+          onClose={handleCloseEditModal}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: styles.modalPaper
+          }}
+        >
+          <DialogTitle sx={styles.modalTitle}>
+            Edit resource
+            <IconButton
+              onClick={handleCloseEditModal}
+              sx={styles.closeButton}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          
+          <DialogContent sx={styles.modalContent}>
+            <Stack spacing={3}>
+              <Field
+                id="edit-resource-name"
+                label="Resource name"
+                value={editResource.name}
+                onChange={(e) => setEditResource(r => ({ ...r, name: e.target.value }))}
+                disabled={!formData?.info?.resources_visible}
+                isRequired
+                sx={styles.fieldStyle}
+                placeholder="Enter resource name"
+              />
+              <Field
+                id="edit-resource-description"
+                label="Type or purpose of resource"
+                value={editResource.description}
+                onChange={(e) => setEditResource(r => ({ ...r, description: e.target.value }))}
+                disabled={!formData?.info?.resources_visible}
+                isRequired
+                sx={styles.fieldStyle}
+                placeholder="Enter resource description"
+              />
+              <Box>
+                <Typography sx={styles.modalLabel}>Visibility</Typography>
+                <Toggle 
+                  checked={editResource.visible} 
+                  onChange={(_, checked) => setEditResource(r => ({ ...r, visible: checked }))}
+                />
+              </Box>
+              <Box display="flex" justifyContent="flex-end" gap={2}>
+                <CustomizableButton
+                  variant="outlined"
+                  text="Cancel"
+                  onClick={handleCloseEditModal}
+                  sx={styles.modalCancelButton}
+                />
+                <CustomizableButton
+                  text="Save"
+                  variant="contained"
+                  onClick={handleSaveEditResource}
+                  isDisabled={!formData?.info?.resources_visible || !editResource.name || !editResource.description}
+                  sx={styles.modalActionButton}
+                />
+              </Box>
+            </Stack>
+          </DialogContent>
         </Dialog>
       </Box>
 
+      {/* Success notification for overview save */}
       <Snackbar
         open={saveSuccess}
         autoHideDuration={3000}
-        onClose={handleSuccessClose}
+        onClose={() => setSaveSuccess(false)}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
-          onClose={handleSuccessClose} 
+          onClose={() => setSaveSuccess(false)} 
           severity="success" 
-          sx={{ 
-            width: '100%',
-            backgroundColor: '#ecfdf3',
-            border: '1px solid #12715B',
-            color: '#079455',
-            '& .MuiAlert-icon': {
-              color: '#079455',
-            }
-          }}
+          sx={styles.successAlert}
         >
-          {'Resources saved successfully'}
+          Resources saved successfully
         </Alert>
       </Snackbar>
 
+      {/* Success notification for add resource */}
+      <Snackbar
+        open={addResourceSuccess}
+        autoHideDuration={3000}
+        onClose={() => setAddResourceSuccess(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setAddResourceSuccess(false)} 
+          severity="success" 
+          sx={styles.successAlert}
+        >
+          Resource added successfully
+        </Alert>
+      </Snackbar>
+
+      {/* Error notification for add resource */}
+      <Snackbar
+        open={!!addResourceError}
+        autoHideDuration={5000}
+        onClose={() => setAddResourceError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setAddResourceError(null)} 
+          severity="error" 
+          sx={styles.errorAlert}
+        >
+          {addResourceError}
+        </Alert>
+      </Snackbar>
+
+      {/* Success notification for delete resource */}
+      <Snackbar
+        open={deleteResourceSuccess}
+        autoHideDuration={3000}
+        onClose={() => setDeleteResourceSuccess(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setDeleteResourceSuccess(false)} 
+          severity="success" 
+          sx={styles.successAlert}
+        >
+          Resource deleted successfully
+        </Alert>
+      </Snackbar>
+
+      {/* Error notification for delete resource */}
+      <Snackbar
+        open={!!deleteResourceError}
+        autoHideDuration={5000}
+        onClose={() => setDeleteResourceError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setDeleteResourceError(null)} 
+          severity="error" 
+          sx={styles.errorAlert}
+        >
+          {deleteResourceError}
+        </Alert>
+      </Snackbar>
+
+      {/* Success notification for edit resource */}
+      <Snackbar
+        open={editResourceSuccess}
+        autoHideDuration={3000}
+        onClose={() => setEditResourceSuccess(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setEditResourceSuccess(false)} 
+          severity="success" 
+          sx={styles.successAlert}
+        >
+          Resource updated successfully
+        </Alert>
+      </Snackbar>
+
+      {/* Error notification for edit resource */}
+      <Snackbar
+        open={!!editResourceError}
+        autoHideDuration={5000}
+        onClose={() => setEditResourceError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setEditResourceError(null)} 
+          severity="error" 
+          sx={styles.errorAlert}
+        >
+          {editResourceError}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

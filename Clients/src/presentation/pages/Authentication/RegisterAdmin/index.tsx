@@ -411,7 +411,7 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
                 type="submit"
                 disableRipple
                 variant="contained"
-                sx={singleTheme.buttons.primary}
+                sx={singleTheme.buttons.primary.contained}
               >
                 Get started
               </Button>

@@ -136,7 +136,7 @@ const RegisterMultiTenant: React.FC = () => {
       userRoleId: values.roleId,
     };
 
-    const response = await apiServices.post("organizations", requestBody)
+    const response = await apiServices.post("organizations", requestBody);
     setValues(initialState);
     setErrors({});
     setOrganizationValues(initialOrganizationState);
@@ -277,7 +277,7 @@ const RegisterMultiTenant: React.FC = () => {
             </Typography>
             <Typography
               sx={{
-                color: theme.palette.primary.main,
+                color: singleTheme.buttons.primary.contained.backgroundColor,
                 fontSize: 14,
                 fontWeight: "bold",
                 cursor: "pointer",
@@ -301,7 +301,10 @@ const RegisterMultiTenant: React.FC = () => {
                 type="submit"
                 disableRipple
                 variant="contained"
-                sx={{ ...singleTheme.buttons.primary, mt: theme.spacing(5) }}
+                sx={{
+                  ...singleTheme.buttons.primary.contained,
+                  mt: theme.spacing(5),
+                }}
               >
                 Next
               </Button>
@@ -339,7 +342,7 @@ const RegisterMultiTenant: React.FC = () => {
             </Typography>
             <Typography
               sx={{
-                color: theme.palette.primary.main,
+                color: singleTheme.buttons.primary.contained.backgroundColor,
                 fontSize: 14,
                 fontWeight: "bold",
                 cursor: "pointer",
@@ -424,7 +427,7 @@ const RegisterMultiTenant: React.FC = () => {
                 type="submit"
                 disableRipple
                 variant="contained"
-                sx={singleTheme.buttons.primary}
+                sx={singleTheme.buttons.primary.contained}
               >
                 Get started
               </Button>

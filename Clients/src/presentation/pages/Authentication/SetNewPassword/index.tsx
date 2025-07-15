@@ -277,7 +277,7 @@ const SetNewPassword: React.FC = () => {
               disableRipple
               variant="contained"
               disabled={isSubmitting}
-              sx={singleTheme.buttons.primary}
+              sx={singleTheme.buttons.primary.contained}
             >
               Reset password
             </Button>

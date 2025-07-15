@@ -308,7 +308,7 @@ const RegisterUser: React.FC = () => {
               type="submit"
               disableRipple
               variant="contained"
-              sx={singleTheme.buttons.primary}
+              sx={singleTheme.buttons.primary.contained}
               disabled={!isInvitationValid}
             >
               Get started

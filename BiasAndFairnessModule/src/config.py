@@ -62,8 +62,8 @@ class HuggingFaceModelConfig(BaseModel):
     device: str = Field(
         default="cuda", description="Device to run the model on (cuda or cpu)"
     )
-    max_length: int = Field(
-        default=512, gt=0, description="Maximum sequence length for model input"
+    max_new_tokens: int = Field(
+        default=512, gt=0, description="Maximum sequence length for model generation"
     )
     temperature: float = Field(
         default=0.7, gt=0, le=1.0, description="Sampling temperature"

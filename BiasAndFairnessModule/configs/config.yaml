@@ -20,7 +20,7 @@ model:
     enabled: true
     model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
     device: "cuda"  # or "cpu" for CPU-only inference
-    max_length: 512
+    max_new_tokens: 512
     temperature: 0.7
     top_p: 0.9
 

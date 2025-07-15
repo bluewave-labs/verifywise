@@ -15,7 +15,7 @@ class ModelLoader:
         self,
         model_id: str,
         device: str = "cuda",
-        max_length: int = 512,
+        max_new_tokens: int = 512,
         temperature: float = 0.7,
         top_p: float = 0.9,
     ):
@@ -24,7 +24,7 @@ class ModelLoader:
         Args:
             model_id (str): Hugging Face model ID
             device (str, optional): Device to load model on. Defaults to "cuda".
-            max_length (int, optional): Maximum sequence length. Defaults to 512.
+            max_new_tokens (int, optional): Maximum sequence length for generations. Defaults to 512.
             temperature (float, optional): Sampling temperature. Defaults to 0.7.
             top_p (float, optional): Top-p sampling parameter. Defaults to 0.9.
         """
@@ -32,7 +32,7 @@ class ModelLoader:
             enabled=True,
             model_id=model_id,
             device=device,
-            max_length=max_length,
+            max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_p=top_p,
         )
@@ -53,9 +53,7 @@ class ModelLoader:
             device = "cpu"
 
         # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(
-            config.model_id, trust_remote_code=True
-        )
+        tokenizer = AutoTokenizer.from_pretrained(config.model_id)
         if not hasattr(tokenizer, "pad_token_id") or tokenizer.pad_token_id is None:
             if hasattr(tokenizer, "eos_token"):
                 tokenizer.pad_token = tokenizer.eos_token
@@ -111,7 +109,11 @@ class ModelLoader:
 
         # Tokenize inputs
         inputs = self.tokenizer(
-            formatted_prompts, padding=True, truncation=True, return_tensors="pt"
+            formatted_prompts,
+            padding=True,
+            truncation=True,
+            truncation_side="left",
+            return_tensors="pt",
         )
 
         # Move inputs to model device
@@ -121,7 +123,7 @@ class ModelLoader:
         # Generate
         with torch.no_grad():
             generation_kwargs = GenerationConfig(
-                max_new_tokens=config.max_length,
+                max_new_tokens=config.max_new_tokens,
                 temperature=config.temperature,
                 top_p=config.top_p,
                 do_sample=True,

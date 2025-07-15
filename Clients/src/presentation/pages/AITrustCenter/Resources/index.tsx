@@ -10,40 +10,136 @@ import FileUploadComponent from '../../../components/FileUpload';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import IconButtonComponent from '../../../components/IconButton';
 
-const initialResources = [
-  { id: 1, name: 'AI Ethics and Principles', type: 'Continuous Learning and Model Update Policy', visible: true, file: { name: 'ethics.pdf', size: '1.2MB' }, uploaded: true },
-  { id: 2, name: 'Algorithmic Transparency Report', type: 'AI Governance Framework', visible: false, file: { name: 'transparency.pdf', size: '1.1MB' }, uploaded: true },
-  { id: 3, name: 'Bias and Fairness Assessment', type: 'Data Annotation and Labeling Standards', visible: false, file: null, uploaded: false },
-  { id: 4, name: 'Risk management', type: 'Ethical AI Use Cases and Exclusions', visible: true, file: { name: 'risk.pdf', size: '1.3MB' }, uploaded: true },
-];
+import {
+  INITIAL_RESOURCES,
+  TABLE_COLUMNS,
+  WARNING_MESSAGES
+} from './constants';
 
-const columns = [
-  { id: 'name', label: 'RESOURCE NAME' },
-  { id: 'type', label: 'TYPE OR PURPOSE OF RESOURCE' },
-  { id: 'visible', label: 'VISIBILITY' },
-  { id: 'action', label: 'ACTION' },
-];
+// Helper component for Modal Input
+const ModalInput: React.FC<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  enabled: boolean;
+}> = ({ label, value, onChange, enabled }) => {
+  const styles = useStyles();
+  
+  return (
+    <Box>
+      <Typography fontSize={13} mb={1}>{label}</Typography>
+      <input
+        style={{
+          ...styles.modalInput,
+          ...(enabled ? styles.modalInputEnabled : styles.modalInputDisabled)
+        }}
+        value={value}
+        onChange={e => enabled && onChange(e.target.value)}
+        placeholder=""
+        disabled={!enabled}
+      />
+    </Box>
+  );
+};
+
+// Helper component for Modal Button
+const ModalButton: React.FC<{
+  text: string;
+  onClick: () => void;
+  enabled: boolean;
+  width?: number;
+  icon?: React.ReactNode;
+}> = ({ text, onClick, enabled, width = 140, icon }) => {
+  const styles = useStyles();
+  
+  return (
+    <CustomizableButton
+      variant="contained"
+      sx={{
+        ...(enabled ? styles.modalButton : styles.modalButtonDisabled),
+        width,
+      }}
+      text={text}
+      onClick={onClick}
+      isDisabled={!enabled}
+      icon={icon}
+    />
+  );
+};
+
+// Helper component for Resource Table Row
+const ResourceTableRow: React.FC<{
+  resource: any;
+  onDelete: (id: number) => void;
+  onEdit: (id: number) => void;
+  onMakeVisible: (id: number) => void;
+  onDownload: (id: number) => void;
+}> = ({ resource, onDelete, onEdit, onMakeVisible, onDownload }) => {
+  const styles = useStyles();
+  
+  return (
+    <TableRow key={resource.name}>
+      <TableCell>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography sx={styles.resourceName}>{resource.name}</Typography>
+        </Box>
+      </TableCell>
+      <TableCell>
+        <Typography sx={styles.resourceType}>{resource.type}</Typography>
+      </TableCell>
+      <TableCell>
+        {resource.visible ? (
+          <VisibilityIcon sx={{ color: '#12B76A' }} />
+        ) : (
+          <VisibilityOffIcon sx={{ color: '#F04438' }} />
+        )}
+      </TableCell>
+      <TableCell>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButtonComponent
+            id={resource.id}
+            onDelete={() => onDelete(resource.id)}
+            onEdit={() => onEdit(resource.id)}
+            onMouseEvent={() => {}}
+            onMakeVisible={() => onMakeVisible(resource.id)}
+            onDownload={() => onDownload(resource.id)}
+            isVisible={resource.visible}
+            warningTitle={WARNING_MESSAGES.deleteTitle}
+            warningMessage={WARNING_MESSAGES.deleteMessage}
+            type="Resource"
+          />
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 const TrustCenterResources: React.FC = () => {
   const styles = useStyles();
   const [enabled, setEnabled] = useState(true);
-  const [resources, setResources] = useState(initialResources);
+  const [resources, setResources] = useState(INITIAL_RESOURCES);
   const [uploadDialog, setUploadDialog] = useState({ open: false, idx: -1 });
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newResource, setNewResource] = useState<{ name: string; type: string; file: File | null }>({ name: '', type: '', file: null });
 
   const handleToggle = () => setEnabled((prev) => !prev);
+  
   const handleOpenAddModal = () => {
+    if (!enabled) return;
     setAddModalOpen(true);
     setNewResource({ name: '', type: '', file: null });
   };
+  
   const handleCloseAddModal = () => setAddModalOpen(false);
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!enabled) return;
     const file = e.target.files && e.target.files[0];
     if (file) setNewResource((prev) => ({ ...prev, file }));
   };
+  
   const handleAddResource = () => {
-    if (!newResource.name || !newResource.type) return;
+    if (!enabled || !newResource.name || !newResource.type) return;
     setResources([
       ...resources,
       {
@@ -59,21 +155,28 @@ const TrustCenterResources: React.FC = () => {
     ]);
     setAddModalOpen(false);
   };
+  
   const handleEditResource = (resourceId: number) => {
+    if (!enabled) return;
     console.log('edit resource', resourceId);
   };
+  
   const handleDeleteResource = (resourceId: number) => {
+    if (!enabled) return;
     setResources(resources.filter(resource => resource.id !== resourceId));
   };
-  const handleMouseEvent = (_: React.SyntheticEvent) => {};
+  
   const handleMakeVisible = (resourceId: number) => {
+    if (!enabled) return;
     setResources(resources.map(resource =>
       resource.id === resourceId
         ? { ...resource, visible: !resource.visible }
         : resource
     ));
   };
+  
   const handleDownload = (resourceId: number) => {
+    if (!enabled) return;
     const resource = resources.find(r => r.id === resourceId);
     if (resource && resource.file) {
       // Download logic here
@@ -95,93 +198,51 @@ const TrustCenterResources: React.FC = () => {
             <Toggle checked={enabled} onChange={handleToggle} />
           </Box>
         </Box>
-        <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {columns.map((col) => (
-                  <TableCell key={col.id} sx={{ fontWeight: 600, fontSize: 13 }}>{col.label}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {resources.map((resource) => (
-                <TableRow key={resource.name}>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {/* <CheckCircleOutlineIcon sx={styles.checkIcon} /> */}
-                      <Typography sx={styles.resourceName}>{resource.name}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography sx={{ fontSize: 13, color: '#475467' }}>{resource.type}</Typography>
-                  </TableCell>
-                  <TableCell>
-                    {resource.visible ? (
-                      <VisibilityIcon sx={{ color: '#12B76A' }} />
-                    ) : (
-                      <VisibilityOffIcon sx={{ color: '#F04438' }} />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <IconButtonComponent
-                        id={resource.id}
-                        onDelete={() => handleDeleteResource(resource.id)}
-                        onEdit={() => handleEditResource(resource.id)}
-                        onMouseEvent={handleMouseEvent}
-                        onMakeVisible={() => handleMakeVisible(resource.id)}
-                        onDownload={() => handleDownload(resource.id)}
-                        isVisible={resource.visible}
-                        warningTitle="Delete this resource?"
-                        warningMessage="When you delete this resource, all data related to this resource will be removed. This action is non-recoverable."
-                        type="Resource"
-                      />
-                    </Box>
-                  </TableCell>
+        <Box sx={{ position: 'relative' }}>
+          <TableContainer component={Paper} sx={{ 
+            ...styles.tableContainer,
+            opacity: enabled ? 1 : 0.5, 
+            pointerEvents: enabled ? 'auto' : 'none' 
+          }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {TABLE_COLUMNS.map((col) => (
+                    <TableCell key={col.id} sx={styles.tableCell}>{col.label}</TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {resources.map((resource) => (
+                  <ResourceTableRow
+                    key={resource.id}
+                    resource={resource}
+                    onDelete={handleDeleteResource}
+                    onEdit={handleEditResource}
+                    onMakeVisible={handleMakeVisible}
+                    onDownload={handleDownload}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {!enabled && <Box sx={styles.overlay} />}
+        </Box>
         <Stack sx={{ width: "100%", mt: 4 }}>
           <CustomizableButton
             sx={styles.saveBtn}
             variant="contained"
             onClick={handleOpenAddModal}
-            isDisabled={false}
+            isDisabled={!enabled}
             text="Add new resource"
             icon={<AddIcon />}
           />
         </Stack>
+        
         {/* Add Resource Modal */}
         {addModalOpen && (
-          <Box
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              bgcolor: 'rgba(0,0,0,0.12)',
-              zIndex: 1300,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Box
-              sx={{
-                bgcolor: '#fff',
-                borderRadius: 2,
-                boxShadow: 3,
-                p: 6,
-                minWidth: 350,
-                maxWidth: 400,
-                width: '100%',
-                position: 'relative',
-              }}
-            >
+          <Box sx={styles.modalOverlay}>
+            <Box sx={styles.modal}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
                 <Typography fontWeight={600} fontSize={16}>Add a new resource</Typography>
                 <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
@@ -189,30 +250,24 @@ const TrustCenterResources: React.FC = () => {
                 </IconButton>
               </Stack>
               <Stack spacing={3}>
+                <ModalInput
+                  label="Resource name"
+                  value={newResource.name}
+                  onChange={(value) => setNewResource(r => ({ ...r, name: value }))}
+                  enabled={enabled}
+                />
+                <ModalInput
+                  label="Type or purpose of resource"
+                  value={newResource.type}
+                  onChange={(value) => setNewResource(r => ({ ...r, type: value }))}
+                  enabled={enabled}
+                />
                 <Box>
-                  <Typography fontSize={13} mb={1}>Resource name</Typography>
-                  <input
-                    style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid #E0E0E0', fontSize: 13 }}
-                    value={newResource.name}
-                    onChange={e => setNewResource(r => ({ ...r, name: e.target.value }))}
-                    placeholder=""
-                  />
-                </Box>
-                <Box>
-                  <Typography fontSize={13} mb={1}>Type or purpose of resource</Typography>
-                  <input
-                    style={{ width: '100%', padding: '8px', borderRadius: 4, border: '1px solid #E0E0E0', fontSize: 13 }}
-                    value={newResource.type}
-                    onChange={e => setNewResource(r => ({ ...r, type: e.target.value }))}
-                    placeholder=""
-                  />
-                </Box>
-                <Box>
-                  <CustomizableButton
-                    variant="contained"
-                    sx={{ backgroundColor: '#13715B', border: '1px solid #13715B', width: 160, mb: 2 }}
+                  <ModalButton
                     text={newResource.file ? newResource.file.name : 'Upload a file'}
                     onClick={() => document.getElementById('resource-file-input')?.click()}
+                    enabled={enabled}
+                    width={160}
                   />
                   <input
                     id="resource-file-input"
@@ -220,21 +275,21 @@ const TrustCenterResources: React.FC = () => {
                     accept="application/pdf"
                     style={{ display: 'none' }}
                     onChange={handleFileChange}
+                    disabled={!enabled}
                   />
                 </Box>
                 <Box display="flex" justifyContent="flex-end">
-                  <CustomizableButton
-                    variant="contained"
-                    sx={{ backgroundColor: '#13715B', border: '1px solid #13715B', width: 140 }}
+                  <ModalButton
                     text="Add resource"
                     onClick={handleAddResource}
-                    isDisabled={!newResource.name || !newResource.type}
+                    enabled={enabled && !!newResource.name && !!newResource.type}
                   />
                 </Box>
               </Stack>
             </Box>
           </Box>
         )}
+        
         <Dialog open={uploadDialog.open} onClose={() => setUploadDialog({ open: false, idx: -1 })} maxWidth="xs">
           <FileUploadComponent
             open={uploadDialog.open}

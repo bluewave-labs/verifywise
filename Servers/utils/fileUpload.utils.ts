@@ -10,7 +10,7 @@ const sanitizeFilename = (name: string) =>
 export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
-  project_id: number,
+  project_id: number | null,
   source:
     | "Assessment tracker group"
     | "Compliance tracker group"
@@ -21,20 +21,24 @@ export const uploadFile = async (
     | "All reports"
     | "Management system clauses group"
     | "Reference controls group"
-    | "Clauses and annexes report",
+    | "Clauses and annexes report"
+    | "AI trust center group",
   tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const projectIsDemo = await sequelize.query(
-    `SELECT is_demo FROM "${tenant}".projects WHERE id = :id`,
-    {
-      replacements: { id: project_id },
-      mapToModel: true,
-      model: ProjectModel,
-      ...(transaction && { transaction }),
-    }
-  );
-  const is_demo = projectIsDemo[0].is_demo || false;
+  let is_demo = false;
+  if (project_id) {
+    const projectIsDemo = await sequelize.query(
+      `SELECT is_demo FROM "${tenant}".projects WHERE id = :id`,
+      {
+        replacements: { id: project_id },
+        mapToModel: true,
+        model: ProjectModel,
+        ...(transaction && { transaction }),
+      }
+    );
+    is_demo = projectIsDemo[0]?.is_demo || false;
+  }
   const query = `INSERT INTO "${tenant}".files
     (
       filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
@@ -63,13 +67,14 @@ export const uploadFile = async (
 
 export const deleteFileById = async (id: number, tenant: string, transaction: Transaction) => {
   const query = `DELETE FROM "${tenant}".files WHERE id = :id`;
+  console.log(`Executing query: ${query} with id: ${id}`);
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
     model: FileModel,
-    type: QueryTypes.DELETE,
     transaction,
   });
+  console.log(`Delete result: ${result}`);
   return result.length > 0;
 };
 

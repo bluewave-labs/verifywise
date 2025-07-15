@@ -103,6 +103,7 @@ export const useStyles = () => {
       width: 340,
       fontSize: 13,
       marginTop: 0,
+      mb: 20,
     },
     toggleRow: {
       display: 'flex',
@@ -122,20 +123,9 @@ export const useStyles = () => {
       marginTop: theme.spacing(4),
     },
     saveButton: {
-      width: 120,
-      height: 40,
-      fontSize: 15,
-      backgroundColor: '#13715B',
-      border: '1px solid #13715B',
-      color: '#fff',
-      borderRadius: 6,
-      boxShadow: 'none',
-      textTransform: 'inherit',
-      '&:hover': {
-        backgroundColor: '#13715B',
-        border: '1px solid #13715B',
-        boxShadow: 'none',
-      },
+      alignSelf: "flex-end",
+      width: "fit-content",
+      gap: 2,
     },
     removeButton: {
       color: theme.palette.error.main,
@@ -145,9 +135,6 @@ export const useStyles = () => {
       height: 34,
       borderRadius: 2,
       background: 'transparent',
-      '&:hover': {
-        background: theme.palette.error.light,
-      },
     },
     replaceButton: {
       color: theme.palette.text.primary,

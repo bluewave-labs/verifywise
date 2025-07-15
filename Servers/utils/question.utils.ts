@@ -57,10 +57,11 @@ export const getQuestionByIdQuery = async (
 
 export interface RequestWithFile extends Request {
   files?:
-    | UploadedFile[]
-    | {
-        [key: string]: UploadedFile[];
-      };
+  | UploadedFile[]
+  | {
+    [key: string]: UploadedFile[];
+  };
+  file?: UploadedFile;
 }
 
 export interface UploadedFile {

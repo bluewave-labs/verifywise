@@ -17,6 +17,8 @@ import { Vendor } from "../domain.layer/models/vendor/vendor.model";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { HighRiskRole } from "../domain.layer/enums/high-risk-role.enum";
 import { AiRiskClassification } from "../domain.layer/enums/ai-risk-classification.enum";
+import { updateAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
+// import { createAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
 
 export async function insertMockData(tenant: string, organization: number, userId: number | null = null) {
   const transaction = await sequelize.transaction();
@@ -161,6 +163,56 @@ export async function insertMockData(tenant: string, organization: number, userI
     } else {
       // project already exists, delete it and insert a new one
     }
+
+    // Insert AI Trust Centre demo data
+    await updateAITrustCentreOverviewQuery({
+      info: {
+        title: 'AI Trust Centre',
+        header_color: '#4A90E2',
+        visible: true,
+        intro_visible: true,
+        compliance_badges_visible: true,
+        company_description_visible: true,
+        terms_and_contact_visible: true,
+        resources_visible: true,
+        subprocessor_visible: true
+      },
+      intro: {
+        purpose_visible: true,
+        purpose_text: 'Our Trust Center demonstrates our commitment to responsible AI practices and data privacy. We believe in transparency, ethical AI development, and building trust with our customers through clear communication about our AI governance practices.',
+        our_statement_visible: true,
+        our_statement_text: 'We are committed to ethical AI development and transparent data practices. Our AI solutions are designed with privacy, security, and fairness at their core, ensuring that we build trust with our customers while delivering innovative technology.',
+        our_mission_visible: true,
+        our_mission_text: 'To build trust through responsible AI innovation and transparent governance. We strive to be the gold standard in AI ethics and compliance, ensuring our technology serves humanity while protecting individual rights and privacy.'
+      },
+      compliance_badges: {
+        soc2_type_i: true,
+        soc2_type_ii: true,
+        iso_27001: true,
+        isoISO_42001: true,
+        ccpa: true,
+        gdpr: true,
+        hipaa: true,
+        eu_ai_act: true
+      },
+      company_description: {
+        background_visible: true,
+        background_text: 'We are a leading AI company focused on ethical and responsible AI development. Our team of experts combines deep technical knowledge with a strong commitment to AI governance, ensuring that our solutions not only deliver exceptional results but also maintain the highest standards of privacy and security.',
+        core_benefits_visible: true,
+        core_benefits_text: 'Our AI solutions provide enhanced security, efficiency, and customer support while maintaining the highest ethical standards. We offer comprehensive AI governance tools, automated compliance monitoring, and transparent reporting capabilities that help organizations build trust with their stakeholders.',
+        compliance_doc_visible: true,
+        compliance_doc_text: 'Access our comprehensive compliance documentation and certifications. Our compliance vault contains detailed audit reports, technical documentation, and governance frameworks that demonstrate our unwavering commitment to AI governance best practices.'
+      },
+      terms_and_contact: {
+        terms_visible: true,
+        terms_text: 'https://example.com/terms-of-service',
+        privacy_visible: true,
+        privacy_text: 'https://example.com/privacy-policy',
+        email_visible: true,
+        email_text: 'privacy@example.com'
+      }
+    }, tenant, transaction);
+
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();
@@ -177,6 +229,7 @@ export async function deleteMockData(tenant: string) {
     }
     // delete vendor related data
     await deleteDemoVendorsData(tenant, transaction);
+
     await transaction.commit();
   } catch (error) {
     await transaction.rollback();

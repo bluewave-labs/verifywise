@@ -1,9 +1,11 @@
-import React from "react";
-import { Box, Typography, Stack, Checkbox, FormControlLabel, useTheme, Alert, CircularProgress, TextField, Snackbar } from "@mui/material";
+import React, { Suspense } from "react";
+import { Box, Typography, Stack, Checkbox, FormControlLabel, useTheme, CircularProgress, TextField } from "@mui/material";
+import Alert from "../../../components/Alert";
 import Toggle from '../../../components/Inputs/Toggle';
 import ToggleCard from '../../../components/Inputs/ToggleCard';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import { useAITrustCentreOverview } from '../../../../application/hooks/useAITrustCentreOverview';
+import { handleAlert } from '../../../../application/tools/alertUtils';
 import SaveIcon from '@mui/icons-material/Save';
 import Field from '../../../components/Inputs/Field';
 
@@ -91,7 +93,11 @@ const AITrustCenterOverview: React.FC = () => {
   const { loading, error, updateOverview, fetchOverview } = useAITrustCentreOverview();
 
   // Local state for form data and notifications
-  const [saveSuccess, setSaveSuccess] = React.useState(false);
+  const [alert, setAlert] = React.useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const [originalData, setOriginalData] = React.useState<any>(null);
   const [formData, setFormData] = React.useState<any>(null);
@@ -158,17 +164,17 @@ const AITrustCenterOverview: React.FC = () => {
       // Update local state to reflect the saved data
       setOriginalData({ ...formData }); // Create a deep copy
       setHasUnsavedChanges(false);
-      setSaveSuccess(true);
+      
+      handleAlert({
+        variant: "success",
+        body: SUCCESS_MESSAGE,
+        setAlert,
+      });
       
       console.log('AI Trust Centre data saved successfully');
     } catch (error) {
       console.error('Save failed:', error);
     }
-  };
-
-  // Handle success notification close
-  const handleSuccessClose = () => {
-    setSaveSuccess(false);
   };
 
   if (loading || !formData) {
@@ -182,9 +188,14 @@ const AITrustCenterOverview: React.FC = () => {
   return (
     <Box>
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant="error"
+            body={error}
+            isToast={true}
+            onClick={() => {}}
+          />
+        </Suspense>
       )}
       
 
@@ -417,29 +428,17 @@ const AITrustCenterOverview: React.FC = () => {
         />
       </Stack>
 
-      {/* Success Notification */}
-      <Snackbar
-        open={saveSuccess}
-        autoHideDuration={4000}
-        onClose={handleSuccessClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleSuccessClose} 
-          severity="success" 
-          sx={{ 
-            width: '100%',
-            backgroundColor: '#ecfdf3',
-            border: '1px solid #12715B',
-            color: '#079455',
-            '& .MuiAlert-icon': {
-              color: '#079455',
-            }
-          }}
-        >
-          {SUCCESS_MESSAGE}
-        </Alert>
-      </Snackbar>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
     </Box>
   );
 };

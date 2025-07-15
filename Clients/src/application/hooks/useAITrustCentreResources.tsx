@@ -16,7 +16,7 @@ interface UseAITrustCentreResourcesReturn {
   loading: boolean;
   error: string | null;
   fetchResources: () => Promise<void>;
-  createResource: (file: File, name: string, description: string) => Promise<void>;
+  createResource: (file: File, name: string, description: string, visible?: boolean) => Promise<void>;
   deleteResource: (resourceId: number) => Promise<void>;
   updateResource: (resourceId: number, name: string, description: string, visible: boolean, file?: File) => Promise<void>;
 }
@@ -53,11 +53,11 @@ export const useAITrustCentreResources = (): UseAITrustCentreResourcesReturn => 
     }
   }, []);
 
-  const createResource = useCallback(async (file: File, name: string, description: string) => {
+  const createResource = useCallback(async (file: File, name: string, description: string, visible: boolean = true) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await createAITrustCentreResource(file, name, description);
+      const response = await createAITrustCentreResource(file, name, description, visible);
       console.log('Resource created successfully:', response);
       
       // Refresh the resources list after creating a new one

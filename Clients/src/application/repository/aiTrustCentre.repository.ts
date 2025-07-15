@@ -77,6 +77,7 @@ export async function uploadAITrustCentreLogo(
  * @param {File} file - The file to upload.
  * @param {string} name - The name of the resource.
  * @param {string} description - The description of the resource.
+ * @param {boolean} [visible=true] - Whether the resource is visible (defaults to true).
  * @param {string} [authToken=getAuthToken()] - Optional auth token.
  * @returns {Promise<any>} The response from the API.
  */
@@ -84,6 +85,7 @@ export async function createAITrustCentreResource(
   file: File,
   name: string,
   description: string,
+  visible: boolean = true,
   authToken = getAuthToken()
 ): Promise<any> {
   try {
@@ -91,6 +93,7 @@ export async function createAITrustCentreResource(
     formData.append('file', file);
     formData.append('name', name);
     formData.append('description', description);
+    formData.append('visible', visible.toString());
 
     const response = await apiServices.post("/aiTrustCentre/resources", formData, {
       headers: { 

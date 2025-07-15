@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Alert, Snackbar, Box, Typography, IconButton,  Dialog, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, DialogTitle, DialogContent, Stack } from "@mui/material";
+import React, { useState, Suspense } from "react";
+import { Box, Typography, IconButton,  Dialog, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, DialogTitle, DialogContent, Stack } from "@mui/material";
+import Alert from "../../../components/Alert";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import AddIcon from '@mui/icons-material/Add';
@@ -11,6 +12,8 @@ import IconButtonComponent from '../../../components/IconButton';
 import Field from '../../../components/Inputs/Field';
 import { useAITrustCentreOverview } from '../../../../application/hooks/useAITrustCentreOverview';
 import { useAITrustCentreResources } from '../../../../application/hooks/useAITrustCentreResources';
+import { handleDownload as downloadFile } from '../../../../application/tools/fileDownload';
+import { handleAlert } from '../../../../application/tools/alertUtils';
 import { TABLE_COLUMNS, WARNING_MESSAGES } from './constants';
 
 // Import the type from the hook
@@ -91,12 +94,13 @@ const [formData, setFormData] = useState<FormData | null>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   
   // Success/Error states
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [addResourceSuccess, setAddResourceSuccess] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
   const [addResourceError, setAddResourceError] = useState<string | null>(null);
-  const [deleteResourceSuccess, setDeleteResourceSuccess] = useState(false);
   const [deleteResourceError, setDeleteResourceError] = useState<string | null>(null);
-  const [editResourceSuccess, setEditResourceSuccess] = useState(false);
   const [editResourceError, setEditResourceError] = useState<string | null>(null);
 
   // Load overview data on component mount
@@ -143,7 +147,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
       } as Partial<AITrustCentreOverviewData>;
       
       await updateOverview(dataToSave);
-      setSaveSuccess(true);
+      handleAlert({
+        variant: "success",
+        body: "Resources saved successfully",
+        setAlert,
+      });
     } catch (error) {
       console.error('Save failed:', error);
     }
@@ -218,8 +226,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
     }
 
     try {
-      await createResource(newResource.file, newResource.name, newResource.description);
-      setAddResourceSuccess(true);
+      await createResource(newResource.file, newResource.name, newResource.description, true);
+      handleAlert({
+        variant: "success",
+        body: "Resource added successfully",
+        setAlert,
+      });
       setAddModalOpen(false);
       setNewResource({ name: '', description: '', file: null });
       setAddResourceError(null);
@@ -238,7 +250,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
       // Use the unified update function - it handles both cases
       await updateResource(editResource.id, editResource.name, editResource.description, editResource.visible, editResource.file || undefined);
       
-      setEditResourceSuccess(true);
+      handleAlert({
+        variant: "success",
+        body: "Resource updated successfully",
+        setAlert,
+      });
       setEditModalOpen(false);
       setEditResource({ id: 0, name: '', description: '', visible: true, file: null, filename: '' });
       setEditResourceError(null);
@@ -262,7 +278,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
     if (!formData?.info?.resources_visible) return;
     try {
       await deleteResource(resourceId);
-      setDeleteResourceSuccess(true);
+      handleAlert({
+        variant: "success",
+        body: "Resource deleted successfully",
+        setAlert,
+      });
     } catch (error: any) {
       setDeleteResourceError(error.message || 'Failed to delete resource');
     }
@@ -282,9 +302,28 @@ const [formData, setFormData] = useState<FormData | null>(null);
     }
   };
   
-  const handleDownload = (resourceId: number) => {
+  const handleDownload = async (resourceId: number) => {
     if (!formData?.info?.resources_visible) return;
-    console.log('download resource', resourceId);
+    
+    try {
+      // Find the resource to get its name for the download
+      const resource = resources.find(r => r.id === resourceId);
+      if (!resource) {
+        console.error('Resource not found');
+        return;
+      }
+      
+      // Use the existing handleDownload function from the codebase
+      await downloadFile(resourceId.toString(), resource.name);
+      handleAlert({
+        variant: "success",
+        body: "File downloaded successfully",
+        setAlert,
+      });
+    } catch (error) {
+      console.error('Download failed:', error);
+      // You could add error handling here if needed
+    }
   };
 
   // Show loading state
@@ -554,117 +593,53 @@ const [formData, setFormData] = useState<FormData | null>(null);
         </Dialog>
       </Box>
 
-      {/* Success notification for overview save */}
-      <Snackbar
-        open={saveSuccess}
-        autoHideDuration={3000}
-        onClose={() => setSaveSuccess(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSaveSuccess(false)} 
-          severity="success" 
-          sx={styles.successAlert}
-        >
-          Resources saved successfully
-        </Alert>
-      </Snackbar>
-
-      {/* Success notification for add resource */}
-      <Snackbar
-        open={addResourceSuccess}
-        autoHideDuration={3000}
-        onClose={() => setAddResourceSuccess(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setAddResourceSuccess(false)} 
-          severity="success" 
-          sx={styles.successAlert}
-        >
-          Resource added successfully
-        </Alert>
-      </Snackbar>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
+      )}
 
       {/* Error notification for add resource */}
-      <Snackbar
-        open={!!addResourceError}
-        autoHideDuration={5000}
-        onClose={() => setAddResourceError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setAddResourceError(null)} 
-          severity="error" 
-          sx={styles.errorAlert}
-        >
-          {addResourceError}
-        </Alert>
-      </Snackbar>
-
-      {/* Success notification for delete resource */}
-      <Snackbar
-        open={deleteResourceSuccess}
-        autoHideDuration={3000}
-        onClose={() => setDeleteResourceSuccess(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setDeleteResourceSuccess(false)} 
-          severity="success" 
-          sx={styles.successAlert}
-        >
-          Resource deleted successfully
-        </Alert>
-      </Snackbar>
+      {addResourceError && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant="error"
+            body={addResourceError}
+            isToast={true}
+            onClick={() => setAddResourceError(null)}
+          />
+        </Suspense>
+      )}
 
       {/* Error notification for delete resource */}
-      <Snackbar
-        open={!!deleteResourceError}
-        autoHideDuration={5000}
-        onClose={() => setDeleteResourceError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setDeleteResourceError(null)} 
-          severity="error" 
-          sx={styles.errorAlert}
-        >
-          {deleteResourceError}
-        </Alert>
-      </Snackbar>
-
-      {/* Success notification for edit resource */}
-      <Snackbar
-        open={editResourceSuccess}
-        autoHideDuration={3000}
-        onClose={() => setEditResourceSuccess(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setEditResourceSuccess(false)} 
-          severity="success" 
-          sx={styles.successAlert}
-        >
-          Resource updated successfully
-        </Alert>
-      </Snackbar>
+      {deleteResourceError && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant="error"
+            body={deleteResourceError}
+            isToast={true}
+            onClick={() => setDeleteResourceError(null)}
+          />
+        </Suspense>
+      )}
 
       {/* Error notification for edit resource */}
-      <Snackbar
-        open={!!editResourceError}
-        autoHideDuration={5000}
-        onClose={() => setEditResourceError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setEditResourceError(null)} 
-          severity="error" 
-          sx={styles.errorAlert}
-        >
-          {editResourceError}
-        </Alert>
-      </Snackbar>
+      {editResourceError && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant="error"
+            body={editResourceError}
+            isToast={true}
+            onClick={() => setEditResourceError(null)}
+          />
+        </Suspense>
+      )}
     </Box>
   );
 };

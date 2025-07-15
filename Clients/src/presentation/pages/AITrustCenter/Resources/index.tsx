@@ -91,7 +91,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newResource, setNewResource] = useState<{ name: string; description: string; file: File | null }>({ name: '', description: '', file: null });
-  const [editResource, setEditResource] = useState<{ id: number; name: string; description: string; visible: boolean; file: File | null; filename?: string }>({ id: 0, name: '', description: '', visible: true, file: null, filename: '' });
+  const [editResource, setEditResource] = useState<{ id: number; name: string; description: string; visible: boolean; file: File | null; filename?: string; file_id?: number }>({ id: 0, name: '', description: '', visible: true, file: null, filename: '', file_id: undefined });
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   
   // Success/Error states
@@ -185,7 +185,8 @@ const [formData, setFormData] = useState<FormData | null>(null);
       description: resource.description,
       visible: resource.visible,
       file: null,
-      filename: resource.filename || resource.name // Use filename if available, otherwise use resource name
+      filename: resource.filename || resource.name, // Use filename if available, otherwise use resource name
+      file_id: resource.file_id // Store the current file ID for deletion when replacing
     });
     setEditModalOpen(true);
     setEditResourceError(null);
@@ -193,7 +194,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
 
   const handleCloseEditModal = () => {
     setEditModalOpen(false);
-    setEditResource({ id: 0, name: '', description: '', visible: true, file: null });
+    setEditResource({ id: 0, name: '', description: '', visible: true, file: null, filename: '', file_id: undefined });
     setEditResourceError(null);
   };
   
@@ -253,8 +254,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
     }
 
     try {
+      // Pass the old file ID only when a new file is being uploaded
+      const oldFileId = editResource.file ? editResource.file_id : undefined;
+      
       // Use the unified update function - it handles both cases
-      await updateResource(editResource.id, editResource.name, editResource.description, editResource.visible, editResource.file || undefined);
+      await updateResource(editResource.id, editResource.name, editResource.description, editResource.visible, editResource.file || undefined, oldFileId);
       
       handleAlert({
         variant: "success",
@@ -262,7 +266,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
         setAlert,
       });
       setEditModalOpen(false);
-      setEditResource({ id: 0, name: '', description: '', visible: true, file: null, filename: '' });
+      setEditResource({ id: 0, name: '', description: '', visible: true, file: null, filename: '', file_id: undefined });
       setEditResourceError(null);
       
       setFlashingRowId(editResource.id);
@@ -299,7 +303,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
     const resource = resources.find(r => r.id === resourceId);
     if (resource) {
       try {
-        await updateResource(resourceId, resource.name, resource.description, !resource.visible);
+        await updateResource(resourceId, resource.name, resource.description, !resource.visible, undefined, undefined);
         setFlashingRowId(resourceId);
         setTimeout(() => setFlashingRowId(null), 2000);
       } catch (error: any) {

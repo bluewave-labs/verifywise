@@ -18,7 +18,7 @@ interface UseAITrustCentreResourcesReturn {
   fetchResources: () => Promise<void>;
   createResource: (file: File, name: string, description: string, visible?: boolean) => Promise<void>;
   deleteResource: (resourceId: number) => Promise<void>;
-  updateResource: (resourceId: number, name: string, description: string, visible: boolean, file?: File) => Promise<void>;
+  updateResource: (resourceId: number, name: string, description: string, visible: boolean, file?: File, oldFileId?: number) => Promise<void>;
 }
 
 export const useAITrustCentreResources = (): UseAITrustCentreResourcesReturn => {
@@ -87,11 +87,11 @@ export const useAITrustCentreResources = (): UseAITrustCentreResourcesReturn => 
     }
   }, [fetchResources]);
 
-  const updateResource = useCallback(async (resourceId: number, name: string, description: string, visible: boolean, file?: File) => {
+  const updateResource = useCallback(async (resourceId: number, name: string, description: string, visible: boolean, file?: File, oldFileId?: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await updateAITrustCentreResource(resourceId, name, description, visible, file);
+      const response = await updateAITrustCentreResource(resourceId, name, description, visible, file, oldFileId);
       console.log('Resource updated successfully:', response);
       
       // Refresh the resources list after updating

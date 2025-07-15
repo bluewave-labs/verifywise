@@ -158,6 +158,7 @@ export async function deleteAITrustCentreResource(
  * @param {string} description - The description of the resource.
  * @param {boolean} visible - Whether the resource is visible.
  * @param {File} [file] - Optional file to replace the existing one.
+ * @param {number} [oldFileId] - The ID of the old file to delete when replacing.
  * @param {string} [authToken=getAuthToken()] - Optional auth token.
  * @returns {Promise<any>} The response from the API.
  */
@@ -167,6 +168,7 @@ export async function updateAITrustCentreResource(
   description: string,
   visible: boolean,
   file?: File,
+  oldFileId?: number,
   authToken = getAuthToken()
 ): Promise<any> {
   try {
@@ -178,6 +180,11 @@ export async function updateAITrustCentreResource(
     // Only append file if it's provided
     if (file) {
       formData.append('file', file);
+    }
+    
+    // Append old file ID for deletion if provided
+    if (oldFileId) {
+      formData.append('delete', oldFileId.toString());
     }
 
     const response = await apiServices.put(`/aiTrustCentre/resources/${resourceId}`, formData, {

@@ -20,9 +20,10 @@ model:
     enabled: true
     model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
     device: "cuda"  # or "cpu" for CPU-only inference
-    max_new_tokens: 512
+    max_new_tokens: 7
     temperature: 0.7
     top_p: 0.9
+    system_prompt: "You are a strict classifier. You must answer with exactly one of these two strings: '>50K' or '<=50K'. No explanation. No formatting."
 
 # Metrics Configuration
 metrics:

@@ -1,9 +1,9 @@
 from typing import List, Optional, Union
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
-from transformers.modeling_utils import PreTrainedModel
-from transformers.tokenization_utils import PreTrainedTokenizer
+from transformers import (AutoModelForCausalLM, AutoTokenizer,
+                          GenerationConfig, PreTrainedModel,
+                          PreTrainedTokenizer)
 
 from .config import HuggingFaceModelConfig
 
@@ -18,6 +18,7 @@ class ModelLoader:
         max_new_tokens: int = 512,
         temperature: float = 0.7,
         top_p: float = 0.9,
+        system_prompt: str = "You are a helpful AI assistant.",
     ):
         """Initialize the model loader.
 
@@ -27,6 +28,8 @@ class ModelLoader:
             max_new_tokens (int, optional): Maximum sequence length for generations. Defaults to 512.
             temperature (float, optional): Sampling temperature. Defaults to 0.7.
             top_p (float, optional): Top-p sampling parameter. Defaults to 0.9.
+            system_prompt (str, optional): System prompt to be prepended to all model inputs.
+                Defaults to "You are a helpful AI assistant."
         """
         self.model_config = HuggingFaceModelConfig(
             enabled=True,
@@ -35,6 +38,7 @@ class ModelLoader:
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_p=top_p,
+            system_prompt=system_prompt,
         )
 
         self.model: Optional[PreTrainedModel] = None
@@ -74,11 +78,15 @@ class ModelLoader:
 
         Args:
             prompt (str): The raw prompt
+            system_prompt (Optional[str]): The system prompt, defaults to None.
+                If None, uses the one from model_config.
 
         Returns:
             str: Formatted prompt following TinyLlama chat format
         """
-        return f"<|system|>{system_prompt}<|user|>{prompt}<|assistant|>"
+        if system_prompt is None:
+            system_prompt = self.model_config.system_prompt
+        return f"<|system|>{system_prompt}\n<|user|>{prompt}\n<|assistant|>The predicted income is "
 
     def predict(
         self, prompts: Union[str, List[str]], system_prompt: Optional[str] = None
@@ -87,6 +95,8 @@ class ModelLoader:
 
         Args:
             prompts (Union[str, List[str]]): Input prompt(s) for prediction
+            system_prompt (Optional[str], optional): System prompt for the model.
+                If None, uses the one from model_config. Defaults to None.
 
         Returns:
             List[str]: Generated responses
@@ -111,8 +121,8 @@ class ModelLoader:
         inputs = self.tokenizer(
             formatted_prompts,
             padding=True,
+            padding_side="left",
             truncation=True,
-            truncation_side="left",
             return_tensors="pt",
         )
 
@@ -122,7 +132,7 @@ class ModelLoader:
 
         # Generate
         with torch.no_grad():
-            generation_kwargs = GenerationConfig(
+            generation_config = GenerationConfig(
                 max_new_tokens=config.max_new_tokens,
                 temperature=config.temperature,
                 top_p=config.top_p,
@@ -130,10 +140,7 @@ class ModelLoader:
                 pad_token_id=self.tokenizer.pad_token_id,
                 eos_token_id=self.tokenizer.eos_token_id,
             )
-            outputs = self.model.generate(
-                **inputs,
-                generation_config=generation_kwargs,
-            )
+            outputs = self.model.generate(**inputs, generation_config=generation_config)
 
         # Decode outputs and extract only the assistant's response
         responses = []

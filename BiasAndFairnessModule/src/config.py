@@ -71,6 +71,10 @@ class HuggingFaceModelConfig(BaseModel):
     top_p: float = Field(
         default=0.9, gt=0, le=1.0, description="Top-p sampling parameter"
     )
+    system_prompt: str = Field(
+        default="You are a helpful AI assistant.",
+        description="System prompt to be prepended to all model inputs",
+    )
 
 
 class ModelConfig(BaseModel):

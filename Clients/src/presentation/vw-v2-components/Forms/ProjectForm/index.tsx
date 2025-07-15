@@ -171,10 +171,6 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
     if (!typeOfHighRiskRole.accepted) {
       newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
     }
-    if (values.members.length === 0) {
-      newErrors.members = "At least one team member is required.";
-      setMemberRequired(true);
-    }
 
     if (values.monitored_regulations_and_standards.length === 0) {
       newErrors.frameworks = "At least one framework is required.";
@@ -361,7 +357,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                   mb: 2,
                 }}
               >
-                Team members *
+                Team members
               </Typography>
               <Autocomplete
                 multiple

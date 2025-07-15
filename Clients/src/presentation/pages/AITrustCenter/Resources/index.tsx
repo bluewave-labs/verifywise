@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Typography, IconButton, Dialog, Table, TableBody, Stack, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { Alert, Snackbar, Box, Typography, IconButton, Dialog, Table, TableBody, Stack, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import AddIcon from '@mui/icons-material/Add';
@@ -9,6 +9,7 @@ import { useStyles } from './styles';
 import FileUploadComponent from '../../../components/FileUpload';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import IconButtonComponent from '../../../components/IconButton';
+import { useAITrustCentreOverview } from '../../../../application/hooks/useAITrustCentreOverview';
 
 import {
   INITIAL_RESOURCES,
@@ -115,55 +116,129 @@ const ResourceTableRow: React.FC<{
 };
 
 const TrustCenterResources: React.FC = () => {
+  const { loading, error, updateOverview, fetchOverview } = useAITrustCentreOverview();
   const styles = useStyles();
   const [enabled, setEnabled] = useState(true);
   const [resources, setResources] = useState(INITIAL_RESOURCES);
   const [uploadDialog, setUploadDialog] = useState({ open: false, idx: -1 });
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newResource, setNewResource] = useState<{ name: string; type: string; file: File | null }>({ name: '', type: '', file: null });
+  const [formData, setFormData] = React.useState<any>(null);
+  const [saveSuccess, setSaveSuccess] = React.useState(false);
 
-  const handleToggle = () => setEnabled((prev) => !prev);
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        const response = await fetchOverview();
+        console.log('Overview data fetched successfully');
+        console.log('Raw API Response:', response);
+        
+        // Extract the overview data from the nested response
+        const overviewData = response?.data?.overview || response?.overview || response;
+        setFormData(overviewData);
+        // setOriginalData(overviewData);
+      } catch (error) {
+        console.error('Error fetching overview data:', error);
+      }
+    };
+    loadData();
+  }, [fetchOverview]);
+
+  /**
+   * Handle field change
+   * @param section - The section of the data to update
+   * @param field - The field to update
+   * @param value - The value to set
+   */
+  const handleFieldChange = (section: string, field: string, value: boolean | string) => {
+    setFormData((prev: any) => {
+      const updatedData = {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value,
+        },
+      };
+      
+      // Call handleSave with the updated data
+      handleSave(updatedData);
+      return updatedData;
+    });
+  };
+
+  /**
+   * Save the data to the server
+   * @param data - The data to save
+   */
+  const handleSave = async (data?: any) => {
+    try {
+      const dataToUse = data || formData;
+      console.log('Saving AI Trust Centre data:', dataToUse);
+      
+      // Prepare the data to send, ensuring all sections are included
+      const dataToSave = {
+        intro: dataToUse.intro,
+        compliance_badges: dataToUse.compliance_badges,
+        company_description: dataToUse.company_description,
+        terms_and_contact: dataToUse.terms_and_contact,
+        info: dataToUse.info
+      };
+      
+      // Call the updateOverview function from the hook
+      await updateOverview(dataToSave);
+      setSaveSuccess(true);
+      
+      console.log('AI Trust Centre data saved successfully');
+    } catch (error) {
+      console.error('Save failed:', error);
+    }
+  };
+
+    // Handle success notification close
+    const handleSuccessClose = () => {
+      setSaveSuccess(false);
+    };
   
   const handleOpenAddModal = () => {
-    if (!enabled) return;
-    setAddModalOpen(true);
-    setNewResource({ name: '', type: '', file: null });
+    // if (!enabled) return;
+    // setAddModalOpen(true);
+    // setNewResource({ name: '', type: '', file: null });
   };
   
   const handleCloseAddModal = () => setAddModalOpen(false);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!enabled) return;
-    const file = e.target.files && e.target.files[0];
-    if (file) setNewResource((prev) => ({ ...prev, file }));
+    // if (!enabled) return;
+    // const file = e.target.files && e.target.files[0];
+    // if (file) setNewResource((prev) => ({ ...prev, file }));
   };
   
   const handleAddResource = () => {
-    if (!enabled || !newResource.name || !newResource.type) return;
-    setResources([
-      ...resources,
-      {
-        id: Date.now(),
-        name: newResource.name,
-        type: newResource.type,
-        visible: false,
-        file: newResource.file
-          ? { name: newResource.file.name, size: `${(newResource.file.size / 1024 / 1024).toFixed(1)}MB` }
-          : null,
-        uploaded: !!newResource.file,
-      },
-    ]);
-    setAddModalOpen(false);
+    // if (!enabled || !newResource.name || !newResource.type) return;
+    // setResources([
+    //   ...resources,
+    //   {
+    //     id: Date.now(),
+    //     name: newResource.name,
+    //     type: newResource.type,
+    //     visible: false,
+    //     file: newResource.file
+    //       ? { name: newResource.file.name, size: `${(newResource.file.size / 1024 / 1024).toFixed(1)}MB` }
+    //       : null,
+    //     uploaded: !!newResource.file,
+    //   },
+    // ]);
+    // setAddModalOpen(false);
   };
   
   const handleEditResource = (resourceId: number) => {
-    if (!enabled) return;
-    console.log('edit resource', resourceId);
+    // if (!enabled) return;
+    // console.log('edit resource', resourceId);
   };
   
   const handleDeleteResource = (resourceId: number) => {
-    if (!enabled) return;
-    setResources(resources.filter(resource => resource.id !== resourceId));
+    // if (!enabled) return;
+    // setResources(resources.filter(resource => resource.id !== resourceId));
   };
   
   const handleMakeVisible = (resourceId: number) => {
@@ -176,11 +251,11 @@ const TrustCenterResources: React.FC = () => {
   };
   
   const handleDownload = (resourceId: number) => {
-    if (!enabled) return;
-    const resource = resources.find(r => r.id === resourceId);
-    if (resource && resource.file) {
-      // Download logic here
-    }
+    // if (!enabled) return;
+    // const resource = resources.find(r => r.id === resourceId);
+    // if (resource && resource.file) {
+    //   // Download logic here
+    // }
   };
 
   return (
@@ -195,7 +270,7 @@ const TrustCenterResources: React.FC = () => {
           </Typography>
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle checked={enabled} onChange={handleToggle} />
+            <Toggle checked={formData?.info?.resources_visible} onChange={(_, checked) => handleFieldChange('info', 'resources_visible', checked)} />
           </Box>
         </Box>
         <Box sx={{ position: 'relative' }}>
@@ -299,6 +374,30 @@ const TrustCenterResources: React.FC = () => {
           />
         </Dialog>
       </Box>
+
+      <Snackbar
+        open={saveSuccess}
+        autoHideDuration={3000}
+        onClose={handleSuccessClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleSuccessClose} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            backgroundColor: '#ecfdf3',
+            border: '1px solid #12715B',
+            color: '#079455',
+            '& .MuiAlert-icon': {
+              color: '#079455',
+            }
+          }}
+        >
+          {'Resources saved successfully'}
+        </Alert>
+      </Snackbar>
+
     </Box>
   );
 };

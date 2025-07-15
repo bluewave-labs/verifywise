@@ -1,17 +1,13 @@
-import {
-  Question,
-  QuestionModel,
-} from "../domain.layer/models/question/question.model";
+import { QuestionModel } from "../domain.layer/models/question/question.model";
 import { sequelize } from "../database/db";
 import { deleteFileById, getFileById } from "./fileUpload.utils";
 import { Request } from "express";
 import { QueryTypes, Transaction } from "sequelize";
+import { IQuestion } from "../domain.layer/interfaces/I.question";
 
 export const getAllQuestionsQuery = async (
   tenant: string
-): Promise<
-  (Question & { evidence_files: Object[] })[]
-> => {
+): Promise<(IQuestion & { evidence_files: Object[] })[]> => {
   const questions = await sequelize.query(
     `SELECT * FROM "${tenant}".questions ORDER BY created_at DESC, id ASC`,
     {
@@ -37,7 +33,7 @@ export const getAllQuestionsQuery = async (
 export const getQuestionByIdQuery = async (
   id: number,
   tenant: string
-): Promise<Question & { evidence_files: Object[] }> => {
+): Promise<IQuestion & { evidence_files: Object[] }> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".questions WHERE id = :id`,
     {
@@ -76,10 +72,10 @@ export interface UploadedFile {
 }
 
 export const createNewQuestionQuery = async (
-  question: Question,
+  question: QuestionModel,
   tenant: string,
   transaction: Transaction
-): Promise<Question> => {
+): Promise<QuestionModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".questions (
       subtopic_id, question, answer_type, evidence_required,
@@ -120,7 +116,7 @@ export const addFileToQuestion = async (
   deletedFiles: number[],
   tenant: string,
   transaction: Transaction
-): Promise<Question> => {
+): Promise<QuestionModel> => {
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
     `SELECT evidence_files FROM "${tenant}".questions WHERE id = :id`,
@@ -172,17 +168,18 @@ export const addFileToQuestion = async (
 
 export const updateQuestionByIdQuery = async (
   id: number,
-  question: Partial<Question>,
+  question: Partial<QuestionModel>,
   tenant: string,
   transaction: Transaction
-): Promise<Question | null> => {
-  const updateQuestion: Partial<Record<keyof Question, any>> = {};
+): Promise<QuestionModel | null> => {
+  const updateQuestion: Partial<Record<keyof QuestionModel, any>> = {};
   const setClause = ["answer", "status"]
     .filter((f) => {
-      if (question[f as keyof Question] !== undefined) {
-        updateQuestion[f as keyof Question] = question[f as keyof Question];
+      if (question[f as keyof QuestionModel] !== undefined) {
+        updateQuestion[f as keyof QuestionModel] =
+          question[f as keyof QuestionModel];
         if (f === "answer" && !question[f]) {
-          updateQuestion[f as keyof Question] = "";
+          updateQuestion[f as keyof QuestionModel] = "";
         }
         return true;
       }
@@ -233,7 +230,7 @@ export const deleteQuestionByIdQuery = async (
 export const getQuestionBySubTopicIdQuery = async (
   subTopicId: number,
   tenant: string
-): Promise<Question[]> => {
+): Promise<IQuestion[]> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".questions WHERE subtopic_id = :subtopic_id ORDER BY created_at DESC, id ASC`,
     {
@@ -248,7 +245,7 @@ export const getQuestionBySubTopicIdQuery = async (
 export const getQuestionByTopicIdQuery = async (
   topicId: number,
   tenant: string
-): Promise<Question[]> => {
+): Promise<IQuestion[]> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".questions WHERE subtopic_id IN (SELECT id FROM "${tenant}".subtopics WHERE topic_id = :topic_id) ORDER BY created_at DESC, id ASC;`,
     {
@@ -287,7 +284,7 @@ export const createNewQuestionsQuery = async (
       :subtopic_id, :question, :answer_type, :evidence_required,
       :hint, :is_required, :priority_level, :answer, :order_no, :input_type
     ) RETURNING *`;
-  let createdQuestions: Question[] = [];
+  let createdQuestions: QuestionModel[] = [];
   for (let question of questions) {
     const result = await sequelize.query(query, {
       replacements: {

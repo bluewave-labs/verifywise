@@ -154,6 +154,7 @@ export async function deleteAITrustCentreResource(
  * @param {string} name - The name of the resource.
  * @param {string} description - The description of the resource.
  * @param {boolean} visible - Whether the resource is visible.
+ * @param {File} [file] - Optional file to replace the existing one.
  * @param {string} [authToken=getAuthToken()] - Optional auth token.
  * @returns {Promise<any>} The response from the API.
  */
@@ -162,6 +163,7 @@ export async function updateAITrustCentreResource(
   name: string,
   description: string,
   visible: boolean,
+  file?: File,
   authToken = getAuthToken()
 ): Promise<any> {
   try {
@@ -169,6 +171,11 @@ export async function updateAITrustCentreResource(
     formData.append('name', name);
     formData.append('description', description);
     formData.append('visible', visible.toString());
+    
+    // Only append file if it's provided
+    if (file) {
+      formData.append('file', file);
+    }
 
     const response = await apiServices.put(`/aiTrustCentre/resources/${resourceId}`, formData, {
       headers: { 

@@ -48,7 +48,7 @@ export const useStyles = () => ({
   toggleLabel: {
     fontSize: 13,
     color: '#344054',
-    fontWeight: 500,
+    fontWeight: 600,
   },
 
   tableWrapper: {
@@ -69,12 +69,13 @@ export const useStyles = () => ({
     backgroundColor: '#F9FAFB',
     borderBottom: '1px solid #E5E7EB',
   },
-
   tableRow: (isFlashing: boolean) => ({
     '&:hover': {
       backgroundColor: '#F9FAFB',
     },
-    padding: '8px 10px',
+    '& .MuiTableCell-root': {
+      padding: '8px 10px !important',
+    },
     ...(isFlashing && {
       animation: `${flashAnimation} 2s ease-in-out`,
     }),
@@ -128,6 +129,7 @@ export const useStyles = () => ({
     gap: 2,
     backgroundColor: '#13715B',
     border: '1px solid #13715B',
+    mt: 10,
   },
 
   // Modal styles
@@ -142,7 +144,6 @@ export const useStyles = () => ({
     fontWeight: 600,
     color: '#344054',
     padding: '16px 24px',
-    borderBottom: '1px solid #E5E7EB',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -176,13 +177,27 @@ export const useStyles = () => ({
   },
 
   fileUploadButton: {
-    border: '1px solid #D0D5DD',
-    color: '#344054',
-    backgroundColor: '#FFFFFF',
-    '&:hover': {
-      backgroundColor: '#F9FAFB',
-      border: '1px solid #667085',
-    },
+    mt: 10,
+    backgroundColor: '#13715B',
+    border: '1px solid #13715B',
+    color: '#FFFFFF',
+  },
+
+  fileName: {
+    fontSize: 13,
+    color: '#52AB43',
+    fontWeight: 500,
+    mt: 1,
+    ml: 1,
+  },
+
+  existingFileName: {
+    fontSize: 13,
+    color: '#667085',
+    fontWeight: 400,
+    mt: 1,
+    ml: 1,
+    fontStyle: 'italic',
   },
 
   modalActionButton: {
@@ -191,6 +206,11 @@ export const useStyles = () => ({
     gap: 1,
     '&:hover': {
       backgroundColor: '#0F5A4A',
+    },
+    '&:disabled': {
+      backgroundColor: '#ccc',
+      border: '1px solid #ccc',
+      color: '#667085 !important',
     },
   },
 

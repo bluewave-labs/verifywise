@@ -1,23 +1,5 @@
 import React, { useState } from "react";
-import { 
-  Alert, 
-  Snackbar, 
-  Box, 
-  Typography, 
-  IconButton, 
-  Dialog, 
-  Table, 
-  TableBody, 
-  Stack, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  CircularProgress,
-  DialogTitle,
-  DialogContent
-} from "@mui/material";
+import { Alert, Snackbar, Box, Typography, IconButton,  Dialog, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, DialogTitle, DialogContent, Stack } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import AddIcon from '@mui/icons-material/Add';
@@ -105,7 +87,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [newResource, setNewResource] = useState<{ name: string; description: string; file: File | null }>({ name: '', description: '', file: null });
-  const [editResource, setEditResource] = useState<{ id: number; name: string; description: string; visible: boolean }>({ id: 0, name: '', description: '', visible: true });
+  const [editResource, setEditResource] = useState<{ id: number; name: string; description: string; visible: boolean; file: File | null; filename?: string }>({ id: 0, name: '', description: '', visible: true, file: null, filename: '' });
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   
   // Success/Error states
@@ -187,7 +169,9 @@ const [formData, setFormData] = useState<FormData | null>(null);
       id: resource.id,
       name: resource.name,
       description: resource.description,
-      visible: resource.visible
+      visible: resource.visible,
+      file: null,
+      filename: resource.filename || resource.name // Use filename if available, otherwise use resource name
     });
     setEditModalOpen(true);
     setEditResourceError(null);
@@ -195,7 +179,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
 
   const handleCloseEditModal = () => {
     setEditModalOpen(false);
-    setEditResource({ id: 0, name: '', description: '', visible: true });
+    setEditResource({ id: 0, name: '', description: '', visible: true, file: null });
     setEditResourceError(null);
   };
   
@@ -210,6 +194,19 @@ const [formData, setFormData] = useState<FormData | null>(null);
       }
       setNewResource((prev) => ({ ...prev, file }));
       setAddResourceError(null);
+    }
+  };
+
+  const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!formData?.info?.resources_visible) return;
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        setEditResourceError('Please upload a PDF file');
+        return;
+      }
+      setEditResource((prev) => ({ ...prev, file }));
+      setEditResourceError(null);
     }
   };
   
@@ -238,10 +235,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
     }
 
     try {
-      await updateResource(editResource.id, editResource.name, editResource.description, editResource.visible);
+      // Use the unified update function - it handles both cases
+      await updateResource(editResource.id, editResource.name, editResource.description, editResource.visible, editResource.file || undefined);
+      
       setEditResourceSuccess(true);
       setEditModalOpen(false);
-      setEditResource({ id: 0, name: '', description: '', visible: true });
+      setEditResource({ id: 0, name: '', description: '', visible: true, file: null, filename: '' });
       setEditResourceError(null);
       
       setFlashingRowId(editResource.id);
@@ -424,7 +423,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
               />
               <Box>
                 <CustomizableButton
-                  text={newResource.file ? newResource.file.name : 'Upload a file'}
+                  text="Upload a file"
                   variant="outlined"
                   onClick={() => document.getElementById('resource-file-input')?.click()}
                   isDisabled={!formData?.info?.resources_visible}
@@ -438,6 +437,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
                   onChange={handleFileChange}
                   disabled={!formData?.info?.resources_visible}
                 />
+                {newResource.file && (
+                  <Typography sx={styles.fileName}>
+                    {newResource.file.name}
+                  </Typography>
+                )}
               </Box>
               <Box display="flex" justifyContent="flex-end">
                 <CustomizableButton
@@ -500,6 +504,35 @@ const [formData, setFormData] = useState<FormData | null>(null);
                   checked={editResource.visible} 
                   onChange={(_, checked) => setEditResource(r => ({ ...r, visible: checked }))}
                 />
+              </Box>
+              <Box>
+                <CustomizableButton
+                  text="Replace file"
+                  variant="outlined"
+                  onClick={() => document.getElementById('edit-resource-file-input')?.click()}
+                  isDisabled={!formData?.info?.resources_visible}
+                  sx={styles.fileUploadButton}
+                />
+                <input
+                  id="edit-resource-file-input"
+                  type="file"
+                  accept="application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={handleEditFileChange}
+                  disabled={!formData?.info?.resources_visible}
+                />
+                {/* Show existing file name */}
+                {!editResource.file && editResource.filename && (
+                  <Typography sx={styles.existingFileName}>
+                    Current file: {editResource.filename}
+                  </Typography>
+                )}
+                {/* Show new file name when selected */}
+                {editResource.file && (
+                  <Typography sx={styles.fileName}>
+                    New file: {editResource.file.name}
+                  </Typography>
+                )}
               </Box>
               <Box display="flex" justifyContent="flex-end" gap={2}>
                 <CustomizableButton

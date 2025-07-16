@@ -102,10 +102,13 @@ export async function createAITrustResource(
 ) {
   const transaction = await sequelize.transaction();
   try {
-    const body = req.body as Partial<IAITrustCentreResources>;
+    const body = req.body as Partial<{
+      name: string;
+      description: string;
+      visible: string;
+    }>;
 
-    console.log(req.files);
-    const file = await uploadFile((req.files as UploadedFile[])[0], req.userId!, null, "AI trust center group", req.tenantId!, transaction);
+    const file = await uploadFile(req.file as UploadedFile, req.userId!, null, "AI trust center group", req.tenantId!, transaction);
 
     if (!file || !file.id) {
       await transaction.rollback();
@@ -121,7 +124,7 @@ export async function createAITrustResource(
         name: body.name,
         description: body.description,
         file_id: file.id,
-        visible: body.visible || true, // Default to true if not provided
+        visible: body.visible === "true",
       },
       req.tenantId!, transaction
     )
@@ -275,11 +278,15 @@ export async function updateAITrustResource(
 ) {
   const transaction = await sequelize.transaction();
   try {
-    const body = req.body as (Partial<IAITrustCentreResources & {
-      delete: string
+    const body = req.body as (Partial<{
+      name: string;
+      description: string;
+      file_id: number;
+      visible: string;
+      delete: string;
     }>)
 
-    if ((body.delete && req.files?.length === 0) || (req.files?.length !== 0 && !body.delete)) {
+    if ((body.delete && req.file === undefined) || (req.file !== undefined && !body.delete)) {
       await transaction.rollback();
       return res.status(400).json(
         STATUS_CODE[400]({
@@ -289,8 +296,8 @@ export async function updateAITrustResource(
     }
 
     let fileId: number | undefined = undefined;
-    if (body.delete && req.files?.length !== 0) {
-      const file = await uploadFile((req.files as UploadedFile[])[0], req.userId!, null, "AI trust center group", req.tenantId!, transaction);
+    if (body.delete && req.file !== undefined) {
+      const file = await uploadFile(req.file as UploadedFile, req.userId!, null, "AI trust center group", req.tenantId!, transaction);
       fileId = file?.id || undefined;
     }
 
@@ -300,6 +307,7 @@ export async function updateAITrustResource(
         name: body.name,
         description: body.description,
         file_id: fileId,
+        visible: body.visible === "true",
       },
       body.delete !== undefined ? parseInt(body.delete) : undefined,
       req.tenantId!,

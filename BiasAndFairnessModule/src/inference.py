@@ -49,9 +49,10 @@ class ModelInferencePipeline:
         except Exception as e:
             raise RuntimeError(f"Failed to load model: {str(e)}")
 
-
     def generate_prompts(
-        self, batch_size: Optional[int] = None
+        self, 
+        batch_size: Optional[int] = None,
+        limit_samples: Optional[int] = None
     ) -> Union[List[Dict[str, Any]], List[List[Dict[str, Any]]]]:
         """
         Generate prompts from the loaded data.
@@ -59,6 +60,8 @@ class ModelInferencePipeline:
         Args:
             batch_size (Optional[int], optional): If provided, return samples in batches. 
                 Defaults to None.
+            limit_samples (Optional[int], optional): If provided, only generate prompts for 
+                the first N samples. Useful for testing. Defaults to None.
 
         Returns:
             Union[List[Dict[str, Any]], List[List[Dict[str, Any]]]]: List of dictionaries 
@@ -69,7 +72,20 @@ class ModelInferencePipeline:
                 - answer: Target column value for the row
                 - protected_attributes: Dictionary of protected attribute values
         """
-        return self.data_loader.generate_prompts_and_metadata(batch_size)
+        samples = self.data_loader.generate_prompts_and_metadata(batch_size)
+        
+        if limit_samples is not None:
+            if batch_size is None:
+                # For non-batched data, simply limit the samples
+                samples_list = cast(List[Dict[str, Any]], samples)
+                return samples_list[:limit_samples]
+            else:
+                flat_samples = [sample for batch in cast(List[List[Dict[str, Any]]], samples) for sample in batch]
+                flat_samples = flat_samples[:limit_samples]
+                samples = [flat_samples[i:i+batch_size] for i in range(0, len(flat_samples), batch_size)]
+                return samples
+        
+        return samples
 
     def _run_inference(
         self, 
@@ -92,7 +108,8 @@ class ModelInferencePipeline:
     def run_batch_inference(
         self, 
         batch_size: Optional[int] = None,
-        system_prompt: Optional[str] = None
+        system_prompt: Optional[str] = None,
+        limit_samples: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
         Run inference on data, with optional batching.
@@ -102,6 +119,8 @@ class ModelInferencePipeline:
                 If None, processes all data at once. Defaults to None.
             system_prompt (Optional[str], optional): System prompt for the model.
                 If None, uses the one from model_config. Defaults to None.
+            limit_samples (Optional[int], optional): If provided, only process the first N samples. 
+                Useful for testing. Defaults to None.
 
         Returns:
             List[Dict[str, Any]]: List of dictionaries containing inference results.
@@ -113,7 +132,7 @@ class ModelInferencePipeline:
                 - protected_attributes: Dictionary of protected attribute values
         """
         # Generate prompts and metadata
-        samples = self.generate_prompts(batch_size)
+        samples = self.generate_prompts(batch_size, limit_samples)
         
         # If no batching, process all at once
         if batch_size is None:
@@ -130,7 +149,7 @@ class ModelInferencePipeline:
         # Process in batches
         results: List[Dict[str, Any]] = []
         samples_batches = cast(List[List[Dict[str, Any]]], samples)
-    
+        
         for batch in tqdm(samples_batches, desc="Processing batches"):
             prompts = [sample["prompt"] for sample in batch]
             predictions = self._run_inference(prompts, system_prompt)

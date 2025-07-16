@@ -1,17 +1,8 @@
-from typing import List, Optional, Union, Dict, Any, TypedDict, cast
+from typing import List, Optional, Union, Dict, Any, cast
 
 from .data_loader import DataLoader
 from .model_loader import ModelLoader
 from .config import ConfigManager
-
-
-class SampleDict(TypedDict, total=False):
-    """Type definition for a sample dictionary."""
-    sample_id: int
-    prompt: str
-    answer: str
-    prediction: Optional[str]
-    protected_attributes: Dict[str, Any]
 
 
 class ModelInferencePipeline:

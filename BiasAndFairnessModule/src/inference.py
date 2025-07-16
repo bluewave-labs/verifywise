@@ -19,7 +19,7 @@ class ModelInferencePipeline:
 
         Raises:
             ValueError: If Hugging Face model is not enabled in config
-            RuntimeError: If data loading fails
+            RuntimeError: If data loading or model loading fails
         """
         # Load configuration
         self.config_manager = ConfigManager(config_path)
@@ -36,14 +36,18 @@ class ModelInferencePipeline:
         if not model_config.huggingface.enabled:
             raise ValueError("Hugging Face model must be enabled in config")
         
-        self.model_loader = ModelLoader(
-            model_id=model_config.huggingface.model_id,
-            device=model_config.huggingface.device,
-            max_new_tokens=model_config.huggingface.max_new_tokens,
-            temperature=model_config.huggingface.temperature,
-            top_p=model_config.huggingface.top_p,
-            system_prompt=model_config.huggingface.system_prompt,
-        )
+        try:
+            self.model_loader = ModelLoader(
+                model_id=model_config.huggingface.model_id,
+                device=model_config.huggingface.device,
+                max_new_tokens=model_config.huggingface.max_new_tokens,
+                temperature=model_config.huggingface.temperature,
+                top_p=model_config.huggingface.top_p,
+                system_prompt=model_config.huggingface.system_prompt,
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to load model: {str(e)}")
+
 
     def generate_prompts(
         self, batch_size: Optional[int] = None
@@ -81,9 +85,6 @@ class ModelInferencePipeline:
 
         Returns:
             List[str]: Generated responses
-
-        Raises:
-            RuntimeError: If no model has been loaded
         """
         return self.model_loader.predict(prompts, system_prompt)
 
@@ -109,9 +110,6 @@ class ModelInferencePipeline:
                 - answer: Ground truth answer
                 - prediction: Model's prediction
                 - protected_attributes: Dictionary of protected attribute values
-
-        Raises:
-            RuntimeError: If no model has been loaded
         """
         # Generate prompts and metadata
         samples = self.generate_prompts(batch_size)

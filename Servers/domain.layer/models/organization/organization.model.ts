@@ -22,12 +22,11 @@ import {
 
 @Table({
   tableName: "organizations",
-  timestamps: true,
+  timestamps: false,
 })
 export class OrganizationModel
   extends Model<OrganizationModel>
-  implements IOrganization
-{
+  implements IOrganization {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -46,23 +45,6 @@ export class OrganizationModel
   logo!: string;
 
   @Column({
-    type: DataType.ARRAY(DataType.INTEGER),
-  })
-  members!: number[];
-
-  @Column({
-    type: DataType.ARRAY(DataType.INTEGER),
-  })
-  projects!: number[];
-
-  @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  })
-  is_demo?: boolean;
-
-  @Column({
     type: DataType.DATE,
   })
   created_at?: Date;
@@ -75,7 +57,6 @@ export class OrganizationModel
     logo?: string,
     members?: number[],
     projects?: number[],
-    is_demo: boolean = false
   ): Promise<OrganizationModel> {
     // Validate name
     if (!name || name.trim().length === 0) {
@@ -162,9 +143,6 @@ export class OrganizationModel
     const organization = new OrganizationModel();
     organization.name = name.trim();
     organization.logo = logo || "";
-    organization.members = members || [];
-    organization.projects = projects || [];
-    organization.is_demo = is_demo;
     organization.created_at = new Date();
 
     return organization;
@@ -233,52 +211,6 @@ export class OrganizationModel
 
       this.logo = updateData.logo || "";
     }
-
-    // Validate members if provided
-    if (updateData.members !== undefined) {
-      if (!Array.isArray(updateData.members)) {
-        throw new ValidationException(
-          "Members must be an array",
-          "members",
-          updateData.members
-        );
-      }
-
-      for (const memberId of updateData.members) {
-        if (!numberValidation(memberId, 1)) {
-          throw new ValidationException(
-            "All member IDs must be positive integers",
-            "members",
-            updateData.members
-          );
-        }
-      }
-
-      this.members = updateData.members;
-    }
-
-    // Validate projects if provided
-    if (updateData.projects !== undefined) {
-      if (!Array.isArray(updateData.projects)) {
-        throw new ValidationException(
-          "Projects must be an array",
-          "projects",
-          updateData.projects
-        );
-      }
-
-      for (const projectId of updateData.projects) {
-        if (!numberValidation(projectId, 1)) {
-          throw new ValidationException(
-            "All project IDs must be positive integers",
-            "projects",
-            updateData.projects
-          );
-        }
-      }
-
-      this.projects = updateData.projects;
-    }
   }
 
   /**
@@ -318,210 +250,6 @@ export class OrganizationModel
       }
     }
 
-    // Validate members array
-    if (this.members && !Array.isArray(this.members)) {
-      throw new ValidationException(
-        "Members must be an array",
-        "members",
-        this.members
-      );
-    }
-
-    if (this.members) {
-      for (const memberId of this.members) {
-        if (!numberValidation(memberId, 1)) {
-          throw new ValidationException(
-            "All member IDs must be positive integers",
-            "members",
-            this.members
-          );
-        }
-      }
-    }
-
-    // Validate projects array
-    if (this.projects && !Array.isArray(this.projects)) {
-      throw new ValidationException(
-        "Projects must be an array",
-        "projects",
-        this.projects
-      );
-    }
-
-    if (this.projects) {
-      for (const projectId of this.projects) {
-        if (!numberValidation(projectId, 1)) {
-          throw new ValidationException(
-            "All project IDs must be positive integers",
-            "projects",
-            this.projects
-          );
-        }
-      }
-    }
-  }
-
-  /**
-   * Check if organization is a demo organization
-   */
-  isDemoOrganization(): boolean {
-    return this.is_demo ?? false;
-  }
-
-  /**
-   * Check if organization can be modified
-   */
-  canBeModified(): boolean {
-    if (this.isDemoOrganization()) {
-      throw new BusinessLogicException(
-        "Demo organizations cannot be modified",
-        "DEMO_ORGANIZATION_RESTRICTION",
-        { organizationId: this.id, organizationName: this.name }
-      );
-    }
-    return true;
-  }
-
-  /**
-   * Check if organization can be deleted
-   */
-  canBeDeleted(): boolean {
-    if (this.isDemoOrganization()) {
-      return false;
-    }
-
-    // Cannot delete organizations with active projects
-    if (this.projects && this.projects.length > 0) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Add a member to the organization
-   */
-  addMember(userId: number): void {
-    if (!numberValidation(userId, 1)) {
-      throw new ValidationException(
-        "User ID must be a positive integer",
-        "userId",
-        userId
-      );
-    }
-
-    if (!this.members) {
-      this.members = [];
-    }
-
-    if (!this.members.includes(userId)) {
-      this.members.push(userId);
-    }
-  }
-
-  /**
-   * Remove a member from the organization
-   */
-  removeMember(userId: number): void {
-    if (!numberValidation(userId, 1)) {
-      throw new ValidationException(
-        "User ID must be a positive integer",
-        "userId",
-        userId
-      );
-    }
-
-    if (this.members) {
-      this.members = this.members.filter((id) => id !== userId);
-    }
-  }
-
-  /**
-   * Check if a user is a member of the organization
-   */
-  isMember(userId: number): boolean {
-    if (!numberValidation(userId, 1)) {
-      return false;
-    }
-
-    return this.members ? this.members.includes(userId) : false;
-  }
-
-  /**
-   * Add a project to the organization
-   */
-  addProject(projectId: number): void {
-    if (!numberValidation(projectId, 1)) {
-      throw new ValidationException(
-        "Project ID must be a positive integer",
-        "projectId",
-        projectId
-      );
-    }
-
-    if (!this.projects) {
-      this.projects = [];
-    }
-
-    if (!this.projects.includes(projectId)) {
-      this.projects.push(projectId);
-    }
-  }
-
-  /**
-   * Remove a project from the organization
-   */
-  removeProject(projectId: number): void {
-    if (!numberValidation(projectId, 1)) {
-      throw new ValidationException(
-        "Project ID must be a positive integer",
-        "projectId",
-        projectId
-      );
-    }
-
-    if (this.projects) {
-      this.projects = this.projects.filter((id) => id !== projectId);
-    }
-  }
-
-  /**
-   * Check if a project belongs to the organization
-   */
-  hasProject(projectId: number): boolean {
-    if (!numberValidation(projectId, 1)) {
-      return false;
-    }
-
-    return this.projects ? this.projects.includes(projectId) : false;
-  }
-
-  /**
-   * Get organization member count
-   */
-  getMemberCount(): number {
-    return this.members ? this.members.length : 0;
-  }
-
-  /**
-   * Get organization project count
-   */
-  getProjectCount(): number {
-    return this.projects ? this.projects.length : 0;
-  }
-
-  /**
-   * Check if organization is active (has members or projects)
-   */
-  isActive(): boolean {
-    return this.getMemberCount() > 0 || this.getProjectCount() > 0;
-  }
-
-  /**
-   * Check if organization is empty (no members and no projects)
-   */
-  isEmpty(): boolean {
-    return this.getMemberCount() === 0 && this.getProjectCount() === 0;
   }
 
   /**
@@ -552,10 +280,6 @@ export class OrganizationModel
       id: this.id,
       name: this.name,
       logo: this.logo,
-      memberCount: this.getMemberCount(),
-      projectCount: this.getProjectCount(),
-      isActive: this.isActive(),
-      isDemo: this.isDemoOrganization(),
       created_at: this.created_at?.toISOString(),
     };
   }
@@ -568,14 +292,7 @@ export class OrganizationModel
       id: this.id,
       name: this.name,
       logo: this.logo,
-      members: this.members,
-      projects: this.projects,
-      is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
-      memberCount: this.getMemberCount(),
-      projectCount: this.getProjectCount(),
-      isActive: this.isActive(),
-      isEmpty: this.isEmpty(),
       ageInDays: this.getAgeInDays(),
     };
   }
@@ -605,52 +322,6 @@ export class OrganizationModel
     }
 
     return organization;
-  }
-
-  /**
-   * Static method to find organizations by member ID
-   */
-  static async findByMemberId(memberId: number): Promise<OrganizationModel[]> {
-    if (!numberValidation(memberId, 1)) {
-      throw new ValidationException(
-        "Valid member ID is required (must be >= 1)",
-        "memberId",
-        memberId
-      );
-    }
-
-    return await OrganizationModel.findAll({
-      where: {
-        members: {
-          [require("sequelize").Op.contains]: [memberId],
-        },
-      },
-      order: [["created_at", "DESC"]],
-    });
-  }
-
-  /**
-   * Static method to find organizations by project ID
-   */
-  static async findByProjectId(
-    projectId: number
-  ): Promise<OrganizationModel[]> {
-    if (!numberValidation(projectId, 1)) {
-      throw new ValidationException(
-        "Valid project ID is required (must be >= 1)",
-        "projectId",
-        projectId
-      );
-    }
-
-    return await OrganizationModel.findAll({
-      where: {
-        projects: {
-          [require("sequelize").Op.contains]: [projectId],
-        },
-      },
-      order: [["created_at", "DESC"]],
-    });
   }
 
   /**
@@ -697,18 +368,10 @@ export class OrganizationModel
   getSummary(): {
     id: number | undefined;
     name: string;
-    memberCount: number;
-    projectCount: number;
-    isActive: boolean;
-    isDemo: boolean;
   } {
     return {
       id: this.id,
       name: this.name,
-      memberCount: this.getMemberCount(),
-      projectCount: this.getProjectCount(),
-      isActive: this.isActive(),
-      isDemo: this.isDemoOrganization(),
     };
   }
 

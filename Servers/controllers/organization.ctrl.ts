@@ -574,7 +574,6 @@ export async function updateOrganizationById(
     const organization = await OrganizationModel.findByIdWithValidation(
       organizationId
     );
-    console.log("aaaaaaa");
 
     // Update the organization using the model's update method
     await organization.updateOrganization(updateData);

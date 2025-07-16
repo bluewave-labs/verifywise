@@ -66,13 +66,13 @@ class ModelInferencePipeline:
         """
         return self.data_loader.generate_prompts_and_metadata(batch_size)
 
-    def run_inference(
+    def _run_inference(
         self, 
         prompts: Union[str, List[str]], 
         system_prompt: Optional[str] = None
     ) -> List[str]:
         """
-        Run model inference on the given prompts.
+        Internal method to run model inference on the given prompts.
 
         Args:
             prompts (Union[str, List[str]]): Input prompt(s) for prediction
@@ -93,7 +93,7 @@ class ModelInferencePipeline:
         system_prompt: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
-        Run inference on batches of data.
+        Run inference on data, with optional batching.
 
         Args:
             batch_size (Optional[int], optional): Size of batches to process. 
@@ -120,7 +120,7 @@ class ModelInferencePipeline:
         if batch_size is None:
             samples_list = cast(List[Dict[str, Any]], samples)
             prompts = [sample["prompt"] for sample in samples_list]
-            predictions = self.run_inference(prompts, system_prompt)
+            predictions = self._run_inference(prompts, system_prompt)
             
             # Add predictions to samples
             for sample, prediction in zip(samples_list, predictions):
@@ -133,7 +133,7 @@ class ModelInferencePipeline:
         samples_batches = cast(List[List[Dict[str, Any]]], samples)
         for batch in samples_batches:
             prompts = [sample["prompt"] for sample in batch]
-            predictions = self.run_inference(prompts, system_prompt)
+            predictions = self._run_inference(prompts, system_prompt)
             
             # Add predictions to samples
             for sample, prediction in zip(batch, predictions):

@@ -1,4 +1,5 @@
 from typing import List, Optional, Union, Dict, Any, cast
+from tqdm import tqdm
 
 from .data_loader import DataLoader
 from .model_loader import ModelLoader
@@ -129,7 +130,8 @@ class ModelInferencePipeline:
         # Process in batches
         results: List[Dict[str, Any]] = []
         samples_batches = cast(List[List[Dict[str, Any]]], samples)
-        for batch in samples_batches:
+    
+        for batch in tqdm(samples_batches, desc="Processing batches"):
             prompts = [sample["prompt"] for sample in batch]
             predictions = self._run_inference(prompts, system_prompt)
             

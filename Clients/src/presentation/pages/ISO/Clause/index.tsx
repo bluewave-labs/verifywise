@@ -63,6 +63,7 @@ const ISO42001Clauses = ({
         routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
       });
       setClauses(response);
+      setSubClausesMap({});
     } catch (error) {
       console.error("Error fetching clauses:", error);
       setClauses([]);
@@ -103,6 +104,15 @@ const ISO42001Clauses = ({
     },
     []
   );
+
+  useEffect(() => {
+    if (expanded !== false && !subClausesMap[expanded]) {
+      const clause = clauses.find((c) => c.id === expanded);
+      if (clause) {
+        fetchSubClauses(expanded, clause.subClauses);
+      }
+    }
+  }, [clauses, expanded, fetchSubClauses, subClausesMap]);
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -145,13 +155,6 @@ const ISO42001Clauses = ({
     if (success && savedSubClauseId) {
       setFlashingRowId(savedSubClauseId);
       setTimeout(() => setFlashingRowId(null), 2000);
-
-      if (expanded !== false) {
-        const clause = clauses.find((c) => c.id === expanded);
-        if (clause) {
-          await fetchSubClauses(expanded, clause.subClauses);
-        }
-      }
 
       setRefreshTrigger((prev) => prev + 1);
     }

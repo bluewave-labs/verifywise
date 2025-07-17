@@ -117,13 +117,6 @@ const ISO42001Clauses = ({
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
-
-      if (isExpanded && !subClausesMap[panel]) {
-        const clause = clauses.find((c) => c.id === panel);
-        if (clause) {
-          await fetchSubClauses(panel, clause.subClauses);
-        }
-      }
     };
 
   const handleSubClauseClick = (clause: any, subClause: any, index: number) => {

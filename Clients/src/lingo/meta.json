@@ -617,6 +617,42 @@
         }
       }
     },
+    "presentation/components/FrameworkFilter/TabFilterBar.tsx": {
+      "scopes": {
+        "3/0/init/body/1/argument/1/1/expression/right-placeholder": {
+          "type": "attribute",
+          "hash": "5e2e93f8e2a5f315b6fecdd0a0e6f55f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "All"
+        },
+        "3/0/init/body/1/argument/1/3/expression/right-placeholder": {
+          "type": "attribute",
+          "hash": "5e2e93f8e2a5f315b6fecdd0a0e6f55f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "All"
+        },
+        "3/0/init/body/1/argument/1/5/expression/right/1/expression/right": {
+          "type": "element",
+          "hash": "516e407f30a5c3b33552a8bb7090c8eb",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing: <expression/>"
+        },
+        "3/0/init/body/1/argument/1/5/expression/right/3/expression/right": {
+          "type": "element",
+          "hash": "7cdbd2c78d0fc1fefd6d72076ad9a6f5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Showing: <expression/>"
+        }
+      }
+    },
     "presentation/components/Inputs/Datepicker/index.tsx": {
       "scopes": {
         "8/0/init/body/1/argument/1/expression/right/3/expression/consequent": {
@@ -1270,6 +1306,14 @@
           "skip": false,
           "overrides": {},
           "content": "Loading..."
+        },
+        "9/0/init/body/14/consequent/0/argument-title": {
+          "type": "attribute",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
         }
       }
     },
@@ -1456,6 +1500,46 @@
           "content": "Options"
         },
         "34/0/init/body/17/argument/19/3/3": {
+          "type": "element",
+          "hash": "a474f50f8354e641381a9c814ca8a4cc",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<element:LogoutSvg></element:LogoutSvg> Log out"
+        },
+        "35/0/init/body/17/argument/1/1/1/1-alt": {
+          "type": "attribute",
+          "hash": "47fa6b3978c1c06acc29b6cae393b0c9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Logo"
+        },
+        "35/0/init/body/17/argument/1/1/3/1": {
+          "type": "element",
+          "hash": "19bb6bbd0dc47567b330641cf0c17804",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "35/0/init/body/17/argument/19/1/expression/alternate/5-title": {
+          "type": "attribute",
+          "hash": "d81790084152d5e4edfb0760f14cde82",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Controls"
+        },
+        "35/0/init/body/17/argument/19/1/expression/consequent/1-title": {
+          "type": "attribute",
+          "hash": "59156082418d80acb211f973b1218f11",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Options"
+        },
+        "35/0/init/body/17/argument/19/3/3": {
           "type": "element",
           "hash": "a474f50f8354e641381a9c814ca8a4cc",
           "context": "",
@@ -1709,6 +1793,361 @@
         }
       }
     },
+    "presentation/pages/AITrustCenter/Controls/index.tsx": {
+      "scopes": {
+        "3/0/init/body/1/argument/1": {
+          "type": "element",
+          "hash": "8078b5089e575bdc670ac0ef2cbb9b62",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Controls"
+        },
+        "3/0/init/body/1/argument/3": {
+          "type": "element",
+          "hash": "edda2fd9247be042e473385abc75523c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This section will contain AI controls and governance information."
+        }
+      }
+    },
+    "presentation/pages/AITrustCenter/Overview/index.tsx": {
+      "scopes": {
+        "7/0/init/body/8/argument/1": {
+          "type": "element",
+          "hash": "31e70ce442cbc73b83cd4615d25fab9c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This section serves as a comprehensive, user-friendly introduction to the company's AI practices, establishing a foundation of trust your customers. Users immediately understand the company's commitment to AI governance, security, and compliance, and have a clear path to further resources or contact if they have additional questions."
+        },
+        "7/0/init/body/8/argument/11/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "f7a2929f33bc420195e59ac5a8bcd454",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Save"
+        },
+        "7/0/init/body/8/argument/3/1/1": {
+          "type": "element",
+          "hash": "439cb79e8dfd7923d35b85cfbb6fd201",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Introduction"
+        },
+        "7/0/init/body/8/argument/3/1/3-label": {
+          "type": "attribute",
+          "hash": "9141c0a3af2c9bda5f77718bef6be79e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enabled and visible"
+        },
+        "7/0/init/body/8/argument/3/3/1-label": {
+          "type": "attribute",
+          "hash": "f2ceb54205f1850c7a7e33217d0fa29c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Purpose of our trust center"
+        },
+        "7/0/init/body/8/argument/3/3/1/1": {
+          "type": "element",
+          "hash": "4d2f5976ccd333e2ec24cb0e6d97f12b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Include a section to summarize the purpose of the Trust Center. Clearly communicate the company's commitment to responsible AI use, data privacy, and ethical AI practices."
+        },
+        "7/0/init/body/8/argument/3/3/3-label": {
+          "type": "attribute",
+          "hash": "6be9345447c70c7b211890e8fe7c4780",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Our statement"
+        },
+        "7/0/init/body/8/argument/3/3/3/1": {
+          "type": "element",
+          "hash": "f987babf21537032b3c2a3b48f29101b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Provide a brief statement about the company's AI applications and their significance. Mention the main objectives, like data security, ethical AI, and trust-building with customers."
+        },
+        "7/0/init/body/8/argument/3/3/5-label": {
+          "type": "attribute",
+          "hash": "2882a51e1126936e02afd272e0a30f48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Our mission"
+        },
+        "7/0/init/body/8/argument/3/3/5/1": {
+          "type": "element",
+          "hash": "5856de55d572990539151c9eda86c5d8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Input a mission statement reflecting your values related to AI governance and ethics."
+        },
+        "7/0/init/body/8/argument/5/1/1": {
+          "type": "element",
+          "hash": "5720217dd8c37d774e7bb9e32751dabd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Compliance and certification badges"
+        },
+        "7/0/init/body/8/argument/5/1/3-label": {
+          "type": "attribute",
+          "hash": "9141c0a3af2c9bda5f77718bef6be79e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enabled and visible"
+        },
+        "7/0/init/body/8/argument/5/3": {
+          "type": "element",
+          "hash": "8acf7e242eac8aa38187523ce4814631",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Compliance badges for certifications and standards (e.g., EU AI Act, NIST, SOC2, ISO 27001, GDPR)."
+        },
+        "7/0/init/body/8/argument/7/1/1": {
+          "type": "element",
+          "hash": "bc27b977a4a565eaa63aabae45c4a57b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Company description and values"
+        },
+        "7/0/init/body/8/argument/7/1/3-label": {
+          "type": "attribute",
+          "hash": "0889a3dfd914a7ef638611796b17bf72",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Disabled"
+        },
+        "7/0/init/body/8/argument/7/3/1-label": {
+          "type": "attribute",
+          "hash": "0ceaed10d99ed4ad83cb0934ab970174",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Background"
+        },
+        "7/0/init/body/8/argument/7/3/1/1": {
+          "type": "element",
+          "hash": "88c965cb2b70eb190021e8710fc0aa5d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Explain your company, what you do, and why trust in AI is essential to you."
+        },
+        "7/0/init/body/8/argument/7/3/3-label": {
+          "type": "attribute",
+          "hash": "0eb8ab67a1b7d44a2b9b0af66a0aa142",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Core benefits"
+        },
+        "7/0/init/body/8/argument/7/3/3/1": {
+          "type": "element",
+          "hash": "8ce4d8a65efea44d3aa60124fa2abdad",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Explain key benefits like efficiency, security, customer support, and ethical AI practices. You can also detail your AI offering functionality, use cases, and benefits to users."
+        },
+        "7/0/init/body/8/argument/9/1/1": {
+          "type": "element",
+          "hash": "4ef8a21be0e6f19c0aaa32a97615eb40",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Privacy policy, terms of service, and contact information"
+        },
+        "7/0/init/body/8/argument/9/1/3-label": {
+          "type": "attribute",
+          "hash": "9141c0a3af2c9bda5f77718bef6be79e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enabled and visible"
+        },
+        "7/0/init/body/8/argument/9/3": {
+          "type": "element",
+          "hash": "ff4bcace108933cc52d9ce951a3f39fd",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Include links to essential documents like the Privacy Policy and Terms of Service. Also include email address for privacy/security related questions and incidents."
+        },
+        "7/0/init/body/8/argument/9/5/1/1/1-label": {
+          "type": "attribute",
+          "hash": "0b8a8b23aff021a6cde79613fdb39c28",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Terms of service"
+        },
+        "7/0/init/body/8/argument/9/5/1/1/3-placeholder": {},
+        "7/0/init/body/8/argument/9/5/1/3/1-label": {
+          "type": "attribute",
+          "hash": "462c6a536b52873e4498785c66dd48c8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Privacy policy"
+        },
+        "7/0/init/body/8/argument/9/5/1/3/3-placeholder": {},
+        "7/0/init/body/8/argument/9/5/1/5/1-label": {
+          "type": "attribute",
+          "hash": "75baaffe4eb67b781f659a84549555be",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Company email"
+        },
+        "7/0/init/body/8/argument/9/5/1/5/3-placeholder": {}
+      }
+    },
+    "presentation/pages/AITrustCenter/Resources/index.tsx": {
+      "scopes": {
+        "2/0/init/body/2/argument/1": {
+          "type": "element",
+          "hash": "45dff8314f3829f6f907aa7f7c804470",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Resources"
+        },
+        "2/0/init/body/2/argument/3": {
+          "type": "element",
+          "hash": "4233a3383aad227b3dbd1a8fb528c452",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This section will contain resources related to AI trust and compliance."
+        }
+      }
+    },
+    "presentation/pages/AITrustCenter/Settings/index.tsx": {
+      "scopes": {
+        "3/0/init/body/1/argument/1": {
+          "type": "element",
+          "hash": "027d1cbb754b0476653db7fe91d25ad3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Settings"
+        },
+        "3/0/init/body/1/argument/3": {
+          "type": "element",
+          "hash": "ada5f52c23d288dcce9013fcbc65eb98",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This section will contain AI trust center configuration settings."
+        }
+      }
+    },
+    "presentation/pages/AITrustCenter/Subprocessors/index.tsx": {
+      "scopes": {
+        "3/0/init/body/1/argument/1": {
+          "type": "element",
+          "hash": "0fd39649a43d013384f3ce7bf927bcaa",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Subprocessors"
+        },
+        "3/0/init/body/1/argument/3": {
+          "type": "element",
+          "hash": "fdf268c3f3b11a1c2f937ad3cd7be0aa",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "This section will contain information about AI subprocessors and third-party services."
+        }
+      }
+    },
+    "presentation/pages/AITrustCenter/index.tsx": {
+      "scopes": {
+        "14/0/init/body/2/argument/1/1": {
+          "type": "element",
+          "hash": "fecad09cdb5181b1c59f377a85ecc052",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "AI trust center"
+        },
+        "14/0/init/body/2/argument/1/3": {
+          "type": "element",
+          "hash": "4373806523acb97fde60aff27cfbf884",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Manage and monitor AI governance, compliance, and trust-related activities"
+        },
+        "14/0/init/body/2/argument/3/1/1/1/1-label": {
+          "type": "attribute",
+          "hash": "30c54e4dc4ce599b87d94be34a8617f5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Overview"
+        },
+        "14/0/init/body/2/argument/3/1/1/1/11/openingElement/1/value/expression": {
+          "type": "element",
+          "hash": "826d3c11c7a547b488427ecfcc9d22cc",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Preview Mode"
+        },
+        "14/0/init/body/2/argument/3/1/1/1/3-label": {
+          "type": "attribute",
+          "hash": "ec7fb05ed963bb6781a35782b3475502",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Resources"
+        },
+        "14/0/init/body/2/argument/3/1/1/1/5-label": {
+          "type": "attribute",
+          "hash": "a1ce866e1aa42f220c87a97205f88623",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Subprocessors"
+        },
+        "14/0/init/body/2/argument/3/1/1/1/7-label": {
+          "type": "attribute",
+          "hash": "d81790084152d5e4edfb0760f14cde82",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Controls"
+        },
+        "14/0/init/body/2/argument/3/1/1/1/9-label": {
+          "type": "attribute",
+          "hash": "8df6777277469c1fd88cc18dde2f1cc3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Settings"
+        }
+      }
+    },
     "presentation/pages/Assessment/1.0AssessmentTracker/index.tsx": {
       "scopes": {
         "13/0/init/body/14/consequent/0/argument/1": {
@@ -1760,6 +2199,62 @@
           "content": "Unable to get topics"
         },
         "13/0/init/body/15/argument/3/7/5/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "8507521652c50b4b47d2a739d4016223",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Unable to get subtopics"
+        },
+        "14/0/init/body/15/consequent/0/argument/1": {
+          "type": "element",
+          "hash": "f021fffd4accff2b5cf8c3b7b3184d56",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Please select a project to view assessments"
+        },
+        "14/0/init/body/16/argument/3/1/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "d01708c9dbc41d9ae2b355004cd950da",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Unable to fetch statistical values from the server"
+        },
+        "14/0/init/body/16/argument/3/1/1/expression/alternate/consequent-title": {
+          "type": "attribute",
+          "hash": "38d08215fd7a8026077c7b64eea6bb59",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Questions"
+        },
+        "14/0/init/body/16/argument/3/3": {
+          "type": "element",
+          "hash": "e96130d22d02dfbd5e71fafa947eab1f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Assessments status overview"
+        },
+        "14/0/init/body/16/argument/3/7/1/1": {
+          "type": "element",
+          "hash": "78989bb42d4ceeb171bbda912281ae88",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "High risk conformity assessment"
+        },
+        "14/0/init/body/16/argument/3/7/1/3/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "62174fac0c4df2b841dad72c6cca2ad2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Unable to get topics"
+        },
+        "14/0/init/body/16/argument/3/7/5/1/expression/alternate/alternate": {
           "type": "element",
           "hash": "8507521652c50b4b47d2a739d4016223",
           "context": "",
@@ -1902,6 +2397,102 @@
           "skip": false,
           "overrides": {},
           "content": "Sign in"
+        },
+        "19/0/init/body/10/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "19/0/init/body/10/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        },
+        "19/0/init/body/10/argument/7/1/1": {
+          "type": "element",
+          "hash": "8ca8c19a2ebfcea5bbfbcb83b6e06a02",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "19/0/init/body/10/argument/7/1/5/1-label": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "19/0/init/body/10/argument/7/1/5/1-placeholder": {
+          "type": "attribute",
+          "hash": "3ebb891babbf51ef23fa8bf9e2882bc5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "name.surname@companyname.com"
+        },
+        "19/0/init/body/10/argument/7/1/5/3-label": {
+          "type": "attribute",
+          "hash": "223a61cf906ab9c40d22612c588dff48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password"
+        },
+        "19/0/init/body/10/argument/7/1/5/3-placeholder": {
+          "type": "attribute",
+          "hash": "ea4fdd034522dead21bae0c0abb52eae",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Enter your password"
+        },
+        "19/0/init/body/10/argument/7/1/5/5/1-label": {
+          "type": "attribute",
+          "hash": "cea09cc6610fd2ff07d7fcbdcaa060a7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Remember for 30 days"
+        },
+        "19/0/init/body/10/argument/7/1/5/5/3": {
+          "type": "element",
+          "hash": "35983950f7cf0f74d13a15a92c78d993",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Forgot password"
+        },
+        "19/0/init/body/10/argument/7/1/5/7": {
+          "type": "element",
+          "hash": "ac1672621fafb4bfb0a446027ab0750e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Sign in"
+        },
+        "19/0/init/body/10/argument/7/1/5/9/1": {
+          "type": "element",
+          "hash": "91e21ef462e681503f1fa672e4c52475",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Don't have an account yet?"
+        },
+        "19/0/init/body/10/argument/7/1/5/9/3": {
+          "type": "element",
+          "hash": "75a42259afe4f7d4bb38f5d4a042fb53",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Register here"
         }
       }
     },
@@ -2068,6 +2659,202 @@
           "content": "admin@organization.com"
         },
         "18/0/init/body/18/argument/9/expression/right/1/5/5": {
+          "type": "element",
+          "hash": "88755e30e03d6b2055d0a17b93cda461",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Next"
+        }
+      }
+    },
+    "presentation/pages/Authentication/RegisterMultiTenant/index.tsx": {
+      "scopes": {
+        "18/0/init/body/18/argument/1/expression/right/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Loading..."
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/1": {
+          "type": "element",
+          "hash": "19bb6bbd0dc47567b330641cf0c17804",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/3": {
+          "type": "element",
+          "hash": "bfa485dfdcd3361c6a938190e0d08da6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create admin account"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5": {
+          "type": "element",
+          "hash": "4820f4be6331f410d7fb95215767ede6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "← Back to Login"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/1-label": {
+          "type": "attribute",
+          "hash": "9368b5a047572b6051f334af5aa76819",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Name"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/1-placeholder": {
+          "type": "attribute",
+          "hash": "b00c01deec0af9a441331a5134210de1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your name"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/13": {
+          "type": "element",
+          "hash": "c6678ac9cec63cb8b578e6078657e8cf",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Get started"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/3-label": {
+          "type": "attribute",
+          "hash": "650fda04a1441de29c6cf56322d0d5d2",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Surname"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/3-placeholder": {
+          "type": "attribute",
+          "hash": "29d7f582770f544ac4e16caeb768ed6f",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your surname"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/5-label": {
+          "type": "attribute",
+          "hash": "e7f34943a0c2fb849db1839ff6ef5cb5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Email"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/5-placeholder": {
+          "type": "attribute",
+          "hash": "3ebb891babbf51ef23fa8bf9e2882bc5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "name.surname@companyname.com"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/7-label": {
+          "type": "attribute",
+          "hash": "223a61cf906ab9c40d22612c588dff48",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Password"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/7-placeholder": {
+          "type": "attribute",
+          "hash": "3c5df02455af46684285bbf665317812",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create a password"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/9-label": {
+          "type": "attribute",
+          "hash": "b5cdb861d8deb598b0613d48098b82b6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm password"
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/9-placeholder": {
+          "type": "attribute",
+          "hash": "224b4aa56991875af1df9d3b102de647",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Confirm your password"
+        },
+        "18/0/init/body/18/argument/3/expression/right-title": {
+          "type": "attribute",
+          "hash": "86f2718e92f9cb94a36f229762373510",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Processing your request. Please wait..."
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/1": {
+          "type": "element",
+          "hash": "19bb6bbd0dc47567b330641cf0c17804",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Verify<element:span>Wise</element:span>"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/3": {
+          "type": "element",
+          "hash": "c46eea5122c34ff77d1a8964a634dee9",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create your organization"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/5": {
+          "type": "element",
+          "hash": "4820f4be6331f410d7fb95215767ede6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "← Back to Login"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/1-label": {
+          "type": "attribute",
+          "hash": "e69fb0acbe75358352890a6f04e4b9c0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Organization name"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/1-placeholder": {
+          "type": "attribute",
+          "hash": "728e3eec14360459b0d5480ccde7cd83",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Your organization name"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/3-label": {
+          "type": "attribute",
+          "hash": "dd01da3c9e73671d8c4dad9fd3980721",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Organization email"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/3-placeholder": {
+          "type": "attribute",
+          "hash": "ad2c0b3a98e8ca4288d615a6e526d9df",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "admin@organization.com"
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/5": {
           "type": "element",
           "hash": "88755e30e03d6b2055d0a17b93cda461",
           "context": "",
@@ -2757,7 +3544,7 @@
         },
         "16/0/init/body/18/argument/3/expression/5/expression/right/0/body/1/3/1/expression/0/body/1/1": {
           "type": "element",
-          "hash": "5dd79eb296a9cf7d0628165a06a308ff",
+          "hash": "301e30887f6e6a6da211174450e7bdbb",
           "context": "",
           "skip": false,
           "overrides": {},
@@ -2774,6 +3561,14 @@
           "skip": false,
           "overrides": {},
           "content": "No subclauses found"
+        },
+        "16/0/init/body/19/body/3/argument/1/expression/alternate/alternate": {
+          "type": "element",
+          "hash": "755315744eccf452f469815085c12343",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "No matching subclauses"
         },
         "16/0/init/body/20/argument/3-title": {
           "type": "attribute",
@@ -2960,6 +3755,22 @@
           "content": "Retry"
         },
         "24/0/init/body/17/argument/1/3": {
+          "type": "element",
+          "hash": "504de5075caf9738189a65a1183321c8",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Manage frameworks"
+        },
+        "25/0/init/body/13/consequent/0/argument/3": {
+          "type": "element",
+          "hash": "e2528ce3b55a7274389dc19d53e70788",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Retry"
+        },
+        "25/0/init/body/24/argument/1/3": {
           "type": "element",
           "hash": "504de5075caf9738189a65a1183321c8",
           "context": "",

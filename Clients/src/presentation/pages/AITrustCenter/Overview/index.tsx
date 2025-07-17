@@ -174,7 +174,7 @@ const AITrustCenterOverview: React.FC = () => {
       </SectionPaper>
       
       <CustomizableButton
-        text="Save"
+        text={<>Save</>} //"Save"
         variant="contained"
         sx={styles.saveButton}
       />

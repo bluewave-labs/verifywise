@@ -690,6 +690,46 @@ export default {
         },
       },
     },
+    "presentation/components/FrameworkFilter/TabFilterBar.tsx": {
+      entries: {
+        "3/0/init/body/1/argument/1/1/expression/right-placeholder": {
+          content: {
+            de: "Alle",
+            en: "All",
+            es: "Todos",
+            fr: "Tous",
+          },
+          hash: "5e2e93f8e2a5f315b6fecdd0a0e6f55f",
+        },
+        "3/0/init/body/1/argument/1/3/expression/right-placeholder": {
+          content: {
+            de: "Alle",
+            en: "All",
+            es: "Todos",
+            fr: "Tous",
+          },
+          hash: "5e2e93f8e2a5f315b6fecdd0a0e6f55f",
+        },
+        "3/0/init/body/1/argument/1/5/expression/right/1/expression/right": {
+          content: {
+            de: "Anzeige: <expression/>",
+            en: "Showing: <expression/>",
+            es: "Mostrando: <expression/>",
+            fr: "Affichage : <expression/>",
+          },
+          hash: "516e407f30a5c3b33552a8bb7090c8eb",
+        },
+        "3/0/init/body/1/argument/1/5/expression/right/3/expression/right": {
+          content: {
+            de: "Anzeige: <expression/>",
+            en: "Showing: <expression/>",
+            es: "Mostrando: <expression/>",
+            fr: "Affichage : <expression/>",
+          },
+          hash: "7cdbd2c78d0fc1fefd6d72076ad9a6f5",
+        },
+      },
+    },
     "presentation/components/Inputs/Datepicker/index.tsx": {
       entries: {
         "8/0/init/body/1/argument/1/expression/right/3/expression/consequent": {
@@ -1434,6 +1474,15 @@ export default {
           },
           hash: "82b4ea7ed1439094d7c4be13aaba9a66",
         },
+        "9/0/init/body/14/consequent/0/argument-title": {
+          content: {
+            de: "Wird geladen...",
+            en: "Loading...",
+            es: "Cargando...",
+            fr: "Chargement...",
+          },
+          hash: "82b4ea7ed1439094d7c4be13aaba9a66",
+        },
       },
     },
     "presentation/components/ReadyToSubscribeBox/ReadyToSubscribeBox.tsx": {
@@ -1639,6 +1688,51 @@ export default {
           hash: "59156082418d80acb211f973b1218f11",
         },
         "34/0/init/body/17/argument/19/3/3": {
+          content: {
+            de: "<element:LogoutSvg></element:LogoutSvg> Abmelden",
+            en: "<element:LogoutSvg></element:LogoutSvg> Log out",
+            es: "<element:LogoutSvg></element:LogoutSvg> Cerrar sesión",
+            fr: "<element:LogoutSvg></element:LogoutSvg> Se déconnecter",
+          },
+          hash: "a474f50f8354e641381a9c814ca8a4cc",
+        },
+        "35/0/init/body/17/argument/1/1/1/1-alt": {
+          content: {
+            de: "Logo",
+            en: "Logo",
+            es: "Logo",
+            fr: "Logo",
+          },
+          hash: "47fa6b3978c1c06acc29b6cae393b0c9",
+        },
+        "35/0/init/body/17/argument/1/1/3/1": {
+          content: {
+            de: "Verify<element:span>Wise</element:span>",
+            en: "Verify<element:span>Wise</element:span>",
+            es: "Verify<element:span>Wise</element:span>",
+            fr: "Verify<element:span>Wise</element:span>",
+          },
+          hash: "19bb6bbd0dc47567b330641cf0c17804",
+        },
+        "35/0/init/body/17/argument/19/1/expression/alternate/5-title": {
+          content: {
+            de: "Steuerungen",
+            en: "Controls",
+            es: "Controles",
+            fr: "Contrôles",
+          },
+          hash: "d81790084152d5e4edfb0760f14cde82",
+        },
+        "35/0/init/body/17/argument/19/1/expression/consequent/1-title": {
+          content: {
+            de: "Optionen",
+            en: "Options",
+            es: "Opciones",
+            fr: "Options",
+          },
+          hash: "59156082418d80acb211f973b1218f11",
+        },
+        "35/0/init/body/17/argument/19/3/3": {
           content: {
             de: "<element:LogoutSvg></element:LogoutSvg> Abmelden",
             en: "<element:LogoutSvg></element:LogoutSvg> Log out",
@@ -1921,6 +2015,400 @@ export default {
         },
       },
     },
+    "presentation/pages/AITrustCenter/Controls/index.tsx": {
+      entries: {
+        "3/0/init/body/1/argument/1": {
+          content: {
+            de: "Kontrollen",
+            en: "Controls",
+            es: "Controles",
+            fr: "Contrôles",
+          },
+          hash: "8078b5089e575bdc670ac0ef2cbb9b62",
+        },
+        "3/0/init/body/1/argument/3": {
+          content: {
+            de: "Dieser Abschnitt wird Informationen zu KI-Kontrollen und Governance enthalten.",
+            en: "This section will contain AI controls and governance information.",
+            es: "Esta sección contendrá información sobre controles y gobernanza de IA.",
+            fr: "Cette section contiendra des informations sur les contrôles et la gouvernance de l'IA.",
+          },
+          hash: "edda2fd9247be042e473385abc75523c",
+        },
+      },
+    },
+    "presentation/pages/AITrustCenter/Overview/index.tsx": {
+      entries: {
+        "7/0/init/body/8/argument/1": {
+          content: {
+            de: "Dieser Abschnitt dient als umfassende, benutzerfreundliche Einführung in die KI-Praktiken des Unternehmens und schafft eine Vertrauensbasis für Ihre Kunden. Benutzer verstehen sofort das Engagement des Unternehmens für KI-Governance, Sicherheit und Compliance und haben einen klaren Weg zu weiteren Ressourcen oder Kontaktmöglichkeiten, falls sie zusätzliche Fragen haben.",
+            en: "This section serves as a comprehensive, user-friendly introduction to the company's AI practices, establishing a foundation of trust your customers. Users immediately understand the company's commitment to AI governance, security, and compliance, and have a clear path to further resources or contact if they have additional questions.",
+            es: "Esta sección sirve como una introducción completa y fácil de usar a las prácticas de IA de la empresa, estableciendo una base de confianza para sus clientes. Los usuarios comprenden inmediatamente el compromiso de la empresa con la gobernanza, seguridad y cumplimiento de la IA, y tienen un camino claro hacia más recursos o contacto si tienen preguntas adicionales.",
+            fr: "Cette section sert d'introduction complète et conviviale aux pratiques d'IA de l'entreprise, établissant une base de confiance pour vos clients. Les utilisateurs comprennent immédiatement l'engagement de l'entreprise envers la gouvernance, la sécurité et la conformité de l'IA, et disposent d'un chemin clair vers des ressources supplémentaires ou un contact s'ils ont d'autres questions.",
+          },
+          hash: "31e70ce442cbc73b83cd4615d25fab9c",
+        },
+        "7/0/init/body/8/argument/11/openingElement/0/value/expression": {
+          content: {
+            de: "Speichern",
+            en: "Save",
+            es: "Guardar",
+            fr: "Enregistrer",
+          },
+          hash: "f7a2929f33bc420195e59ac5a8bcd454",
+        },
+        "7/0/init/body/8/argument/3/1/1": {
+          content: {
+            de: "Einführung",
+            en: "Introduction",
+            es: "Introducción",
+            fr: "Introduction",
+          },
+          hash: "439cb79e8dfd7923d35b85cfbb6fd201",
+        },
+        "7/0/init/body/8/argument/3/1/3-label": {
+          content: {
+            de: "Aktiviert und sichtbar",
+            en: "Enabled and visible",
+            es: "Habilitado y visible",
+            fr: "Activé et visible",
+          },
+          hash: "9141c0a3af2c9bda5f77718bef6be79e",
+        },
+        "7/0/init/body/8/argument/3/3/1-label": {
+          content: {
+            de: "Zweck unseres Trust Centers",
+            en: "Purpose of our trust center",
+            es: "Propósito de nuestro centro de confianza",
+            fr: "Objectif de notre centre de confiance",
+          },
+          hash: "f2ceb54205f1850c7a7e33217d0fa29c",
+        },
+        "7/0/init/body/8/argument/3/3/1/1": {
+          content: {
+            de: "Fügen Sie einen Abschnitt ein, der den Zweck des Trust Centers zusammenfasst. Kommunizieren Sie klar das Engagement des Unternehmens für verantwortungsvolle KI-Nutzung, Datenschutz und ethische KI-Praktiken.",
+            en: "Include a section to summarize the purpose of the Trust Center. Clearly communicate the company's commitment to responsible AI use, data privacy, and ethical AI practices.",
+            es: "Incluir una sección para resumir el propósito del Centro de Confianza. Comunicar claramente el compromiso de la empresa con el uso responsable de la IA, la privacidad de datos y las prácticas éticas de IA.",
+            fr: "Inclure une section pour résumer l'objectif du centre de confiance. Communiquer clairement l'engagement de l'entreprise envers l'utilisation responsable de l'IA, la confidentialité des données et les pratiques éthiques en matière d'IA.",
+          },
+          hash: "4d2f5976ccd333e2ec24cb0e6d97f12b",
+        },
+        "7/0/init/body/8/argument/3/3/3-label": {
+          content: {
+            de: "Unsere Erklärung",
+            en: "Our statement",
+            es: "Nuestra declaración",
+            fr: "Notre déclaration",
+          },
+          hash: "6be9345447c70c7b211890e8fe7c4780",
+        },
+        "7/0/init/body/8/argument/3/3/3/1": {
+          content: {
+            de: "Geben Sie eine kurze Erklärung zu den KI-Anwendungen des Unternehmens und ihrer Bedeutung. Erwähnen Sie die Hauptziele wie Datensicherheit, ethische KI und Vertrauensbildung mit Kunden.",
+            en: "Provide a brief statement about the company's AI applications and their significance. Mention the main objectives, like data security, ethical AI, and trust-building with customers.",
+            es: "Proporcionar una breve declaración sobre las aplicaciones de IA de la empresa y su importancia. Mencionar los objetivos principales, como la seguridad de datos, la ética en IA y la construcción de confianza con los clientes.",
+            fr: "Fournir une brève déclaration sur les applications d'IA de l'entreprise et leur importance. Mentionner les principaux objectifs, comme la sécurité des données, l'IA éthique et l'établissement de la confiance avec les clients.",
+          },
+          hash: "f987babf21537032b3c2a3b48f29101b",
+        },
+        "7/0/init/body/8/argument/3/3/5-label": {
+          content: {
+            de: "Unsere Mission",
+            en: "Our mission",
+            es: "Nuestra misión",
+            fr: "Notre mission",
+          },
+          hash: "2882a51e1126936e02afd272e0a30f48",
+        },
+        "7/0/init/body/8/argument/3/3/5/1": {
+          content: {
+            de: "Geben Sie eine Missionserklärung ein, die Ihre Werte in Bezug auf KI-Governance und Ethik widerspiegelt.",
+            en: "Input a mission statement reflecting your values related to AI governance and ethics.",
+            es: "Introducir una declaración de misión que refleje sus valores relacionados con la gobernanza y ética de la IA.",
+            fr: "Saisir une déclaration de mission reflétant vos valeurs liées à la gouvernance et à l'éthique de l'IA.",
+          },
+          hash: "5856de55d572990539151c9eda86c5d8",
+        },
+        "7/0/init/body/8/argument/5/1/1": {
+          content: {
+            de: "Compliance- und Zertifizierungsabzeichen",
+            en: "Compliance and certification badges",
+            es: "Insignias de cumplimiento y certificación",
+            fr: "Badges de conformité et de certification",
+          },
+          hash: "5720217dd8c37d774e7bb9e32751dabd",
+        },
+        "7/0/init/body/8/argument/5/1/3-label": {
+          content: {
+            de: "Aktiviert und sichtbar",
+            en: "Enabled and visible",
+            es: "Habilitado y visible",
+            fr: "Activé et visible",
+          },
+          hash: "9141c0a3af2c9bda5f77718bef6be79e",
+        },
+        "7/0/init/body/8/argument/5/3": {
+          content: {
+            de: "Compliance-Abzeichen für Zertifizierungen und Standards (z.B. EU KI-Gesetz, NIST, SOC2, ISO 27001, DSGVO).",
+            en: "Compliance badges for certifications and standards (e.g., EU AI Act, NIST, SOC2, ISO 27001, GDPR).",
+            es: "Insignias de cumplimiento para certificaciones y estándares (por ejemplo, Ley de IA de la UE, NIST, SOC2, ISO 27001, GDPR).",
+            fr: "Badges de conformité pour les certifications et normes (par exemple, loi européenne sur l'IA, NIST, SOC2, ISO 27001, RGPD).",
+          },
+          hash: "8acf7e242eac8aa38187523ce4814631",
+        },
+        "7/0/init/body/8/argument/7/1/1": {
+          content: {
+            de: "Unternehmensbeschreibung und Werte",
+            en: "Company description and values",
+            es: "Descripción y valores de la empresa",
+            fr: "Description et valeurs de l'entreprise",
+          },
+          hash: "bc27b977a4a565eaa63aabae45c4a57b",
+        },
+        "7/0/init/body/8/argument/7/1/3-label": {
+          content: {
+            de: "Deaktiviert",
+            en: "Disabled",
+            es: "Deshabilitado",
+            fr: "Désactivé",
+          },
+          hash: "0889a3dfd914a7ef638611796b17bf72",
+        },
+        "7/0/init/body/8/argument/7/3/1-label": {
+          content: {
+            de: "Hintergrund",
+            en: "Background",
+            es: "Antecedentes",
+            fr: "Contexte",
+          },
+          hash: "0ceaed10d99ed4ad83cb0934ab970174",
+        },
+        "7/0/init/body/8/argument/7/3/1/1": {
+          content: {
+            de: "Erklären Sie Ihr Unternehmen, was Sie tun und warum Vertrauen in KI für Sie wichtig ist.",
+            en: "Explain your company, what you do, and why trust in AI is essential to you.",
+            es: "Explique su empresa, qué hace y por qué la confianza en la IA es esencial para usted.",
+            fr: "Expliquez votre entreprise, ce que vous faites et pourquoi la confiance dans l'IA est essentielle pour vous.",
+          },
+          hash: "88c965cb2b70eb190021e8710fc0aa5d",
+        },
+        "7/0/init/body/8/argument/7/3/3-label": {
+          content: {
+            de: "Kernvorteile",
+            en: "Core benefits",
+            es: "Beneficios principales",
+            fr: "Avantages principaux",
+          },
+          hash: "0eb8ab67a1b7d44a2b9b0af66a0aa142",
+        },
+        "7/0/init/body/8/argument/7/3/3/1": {
+          content: {
+            de: "Erläutern Sie wichtige Vorteile wie Effizienz, Sicherheit, Kundenbetreuung und ethische KI-Praktiken. Sie können auch die Funktionalität, Anwendungsfälle und Vorteile Ihres KI-Angebots für Benutzer detailliert beschreiben.",
+            en: "Explain key benefits like efficiency, security, customer support, and ethical AI practices. You can also detail your AI offering functionality, use cases, and benefits to users.",
+            es: "Explique los beneficios clave como eficiencia, seguridad, atención al cliente y prácticas éticas de IA. También puede detallar la funcionalidad de su oferta de IA, casos de uso y beneficios para los usuarios.",
+            fr: "Expliquez les avantages clés comme l'efficacité, la sécurité, le support client et les pratiques éthiques en matière d'IA. Vous pouvez également détailler les fonctionnalités, les cas d'utilisation et les avantages pour les utilisateurs de votre offre d'IA.",
+          },
+          hash: "8ce4d8a65efea44d3aa60124fa2abdad",
+        },
+        "7/0/init/body/8/argument/9/1/1": {
+          content: {
+            de: "Datenschutzrichtlinie, Nutzungsbedingungen und Kontaktinformationen",
+            en: "Privacy policy, terms of service, and contact information",
+            es: "Política de privacidad, términos de servicio e información de contacto",
+            fr: "Politique de confidentialité, conditions d'utilisation et coordonnées",
+          },
+          hash: "4ef8a21be0e6f19c0aaa32a97615eb40",
+        },
+        "7/0/init/body/8/argument/9/1/3-label": {
+          content: {
+            de: "Aktiviert und sichtbar",
+            en: "Enabled and visible",
+            es: "Habilitado y visible",
+            fr: "Activé et visible",
+          },
+          hash: "9141c0a3af2c9bda5f77718bef6be79e",
+        },
+        "7/0/init/body/8/argument/9/3": {
+          content: {
+            de: "Fügen Sie Links zu wichtigen Dokumenten wie der Datenschutzrichtlinie und den Nutzungsbedingungen ein. Geben Sie auch eine E-Mail-Adresse für datenschutz-/sicherheitsbezogene Fragen und Vorfälle an.",
+            en: "Include links to essential documents like the Privacy Policy and Terms of Service. Also include email address for privacy/security related questions and incidents.",
+            es: "Incluir enlaces a documentos esenciales como la Política de Privacidad y los Términos de Servicio. También incluir dirección de correo electrónico para preguntas e incidentes relacionados con la privacidad/seguridad.",
+            fr: "Inclure des liens vers des documents essentiels comme la politique de confidentialité et les conditions d'utilisation. Inclure également l'adresse e-mail pour les questions et incidents liés à la confidentialité/sécurité.",
+          },
+          hash: "ff4bcace108933cc52d9ce951a3f39fd",
+        },
+        "7/0/init/body/8/argument/9/5/1/1/1-label": {
+          content: {
+            de: "Nutzungsbedingungen",
+            en: "Terms of service",
+            es: "Términos de servicio",
+            fr: "Conditions d'utilisation",
+          },
+          hash: "0b8a8b23aff021a6cde79613fdb39c28",
+        },
+        "7/0/init/body/8/argument/9/5/1/3/1-label": {
+          content: {
+            de: "Datenschutzrichtlinie",
+            en: "Privacy policy",
+            es: "Política de privacidad",
+            fr: "Politique de confidentialité",
+          },
+          hash: "462c6a536b52873e4498785c66dd48c8",
+        },
+        "7/0/init/body/8/argument/9/5/1/5/1-label": {
+          content: {
+            de: "Unternehmens-E-Mail",
+            en: "Company email",
+            es: "Correo electrónico de la empresa",
+            fr: "E-mail de l'entreprise",
+          },
+          hash: "75baaffe4eb67b781f659a84549555be",
+        },
+      },
+    },
+    "presentation/pages/AITrustCenter/Resources/index.tsx": {
+      entries: {
+        "2/0/init/body/2/argument/1": {
+          content: {
+            de: "Ressourcen",
+            en: "Resources",
+            es: "Recursos",
+            fr: "Ressources",
+          },
+          hash: "45dff8314f3829f6f907aa7f7c804470",
+        },
+        "2/0/init/body/2/argument/3": {
+          content: {
+            de: "Dieser Abschnitt wird Ressourcen im Zusammenhang mit KI-Vertrauen und Compliance enthalten.",
+            en: "This section will contain resources related to AI trust and compliance.",
+            es: "Esta sección contendrá recursos relacionados con la confianza y el cumplimiento de la IA.",
+            fr: "Cette section contiendra des ressources liées à la confiance et à la conformité en matière d'IA.",
+          },
+          hash: "4233a3383aad227b3dbd1a8fb528c452",
+        },
+      },
+    },
+    "presentation/pages/AITrustCenter/Settings/index.tsx": {
+      entries: {
+        "3/0/init/body/1/argument/1": {
+          content: {
+            de: "Einstellungen",
+            en: "Settings",
+            es: "Configuración",
+            fr: "Paramètres",
+          },
+          hash: "027d1cbb754b0476653db7fe91d25ad3",
+        },
+        "3/0/init/body/1/argument/3": {
+          content: {
+            de: "Dieser Abschnitt wird Konfigurationseinstellungen für das KI-Trust-Center enthalten.",
+            en: "This section will contain AI trust center configuration settings.",
+            es: "Esta sección contendrá la configuración del centro de confianza de IA.",
+            fr: "Cette section contiendra les paramètres de configuration du centre de confiance IA.",
+          },
+          hash: "ada5f52c23d288dcce9013fcbc65eb98",
+        },
+      },
+    },
+    "presentation/pages/AITrustCenter/Subprocessors/index.tsx": {
+      entries: {
+        "3/0/init/body/1/argument/1": {
+          content: {
+            de: "Unterauftragsverarbeiter",
+            en: "Subprocessors",
+            es: "Subprocesadores",
+            fr: "Sous-traitants",
+          },
+          hash: "0fd39649a43d013384f3ce7bf927bcaa",
+        },
+        "3/0/init/body/1/argument/3": {
+          content: {
+            de: "Dieser Abschnitt wird Informationen über KI-Unterauftragsverarbeiter und Drittanbieterdienste enthalten.",
+            en: "This section will contain information about AI subprocessors and third-party services.",
+            es: "Esta sección contendrá información sobre subprocesadores de IA y servicios de terceros.",
+            fr: "Cette section contiendra des informations sur les sous-traitants IA et les services tiers.",
+          },
+          hash: "fdf268c3f3b11a1c2f937ad3cd7be0aa",
+        },
+      },
+    },
+    "presentation/pages/AITrustCenter/index.tsx": {
+      entries: {
+        "14/0/init/body/2/argument/1/1": {
+          content: {
+            de: "KI-Trust-Center",
+            en: "AI trust center",
+            es: "Centro de confianza de IA",
+            fr: "Centre de confiance IA",
+          },
+          hash: "fecad09cdb5181b1c59f377a85ecc052",
+        },
+        "14/0/init/body/2/argument/1/3": {
+          content: {
+            de: "Verwalten und überwachen Sie KI-Governance, Compliance und vertrauensbezogene Aktivitäten",
+            en: "Manage and monitor AI governance, compliance, and trust-related activities",
+            es: "Gestionar y monitorear la gobernanza, el cumplimiento y las actividades relacionadas con la confianza en la IA",
+            fr: "Gérer et surveiller la gouvernance, la conformité et les activités liées à la confiance en matière d'IA",
+          },
+          hash: "4373806523acb97fde60aff27cfbf884",
+        },
+        "14/0/init/body/2/argument/3/1/1/1/1-label": {
+          content: {
+            de: "Übersicht",
+            en: "Overview",
+            es: "Resumen",
+            fr: "Aperçu",
+          },
+          hash: "30c54e4dc4ce599b87d94be34a8617f5",
+        },
+        "14/0/init/body/2/argument/3/1/1/1/11/openingElement/1/value/expression":
+          {
+            content: {
+              de: "Vorschaumodus",
+              en: "Preview Mode",
+              es: "Modo vista previa",
+              fr: "Mode aperçu",
+            },
+            hash: "826d3c11c7a547b488427ecfcc9d22cc",
+          },
+        "14/0/init/body/2/argument/3/1/1/1/3-label": {
+          content: {
+            de: "Ressourcen",
+            en: "Resources",
+            es: "Recursos",
+            fr: "Ressources",
+          },
+          hash: "ec7fb05ed963bb6781a35782b3475502",
+        },
+        "14/0/init/body/2/argument/3/1/1/1/5-label": {
+          content: {
+            de: "Unterauftragsverarbeiter",
+            en: "Subprocessors",
+            es: "Subprocesadores",
+            fr: "Sous-traitants",
+          },
+          hash: "a1ce866e1aa42f220c87a97205f88623",
+        },
+        "14/0/init/body/2/argument/3/1/1/1/7-label": {
+          content: {
+            de: "Steuerungen",
+            en: "Controls",
+            es: "Controles",
+            fr: "Contrôles",
+          },
+          hash: "d81790084152d5e4edfb0760f14cde82",
+        },
+        "14/0/init/body/2/argument/3/1/1/1/9-label": {
+          content: {
+            de: "Einstellungen",
+            en: "Settings",
+            es: "Configuración",
+            fr: "Paramètres",
+          },
+          hash: "8df6777277469c1fd88cc18dde2f1cc3",
+        },
+      },
+    },
     "presentation/pages/Assessment/1.0AssessmentTracker/index.tsx": {
       entries: {
         "13/0/init/body/14/consequent/0/argument/1": {
@@ -1979,6 +2467,70 @@ export default {
           hash: "62174fac0c4df2b841dad72c6cca2ad2",
         },
         "13/0/init/body/15/argument/3/7/5/1/expression/alternate/alternate": {
+          content: {
+            de: "Unterthemen konnten nicht abgerufen werden",
+            en: "Unable to get subtopics",
+            es: "No se pudieron obtener los subtemas",
+            fr: "Impossible d'obtenir les sous-sujets",
+          },
+          hash: "8507521652c50b4b47d2a739d4016223",
+        },
+        "14/0/init/body/15/consequent/0/argument/1": {
+          content: {
+            de: "Bitte wählen Sie ein Projekt aus, um Bewertungen anzuzeigen",
+            en: "Please select a project to view assessments",
+            es: "Por favor, selecciona un proyecto para ver las evaluaciones",
+            fr: "Veuillez sélectionner un projet pour voir les évaluations",
+          },
+          hash: "f021fffd4accff2b5cf8c3b7b3184d56",
+        },
+        "14/0/init/body/16/argument/3/1/1/expression/alternate/alternate": {
+          content: {
+            de: "Statistische Werte konnten nicht vom Server abgerufen werden",
+            en: "Unable to fetch statistical values from the server",
+            es: "No se pudieron obtener los valores estadísticos del servidor",
+            fr: "Impossible de récupérer les valeurs statistiques du serveur",
+          },
+          hash: "d01708c9dbc41d9ae2b355004cd950da",
+        },
+        "14/0/init/body/16/argument/3/1/1/expression/alternate/consequent-title":
+          {
+            content: {
+              de: "Fragen",
+              en: "Questions",
+              es: "Preguntas",
+              fr: "Questions",
+            },
+            hash: "38d08215fd7a8026077c7b64eea6bb59",
+          },
+        "14/0/init/body/16/argument/3/3": {
+          content: {
+            de: "Übersicht zum Bewertungsstatus",
+            en: "Assessments status overview",
+            es: "Resumen del estado de las evaluaciones",
+            fr: "Aperçu du statut des évaluations",
+          },
+          hash: "e96130d22d02dfbd5e71fafa947eab1f",
+        },
+        "14/0/init/body/16/argument/3/7/1/1": {
+          content: {
+            de: "Konformitätsbewertung mit hohem Risiko",
+            en: "High risk conformity assessment",
+            es: "Evaluación de conformidad de alto riesgo",
+            fr: "Évaluation de conformité à haut risque",
+          },
+          hash: "78989bb42d4ceeb171bbda912281ae88",
+        },
+        "14/0/init/body/16/argument/3/7/1/3/1/expression/alternate/alternate": {
+          content: {
+            de: "Themen konnten nicht abgerufen werden",
+            en: "Unable to get topics",
+            es: "No se pudieron obtener los temas",
+            fr: "Impossible d'obtenir les sujets",
+          },
+          hash: "62174fac0c4df2b841dad72c6cca2ad2",
+        },
+        "14/0/init/body/16/argument/3/7/5/1/expression/alternate/alternate": {
           content: {
             de: "Unterthemen konnten nicht abgerufen werden",
             en: "Unable to get subtopics",
@@ -2139,6 +2691,115 @@ export default {
             fr: "Se connecter",
           },
           hash: "ac1672621fafb4bfb0a446027ab0750e",
+        },
+        "19/0/init/body/10/argument/1/expression/right/openingElement/0/value/expression":
+          {
+            content: {
+              de: "Wird geladen...",
+              en: "Loading...",
+              es: "Cargando...",
+              fr: "Chargement...",
+            },
+            hash: "82b4ea7ed1439094d7c4be13aaba9a66",
+          },
+        "19/0/init/body/10/argument/3/expression/right-title": {
+          content: {
+            de: "Ihre Anfrage wird bearbeitet. Bitte warten...",
+            en: "Processing your request. Please wait...",
+            es: "Procesando tu solicitud. Por favor, espera...",
+            fr: "Traitement de votre demande. Veuillez patienter...",
+          },
+          hash: "86f2718e92f9cb94a36f229762373510",
+        },
+        "19/0/init/body/10/argument/7/1/1": {
+          content: {
+            de: "Verify<element:span>Wise</element:span>",
+            en: "Verify<element:span>Wise</element:span>",
+            es: "Verify<element:span>Wise</element:span>",
+            fr: "Verify<element:span>Wise</element:span>",
+          },
+          hash: "8ca8c19a2ebfcea5bbfbcb83b6e06a02",
+        },
+        "19/0/init/body/10/argument/7/1/5/1-label": {
+          content: {
+            de: "E-Mail",
+            en: "Email",
+            es: "Correo electrónico",
+            fr: "E-mail",
+          },
+          hash: "e7f34943a0c2fb849db1839ff6ef5cb5",
+        },
+        "19/0/init/body/10/argument/7/1/5/1-placeholder": {
+          content: {
+            de: "name.nachname@firmenname.com",
+            en: "name.surname@companyname.com",
+            es: "nombre.apellido@nombreempresa.com",
+            fr: "prenom.nom@nomsociete.com",
+          },
+          hash: "3ebb891babbf51ef23fa8bf9e2882bc5",
+        },
+        "19/0/init/body/10/argument/7/1/5/3-label": {
+          content: {
+            de: "Passwort",
+            en: "Password",
+            es: "Contraseña",
+            fr: "Mot de passe",
+          },
+          hash: "223a61cf906ab9c40d22612c588dff48",
+        },
+        "19/0/init/body/10/argument/7/1/5/3-placeholder": {
+          content: {
+            de: "Geben Sie Ihr Passwort ein",
+            en: "Enter your password",
+            es: "Introduce tu contraseña",
+            fr: "Saisissez votre mot de passe",
+          },
+          hash: "ea4fdd034522dead21bae0c0abb52eae",
+        },
+        "19/0/init/body/10/argument/7/1/5/5/1-label": {
+          content: {
+            de: "Für 30 Tage speichern",
+            en: "Remember for 30 days",
+            es: "Recordar durante 30 días",
+            fr: "Se souvenir pendant 30 jours",
+          },
+          hash: "cea09cc6610fd2ff07d7fcbdcaa060a7",
+        },
+        "19/0/init/body/10/argument/7/1/5/5/3": {
+          content: {
+            de: "Passwort vergessen",
+            en: "Forgot password",
+            es: "Olvidé mi contraseña",
+            fr: "Mot de passe oublié",
+          },
+          hash: "35983950f7cf0f74d13a15a92c78d993",
+        },
+        "19/0/init/body/10/argument/7/1/5/7": {
+          content: {
+            de: "Anmelden",
+            en: "Sign in",
+            es: "Iniciar sesión",
+            fr: "Se connecter",
+          },
+          hash: "ac1672621fafb4bfb0a446027ab0750e",
+        },
+        "19/0/init/body/10/argument/7/1/5/9/1": {
+          content: {
+            de: "Noch kein Konto?",
+            en: "Don't have an account yet?",
+            es: "¿Aún no tienes una cuenta?",
+            fr: "Vous n'avez pas encore de compte ?",
+          },
+          hash: "91e21ef462e681503f1fa672e4c52475",
+        },
+        "19/0/init/body/10/argument/7/1/5/9/3": {
+          content: {
+            de: "Hier registrieren",
+            en: "Register here",
+            es: "Regístrate aquí",
+            fr: "S'inscrire ici",
+          },
+          hash: "75a42259afe4f7d4bb38f5d4a042fb53",
         },
       },
     },
@@ -2326,6 +2987,227 @@ export default {
           hash: "ad2c0b3a98e8ca4288d615a6e526d9df",
         },
         "18/0/init/body/18/argument/9/expression/right/1/5/5": {
+          content: {
+            de: "Weiter",
+            en: "Next",
+            es: "Siguiente",
+            fr: "Suivant",
+          },
+          hash: "88755e30e03d6b2055d0a17b93cda461",
+        },
+      },
+    },
+    "presentation/pages/Authentication/RegisterMultiTenant/index.tsx": {
+      entries: {
+        "18/0/init/body/18/argument/1/expression/right/openingElement/0/value/expression":
+          {
+            content: {
+              de: "Wird geladen...",
+              en: "Loading...",
+              es: "Cargando...",
+              fr: "Chargement...",
+            },
+            hash: "82b4ea7ed1439094d7c4be13aaba9a66",
+          },
+        "18/0/init/body/18/argument/13/expression/right/1/1": {
+          content: {
+            de: "Verify<element:span>Wise</element:span>",
+            en: "Verify<element:span>Wise</element:span>",
+            es: "Verify<element:span>Wise</element:span>",
+            fr: "Verify<element:span>Wise</element:span>",
+          },
+          hash: "19bb6bbd0dc47567b330641cf0c17804",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/3": {
+          content: {
+            de: "Admin-Konto erstellen",
+            en: "Create admin account",
+            es: "Crear cuenta de administrador",
+            fr: "Créer un compte administrateur",
+          },
+          hash: "bfa485dfdcd3361c6a938190e0d08da6",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/5": {
+          content: {
+            de: "← Zurück zum Login",
+            en: "← Back to Login",
+            es: "← Volver a inicio de sesión",
+            fr: "← Retour à la connexion",
+          },
+          hash: "4820f4be6331f410d7fb95215767ede6",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/1-label": {
+          content: {
+            de: "Name",
+            en: "Name",
+            es: "Nombre",
+            fr: "Nom",
+          },
+          hash: "9368b5a047572b6051f334af5aa76819",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/1-placeholder": {
+          content: {
+            de: "Ihr Name",
+            en: "Your name",
+            es: "Tu nombre",
+            fr: "Votre prénom",
+          },
+          hash: "b00c01deec0af9a441331a5134210de1",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/13": {
+          content: {
+            de: "Loslegen",
+            en: "Get started",
+            es: "Comenzar",
+            fr: "Commencer",
+          },
+          hash: "c6678ac9cec63cb8b578e6078657e8cf",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/3-label": {
+          content: {
+            de: "Nachname",
+            en: "Surname",
+            es: "Apellido",
+            fr: "Nom",
+          },
+          hash: "650fda04a1441de29c6cf56322d0d5d2",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/3-placeholder": {
+          content: {
+            de: "Ihr Nachname",
+            en: "Your surname",
+            es: "Tu apellido",
+            fr: "Votre nom",
+          },
+          hash: "29d7f582770f544ac4e16caeb768ed6f",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/5-label": {
+          content: {
+            de: "E-Mail",
+            en: "Email",
+            es: "Correo electrónico",
+            fr: "E-mail",
+          },
+          hash: "e7f34943a0c2fb849db1839ff6ef5cb5",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/5-placeholder": {
+          content: {
+            de: "name.nachname@firmenname.com",
+            en: "name.surname@companyname.com",
+            es: "nombre.apellido@nombreempresa.com",
+            fr: "prenom.nom@nomsociete.com",
+          },
+          hash: "3ebb891babbf51ef23fa8bf9e2882bc5",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/7-label": {
+          content: {
+            de: "Passwort",
+            en: "Password",
+            es: "Contraseña",
+            fr: "Mot de passe",
+          },
+          hash: "223a61cf906ab9c40d22612c588dff48",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/7-placeholder": {
+          content: {
+            de: "Erstellen Sie ein Passwort",
+            en: "Create a password",
+            es: "Crea una contraseña",
+            fr: "Créez un mot de passe",
+          },
+          hash: "3c5df02455af46684285bbf665317812",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/9-label": {
+          content: {
+            de: "Passwort bestätigen",
+            en: "Confirm password",
+            es: "Confirmar contraseña",
+            fr: "Confirmer le mot de passe",
+          },
+          hash: "b5cdb861d8deb598b0613d48098b82b6",
+        },
+        "18/0/init/body/18/argument/13/expression/right/1/7/9-placeholder": {
+          content: {
+            de: "Bestätigen Sie Ihr Passwort",
+            en: "Confirm your password",
+            es: "Confirma tu contraseña",
+            fr: "Confirmez votre mot de passe",
+          },
+          hash: "224b4aa56991875af1df9d3b102de647",
+        },
+        "18/0/init/body/18/argument/3/expression/right-title": {
+          content: {
+            de: "Ihre Anfrage wird bearbeitet. Bitte warten...",
+            en: "Processing your request. Please wait...",
+            es: "Procesando tu solicitud. Por favor, espera...",
+            fr: "Traitement de votre demande. Veuillez patienter...",
+          },
+          hash: "86f2718e92f9cb94a36f229762373510",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/1": {
+          content: {
+            de: "Verify<element:span>Wise</element:span>",
+            en: "Verify<element:span>Wise</element:span>",
+            es: "Verify<element:span>Wise</element:span>",
+            fr: "Verify<element:span>Wise</element:span>",
+          },
+          hash: "19bb6bbd0dc47567b330641cf0c17804",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/3": {
+          content: {
+            de: "Erstellen Sie Ihre Organisation",
+            en: "Create your organization",
+            es: "Crea tu organización",
+            fr: "Créez votre organisation",
+          },
+          hash: "c46eea5122c34ff77d1a8964a634dee9",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/5": {
+          content: {
+            de: "← Zurück zum Login",
+            en: "← Back to Login",
+            es: "← Volver a inicio de sesión",
+            fr: "← Retour à la connexion",
+          },
+          hash: "4820f4be6331f410d7fb95215767ede6",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/1-label": {
+          content: {
+            de: "Name der Organisation",
+            en: "Organization name",
+            es: "Nombre de la organización",
+            fr: "Nom de l'organisation",
+          },
+          hash: "e69fb0acbe75358352890a6f04e4b9c0",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/1-placeholder": {
+          content: {
+            de: "Name Ihrer Organisation",
+            en: "Your organization name",
+            es: "Nombre de tu organización",
+            fr: "Nom de votre organisation",
+          },
+          hash: "728e3eec14360459b0d5480ccde7cd83",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/3-label": {
+          content: {
+            de: "E-Mail der Organisation",
+            en: "Organization email",
+            es: "Correo electrónico de la organización",
+            fr: "E-mail de l'organisation",
+          },
+          hash: "dd01da3c9e73671d8c4dad9fd3980721",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/3-placeholder": {
+          content: {
+            de: "admin@organisation.com",
+            en: "admin@organization.com",
+            es: "admin@organizacion.com",
+            fr: "admin@organisation.com",
+          },
+          hash: "ad2c0b3a98e8ca4288d615a6e526d9df",
+        },
+        "18/0/init/body/18/argument/9/expression/right/1/7/5": {
           content: {
             de: "Weiter",
             en: "Next",
@@ -3113,7 +3995,7 @@ export default {
               es: "<expression/>.{annex.annex_no}.<expression/> {control.title}",
               fr: "<expression/>.{annex.annex_no}.<expression/> {control.title}",
             },
-            hash: "5dd79eb296a9cf7d0628165a06a308ff",
+            hash: "301e30887f6e6a6da211174450e7bdbb",
           },
       },
     },
@@ -3127,6 +4009,15 @@ export default {
             fr: "Aucune sous-clause trouvée",
           },
           hash: "7407f634340501f3b16c9b8f76bdf3c0",
+        },
+        "16/0/init/body/19/body/3/argument/1/expression/alternate/alternate": {
+          content: {
+            de: "Keine passenden Unterklauseln",
+            en: "No matching subclauses",
+            es: "No hay subcláusulas coincidentes",
+            fr: "Aucune sous-clause correspondante",
+          },
+          hash: "755315744eccf452f469815085c12343",
         },
         "16/0/init/body/20/argument/3-title": {
           content: {
@@ -3338,6 +4229,24 @@ export default {
           hash: "e2528ce3b55a7274389dc19d53e70788",
         },
         "24/0/init/body/17/argument/1/3": {
+          content: {
+            de: "Frameworks verwalten",
+            en: "Manage frameworks",
+            es: "Gestionar marcos",
+            fr: "Gérer les cadres",
+          },
+          hash: "504de5075caf9738189a65a1183321c8",
+        },
+        "25/0/init/body/13/consequent/0/argument/3": {
+          content: {
+            de: "Wiederholen",
+            en: "Retry",
+            es: "Reintentar",
+            fr: "Réessayer",
+          },
+          hash: "e2528ce3b55a7274389dc19d53e70788",
+        },
+        "25/0/init/body/24/argument/1/3": {
           content: {
             de: "Frameworks verwalten",
             en: "Manage frameworks",

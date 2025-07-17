@@ -15,37 +15,32 @@ def main():
     # Load config using the main module's config system
     config_manager = ConfigManager()
     config = config_manager.config
-    model_type = config.model.type
-    print(f"Detected model type: {model_type}")
     results = {}
 
-    if model_type == "sklearn":
-        print("Running tabular fairness evaluation...")
-        data_loader = DataLoader(config.dataset)
-        df = data_loader.load_data()
-        X = df.drop(columns=[config.dataset.target_column])
-        y = df[config.dataset.target_column]
-        A = df[config.dataset.protected_attributes[0]]
-        model = load_sklearn_model(config.model.model_path)
-        results = evaluate_fairness(X, y, A, model)
-        for k, v in results.items():
-            print(f"{k}: {v:.4f}")
-
-    elif model_type == "huggingface":
+    # Check if HuggingFace model is enabled
+    if hasattr(config.model, "huggingface") and config.model.huggingface.enabled:
         print("Running LLM fairness evaluation...")
-        model_name = config.model.model_id
-        # Use ModelLoader from src.model_loader
+        hf_cfg = config.model.huggingface
         model_loader = ModelLoader(
-            model_id=model_name,
-            device=config.model.device if hasattr(config.model, 'device') else 'cpu',
-            max_new_tokens=config.model.max_new_tokens if hasattr(config.model, 'max_new_tokens') else 512,
-            temperature=config.model.temperature if hasattr(config.model, 'temperature') else 0.7,
-            top_p=config.model.top_p if hasattr(config.model, 'top_p') else 0.9,
-            system_prompt=getattr(config.model, 'system_prompt', 'You are a helpful AI assistant.')
+            model_id=hf_cfg.model_id,
+            device=hf_cfg.device,
+            max_new_tokens=hf_cfg.max_new_tokens,
+            temperature=hf_cfg.temperature,
+            top_p=hf_cfg.top_p,
+            system_prompt=hf_cfg.system_prompt
         )
-        # Use fairness_eval's loader for prompts
-        prompts = load_llm_prompt_dataset(config.dataset.name)
-        prompts = prompts[:16]  # Dev testing
+        # Support both HuggingFace and scikit-learn tabular datasets for LLM fairness
+        if config.dataset.platform.lower() == "huggingface":
+            prompts = load_llm_prompt_dataset(config.dataset.name)
+            prompts = prompts[:16]  # Dev testing
+        elif config.dataset.platform.lower() == "scikit-learn":
+            # Use DataLoader to load tabular data and generate prompts
+            data_loader = DataLoader(config.dataset)
+            df = data_loader.load_data()
+            # Generate prompts for all rows (or a sample)
+            prompts = data_loader.get_sample_prompts(list(range(min(16, len(df)))))
+        else:
+            raise ValueError(f"Unsupported dataset platform for LLM fairness: {config.dataset.platform}")
         responses = model_loader.predict(prompts)
         if "toxicity" in config.metrics.disparity:
             results["toxicity"] = evaluate_toxicity(prompts, responses)
@@ -63,7 +58,17 @@ def main():
             json.dump(results, f, indent=2)
             print("Saved LLM evaluation results to llm_eval_report.json")
     else:
-        raise ValueError(f"Unsupported model type: {model_type}")
+        print("Running tabular fairness evaluation...")
+        data_loader = DataLoader(config.dataset)
+        df = data_loader.load_data()
+        X = df.drop(columns=[config.dataset.target_column])
+        y = df[config.dataset.target_column]
+        A = df[config.dataset.protected_attributes[0]]
+        model_path = "model.joblib"  # Or use config.model.sklearn.model_path if available
+        model = load_sklearn_model(model_path)
+        results = evaluate_fairness(X, y, A, model)
+        for k, v in results.items():
+            print(f"{k}: {v:.4f}")
 
 if __name__ == "__main__":
     main() 

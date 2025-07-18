@@ -154,7 +154,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   // Later in the component's render/return block:
   <CustomizableButton
-    text="Create Demo Data"
+    text={<>Create Demo Data</>}
     isDisabled={isCreatingDemoData}
     onClick={handleOpenOrCloseDemoDataModal}
   />;
@@ -196,7 +196,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           }}
         >
           <CustomizableButton
-            text="Create Demo Data"
+            text={<>Create Demo Data</>}
             onClick={handleOpenOrCloseDemoDataModal}
           />
           <Suspense fallback={<div>Loading...</div>}>
@@ -208,7 +208,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                   closePopup={() => setAnchor(null)}
                 />
               }
-              openPopupButtonName="New Project"
+              openPopupButtonName={<>New project</>}
               popupTitle="Create new project"
               popupSubtitle="Create a new project from scratch by filling in the following."
               handleOpenOrClose={handleOpenOrClose}
@@ -218,8 +218,8 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           </Suspense>
         </Stack>
         <NoProject
-          message='You have no projects, yet. Click on the "New Project" button to
-            start one.'
+          message={<>You have no projects, yet. Click on the "New Project" button to
+            start one.</>}
         />
 
         {openDemoDataModal && (

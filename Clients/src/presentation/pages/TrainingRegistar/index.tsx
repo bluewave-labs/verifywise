@@ -233,7 +233,7 @@ const Training: React.FC = () => {
               border: "1px solid #13715B",
               gap: 2,
             }}
-            text="New training"
+            text={<>New Training</>}
             icon={<AddCircleOutlineIcon />}
             onClick={handleNewTrainingClick}
             isDisabled={isCreatingDisabled}

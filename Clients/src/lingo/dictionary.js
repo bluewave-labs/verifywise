@@ -1084,6 +1084,15 @@ export default {
     },
     "presentation/components/Modals/NewTraining/index.tsx": {
       entries: {
+        "14/0/init/body/11/argument/1/1/1/1/1/expression/consequent": {
+          content: {
+            de: "Training bearbeiten",
+            en: "Edit Training",
+            es: "Editar entrenamiento",
+            fr: "Modifier l'entraînement",
+          },
+          hash: "9342dcd4a68527040c42f408224912f7",
+        },
         "14/0/init/body/11/argument/1/1/3/1/1/1/1/1-label": {
           content: {
             de: "Schulungsname",
@@ -1280,6 +1289,80 @@ export default {
             },
             hash: "82b4ea7ed1439094d7c4be13aaba9a66",
           },
+        "14/0/init/body/11/argument/1/1/5/1/openingElement/1/value/expression/alternate":
+          {
+            content: {
+              de: "Training erstellen",
+              en: "Create Training",
+              es: "Crear entrenamiento",
+              fr: "Créer un entraînement",
+            },
+            hash: "961d9554c740d05cd6867a22c60c9524",
+          },
+        "14/0/init/body/11/argument/1/1/5/1/openingElement/1/value/expression/consequent":
+          {
+            content: {
+              de: "Training aktualisieren",
+              en: "Update Training",
+              es: "Actualizar entrenamiento",
+              fr: "Mettre à jour la formation",
+            },
+            hash: "16474c4a8dfd45f863f5edf8840df1f5",
+          },
+        "14/0/init/body/7/0/init/body/1/consequent/0/expression/right": {
+          content: {
+            de: "Trainingsname ist erforderlich.",
+            en: "Training name is required.",
+            es: "El nombre del entrenamiento es obligatorio.",
+            fr: "Le nom de la formation est requis.",
+          },
+          hash: "749ff2049977dcc06a428bdf81f47aaf",
+        },
+        "14/0/init/body/7/0/init/body/2/consequent/0/expression/right": {
+          content: {
+            de: "Dauer ist erforderlich.",
+            en: "Duration is required.",
+            es: "La duración es obligatoria.",
+            fr: "La durée est requise.",
+          },
+          hash: "62778a6a2888e967f1fa28a10498f4e7",
+        },
+        "14/0/init/body/7/0/init/body/3/consequent/0/expression/right": {
+          content: {
+            de: "Anbieter ist erforderlich.",
+            en: "Provider is required.",
+            es: "El proveedor es obligatorio.",
+            fr: "Le fournisseur est requis.",
+          },
+          hash: "17b66965f999835bb9807748665e5dac",
+        },
+        "14/0/init/body/7/0/init/body/4/consequent/0/expression/right": {
+          content: {
+            de: "Abteilung ist erforderlich.",
+            en: "Department is required.",
+            es: "El departamento es obligatorio.",
+            fr: "Le département est requis.",
+          },
+          hash: "5fed5947be26e47e9a11babf73f63a66",
+        },
+        "14/0/init/body/7/0/init/body/5/consequent/0/expression/right": {
+          content: {
+            de: "Status ist erforderlich.",
+            en: "Status is required.",
+            es: "El estado es obligatorio.",
+            fr: "Le statut est requis.",
+          },
+          hash: "1f94b251f9368bc548b1d4242d9085f0",
+        },
+        "14/0/init/body/7/0/init/body/6/consequent/0/expression/right": {
+          content: {
+            de: "Die Anzahl der Personen ist erforderlich und muss eine positive Zahl sein.",
+            en: "Number of people is required and must be a positive number.",
+            es: "El número de personas es obligatorio y debe ser un número positivo.",
+            fr: "Le nombre de personnes est requis et doit être un nombre positif.",
+          },
+          hash: "142e78c0d14230a85f5c43553497a97d",
+        },
       },
     },
     "presentation/components/Modals/NewVendor/index.tsx": {
@@ -1651,6 +1734,96 @@ export default {
     },
     "presentation/components/Sidebar/index.tsx": {
       entries: {
+        "31/0/init/0/0/value": {
+          content: {
+            de: "Dashboard",
+            en: "Dashboard",
+            es: "Panel de control",
+            fr: "Tableau de bord",
+          },
+          hash: "c9380ea68c8c76ea451bd9613329a07c",
+        },
+        "31/0/init/1/0/value": {
+          content: {
+            de: "Anbieter",
+            en: "Vendors",
+            es: "Proveedores",
+            fr: "Fournisseurs",
+          },
+          hash: "30393d50db2ab40731f6eeb38cbe6e85",
+        },
+        "31/0/init/2/0/value": {
+          content: {
+            de: "Nachweise",
+            en: "Evidences",
+            es: "Evidencias",
+            fr: "Preuves",
+          },
+          hash: "54dd0b034d78f37c7b4b4d39fcfebd9b",
+        },
+        "31/0/init/3/0/value": {
+          content: {
+            de: "Berichtswesen",
+            en: "Reporting",
+            es: "Informes",
+            fr: "Rapports",
+          },
+          hash: "97bf64946f8f76632eab6fb8767b16d7",
+        },
+        "31/0/init/4/0/value": {
+          content: {
+            de: "Voreingenommenheit & Fairness",
+            en: "Bias & Fairness",
+            es: "Sesgo y equidad",
+            fr: "Biais et équité",
+          },
+          hash: "8d3a7b660b9aba3758eb1ebb5a489c81",
+        },
+        "31/0/init/5/0/value": {
+          content: {
+            de: "Trainingsregister",
+            en: "Training Registry",
+            es: "Registro de entrenamiento",
+            fr: "Registre d'entraînement",
+          },
+          hash: "e953b76245eae29c2bb5fe6a88cbc575",
+        },
+        "31/0/init/6/0/value": {
+          content: {
+            de: "KI-Vertrauenszentrum",
+            en: "AI Trust Center",
+            es: "Centro de confianza de IA",
+            fr: "Centre de confiance IA",
+          },
+          hash: "92033183966f549056f5ce5d4e3b19d6",
+        },
+        "32/0/init/0/0/value": {
+          content: {
+            de: "Einstellungen",
+            en: "Settings",
+            es: "Configuración",
+            fr: "Paramètres",
+          },
+          hash: "8df6777277469c1fd88cc18dde2f1cc3",
+        },
+        "32/0/init/1/0/value": {
+          content: {
+            de: "Feedback",
+            en: "Feedback",
+            es: "Comentarios",
+            fr: "Commentaires",
+          },
+          hash: "6fac88806e0c269a30777b283988c61c",
+        },
+        "32/0/init/2/0/value": {
+          content: {
+            de: "Auf Discord fragen",
+            en: "Ask on Discord",
+            es: "Preguntar en Discord",
+            fr: "Demander sur Discord",
+          },
+          hash: "1c7c07059fad220178c9a55ee810bf4a",
+        },
         "34/0/init/body/17/argument/1/1/1/1-alt": {
           content: {
             de: "Logo",
@@ -1741,6 +1914,16 @@ export default {
           },
           hash: "a474f50f8354e641381a9c814ca8a4cc",
         },
+        "35/0/init/body/17/argument/7/3/expression/0/body/consequent/openingElement/3/value/expression/consequent":
+          {
+            content: {
+              de: "item.name",
+              en: "item.name",
+              es: "item.name",
+              fr: "item.name",
+            },
+            hash: "d693d888fcd2be6609c0a0ac17332566",
+          },
       },
     },
     "presentation/components/Table/FairnessTable/index.tsx": {
@@ -3916,6 +4099,35 @@ export default {
     },
     "presentation/pages/Home/index.tsx": {
       entries: {
+        "22/0/init/body/10/expression/openingElement/0/value/expression": {
+          content: {
+            de: "Demodaten erstellen",
+            en: "Create Demo Data",
+            es: "Crear datos de demostración",
+            fr: "Créer des données de démonstration",
+          },
+          hash: "063e84d1852a5f35e7923ca087eabbca",
+        },
+        "22/0/init/body/14/0/init/0/body/0/argument/1/1/openingElement/0/value/expression":
+          {
+            content: {
+              de: "Demodaten erstellen",
+              en: "Create Demo Data",
+              es: "Crear datos de demostración",
+              fr: "Créer des données de démonstration",
+            },
+            hash: "063e84d1852a5f35e7923ca087eabbca",
+          },
+        "22/0/init/body/14/0/init/0/body/0/argument/1/3/1/openingElement/2/value/expression":
+          {
+            content: {
+              de: "Neues Projekt",
+              en: "New project",
+              es: "Nuevo proyecto",
+              fr: "Nouveau projet",
+            },
+            hash: "dadfb7337f7a35d182dd42542db11345",
+          },
         "22/0/init/body/14/0/init/0/body/0/argument/1/3/openingElement/0/value/expression":
           {
             content: {
@@ -3925,6 +4137,16 @@ export default {
               fr: "Chargement...",
             },
             hash: "82b4ea7ed1439094d7c4be13aaba9a66",
+          },
+        "22/0/init/body/14/0/init/0/body/0/argument/3/openingElement/0/value/expression":
+          {
+            content: {
+              de: 'Sie haben noch keine Projekte. Klicken Sie auf die Schaltfläche "Neues Projekt", um eines zu starten.',
+              en: 'You have no projects, yet. Click on the "New Project" button to start one.',
+              es: 'No tienes proyectos todavía. Haz clic en el botón "Nuevo proyecto" para comenzar uno.',
+              fr: 'Vous n\'avez pas encore de projets. Cliquez sur le bouton "Nouveau projet" pour en commencer un.',
+            },
+            hash: "01ff3f8934039d075c020b5d51092f9e",
           },
         "22/0/init/body/15/0/init/0/body/0/argument/openingElement/0/value/expression":
           {
@@ -4049,6 +4271,42 @@ export default {
             fr: "Retour à l'accueil",
           },
           hash: "42e3e784652c9a70704829de189459d7",
+        },
+        "5/body/2/argument/3/1": {
+          content: {
+            de: "404 | Seite nicht gefunden",
+            en: "<element:Fragment>404 | Page not found</element:Fragment>404 | Page not found",
+            es: "404 | Página no encontrada",
+            fr: "404 | Page non trouvée",
+          },
+          hash: "5d1a43a767d3c804c0ed850645328910",
+        },
+        "5/body/2/argument/3/1/1": {
+          content: {
+            de: "404 | Seite nicht gefunden",
+            en: "404 | Page not found",
+            es: "404 | Página no encontrada",
+            fr: "404 | Page non trouvée",
+          },
+          hash: "f919e0e3004329413a683e896bfa3cf3",
+        },
+        "5/body/2/argument/3/3/3": {
+          content: {
+            de: "Zurück zur Startseite",
+            en: "<element:Fragment></element:Fragment>Back to home",
+            es: "Volver al inicio",
+            fr: "Retour à l'accueil",
+          },
+          hash: "42e3e784652c9a70704829de189459d7",
+        },
+        "5/body/2/argument/3/3/3/1": {
+          content: {
+            de: "Zurück zur Startseite",
+            en: "Back to home",
+            es: "Volver al inicio",
+            fr: "Retour à l'accueil",
+          },
+          hash: "649df9d4b9efe3f5ea06c76600fa5848",
         },
       },
     },
@@ -5167,6 +5425,15 @@ export default {
     },
     "presentation/pages/TrainingRegistar/index.tsx": {
       entries: {
+        "13/0/init/body/17/0/init/body/0/handler/body/1/expression/0/1/value": {
+          content: {
+            de: "Löschen der Schulung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+            en: "Failed to delete training. Please try again.",
+            es: "Error al eliminar la capacitación. Por favor, inténtelo de nuevo.",
+            fr: "Échec de la suppression de la formation. Veuillez réessayer.",
+          },
+          hash: "f36beee2324c1906ab04469895fbfed1",
+        },
         "13/0/init/body/18/argument/1/expression/right/openingElement/0/value/expression":
           {
             content: {
@@ -5194,6 +5461,24 @@ export default {
             fr: "Ce registre répertorie tous les programmes de formation liés à l'IA disponibles pour votre organisation. Vous pouvez consulter, ajouter et gérer les détails de formation ici.",
           },
           hash: "cb147742871007572fffeeb7a3be411d",
+        },
+        "13/0/init/body/18/argument/3/3/1/openingElement/2/value": {
+          content: {
+            de: "Neues Training",
+            en: "New Training",
+            es: "Nuevo entrenamiento",
+            fr: "Nouvelle formation",
+          },
+          hash: "3ad042bc0c3974743cffd9d3d8d7e7a0",
+        },
+        "13/0/init/body/18/argument/3/3/1/openingElement/2/value/expression": {
+          content: {
+            de: "Neues Training",
+            en: "New Training",
+            es: "Nuevo entrenamiento",
+            fr: "Nouvelle formation",
+          },
+          hash: "3ad042bc0c3974743cffd9d3d8d7e7a0",
         },
       },
     },

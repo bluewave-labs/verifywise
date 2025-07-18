@@ -510,7 +510,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
             "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
           }}
         >
-          Create project
+          <span>Create project</span>
         </Button>
       </Stack>
     </Stack>

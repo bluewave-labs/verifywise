@@ -111,23 +111,23 @@ const NewTraining: FC<NewTrainingProps> = ({
     const newErrors: NewTrainingFormErrors = {};
 
     if (!values.training_name.trim()) {
-      newErrors.training_name = "Training name is required.";
-    }
+      newErrors.training_name = <>Training name is required.</>;
+  }
 
     if (!values.duration.trim()) {
-      newErrors.duration = "Duration is required.";
+      newErrors.duration = <>Duration is required.</>;
     }
 
     if (!values.provider.trim()) {
-      newErrors.provider = "Provider is required.";
+      newErrors.provider = <>Provider is required.</>;
     }
 
     if (!values.department.trim()) {
-      newErrors.department = "Department is required.";
+      newErrors.department = <>Department is required.</>;
     }
 
     if (!values.status) {
-      newErrors.status = "Status is required.";
+      newErrors.status = <>Status is required.</>;
     }
 
     if (
@@ -136,7 +136,7 @@ const NewTraining: FC<NewTrainingProps> = ({
       Number(values.numberOfPeople) < 1
     ) {
       newErrors.numberOfPeople =
-        "Number of people is required and must be a positive number.";
+        <>Number of people is required and must be a positive number.</>;
     }
 
     setErrors(newErrors);
@@ -210,7 +210,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                 padding: 0,
               }}
             >
-              {isEdit ? "Edit Training" : "New Training"}
+              {isEdit ? <>Edit Training</> : <>New Training</>}
             </DialogTitle>
             <Box
               component="span"
@@ -363,7 +363,7 @@ const NewTraining: FC<NewTrainingProps> = ({
           >
             <CustomizableButton
               variant="contained"
-              text={isEdit ? "Update Training" : "Create Training"}
+              text={isEdit ? <>Update Training</> : <>Create Training</>}
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",

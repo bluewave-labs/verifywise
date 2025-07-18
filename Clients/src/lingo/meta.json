@@ -967,6 +967,22 @@
     },
     "presentation/components/Modals/NewTraining/index.tsx": {
       "scopes": {
+        "14/0/init/body/11/argument/1/1/1/1/1/expression/alternate": {
+          "type": "element",
+          "hash": "3ad042bc0c3974743cffd9d3d8d7e7a0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "New Training"
+        },
+        "14/0/init/body/11/argument/1/1/1/1/1/expression/consequent": {
+          "type": "element",
+          "hash": "9342dcd4a68527040c42f408224912f7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Edit Training"
+        },
         "14/0/init/body/11/argument/1/1/3/1/1/1/1/1-label": {
           "type": "attribute",
           "hash": "dfd543b5fc339fbdf3c97cff39de387d",
@@ -1134,6 +1150,70 @@
           "skip": false,
           "overrides": {},
           "content": "Loading..."
+        },
+        "14/0/init/body/11/argument/1/1/5/1/openingElement/1/value/expression/alternate": {
+          "type": "element",
+          "hash": "961d9554c740d05cd6867a22c60c9524",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create Training"
+        },
+        "14/0/init/body/11/argument/1/1/5/1/openingElement/1/value/expression/consequent": {
+          "type": "element",
+          "hash": "16474c4a8dfd45f863f5edf8840df1f5",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Update Training"
+        },
+        "14/0/init/body/7/0/init/body/1/consequent/0/expression/right": {
+          "type": "element",
+          "hash": "749ff2049977dcc06a428bdf81f47aaf",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Training name is required."
+        },
+        "14/0/init/body/7/0/init/body/2/consequent/0/expression/right": {
+          "type": "element",
+          "hash": "62778a6a2888e967f1fa28a10498f4e7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Duration is required."
+        },
+        "14/0/init/body/7/0/init/body/3/consequent/0/expression/right": {
+          "type": "element",
+          "hash": "17b66965f999835bb9807748665e5dac",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Provider is required."
+        },
+        "14/0/init/body/7/0/init/body/4/consequent/0/expression/right": {
+          "type": "element",
+          "hash": "5fed5947be26e47e9a11babf73f63a66",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Department is required."
+        },
+        "14/0/init/body/7/0/init/body/5/consequent/0/expression/right": {
+          "type": "element",
+          "hash": "1f94b251f9368bc548b1d4242d9085f0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Status is required."
+        },
+        "14/0/init/body/7/0/init/body/6/consequent/0/expression/right": {
+          "type": "element",
+          "hash": "142e78c0d14230a85f5c43553497a97d",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Number of people is required and must be a positive number."
         }
       }
     },
@@ -1467,6 +1547,86 @@
     },
     "presentation/components/Sidebar/index.tsx": {
       "scopes": {
+        "31/0/init/0/0/value": {
+          "type": "element",
+          "hash": "c9380ea68c8c76ea451bd9613329a07c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Dashboard"
+        },
+        "31/0/init/1/0/value": {
+          "type": "element",
+          "hash": "30393d50db2ab40731f6eeb38cbe6e85",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Vendors"
+        },
+        "31/0/init/2/0/value": {
+          "type": "element",
+          "hash": "54dd0b034d78f37c7b4b4d39fcfebd9b",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Evidences"
+        },
+        "31/0/init/3/0/value": {
+          "type": "element",
+          "hash": "97bf64946f8f76632eab6fb8767b16d7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Reporting"
+        },
+        "31/0/init/4/0/value": {
+          "type": "element",
+          "hash": "8d3a7b660b9aba3758eb1ebb5a489c81",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Bias & Fairness"
+        },
+        "31/0/init/5/0/value": {
+          "type": "element",
+          "hash": "e953b76245eae29c2bb5fe6a88cbc575",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Training Registry"
+        },
+        "31/0/init/6/0/value": {
+          "type": "element",
+          "hash": "92033183966f549056f5ce5d4e3b19d6",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "AI Trust Center"
+        },
+        "32/0/init/0/0/value": {
+          "type": "element",
+          "hash": "8df6777277469c1fd88cc18dde2f1cc3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Settings"
+        },
+        "32/0/init/1/0/value": {
+          "type": "element",
+          "hash": "6fac88806e0c269a30777b283988c61c",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Feedback"
+        },
+        "32/0/init/2/0/value": {
+          "type": "element",
+          "hash": "1c7c07059fad220178c9a55ee810bf4a",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Ask on Discord"
+        },
         "34/0/init/body/17/argument/1/1/1/1-alt": {
           "type": "attribute",
           "hash": "47fa6b3978c1c06acc29b6cae393b0c9",
@@ -1546,6 +1706,14 @@
           "skip": false,
           "overrides": {},
           "content": "<element:LogoutSvg></element:LogoutSvg> Log out"
+        },
+        "35/0/init/body/17/argument/7/3/expression/0/body/consequent/openingElement/3/value/expression/consequent": {
+          "type": "element",
+          "hash": "d693d888fcd2be6609c0a0ac17332566",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "item.name"
         }
       }
     },
@@ -3482,6 +3650,30 @@
     },
     "presentation/pages/Home/index.tsx": {
       "scopes": {
+        "22/0/init/body/10/expression/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "063e84d1852a5f35e7923ca087eabbca",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create Demo Data"
+        },
+        "22/0/init/body/14/0/init/0/body/0/argument/1/1/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "063e84d1852a5f35e7923ca087eabbca",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Create Demo Data"
+        },
+        "22/0/init/body/14/0/init/0/body/0/argument/1/3/1/openingElement/2/value/expression": {
+          "type": "element",
+          "hash": "dadfb7337f7a35d182dd42542db11345",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "New project"
+        },
         "22/0/init/body/14/0/init/0/body/0/argument/1/3/openingElement/0/value/expression": {
           "type": "element",
           "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
@@ -3489,6 +3681,14 @@
           "skip": false,
           "overrides": {},
           "content": "Loading..."
+        },
+        "22/0/init/body/14/0/init/0/body/0/argument/3/openingElement/0/value/expression": {
+          "type": "element",
+          "hash": "01ff3f8934039d075c020b5d51092f9e",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "You have no projects, yet. Click on the \"New Project\" button to start one."
         },
         "22/0/init/body/15/0/init/0/body/0/argument/openingElement/0/value/expression": {
           "type": "element",
@@ -3593,6 +3793,38 @@
         "4/body/2/argument/3/3/3": {
           "type": "element",
           "hash": "42e3e784652c9a70704829de189459d7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Back to home"
+        },
+        "5/body/2/argument/3/1": {
+          "type": "element",
+          "hash": "5d1a43a767d3c804c0ed850645328910",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<element:Fragment>404 | Page not found</element:Fragment>404 | Page not found"
+        },
+        "5/body/2/argument/3/1/1": {
+          "type": "element",
+          "hash": "f919e0e3004329413a683e896bfa3cf3",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "404 | Page not found"
+        },
+        "5/body/2/argument/3/3/3": {
+          "type": "element",
+          "hash": "42e3e784652c9a70704829de189459d7",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "<element:Fragment></element:Fragment>Back to home"
+        },
+        "5/body/2/argument/3/3/3/1": {
+          "type": "element",
+          "hash": "649df9d4b9efe3f5ea06c76600fa5848",
           "context": "",
           "skip": false,
           "overrides": {},
@@ -4574,6 +4806,14 @@
     },
     "presentation/pages/TrainingRegistar/index.tsx": {
       "scopes": {
+        "13/0/init/body/17/0/init/body/0/handler/body/1/expression/0/1/value": {
+          "type": "element",
+          "hash": "f36beee2324c1906ab04469895fbfed1",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "Failed to delete training. Please try again."
+        },
         "13/0/init/body/18/argument/1/expression/right/openingElement/0/value/expression": {
           "type": "element",
           "hash": "82b4ea7ed1439094d7c4be13aaba9a66",
@@ -4597,6 +4837,22 @@
           "skip": false,
           "overrides": {},
           "content": "This registry lists all AI-related training programs available to your organization. You can view, add, and manage training details here."
+        },
+        "13/0/init/body/18/argument/3/3/1/openingElement/2/value": {
+          "type": "element",
+          "hash": "3ad042bc0c3974743cffd9d3d8d7e7a0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "New Training"
+        },
+        "13/0/init/body/18/argument/3/3/1/openingElement/2/value/expression": {
+          "type": "element",
+          "hash": "3ad042bc0c3974743cffd9d3d8d7e7a0",
+          "context": "",
+          "skip": false,
+          "overrides": {},
+          "content": "New Training"
         }
       }
     },

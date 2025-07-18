@@ -52,37 +52,37 @@ import { User } from "../../../domain/types/User";
 
 const menu = [
   {
-    name: "Dashboard",
+    name: <>Dashboard</>,
     icon: <Dashboard />,
     path: "/",
   },
   {
-    name: "Vendors",
+    name: <>Vendors</>,
     icon: <Vendors style={{}} />,
     path: "/vendors",
   },
   {
-    name: "Evidences",
+    name: <>Evidences</>,
     icon: <FileManager />,
     path: "/file-manager",
   },
   {
-    name: "Reporting",
+    name: <>Reporting</>,
     icon: <ReportingSvg />,
     path: "/reporting",
   },
   {
-    name: "Bias & Fairness",
+    name: <>Bias & Fairness</>,
     icon: <FairnessIcon />,
     path: "/fairness-dashboard",
   },
   {
-    name: "Training Registry",
+    name: <>Training Registry</>,
     icon: <TrainingRegister />,
     path: "/training",
   },
   {
-    name: "AI Trust Center",
+    name: <>AI Trust Center</>,
     icon: <AITrustCenter />,
     path: "/ai-trust-center",
   },
@@ -90,17 +90,17 @@ const menu = [
 
 const other = [
   {
-    name: "Settings",
+    name: <>Settings</>,
     icon: <Settings />,
     path: "/setting",
   },
   {
-    name: "Feedback",
+    name: <>Feedback</>,
     icon: <Feedback />,
     path: "https://github.com/bluewave-labs/verifywise/discussions",
   },
   {
-    name: "Ask on Discord",
+    name: <>Ask on Discord</>,
     icon: <Discord />,
     path: "https://discord.gg/d3k3E4uEpR",
   },

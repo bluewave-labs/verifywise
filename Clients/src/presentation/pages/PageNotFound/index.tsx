@@ -32,7 +32,7 @@ function PageNotFound() {
         }}
       >
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
-          404 | Page not found
+          <>404 | Page not found</>
         </Typography>
         <Stack
           sx={{
@@ -48,7 +48,7 @@ function PageNotFound() {
         >
           <LeftArrowLong />
           <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
-            Back to home
+            <>Back to home</>
           </Typography>
         </Stack>
       </Stack>

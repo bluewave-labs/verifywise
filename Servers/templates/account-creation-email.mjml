@@ -17,7 +17,7 @@
             One of the admins created an account for you on the VerifyWise server.
           </p>
           <p>You can go ahead and create your account using this link.</p>
-          <p><a href="{{link}}">{{link}}</a></p>
+          <p><a href="{{link}}">Create account</a></p>
           <p>Thank you.</p>
         </mj-text>
       </mj-column>

@@ -28,7 +28,7 @@ import { deleteHelper } from "./project.utils";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { STATUSES_ANSWERS, STATUSES_COMPLIANCE } from "../types/status.type";
 
-const getDemoAnswers = (): String[] => {
+const getDemoAnswers = (): string[] => {
   const answers = [];
   for (let topic of Topics) {
     for (let subTopic of topic.subtopics) {
@@ -51,10 +51,11 @@ const getDemoControls = (): Object[] => {
 const findIsDemo = async (
   tableName: string,
   id: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   const result = (await sequelize.query(
-    `SELECT is_demo FROM ${tableName} WHERE id = :id`,
+    `SELECT is_demo FROM "${tenant}".${tableName} WHERE id = :id`,
     {
       replacements: { id },
       transaction,
@@ -64,14 +65,15 @@ const findIsDemo = async (
 };
 
 export const countAnswersEUByProjectId = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<{
   totalAssessments: string;
   answeredAssessments: string;
 }> => {
   const result = await sequelize.query(
     `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN ans.status = 'Done' THEN 1 END) AS "answeredAssessments" FROM
-      assessments a JOIN answers_eu ans ON a.id = ans.assessment_id WHERE a.projects_frameworks_id = :projects_frameworks_id;`,
+      "${tenant}".assessments a JOIN "${tenant}".answers_eu ans ON a.id = ans.assessment_id WHERE a.projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       type: QueryTypes.SELECT,
@@ -84,7 +86,8 @@ export const countAnswersEUByProjectId = async (
 };
 
 export const countSubControlsEUByProjectId = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<{
   totalSubcontrols: string;
   doneSubcontrols: string;
@@ -97,7 +100,7 @@ export const countSubControlsEUByProjectId = async (
   // ) as [{ id: number }[], number];
   const result = await sequelize.query(
     `SELECT COUNT(*) AS "totalSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "doneSubcontrols" FROM
-      controls_eu c JOIN subcontrols_eu sc ON c.id = sc.control_id WHERE c.projects_frameworks_id = :projects_frameworks_id;`,
+      "${tenant}".controls_eu c JOIN "${tenant}".subcontrols_eu sc ON c.id = sc.control_id WHERE c.projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       type: QueryTypes.SELECT,
@@ -111,16 +114,17 @@ export const countSubControlsEUByProjectId = async (
 
 export const getTopicByIdForProjectQuery = async (
   topicStructId: number,
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<TopicStructEUModel | null> => {
   const assessmentId = (await sequelize.query(
-    `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
+    `SELECT id FROM "${tenant}".assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [{ id: number }[], number];
   const topics = await sequelize.query(
-    "SELECT * FROM topics_struct_eu WHERE id = :topic_id;",
+    `SELECT * FROM public.topics_struct_eu WHERE id = :topic_id;`,
     {
       replacements: { topic_id: topicStructId },
       mapToModel: true,
@@ -128,12 +132,13 @@ export const getTopicByIdForProjectQuery = async (
     }
   );
   const topic = topics[0];
-  const subtopicStruct = await getAllSubTopicsQuery(topic.id!);
+  const subtopicStruct = await getAllSubTopicsQuery(topic.id!, tenant);
   (topic.dataValues as any).subTopics = subtopicStruct;
   for (let subtopic of subtopicStruct) {
     const questionAnswers = await getAllQuestionsQuery(
       subtopic.id!,
-      assessmentId[0][0].id
+      assessmentId[0][0].id,
+      tenant
     );
     (subtopic.dataValues as any).questions = [];
     for (let question of questionAnswers) {
@@ -143,17 +148,17 @@ export const getTopicByIdForProjectQuery = async (
   return topic;
 };
 
-const getSubControlsCalculations = async (controlId: number) => {
+const getSubControlsCalculations = async (controlId: number, tenant: string) => {
   const result = (await sequelize.query(
     `SELECT COUNT(*) AS "numberOfSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "numberOfDoneSubcontrols" FROM
-      controls_eu c JOIN subcontrols_eu sc ON c.id = sc.control_id WHERE c.id = :control_id;`,
+      "${tenant}".controls_eu c JOIN "${tenant}".subcontrols_eu sc ON c.id = sc.control_id WHERE c.id = :control_id;`,
     {
       replacements: { control_id: controlId },
     }
   )) as [
-    { numberOfSubcontrols: string; numberOfDoneSubcontrols: string }[],
-    number
-  ];
+      { numberOfSubcontrols: string; numberOfDoneSubcontrols: string }[],
+      number
+    ];
   return result[0][0] as {
     numberOfSubcontrols: string;
     numberOfDoneSubcontrols: string;
@@ -162,10 +167,11 @@ const getSubControlsCalculations = async (controlId: number) => {
 
 export const getControlByIdForProjectQuery = async (
   controlStructId: number,
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<Partial<ControlEU & ControlStructEUModel> | null> => {
   const controlId = (await sequelize.query(
-    `SELECT id FROM controls_eu WHERE control_meta_id = :control_meta_id AND projects_frameworks_id = :projects_frameworks_id`,
+    `SELECT id FROM "${tenant}".controls_eu WHERE control_meta_id = :control_meta_id AND projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: {
         control_meta_id: controlStructId,
@@ -173,14 +179,14 @@ export const getControlByIdForProjectQuery = async (
       },
     }
   )) as [{ id: number }[], number];
-  const controls = await getControlByIdQuery(controlId[0][0].id);
+  const controls = await getControlByIdQuery(controlId[0][0].id, tenant);
   const control = controls[0];
-  const subControls = await getSubControlsByIdQuery(control.id!);
+  const subControls = await getSubControlsByIdQuery(control.id!, tenant);
   (control as any).subControls = [];
   for (let subControl of subControls) {
     (control as any).subControls.push({ ...subControl });
   }
-  const subControlsCalculations = await getSubControlsCalculations(control.id!);
+  const subControlsCalculations = await getSubControlsCalculations(control.id!, tenant);
   (control as any).numberOfSubcontrols = parseInt(
     subControlsCalculations.numberOfSubcontrols
   );
@@ -191,9 +197,10 @@ export const getControlByIdForProjectQuery = async (
 };
 
 export const getAllTopicsQuery = async (
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const topicStruct = await sequelize.query("SELECT * FROM topics_struct_eu;", {
+  const topicStruct = await sequelize.query(`SELECT * FROM public.topics_struct_eu;`, {
     mapToModel: true,
     model: TopicStructEUModel,
     ...(transaction && { transaction }),
@@ -203,10 +210,11 @@ export const getAllTopicsQuery = async (
 
 export const getAllSubTopicsQuery = async (
   topicId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const subtopicStruct = await sequelize.query(
-    "SELECT * FROM subtopics_struct_eu WHERE topic_id = :topic_id;",
+    `SELECT * FROM public.subtopics_struct_eu WHERE topic_id = :topic_id;`,
     {
       replacements: { topic_id: topicId },
       mapToModel: true,
@@ -220,6 +228,7 @@ export const getAllSubTopicsQuery = async (
 export const getAllQuestionsQuery = async (
   subtopicId: number,
   assessmentId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const questionAnswers = (await sequelize.query(
@@ -242,7 +251,7 @@ export const getAllQuestionsQuery = async (
       a.status AS status,
       a.created_at AS created_at,
       a.is_demo AS is_demo
-    FROM questions_struct_eu q JOIN answers_eu a ON q.id = a.question_id WHERE 
+    FROM public.questions_struct_eu q JOIN "${tenant}".answers_eu a ON q.id = a.question_id WHERE 
       q.subtopic_id = :subtopic_id AND a.assessment_id = :assessment_id
       ORDER BY created_at DESC, question_id ASC;`,
     {
@@ -255,16 +264,18 @@ export const getAllQuestionsQuery = async (
 
 export const getAssessmentsEUByIdQuery = async (
   assessmentId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const topicStruct = await getAllTopicsQuery(transaction);
+  const topicStruct = await getAllTopicsQuery(tenant, transaction);
   for (let topic of topicStruct) {
-    const subtopicStruct = await getAllSubTopicsQuery(topic.id!, transaction);
+    const subtopicStruct = await getAllSubTopicsQuery(topic.id!, tenant, transaction);
     (topic.dataValues as any).subTopics = subtopicStruct;
     for (let subtopic of subtopicStruct) {
       const questionAnswers = await getAllQuestionsQuery(
         subtopic.id!,
         assessmentId,
+        tenant,
         transaction
       );
       (subtopic.dataValues as any).questions = [];
@@ -277,10 +288,11 @@ export const getAssessmentsEUByIdQuery = async (
 };
 
 export const getAllControlCategoriesQuery = async (
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const controlCategoriesStruct = await sequelize.query(
-    `SELECT * FROM controlcategories_struct_eu;`,
+    `SELECT * FROM public.controlcategories_struct_eu;`,
     {
       mapToModel: true,
       model: ControlCategoryStructEUModel,
@@ -294,7 +306,7 @@ export const getControlStructByControlCategoryIdQuery = async (
   controlCategoryId: number
 ) => {
   const controlsStruct = await sequelize.query(
-    `SELECT * FROM controls_struct_eu WHERE control_category_id = :control_category_id;`,
+    `SELECT * FROM public.controls_struct_eu WHERE control_category_id = :control_category_id;`,
     {
       replacements: { control_category_id: controlCategoryId },
       mapToModel: true,
@@ -306,10 +318,11 @@ export const getControlStructByControlCategoryIdQuery = async (
 
 export const getControlStructByControlCategoryIdForAProjectQuery = async (
   controlCategoryId: number,
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ) => {
   const controlsStruct = (await sequelize.query(
-    `SELECT cs.*, c.id AS control_id, c.owner, c.status FROM controls_struct_eu cs JOIN controls_eu c ON cs.id = c.control_meta_id
+    `SELECT cs.*, c.id AS control_id, c.owner, c.status FROM public.controls_struct_eu cs JOIN "${tenant}".controls_eu c ON cs.id = c.control_meta_id
       WHERE cs.control_category_id = :control_category_id AND c.projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: {
@@ -318,12 +331,12 @@ export const getControlStructByControlCategoryIdForAProjectQuery = async (
       },
     }
   )) as [
-    Partial<ControlStructEUModel & ControlEUModel & { control_id: number }>[],
-    number
-  ];
+      Partial<ControlStructEUModel & ControlEUModel & { control_id: number }>[],
+      number
+    ];
   for (let control of controlsStruct[0]) {
     const subControlsCalculations = await getSubControlsCalculations(
-      control.control_id!
+      control.control_id!, tenant
     );
     (control as any).numberOfSubcontrols = parseInt(
       subControlsCalculations.numberOfSubcontrols
@@ -337,6 +350,7 @@ export const getControlStructByControlCategoryIdForAProjectQuery = async (
 
 export const getControlByIdQuery = async (
   controlId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const controls = (await sequelize.query(
@@ -354,7 +368,7 @@ export const getControlByIdQuery = async (
       c.due_date AS due_date,
       c.implementation_details AS implementation_details,
       c.created_at AS created_at
-    FROM controls_eu c JOIN controls_struct_eu cs ON c.control_meta_id = cs.id WHERE c.id = :control_id
+    FROM "${tenant}".controls_eu c JOIN public.controls_struct_eu cs ON c.control_meta_id = cs.id WHERE c.id = :control_id
     ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { control_id: controlId },
@@ -366,6 +380,7 @@ export const getControlByIdQuery = async (
 
 export const getSubControlsByIdQuery = async (
   subControlId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const subControls = (await sequelize.query(
@@ -388,7 +403,7 @@ export const getSubControlsByIdQuery = async (
       sc.evidence_description AS evidence_description,
       sc.feedback_description AS feedback_description,
       sc.created_at AS created_at
-    FROM subcontrols_eu sc JOIN subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id WHERE sc.control_id = :control_id
+    FROM "${tenant}".subcontrols_eu sc JOIN public.subcontrols_struct_eu scs ON sc.subcontrol_meta_id = scs.id WHERE sc.control_id = :control_id
     ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { control_id: subControlId },
@@ -400,10 +415,11 @@ export const getSubControlsByIdQuery = async (
 
 export const getCompliancesEUByIdQuery = async (
   controlIds: number[],
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const controlCategoriesStruct = await getAllControlCategoriesQuery(
-    transaction
+    tenant, transaction
   );
   let controlCategoryIdIndexMap = new Map();
   for (let [i, controlCategory] of controlCategoriesStruct.entries()) {
@@ -412,7 +428,7 @@ export const getCompliancesEUByIdQuery = async (
   }
 
   for (let controlId of controlIds) {
-    const controls = await getControlByIdQuery(controlId, transaction);
+    const controls = await getControlByIdQuery(controlId, tenant, transaction);
 
     for (let control of controls) {
       (controlCategoriesStruct as any)[
@@ -420,6 +436,7 @@ export const getCompliancesEUByIdQuery = async (
       ].dataValues.controls.push(control);
       const subControls = await getSubControlsByIdQuery(
         control.id!,
+        tenant,
         transaction
       );
       (control as any).subControls = [];
@@ -432,30 +449,32 @@ export const getCompliancesEUByIdQuery = async (
 };
 
 export const getAssessmentsEUByProjectIdQuery = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ) => {
   const assessmentId = (await sequelize.query(
-    `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
+    `SELECT id FROM "${tenant}".assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [{ id: number }[], number];
-  const assessments = await getAssessmentsEUByIdQuery(assessmentId[0][0].id);
+  const assessments = await getAssessmentsEUByIdQuery(assessmentId[0][0].id, tenant);
   return assessments;
 };
 
 export const getComplianceEUByProjectIdQuery = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ) => {
   const controlIds = (await sequelize.query(
-    `SELECT id FROM controls_eu WHERE projects_frameworks_id = :projects_frameworks_id`,
+    `SELECT id FROM "${tenant}".controls_eu WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [{ id: number }[], number];
 
   const compliances = await getCompliancesEUByIdQuery(
-    controlIds[0].map((c) => c.id)
+    controlIds[0].map((c) => c.id), tenant
   );
   return compliances;
 };
@@ -463,11 +482,12 @@ export const getComplianceEUByProjectIdQuery = async (
 export const createNewAssessmentEUQuery = async (
   assessment: AssessmentEU,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ): Promise<Object> => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
+    `SELECT id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
     {
       replacements: { project_id: assessment.project_id },
       transaction,
@@ -477,13 +497,14 @@ export const createNewAssessmentEUQuery = async (
   //   throw new Error("Project not added to framework");
   // }
   const result = await sequelize.query(
-    `INSERT INTO assessments (projects_frameworks_id, is_demo) VALUES (:projects_frameworks_id, :is_demo) RETURNING *`,
+    `INSERT INTO "${tenant}".assessments (projects_frameworks_id, is_demo) VALUES (:projects_frameworks_id, :is_demo) RETURNING *`,
     {
       replacements: {
         projects_frameworks_id: projectFrameworkId[0][0].id,
         is_demo: await findIsDemo(
           "projects",
           assessment.project_id,
+          tenant,
           transaction
         ),
       },
@@ -495,11 +516,13 @@ export const createNewAssessmentEUQuery = async (
   await createNewAnswersEUQuery(
     result[0].id!,
     enable_ai_data_insertion,
+    tenant,
     transaction,
     is_mock_data
   );
   const assessments = await getAssessmentsEUByIdQuery(
     result[0].id!,
+    tenant,
     transaction
   );
   return { ...result[0].dataValues, topics: assessments };
@@ -508,13 +531,14 @@ export const createNewAssessmentEUQuery = async (
 export const createNewAnswersEUQuery = async (
   assessmentId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
-  let demoAnswers: String[] = [];
+  let demoAnswers: string[] = [];
   if (enable_ai_data_insertion) demoAnswers = getDemoAnswers();
   const questions = await sequelize.query(
-    "SELECT * FROM questions_struct_eu ORDER BY id;",
+    `SELECT * FROM public.questions_struct_eu ORDER BY id;`,
     {
       mapToModel: true,
       model: QuestionStructEUModel,
@@ -525,7 +549,7 @@ export const createNewAnswersEUQuery = async (
   let ansCtr = 0;
   for (let question of questions) {
     const result = await sequelize.query(
-      `INSERT INTO answers_eu(assessment_id, question_id, answer, status, is_demo) VALUES (
+      `INSERT INTO "${tenant}".answers_eu(assessment_id, question_id, answer, status, is_demo) VALUES (
         :assessment_id, :question_id, :answer, :status, :is_demo
       ) RETURNING *;`,
       {
@@ -535,10 +559,10 @@ export const createNewAnswersEUQuery = async (
           answer: enable_ai_data_insertion ? demoAnswers[ansCtr++] : null,
           status: is_mock_data
             ? STATUSES_ANSWERS[
-                Math.floor(Math.random() * STATUSES_ANSWERS.length)
-              ]
+            Math.floor(Math.random() * STATUSES_ANSWERS.length)
+            ]
             : "Not started",
-          is_demo: await findIsDemo("assessments", assessmentId, transaction),
+          is_demo: await findIsDemo("assessments", assessmentId, tenant, transaction),
         },
         mapToModel: true,
         model: AnswerEUModel,
@@ -555,6 +579,7 @@ export const createNewAnswersEUQuery = async (
 export const createNewControlsQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
@@ -562,7 +587,7 @@ export const createNewControlsQuery = async (
   if (enable_ai_data_insertion) demoControls = getDemoControls();
 
   const controlsStruct = await sequelize.query(
-    "SELECT * FROM controls_struct_eu;",
+    `SELECT * FROM public.controls_struct_eu;`,
     {
       mapToModel: true,
       model: ControlStructEUModel,
@@ -573,14 +598,14 @@ export const createNewControlsQuery = async (
   let controlIds: number[] = [];
   for (let controlStruct of controlsStruct) {
     const projectFrameworkId = (await sequelize.query(
-      `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
+      `SELECT id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
       {
         replacements: { project_id: projectId },
         transaction,
       }
     )) as [{ id: number }[], number];
     const result = await sequelize.query(
-      `INSERT INTO controls_eu(control_meta_id, implementation_details, status, projects_frameworks_id, is_demo) VALUES (
+      `INSERT INTO "${tenant}".controls_eu(control_meta_id, implementation_details, status, projects_frameworks_id, is_demo) VALUES (
         :control_meta_id, :implementation_details, :status, :projects_frameworks_id, :is_demo
       ) RETURNING id;`,
       {
@@ -591,7 +616,7 @@ export const createNewControlsQuery = async (
             : null,
           status: enable_ai_data_insertion ? "Waiting" : null,
           projects_frameworks_id: projectFrameworkId[0][0].id,
-          is_demo: await findIsDemo("projects", projectId, transaction),
+          is_demo: await findIsDemo("projects", projectId, tenant, transaction),
         },
         mapToModel: true,
         model: ControlEUModel,
@@ -604,11 +629,12 @@ export const createNewControlsQuery = async (
       demoControls[controlCtr++]?.subControls || [],
       result[0].id!,
       enable_ai_data_insertion,
+      tenant,
       transaction,
       is_mock_data
     );
   }
-  const compliances = await getCompliancesEUByIdQuery(controlIds, transaction);
+  const compliances = await getCompliancesEUByIdQuery(controlIds, tenant, transaction);
   return compliances;
 };
 
@@ -617,11 +643,12 @@ export const createNewSubControlsQuery = async (
   demoSubControls: any[],
   controlId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
   const subControlMetaIds = await sequelize.query(
-    "SELECT id FROM subcontrols_struct_eu WHERE control_id = :control_id",
+    `SELECT id FROM public.subcontrols_struct_eu WHERE control_id = :control_id`,
     {
       replacements: { control_id: controlStructId },
       transaction,
@@ -631,7 +658,7 @@ export const createNewSubControlsQuery = async (
   let createdSubControls: SubcontrolEUModel[] = [];
   for (let subControl of subControlMetaIds[0] as { id: number }[]) {
     const result = await sequelize.query(
-      `INSERT INTO subcontrols_eu(control_id, subcontrol_meta_id, implementation_details, evidence_description, feedback_description, status, is_demo) VALUES (
+      `INSERT INTO "${tenant}".subcontrols_eu(control_id, subcontrol_meta_id, implementation_details, evidence_description, feedback_description, status, is_demo) VALUES (
         :control_id, :subcontrol_meta_id, :implementation_details, :evidence_description, :feedback_description, :status, :is_demo
       ) RETURNING *`,
       {
@@ -643,20 +670,20 @@ export const createNewSubControlsQuery = async (
             : null,
           evidence_description:
             enable_ai_data_insertion &&
-            demoSubControls[ctr].evidence_description
+              demoSubControls[ctr].evidence_description
               ? demoSubControls[ctr].evidence_description
               : null,
           feedback_description:
             enable_ai_data_insertion &&
-            demoSubControls[ctr].feedback_description
+              demoSubControls[ctr].feedback_description
               ? demoSubControls[ctr].feedback_description
               : null,
           status: is_mock_data
             ? STATUSES_COMPLIANCE[
-                Math.floor(Math.random() * STATUSES_COMPLIANCE.length)
-              ]
+            Math.floor(Math.random() * STATUSES_COMPLIANCE.length)
+            ]
             : "Waiting",
-          is_demo: await findIsDemo("controls_eu", controlId, transaction),
+          is_demo: await findIsDemo("controls_eu", controlId, tenant, transaction),
         },
         mapToModel: true,
         model: SubcontrolEUModel,
@@ -672,18 +699,21 @@ export const createNewSubControlsQuery = async (
 export const createEUFrameworkQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean = false
 ) => {
   const assessments: Object = await createNewAssessmentEUQuery(
     { project_id: projectId },
     enable_ai_data_insertion,
+    tenant,
     transaction,
     is_mock_data
   );
   const controls = await createNewControlsQuery(
     projectId,
     enable_ai_data_insertion,
+    tenant,
     transaction,
     is_mock_data
   );
@@ -696,6 +726,7 @@ export const createEUFrameworkQuery = async (
 export const updateControlEUByIdQuery = async (
   id: number,
   control: Partial<ControlEU>,
+  tenant: string,
   transaction: Transaction
 ): Promise<ControlEU> => {
   const updateControl: Partial<Record<keyof ControlEU, any>> = {};
@@ -723,7 +754,7 @@ export const updateControlEUByIdQuery = async (
     return control as ControlEU;
   }
 
-  const query = `UPDATE controls_eu SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".controls_eu SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateControl.id = id;
 
@@ -755,10 +786,11 @@ export const updateSubcontrolEUByIdQuery = async (
     uploaded_time: Date;
   }[] = [],
   deletedFiles: number[] = [],
+  tenant: string,
   transaction: Transaction
 ): Promise<SubcontrolEU> => {
   const files = await sequelize.query(
-    `SELECT evidence_files, feedback_files FROM subcontrols_eu WHERE id = :id`,
+    `SELECT evidence_files, feedback_files FROM "${tenant}".subcontrols_eu WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -839,7 +871,7 @@ export const updateSubcontrolEUByIdQuery = async (
     return subcontrol as SubcontrolEU;
   }
 
-  const query = `UPDATE subcontrols_eu SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".subcontrols_eu SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSubControl.id = id;
 
@@ -865,17 +897,18 @@ export const addFileToAnswerEU = async (
     uploaded_time: Date;
   }[],
   deletedFiles: number[],
+  tenant: string,
   transaction: Transaction
 ): Promise<QuestionStructEUModel & AnswerEUModel> => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
+    `SELECT id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
     {
       replacements: { project_id: projectId },
       transaction,
     }
   )) as [{ id: number }[], number];
   const assessmentId = (await sequelize.query(
-    "SELECT id FROM assessments WHERE projects_frameworks_id = :project_framework_id;",
+    `SELECT id FROM "${tenant}".assessments WHERE projects_frameworks_id = :project_framework_id;`,
     {
       replacements: { project_framework_id: projectFrameworkId[0][0].id },
       transaction,
@@ -883,7 +916,7 @@ export const addFileToAnswerEU = async (
   )) as [{ id: number }[], number];
   // get the existing evidence files
   const evidenceFilesResult = await sequelize.query(
-    `SELECT evidence_files FROM answers_eu WHERE question_id = :id AND assessment_id = :assessment_id`,
+    `SELECT evidence_files FROM "${tenant}".answers_eu WHERE question_id = :id AND assessment_id = :assessment_id`,
     {
       replacements: { id: questionId, assessment_id: assessmentId[0][0].id },
       mapToModel: true,
@@ -915,7 +948,7 @@ export const addFileToAnswerEU = async (
 
   // update
   const answer = (await sequelize.query(
-    `UPDATE answers_eu SET evidence_files = :evidence_files WHERE question_id = :id AND assessment_id = :assessment_id RETURNING *;`,
+    `UPDATE "${tenant}".answers_eu SET evidence_files = :evidence_files WHERE question_id = :id AND assessment_id = :assessment_id RETURNING *;`,
     {
       replacements: {
         evidence_files: JSON.stringify(evidenceFiles),
@@ -926,7 +959,7 @@ export const addFileToAnswerEU = async (
     }
   )) as [AnswerEUModel[], number];
   const question = (await sequelize.query(
-    `SELECT * FROM questions_struct_eu WHERE id = :id`,
+    `SELECT * FROM public.questions_struct_eu WHERE id = :id`,
     { replacements: { id: answer[0][0].question_id }, transaction }
   )) as [QuestionStructEUModel[], number];
   return {
@@ -946,6 +979,7 @@ export const addFileToAnswerEU = async (
 export const updateQuestionEUByIdQuery = async (
   id: number,
   question: Partial<AnswerEU>,
+  tenant: string,
   transaction: Transaction
 ): Promise<AnswerEU | null> => {
   const updateQuestion: Partial<Record<keyof AnswerEU, any>> = {};
@@ -962,7 +996,7 @@ export const updateQuestionEUByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE answers_eu SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".answers_eu SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateQuestion.id = id;
 
@@ -979,10 +1013,11 @@ export const updateQuestionEUByIdQuery = async (
 
 export const deleteAssessmentEUByProjectIdQuery = async (
   projectFrameworkId: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   const assessmentId = (await sequelize.query(
-    `SELECT id FROM assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
+    `SELECT id FROM "${tenant}".assessments WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       transaction,
@@ -992,14 +1027,14 @@ export const deleteAssessmentEUByProjectIdQuery = async (
     return false;
   }
   await sequelize.query(
-    `DELETE FROM answers_eu WHERE assessment_id = :assessment_id`,
+    `DELETE FROM "${tenant}".answers_eu WHERE assessment_id = :assessment_id`,
     {
       replacements: { assessment_id: assessmentId[0][0].id },
       transaction,
     }
   );
   const result = await sequelize.query(
-    `DELETE FROM assessments WHERE id = :assessment_id RETURNING *`,
+    `DELETE FROM "${tenant}".assessments WHERE id = :assessment_id RETURNING *`,
     {
       replacements: { assessment_id: assessmentId[0][0].id },
       mapToModel: true,
@@ -1013,10 +1048,11 @@ export const deleteAssessmentEUByProjectIdQuery = async (
 
 export const deleteComplianeEUByProjectIdQuery = async (
   projectFrameworkId: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   const controlIds = (await sequelize.query(
-    `SELECT id FROM controls_eu WHERE projects_frameworks_id = :projects_frameworks_id`,
+    `SELECT id FROM "${tenant}".controls_eu WHERE projects_frameworks_id = :projects_frameworks_id`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       transaction,
@@ -1027,12 +1063,12 @@ export const deleteComplianeEUByProjectIdQuery = async (
   }
   for (let control of controlIds[0]) {
     await sequelize.query(
-      `DELETE FROM subcontrols_eu WHERE control_id = :control_id`,
+      `DELETE FROM "${tenant}".subcontrols_eu WHERE control_id = :control_id`,
       { replacements: { control_id: control.id }, transaction }
     );
   }
   const result = await sequelize.query(
-    `DELETE FROM controls_eu WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
+    `DELETE FROM "${tenant}".controls_eu WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       mapToModel: true,
@@ -1046,6 +1082,7 @@ export const deleteComplianeEUByProjectIdQuery = async (
 
 export const deleteProjectFrameworkEUQuery = async (
   projectId: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   const projectFrameworkId = (await sequelize.query(
@@ -1057,14 +1094,16 @@ export const deleteProjectFrameworkEUQuery = async (
   )) as [{ id: number }[], number];
   const assessmentDeleted = await deleteAssessmentEUByProjectIdQuery(
     projectFrameworkId[0][0].id,
+    tenant,
     transaction
   );
   const complianceDeleted = await deleteComplianeEUByProjectIdQuery(
     projectFrameworkId[0][0].id,
+    tenant,
     transaction
   );
   const result = await sequelize.query(
-    `DELETE FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1 RETURNING *`,
+    `DELETE FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 1 RETURNING *`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,

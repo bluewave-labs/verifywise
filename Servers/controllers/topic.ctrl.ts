@@ -19,7 +19,7 @@ import { sequelize } from "../database/db";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   try {
-    const topics = await getAllTopicsQuery();
+    const topics = await getAllTopicsQuery(req.tenantId!);
 
     if (topics) {
       return res.status(200).json(STATUS_CODE[200](topics));
@@ -35,7 +35,7 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
   try {
     const topicId = parseInt(req.params.id);
 
-    const topic = await getTopicByIdQuery(topicId);
+    const topic = await getTopicByIdQuery(topicId, req.tenantId!);
 
     if (topic) {
       return res.status(200).json(STATUS_CODE[200](topic));
@@ -55,7 +55,7 @@ export async function createNewTopic(
   try {
     const newTopic: Topic = req.body;
 
-    const createdTopic = await createNewTopicQuery(newTopic, transaction);
+    const createdTopic = await createNewTopicQuery(newTopic, req.tenantId!, transaction);
 
     if (createdTopic) {
       await transaction.commit();
@@ -81,6 +81,7 @@ export async function updateTopicById(
     const topic = await updateTopicByIdQuery(
       topicId,
       updatedTopic,
+      req.tenantId!,
       transaction
     );
 
@@ -104,7 +105,7 @@ export async function deleteTopicById(
   try {
     const topicId = parseInt(req.params.id);
 
-    const topic = await deleteTopicByIdQuery(topicId, transaction);
+    const topic = await deleteTopicByIdQuery(topicId, req.tenantId!, transaction);
 
     if (topic) {
       await transaction.commit();
@@ -129,7 +130,7 @@ export async function getTopicByAssessmentId(
       return res.status(400).json(STATUS_CODE[400]("Invalid assessment ID"));
     }
 
-    const topics = await getTopicByAssessmentIdQuery(assessmentId);
+    const topics = await getTopicByAssessmentIdQuery(assessmentId, req.tenantId!);
 
     if (topics && topics.length > 0) {
       return res.status(200).json(STATUS_CODE[200](topics));

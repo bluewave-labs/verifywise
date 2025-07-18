@@ -5,7 +5,6 @@ import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
-import { createNewUser } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import {
   validatePassword,
@@ -26,6 +25,7 @@ import {
   setAuthToken,
 } from "../../../../application/authentication/authSlice";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -40,7 +40,6 @@ const initialState: FormValues = {
 // Initial state for organization form values
 const initialOrganizationState: OrganizationFormValues = {
   organizationName: "",
-  organizationEmail: "",
 };
 
 const RegisterMultiTenant: React.FC = () => {
@@ -128,87 +127,81 @@ const RegisterMultiTenant: React.FC = () => {
     }
 
     // Include organization data in the request
-    const requestBody = { ...values, organization: organizationValues };
+    const requestBody = {
+      name: organizationValues.organizationName,
+      userName: values.name,
+      userSurname: values.surname,
+      userEmail: values.email,
+      userPassword: values.password,
+      userRoleId: values.roleId,
+    };
 
-    await createNewUser({
-      routeUrl: "/users/register",
-      body: requestBody,
-    })
-      .then((response) => {
-        setValues(initialState);
-        setErrors({});
-        setOrganizationValues(initialOrganizationState);
-        setOrganizationErrors({});
+    const response = await apiServices.post("organizations", requestBody);
+    setValues(initialState);
+    setErrors({});
+    setOrganizationValues(initialOrganizationState);
+    setOrganizationErrors({});
 
-        if (response.status === 201) {
-          logEngine({
-            type: "info",
-            message: "Organization and account created successfully.",
-            users,
-          });
-          setTimeout(() => {
-            setIsSubmitting(false);
-            dispatch(setUserExists(true));
-            navigate("/login");
-          }, 3000);
-        } else if (response.status === 400) {
-          logEngine({
-            type: "error",
-            message: "Bad request. Please check your input.",
-            users,
-          });
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Bad request. Please check your input.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        } else if (response.status === 409) {
-          logEngine({
-            type: "event",
-            message: "Organization or account already exists.",
-            users,
-          });
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Organization or account already exists.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        } else if (response.status === 500) {
-          logEngine({
-            type: "error",
-            message: "Internal server error. Please try again later.",
-            users,
-          });
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Internal server error. Please try again later.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        } else {
-          logEngine({
-            type: "error",
-            message: "Unexpected response. Please try again.",
-            users,
-          });
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Unexpected response. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        }
-      })
-      .catch((error) => {
-        logEngine({
-          type: "error",
-          message: `An error occurred: ${error.message}`,
-          users,
-        });
-        setIsSubmitting(false);
+    if (response.status === 201) {
+      logEngine({
+        type: "info",
+        message: "Organization and account created successfully.",
+        users,
       });
+      setTimeout(() => {
+        setIsSubmitting(false);
+        dispatch(setUserExists(true));
+        navigate("/login");
+      }, 3000);
+    } else if (response.status === 400) {
+      logEngine({
+        type: "error",
+        message: "Bad request. Please check your input.",
+        users,
+      });
+      setIsSubmitting(false);
+      setAlert({
+        variant: "error",
+        body: "Bad request. Please check your input.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+    } else if (response.status === 409) {
+      logEngine({
+        type: "event",
+        message: "Organization or account already exists.",
+        users,
+      });
+      setIsSubmitting(false);
+      setAlert({
+        variant: "error",
+        body: "Organization or account already exists.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+    } else if (response.status === 500) {
+      logEngine({
+        type: "error",
+        message: "Internal server error. Please try again later.",
+        users,
+      });
+      setIsSubmitting(false);
+      setAlert({
+        variant: "error",
+        body: "Internal server error. Please try again later.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+    } else {
+      logEngine({
+        type: "error",
+        message: "Unexpected response. Please try again.",
+        users,
+      });
+      setIsSubmitting(false);
+      setAlert({
+        variant: "error",
+        body: "Unexpected response. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 3000);
+    }
   };
 
   const theme = useTheme();
@@ -284,7 +277,7 @@ const RegisterMultiTenant: React.FC = () => {
             </Typography>
             <Typography
               sx={{
-                color: theme.palette.primary.main,
+                color: singleTheme.buttons.primary.contained.backgroundColor,
                 fontSize: 14,
                 fontWeight: "bold",
                 cursor: "pointer",
@@ -304,21 +297,14 @@ const RegisterMultiTenant: React.FC = () => {
                 onChange={handleOrganizationChange("organizationName")}
                 error={organizationErrors.organizationName}
               />
-              <Field
-                label="Organization email"
-                isRequired
-                placeholder="admin@organization.com"
-                sx={fieldStyles}
-                type="email"
-                value={organizationValues.organizationEmail}
-                onChange={handleOrganizationChange("organizationEmail")}
-                error={organizationErrors.organizationEmail}
-              />
               <Button
                 type="submit"
                 disableRipple
                 variant="contained"
-                sx={{ ...singleTheme.buttons.primary, mt: theme.spacing(5) }}
+                sx={{
+                  ...singleTheme.buttons.primary.contained,
+                  mt: theme.spacing(5),
+                }}
               >
                 Next
               </Button>
@@ -356,7 +342,7 @@ const RegisterMultiTenant: React.FC = () => {
             </Typography>
             <Typography
               sx={{
-                color: theme.palette.primary.main,
+                color: singleTheme.buttons.primary.contained.backgroundColor,
                 fontSize: 14,
                 fontWeight: "bold",
                 cursor: "pointer",
@@ -441,7 +427,7 @@ const RegisterMultiTenant: React.FC = () => {
                 type="submit"
                 disableRipple
                 variant="contained"
-                sx={singleTheme.buttons.primary}
+                sx={singleTheme.buttons.primary.contained}
               >
                 Get started
               </Button>

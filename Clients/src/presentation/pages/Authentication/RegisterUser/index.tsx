@@ -73,6 +73,7 @@ const RegisterUser: React.FC = () => {
       firstname: values.name || "",
       lastname: values.surname || "",
       roleId: Number(values.roleId) || 1,
+      organizationId: Number(values.organizationId),
     };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
@@ -145,6 +146,7 @@ const RegisterUser: React.FC = () => {
             name: userInfo.name ?? "",
             email: userInfo.email ?? "",
             roleId: Number(userInfo.roleId) ?? 1,
+            organizationId: Number(userInfo.organizationId),
           };
           setValues(userData);
         }
@@ -306,7 +308,7 @@ const RegisterUser: React.FC = () => {
               type="submit"
               disableRipple
               variant="contained"
-              sx={singleTheme.buttons.primary}
+              sx={singleTheme.buttons.primary.contained}
               disabled={!isInvitationValid}
             >
               Get started

@@ -7,7 +7,6 @@ import Tab from '@mui/material/Tab';
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
-import AITrustCenterControls from "./Controls";
 import AITrustCenterSettings from "./Settings";
 import AITrustCenterOverview from "./Overview";
 import { 
@@ -19,10 +18,28 @@ import {
   aiTrustCenterPreviewButtonStyle
 } from "./styles";
 import CustomizableButton from "../../vw-v2-components/Buttons";
+import { extractUserToken } from "../../../application/tools/extractToken";
+import { useSelector } from "react-redux";
 
 const AITrustCenter: React.FC = () => {
   const [tabValue, setTabValue] = React.useState('overview');
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => setTabValue(newValue);
+  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
+  const userToken = extractUserToken(authToken);
+  const tenantHash = userToken?.tenantId;
+  
+  const handlePreviewMode = () => {
+    try {
+      if (!tenantHash) {
+        console.error('Tenant hash not found in token');
+        return;
+      }
+      const previewUrl = `http://localhost:3000/api/aiTrustCentre/${tenantHash}`;
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Error opening preview:', error);
+    }
+  };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
@@ -62,24 +79,21 @@ const AITrustCenter: React.FC = () => {
               />
               <Tab
                 sx={aiTrustCenterTabStyle}
-                label="Controls"
-                value="controls"
-                disableRipple
-              />
-              <Tab
-                sx={aiTrustCenterTabStyle}
                 label="Settings"
                 value="settings"
                 disableRipple
               />
                <CustomizableButton
                 variant="contained"
-                text={<>Preview Mode</>}
+                text="Preview Mode"
                 sx={{
-                  ...aiTrustCenterPreviewButtonStyle
+                  ...aiTrustCenterPreviewButtonStyle,
+                  opacity: !tenantHash ? 0.5 : 1,
+                  cursor: !tenantHash ? 'not-allowed' : 'pointer',
                 }}
                 icon={<VisibilityIcon />}
-                onClick={() => {}}
+                onClick={handlePreviewMode}
+                isDisabled={!tenantHash}
               />
             </TabList>
           </Box>
@@ -91,9 +105,6 @@ const AITrustCenter: React.FC = () => {
           </TabPanel>
           <TabPanel value="subprocessors" sx={aiTrustCenterTabPanelStyle}>
             <AITrustCenterSubprocessors />
-          </TabPanel>
-          <TabPanel value="controls" sx={aiTrustCenterTabPanelStyle}>
-            <AITrustCenterControls />
           </TabPanel>
           <TabPanel value="settings" sx={aiTrustCenterTabPanelStyle}>
             <AITrustCenterSettings />

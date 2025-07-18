@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Compliance Management API
-  description: API documentation for the compliance management application
+  description: API documentation for Verifywise AI compliance management application
   version: 1.0.0
 
 servers:
@@ -11,6 +11,7 @@ servers:
 paths:
   /assessments:
     get:
+      summary: Returns a list of all the assessments
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -52,6 +53,7 @@ paths:
                 error:
                   type: object
     post:
+      summary: On creating assessments and posting it
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -4336,6 +4338,254 @@ paths:
                   example: internal server error
                 error:
                   type: object
+  
+  /training:
+    get:
+      summary: Returns all the training modules
+      tags: [training]
+      security:
+       - JWTAuth: []
+      responses:
+        "200":
+          description: list all the training modules
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 message:
+                   type: string
+                   example: ok
+                 data:
+                  type: object
+                  items:
+                    $ref: "#components/schemas/TrainingModule"
+        "204":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: no content
+                data:
+                  type: object
+                  items:
+                    $ref: "#components/schemas/TrainingModule"
+        "500":
+          description: internal server error
+          content:
+            appliction/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    
+    post:
+      summary: Creates new training registar
+      tags: [training]
+      security:
+       - JWTAuth: []
+      responses:
+        "201":
+          description: create new training registar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Training successfully created
+                data:
+                type: object
+                items:
+                  $ref: 
+
+        
+        "500":
+          description: Error creating new training (internal server error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: internal server error
+
+                  error:
+                    type: object
+
+  /training/training-id/{id}:
+    get:
+      description: Get training module by id
+      tags: [training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the role
+      responses:
+        "200":
+           decription: get one training data depending on the id
+           content:
+             application/json:
+               schema:
+                 type: object
+                 properties:
+                   message:
+                     type: string
+                     example: ok
+                       
+                 data:
+                   $ref: "#components/schemas/TrainingModule"
+        
+        "404":
+           description: no content to display
+           content:
+              application/json:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: not found
+                  data:
+                    type: object
+        "500":
+            description: internal server error
+            content:
+              application/json:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: internal server error
+                  error:
+                    type: object
+
+  /training/{id}:
+    patch:
+      tags: [training]
+      security:
+       - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: update the training data of one particular instance
+      requestBody:
+        description: body of the training module
+        content:
+          application/json:
+            schema:
+              $ref: "#components/schemas/TrainingModule"            
+      response:
+        "202":
+          description: training data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                   type: object
+                   example: accepted
+                  data:
+                    $ref: "#components/schemas/TrainingModule"
+        "400":
+          description: Need to add all the fields
+          content:
+            application/json:
+              schema:
+                type: string
+                message:
+                  type: string
+                  example: "All fields are required to get updated"
+        "404":
+          description: no content to display
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: not found
+                  data:
+                    type: object
+        
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+    delete:
+      tags: [training]
+      security:
+       - JWTAuth: []
+      parameters:
+       - in: path
+         name: id
+         schema:
+           type: integer
+         required: true
+         description: id of the training to delete
+      responses:
+       "202":
+         description: training data
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 message:
+                   type: string
+                   example: accepted
+                 data:
+                   type: boolean
+                   example: true
+       "404":
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
+       "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+
+
+                
 
 components:
   securitySchemes:
@@ -4884,3 +5134,30 @@ components:
         orderNo:
           type: integer
           example: 1
+
+    TrainingModule:
+      properties:
+        id:
+         type: integer
+         example: 1
+        training_name:
+          type: string
+          example: "AI Training"
+        duration:
+           type: string
+           example: "6 weeks"
+        provider:
+           type: string
+           example: "Verifywise open source AI governance"
+        department:
+          type: string
+          example: "Maths Department"
+        status:
+          type: string
+          enum: [Planned,In Progress, Completed]
+        people:
+          type: integer
+          example: 10
+        description:
+           type: string
+           example: "A training module requiring 6 weeks"

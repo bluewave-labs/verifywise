@@ -28,6 +28,7 @@ function App() {
   const token = useSelector((state: AppState) => state.auth?.authToken);
   const userToken = token ? extractUserToken(token) : null;
   const userRoleName = userToken?.roleName || "";
+  const organizationId = userToken ? parseInt(userToken.organizationId) : null;
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
 
@@ -100,6 +101,7 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
+      organizationId
     }),
     [
       uiValues,
@@ -124,6 +126,7 @@ function App() {
       users,
       refreshUsers,
       userRoleName,
+      organizationId
     ]
   );
 

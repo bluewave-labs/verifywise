@@ -85,7 +85,7 @@ const AITrustCenter: React.FC = () => {
               />
                <CustomizableButton
                 variant="contained"
-                text="Preview Mode"
+                text={<>Preview Mode</>}
                 sx={{
                   ...aiTrustCenterPreviewButtonStyle,
                   opacity: !tenantHash ? 0.5 : 1,

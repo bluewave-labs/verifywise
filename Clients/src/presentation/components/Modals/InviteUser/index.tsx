@@ -32,11 +32,12 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { AxiosError } from "axios";
 
 interface InviteUserModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSendInvite: (email: string, status: number | string) => void;
+  onSendInvite: (email: string, status: number | string, link?: string) => void;
 }
 
 interface FormValues {
@@ -135,9 +136,17 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
 
       try {
         const response = await apiServices.post("/mail/invite", formData);
-        onSendInvite(values.email, response.status);
+        const data = response.data as {
+          message: string;
+          error?: string;
+        };
+        if (response.status === 206) {
+          onSendInvite(values.email, response.status, data.message);
+        } else {
+          onSendInvite(values.email, response.status);
+        }
       } catch (error) {
-        onSendInvite(values.email, -1);
+        onSendInvite(values.email, -1, ((error as AxiosError).response as any).link);
       } finally {
         setIsOpen(false);
       }

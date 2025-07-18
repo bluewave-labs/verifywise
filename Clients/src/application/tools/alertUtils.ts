@@ -15,9 +15,9 @@ interface HandleAlertProps extends AlertProps {
   setAlert: React.Dispatch<React.SetStateAction<AlertProps | null>>;
 }
 
-const ALERT_TIMEOUT = 2500;
+// const ALERT_TIMEOUT = 2500;
 
-const handleAlert = ({ variant, body, title, setAlert }: HandleAlertProps) => {
+const handleAlert = ({ variant, body, title, setAlert, ALERT_TIMEOUT = 2500 }: HandleAlertProps) => {
   setAlert({
     variant,
     title,

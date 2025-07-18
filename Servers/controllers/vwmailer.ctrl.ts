@@ -50,9 +50,9 @@ export const invite = async (req: Request, res: Response, body: {
 
     if (info.error) {
       console.error("Error sending email:", info.error);
-      return res.status(500).json({
-        error: info.error.name,
-        details: info.error.message
+      return res.status(206).json({
+        error: `${info.error.name}: ${info.error.message}`,
+        message: link
       });
     } else {
       return res.status(200).json({ message: "Email sent successfully" });

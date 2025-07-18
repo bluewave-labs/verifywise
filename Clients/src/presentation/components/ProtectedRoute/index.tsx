@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { setUserExists } from "../../../application/authentication/authSlice";
+import { clearAuthState, setUserExists } from "../../../application/authentication/authSlice";
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../../vw-v2-components/Toast";
 
@@ -40,6 +40,9 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
           routeUrl: "/users/check/exists",
         });
         const userExists = response ?? false;
+        if (!userExists) {
+          dispatch(clearAuthState())
+        }
 
         dispatch(setUserExists(userExists));
       } catch (error) {

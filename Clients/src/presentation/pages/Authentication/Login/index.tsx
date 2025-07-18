@@ -136,8 +136,13 @@ const Login: React.FC = () => {
           message: `An error occurred: ${error.message}`,
         });
 
+        let message = "Error submitting form";
+        if (error.message === "Not Found") {
+          message = "User not found. Please try again.";
+        }
+
         setIsSubmitting(false);
-        setAlert({ variant: "error", body: "Error submitting form" });
+        setAlert({ variant: "error", body: message });
         setTimeout(() => setAlert(null), 3000);
       });
   };

@@ -1086,7 +1086,7 @@ export const deleteProjectFrameworkEUQuery = async (
   transaction: Transaction
 ) => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
+    `SELECT id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 1`,
     {
       replacements: { project_id: projectId },
       transaction,

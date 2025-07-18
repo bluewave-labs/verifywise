@@ -961,7 +961,7 @@ const ProjectSettings = React.memo(
               <Typography
                 sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
               >
-                Team members *
+                Team members
               </Typography>
               <Typography sx={{ fontSize: theme.typography.fontSize }}>
                 Add all team members of the project. Only those who are added

@@ -56,6 +56,9 @@ const Reports = () => {
       if (response.status === 200) {
         handleToast("success", "Report deleted successfully.");
         setRefreshKey((prevKey) => prevKey + 1);
+        setFilteredReports((prevReports) =>
+          prevReports.filter((report) => report.id !== id)
+        );
       } else if (response.status === 204) {
         handleToast("error", "Report not found.");
       } else {

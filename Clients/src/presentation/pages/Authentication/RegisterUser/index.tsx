@@ -107,7 +107,7 @@ const RegisterUser: React.FC = () => {
         handleAlert({
           variant: "error",
           body:
-            isSuccess === 409 ? "User already exist." : "Registration failed.",
+            isSuccess === 409 ? "This user already exists." : "Registration failed.",
           setAlert,
         });
       }

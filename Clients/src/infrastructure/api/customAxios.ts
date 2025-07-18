@@ -99,14 +99,30 @@ CustomAxios.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const responseData = (error.response?.data as { message?: string })
     if (error.response?.status === 404) {
-      const errorMessage = (error.response.data as { message?: string })?.message || 'Not found';
+      const errorMessage = responseData?.message || 'Not found';
       return Promise.reject(new Error(errorMessage));
     }
 
-    if (error.response?.status === 403) {
-      performLogout();
-      return Promise.reject(new Error((error.response.data as { message?: string })?.message || 'Forbidden'));
+    if (
+      error.response?.status === 403 &&
+      (
+        responseData.message === 'User does not belong to this organization' ||
+        responseData.message === 'Not allowed to access'
+      )
+    ) {
+      if (showAlertCallback) {
+        showAlertCallback({
+          variant: "info",
+          title: "Access Denied",
+          body: "Please login again to continue.",
+        });
+      }
+      setTimeout(() => {
+        performLogout();
+      }, 1000);
+      return Promise.reject(new Error(responseData?.message || 'Forbidden'));
     }
 
     // If error is 406 (Token Expired) and we haven't tried to refresh yet

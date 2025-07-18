@@ -84,11 +84,11 @@ const menu = [
     icon: <TrainingRegister />,
     path: "/training",
   },
-  {
-    name: "AI Trust Center",
-    icon: <AITrustCenter />,
-    path: "/ai-trust-center",
-  },
+  // {
+  //   name: "AI Trust Center",
+  //   icon: <AITrustCenter />,
+  //   path: "/ai-trust-center",
+  // },
 ];
 
 const other = [

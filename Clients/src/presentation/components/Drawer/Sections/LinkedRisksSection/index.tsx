@@ -10,7 +10,7 @@ function LinkedRisksSection() {
 
   return (
     <>
-      <Stack direction="row" spacing={2}>
+      {/* <Stack direction="row" spacing={2}>
         <Button
           variant="contained"
           sx={{
@@ -30,7 +30,7 @@ function LinkedRisksSection() {
         >
           Add/Remove risks
         </Button>
-      </Stack>
+      </Stack> */}
 
       <Dialog 
         open={isLinkedRisksModalOpen} 

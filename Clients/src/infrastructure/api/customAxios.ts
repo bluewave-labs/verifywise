@@ -23,8 +23,13 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { store } from "../../application/redux/store";
 import { ENV_VARs } from "../../../env.vars";
-import { setAuthToken } from "../../application/authentication/authSlice";
+import { clearAuthState, setAuthToken } from "../../application/authentication/authSlice";
 import { AlertProps } from "../../domain/interfaces/iAlert";
+
+const performLogout = () => {
+  store.dispatch(clearAuthState());
+  window.location.href = '/login';
+};
 
 // Create a global callback for showing alerts
 let showAlertCallback: ((alert: AlertProps) => void) | null = null;
@@ -67,7 +72,7 @@ const processQueue = (error: any, token: string | null = null) => {
 
 // Request interceptor to handle both authorization token and credentials
 CustomAxios.interceptors.request.use(
-  (config) => {    
+  (config) => {
     // Add authorization token
     const state = store.getState();
     const token = state.auth.authToken;
@@ -98,6 +103,12 @@ CustomAxios.interceptors.response.use(
       const errorMessage = (error.response.data as { message?: string })?.message || 'Not found';
       return Promise.reject(new Error(errorMessage));
     }
+
+    if (error.response?.status === 403) {
+      performLogout();
+      return Promise.reject(new Error((error.response.data as { message?: string })?.message || 'Forbidden'));
+    }
+
     // If error is 406 (Token Expired) and we haven't tried to refresh yet
     if (error.response?.status === 406 && !originalRequest._retry) {
       // If this is the refresh token request itself returning 406

@@ -40,9 +40,9 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
           routeUrl: "/users/check/exists",
         });
         const userExists = response ?? false;
-        if (!userExists) {
-          dispatch(clearAuthState())
-        }
+        // if (!userExists) {
+        //   dispatch(clearAuthState())
+        // }
 
         dispatch(setUserExists(userExists));
       } catch (error) {
@@ -75,11 +75,11 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     return <Navigate to="/login" />;
   }
 
-  // For root route and any other route, redirect to login if no users exist
-  if (!authState.userExists) {
-    console.log("No users exist, redirecting to login");
-    return <Navigate to="/login" />;
-  }
+  // // For root route and any other route, redirect to login if no users exist
+  // if (!authState.userExists) {
+  //   console.log("No users exist, redirecting to login");
+  //   return <Navigate to="/login" />;
+  // }
 
   // If users exist and we have an auth token, allow access to protected routes
   if (authState.authToken && authState.authToken.trim() !== "") {

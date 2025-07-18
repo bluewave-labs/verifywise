@@ -260,14 +260,16 @@ const ProjectFrameworks = ({
             if (action === "add")
               triggerRefresh(true, "Framework added successfully");
             else if (action === "remove")
+            {
               triggerRefresh(true, "Framework removed successfully");
+              // Find a framework whose id is not the removed one, and set its id as selected
+              const nextFramework = project.framework.find(
+                (f) => Number(f.framework_id) !== frameworkId
+              );
+              handleFrameworkChange(nextFramework?.framework_id!);
+            }
             else triggerRefresh(true);
           }
-          // Find a framework whose id is not the removed one, and set its id as selected
-          const nextFramework = project.framework.find(
-            (f) => Number(f.framework_id) !== frameworkId
-          );
-          handleFrameworkChange(nextFramework?.framework_id!);
           refreshFilteredFrameworks();
         }}
       />

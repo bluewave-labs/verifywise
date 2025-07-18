@@ -160,6 +160,7 @@ const RegisterMultiTenant: React.FC = () => {
         users,
       });
       setIsSubmitting(false);
+      setShowOrganizationForm(true);
       setAlert({
         variant: "error",
         body: "Bad request. Please check your input.",
@@ -172,6 +173,7 @@ const RegisterMultiTenant: React.FC = () => {
         users,
       });
       setIsSubmitting(false);
+      setShowOrganizationForm(true);
       setAlert({
         variant: "error",
         body: "Organization or account already exists.",
@@ -184,11 +186,23 @@ const RegisterMultiTenant: React.FC = () => {
         users,
       });
       setIsSubmitting(false);
-      setAlert({
-        variant: "error",
-        body: "Internal server error. Please try again later.",
-      });
-      setTimeout(() => setAlert(null), 3000);
+      if ((response.data as { message: string, error: string })?.error === "User with this email already exists") {
+        setAlert({
+          variant: "error",
+          body: "User with this email already exists. Please use a different email.",
+        });
+        setTimeout(() => {
+          setAlert(null)
+          navigate("/login");
+        }, 3000);
+      } else {
+        setShowOrganizationForm(true);
+        setAlert({
+          variant: "error",
+          body: "Internal server error. Please try again later.",
+        });
+        setTimeout(() => setAlert(null), 3000);
+      }
     } else {
       logEngine({
         type: "error",
@@ -196,6 +210,7 @@ const RegisterMultiTenant: React.FC = () => {
         users,
       });
       setIsSubmitting(false);
+      setShowOrganizationForm(true);
       setAlert({
         variant: "error",
         body: "Unexpected response. Please try again.",

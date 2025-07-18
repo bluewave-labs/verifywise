@@ -33,7 +33,6 @@ import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
 import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon.svg";
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
-import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";

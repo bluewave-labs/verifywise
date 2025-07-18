@@ -1,11 +1,11 @@
-import { Button, Dialog, Stack, useTheme } from '@mui/material'
+import { Dialog } from '@mui/material'
 import { Suspense, lazy, useState } from 'react'
 const LinkedRisksPopup = lazy(
   () => import("../../../LinkedRisks")
 );
 
 function LinkedRisksSection() {
-  const theme = useTheme();
+  // const theme = useTheme();
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
 
   return (

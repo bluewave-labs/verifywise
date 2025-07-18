@@ -52,7 +52,7 @@ const ProjectFrameworks = ({
 }: {
   project: Project;
   triggerRefresh?: (isTrigger: boolean, toastMessage?: string) => void;
-  initialFrameworkId?: number;
+  initialFrameworkId: number;
 }) => {
   const {
     filteredFrameworks,
@@ -64,9 +64,7 @@ const ProjectFrameworks = ({
   } = useFrameworks({
     listOfFrameworks: project.framework,
   });
-  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
-    null
-  );
+  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number>(initialFrameworkId);
   const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>(
     "compliance"
   );
@@ -257,7 +255,7 @@ const ProjectFrameworks = ({
         onClose={() => setIsModalOpen(false)}
         frameworks={allFrameworks}
         project={project}
-        onFrameworksChanged={(action) => {
+        onFrameworksChanged={(action, frameworkId?: number) => {
           if (triggerRefresh) {
             if (action === "add")
               triggerRefresh(true, "Framework added successfully");
@@ -265,6 +263,11 @@ const ProjectFrameworks = ({
               triggerRefresh(true, "Framework removed successfully");
             else triggerRefresh(true);
           }
+          // Find a framework whose id is not the removed one, and set its id as selected
+          const nextFramework = project.framework.find(
+            (f) => Number(f.framework_id) !== frameworkId
+          );
+          handleFrameworkChange(nextFramework?.framework_id!);
           refreshFilteredFrameworks();
         }}
       />

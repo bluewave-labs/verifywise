@@ -233,7 +233,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     } else {
       handleAlert({
         variant: "error",
-        body: `Failed to send invitation to ${email}. Please try again or use this `,
+        body: `Failed to send invitation to ${email}. Please try again.`,
         setAlert
       });
     }

@@ -146,7 +146,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
           onSendInvite(values.email, response.status);
         }
       } catch (error) {
-        onSendInvite(values.email, -1, ((error as AxiosError).response as any).link);
+        onSendInvite(values.email, -1);
       } finally {
         setIsOpen(false);
       }

@@ -51,7 +51,7 @@ VerifyWise is designed for:
 ![VerifyWise platform](https://github.com/user-attachments/assets/2d05cd1f-f67b-45d2-aca4-1fdcde287a44)
 
 - Option to host the application on-premises or in a private cloud
-- Open source with a permissive license (AGPLv3)
+- Open source with a copyleft license (AGPLv3)
 - Faster audits using AI-generated answers for compliance and assessment questions
 - Full access to the source code for transparency, security audits, and customization
 - Docker deployment (also deployable on render.com and similar platforms)

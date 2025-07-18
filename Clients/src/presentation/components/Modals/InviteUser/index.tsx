@@ -32,7 +32,6 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { AxiosError } from "axios";
 
 interface InviteUserModalProps {
   isOpen: boolean;

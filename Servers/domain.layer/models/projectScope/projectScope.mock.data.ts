@@ -1,6 +1,6 @@
-import { ProjectScope } from "./projectScope.model";
+import { IProjectScope } from "../../interfaces/i.projectScope";
 
-export const projectScopes = (assessmentId1: number): ProjectScope[] => {
+export const projectScopes = (assessmentId1: number): IProjectScope[] => {
   return [
     {
       id: 1,

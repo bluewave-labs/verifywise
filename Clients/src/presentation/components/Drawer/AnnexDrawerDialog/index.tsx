@@ -589,7 +589,7 @@ const VWISO42001AnnexDrawerDialog = ({
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
 
-          <Stack direction="row" spacing={2}>
+          {/* <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
               sx={{
@@ -610,7 +610,7 @@ const VWISO42001AnnexDrawerDialog = ({
             >
               Add/Remove risks
             </Button>
-          </Stack>
+          </Stack> */}
 
           <Dialog 
             open={isLinkedRisksModalOpen} 

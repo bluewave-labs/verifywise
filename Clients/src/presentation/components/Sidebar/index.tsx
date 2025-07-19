@@ -33,7 +33,6 @@ import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
 import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon.svg";
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
-import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
@@ -49,6 +48,9 @@ import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
+
+
+
 
 const menu = [
   {
@@ -81,11 +83,11 @@ const menu = [
     icon: <TrainingRegister />,
     path: "/training",
   },
-  {
-    name: "AI Trust Center",
-    icon: <AITrustCenter />,
-    path: "/ai-trust-center",
-  },
+  // {
+  //   name: "AI Trust Center",
+  //   icon: <AITrustCenter />,
+  //   path: "/ai-trust-center",
+  // },
 ];
 
 const other = [

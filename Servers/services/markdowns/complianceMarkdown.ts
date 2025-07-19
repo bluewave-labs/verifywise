@@ -32,9 +32,10 @@ type SubControlCategory = {
 
 export async function getComplianceMarkdown(
   projectFrameworkId: number,
-  data: ReportBodyData
+  data: ReportBodyData,
+  tenant: string
 ): Promise<string> {
-  const reportData = await getComplianceReportData(projectFrameworkId);
+  const reportData = await getComplianceReportData(projectFrameworkId, tenant);
 
   const complianceMD = `
 ${data.organizationName || "VerifyWise"} compliance tracker report
@@ -57,11 +58,12 @@ ${reportData}
  * @returns Promise<string> - Compliance tracker data
  */
 export async function getComplianceReportData(
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<string> {
   let rows: string = ``;
   try {
-    const reportData = await getComplianceReportQuery(projectFrameworkId);
+    const reportData = await getComplianceReportQuery(projectFrameworkId, tenant);
     if (reportData.length > 0) {
       rows = reportData
         .map((_controlCategories) => {

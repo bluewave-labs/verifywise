@@ -1,6 +1,6 @@
 export const extractUserToken = (
   token: string
-): { id: any; email: any, name: string, roleId: string, expire: string, iat: string, roleName: string } | null => {
+): { id: any; email: any, name: string, roleId: string, expire: string, iat: string, roleName: string, organizationId: string, tenantId: string } | null => {
   if (!token) {
     console.error("Token is missing!");
     return null;

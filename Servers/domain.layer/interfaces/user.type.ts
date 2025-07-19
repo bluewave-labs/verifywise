@@ -8,4 +8,5 @@ export interface IUser {
   created_at: Date;
   last_login: Date;
   is_demo?: boolean;
+  organization_id?: number;
 }

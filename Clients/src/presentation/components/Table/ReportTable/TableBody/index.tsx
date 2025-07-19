@@ -61,7 +61,8 @@ const ReportTableBody: React.FC<TableProps> = ({
                   type="report"
                   onMouseEvent={() => handleEditRisk()}
                   onDelete={() => handleRemoveReport(row.id)}
-                  onEdit={() => handleDownload(row.id, row.filename)}
+                  onEdit={() => {}}
+                  onDownload={() => handleDownload(row.id, row.filename)}
                   warningTitle="Remove this report?"
                   warningMessage={`Are you sure you want to remove this report. This action is non-recoverable.`}
                 ></IconButton>

@@ -1,10 +1,10 @@
-import { Subcontrol } from "./subcontrol.model";
+import { ISubcontrol } from "../../interfaces/i.subcontrol";
 
 export const subcontrols = (
   controls: number[],
   userId1: number,
   userId2: number
-): Subcontrol[] => {
+): ISubcontrol[] => {
   return [
     {
       title:

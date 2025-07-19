@@ -113,6 +113,7 @@
     "./types/*.d.ts",
     "./structures/**/*.ts",
     "./types/**/*.d.ts",
+    "./tools/**/*.ts",
     "types/status.type.ts",
     "domain.layer/models/user/user.model.ts",
     "domain.layer/tests/**/*.ts",

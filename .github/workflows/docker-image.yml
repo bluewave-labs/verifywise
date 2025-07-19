@@ -6,6 +6,7 @@ on:
 
 jobs:
   build-and-push:
+    if: ${{ !startsWith(github.event.release.tag_name, 'saas-') }} 
     runs-on: ubuntu-latest
 
     permissions:

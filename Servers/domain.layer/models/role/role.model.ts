@@ -1,16 +1,11 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-
-export type Role = {
-  id?: number;
-  name: string;
-  description: string;
-  created_at?: Date;
-}
+import { IRoleAttributes } from "../../interfaces/i.role";
+import { ValidationException } from "../../exceptions/custom.exception";
 
 @Table({
   tableName: "roles"
 })
-export class RoleModel extends Model<Role> {
+export class RoleModel extends Model<RoleModel> implements IRoleAttributes {
 
   @Column({
     type: DataType.INTEGER,
@@ -40,4 +35,21 @@ export class RoleModel extends Model<Role> {
     type: DataType.DATE
   })
   created_at?: Date;
+
+  static async createRole(
+    name: string,
+    description: string
+  ): Promise<RoleModel> {
+    if (!name) {
+      throw new ValidationException("Role name is required", "name", name);
+    }
+    if (!description) {
+      throw new ValidationException("Role description is required", "description", description);
+    }
+    const role = new RoleModel()
+    role.name = name
+    role.description = description
+    role.created_at = new Date()
+    return role
+  }
 }

@@ -1,0 +1,122 @@
+### AI Trust Centre Overview API Tests
+
+### Get AI Trust Centre Overview
+GET {{baseUrl}}/api/aiTrustCentre/overview
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### Create AI Trust Centre Overview
+POST {{baseUrl}}/api/aiTrustCentre/overview
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "intro": {
+    "intro_visible": true,
+    "purpose_visible": true,
+    "purpose_text": "Our Trust Center demonstrates our commitment to responsible AI practices and data privacy.",
+    "our_statement_visible": true,
+    "our_statement_text": "We are committed to ethical AI development and transparent data practices.",
+    "our_mission_visible": true,
+    "our_mission_text": "To build trust through responsible AI innovation and transparent governance."
+  },
+  "compliance_badges": {
+    "badges_visible": true,
+    "SOC2_Type_I": true,
+    "SOC2_Type_II": true,
+    "ISO_27001": true,
+    "ISO_42001": true,
+    "CCPA": true,
+    "GDPR": true,
+    "HIPAA": true,
+    "EU_AI_Act": true
+  },
+  "company_info": {
+    "company_info_visible": true,
+    "background_visible": true,
+    "background_text": "We are a leading AI company focused on ethical and responsible AI development.",
+    "core_benefit_visible": true,
+    "core_benefit_text": "Our AI solutions provide enhanced security, efficiency, and customer support while maintaining the highest ethical standards.",
+    "compliance_doc_visible": true,
+    "compliance_doc_text": "Access our comprehensive compliance documentation and certifications."
+  },
+  "terms_and_contact": {
+    "is_visible": true,
+    "has_terms_of_service": true,
+    "terms_of_service": "https://example.com/terms-of-service",
+    "has_privacy_policy": true,
+    "privacy_policy": "https://example.com/privacy-policy",
+    "has_company_email": true,
+    "company_email": "privacy@example.com"
+  }
+}
+
+### Update AI Trust Centre Overview (Partial Update)
+PUT {{baseUrl}}/api/aiTrustCentre/overview
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "intro": {
+    "intro_visible": true,
+    "purpose_visible": true,
+    "purpose_text": "Updated purpose text for our Trust Center."
+  },
+  "compliance_badges": {
+    "badges_visible": true,
+    "SOC2_Type_I": true,
+    "SOC2_Type_II": false,
+    "ISO_27001": true,
+    "ISO_42001": true,
+    "CCPA": true,
+    "GDPR": true,
+    "HIPAA": false,
+    "EU_AI_Act": true
+  }
+}
+
+### Update AI Trust Centre Overview (Full Update)
+PUT {{baseUrl}}/api/aiTrustCentre/overview
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "intro": {
+    "intro_visible": true,
+    "purpose_visible": true,
+    "purpose_text": "Our Trust Center demonstrates our commitment to responsible AI practices and data privacy.",
+    "our_statement_visible": true,
+    "our_statement_text": "We are committed to ethical AI development and transparent data practices.",
+    "our_mission_visible": true,
+    "our_mission_text": "To build trust through responsible AI innovation and transparent governance."
+  },
+  "compliance_badges": {
+    "badges_visible": true,
+    "SOC2_Type_I": true,
+    "SOC2_Type_II": true,
+    "ISO_27001": true,
+    "ISO_42001": true,
+    "CCPA": true,
+    "GDPR": true,
+    "HIPAA": true,
+    "EU_AI_Act": true
+  },
+  "company_info": {
+    "company_info_visible": true,
+    "background_visible": true,
+    "background_text": "We are a leading AI company focused on ethical and responsible AI development.",
+    "core_benefit_visible": true,
+    "core_benefit_text": "Our AI solutions provide enhanced security, efficiency, and customer support while maintaining the highest ethical standards.",
+    "compliance_doc_visible": true,
+    "compliance_doc_text": "Access our comprehensive compliance documentation and certifications."
+  },
+  "terms_and_contact": {
+    "is_visible": true,
+    "has_terms_of_service": true,
+    "terms_of_service": "https://example.com/terms-of-service",
+    "has_privacy_policy": true,
+    "privacy_policy": "https://example.com/privacy-policy",
+    "has_company_email": true,
+    "company_email": "privacy@example.com"
+  }
+} 

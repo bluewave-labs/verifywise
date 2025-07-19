@@ -22,6 +22,9 @@ export interface IconButtonProps {
   warningMessage: string;
   type: string;
   onMouseEvent: (event: React.SyntheticEvent) => void;
+  onMakeVisible?: () => void;
+  onDownload?: () => void;
+  isVisible?: boolean;
 }
 
 export interface AutoCompleteOption {

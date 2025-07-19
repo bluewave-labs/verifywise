@@ -29,6 +29,7 @@ const NoProject = ({ message }: NoProjectProps) => {
           textAlign: "center",
           mt: 13.5,
           color: theme.palette.text.tertiary,
+          textWrap: "balance",
         }}
       >
         {message}

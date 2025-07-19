@@ -69,7 +69,22 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<number | null>(null);
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const [aiRiskAnchor, setAiRiskAnchor] = useState<null | HTMLElement>(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [selectedRiskData, setSelectedRiskData] = useState<{
+    riskName: string;
+    actionOwner: number;
+    aiLifecyclePhase: number;
+    riskDescription: string;
+    riskCategory: number[];
+    potentialImpact: string;
+    assessmentMapping: number;
+    controlsMapping: number;
+    likelihood: number;
+    riskSeverity: number;
+    riskLevel: number;
+    reviewNotes: string;
+  } | null>(null);
 
   const fetchProjectRisks = useCallback(async () => {
     try {
@@ -108,6 +123,30 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   const handleAIModalOpen = () => {
     setIsAIModalOpen(true);
+  };
+
+  const handleAiRiskOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
+    setAiRiskAnchor(aiRiskAnchor ? null : event.currentTarget);
+  };
+
+  const handleRiskSelected = (riskData: {
+    riskName: string;
+    actionOwner: number;
+    aiLifecyclePhase: number;
+    riskDescription: string;
+    riskCategory: number[];
+    potentialImpact: string;
+    assessmentMapping: number;
+    controlsMapping: number;
+    likelihood: number;
+    riskSeverity: number;
+    riskLevel: number;
+    reviewNotes: string;
+  }) => {
+    setSelectedRiskData(riskData);
+    // Created a dummy anchor element to trigger the popup
+    const dummyElement = document.createElement('div');
+    setAiRiskAnchor(dummyElement);
   };
 
   const handleLoading = (message: string) => {
@@ -324,7 +363,31 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       <AddNewRiskMITModal
         isOpen={isAIModalOpen}
         setIsOpen={setIsAIModalOpen}
+        onRiskSelected={handleRiskSelected}
       />
+      {selectedRiskData && aiRiskAnchor && (
+        <Popup
+          popupId="add-risk-from-ai-popup"
+          popupContent={
+            <AddNewRiskForm
+              closePopup={() => {
+                setAiRiskAnchor(null);
+                setSelectedRiskData(null);
+              }}
+              popupStatus="new"
+              onSuccess={handleSuccess}
+              onError={handleError}
+              onLoading={handleLoading}
+              initialRiskValues={selectedRiskData}
+            />
+          }
+          openPopupButtonName="Add risk from AI database"
+          popupTitle="Add a new risk from AI database"
+          popupSubtitle="Review and edit the selected risk from the AI database before saving."
+          handleOpenOrClose={handleAiRiskOpenOrClose}
+          anchor={aiRiskAnchor}
+        />
+      )}
     </Stack>
   );
 };

@@ -63,7 +63,7 @@ const ResourceTableRow: React.FC<{
           isVisible={resource.visible}
           warningTitle={WARNING_MESSAGES.deleteTitle}
           warningMessage={WARNING_MESSAGES.deleteMessage}
-          type="Resource"
+          type="resource"
         />
       </TableCell>
     </TableRow>

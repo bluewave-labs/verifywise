@@ -65,7 +65,7 @@ const SubprocessorTableRow: React.FC<{
             onDelete={() => onDelete(subprocessor.id)}
             onEdit={() => onEdit(subprocessor.id)}
             onMouseEvent={() => {}}
-            type="file"
+            type=""
             warningTitle={WARNING_MESSAGES.deleteTitle}
             warningMessage={WARNING_MESSAGES.deleteMessage}
           />

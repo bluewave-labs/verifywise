@@ -7,6 +7,8 @@ import Field from '../../../components/Inputs/Field';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import { Modal, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import { useTheme } from '@mui/material/styles';
 
 import {
   INITIAL_SUBPROCESSORS,
@@ -20,10 +22,11 @@ const SubprocessorTableRow: React.FC<{
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
 }> = ({ subprocessor, onDelete, onEdit }) => {
-  const styles = useStyles();
+  const theme = useTheme();
+  const styles = useStyles(theme);
   
   return (
-    <TableRow key={subprocessor.id}>
+    <TableRow sx={styles.tableRow(false)}>
       <TableCell>
         <Typography sx={styles.tableDataCell}>{subprocessor.company}</Typography>
       </TableCell>
@@ -70,12 +73,15 @@ const ModalField: React.FC<{
 );
 
 const AITrustCenterSubprocessors: React.FC = () => {
-  const styles = useStyles();
+  const theme = useTheme();
+  const styles = useStyles(theme);
   const [enabled, setEnabled] = useState(true);
   const [subprocessors, setSubprocessors] = useState(INITIAL_SUBPROCESSORS);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ company: '', purpose: '', url: '', location: '' });
+  const [newSubprocessor, setNewSubprocessor] = useState({ company: '', purpose: '', url: '', location: '' });
 
   const handleToggle = () => setEnabled((prev) => !prev);
   
@@ -111,6 +117,32 @@ const AITrustCenterSubprocessors: React.FC = () => {
     setEditId(null);
   };
 
+  // Add subprocessor handlers
+  const handleOpenAddModal = () => {
+    if (!enabled) return;
+    setAddModalOpen(true);
+    setNewSubprocessor({ company: '', purpose: '', url: '', location: '' });
+  };
+
+  const handleCloseAddModal = () => {
+    setAddModalOpen(false);
+    setNewSubprocessor({ company: '', purpose: '', url: '', location: '' });
+  };
+
+  const handleNewSubprocessorChange = (field: string, value: string) => {
+    if (!enabled) return;
+    setNewSubprocessor((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddSubprocessor = () => {
+    if (!enabled) return;
+    const newId = Math.max(...subprocessors.map(sp => sp.id)) + 1;
+    const newSub = { id: newId, ...newSubprocessor };
+    setSubprocessors((prev) => [...prev, newSub]);
+    setAddModalOpen(false);
+    setNewSubprocessor({ company: '', purpose: '', url: '', location: '' });
+  };
+
   return (
     <Box>
       <Typography sx={styles.description}>
@@ -118,19 +150,25 @@ const AITrustCenterSubprocessors: React.FC = () => {
       </Typography>
       <Box sx={styles.container}>
         <Box sx={styles.subprocessorsHeader}>
-          <Typography variant="subtitle1" sx={styles.title}>
-            Subprocessors
-          </Typography>
-          <Box sx={styles.toggleRow}>
-            <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle checked={enabled} onChange={handleToggle} />
+          <Box sx={styles.headerControls}>
+            <CustomizableButton
+              sx={styles.addButton}
+              variant="contained"
+              onClick={handleOpenAddModal}
+              isDisabled={!enabled}
+              text="Add new subprocessor"
+              icon={<AddIcon />}
+            />
+            <Box sx={styles.toggleRow}>
+              <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
+              <Toggle checked={enabled} onChange={handleToggle} />
+            </Box>
           </Box>
         </Box>
-        <Box sx={{ position: 'relative' }}>
+        <Box sx={styles.tableWrapper}>
           <TableContainer component={Paper} sx={{ 
             ...styles.tableContainer,
-            opacity: enabled ? 1 : 0.5, 
-            pointerEvents: enabled ? 'auto' : 'none' 
+            ...(enabled ? {} : { opacity: 0.9, pointerEvents: 'none' })
           }}>
             <Table>
               <TableHead>
@@ -141,14 +179,24 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {subprocessors.map((sp) => (
-                  <SubprocessorTableRow
-                    key={sp.id}
-                    subprocessor={sp}
-                    onDelete={handleDelete}
-                    onEdit={handleEdit}
-                  />
-                ))}
+                {subprocessors.length > 0 ? (
+                  subprocessors.map((sp) => (
+                    <SubprocessorTableRow
+                      key={sp.id}
+                      subprocessor={sp}
+                      onDelete={handleDelete}
+                      onEdit={handleEdit}
+                    />
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Typography sx={styles.emptyStateText}>
+                        No subprocessors found. Add your first subprocessor to get started.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -198,6 +246,54 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 onClick={handleEditSave}
                 isDisabled={!enabled}
                 text="Edit subprocessor"
+              />
+            </Stack>
+          </Box>
+        </Modal>
+
+        {/* Add Subprocessor Modal */}
+        <Modal open={addModalOpen} onClose={handleCloseAddModal}>
+          <Box sx={styles.modal}>
+            <Box sx={styles.modalHeader}>
+              <Typography sx={styles.modalTitle}>Add new subprocessor</Typography>
+              <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <Stack spacing={3}>
+              <ModalField
+                label="Company name"
+                value={newSubprocessor.company}
+                onChange={(value) => handleNewSubprocessorChange('company', value)}
+                enabled={enabled}
+              />
+              <ModalField
+                label="Purpose"
+                value={newSubprocessor.purpose}
+                onChange={(value) => handleNewSubprocessorChange('purpose', value)}
+                enabled={enabled}
+              />
+              <ModalField
+                label="URL"
+                value={newSubprocessor.url}
+                onChange={(value) => handleNewSubprocessorChange('url', value)}
+                enabled={enabled}
+              />
+              <ModalField
+                label="Location"
+                value={newSubprocessor.location}
+                onChange={(value) => handleNewSubprocessorChange('location', value)}
+                enabled={enabled}
+              />
+              <CustomizableButton
+                sx={{
+                  ...styles.modalButton,
+                  ...(enabled ? {} : styles.modalButtonDisabled)
+                }}
+                variant="contained"
+                onClick={handleAddSubprocessor}
+                isDisabled={!enabled || !newSubprocessor.company || !newSubprocessor.purpose || !newSubprocessor.url || !newSubprocessor.location}
+                text="Add subprocessor"
               />
             </Stack>
           </Box>

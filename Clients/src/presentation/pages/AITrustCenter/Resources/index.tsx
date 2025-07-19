@@ -386,7 +386,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
             component={Paper} 
             sx={{
               ...styles.tableContainer,
-              ...(formData?.info?.resources_visible ? {} : { opacity: 0.5, pointerEvents: 'none' })
+              ...(formData?.info?.resources_visible ? {} : { opacity: 0.9, pointerEvents: 'none' })
             }}
           >
             <Table>

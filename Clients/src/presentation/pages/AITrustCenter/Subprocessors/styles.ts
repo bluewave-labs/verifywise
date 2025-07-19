@@ -1,107 +1,199 @@
-import { useTheme } from '@mui/material/styles';
+import { keyframes } from "@mui/system";
+import { SxProps, Theme } from '@mui/material';
 
-export const useStyles = () => {
-  const theme = useTheme();
+// Flash animation
+export const flashAnimation = keyframes`
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(82, 171, 67, 0.2); // Light green color
+  }
+  100% {
+    background-color: transparent;
+  }
+`;
 
-  return {
-    title: {
-      fontWeight: 600,
-      marginBottom: theme.spacing(2),
-      fontSize: 13,
+type StylesType = {
+  description: SxProps<Theme>;
+  container: SxProps<Theme>;
+  subprocessorsHeader: SxProps<Theme>;
+  title: SxProps<Theme>;
+  headerControls: SxProps<Theme>;
+  toggleRow: SxProps<Theme>;
+  toggleLabel: SxProps<Theme>;
+  tableWrapper: SxProps<Theme>;
+  tableContainer: SxProps<Theme>;
+  tableCell: SxProps<Theme>;
+  tableRow: (isFlashing: boolean) => SxProps<Theme>;
+  tableDataCell: SxProps<Theme>;
+  emptyStateText: SxProps<Theme>;
+  overlay: SxProps<Theme>;
+  addButton: SxProps<Theme>;
+  modal: SxProps<Theme>;
+  modalHeader: SxProps<Theme>;
+  modalTitle: SxProps<Theme>;
+  modalButton: SxProps<Theme>;
+  modalButtonDisabled: SxProps<Theme>;
+};
+
+export const useStyles = (theme: Theme): StylesType => ({
+  description: {
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.secondary,
+    lineHeight: 1.5,
+    mb: 3,
+  },
+
+  container: {
+    mt: 3,
+  },
+
+  subprocessorsHeader: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 3,
+    mb: 2,
+    padding: '10px 0',
+  },
+
+  title: {
+    fontWeight: 600,
+    fontSize: theme.typography.h6.fontSize,
+    color: theme.palette.text.primary,
+  },
+
+  headerControls: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: theme.spacing(3),
+  },
+
+  toggleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+  },
+
+  toggleLabel: {
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.primary,
+    fontWeight: 600,
+  },
+
+  tableWrapper: {
+    position: 'relative',
+    mb: 3,
+  },
+
+  tableContainer: {
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: 'none',
+    border: `1px solid ${theme.palette.divider}`,
+  },
+
+  tableCell: {
+    fontSize: theme.typography.caption.fontSize,
+    fontWeight: 600,
+    color: theme.palette.text.secondary,
+    backgroundColor: theme.palette.grey[50],
+    borderBottom: `1px solid ${theme.palette.divider}`,
+  },
+
+  tableRow: (isFlashing: boolean) => ({
+    '&:hover': {
+      backgroundColor: theme.palette.grey[50],
     },
-    description: {
-      color: theme.palette.text.secondary,
-      fontSize: 13,
-      marginBottom: theme.spacing(3),
+    '& .MuiTableCell-root': {
+      padding: '8px 10px !important',
     },
-    container: {
-      background: '#fff',
-      borderRadius: theme.shape.borderRadius,
-      boxShadow: '0 1px 4px rgba(16,30,54,0.04)',
-      padding: theme.spacing(4),
-      marginTop: theme.spacing(2),
-    },
-    subprocessorsHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: theme.spacing(2),
-    },
-    toggleLabel: {
-      fontWeight: 600,
-      fontSize: 13,
-      color: theme.palette.text.primary,
-      marginRight: 5,
-    },
-    toggleRow: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      marginBottom: theme.spacing(2),
-    },
-    // Table styles
-    tableContainer: {
-      boxShadow: 'none',
-    },
-    tableCell: {
-      fontWeight: 600,
-      fontSize: 13,
-    },
-    tableDataCell: {
-      fontSize: 13,
-      color: '#475467',
-    },
-    // Overlay styles
-    overlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      bgcolor: 'rgba(255,255,255,0.6)',
-      zIndex: 2,
-      pointerEvents: 'none',
-      borderRadius: 2,
-    },
-    // Modal styles
-    modal: {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      bgcolor: '#fff',
-      borderRadius: 2,
-      boxShadow: 3,
-      p: 6,
-      minWidth: 350,
-      maxWidth: 400,
-      width: '100%',
-      outline: 'none',
-    },
-    modalHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      mb: 4,
-    },
-    modalTitle: {
-      fontWeight: 600,
-      fontSize: 16,
-    },
-    // Modal button styles
-    modalButton: {
-      mt: 2,
-      alignSelf: 'flex-end',
+    ...(isFlashing && {
+      animation: `${flashAnimation} 2s ease-in-out`,
+    }),
+  }),
+
+  tableDataCell: {
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.secondary,
+  },
+
+  emptyStateText: {
+    fontSize: theme.typography.body2.fontSize,
+    color: theme.palette.text.secondary,
+    fontStyle: 'italic',
+  },
+
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    zIndex: 1,
+  },
+
+  addButton: {
+    alignSelf: "flex-end",
+    width: "fit-content",
+    gap: 2,
+    backgroundColor: '#13715B',
+    border: `1px solid #13715B`,
+  },
+
+  // Modal styles
+  modal: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    bgcolor: '#fff',
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[4],
+    p: 6,
+    minWidth: 350,
+    maxWidth: 400,
+    width: '100%',
+    outline: 'none',
+  },
+
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    mb: 4,
+  },
+
+  modalTitle: {
+    fontSize: theme.typography.h6.fontSize,
+    fontWeight: 600,
+    color: theme.palette.text.primary,
+  },
+
+  modalButton: {
+    mt: 2,
+    alignSelf: 'flex-end',
+    backgroundColor: '#13715B',
+    border: '1px solid #13715B',
+    color: '#fff',
+    borderRadius: theme.shape.borderRadius,
+    textTransform: 'none',
+    fontWeight: 600,
+    gap: 1,
+    '&:hover': {
       backgroundColor: '#13715B',
-      border: '1px solid #13715B',
-      color: '#fff',
-      borderRadius: 2,
-      textTransform: 'none',
-      fontWeight: 600,
     },
-    modalButtonDisabled: {
-      backgroundColor: '#ccc',
-      border: '1px solid #ccc',
+    '&:disabled': {
+      backgroundColor: theme.palette.grey[300],
+      border: `1px solid ${theme.palette.grey[300]}`,
+      color: `${theme.palette.text.secondary} !important`,
     },
-  };
-}; 
+  },
+
+  modalButtonDisabled: {
+    backgroundColor: theme.palette.grey[300],
+    border: `1px solid ${theme.palette.grey[300]}`,
+  },
+}); 

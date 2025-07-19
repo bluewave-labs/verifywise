@@ -364,6 +364,14 @@ const [formData, setFormData] = useState<FormData | null>(null);
       
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
+          <CustomizableButton
+            sx={styles.addButton}
+            variant="contained"
+            onClick={handleOpenAddModal}
+            isDisabled={!formData?.info?.resources_visible}
+            text="Add new resource"
+            icon={<AddIcon />}
+          />
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
             <Toggle 
@@ -416,17 +424,6 @@ const [formData, setFormData] = useState<FormData | null>(null);
           </TableContainer>
           {!formData?.info?.resources_visible && <Box sx={styles.overlay} />}
         </Box>
-        
-        <Stack>
-          <CustomizableButton
-            sx={styles.addButton}
-            variant="contained"
-            onClick={handleOpenAddModal}
-            isDisabled={!formData?.info?.resources_visible}
-            text="Add new resource"
-            icon={<AddIcon />}
-          />
-        </Stack>
 
         {/* Add Resource Modal */}
         <Dialog 

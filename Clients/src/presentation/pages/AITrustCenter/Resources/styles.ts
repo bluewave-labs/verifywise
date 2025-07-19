@@ -64,6 +64,7 @@ export const useStyles = (theme: Theme): StylesType => ({
     display: 'flex',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    gap: 3,
     mb: 2,
     padding: '10px 0',
   },
@@ -164,7 +165,6 @@ export const useStyles = (theme: Theme): StylesType => ({
     gap: 2,
     backgroundColor: '#13715B',
     border: `1px solid #13715B`,
-    mt: 10,
   },
 
   // Modal styles

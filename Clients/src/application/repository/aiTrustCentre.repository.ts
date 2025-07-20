@@ -199,3 +199,119 @@ export async function updateAITrustCentreResource(
     throw error;
   }
 }
+
+/**
+ * Fetches AI Trust Center subprocessors.
+ *
+ * @param {string} [authToken=getAuthToken()] - Optional auth token.
+ * @returns {Promise<any>} The AI Trust Center subprocessors.
+ */
+export async function getAITrustCentreSubprocessors(
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const response = await apiServices.get("/aiTrustCentre/subprocessors", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching AI Trust Center subprocessors:", error);
+    throw error;
+  }
+}
+
+/**
+ * Creates a new AI Trust Center subprocessor.
+ *
+ * @param {string} name - The name of the subprocessor.
+ * @param {string} purpose - The purpose of the subprocessor.
+ * @param {string} location - The location of the subprocessor.
+ * @param {string} url - The URL of the subprocessor.
+ * @param {string} [authToken=getAuthToken()] - Optional auth token.
+ * @returns {Promise<any>} The response from the API.
+ */
+export async function createAITrustCentreSubprocessor(
+  name: string,
+  purpose: string,
+  location: string,
+  url: string,
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const response = await apiServices.post("/aiTrustCentre/subprocessors", {
+      name,
+      purpose,
+      location,
+      url,
+    }, {
+      headers: { 
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating AI Trust Center subprocessor:", error);
+    throw error;
+  }
+}
+
+/**
+ * Updates an AI Trust Center subprocessor.
+ *
+ * @param {number} subprocessorId - The ID of the subprocessor to update.
+ * @param {string} name - The name of the subprocessor.
+ * @param {string} purpose - The purpose of the subprocessor.
+ * @param {string} location - The location of the subprocessor.
+ * @param {string} url - The URL of the subprocessor.
+ * @param {string} [authToken=getAuthToken()] - Optional auth token.
+ * @returns {Promise<any>} The response from the API.
+ */
+export async function updateAITrustCentreSubprocessor(
+  subprocessorId: number,
+  name: string,
+  purpose: string,
+  location: string,
+  url: string,
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const response = await apiServices.put(`/aiTrustCentre/subprocessors/${subprocessorId}`, {
+      name,
+      purpose,
+      location,
+      url,
+    }, {
+      headers: { 
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "application/json"
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating AI Trust Center subprocessor:", error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes an AI Trust Center subprocessor.
+ *
+ * @param {number} subprocessorId - The ID of the subprocessor to delete.
+ * @param {string} [authToken=getAuthToken()] - Optional auth token.
+ * @returns {Promise<any>} The response from the API.
+ */
+export async function deleteAITrustCentreSubprocessor(
+  subprocessorId: number,
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const response = await apiServices.delete(`/aiTrustCentre/subprocessors/${subprocessorId}`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting AI Trust Center subprocessor:", error);
+    throw error;
+  }
+}

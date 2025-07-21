@@ -27,5 +27,5 @@ export interface AlertProps {
   hasIcon?: boolean;
   onClick?: () => void;
   sx?: SxProps<Theme> | undefined;
-  ALERT_TIMEOUT?: number;
+  alertTimeout?: number;
 }

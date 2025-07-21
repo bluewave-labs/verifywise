@@ -228,7 +228,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
         variant: "info",
         body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
         setAlert,
-        ALERT_TIMEOUT: 20000
+        alertTimeout: 20000
       })
     } else {
       handleAlert({

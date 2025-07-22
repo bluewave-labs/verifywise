@@ -30,91 +30,130 @@ import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
+import { logFailure, logProcessing, logSuccess } from "../utils/logger/logHelper";
 
-export async function getAllAssessments(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function getAllAssessments(req: Request, res: Response): Promise<any> {
+  logProcessing({
+    description: "starting getAllAssessments",
+    functionName: "getAllAssessments",
+    fileName: "assessment.ctrl.ts",
+  });
+
   try {
     const assessments = await getAllAssessmentsQuery(req.tenantId!);
 
-    if (assessments) {
-      return res.status(200).json(STATUS_CODE[200](assessments));
-    }
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved all assessments",
+      functionName: "getAllAssessments",
+      fileName: "assessment.ctrl.ts",
+    });
 
-    return res.status(204).json(STATUS_CODE[204](assessments));
+    return res.status(assessments ? 200 : 204).json(STATUS_CODE[assessments ? 200 : 204](assessments));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve assessments",
+      functionName: "getAllAssessments",
+      fileName: "assessment.ctrl.ts",
+      error: error as Error,
+    });
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
-export async function getAssessmentById(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function getAssessmentById(req: Request, res: Response): Promise<any> {
+  const assessmentId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting getAssessmentById for ID ${assessmentId}`,
+    functionName: "getAssessmentById",
+    fileName: "assessment.ctrl.ts",
+  });
+
   try {
-    const assessmentId = parseInt(req.params.id);
     const assessment = await getAssessmentByIdQuery(assessmentId, req.tenantId!);
 
-    if (assessment) {
-      return res.status(200).json(STATUS_CODE[200](assessment));
-    }
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved assessment ID ${assessmentId}`,
+      functionName: "getAssessmentById",
+      fileName: "assessment.ctrl.ts",
+    });
 
-    return res.status(404).json(STATUS_CODE[404](assessment));
+    return res.status(assessment ? 200 : 404).json(STATUS_CODE[assessment ? 200 : 404](assessment));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve assessment by ID",
+      functionName: "getAssessmentById",
+      fileName: "assessment.ctrl.ts",
+      error: error as Error,
+    });
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
-export async function createAssessment(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function createAssessment(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
+  logProcessing({
+    description: "starting createAssessment",
+    functionName: "createAssessment",
+    fileName: "assessment.ctrl.ts",
+  });
+
   try {
     const assessmentData = req.body;
 
     // Validate required fields
     if (!assessmentData.project_id) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "project_id is required",
-          field: "project_id",
-        })
-      );
+      return res.status(400).json(STATUS_CODE[400]({
+        message: "project_id is required",
+        field: "project_id",
+      }));
     }
 
-    // const createdAssessment = await createNewAssessmentQuery(
-    //   newAssessment,
-    //   false,
-    //   req.tenantId!,
-    //   transaction
-    // );
-
-    // Use AssessmentModel's CreateNewAssessment method
-    const createdAssessment = await AssessmentModel.CreateNewAssessment(
-      assessmentData
-    );
+    const createdAssessment = await AssessmentModel.CreateNewAssessment(assessmentData);
 
     if (createdAssessment) {
       await transaction.commit();
-      return res.status(201).json(
-        STATUS_CODE[201]({
-          message: "Assessment created successfully",
-          assessment: createdAssessment.toSafeJSON(),
-        })
-      );
+
+      await logSuccess({
+        eventType: "Create",
+        description: "Created new assessment",
+        functionName: "createAssessment",
+        fileName: "assessment.ctrl.ts",
+      });
+
+      return res.status(201).json(STATUS_CODE[201]({
+        message: "Assessment created successfully",
+        assessment: createdAssessment.toSafeJSON(),
+      }));
     }
 
     await transaction.rollback();
-    return res.status(503).json(
-      STATUS_CODE[503]({
-        message: "Failed to create assessment",
-      })
-    );
+
+    await logSuccess({
+      eventType: "Create",
+      description: "Assessment creation returned null",
+      functionName: "createAssessment",
+      fileName: "assessment.ctrl.ts",
+    });
+
+    return res.status(503).json(STATUS_CODE[503]({
+      message: "Failed to create assessment",
+    }));
   } catch (error) {
     await transaction.rollback();
-    console.error("Error creating assessment:", error);
+
+    await logFailure({
+      eventType: "Create",
+      description: "Error creating assessment",
+      functionName: "createAssessment",
+      fileName: "assessment.ctrl.ts",
+      error: error as Error,
+    });
 
     if (error instanceof ValidationException) {
       return res.status(400).json(STATUS_CODE[400](error));
@@ -124,66 +163,66 @@ export async function createAssessment(
   }
 }
 
-export async function updateAssessmentById(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function updateAssessmentById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
+  const assessmentId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting updateAssessmentById for ID ${assessmentId}`,
+    functionName: "updateAssessmentById",
+    fileName: "assessment.ctrl.ts",
+  });
+
   try {
-    const assessmentId = parseInt(req.params.id);
     const assessmentData = req.body;
 
-    if (isNaN(assessmentId)) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "Invalid assessment ID provided",
-          field: "id",
-          value: req.params.id,
-        })
-      );
-    }
-
-    // const assessment = await updateAssessmentByIdQuery(
-    //   assessmentId,
-    //   updatedAssessment,
-    //   req.tenantId!,
-    //   transaction
-    // );
-
-    // Validate required fields
     if (!assessmentData.project_id) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "project_id is required",
-          field: "project_id",
-        })
-      );
+      return res.status(400).json(STATUS_CODE[400]({
+        message: "project_id is required",
+        field: "project_id",
+      }));
     }
 
-    // Use AssessmentModel's UpdateAssessment method
-    const [updatedCount, updatedAssessments] =
-      await AssessmentModel.UpdateAssessment(assessmentId, assessmentData);
+    const [updatedCount, updatedAssessments] = await AssessmentModel.UpdateAssessment(assessmentId, assessmentData);
 
     if (updatedCount > 0 && updatedAssessments.length > 0) {
       await transaction.commit();
-      return res.status(202).json(
-        STATUS_CODE[202]({
-          message: "Assessment updated successfully",
-          assessment: updatedAssessments[0].toSafeJSON(),
-        })
-      );
+
+      await logSuccess({
+        eventType: "Update",
+        description: `Updated assessment ID ${assessmentId}`,
+        functionName: "updateAssessmentById",
+        fileName: "assessment.ctrl.ts",
+      });
+
+      return res.status(202).json(STATUS_CODE[202]({
+        message: "Assessment updated successfully",
+        assessment: updatedAssessments[0].toSafeJSON(),
+      }));
     }
 
     await transaction.rollback();
-    return res.status(404).json(
-      STATUS_CODE[404]({
-        message: "Assessment not found or no changes made",
-        assessmentId: assessmentId,
-      })
-    );
+
+    await logSuccess({
+      eventType: "Update",
+      description: "Assessment not found or no changes made",
+      functionName: "updateAssessmentById",
+      fileName: "assessment.ctrl.ts",
+    });
+
+    return res.status(404).json(STATUS_CODE[404]({
+      message: "Assessment not found or no changes made",
+      assessmentId: assessmentId,
+    }));
   } catch (error) {
     await transaction.rollback();
-    console.error("Error updating assessment:", error);
+
+    await logFailure({
+      eventType: "Update",
+      description: "Error updating assessment",
+      functionName: "updateAssessmentById",
+      fileName: "assessment.ctrl.ts",
+      error: error as Error,
+    });
 
     if (error instanceof ValidationException) {
       return res.status(400).json(STATUS_CODE[400](error));
@@ -193,44 +232,70 @@ export async function updateAssessmentById(
   }
 }
 
-export async function deleteAssessmentById(
-  req: Request,
-  res: Response
-): Promise<any> {
+export async function deleteAssessmentById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
+  const assessmentId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting deleteAssessmentById for ID ${assessmentId}`,
+    functionName: "deleteAssessmentById",
+    fileName: "assessment.ctrl.ts",
+  });
+
   try {
-    const assessmentId = parseInt(req.params.id);
     const deletedAssessment = await deleteAssessmentByIdQuery(
-      assessmentId,
-      req.tenantId!,
-      transaction
+      assessmentId, req.tenantId!, transaction
     );
 
     if (deletedAssessment) {
       await transaction.commit();
+
+      await logSuccess({
+        eventType: "Delete",
+        description: `Deleted assessment ID ${assessmentId}`,
+        functionName: "deleteAssessmentById",
+        fileName: "assessment.ctrl.ts",
+      });
+
       return res.status(202).json(STATUS_CODE[202](deletedAssessment));
     }
+
+    await logSuccess({
+      eventType: "Delete",
+      description: `Assessment not found for deletion: ID ${assessmentId}`,
+      functionName: "deleteAssessmentById",
+      fileName: "assessment.ctrl.ts",
+    });
 
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     await transaction.rollback();
+
+    await logFailure({
+      eventType: "Delete",
+      description: "Failed to delete assessment",
+      functionName: "deleteAssessmentById",
+      fileName: "assessment.ctrl.ts",
+      error: error as Error,
+    });
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function getAnswers(req: Request, res: Response): Promise<any> {
+  const assessmentId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting getAnswers for assessment ID ${assessmentId}`,
+    functionName: "getAnswers",
+    fileName: "assessment.ctrl.ts",
+  });
+
   try {
-    const assessmentId = parseInt(req.params.id);
-    const assessment = (await getAssessmentByIdQuery(
-      assessmentId, req.tenantId!
-    )) as AssessmentModel;
-    const topics = (await getTopicByAssessmentIdQuery(
-      assessment!.id!, req.tenantId!
-    )) as TopicModel[];
+    const assessment = await getAssessmentByIdQuery(assessmentId, req.tenantId!) as AssessmentModel;
+    const topics = await getTopicByAssessmentIdQuery(assessment.id!, req.tenantId!) as TopicModel[];
+
     for (let topic of topics) {
-      const subTopics = (await getSubTopicByTopicIdQuery(
-        topic.id!, req.tenantId!
-      )) as SubtopicModel[];
+      const subTopics = await getSubTopicByTopicIdQuery(topic.id!, req.tenantId!) as SubtopicModel[];
 
       for (let subTopic of subTopics) {
         const questions = await getQuestionBySubTopicIdQuery(subTopic.id!, req.tenantId!);
@@ -240,22 +305,57 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
     }
     (assessment.dataValues as any)["topics"] = topics;
 
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved answers for assessment ID ${assessmentId}`,
+      functionName: "getAnswers",
+      fileName: "assessment.ctrl.ts",
+    });
+
     return res.status(200).json(STATUS_CODE[200]({ message: assessment }));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve answers",
+      functionName: "getAnswers",
+      fileName: "assessment.ctrl.ts",
+      error: error as Error,
+    });
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
-export async function getAssessmentByProjectId(req: Request, res: Response) {
+export async function getAssessmentByProjectId(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting getAssessmentByProjectId for project ID ${projectId}`,
+    functionName: "getAssessmentByProjectId",
+    fileName: "assessment.ctrl.ts",
+  });
+
   try {
     const assessments = await getAssessmentByProjectIdQuery(projectId, req.tenantId!);
-    if (assessments && assessments.length !== 0) {
-      return res.status(200).json(STATUS_CODE[200](assessments));
-    } else {
-      return res.status(204).json(STATUS_CODE[204]({}));
-    }
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved assessments for project ID ${projectId}`,
+      functionName: "getAssessmentByProjectId",
+      fileName: "assessment.ctrl.ts",
+    });
+
+    return res.status(assessments && assessments.length !== 0 ? 200 : 204).json(
+      STATUS_CODE[assessments && assessments.length !== 0 ? 200 : 204](assessments || {})
+    );
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve assessments by project ID",
+      functionName: "getAssessmentByProjectId",
+      fileName: "assessment.ctrl.ts",
+      error: error as Error,
+    });
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

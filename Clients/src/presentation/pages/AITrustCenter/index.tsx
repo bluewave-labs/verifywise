@@ -18,10 +18,28 @@ import {
   aiTrustCenterPreviewButtonStyle
 } from "./styles";
 import CustomizableButton from "../../vw-v2-components/Buttons";
+import { extractUserToken } from "../../../application/tools/extractToken";
+import { useSelector } from "react-redux";
 
 const AITrustCenter: React.FC = () => {
   const [tabValue, setTabValue] = React.useState('overview');
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => setTabValue(newValue);
+  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
+  const userToken = extractUserToken(authToken);
+  const tenantHash = userToken?.tenantId;
+  
+  const handlePreviewMode = () => {
+    try {
+      if (!tenantHash) {
+        console.error('Tenant hash not found in token');
+        return;
+      }
+      const previewUrl = `http://localhost:3000/api/aiTrustCentre/${tenantHash}`;
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Error opening preview:', error);
+    }
+  };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
@@ -69,10 +87,13 @@ const AITrustCenter: React.FC = () => {
                 variant="contained"
                 text="Preview mode"
                 sx={{
-                  ...aiTrustCenterPreviewButtonStyle
+                  ...aiTrustCenterPreviewButtonStyle,
+                  opacity: !tenantHash ? 0.5 : 1,
+                  cursor: !tenantHash ? 'not-allowed' : 'pointer',
                 }}
                 icon={<VisibilityIcon />}
-                onClick={() => {}}
+                onClick={handlePreviewMode}
+                isDisabled={!tenantHash}
               />
             </TabList>
           </Box>

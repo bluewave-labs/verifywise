@@ -9,10 +9,11 @@ export const invite = async (req: Request, res: Response, body: {
   to: string;
   name: string;
   roleId: number;
+  organizationId: number;
 }) => {
-  const { to, name, roleId } = body;
+  const { to, name, roleId, organizationId } = body;
 
-  if (!to || !name || !roleId) {
+  if (!to || !name || !roleId || !organizationId) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -28,6 +29,7 @@ export const invite = async (req: Request, res: Response, body: {
       name,
       roleId,
       email: to,
+      organizationId
     }) as string
 
     const link = `${frontEndUrl}/user-reg?${new URLSearchParams(

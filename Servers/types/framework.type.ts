@@ -5,13 +5,14 @@ import { createISOFrameworkQuery, deleteProjectFrameworkISOQuery } from "../util
 export const frameworkAdditionMap: Record<number, (
   projectId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction
 ) => Promise<Object>> = {
   1: createEUFrameworkQuery,
   2: createISOFrameworkQuery,
 };
 
-export const frameworkDeletionMap: Record<number, (id: number, transaction: Transaction) => Promise<boolean>> = {
+export const frameworkDeletionMap: Record<number, (id: number, tenant: string, transaction: Transaction) => Promise<boolean>> = {
   1: deleteProjectFrameworkEUQuery,
   2: deleteProjectFrameworkISOQuery,
 };

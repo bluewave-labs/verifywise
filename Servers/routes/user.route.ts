@@ -153,7 +153,7 @@ router.delete("/:id", authenticateJWT, deleteUserById);
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
  */
-router.get("/check/exists", checkUserExists);
+router.get("/check/exists", authenticateJWT, checkUserExists);
 
 router.get("/:id/calculate-progress", authenticateJWT, calculateProgress);
 

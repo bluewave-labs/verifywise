@@ -28,13 +28,6 @@ export const CardDisabled = styled(Card)(({ theme }) => ({
   flex: 1,
 }));
 
-export const BadgesRow = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(2),
-  marginTop: theme.spacing(2),
-}));
-
 export const PrivacyFields = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -93,36 +86,71 @@ export const styles = {
     },
   },
 
-
-
-  textField: {
-    minWidth: 458,
-    background: 'background.default',
-    borderRadius: 2,
-    height: 34,
-    fontSize: 13,
-  },
-
-  saveButton: {
-    mt: 3,
-    width: 120,
-    backgroundColor: '#13715B',
-    border: '1px solid #13715B',
-    color: '#fff',
-    borderRadius: '4px',
-    height: 34,
-    fontSize: 13,
-    boxShadow: 'none',
-    textTransform: 'inherit',
-    '&:hover': {
-      backgroundColor: '#13715B',
-      border: '1px solid #13715B',
-      boxShadow: 'none',
-    },
-  },
-
   badgesContainer: {
     maxWidth: 700,
+  },
+
+  // TextField styles moved from inline
+  textField: {
+    width: '100%',
+    height: '100%',
+    '& .MuiOutlinedInput-root': {
+      border: 'none',
+      backgroundColor: 'transparent',
+      height: '100%',
+      '& fieldset': {
+        border: 'none',
+      },
+      '&:hover fieldset': {
+        border: 'none',
+      },
+      '&.Mui-focused fieldset': {
+        border: 'none',
+      },
+    },
+    '& .MuiInputBase-input': {
+      padding: 0,
+      height: '100% !important',
+      resize: 'none',
+      fontSize: 13,
+      overflowY: 'auto',
+      '&::-webkit-scrollbar': {
+        width: '8px',
+      },
+      '&::-webkit-scrollbar-track': {
+        background: '#f1f1f1',
+        borderRadius: '4px',
+      },
+      '&::-webkit-scrollbar-thumb': {
+        background: '#c1c1c1',
+        borderRadius: '4px',
+        '&:hover': {
+          background: '#a8a8a8',
+        },
+      },
+    },
+    '& .MuiInputBase-root.Mui-disabled': {
+      backgroundColor: '#f5f5f5',
+      '& .MuiInputBase-input': {
+        color: '#666',
+        cursor: 'not-allowed',
+      },
+    }
+  },
+
+  // Save button styles
+  saveButton: {
+    alignSelf: "flex-end",
+    width: "fit-content",
+    gap: 2,
+  },
+
+  // Field styles for privacy section
+  privacyField: {
+    backgroundColor: 'background.main',
+    "& input": {
+      padding: "0 14px",
+    },
   },
 }; 
 

@@ -10,13 +10,13 @@ from database.db import get_db
 from fastapi import UploadFile, BackgroundTasks
 from database.redis import get_next_job_id, get_job_status, delete_job_status
 
-async def get_all_metrics():
+async def get_all_metrics(tenant: str):
     """
     Retrieve all fairness metrics.
     """
     try:
         async with get_db() as db:
-            metrics = await get_all_metrics_query(db)
+            metrics = await get_all_metrics_query(db, tenant)
             return JSONResponse(
                 status_code=200,
                 content=[
@@ -35,13 +35,13 @@ async def get_all_metrics():
             detail=f"Failed to retrieve metrics, {str(e)}"
         )
 
-async def get_metrics(id: int):
+async def get_metrics(id: int, tenant: str):
     """
     Retrieve metrics for a given fairness run ID.
     """
     try:
         async with get_db() as db:
-            metrics = await get_metrics_by_id(id, db)
+            metrics = await get_metrics_by_id(id, db, tenant)
             if not metrics:
                 raise HTTPException(
                     status_code=404,
@@ -64,7 +64,7 @@ async def get_metrics(id: int):
             detail=f"Failed to retrieve metrics, {str(e)}"
         )
 
-async def get_upload_status(job_id: int):
+async def get_upload_status(job_id: int, tenant: str):
     value = await get_job_status(job_id)
     if value is None:
         return Response(status_code=204)
@@ -75,7 +75,7 @@ async def get_upload_status(job_id: int):
         media_type="application/json"
     )
 
-async def handle_upload(background_tasks: BackgroundTasks, model: UploadFile, data: UploadFile, target_column: str, sensitive_column: str):
+async def handle_upload(background_tasks: BackgroundTasks, model: UploadFile, data: UploadFile, target_column: str, sensitive_column: str, tenant: str):
     """
     Handle file upload from the client.
     """
@@ -95,16 +95,16 @@ async def handle_upload(background_tasks: BackgroundTasks, model: UploadFile, da
         "content": await data.read()
     }
     # create a job ID or use a unique identifier for the task
-    background_tasks.add_task(process_files, job_id, model_, data_, target_column, sensitive_column)
+    background_tasks.add_task(process_files, job_id, model_, data_, target_column, sensitive_column, tenant)
     return response
 
-async def delete_metrics(id: int):
+async def delete_metrics(id: int, tenant: str):
     """
     Delete metrics for a given fairness run ID.
     """
     try:
         async with get_db() as db:
-            delete = await delete_metrics_by_id(id, db)
+            delete = await delete_metrics_by_id(id, db, tenant)
             if not delete:
                 raise HTTPException(
                     status_code=404,

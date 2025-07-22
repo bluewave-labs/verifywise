@@ -1,6 +1,6 @@
-import { Subtopic } from "./subtopic.model";
+import { ISubtopic } from "../../interfaces/i.subtopic";
 
-export const subtopics = (topics: number[]): Subtopic[] => {
+export const subtopics = (topics: number[]): ISubtopic[] => {
   return [
     {
       topic_id: topics[0],

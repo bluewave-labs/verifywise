@@ -3,18 +3,17 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
 import { OrganizationModel } from "../domain.layer/models/organization/organization.model";
 import {
-  addMemberToOrganizationQuery,
-  addProjectToOrganizationQuery,
   createOrganizationQuery,
   deleteOrganizationByIdQuery,
   getAllOrganizationsQuery,
   getOrganizationByIdQuery,
-  getOrganizationMembersQuery,
-  getOrganizationProjectsQuery,
-  removeMemberFromOrganizationQuery,
-  removeProjectFromOrganizationQuery,
+  getOrganizationsExistsQuery,
   updateOrganizationByIdQuery,
 } from "../utils/organization.utils";
+import { invite } from "./vwmailer.ctrl";
+import { createNewTenant } from "../scripts/createNewTenant";
+import { createNewUserQuery } from "../utils/user.utils";
+import { createNewUserWrapper } from "./user.ctrl";
 import {
   ValidationException,
   BusinessLogicException,
@@ -77,6 +76,18 @@ export async function getAllOrganizations(
   }
 }
 
+export async function getOrganizationsExists(
+  req: Request,
+  res: Response
+): Promise<any> {
+  try {
+    const organizationsExists = await getOrganizationsExistsQuery();
+    return res.status(200).json(STATUS_CODE[200](organizationsExists));
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
 /**
  * Get organization by ID
  *
@@ -133,102 +144,6 @@ export async function getOrganizationById(
 }
 
 /**
- * Get all members of an organization
- *
- * @param req Express request object with organization ID
- * @param res Express response object
- * @returns Response with organization members or error
- */
-export async function getOrganizationMembers(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const organizationId = parseInt(req.params.id);
-  logStructured(
-    "processing",
-    `fetching members for organization ID: ${organizationId}`,
-    "getOrganizationMembers",
-    "organization.ctrl.ts"
-  );
-  logger.debug(`🔍 Fetching members for organization ID: ${organizationId}`);
-  try {
-    const members = await getOrganizationMembersQuery(organizationId);
-    logStructured(
-      "successful",
-      `members fetched for organization ID: ${organizationId}`,
-      "getOrganizationMembers",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `Members fetched for organization ID: ${organizationId}`
-    );
-    return res.status(200).json(STATUS_CODE[200](members));
-  } catch (error) {
-    logStructured(
-      "error",
-      `failed to fetch members for organization ID: ${organizationId}`,
-      "getOrganizationMembers",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Failed to fetch members for organization ID: ${organizationId}`
-    );
-    logger.error("❌ Error in getOrganizationMembers:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Get all projects of an organization
- *
- * @param req Express request object with organization ID
- * @param res Express response object
- * @returns Response with organization projects or error
- */
-export async function getOrganizationProjects(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const organizationId = parseInt(req.params.id);
-  logStructured(
-    "processing",
-    `fetching projects for organization ID: ${organizationId}`,
-    "getOrganizationProjects",
-    "organization.ctrl.ts"
-  );
-  logger.debug(`🔍 Fetching projects for organization ID: ${organizationId}`);
-  try {
-    const projects = await getOrganizationProjectsQuery(organizationId);
-    logStructured(
-      "successful",
-      `projects fetched for organization ID: ${organizationId}`,
-      "getOrganizationProjects",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `Projects fetched for organization ID: ${organizationId}`
-    );
-    return res.status(200).json(STATUS_CODE[200](projects));
-  } catch (error) {
-    logStructured(
-      "error",
-      `failed to fetch projects for organization ID: ${organizationId}`,
-      "getOrganizationProjects",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Failed to fetch projects for organization ID: ${organizationId}`
-    );
-    logger.error("❌ Error in getOrganizationProjects:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
  * Create a new organization
  *
  * @param req Express request object with organization data
@@ -248,16 +163,24 @@ export async function createOrganization(
   );
   logger.debug("🛠️ Creating new organization");
   try {
-    const { name, logo, members, projects, is_demo } = req.body;
+    const body = req.body as {
+      name: string;
+      logo: string;
+      userEmail: string;
+      userName: string;
+      userSurname: string;
+      userPassword: string;
+    };
+
+    if (!body.name) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .json(STATUS_CODE[400]("Organization name is required"));
+    }
 
     // Use the OrganizationModel's createNewOrganization method with validation
-    const organizationModel = await OrganizationModel.createNewOrganization(
-      name,
-      logo,
-      members,
-      projects,
-      is_demo
-    );
+    const organizationModel = await OrganizationModel.createNewOrganization(body.name, body.logo);
 
     // Validate the organization data before saving
     await organizationModel.validateOrganizationData();
@@ -269,15 +192,28 @@ export async function createOrganization(
     );
 
     if (createdOrganization) {
+      const organization_id = createdOrganization.id!;
+      await createNewTenant(organization_id, transaction);
+      const user = await createNewUserWrapper(
+        {
+          email: body.userEmail,
+          name: body.userName,
+          surname: body.userSurname,
+          password: body.userPassword,
+          roleId: 1, // Assuming 1 is the default role ID for Admin
+          organizationId: organization_id,
+        },
+        transaction
+      )
       await transaction.commit();
       logStructured(
         "successful",
-        `organization created: ${name}`,
+        `organization created: ${createdOrganization.name}`,
         "createOrganization",
         "organization.ctrl.ts"
       );
-      await logEvent("Create", `Organization created: ${name}`);
-      return res.status(201).json(STATUS_CODE[201](createdOrganization));
+      await logEvent("Create", `Organization created: ${createdOrganization.name}`);
+      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 
     logStructured(
@@ -331,187 +267,10 @@ export async function createOrganization(
     );
     await logEvent(
       "Error",
-      `Unexpected error during organization creation: ${
-        (error as Error).message
+      `Unexpected error during organization creation: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in createOrganization:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Add a member to an organization
- *
- * @param req Express request object with organization ID and member data
- * @param res Express response object
- * @returns Response with updated organization or error
- */
-export async function addMemberToOrganization(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const transaction = await sequelize.transaction();
-  const organizationId = parseInt(req.params.id);
-  logStructured(
-    "processing",
-    `adding member to organization ID: ${organizationId}`,
-    "addMemberToOrganization",
-    "organization.ctrl.ts"
-  );
-  logger.debug(`➕ Adding member to organization ID: ${organizationId}`);
-  try {
-    const memberId = req.body.memberId;
-
-    if (!memberId) {
-      logStructured(
-        "error",
-        "member ID is required",
-        "addMemberToOrganization",
-        "organization.ctrl.ts"
-      );
-      await logEvent(
-        "Error",
-        "Member ID is required for addMemberToOrganization"
-      );
-      await transaction.rollback();
-      return res.status(400).json(STATUS_CODE[400]("Member ID is required"));
-    }
-
-    const updatedOrganization = await addMemberToOrganizationQuery(
-      organizationId,
-      memberId,
-      transaction
-    );
-
-    if (updatedOrganization) {
-      await transaction.commit();
-      logStructured(
-        "successful",
-        `member added to organization ID: ${organizationId}`,
-        "addMemberToOrganization",
-        "organization.ctrl.ts"
-      );
-      await logEvent(
-        "Update",
-        `Member ${memberId} added to organization ID: ${organizationId}`
-      );
-      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
-    }
-
-    logStructured(
-      "error",
-      "organization not found for addMember",
-      "addMemberToOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      "Organization not found for addMemberToOrganization"
-    );
-    await transaction.rollback();
-    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
-  } catch (error) {
-    await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to add member to organization ID: ${organizationId}`,
-      "addMemberToOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Failed to add member to organization ID: ${organizationId}`
-    );
-    logger.error("❌ Error in addMemberToOrganization:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Add a project to an organization
- *
- * @param req Express request object with organization ID and project data
- * @param res Express response object
- * @returns Response with updated organization or error
- */
-export async function addProjectToOrganization(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const transaction = await sequelize.transaction();
-  const organizationId = parseInt(req.params.id);
-  logStructured(
-    "processing",
-    `adding project to organization ID: ${organizationId}`,
-    "addProjectToOrganization",
-    "organization.ctrl.ts"
-  );
-  logger.debug(`➕ Adding project to organization ID: ${organizationId}`);
-  try {
-    const projectId = req.body.projectId;
-
-    if (!projectId) {
-      logStructured(
-        "error",
-        "project ID is required",
-        "addProjectToOrganization",
-        "organization.ctrl.ts"
-      );
-      await logEvent(
-        "Error",
-        "Project ID is required for addProjectToOrganization"
-      );
-      await transaction.rollback();
-      return res.status(400).json(STATUS_CODE[400]("Project ID is required"));
-    }
-
-    const updatedOrganization = await addProjectToOrganizationQuery(
-      organizationId,
-      projectId,
-      transaction
-    );
-
-    if (updatedOrganization) {
-      await transaction.commit();
-      logStructured(
-        "successful",
-        `project added to organization ID: ${organizationId}`,
-        "addProjectToOrganization",
-        "organization.ctrl.ts"
-      );
-      await logEvent(
-        "Update",
-        `Project ${projectId} added to organization ID: ${organizationId}`
-      );
-      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
-    }
-
-    logStructured(
-      "error",
-      "organization not found for addProject",
-      "addProjectToOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      "Organization not found for addProjectToOrganization"
-    );
-    await transaction.rollback();
-    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
-  } catch (error) {
-    await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to add project to organization ID: ${organizationId}`,
-      "addProjectToOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Failed to add project to organization ID: ${organizationId}`
-    );
-    logger.error("❌ Error in addProjectToOrganization:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -543,9 +302,6 @@ export async function updateOrganizationById(
     const organization = await OrganizationModel.findByIdWithValidation(
       organizationId
     );
-
-    // Check if organization can be modified (e.g., not a demo organization)
-    organization.canBeModified();
 
     // Update the organization using the model's update method
     await organization.updateOrganization(updateData);
@@ -624,8 +380,7 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during update for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in updateOrganizationById:", error);
@@ -709,159 +464,10 @@ export async function deleteOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during delete for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in deleteOrganizationById:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Remove a member from an organization
- *
- * @param req Express request object with organization ID and member ID
- * @param res Express response object
- * @returns Response with updated organization or error
- */
-export async function removeMemberFromOrganization(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const transaction = await sequelize.transaction();
-  const organizationId = parseInt(req.params.id);
-  const memberId = parseInt(req.params.memberId);
-  logStructured(
-    "processing",
-    `removing member ${memberId} from organization ID: ${organizationId}`,
-    "removeMemberFromOrganization",
-    "organization.ctrl.ts"
-  );
-  logger.debug(
-    `➖ Removing member ${memberId} from organization ID: ${organizationId}`
-  );
-  try {
-    const updatedOrganization = await removeMemberFromOrganizationQuery(
-      organizationId,
-      memberId,
-      transaction
-    );
-
-    if (updatedOrganization) {
-      await transaction.commit();
-      logStructured(
-        "successful",
-        `member removed from organization ID: ${organizationId}`,
-        "removeMemberFromOrganization",
-        "organization.ctrl.ts"
-      );
-      await logEvent(
-        "Update",
-        `Member ${memberId} removed from organization ID: ${organizationId}`
-      );
-      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
-    }
-
-    logStructured(
-      "error",
-      "organization not found for removeMember",
-      "removeMemberFromOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      "Organization not found for removeMemberFromOrganization"
-    );
-    await transaction.rollback();
-    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
-  } catch (error) {
-    await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to remove member from organization ID: ${organizationId}`,
-      "removeMemberFromOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Failed to remove member from organization ID: ${organizationId}`
-    );
-    logger.error("❌ Error in removeMemberFromOrganization:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-/**
- * Remove a project from an organization
- *
- * @param req Express request object with organization ID and project ID
- * @param res Express response object
- * @returns Response with updated organization or error
- */
-export async function removeProjectFromOrganization(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const transaction = await sequelize.transaction();
-  const organizationId = parseInt(req.params.id);
-  const projectId = parseInt(req.params.projectId);
-  logStructured(
-    "processing",
-    `removing project ${projectId} from organization ID: ${organizationId}`,
-    "removeProjectFromOrganization",
-    "organization.ctrl.ts"
-  );
-  logger.debug(
-    `➖ Removing project ${projectId} from organization ID: ${organizationId}`
-  );
-  try {
-    const updatedOrganization = await removeProjectFromOrganizationQuery(
-      organizationId,
-      projectId,
-      transaction
-    );
-
-    if (updatedOrganization) {
-      await transaction.commit();
-      logStructured(
-        "successful",
-        `project removed from organization ID: ${organizationId}`,
-        "removeProjectFromOrganization",
-        "organization.ctrl.ts"
-      );
-      await logEvent(
-        "Update",
-        `Project ${projectId} removed from organization ID: ${organizationId}`
-      );
-      return res.status(200).json(STATUS_CODE[200](updatedOrganization));
-    }
-
-    logStructured(
-      "error",
-      "organization not found for removeProject",
-      "removeProjectFromOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      "Organization not found for removeProjectFromOrganization"
-    );
-    await transaction.rollback();
-    return res.status(404).json(STATUS_CODE[404]("Organization not found"));
-  } catch (error) {
-    await transaction.rollback();
-    logStructured(
-      "error",
-      `failed to remove project from organization ID: ${organizationId}`,
-      "removeProjectFromOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Failed to remove project from organization ID: ${organizationId}`
-    );
-    logger.error("❌ Error in removeProjectFromOrganization:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

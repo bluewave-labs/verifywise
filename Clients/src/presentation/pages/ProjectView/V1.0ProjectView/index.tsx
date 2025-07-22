@@ -25,7 +25,6 @@ const VWProjectView = () => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
   const tabParam = searchParams.get("tab");
-  const frameworkParam = searchParams.get("framework");
   const [refreshKey, setRefreshKey] = useState(0);
   const { project } = useProjectData({ projectId, refreshKey });
 
@@ -146,7 +145,7 @@ const VWProjectView = () => {
               <ProjectFrameworks
                 project={project}
                 triggerRefresh={handleRefresh}
-                initialFrameworkId={frameworkParam ? parseInt(frameworkParam) : undefined}
+                initialFrameworkId={project.framework[0].framework_id}
               />
             ) : (
               <CustomizableSkeleton

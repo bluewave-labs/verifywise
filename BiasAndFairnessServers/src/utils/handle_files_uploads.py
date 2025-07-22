@@ -14,6 +14,7 @@ async def process_files(
     data: dict[str, typing.Union[bytes, str]],
     target_column: str,
     sensitive_column: str,
+    tenant: str
 ):
     try:
         async with get_db() as db:
@@ -37,7 +38,7 @@ async def process_files(
                 gzip.decompress(data_bytes) if data["filename"].endswith(".gz") else data_bytes
             )
 
-            upload_model_record = await upload_model(content=model_content, name=model_filename, db=db)
+            upload_model_record = await upload_model(content=model_content, name=model_filename, db=db, tenant=tenant)
 
             if not upload_model_record:
                 raise Exception("failed to upload model file")
@@ -48,7 +49,8 @@ async def process_files(
                 target_column=target_column,
                 sensitive_column=sensitive_column,
                 model_id=upload_model_record.id,
-                db=db
+                db=db,
+                tenant=tenant
             )
 
             if not upload_data_record:
@@ -60,7 +62,7 @@ async def process_files(
                 sensitive_column=sensitive_column
             )
 
-            metrics = await insert_metrics(json.dumps(result), upload_data_record.id, db)
+            metrics = await insert_metrics(json.dumps(result), upload_data_record.id, db, tenant)
             if not metrics:
                 raise Exception("failed to insert metrics")
 

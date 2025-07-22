@@ -15,6 +15,7 @@ interface LogSuccessParams extends LogProcessingParams {
   eventType: EventType;
 }
 interface LogFailureParams extends LogProcessingParams {
+  eventType: EventType;
   error: Error;
 }
 
@@ -38,10 +39,12 @@ export async function logSuccess({
 }: LogSuccessParams): Promise<void> {
   logStructured(logState, description, functionName, fileName);
   logger.debug(`✅ ${description}`);
-  try {
-    await logEvent(eventType, description);
-  } catch (error) {
-    console.error('Failed to log success event to database:', error);
+  if (eventType != 'Read') {
+    try {
+      await logEvent(eventType, description);
+    } catch (error) {
+      console.error('Failed to log success event to database:', error);
+    }
   }
 }
 
@@ -50,13 +53,16 @@ export async function logFailure({
   description,
   functionName,
   fileName,
+  eventType,
   error,
 }: LogFailureParams): Promise<void> {
   logStructured(logState, description, functionName, fileName);
   logger.error(`❌ ${description}:`, error);
-  try {
-    await logEvent('Error', `${description}: ${error.message}`);
-  } catch (dbError) {
-    console.error('Failed to log failure event to database:', dbError);
+  if (eventType != 'Read') {
+    try {
+      await logEvent('Error', `${description}: ${error.message}`);
+    } catch (dbError) {
+      console.error('Failed to log failure event to database:', dbError);
+    }
   }
 }

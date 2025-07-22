@@ -34,7 +34,7 @@ export async function getAllControlCategories(
   logger.debug("🔍 Fetching all control categories");
 
   try {
-    const controlCategories = await getAllControlCategoriesQuery();
+    const controlCategories = await getAllControlCategoriesQuery(req.tenantId!);
 
     if (controlCategories && controlCategories.length > 0) {
       await logEvent(
@@ -89,7 +89,7 @@ export async function getControlCategoryById(
 
   try {
     const controlCategory = await getControlCategoryByIdQuery(
-      controlCategoryId
+      controlCategoryId, req.tenantId!
     );
 
     if (controlCategory) {
@@ -148,7 +148,7 @@ export async function getControlCategoryByProjectId(
 
   try {
     const controlCategories = await getControlCategoryByProjectIdQuery(
-      projectId
+      projectId, req.tenantId!
     );
 
     if (controlCategories && controlCategories.length > 0) {
@@ -245,6 +245,7 @@ export async function createControlCategory(
 
     const createdControlCategory = await createControlCategoryQuery(
       controlCategoryModel,
+      req.tenantId!,
       transaction
     );
 
@@ -342,7 +343,7 @@ export async function updateControlCategoryById(
 
   try {
     const existingControlCategory = await getControlCategoryByIdQuery(
-      controlCategoryId
+      controlCategoryId, req.tenantId!
     );
 
     if (!existingControlCategory) {
@@ -418,6 +419,7 @@ export async function updateControlCategoryById(
     const updatedControlCategory = await updateControlCategoryByIdQuery(
       controlCategoryId,
       updatedControlCategoryData,
+      req.tenantId!,
       transaction
     );
 
@@ -517,7 +519,7 @@ export async function deleteControlCategoryById(
 
   try {
     const existingControlCategory = await getControlCategoryByIdQuery(
-      controlCategoryId
+      controlCategoryId, req.tenantId!
     );
 
     if (!existingControlCategory) {
@@ -557,6 +559,7 @@ export async function deleteControlCategoryById(
 
     const deletedControlCategory = await deleteControlCategoryByIdQuery(
       controlCategoryId,
+      req.tenantId!,
       transaction
     );
 

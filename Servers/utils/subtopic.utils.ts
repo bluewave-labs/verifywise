@@ -1,15 +1,14 @@
-import {
-  Subtopic,
-  SubtopicModel,
-} from "../domain.layer/models/subtopic/subtopic.model";
+import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { sequelize } from "../database/db";
 import { createNewQuestionsQuery } from "./question.utils";
-import { Question } from "../domain.layer/models/question/question.model";
 import { QueryTypes, Transaction } from "sequelize";
+import { ISubtopic } from "../domain.layer/interfaces/i.subtopic";
 
-export const getAllSubtopicsQuery = async (): Promise<Subtopic[]> => {
+export const getAllSubtopicsQuery = async (
+  tenant: string
+): Promise<ISubtopic[]> => {
   const subtopics = await sequelize.query(
-    "SELECT * FROM subtopics ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM "${tenant}".subtopics ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: SubtopicModel,
@@ -19,10 +18,11 @@ export const getAllSubtopicsQuery = async (): Promise<Subtopic[]> => {
 };
 
 export const getSubtopicByIdQuery = async (
-  id: number
-): Promise<Subtopic | null> => {
+  id: number,
+  tenant: string
+): Promise<ISubtopic | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM subtopics WHERE id = :id",
+    `SELECT * FROM "${tenant}".subtopics WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -33,11 +33,12 @@ export const getSubtopicByIdQuery = async (
 };
 
 export const createNewSubtopicQuery = async (
-  subtopic: Subtopic,
+  subtopic: SubtopicModel,
+  tenant: string,
   transaction: Transaction
-): Promise<Subtopic> => {
+): Promise<SubtopicModel> => {
   const result = await sequelize.query(
-    `INSERT INTO subtopics (topic_id, title) VALUES (:topic_id, :title) RETURNING *`,
+    `INSERT INTO "${tenant}".subtopics (topic_id, title) VALUES (:topic_id, :title) RETURNING *`,
     {
       replacements: { topic_id: subtopic.topic_id, title: subtopic.title },
       mapToModel: true,
@@ -51,24 +52,26 @@ export const createNewSubtopicQuery = async (
 
 export const updateSubtopicByIdQuery = async (
   id: number,
-  subtopic: Partial<Subtopic>,
+  subtopic: Partial<SubtopicModel>,
+  tenant: string,
   transaction: Transaction
-): Promise<Subtopic | null> => {
-  const updateSubTopic: Partial<Record<keyof Subtopic, any>> = {};
+): Promise<SubtopicModel | null> => {
+  const updateSubTopic: Partial<Record<keyof SubtopicModel, any>> = {};
   const setClause = ["title"]
     .filter((f) => {
       if (
-        subtopic[f as keyof Subtopic] !== undefined &&
-        subtopic[f as keyof Subtopic]
+        subtopic[f as keyof SubtopicModel] !== undefined &&
+        subtopic[f as keyof SubtopicModel]
       ) {
-        updateSubTopic[f as keyof Subtopic] = subtopic[f as keyof Subtopic];
+        updateSubTopic[f as keyof SubtopicModel] =
+          subtopic[f as keyof SubtopicModel];
         return true;
       }
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE subtopics SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".subtopics SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSubTopic.id = id;
 
@@ -85,10 +88,11 @@ export const updateSubtopicByIdQuery = async (
 
 export const deleteSubtopicByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    "DELETE FROM subtopics WHERE id = :id RETURNING *",
+    `DELETE FROM "${tenant}".subtopics WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -101,10 +105,11 @@ export const deleteSubtopicByIdQuery = async (
 };
 
 export const getSubTopicByTopicIdQuery = async (
-  topicId: number
-): Promise<Subtopic[]> => {
+  topicId: number,
+  tenant: string
+): Promise<ISubtopic[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM subtopics WHERE topic_id = :topic_id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".subtopics WHERE topic_id = :topic_id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { topic_id: topicId },
       mapToModel: true,
@@ -134,11 +139,11 @@ export const createNewSubTopicsQuery = async (
     }[];
   }[],
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction
 ) => {
   const createdSubTopics = [];
-  let query =
-    "INSERT INTO subtopics(topic_id, title, order_no) VALUES (:topic_id, :title, :order_no) RETURNING *;";
+  let query = `INSERT INTO "${tenant}".subtopics(topic_id, title, order_no) VALUES (:topic_id, :title, :order_no) RETURNING *;`;
   for (let subTopicStruct of subTopics) {
     const result = await sequelize.query(query, {
       replacements: {
@@ -155,6 +160,7 @@ export const createNewSubTopicsQuery = async (
       subtopic_id,
       subTopicStruct.questions,
       enable_ai_data_insertion,
+      tenant,
       transaction
     );
     createdSubTopics.push({ ...result[0].dataValues, questions });

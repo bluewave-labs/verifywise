@@ -22,19 +22,20 @@ export async function getAllReportMarkdown(
   frameworkId: number,
   projectFrameworkId: number,
   projectId: number,
-  data: ReportBodyData
+  data: ReportBodyData,
+  tenant: string
 ): Promise<string> {
   try {
-    const framework = await getAllFrameworkByIdQuery(frameworkId);
+    const framework = await getAllFrameworkByIdQuery(frameworkId, tenant);
 
     if (framework) {
-      let projectReportMarkdown = await getProjectRiskReportData(projectId);
-      let vendorReportMarkdown = await getVendorReportData(projectId);
-      let vendorRiskReportMarkdown = await getVendorRiskReportData(projectId);
+      let projectReportMarkdown = await getProjectRiskReportData(projectId, tenant);
+      let vendorReportMarkdown = await getVendorReportData(projectId, tenant);
+      let vendorRiskReportMarkdown = await getVendorRiskReportData(projectId, tenant);
 
       if (framework.name === "EU AI Act") { 
-        const complianceReportMarkdown = await getComplianceReportData(projectFrameworkId);
-        const assessmentReportMarkdown = await getAssessmentTrackerReportData(projectId, frameworkId);
+        const complianceReportMarkdown = await getComplianceReportData(projectFrameworkId, tenant);
+        const assessmentReportMarkdown = await getAssessmentTrackerReportData(projectId, frameworkId, tenant);
 
         const euAIMD = `
 ${data.organizationName || 'VerifyWise'} ${framework.name} report
@@ -71,7 +72,7 @@ ${assessmentReportMarkdown}
 `;
         return euAIMD;
       } else {        
-        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId);
+        let clausesAndAnnexesMarkdown = await getClausesAndAnnexesReportData(projectFrameworkId, tenant);
         const isoMD = `
 ${data.organizationName || 'VerifyWise'} ${framework.name} report
 ========================

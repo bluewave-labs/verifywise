@@ -23,7 +23,7 @@ export async function getAllVendorRisksAllProjects(
   });
 
   try {
-    const risks = await getAllVendorRisksAllProjectsQuery();
+    const risks = await getAllVendorRisksAllProjectsQuery(req.tenantId!);
     await logSuccess({
       eventType: 'Read',
       description: 'Retrieved all vendor risks across all projects',
@@ -33,6 +33,7 @@ export async function getAllVendorRisksAllProjects(
     return res.status(200).json(STATUS_CODE[200](risks));
   } catch (error) {
     await logFailure({
+      eventType: 'Read',
       description: 'Failed to retrieve vendor risks',
       functionName: 'getAllVendorRisksAllProjects',
       fileName: 'vendorRisk.ctrl.ts',
@@ -54,7 +55,7 @@ export async function getAllVendorRisks(
   });
 
   try {
-    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId);
+    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId, req.tenantId!);
 
     if (vendorRisks) {
       await logSuccess({
@@ -75,6 +76,7 @@ export async function getAllVendorRisks(
     return res.status(204).json(STATUS_CODE[204](vendorRisks));
   } catch (error) {
     await logFailure({
+      eventType: 'Read',
       description: 'Failed to retrieve vendor risks by project',
       functionName: 'getAllVendorRisks',
       fileName: 'vendorRisk.ctrl.ts',
@@ -96,7 +98,7 @@ export async function getVendorRiskById(
   });
 
   try {
-    const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId);
+    const vendorRisk = await getVendorRiskByIdQuery(vendorRiskId, req.tenantId!);
 
     if (vendorRisk) {
       await logSuccess({
@@ -117,6 +119,7 @@ export async function getVendorRiskById(
     return res.status(404).json(STATUS_CODE[404](vendorRisk));
   } catch (error) {
     await logFailure({
+      eventType: 'Read',
       description: 'Failed to retrieve vendor risk by ID',
       functionName: 'getVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
@@ -142,6 +145,7 @@ export async function createVendorRisk(
 
     const createdVendorRisk = await createNewVendorRiskQuery(
       newVendorRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -166,6 +170,7 @@ export async function createVendorRisk(
   } catch (error) {
     await transaction.rollback();
     await logFailure({
+      eventType: 'Create',
       description: 'Failed to create vendor risk',
       functionName: 'createVendorRisk',
       fileName: 'vendorRisk.ctrl.ts',
@@ -193,6 +198,7 @@ export async function updateVendorRiskById(
     const vendorRisk = await updateVendorRiskByIdQuery(
       vendorRiskId,
       updatedVendorRisk,
+      req.tenantId!,
       transaction
     );
 
@@ -217,6 +223,7 @@ export async function updateVendorRiskById(
   } catch (error) {
     await transaction.rollback();
     await logFailure({
+      eventType: 'Update',
       description: 'Failed to update vendor risk',
       functionName: 'updateVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',
@@ -241,6 +248,7 @@ export async function deleteVendorRiskById(
   try {
     const deletedVendorRisk = await deleteVendorRiskByIdQuery(
       vendorRiskId,
+      req.tenantId!,
       transaction
     );
 
@@ -265,6 +273,7 @@ export async function deleteVendorRiskById(
   } catch (error) {
     await transaction.rollback();
     await logFailure({
+      eventType: 'Delete',
       description: 'Failed to delete vendor risk',
       functionName: 'deleteVendorRiskById',
       fileName: 'vendorRisk.ctrl.ts',

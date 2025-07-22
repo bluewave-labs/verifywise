@@ -1,16 +1,16 @@
-import {
-  Subcontrol,
-  SubcontrolModel,
-} from "../domain.layer/models/subcontrol/subcontrol.model";
+import { SubcontrolModel } from "../domain.layer/models/subcontrol/subcontrol.model";
 import { sequelize } from "../database/db";
 import { UploadedFile } from "./question.utils";
 import { uploadFile } from "./fileUpload.utils";
 import { QueryTypes, Transaction } from "sequelize";
 import { FileType } from "../domain.layer/models/file/file.model";
+import { ISubcontrol } from "../domain.layer/interfaces/i.subcontrol";
 
-export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
+export const getAllSubcontrolsQuery = async (
+  tenant: string
+): Promise<ISubcontrol[]> => {
   const subcontrols = await sequelize.query(
-    "SELECT * FROM subcontrols ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM "${tenant}".subcontrols ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: SubcontrolModel,
@@ -20,10 +20,11 @@ export const getAllSubcontrolsQuery = async (): Promise<Subcontrol[]> => {
 };
 
 export const getAllSubcontrolsByControlIdQuery = async (
-  controlId: number
-): Promise<Subcontrol[]> => {
+  controlId: number,
+  tenant: string
+): Promise<ISubcontrol[]> => {
   const subcontrols = await sequelize.query(
-    "SELECT * FROM subcontrols WHERE control_id = :id ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM "${tenant}".subcontrols WHERE control_id = :id ORDER BY created_at DESC, id ASC`,
     {
       replacements: { id: controlId },
       mapToModel: true,
@@ -34,10 +35,11 @@ export const getAllSubcontrolsByControlIdQuery = async (
 };
 
 export const getSubcontrolByIdQuery = async (
-  id: number
-): Promise<Subcontrol | null> => {
+  id: number,
+  tenant: string
+): Promise<ISubcontrol | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM subcontrols WHERE id = :id",
+    `SELECT * FROM "${tenant}".subcontrols WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -49,13 +51,14 @@ export const getSubcontrolByIdQuery = async (
 
 export const createNewSubcontrolQuery = async (
   controlId: number,
-  subcontrol: Partial<Subcontrol>,
+  subcontrol: Partial<SubcontrolModel>,
   project_id: number,
   user_id: number,
+  tenant: string,
   transaction: Transaction,
   evidenceFiles?: UploadedFile[],
   feedbackFiles?: UploadedFile[]
-): Promise<Subcontrol> => {
+): Promise<SubcontrolModel> => {
   let uploadedEvidenceFiles: FileType[] = [];
   await Promise.all(
     evidenceFiles!.map(async (file) => {
@@ -64,6 +67,7 @@ export const createNewSubcontrolQuery = async (
         user_id,
         project_id,
         "Compliance tracker group",
+        tenant,
         transaction
       );
       uploadedEvidenceFiles.push({
@@ -86,6 +90,7 @@ export const createNewSubcontrolQuery = async (
         user_id,
         project_id,
         "Compliance tracker group",
+        tenant,
         transaction
       );
       uploadedFeedbackFiles.push({
@@ -141,7 +146,8 @@ export const createNewSubcontrolQuery = async (
 
 export const updateSubcontrolByIdQuery = async (
   id: number,
-  subcontrol: Partial<Subcontrol>,
+  subcontrol: Partial<SubcontrolModel>,
+  tenant: string,
   transaction: Transaction,
   evidenceUploadedFiles: {
     id: string;
@@ -158,9 +164,9 @@ export const updateSubcontrolByIdQuery = async (
     uploaded_time: Date;
   }[] = [],
   deletedFiles: number[] = []
-): Promise<Subcontrol | null> => {
+): Promise<SubcontrolModel | null> => {
   const files = await sequelize.query(
-    `SELECT evidence_files, feedback_files FROM subcontrols WHERE id = :id`,
+    `SELECT evidence_files, feedback_files FROM "${tenant}".subcontrols WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -199,7 +205,7 @@ export const updateSubcontrolByIdQuery = async (
   );
   currentFeedbackFiles = currentFeedbackFiles.concat(feedbackUploadedFiles);
 
-  const updateSubControl: Partial<Record<keyof Subcontrol, any>> = {};
+  const updateSubControl: Partial<Record<keyof SubcontrolModel, any>> = {};
   const setClause = [
     "title",
     "description",
@@ -227,11 +233,11 @@ export const updateSubcontrolByIdQuery = async (
         return true;
       }
       if (
-        subcontrol[f as keyof Subcontrol] !== undefined &&
-        subcontrol[f as keyof Subcontrol]
+        subcontrol[f as keyof SubcontrolModel] !== undefined &&
+        subcontrol[f as keyof SubcontrolModel]
       ) {
-        updateSubControl[f as keyof Subcontrol] =
-          subcontrol[f as keyof Subcontrol];
+        updateSubControl[f as keyof SubcontrolModel] =
+          subcontrol[f as keyof SubcontrolModel];
         return true;
       }
     })
@@ -240,7 +246,7 @@ export const updateSubcontrolByIdQuery = async (
     })
     .join(", ");
 
-  const query = `UPDATE subcontrols SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".subcontrols SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSubControl.id = id;
 
@@ -257,10 +263,11 @@ export const updateSubcontrolByIdQuery = async (
 
 export const deleteSubcontrolByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    "DELETE FROM subcontrols WHERE id = :id RETURNING *",
+    `DELETE FROM "${tenant}".subcontrols WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -283,16 +290,17 @@ export const createNewSubControlsQuery = async (
     feedback_description?: string;
   }[],
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction
 ) => {
-  let query = `INSERT INTO subcontrols(
+  let query = `INSERT INTO "${tenant}".subcontrols(
       title, description, control_id, order_no, implementation_details,
       evidence_description, feedback_description, status
     ) VALUES (
       :title, :description, :control_id, :order_no, :implementation_details,
       :evidence_description, :feedback_description, :status
     ) RETURNING *`;
-  let createdSubControls: Subcontrol[] = [];
+  let createdSubControls: SubcontrolModel[] = [];
   for (let subControl of subControls) {
     const result = await sequelize.query(query, {
       replacements: {

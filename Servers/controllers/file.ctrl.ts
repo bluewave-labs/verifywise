@@ -21,7 +21,7 @@ export async function getFileContentById(
   res: Response
 ): Promise<any> {
   try {
-    const file = await getFileById(parseInt(req.params.id));
+    const file = await getFileById(parseInt(req.params.id), req.tenantId!);
     if (file) {
       res.setHeader("Content-Type", file.type);
       res.setHeader(
@@ -51,7 +51,7 @@ export async function getFileMetaByProjectId(
     if (isNaN(fileId) || fileId <= 0) {
       return res.status(400).json(STATUS_CODE[400]("Invalid File ID"));
     }
-    const files = await getFileMetadataByProjectId(fileId);
+    const files = await getFileMetadataByProjectId(fileId, req.tenantId!);
     if (files && files.length > 0) {
       return res.status(200).send(files);
     }
@@ -79,7 +79,7 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
         ? (validPage - 1) * validPageSize
         : undefined;
 
-    const files = await getUserFilesMetaDataQuery(req.role || "", userId, {
+    const files = await getUserFilesMetaDataQuery(req.role || "", userId, req.tenantId!, {
       limit: validPageSize,
       offset,
     });
@@ -106,7 +106,7 @@ export async function postFileContent(
 
     const filesToDelete = JSON.parse(body.delete) as number[];
     for (let fileToDelete of filesToDelete) {
-      await deleteFileById(fileToDelete, transaction);
+      await deleteFileById(fileToDelete, req.tenantId!, transaction);
     }
 
     const questionId = parseInt(body.question_id);
@@ -117,6 +117,7 @@ export async function postFileContent(
         body.user_id,
         body.project_id,
         "Assessment tracker group",
+        req.tenantId!,
         transaction
       );
       uploadedFiles.push({
@@ -135,6 +136,7 @@ export async function postFileContent(
       body.project_id,
       uploadedFiles,
       filesToDelete,
+      req.tenantId!,
       transaction
     );
     await transaction.commit();

@@ -144,6 +144,7 @@ const RegisterUser: React.FC = () => {
           const userData: FormValues = {
             ...initialState,
             name: userInfo.name ?? "",
+            surname: userInfo.surname ?? "",
             email: userInfo.email ?? "",
             roleId: Number(userInfo.roleId) ?? 1,
             organizationId: Number(userInfo.organizationId),

@@ -113,12 +113,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
       newErrors.name = name.message;
     }
 
-    const surname = checkStringValidation("Surname", values.surname, 1, 64);
-
-    if (!surname.accepted) {
-      newErrors.surname = surname.message;
-    }
-
     if (!isValidEmail(values.email)) {
       newErrors.email = "Invalid email address";
     }

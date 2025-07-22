@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Stack, Typography, Link } from "@mui/material";
+import { Box, Stack, Typography, Link, CircularProgress } from "@mui/material";
 import { extractUserToken } from "../../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import axios from "axios";
@@ -10,7 +10,6 @@ interface AITrustCentreHeaderProps {
 const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data}: {data: any}) => {
   const [logo, setLogo] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const tenantId = userToken?.tenantId;
@@ -32,7 +31,7 @@ const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data}: {data: 
         }
       })
       .catch((err) => {
-        setError(err?.response?.data?.error || err.message || 'Failed to fetch logo');
+        console.log(err?.response?.data?.error || err.message || 'Failed to fetch logo');
       })
       .finally(() => {
         setLoading(false);
@@ -52,20 +51,17 @@ const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data}: {data: 
     >
       <Stack alignItems="center" spacing={2}>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <img src={logo || data?.info?.logo} alt="Company Logo" style={{ height: 35 }} />
-          <Typography variant="h5" fontWeight="semibold" sx={{color: "#344054"}}>
-            {data?.info?.title}
-          </Typography>
+          {loading ? (
+            <CircularProgress size={28} />
+          ) : (
+            <>
+              <img src={logo || data?.info?.logo} alt="Company Logo" style={{ height: 35 }} />
+              <Typography variant="h5" fontWeight="semibold" sx={{color: "#344054"}}>
+                {data?.info?.title}
+              </Typography>
+            </>
+          )}
         </Stack>
-        {/* <Typography
-          variant="body1"
-          align="center"
-          maxWidth={800}
-          sx={aiTrustCenterHeaderDesc}
-          style={{ whiteSpace: "pre-wrap" }}
-        >
-          {data.description}
-        </Typography> */}
         <Stack direction="row" spacing={2} alignItems="center">
           <Link href={data?.terms_and_contact?.terms} target="_blank" rel="noopener" sx={{ fontSize: 13 }}>
             Terms of service

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { CssBaseline, ThemeProvider } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import AITrustCentrePublic from "./presentation/pages/AITrustCentrePublic/index";
 import { Provider } from "react-redux";
 import { store, persistor } from "./application/redux/store";

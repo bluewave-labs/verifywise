@@ -10,6 +10,7 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
 
 const COLUMN_NAMES = [
   "File",
@@ -47,6 +48,8 @@ const FileManager: React.FC = (): JSX.Element => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+   
 
   // Fetch projects for the dropdown
   const {
@@ -119,6 +122,13 @@ const FileManager: React.FC = (): JSX.Element => {
           </Box>
         </>
       )}
+      {/* Helper Drawer for additional information */}
+        <HelperDrawer
+          title="File Manager Help"
+          description="This section allows you to manage your files, filter by projects, and perform actions like downloading or removing files."
+          onClose={() => setIsHelperDrawerOpen(false) }
+          isOpen={isHelperDrawerOpen}
+        />
     </Stack>
   );
 };

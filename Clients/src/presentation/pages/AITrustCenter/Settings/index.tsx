@@ -297,7 +297,7 @@ const AITrustCenterSettings: React.FC = () => {
         <Typography sx={styles.sectionTitle}>Visibility</Typography>
         </Box>
         <Box sx={{ ...styles.toggleRow }}>
-          <Stack direction="column" gap={1} sx={{ flex: 0.5 }}>
+          <Stack direction="column" gap={1}>
             <Typography sx={styles.toggleLabel}>Enable AI Trust Center</Typography>
             <Typography sx={{ color: '#888', fontWeight: 400, fontSize: 12 }}>
               If enabled, page will be available under <b>/ai-trust-center</b> directory.

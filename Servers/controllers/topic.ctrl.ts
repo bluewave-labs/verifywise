@@ -10,9 +10,13 @@ import {
   updateTopicByIdQuery,
 } from "../utils/topic.utils";
 import { RequestWithFile } from "../utils/question.utils";
-import { Topic } from "../domain.layer/models/topic/topic.model";
 import { sequelize } from "../database/db";
-import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
+import { TopicModel } from "../domain.layer/models/topic/topic.model";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -99,9 +103,13 @@ export async function createNewTopic(
   });
 
   try {
-    const newTopic: Topic = req.body;
+    const newTopic: TopicModel = req.body;
 
-    const createdTopic = await createNewTopicQuery(newTopic, req.tenantId!, transaction);
+    const createdTopic = await createNewTopicQuery(
+      newTopic,
+      req.tenantId!,
+      transaction
+    );
 
     if (createdTopic) {
       await transaction.commit();
@@ -153,7 +161,7 @@ export async function updateTopicById(
 
   try {
     const topicId = parseInt(req.params.id);
-    const updatedTopic: Topic = req.body;
+    const updatedTopic: TopicModel = req.body;
 
     const topic = await updateTopicByIdQuery(
       topicId,
@@ -213,7 +221,11 @@ export async function deleteTopicById(
   try {
     const topicId = parseInt(req.params.id);
 
-    const topic = await deleteTopicByIdQuery(topicId, req.tenantId!, transaction);
+    const topic = await deleteTopicByIdQuery(
+      topicId,
+      req.tenantId!,
+      transaction
+    );
 
     if (topic) {
       await transaction.commit();
@@ -268,7 +280,10 @@ export async function getTopicByAssessmentId(
       return res.status(400).json(STATUS_CODE[400]("Invalid assessment ID"));
     }
 
-    const topics = await getTopicByAssessmentIdQuery(assessmentId, req.tenantId!);
+    const topics = await getTopicByAssessmentIdQuery(
+      assessmentId,
+      req.tenantId!
+    );
 
     await logSuccess({
       eventType: "Read",

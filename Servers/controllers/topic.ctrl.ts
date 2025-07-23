@@ -17,6 +17,10 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import { TopicModel } from "../domain.layer/models/topic/topic.model";
+import {
+  ValidationException,
+  BusinessLogicException,
+} from "../domain.layer/exceptions/custom.exception";
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -103,10 +107,18 @@ export async function createNewTopic(
   });
 
   try {
-    const newTopic: TopicModel = req.body;
+    const topicData = req.body;
+
+    // Create topic using the enhanced TopicModel method
+    const topicModel = await TopicModel.createNewTopic(
+      topicData.title,
+      topicData.assessment_id,
+      topicData.order_no,
+      topicData.is_demo || false
+    );
 
     const createdTopic = await createNewTopicQuery(
-      newTopic,
+      topicModel,
       req.tenantId!,
       transaction
     );
@@ -135,6 +147,14 @@ export async function createNewTopic(
   } catch (error) {
     await transaction.rollback();
 
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     await logFailure({
       eventType: "Create",
       description: "Failed to create topic",
@@ -161,11 +181,26 @@ export async function updateTopicById(
 
   try {
     const topicId = parseInt(req.params.id);
-    const updatedTopic: TopicModel = req.body;
+    const updateData = req.body;
+
+    // Find existing topic
+    const existingTopic = await getTopicByIdQuery(topicId, req.tenantId!);
+
+    if (!existingTopic) {
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("Topic not found"));
+    }
+
+    // Create TopicModel instance and update it
+    const topicModel = new TopicModel(existingTopic);
+    await topicModel.updateTopic({
+      title: updateData.title,
+      order_no: updateData.order_no,
+    });
 
     const topic = await updateTopicByIdQuery(
       topicId,
-      updatedTopic,
+      topicModel,
       req.tenantId!,
       transaction
     );
@@ -193,6 +228,14 @@ export async function updateTopicById(
     return res.status(204).json(STATUS_CODE[204](topic));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
 
     await logFailure({
       eventType: "Update",

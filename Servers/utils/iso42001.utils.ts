@@ -1,19 +1,19 @@
 import { QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/db";
-import { ClauseStructISOModel } from "../models/ISO-42001/clauseStructISO.model";
-import { SubClauseStructISOModel } from "../models/ISO-42001/subClauseStructISO.model";
+import { ClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/clauseStructISO.model";
+import { SubClauseStructISOModel } from "../domain.layer/frameworks/ISO-42001/subClauseStructISO.model";
 import {
   SubClauseISO,
   SubClauseISOModel,
-} from "../models/ISO-42001/subClauseISO.model";
-import { AnnexStructISOModel } from "../models/ISO-42001/annexStructISO.model";
+} from "../domain.layer/frameworks/ISO-42001/subClauseISO.model";
+import { AnnexStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexStructISO.model";
 import {
   AnnexCategoryISO,
   AnnexCategoryISOModel,
-} from "../models/ISO-42001/annexCategoryISO.model";
-import { AnnexCategoryStructISOModel } from "../models/ISO-42001/annexCategoryStructISO.model";
-import { AnnexCategoryISORisksModel } from "../models/ISO-42001/annexCategoryISORIsks.model";
-import { ProjectFrameworksModel } from "../models/projectFrameworks.model";
+} from "../domain.layer/frameworks/ISO-42001/annexCategoryISO.model";
+import { AnnexCategoryStructISOModel } from "../domain.layer/frameworks/ISO-42001/annexCategoryStructISO.model";
+import { AnnexCategoryISORisksModel } from "../domain.layer/frameworks/ISO-42001/annexCategoryISORIsks.model";
+import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { Clauses } from "../structures/ISO-42001/clauses/clauses.struct";
 import { Annex } from "../structures/ISO-42001/annex/annex.struct";
 import { STATUSES } from "../types/status.type";
@@ -49,13 +49,14 @@ const getDemoAnnexCategories = (): Object[] => {
 };
 
 export const countSubClausesISOByProjectId = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<{
   totalSubclauses: string;
   doneSubclauses: string;
 }> => {
   const result = (await sequelize.query(
-    `SELECT COUNT(*) AS "totalSubclauses", SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneSubclauses" FROM subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    `SELECT COUNT(*) AS "totalSubclauses", SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneSubclauses" FROM "${tenant}".subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
@@ -64,28 +65,30 @@ export const countSubClausesISOByProjectId = async (
 };
 
 export const countAnnexCategoriesISOByProjectId = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ): Promise<{
   totalAnnexcategories: string;
   doneAnnexcategories: string;
 }> => {
   const result = (await sequelize.query(
-    `SELECT COUNT(*) AS "totalAnnexcategories", SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneAnnexcategories" FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    `SELECT COUNT(*) AS "totalAnnexcategories", SUM(CASE WHEN status = 'Implemented' THEN 1 ELSE 0 END) AS "doneAnnexcategories" FROM "${tenant}".annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [
-    { totalAnnexcategories: string; doneAnnexcategories: string }[],
-    number
-  ];
+      { totalAnnexcategories: string; doneAnnexcategories: string }[],
+      number
+    ];
   return result[0][0];
 };
 
 export const getAllClausesQuery = async (
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const clauses = await sequelize.query(
-    `SELECT * FROM clauses_struct_iso ORDER BY id;`,
+    `SELECT * FROM public.clauses_struct_iso ORDER BY id;`,
     {
       mapToModel: true,
       model: ClauseStructISOModel,
@@ -97,10 +100,11 @@ export const getAllClausesQuery = async (
 
 export const getAllClausesWithSubClauseQuery = async (
   projectFrameworkId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const clauses = (await sequelize.query(
-    `SELECT * FROM clauses_struct_iso ORDER BY id;`,
+    `SELECT * FROM public.clauses_struct_iso ORDER BY id;`,
     {
       mapToModel: true,
       ...(transaction ? { transaction } : {}),
@@ -109,7 +113,7 @@ export const getAllClausesWithSubClauseQuery = async (
 
   for (let clause of clauses[0]) {
     const subClauses = (await sequelize.query(
-      `SELECT scs.id, scs.title, scs.order_no, sc.status FROM subclauses_struct_iso scs JOIN subclauses_iso sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT scs.id, scs.title, scs.order_no, sc.status FROM public.subclauses_struct_iso scs JOIN "${tenant}".subclauses_iso sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: clause.id,
@@ -130,10 +134,11 @@ export const getAllClausesWithSubClauseQuery = async (
 
 export const getAllAnnexesWithSubAnnexQuery = async (
   projectFrameworkId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexes = (await sequelize.query(
-    `SELECT * FROM annex_struct_iso ORDER BY id;`,
+    `SELECT * FROM public.annex_struct_iso ORDER BY id;`,
     {
       mapToModel: true,
       ...(transaction ? { transaction } : {}),
@@ -146,8 +151,8 @@ export const getAllAnnexesWithSubAnnexQuery = async (
               ac.id as instance_id, ac.is_applicable, ac.justification_for_exclusion, ac.implementation_description,
               ac.evidence_links, ac.status, ac.owner, ac.reviewer, ac.approver, ac.due_date, ac.auditor_feedback,
               ac.projects_frameworks_id, ac.created_at, ac.is_demo
-         FROM annexcategories_struct_iso acs
-         LEFT JOIN annexcategories_iso ac
+         FROM public.annexcategories_struct_iso acs
+         LEFT JOIN "${tenant}".annexcategories_iso ac
            ON acs.id = ac.annexcategory_meta_id
           AND ac.projects_frameworks_id = :projects_frameworks_id
         WHERE acs.annex_id = :annex_id
@@ -172,7 +177,7 @@ export const getClauseById = async (
   transaction: Transaction | null = null
 ) => {
   const clause = await sequelize.query(
-    `SELECT * FROM clauses_struct_iso WHERE id = :id;`,
+    `SELECT * FROM public.clauses_struct_iso WHERE id = :id;`,
     {
       replacements: { id: clauseId },
       mapToModel: true,
@@ -185,10 +190,11 @@ export const getClauseById = async (
 
 export const getSubClausesByClauseIdQuery = async (
   clauseId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const subClauses = await sequelize.query(
-    `SELECT * FROM subclauses_struct_iso WHERE clause_id = :id ORDER BY id;`,
+    `SELECT * FROM public.subclauses_struct_iso WHERE clause_id = :id ORDER BY id;`,
     {
       replacements: { id: clauseId },
       mapToModel: true,
@@ -201,10 +207,11 @@ export const getSubClausesByClauseIdQuery = async (
 
 export const getSubClauseByIdForProjectQuery = async (
   subClauseId: number,
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ) => {
   const _subClauseId = (await sequelize.query(
-    `SELECT id FROM subclauses_iso WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
+    `SELECT id FROM "${tenant}".subclauses_iso WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: {
         id: subClauseId,
@@ -212,12 +219,13 @@ export const getSubClauseByIdForProjectQuery = async (
       },
     }
   )) as [{ id: number }[], number];
-  const subClauses = await getSubClauseByIdQuery(_subClauseId[0][0].id);
+  const subClauses = await getSubClauseByIdQuery(_subClauseId[0][0].id, tenant);
   return subClauses;
 };
 
 export const getSubClauseByIdQuery = async (
   subClauseId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const subClauses = (await sequelize.query(
@@ -237,7 +245,7 @@ export const getSubClauseByIdQuery = async (
       sc.due_date AS due_date,
       sc.auditor_feedback AS auditor_feedback,
       sc.created_at AS created_at
-    FROM subclauses_struct_iso scs JOIN subclauses_iso sc ON scs.id = sc.subclause_meta_id
+    FROM public.subclauses_struct_iso scs JOIN "${tenant}".subclauses_iso sc ON scs.id = sc.subclause_meta_id
     WHERE sc.id = :id ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { id: subClauseId },
@@ -248,26 +256,28 @@ export const getSubClauseByIdQuery = async (
 };
 
 export const getClausesByProjectIdQuery = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ) => {
   const subClauseIds = (await sequelize.query(
-    `SELECT id FROM subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+    `SELECT id FROM "${tenant}".subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [{ id: number }[], number];
   const msc = await getManagementSystemClausesQuery(
-    subClauseIds[0].map((subClause) => subClause.id)
+    subClauseIds[0].map((subClause) => subClause.id), tenant
   );
   return msc;
 };
 
 export const getManagementSystemClausesQuery = async (
   subClauseIds: number[],
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const clausesStruct = (await getAllClausesQuery(
-    transaction
+    tenant, transaction
   )) as (ClauseStructISOModel &
     Partial<SubClauseStructISOModel & SubClauseISOModel>[])[]; // wrong type
   let clausesStructMap = new Map();
@@ -276,7 +286,7 @@ export const getManagementSystemClausesQuery = async (
     clausesStructMap.set(clauseStruct.id, i);
   }
   for (let subClauseId of subClauseIds) {
-    const subClause = await getSubClauseByIdQuery(subClauseId, transaction);
+    const subClause = await getSubClauseByIdQuery(subClauseId, tenant, transaction);
     (clausesStruct as any)[
       clausesStructMap.get(subClause.clause_id!)
     ].dataValues.subClauses.push(subClause);
@@ -285,10 +295,11 @@ export const getManagementSystemClausesQuery = async (
 };
 
 export const getAllAnnexesQuery = async (
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexes = await sequelize.query(
-    `SELECT * FROM annex_struct_iso ORDER BY id;`,
+    `SELECT * FROM public.annex_struct_iso ORDER BY id;`,
     {
       mapToModel: true,
       model: AnnexStructISOModel,
@@ -298,30 +309,51 @@ export const getAllAnnexesQuery = async (
   return annexes;
 };
 
-export const getAllAnnexesWithCategoriesQuery = async (projectFrameworkId: number, transaction: Transaction | null = null) => {
-  const annexes = await sequelize.query(
-    `SELECT * FROM annex_struct_iso ORDER BY id;`,
+export const getAllAnnexesWithCategoriesQuery = async (
+  projectFrameworkId: number,
+  tenant: string,
+  transaction: Transaction | null = null
+) => {
+  const annexes = (await sequelize.query(
+    `SELECT * FROM public.annex_struct_iso ORDER BY id;`,
     {
       mapToModel: true,
-      ...(transaction ? { transaction } : {})
-    }) as [AnnexStructISOModel[], number];
+      ...(transaction ? { transaction } : {}),
+    }
+  )) as [AnnexStructISOModel[], number];
 
   for (let annex of annexes[0]) {
-    const annexCategories = await sequelize.query(
-      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status FROM annexcategories_struct_iso acs JOIN annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+    const annexCategories = (await sequelize.query(
+      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.is_applicable FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
-        replacements: { id: annex.id, projects_frameworks_id: projectFrameworkId },
+        replacements: {
+          id: annex.id,
+          projects_frameworks_id: projectFrameworkId,
+        },
         mapToModel: true,
-        ...(transaction ? { transaction } : {})
-      }) as [Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[], number];
-    (annex as (AnnexStructISOModel & { annexCategories: Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[] })).annexCategories = annexCategories[0];
+        ...(transaction ? { transaction } : {}),
+      }
+    )) as [
+        Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
+        number
+      ];
+    (
+      annex as AnnexStructISOModel & {
+        annexCategories: Partial<
+          AnnexCategoryStructISOModel & AnnexCategoryISOModel
+        >[];
+      }
+    ).annexCategories = annexCategories[0];
   }
   return annexes[0];
-}
+};
 
-export const getAnnexByIdQuery = async (annexId: number, transaction: Transaction | null = null) => {
+export const getAnnexByIdQuery = async (
+  annexId: number,
+  transaction: Transaction | null = null
+) => {
   const annex = await sequelize.query(
-    `SELECT * FROM annex_struct_iso WHERE id = :id;`,
+    `SELECT * FROM public.annex_struct_iso WHERE id = :id;`,
     {
       replacements: { id: annexId },
       mapToModel: true,
@@ -334,10 +366,11 @@ export const getAnnexByIdQuery = async (annexId: number, transaction: Transactio
 
 export const getAnnexCategoriesByAnnexIdQuery = async (
   annexId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexCategories = await sequelize.query(
-    `SELECT * FROM annexcategories_struct_iso WHERE annex_id = :id ORDER BY id;`,
+    `SELECT * FROM public.annexcategories_struct_iso WHERE annex_id = :id ORDER BY id;`,
     {
       replacements: { id: annexId },
       mapToModel: true,
@@ -350,10 +383,11 @@ export const getAnnexCategoriesByAnnexIdQuery = async (
 
 export const getAnnexCategoryByIdForProjectQuery = async (
   annexCategoryId: number,
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ) => {
   const _annexCategoryId = (await sequelize.query(
-    `SELECT id FROM annexcategories_iso WHERE annexcategory_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
+    `SELECT id FROM "${tenant}".annexcategories_iso WHERE annexcategory_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: {
         id: annexCategoryId,
@@ -362,13 +396,14 @@ export const getAnnexCategoryByIdForProjectQuery = async (
     }
   )) as [{ id: number }[], number];
   const annexCategories = await getAnnexCategoriesByIdQuery(
-    _annexCategoryId[0][0].id
+    _annexCategoryId[0][0].id, tenant
   );
   return annexCategories;
 };
 
 export const getAnnexCategoriesByIdQuery = async (
   annexCategoryId: number,
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexCategories = (await sequelize.query(
@@ -389,20 +424,20 @@ export const getAnnexCategoriesByIdQuery = async (
       ac.due_date AS due_date,
       ac.auditor_feedback AS auditor_feedback,
       ac.created_at AS created_at
-    FROM annexcategories_struct_iso acs JOIN annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id
+    FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id
     WHERE ac.id = :id ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { id: annexCategoryId },
       ...(transaction ? { transaction } : {}),
     }
   )) as [
-    Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
-    number
-  ];
+      Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
+      number
+    ];
   const annexCategory = annexCategories[0][0];
   (annexCategory as any).risks = [];
   const risks = (await sequelize.query(
-    `SELECT projects_risks_id FROM annexcategories_iso__risks WHERE annexcategory_id = :id`,
+    `SELECT projects_risks_id FROM "${tenant}".annexcategories_iso__risks WHERE annexcategory_id = :id`,
     {
       replacements: { id: annexCategoryId },
       transaction,
@@ -415,26 +450,28 @@ export const getAnnexCategoriesByIdQuery = async (
 };
 
 export const getAnnexesByProjectIdQuery = async (
-  projectFrameworkId: number
+  projectFrameworkId: number,
+  tenant: string
 ) => {
   const annexCategoryIds = (await sequelize.query(
-    `SELECT id FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+    `SELECT id FROM "${tenant}".annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [{ id: number }[], number];
   const rc = await getReferenceControlsQuery(
-    annexCategoryIds[0].map((annexCategory) => annexCategory.id)
+    annexCategoryIds[0].map((annexCategory) => annexCategory.id), tenant
   );
   return rc;
 };
 
 export const getReferenceControlsQuery = async (
   annexCategoryIds: number[],
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
   const annexesStruct = (await getAllAnnexesQuery(
-    transaction
+    tenant, transaction
   )) as (AnnexStructISOModel &
     Partial<AnnexCategoryISOModel & AnnexCategoryStructISOModel>[])[]; // wrong type
   let annexStructMap = new Map();
@@ -445,6 +482,7 @@ export const getReferenceControlsQuery = async (
   for (let annexCategoryId of annexCategoryIds) {
     const annex = await getAnnexCategoriesByIdQuery(
       annexCategoryId,
+      tenant,
       transaction
     );
     (annexesStruct as any)[
@@ -457,18 +495,19 @@ export const getReferenceControlsQuery = async (
 export const createNewClausesQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
+    `SELECT id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
     {
       replacements: { project_id: projectId },
       transaction,
     }
   )) as [{ id: number }[], number];
   const subClauses = (await sequelize.query(
-    `SELECT id FROM subclauses_struct_iso ORDER BY id;`,
+    `SELECT id FROM public.subclauses_struct_iso ORDER BY id;`,
     { transaction }
   )) as [{ id: number }[], number];
   const demoSubClauses = getDemoSubClauses() as {
@@ -480,11 +519,13 @@ export const createNewClausesQuery = async (
     projectFrameworkId[0][0].id,
     enable_ai_data_insertion,
     demoSubClauses,
+    tenant,
     transaction,
     is_mock_data
   );
   const clauses = await getManagementSystemClausesQuery(
     subClauseIds,
+    tenant,
     transaction
   );
   return clauses;
@@ -498,6 +539,7 @@ export const createNewSubClausesQuery = async (
     implementation_description: string;
     auditor_feedback: string;
   }[],
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
@@ -505,7 +547,7 @@ export const createNewSubClausesQuery = async (
   let ctr = 0;
   for (let _subClauseId of subClauses) {
     const subClauseId = (await sequelize.query(
-      `INSERT INTO subclauses_iso (
+      `INSERT INTO "${tenant}".subclauses_iso (
         subclause_meta_id, projects_frameworks_id, implementation_description, auditor_feedback, status
       ) VALUES (
         :subclause_meta_id, :projects_frameworks_id, :implementation_description, :auditor_feedback, :status
@@ -536,18 +578,19 @@ export const createNewSubClausesQuery = async (
 export const createNewAnnexesQUery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
+    `SELECT id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
     {
       replacements: { project_id: projectId },
       transaction,
     }
   )) as [{ id: number }[], number];
   const annexCategories = (await sequelize.query(
-    `SELECT id FROM annexcategories_struct_iso ORDER BY id;`,
+    `SELECT id FROM public.annexcategories_struct_iso ORDER BY id;`,
     { transaction }
   )) as [{ id: number }[], number];
   const demoAnnexCategories = getDemoAnnexCategories() as {
@@ -561,11 +604,13 @@ export const createNewAnnexesQUery = async (
     projectFrameworkId[0][0].id,
     demoAnnexCategories,
     enable_ai_data_insertion,
+    tenant,
     transaction,
     is_mock_data
   );
   const annexes = await getReferenceControlsQuery(
     annexCategoryIds,
+    tenant,
     transaction
   );
   return annexes;
@@ -581,6 +626,7 @@ export const createNewAnnexeCategoriesQuery = async (
     auditor_feedback: string;
   }[],
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean
 ) => {
@@ -588,7 +634,7 @@ export const createNewAnnexeCategoriesQuery = async (
   let ctr = 0;
   for (let _annexCategoryId of annexCategories) {
     const annexCategoryId = (await sequelize.query(
-      `INSERT INTO annexcategories_iso (
+      `INSERT INTO "${tenant}".annexcategories_iso (
         annexcategory_meta_id, projects_frameworks_id, is_applicable, justification_for_exclusion, implementation_description, auditor_feedback, status
       ) VALUES (
         :annexcategory_meta_id, :projects_frameworks_id, :is_applicable, :justification_for_exclusion, :implementation_description, :auditor_feedback, :status
@@ -625,18 +671,21 @@ export const createNewAnnexeCategoriesQuery = async (
 export const createISOFrameworkQuery = async (
   projectId: number,
   enable_ai_data_insertion: boolean,
+  tenant: string,
   transaction: Transaction,
   is_mock_data: boolean = false
 ) => {
   const management_system_clauses = await createNewClausesQuery(
     projectId,
     enable_ai_data_insertion,
+    tenant,
     transaction,
     is_mock_data
   );
   const reference_controls = await createNewAnnexesQUery(
     projectId,
     enable_ai_data_insertion,
+    tenant,
     transaction,
     is_mock_data
   );
@@ -657,10 +706,11 @@ export const updateSubClauseQuery = async (
     uploaded_time: Date;
   }[] = [],
   deletedFiles: number[] = [],
+  tenant: string,
   transaction: Transaction
 ) => {
   const files = await sequelize.query(
-    `SELECT evidence_links FROM subclauses_iso WHERE id = :id`,
+    `SELECT evidence_links FROM "${tenant}".subclauses_iso WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -715,7 +765,7 @@ export const updateSubClauseQuery = async (
     return subClause as SubClauseISO;
   }
 
-  const query = `UPDATE subclauses_iso SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".subclauses_iso SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSubClause.id = id;
 
@@ -743,10 +793,11 @@ export const updateAnnexCategoryQuery = async (
     uploaded_time: Date;
   }[] = [],
   deletedFiles: number[] = [],
+  tenant: string,
   transaction: Transaction
 ) => {
   const files = await sequelize.query(
-    `SELECT evidence_links FROM annexcategories_iso WHERE id = :id`,
+    `SELECT evidence_links FROM "${tenant}".annexcategories_iso WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -803,7 +854,7 @@ export const updateAnnexCategoryQuery = async (
     return annexCategory as AnnexCategoryISO;
   }
 
-  const query = `UPDATE annexcategories_iso SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".annexcategories_iso SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateAnnexCategory.id = id;
 
@@ -823,7 +874,7 @@ export const updateAnnexCategoryQuery = async (
     annexCategory.risksMitigated || "[]"
   ) as number[];
   const risks = (await sequelize.query(
-    `SELECT projects_risks_id FROM annexcategories_iso__risks WHERE annexcategory_id = :id`,
+    `SELECT projects_risks_id FROM "${tenant}".annexcategories_iso__risks WHERE annexcategory_id = :id`,
     {
       replacements: { id },
       transaction,
@@ -834,7 +885,7 @@ export const updateAnnexCategoryQuery = async (
   currentRisks = currentRisks.concat(risksMitigated);
 
   await sequelize.query(
-    `DELETE FROM annexcategories_iso__risks WHERE annexcategory_id = :id;`,
+    `DELETE FROM "${tenant}".annexcategories_iso__risks WHERE annexcategory_id = :id;`,
     {
       replacements: { id },
       transaction,
@@ -845,7 +896,7 @@ export const updateAnnexCategoryQuery = async (
     .join(", ");
   if (annexCategoryRisksInsert) {
     const annexCategoryRisksInsertResult = (await sequelize.query(
-      `INSERT INTO annexcategories_iso__risks (annexcategory_id, projects_risks_id) VALUES ${annexCategoryRisksInsert} RETURNING projects_risks_id;`,
+      `INSERT INTO "${tenant}".annexcategories_iso__risks (annexcategory_id, projects_risks_id) VALUES ${annexCategoryRisksInsert} RETURNING projects_risks_id;`,
       {
         transaction,
       }
@@ -860,10 +911,11 @@ export const updateAnnexCategoryQuery = async (
 
 export const deleteSubClausesISOByProjectIdQuery = async (
   projectFrameworkId: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   const result = await sequelize.query(
-    `DELETE FROM subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
+    `DELETE FROM "${tenant}".subclauses_iso WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       mapToModel: true,
@@ -877,18 +929,19 @@ export const deleteSubClausesISOByProjectIdQuery = async (
 
 export const deleteAnnexCategoriesISOByProjectIdQuery = async (
   projectFrameworkId: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   // delete the risks first
   await sequelize.query(
-    `DELETE FROM annexcategories_iso__risks WHERE annexcategory_id IN (SELECT id FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id)`,
+    `DELETE FROM "${tenant}".annexcategories_iso__risks WHERE annexcategory_id IN (SELECT id FROM "${tenant}".annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id)`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       transaction,
     }
   );
   const result = await sequelize.query(
-    `DELETE FROM annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
+    `DELETE FROM "${tenant}".annexcategories_iso WHERE projects_frameworks_id = :projects_frameworks_id RETURNING *`,
     {
       replacements: { projects_frameworks_id: projectFrameworkId },
       mapToModel: true,
@@ -902,10 +955,11 @@ export const deleteAnnexCategoriesISOByProjectIdQuery = async (
 
 export const deleteProjectFrameworkISOQuery = async (
   projectId: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   const projectFrameworkId = (await sequelize.query(
-    `SELECT id FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
+    `SELECT id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 2`,
     {
       replacements: { project_id: projectId },
       transaction,
@@ -913,15 +967,17 @@ export const deleteProjectFrameworkISOQuery = async (
   )) as [{ id: number }[], number];
   const subClausesDeleted = await deleteSubClausesISOByProjectIdQuery(
     projectFrameworkId[0][0].id,
+    tenant,
     transaction
   );
   const annexeCategoriesDeleted =
     await deleteAnnexCategoriesISOByProjectIdQuery(
       projectFrameworkId[0][0].id,
+      tenant,
       transaction
     );
   const result = await sequelize.query(
-    `DELETE FROM projects_frameworks WHERE project_id = :project_id AND framework_id = 2 RETURNING *`,
+    `DELETE FROM "${tenant}".projects_frameworks WHERE project_id = :project_id AND framework_id = 2 RETURNING *`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,

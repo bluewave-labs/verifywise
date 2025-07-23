@@ -1,35 +1,43 @@
-import { ProjectScope, ProjectScopeModel } from "../models/projectScope.model";
+import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
+import { IProjectScope } from "../domain.layer/interfaces/i.projectScope";
 
-export const getAllProjectScopesQuery = async (): Promise<ProjectScope[]> => {
+export const getAllProjectScopesQuery = async (
+  tenant: string
+): Promise<IProjectScope[]> => {
   const projectScopes = await sequelize.query(
-    "SELECT * FROM projectscopes ORDER BY created_at DESC, id ASC",
+    `SELECT * FROM "${tenant}".projectscopes ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
-      model: ProjectScopeModel
+      model: ProjectScopeModel,
     }
   );
   return projectScopes;
 };
 
 export const getProjectScopeByIdQuery = async (
-  id: number
-): Promise<ProjectScope | null> => {
+  id: number,
+  tenant: string
+): Promise<IProjectScope | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM projectscopes WHERE id = :id",
+    `SELECT * FROM "${tenant}".projectscopes WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
-      model: ProjectScopeModel
+      model: ProjectScopeModel,
     }
   );
   return result[0];
 };
 
-export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope>, transaction: Transaction): Promise<ProjectScope> => {
+export const createProjectScopeQuery = async (
+  projectScope: Partial<ProjectScopeModel>,
+  tenant: string,
+  transaction: Transaction
+): Promise<ProjectScopeModel> => {
   const result = await sequelize.query(
-    `INSERT INTO projectscopes (
+    `INSERT INTO "${tenant}".projectscopes (
       assessment_id, describe_ai_environment, is_new_ai_technology,
       uses_personal_data, project_scope_documents, technology_type,
       has_ongoing_monitoring, unintended_outcomes, technology_documentation
@@ -53,7 +61,7 @@ export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope
       mapToModel: true,
       model: ProjectScopeModel,
       // type: QueryTypes.INSERT
-      transaction
+      transaction,
     }
   );
   return result[0];
@@ -61,10 +69,11 @@ export const createProjectScopeQuery = async (projectScope: Partial<ProjectScope
 
 export const updateProjectScopeByIdQuery = async (
   id: number,
-  projectScope: Partial<ProjectScope>,
+  projectScope: Partial<ProjectScopeModel>,
+  tenant: string,
   transaction: Transaction
-): Promise<ProjectScope | null> => {
-  const updateProjectScope: Partial<Record<keyof ProjectScope, any>> = {};
+): Promise<ProjectScopeModel | null> => {
+  const updateProjectScope: Partial<Record<keyof ProjectScopeModel, any>> = {};
   const setClause = [
     "assessment_id",
     "describe_ai_environment",
@@ -75,14 +84,21 @@ export const updateProjectScopeByIdQuery = async (
     "has_ongoing_monitoring",
     "unintended_outcomes",
     "technology_documentation",
-  ].filter(f => {
-    if (projectScope[f as keyof ProjectScope] !== undefined && projectScope[f as keyof ProjectScope]) {
-      updateProjectScope[f as keyof ProjectScope] = projectScope[f as keyof ProjectScope]
-      return true
-    }
-  }).map(f => `${f} = :${f}`).join(", ");
+  ]
+    .filter((f) => {
+      if (
+        projectScope[f as keyof ProjectScopeModel] !== undefined &&
+        projectScope[f as keyof ProjectScopeModel]
+      ) {
+        updateProjectScope[f as keyof ProjectScopeModel] =
+          projectScope[f as keyof ProjectScopeModel];
+        return true;
+      }
+    })
+    .map((f) => `${f} = :${f}`)
+    .join(", ");
 
-  const query = `UPDATE projectscopes SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".projectscopes SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateProjectScope.id = id;
 
@@ -91,7 +107,7 @@ export const updateProjectScopeByIdQuery = async (
     mapToModel: true,
     model: ProjectScopeModel,
     // type: QueryTypes.UPDATE,
-    transaction
+    transaction,
   });
 
   return result[0];
@@ -99,16 +115,17 @@ export const updateProjectScopeByIdQuery = async (
 
 export const deleteProjectScopeByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    "DELETE FROM projectscopes WHERE id = :id RETURNING *",
+    `DELETE FROM "${tenant}".projectscopes WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
       model: ProjectScopeModel,
       type: QueryTypes.DELETE,
-      transaction
+      transaction,
     }
   );
   return result.length > 0;

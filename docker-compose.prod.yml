@@ -2,6 +2,8 @@ version: '3.9'
 
 services:
   postgresdb:
+    expose:
+      - "$DB_PORT"
     volumes:
       - db-prod:/var/lib/postgresql/data  # Separate volume for prod database
 

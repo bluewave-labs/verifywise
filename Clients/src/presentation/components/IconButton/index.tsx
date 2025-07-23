@@ -28,6 +28,9 @@ const IconButton: React.FC<IconButtonProps> = ({
   warningMessage,
   type,
   onMouseEvent,
+  onMakeVisible,
+  onDownload,
+  isVisible,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -54,19 +57,6 @@ const IconButton: React.FC<IconButtonProps> = ({
   };
 
   /**
-   * Handles the action of opening the "Remove Vendor" dialog by closing the dropdown menu
-   * and setting the state to open the remove vendor modal.
-   *
-   * @param {React.MouseEvent} e - The click event that triggers the function.
-   */
-
-  /**
-   * Handles the change event for a component, updating the state with the new value.
-   *
-   * @param {React.SyntheticEvent} _ - The synthetic event object.
-   * @param {string} newValue - The new value to set in the state.
-   */
-  /**
    * Handles the closing of the dropdown menu by stopping event propagation
    * and setting the anchor element to null.
    *
@@ -85,6 +75,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       closeDropDownMenu(e);
     }
   };
+  
   const handleEdit = (e?: React.SyntheticEvent) => {
     onEdit();
     if (e) {
@@ -92,6 +83,25 @@ const IconButton: React.FC<IconButtonProps> = ({
       onMouseEvent(e);
     }
   };
+
+  const handleMakeVisible = (e?: React.SyntheticEvent) => {
+    if (onMakeVisible) {
+      onMakeVisible();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleDownload = (e?: React.SyntheticEvent) => {
+    if (onDownload) {
+      onDownload();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
   function handleCancle(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
@@ -104,9 +114,32 @@ const IconButton: React.FC<IconButtonProps> = ({
    *
    * - For type "evidence", the menu item will be "download".
    * - For type "report", the menu item will be "download", "remove".
+   * - For type "Resource", the menu item will be "edit", "make visible", "download", "remove".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
-  const listOfButtons = type === "report" ? ["download", "remove"] : type === "evidence" ? ["download"] : ["edit", "remove"];
+  const getListOfButtons = () => {
+    if (type === "report") {
+      return ["download", "remove"];
+    } else if (type === "evidence") {
+      return ["download"];
+    } else if (type === "Resource") {
+      return ["edit", "make visible", "download", "remove"];
+    } else {
+      return ["edit", "remove"];
+    }
+  };
+
+  const listOfButtons = getListOfButtons();
+
+  /**
+   * Gets the display text for menu items, with special handling for visibility toggle
+   */
+  const getMenuItemText = (item: string) => {
+    if (item === "make visible") {
+      return isVisible ? "Make Hidden" : "Make Visible";
+    }
+    return item.charAt(0).toUpperCase() + item.slice(1);
+  };
 
   /**
    * Renders a dropdown menu with dynamic options (e.g., Edit, Download, Remove)
@@ -138,8 +171,12 @@ const IconButton: React.FC<IconButtonProps> = ({
         <MenuItem
           key={item}
           onClick={(e) => {
-            if (item === "edit" || item === "download") {
+            if (item === "edit") {
               handleEdit(e);
+            } else if (item === "download") {
+              handleDownload(e);
+            } else if (item === "make visible") {
+              handleMakeVisible(e);
             } else if (item === "remove") {
               setIsOpenRemoveModal(true);
               if (e) closeDropDownMenu(e);
@@ -147,7 +184,7 @@ const IconButton: React.FC<IconButtonProps> = ({
           }}
           sx={item === "remove" ? { color: "#d32f2f" } : {}}
         >
-          {item.charAt(0).toUpperCase() + item.slice(1)}
+          {getMenuItemText(item)}
         </MenuItem>
       ))}
     </Menu>

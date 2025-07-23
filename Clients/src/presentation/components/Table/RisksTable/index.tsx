@@ -19,7 +19,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
-import { RISK_LABELS } from "../../RiskLevel/constants";
+import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 
@@ -247,24 +247,12 @@ const RiskTable: React.FC<RiskTableProps> = ({
                     )?.name
                   }
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.risk_severity}</TableCell>
+                <TableCell sx={cellStyle}>
+                  <RiskChip label={row.risk_severity} />
+                </TableCell>
                 <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
                 <TableCell sx={cellStyle}>
-                  <Box
-                    sx={{
-                      backgroundColor:
-                        Object.values(RISK_LABELS).find(
-                          (risk) => risk.text === row.risk_level
-                        )?.color || "transparent",
-                      borderRadius: theme.shape.borderRadius,
-                      padding: "8px",
-                      textAlign: "center",
-                      justifyContent: "center",
-                      color: "white",
-                    }}
-                  >
-                    {row.risk_level}
-                  </Box>
+                  <RiskChip label={row.risk_level} />
                 </TableCell>
                 <TableCell
                   sx={{

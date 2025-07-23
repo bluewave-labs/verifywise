@@ -41,7 +41,6 @@ export async function UpdateAnnexCategoryById({
         ...headers,
       },
     });
-    console.log("Update Annex Category Response:", response);
     return response;
   } catch (error: any) {
     console.error("Error updating annex category by ID:", error);

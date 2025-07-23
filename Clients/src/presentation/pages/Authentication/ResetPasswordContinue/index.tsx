@@ -68,7 +68,7 @@ const ResetPasswordContinue = () => {
           variant="contained"
           sx={{
             width: 360,
-            ...singleTheme.buttons.primary,
+            ...singleTheme.buttons.primary.contained,
           }}
           onClick={() => {
             navigate("/login");

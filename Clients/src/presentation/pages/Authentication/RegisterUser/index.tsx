@@ -73,6 +73,7 @@ const RegisterUser: React.FC = () => {
       firstname: values.name || "",
       lastname: values.surname || "",
       roleId: Number(values.roleId) || 1,
+      organizationId: Number(values.organizationId),
     };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
@@ -106,7 +107,7 @@ const RegisterUser: React.FC = () => {
         handleAlert({
           variant: "error",
           body:
-            isSuccess === 409 ? "User already exist." : "Registration failed.",
+            isSuccess === 409 ? "This user already exists." : "Registration failed.",
           setAlert,
         });
       }
@@ -124,12 +125,10 @@ const RegisterUser: React.FC = () => {
   const checkValidInvitation = (expDate: any) => {
     let todayDate = new Date();
     let currentTime = todayDate.getTime();
-    console.log(currentTime);
 
     if (currentTime < expDate) {
       setIsInvitationValid(true);
     } else {
-      console.log("The link has expired already.");
       setIsInvitationValid(false);
     }
     return isInvitationValid;
@@ -138,7 +137,6 @@ const RegisterUser: React.FC = () => {
   useEffect(() => {
     if (userToken !== null) {
       const userInfo = extractUserToken(userToken);
-      console.log(userInfo);
       if (userInfo !== null) {
         const isValidLink = checkValidInvitation(userInfo?.expire);
 
@@ -148,6 +146,7 @@ const RegisterUser: React.FC = () => {
             name: userInfo.name ?? "",
             email: userInfo.email ?? "",
             roleId: Number(userInfo.roleId) ?? 1,
+            organizationId: Number(userInfo.organizationId),
           };
           setValues(userData);
         }
@@ -309,7 +308,7 @@ const RegisterUser: React.FC = () => {
               type="submit"
               disableRipple
               variant="contained"
-              sx={singleTheme.buttons.primary}
+              sx={singleTheme.buttons.primary.contained}
               disabled={!isInvitationValid}
             >
               Get started

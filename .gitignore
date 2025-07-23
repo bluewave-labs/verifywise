@@ -10,3 +10,6 @@ venv/
 .vscode/settings.json
 
 .DS_Store
+express.log
+fastapi.log
+react.log

@@ -9,7 +9,7 @@ import {
   deleteTrainingRegistarByIdQuery,
 } from "../utils/trainingRegistar.utils";
 
-import { TrainingRegistar } from "../models/trainingRegistar.model";
+import { TrainingRegistar } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 import { sequelize } from "../database/db";
 
 // get ALL training registry api
@@ -18,7 +18,7 @@ export async function getAllTrainingRegistar(
   res: Response
 ): Promise<any> {
   try {
-    const trainingRegistars = await getAllTrainingRegistarQuery();
+    const trainingRegistars = await getAllTrainingRegistarQuery(req.tenantId!);
     if (trainingRegistars) {
       return res.status(200).json(STATUS_CODE[200](trainingRegistars));
     }
@@ -38,7 +38,7 @@ export async function getTrainingRegistarById(
     const trainingRegistarId = parseInt(req.params.id);
 
     const trainingRegistar = await getTrainingRegistarByIdQuery(
-      trainingRegistarId
+      trainingRegistarId, req.tenantId!
     );
 
     if (trainingRegistar) {
@@ -78,6 +78,7 @@ export async function createNewTrainingRegistar(
 
     const createdNewTrainingRegistar = await createNewTrainingRegistarQuery(
       newTrainingRegistar,
+      req.tenantId!,
       transaction
     );
 
@@ -125,6 +126,7 @@ export async function updateTrainingRegistarById(
     const trainingRegistar = await updateTrainingRegistarByIdQuery(
       trainingRegistarId,
       updatedTrainingRegistar,
+      req.tenantId!,
       transaction
     );
     if (trainingRegistar) {
@@ -147,6 +149,7 @@ export async function deleteTrainingRegistarById(
     const trainingRegistarId = parseInt(req.params.id);
     const deleteTrainingRegistar = await deleteTrainingRegistarByIdQuery(
       trainingRegistarId,
+      req.tenantId!,
       transaction
     );
     if (deleteTrainingRegistar) {

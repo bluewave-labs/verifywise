@@ -20,7 +20,7 @@
  * @module utils/organization.util
  */
 
-import { Organization, OrganizationModel } from "../models/organization.model";
+import { OrganizationModel } from "../domain.layer/models/organization/organization.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 
@@ -36,17 +36,24 @@ import { QueryTypes, Transaction } from "sequelize";
  */
 export const getAllOrganizationsQuery = async (
   transaction: Transaction | null = null
-): Promise<Organization[]> => {
+): Promise<OrganizationModel[]> => {
   const organizations = await sequelize.query(
     "SELECT * FROM organizations ORDER BY created_at DESC, id ASC",
     {
       mapToModel: true,
       model: OrganizationModel,
-      ...(transaction && { transaction })
+      ...(transaction && { transaction }),
     }
   );
   return organizations;
 };
+
+export const getOrganizationsExistsQuery = async () => {
+  const result = await sequelize.query(
+    "SELECT COUNT(*) > 0 AS exists FROM public.organizations"
+  ) as [{ exists: boolean }[], number];
+  return result[0][0];
+}
 
 /**
  * Retrieves an organization from the database by its unique identifier.
@@ -58,7 +65,7 @@ export const getAllOrganizationsQuery = async (
  */
 export const getOrganizationByIdQuery = async (
   id: number
-): Promise<Organization | null> => {
+): Promise<OrganizationModel | null> => {
   const result = await sequelize.query(
     "SELECT * FROM organizations WHERE id = :id",
     {
@@ -80,9 +87,9 @@ export const getOrganizationByIdQuery = async (
  * @throws Will throw an error if the database query fails.
  */
 export const createOrganizationQuery = async (
-  organization: Partial<Organization>,
+  organization: Partial<OrganizationModel>,
   transaction: Transaction
-): Promise<Organization> => {
+): Promise<OrganizationModel> => {
   const result = await sequelize.query(
     `INSERT INTO organizations(name, logo, created_at) 
      VALUES (:name, :logo, :created_at) RETURNING *`,
@@ -112,17 +119,17 @@ export const createOrganizationQuery = async (
  */
 export const updateOrganizationByIdQuery = async (
   id: number,
-  organization: Partial<Organization>,
+  organization: Partial<OrganizationModel>,
   transaction: Transaction
-): Promise<Organization | null> => {
-  const updateOrg: Partial<Record<keyof Organization, any>> = {};
-  const updateFields = ["name", "logo", "members", "projects"];
+): Promise<OrganizationModel | null> => {
+  const updateOrg: Partial<Record<keyof OrganizationModel, any>> = {};
+  const updateFields = ["name", "logo"];
 
   const setClause = updateFields
     .filter((field) => {
-      if (organization[field as keyof Organization] !== undefined) {
-        updateOrg[field as keyof Organization] =
-          organization[field as keyof Organization];
+      if (organization[field as keyof OrganizationModel] !== undefined) {
+        updateOrg[field as keyof OrganizationModel] =
+          organization[field as keyof OrganizationModel];
         return true;
       }
       return false;
@@ -172,186 +179,4 @@ export const deleteOrganizationByIdQuery = async (
     }
   );
   return result.length > 0;
-};
-
-/**
- * Retrieves members of an organization by organization ID.
- *
- * @param id - The ID of the organization.
- * @returns A promise that resolves to an array of member IDs.
- *
- * @throws Will throw an error if the database query fails.
- */
-export const getOrganizationMembersQuery = async (
-  id: number
-): Promise<number[]> => {
-  const organization = await getOrganizationByIdQuery(id);
-  return organization?.members || [];
-};
-
-/**
- * Retrieves projects of an organization by organization ID.
- *
- * @param id - The ID of the organization.
- * @returns A promise that resolves to an array of project IDs.
- *
- * @throws Will throw an error if the database query fails.
- */
-export const getOrganizationProjectsQuery = async (
-  id: number
-): Promise<number[]> => {
-  const organization = await getOrganizationByIdQuery(id);
-  return organization?.projects || [];
-};
-
-/**
- * Adds a member to an organization.
- *
- * @param id - The ID of the organization.
- * @param memberId - The ID of the member to add.
- * @param transaction - The transaction object for database operations.
- * @returns A promise that resolves to the updated organization.
- *
- * @throws Will throw an error if the database query fails.
- */
-export const addMemberToOrganizationQuery = async (
-  id: number,
-  memberId: number,
-  transaction: Transaction
-): Promise<Organization | null> => {
-  const organization = await getOrganizationByIdQuery(id);
-  if (!organization) return null;
-
-  const members = organization.members || [];
-  if (members.includes(memberId)) return organization;
-
-  const updatedMembers = [...members, memberId];
-
-  const result = await sequelize.query(
-    `UPDATE organizations SET members = :members WHERE id = :id RETURNING *`,
-    {
-      replacements: {
-        id,
-        members: updatedMembers,
-      },
-      mapToModel: true,
-      model: OrganizationModel,
-      transaction,
-    }
-  );
-  return result[0] || null;
-};
-
-/**
- * Removes a member from an organization.
- *
- * @param id - The ID of the organization.
- * @param memberId - The ID of the member to remove.
- * @param transaction - The transaction object for database operations.
- * @returns A promise that resolves to the updated organization.
- *
- * @throws Will throw an error if the database query fails.
- */
-export const removeMemberFromOrganizationQuery = async (
-  id: number,
-  memberId: number,
-  transaction: Transaction
-): Promise<Organization | null> => {
-  const organization = await getOrganizationByIdQuery(id);
-  if (!organization) return null;
-
-  const members = organization.members || [];
-  if (!members.includes(memberId)) return organization;
-
-  const updatedMembers = members.filter((id) => id !== memberId);
-
-  const result = await sequelize.query(
-    `UPDATE organizations SET members = :members WHERE id = :id RETURNING *`,
-    {
-      replacements: {
-        id,
-        members: updatedMembers,
-      },
-      mapToModel: true,
-      model: OrganizationModel,
-      transaction,
-    }
-  );
-  return result[0] || null;
-};
-
-/**
- * Adds a project to an organization.
- *
- * @param id - The ID of the organization.
- * @param projectId - The ID of the project to add.
- * @param transaction - The transaction object for database operations.
- * @returns A promise that resolves to the updated organization.
- *
- * @throws Will throw an error if the database query fails.
- */
-export const addProjectToOrganizationQuery = async (
-  id: number,
-  projectId: number,
-  transaction: Transaction
-): Promise<Organization | null> => {
-  const organization = await getOrganizationByIdQuery(id);
-  if (!organization) return null;
-
-  const projects = organization.projects || [];
-  if (projects.includes(projectId)) return organization;
-
-  const updatedProjects = [...projects, projectId];
-
-  const result = await sequelize.query(
-    `UPDATE organizations SET projects = :projects WHERE id = :id RETURNING *`,
-    {
-      replacements: {
-        id,
-        projects: updatedProjects,
-      },
-      mapToModel: true,
-      model: OrganizationModel,
-      transaction,
-    }
-  );
-  return result[0] || null;
-};
-
-/**
- * Removes a project from an organization.
- *
- * @param id - The ID of the organization.
- * @param projectId - The ID of the project to remove.
- * @param transaction - The transaction object for database operations.
- * @returns A promise that resolves to the updated organization.
- *
- * @throws Will throw an error if the database query fails.
- */
-export const removeProjectFromOrganizationQuery = async (
-  id: number,
-  projectId: number,
-  transaction: Transaction
-): Promise<Organization | null> => {
-  const organization = await getOrganizationByIdQuery(id);
-  if (!organization) return null;
-
-  const projects = organization.projects || [];
-  if (!projects.includes(projectId)) return organization;
-
-  const updatedProjects = projects.filter((id) => id !== projectId);
-
-  const result = await sequelize.query(
-    `UPDATE organizations SET projects = :projects WHERE id = :id RETURNING *`,
-    {
-      replacements: {
-        id,
-        projects: updatedProjects,
-      },
-      mapToModel: true,
-      model: OrganizationModel,
-      transaction,
-    }
-  );
-  return result[0] || null;
 };

@@ -24,6 +24,7 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     "/login",
     "/admin-reg",
     "/user-reg",
+    "/register",
     "/forgot-password",
     "/reset-password",
     "/set-new-password",
@@ -39,12 +40,11 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
           routeUrl: "/users/check/exists",
         });
         const userExists = response ?? false;
+        // if (!userExists) {
+        //   dispatch(clearAuthState())
+        // }
 
         dispatch(setUserExists(userExists));
-
-        // console.log("No auth token found, redirecting to login");
-        // console.log("Current location:", location.pathname);
-        // console.log("Auth state:", authState);
       } catch (error) {
         console.error("Error checking if user exists:", error);
       } finally {
@@ -58,21 +58,32 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     return <CustomizableToast title="Loading..." />; // Show a loading indicator while checking user existence
   }
 
-  // Allow access to RegisterAdmin if no users exist in the database and the current route is "/admin-reg"
-  if (!authState.userExists && location.pathname === "/admin-reg") {
+  console.log(
+    "Multi-tenant mode active - processing route:",
+    location.pathname
+  );
+
+  // Always allow access to login and register routes in multi-tenant mode
+  if (location.pathname === "/login" || location.pathname === "/register") {
+    console.log("Allowing access to login/register route");
     return <Component {...rest} />;
   }
 
-  // Redirect to /admin-reg if no users exist in the database and trying to access any other route
-  if (!authState.userExists && location.pathname !== "/admin-reg") {
-    return <Navigate to="/admin-reg" />;
-  }
-
-  // Redirect to login if user exists and trying to access "/admin-reg"
-  if (authState.userExists && location.pathname === "/admin-reg") {
+  // Redirect to login if trying to access "/admin-reg" (legacy route)
+  if (location.pathname === "/admin-reg") {
+    console.log("Redirecting admin-reg to login");
     return <Navigate to="/login" />;
   }
 
+  // If users exist and we have an auth token, allow access to protected routes
+  if (authState.authToken && authState.authToken.trim() !== "") {
+    return <Component {...rest} />;
+  }
+
+  // If users exist but no auth token, redirect to login
+  // return <Navigate to="/login" replace state={{ from: location }} />;
+
+  // Single-tenant authentication logic (only reached if not multi-tenant)
   if (authState.authToken && location.pathname === "/login") {
     return <Navigate to="/" replace />;
   }
@@ -82,9 +93,6 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     (!authState.authToken || authState.authToken.trim() === "") &&
     !isPublicRoute
   ) {
-    // console.log("No auth token found, redirecting to login");
-    // console.log("Current location:", location.pathname);
-    // console.log("Auth state:", authState);
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

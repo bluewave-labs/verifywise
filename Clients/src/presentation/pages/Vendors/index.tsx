@@ -660,9 +660,9 @@ const Vendors = () => {
         isOpen={isOpen}
         setIsOpen={() => setIsOpen(false)}
         value={value}
-        onSuccess={() => {
-          fetchVendors();
-          refetchVendorRisks();
+        onSuccess={async () => {
+          await fetchVendors();
+          await refetchVendorRisks();
         }}
         existingVendor={selectedVendor}
       />

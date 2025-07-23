@@ -26,7 +26,6 @@ interface ApiResponse<T> {
 const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
-      console.log("error : ", error);
       // Use backend message if available, otherwise fallback to generic
       const errorMessage = error.response?.data?.message || error.message;
 
@@ -37,7 +36,7 @@ const handleError = (error: any) => {
       );
     } else {
       throw new CustomException(
-        "An unknown error occurred",
+        error.message || "An unknown error occurred",
         undefined,
         undefined
       );
@@ -55,7 +54,6 @@ const logRequest = (
   params?: any,
   data?: any
 ) => {
-  console.log("endpoint: ", endpoint);
   console.log(`[API Request] ${method.toUpperCase()} ${endpoint}`, {
     params,
     data,
@@ -98,8 +96,13 @@ export const apiServices = {
         statusText: response.statusText,
       };
     } catch (error) {
-      handleError(error);
-      return undefined as unknown as ApiResponse<T>;
+      const requestedAPIError = handleError(error);
+      return {
+        data: undefined,
+        status: requestedAPIError.status ?? 500,
+        statusText: requestedAPIError.message,
+        headers: {},
+      } as ApiResponse<T>;
     }
   },
 
@@ -129,8 +132,12 @@ export const apiServices = {
       };
     } catch (error) {
       const requestedAPIError = handleError(error);
+      let errorData = {};
+      if (axios.isAxiosError(error)) {
+        errorData = error.response?.data ?? {};
+      }
       return {
-        data: undefined,
+        data: errorData,
         status: requestedAPIError.status ?? 500,
         statusText: "Error",
         headers: {},

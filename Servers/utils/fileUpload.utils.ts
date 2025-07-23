@@ -1,8 +1,8 @@
 import { UploadedFile } from "./question.utils";
 import { sequelize } from "../database/db";
-import { FileModel } from "../models/file.model";
+import { FileModel } from "../domain.layer/models/file/file.model";
 import { QueryTypes, Transaction } from "sequelize";
-import { ProjectModel } from "../models/project.model";
+import { ProjectModel } from "../domain.layer/models/project/project.model";
 
 const sanitizeFilename = (name: string) =>
   name.replace(/[^a-zA-Z0-9-_\.]/g, "_");
@@ -10,7 +10,7 @@ const sanitizeFilename = (name: string) =>
 export const uploadFile = async (
   file: UploadedFile,
   user_id: number,
-  project_id: number,
+  project_id: number | null,
   source:
     | "Assessment tracker group"
     | "Compliance tracker group"
@@ -19,20 +19,27 @@ export const uploadFile = async (
     | "Assessment tracker report"
     | "Vendors and risks report"
     | "All reports"
-    | "Management system clauses group" | "Reference controls group" | "Clauses and annexes report",
+    | "Management system clauses group"
+    | "Reference controls group"
+    | "Clauses and annexes report"
+    | "AI trust center group",
+  tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const projectIsDemo = await sequelize.query(
-    "SELECT is_demo FROM projects WHERE id = :id",
-    {
-      replacements: { id: project_id },
-      mapToModel: true,
-      model: ProjectModel,
-      ...(transaction && { transaction }),
-    }
-  );
-  const is_demo = projectIsDemo[0].is_demo || false;
-  const query = `INSERT INTO files
+  let is_demo = false;
+  if (project_id) {
+    const projectIsDemo = await sequelize.query(
+      `SELECT is_demo FROM "${tenant}".projects WHERE id = :id`,
+      {
+        replacements: { id: project_id },
+        mapToModel: true,
+        model: ProjectModel,
+        ...(transaction && { transaction }),
+      }
+    );
+    is_demo = projectIsDemo[0]?.is_demo || false;
+  }
+  const query = `INSERT INTO "${tenant}".files
     (
       filename, content, type, project_id, uploaded_by, uploaded_time, is_demo, source
     )
@@ -58,20 +65,21 @@ export const uploadFile = async (
   return result[0];
 };
 
-export const deleteFileById = async (id: number, transaction: Transaction) => {
-  const query = `DELETE FROM files WHERE id = :id`;
+export const deleteFileById = async (id: number, tenant: string, transaction: Transaction) => {
+  const query = `DELETE FROM "${tenant}".files WHERE id = :id`;
+  console.log(`Executing query: ${query} with id: ${id}`);
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
     model: FileModel,
-    type: QueryTypes.DELETE,
     transaction,
   });
+  console.log(`Delete result: ${result}`);
   return result.length > 0;
 };
 
-export const getFileById = async (id: number) => {
-  const query = `SELECT * FROM files WHERE id = :id`;
+export const getFileById = async (id: number, tenant: string) => {
+  const query = `SELECT * FROM "${tenant}".files WHERE id = :id`;
   const result = await sequelize.query(query, {
     replacements: { id },
     mapToModel: true,
@@ -80,7 +88,7 @@ export const getFileById = async (id: number) => {
   return result[0];
 };
 
-export const getFileMetadataByProjectId = async (project_id: number) => {
+export const getFileMetadataByProjectId = async (project_id: number, tenant: string) => {
   const query = `SELECT 
   f.id, 
   f.filename, 
@@ -89,8 +97,8 @@ export const getFileMetadataByProjectId = async (project_id: number) => {
   f.source,
   u.name AS uploader_name,
   u.surname AS uploader_surname 
-    FROM files f
-  JOIN users u ON f.uploaded_by = u.id
+    FROM "${tenant}".files f
+  JOIN public.users u ON f.uploaded_by = u.id
     WHERE project_id = :project_id 
     ORDER BY uploaded_time DESC, id ASC`;
   const result = await sequelize.query(query, {

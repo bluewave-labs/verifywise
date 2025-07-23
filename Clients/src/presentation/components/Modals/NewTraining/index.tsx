@@ -31,6 +31,7 @@ interface NewTrainingFormValues {
   department: string;
   status: StatusType;
   numberOfPeople: number;
+  description: string;
 }
 
 interface NewTrainingFormErrors {
@@ -40,6 +41,7 @@ interface NewTrainingFormErrors {
   department?: string;
   status?: string;
   numberOfPeople?: string;
+  description?: string;
 }
 
 const initialState: NewTrainingFormValues = {
@@ -49,6 +51,7 @@ const initialState: NewTrainingFormValues = {
   department: "",
   status: "Planned",
   numberOfPeople: 0,
+  description: ""
 };
 
 const statusOptions = [
@@ -152,6 +155,7 @@ const NewTraining: FC<NewTrainingProps> = ({
           ...values,
           numberOfPeople: Number(values.numberOfPeople),
           duration: values.duration,
+          description: values.description
         });
       }
       handleClose();
@@ -313,7 +317,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                   <Suspense fallback={<div>Loading...</div>}>
                     <Field
                       id="number-of-people"
-                      label="Number of People"
+                      label="Number of people"
                       value={values.numberOfPeople.toString()}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -333,6 +337,21 @@ const NewTraining: FC<NewTrainingProps> = ({
                   </Suspense>
                 </Box>
               </Stack>
+              <Box sx={{ width: "100%",
+               }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="description"
+                      label="Description"
+                      type="description"
+                       value={values.description}
+                      onChange={handleOnTextFieldChange("description")}
+                      error={errors.description}
+                      sx={fieldStyle}
+                      placeholder="Description of the AI training"
+                    />
+                  </Suspense>
+                </Box>
             </Stack>
           </DialogContent>
           <Stack

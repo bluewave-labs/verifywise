@@ -1,18 +1,20 @@
 import { sequelize } from "../../database/db";
-import { FileModel } from "../../models/file.model";
+import { FileModel } from "../../domain.layer/models/file/file.model";
 
 const getUserFilesMetaDataQuery = async (
   role: string,
   userId: number,
+  tenant: string,
   options?: { limit?: number; offset?: number }
 ): Promise<FileModel[]> => {
   const { limit, offset } = options ?? {}; // Default to empty object
 
-  const paginationClause = limit !== undefined && offset !== undefined
-    ? "LIMIT :limit OFFSET :offset"
-    : limit !== undefined
-      ? "LIMIT :limit"
-      : "";
+  const paginationClause =
+    limit !== undefined && offset !== undefined
+      ? "LIMIT :limit OFFSET :offset"
+      : limit !== undefined
+        ? "LIMIT :limit"
+        : "";
 
   let query = null;
   const replacements: Record<string, number> = {};
@@ -21,8 +23,8 @@ const getUserFilesMetaDataQuery = async (
     query = `
       SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, 
         p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
-      FROM files f JOIN projects p ON p.id = f.project_id
-      JOIN users u ON f.uploaded_by = u.id
+      FROM "${tenant}".files f JOIN "${tenant}".projects p ON p.id = f.project_id
+      JOIN public.users u ON f.uploaded_by = u.id
       WHERE f.source::TEXT NOT ILIKE '%report%'
       ORDER BY f.uploaded_time DESC
       ${paginationClause}
@@ -30,18 +32,18 @@ const getUserFilesMetaDataQuery = async (
   } else {
     query = `
       WITH projects_of_user AS (
-        SELECT DISTINCT project_id FROM projects_members WHERE user_id = :userId
+        SELECT DISTINCT project_id FROM "${tenant}".projects_members WHERE user_id = :userId
         UNION ALL
-        SELECT id AS project_id FROM projects WHERE owner = :userId
+        SELECT id AS project_id FROM "${tenant}".projects WHERE owner = :userId
       ) SELECT f.id, f.filename, f.project_id, f.uploaded_time, f.source, 
           p.project_title, u.name AS uploader_name, u.surname AS uploader_surname
-        FROM files f JOIN projects_of_user pu ON f.project_id = pu.project_id
-        JOIN projects p ON p.id = pu.project_id
-        JOIN users u ON f.uploaded_by = u.id
+        FROM "${tenant}".files f JOIN projects_of_user pu ON f.project_id = pu.project_id
+        JOIN "${tenant}".projects p ON p.id = pu.project_id
+        JOIN public.users u ON f.uploaded_by = u.id
         WHERE f.source::TEXT NOT ILIKE '%report%'
         ORDER BY f.uploaded_time DESC
       ${paginationClause};`;
-      replacements.userId = userId;
+    replacements.userId = userId;
   }
 
   if (limit !== undefined) replacements.limit = limit;
@@ -59,5 +61,4 @@ const getUserFilesMetaDataQuery = async (
   }
 };
 
-
-export default getUserFilesMetaDataQuery
+export default getUserFilesMetaDataQuery;

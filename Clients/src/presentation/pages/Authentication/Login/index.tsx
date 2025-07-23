@@ -13,6 +13,7 @@ import { setExpiration } from "../../../../application/authentication/authSlice"
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
+import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
 
@@ -35,8 +36,11 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);
+  const { isMultiTenant } = useIsMultiTenant();
 
-  const loginText = isDemoApp ? "Click on Sign in button directly to continue" : "Log in to your account";
+  const loginText = isDemoApp
+    ? "Click on Sign in button directly to continue"
+    : "Log in to your account";
 
   //disabled overlay state/modal
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +61,6 @@ const Login: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
-    console.log("Submitting form...", isSubmitting);
 
     await loginUser({
       routeUrl: "/users/login",
@@ -133,8 +136,13 @@ const Login: React.FC = () => {
           message: `An error occurred: ${error.message}`,
         });
 
+        let message = "Error submitting form";
+        if (error.message === "Not Found") {
+          message = "User not found. Please try again.";
+        }
+
         setIsSubmitting(false);
-        setAlert({ variant: "error", body: "Error submitting form" });
+        setAlert({ variant: "error", body: message });
         setTimeout(() => setAlert(null), 3000);
       });
   };
@@ -241,13 +249,12 @@ const Login: React.FC = () => {
                 value={values.rememberMe ? "true" : "false"}
                 onChange={(e) => {
                   setValues({ ...values, rememberMe: e.target.checked });
-                  console.log(values);
                 }}
                 size="small"
               />
               <Typography
                 sx={{
-                  color: theme.palette.primary.main,
+                  color: singleTheme.buttons.primary.contained.backgroundColor,
                   fontSize: 13,
                   fontWeight: "bold",
                   cursor: "pointer",
@@ -265,10 +272,39 @@ const Login: React.FC = () => {
               type="submit"
               disableRipple
               variant="contained"
-              sx={singleTheme.buttons.primary}
+              sx={singleTheme.buttons.primary.contained}
             >
               Sign in
             </Button>
+            {isMultiTenant && (
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: theme.spacing(1),
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: 14, color: theme.palette.text.secondary }}
+                >
+                  Don't have an account yet?
+                </Typography>
+                <Typography
+                  sx={{
+                    color:
+                      singleTheme.buttons.primary.contained.backgroundColor,
+                    fontSize: 14,
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate("/register")}
+                >
+                  Register here
+                </Typography>
+              </Stack>
+            )}
           </Stack>
         </Stack>
       </form>

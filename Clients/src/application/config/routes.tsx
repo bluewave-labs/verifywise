@@ -6,6 +6,7 @@ import Setting from "../../presentation/pages/SettingsPage";
 import Organization from "../../presentation/pages/SettingsPage/Organization";
 import RegisterAdmin from "../../presentation/pages/Authentication/RegisterAdmin";
 import RegisterUser from "../../presentation/pages/Authentication/RegisterUser";
+import RegisterMultiTenant from "../../presentation/pages/Authentication/RegisterMultiTenant";
 import Login from "../../presentation/pages/Authentication/Login";
 import ForgotPassword from "../../presentation/pages/Authentication/ForgotPassword";
 import ResetPassword from "../../presentation/pages/Authentication/ResetPassword";
@@ -21,6 +22,7 @@ import PageNotFound from "../../presentation/pages/PageNotFound";
 import ProtectedRoute from "../../presentation/components/ProtectedRoute";
 import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
 import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
+import AITrustCenter from "../../presentation/pages/AITrustCenter";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 
@@ -50,6 +52,7 @@ export const createRoutes = (
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
     <Route path="/training" element={<Training />}/>
+    <Route path="/ai-trust-center" element={<AITrustCenter />} />
   </Route>,
   <Route
     key="admin-reg"
@@ -60,6 +63,11 @@ export const createRoutes = (
     key="user-reg"
     path="/user-reg"
     element={<ProtectedRoute Component={RegisterUser} />}
+  />,
+  <Route
+    key="register"
+    path="/register"
+    element={<ProtectedRoute Component={RegisterMultiTenant} />}
   />,
   <Route
     key="login"

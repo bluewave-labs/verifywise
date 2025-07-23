@@ -213,14 +213,30 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const handleInvitation = (
     email: string,
     status: number | string,
-    link: string
+    link: string | undefined = undefined
   ) => {
     console.log("Invitation to ", email, "is ", status);
     
-    setAlert({
-      variant: "info",
-      body: `You can also copy and use this link to invite a member: ${link}`,
-    });
+    if (status === 200) {
+      handleAlert({
+        variant: "success",
+        body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
+        setAlert
+      });
+    } else if (status === 206) {
+      handleAlert({
+        variant: "info",
+        body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
+        setAlert,
+        alertTimeout: 20000
+      })
+    } else {
+      handleAlert({
+        variant: "error",
+        body: `Failed to send invitation to ${email}. Please try again.`,
+        setAlert
+      });
+    }
 
     setInviteUserModalOpen(false);
   };

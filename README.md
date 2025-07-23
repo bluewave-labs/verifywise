@@ -1,25 +1,31 @@
 
-[Join our Discord channel](https://discord.com/invite/wWzYzMD6) to get the latest announcement.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
-![](https://img.shields.io/github/license/bluewave-labs/checkmate)
-![](https://img.shields.io/github/repo-size/bluewave-labs/checkmate)
-![](https://img.shields.io/github/commit-activity/m/bluewave-labs/checkmate)
-![](https://img.shields.io/github/last-commit/bluewave-labs/checkmate)
-![](https://img.shields.io/github/languages/top/bluewave-labs/checkmate)
-![](https://img.shields.io/github/issues/bluewave-labs/checkmate)
-![](https://img.shields.io/github/issues-pr/bluewave-labs/checkmate)
+![](https://img.shields.io/github/license/bluewave-labs/verifywise)
+![](https://img.shields.io/github/repo-size/bluewave-labs/verifywise)
+![](https://img.shields.io/github/commit-activity/m/bluewave-labs/verifywise)
+![](https://img.shields.io/github/last-commit/bluewave-labs/verifywise)
+![](https://img.shields.io/github/languages/top/bluewave-labs/verifywise)
+![](https://img.shields.io/github/issues/bluewave-labs/verifywise)
+![](https://img.shields.io/github/issues-pr/bluewave-labs/verifywise)
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
-
 
 [VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance. 
 
-Please [get in touch](https://tidycal.com/verifywise/info-session) with us to see the latest demo, or [click here](https://verifywise.ai/see-a-demo-of-verifywise/) to experience the demo yourself.
+## Quick links
 
-<img width="1433" alt="VerifyWise" src="https://github.com/user-attachments/assets/268a2c44-01de-4f7b-8e10-1dd4f76e86a8">
+- The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
+- The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
+- [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
+- [Need to talk to someone](https://tidycal.com/verifywise/info-session)? Get with us to see the latest demo, or [click here](https://verifywise.ai/see-a-demo-of-verifywise/) to experience the demo yourself.
+
+## Screenshot
+
+![SCR-20250619-jrmy-2-scaled](https://github.com/user-attachments/assets/1fc614e4-76f3-45a4-b2e4-8cb5a29dfd38)
+
 
 ## Who is it for?
 
@@ -45,7 +51,7 @@ VerifyWise is designed for:
 ![VerifyWise platform](https://github.com/user-attachments/assets/2d05cd1f-f67b-45d2-aca4-1fdcde287a44)
 
 - Option to host the application on-premises or in a private cloud
-- Open source with a permissive license (AGPLv3)
+- Open source with a copyleft license (AGPLv3)
 - Faster audits using AI-generated answers for compliance and assessment questions
 - Full access to the source code for transparency, security audits, and customization
 - Docker deployment (also deployable on render.com and similar platforms)
@@ -73,16 +79,17 @@ VerifyWise is designed for:
 
 The VerifyWise application has two components: a frontend built with React.js and a backend built with Node.js. At present, you can use `npm` (for development) or Docker (production) to run VerifyWise. A PostgreSQL database is required to run VerifyWise.
 
-### Installation instructions using npm (for development)
+### Installation using npm (for development)
 
 Prerequisites: 
 - npm and Docker
 - A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
-  
-First, clone the repository to your local machine. Navigate to the Clients directory and install the dependencies:
+
+First, clone the repository to your local machine and go to verifywise directory. Then, navigate to the Clients directory and install the dependencies:
 
 ```
 git clone https://github.com/bluewave-labs/verifywise.git
+cd verifywise
 cd Clients
 npm i
 ```
@@ -95,16 +102,11 @@ cd Servers
 npm install
 ```
 
-Create a .env file in the root directory:
+Go to the root directory and copy the contents of .env.dev to the .env file. For security, you must set a strong and unpredictable JWT_SECRET in your .env file. This secret is used to sign and verify your JWT tokens, so it must be kept private and cryptographically secure. You can generate a 256-bit base64-encoded secret using `openssl rand -base64 32`.
 
 ```
-touch .env
-```
-
-Copy the contents of .env.dev to the .env file. Make sure to change the JWT_SECRET variable to your liking. 
-
-```
-cp .env.dev .env
+cd ..
+cp .env.dev Servers/.env
 ```
 
 In `.env` file, change FRONTEND_URL and ALLOWED_ORIGINS:
@@ -143,7 +145,7 @@ npm run dev
 
 **Note:** Make sure to replace {env variable password} with the actual password from your environment variables.
 
-### Installation instructions using Docker (production)
+### Installation using Docker (production)
 
 First, ensure you have the following installed:
 
@@ -198,12 +200,105 @@ docker-compose --env-file .env.prod down
 ./install.sh
 ```
 
+### Installing SSL
 
-## Quick links
+Here are the steps to enable SSL on your system. 
 
-- The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
+1. Make sure to point domain to VM IP
 
-- The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
+2. Install Nginx:
+
+```
+sudo apt update
+sudo apt install nginx -y
+```
+
+3. Create a config file  (`/etc/nginx/sites-available/verifywise`) with the following content. Change the domain name accordingly.
+
+```
+server {
+    server_name domainname.com;
+    
+    client_max_body_size 200M;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+ }
+```
+
+4. Enable the config:
+
+```
+sudo ln -s /etc/nginx/sites-available/verifywise /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+5. Install Certbot for SSL:
+
+```
+sudo apt install certbot python3-certbot-nginx -y
+```
+
+6. Obtain SSL certificate. Change the domain name accordingly.
+
+```
+sudo certbot --nginx -d domainname.com
+```
+
+7. Update the `.env.prod` to point to correct domain. Change the domain name accordingly.
+
+```
+BACKEND_URL=https://domainname.com/api
+FRONTEND_URL=https://domainname.com
+ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
+```
+
+8. Restart the application
+
+```
+./install.sh
+```
+
+### Integrating Resend (for email invitations)
+
+Ensure you have following things:
+> 1. You have created an account on [resend](https://resend.com/)
+> 
+> 2. You have your app domain pointing to your server on DNS
+
+1. Create an [API Key](https://resend.com/api-keys) with `Sending Access`
+
+2. Add the API Key to `RESEND_API_KEY` in the **.env.dev** or **.env.prod** based on your environment
+
+3. Add a [new domain](https://resend.com/domains) pointing to your doamin name
+
+4. Add the provided `DNS Records` on your DNS config on your DNS provider
+
+5. Verify the DNS Records on Resend
+![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
+
+6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
+
+### Ports
+
+You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the internet.
+
 
 ## Security
 

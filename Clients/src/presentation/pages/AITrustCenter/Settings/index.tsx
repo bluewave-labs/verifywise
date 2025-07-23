@@ -247,7 +247,32 @@ const AITrustCenterSettings: React.FC = () => {
               onChange={e => handleFieldChange('info', 'header_color', e.target.value)}
               style={styles.customColorInput}
             />
-            <Box sx={styles.customColorCircle(formData?.info?.header_color)} />
+           {/* Hidden color picker input */}
+           <input
+              type="color"
+              value={formData?.info?.header_color || '#000000'}
+              onChange={e => handleFieldChange('info', 'header_color', e.target.value)}
+              style={{
+                position: 'absolute',
+                opacity: 0,
+                pointerEvents: 'none',
+                width: 0,
+                height: 0,
+              }}
+              id="color-picker"
+            />
+            {/* Clickable color circle that triggers color picker */}
+            <Box 
+              sx={{
+                ...styles.customColorCircle(formData?.info?.header_color),
+                cursor: 'pointer',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  transition: 'transform 0.2s ease',
+                }
+              }}
+              onClick={() => document.getElementById('color-picker')?.click()}
+            />
           </Box>
 
           {/* Trust Center Title Row */}

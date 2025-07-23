@@ -212,7 +212,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const handleInvitation = (
     email: string,
-    status: number | string
+    status: number | string,
+    link: string | undefined = undefined
   ) => {
     console.log("Invitation to ", email, "is ", status);
     
@@ -222,6 +223,13 @@ const TeamManagement: React.FC = (): JSX.Element => {
         body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
         setAlert
       });
+    } else if (status === 206) {
+      handleAlert({
+        variant: "info",
+        body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
+        setAlert,
+        alertTimeout: 20000
+      })
     } else {
       handleAlert({
         variant: "error",

@@ -371,7 +371,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={singleTheme.tableStyles.primary.body.cell}
                             >
-                              {member.name} {member.surname}
+                              {`${member.name}${member.surname ? ` ${member.surname}` : ''}`}
                             </TableCell>
                             <TableCell
                               sx={{

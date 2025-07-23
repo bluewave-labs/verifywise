@@ -85,6 +85,7 @@ export const useStyles = (theme: Theme): StylesType => ({
     fontSize: theme.typography.body2.fontSize,
     color: theme.palette.text.primary,
     fontWeight: 600,
+    ml:5,
   },
 
   tableWrapper: {

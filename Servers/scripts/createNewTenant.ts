@@ -41,7 +41,6 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         review_result character varying(255) NOT NULL,
         review_status enum_vendors_review_status NOT NULL,
         reviewer integer,
-        risk_status enum_vendors_risk_status NOT NULL,
         review_date timestamp with time zone NOT NULL,
         is_demo boolean NOT NULL DEFAULT false,
         created_at timestamp without time zone NOT NULL DEFAULT now(),

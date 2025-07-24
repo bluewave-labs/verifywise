@@ -80,23 +80,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     type: DataType.INTEGER,
   })
   reviewer!: number;
-
-  @Column({
-    type: DataType.ENUM(
-      "Very high risk",
-      "High risk",
-      "Medium risk",
-      "Low risk",
-      "Very low risk"
-    ),
-  })
-  risk_status!:
-    | "Very high risk"
-    | "High risk"
-    | "Medium risk"
-    | "Low risk"
-    | "Very low risk";
-
   @Column({
     type: DataType.DATE,
   })
@@ -211,7 +194,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     vendor.review_result = review_result.trim();
     vendor.review_status = review_status;
     vendor.reviewer = reviewer;
-    vendor.risk_status = risk_status;
     vendor.review_date = review_date;
     vendor.order_no = order_no;
     vendor.is_demo = is_demo;
@@ -237,12 +219,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       | "Reviewed"
       | "Requires follow-up";
     reviewer?: number;
-    risk_status?:
-      | "Very high risk"
-      | "High risk"
-      | "Medium risk"
-      | "Low risk"
-      | "Very low risk";
     review_date?: Date;
     order_no?: number;
     projects?: number[];
@@ -351,10 +327,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     // Update other fields if provided
     if (updateData.review_status !== undefined) {
       this.review_status = updateData.review_status;
-    }
-
-    if (updateData.risk_status !== undefined) {
-      this.risk_status = updateData.risk_status;
     }
 
     if (updateData.review_date !== undefined) {
@@ -475,15 +447,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     return this.review_status === "Requires follow-up";
   }
 
-  /**
-   * Check if vendor has high risk status
-   */
-  hasHighRisk(): boolean {
-    return (
-      this.risk_status === "Very high risk" || this.risk_status === "High risk"
-    );
-  }
-
+ 
   /**
    * Get vendor summary for display
    */
@@ -492,7 +456,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     vendorName: string;
     vendorProvides: string;
     reviewStatus: string;
-    riskStatus: string;
     isDemo: boolean;
   } {
     return {
@@ -500,7 +463,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       vendorName: this.vendor_name,
       vendorProvides: this.vendor_provides,
       reviewStatus: this.review_status,
-      riskStatus: this.risk_status,
       isDemo: this.isDemoVendor(),
     };
   }
@@ -520,7 +482,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       review_result: this.review_result,
       review_status: this.review_status,
       reviewer: this.reviewer,
-      risk_status: this.risk_status,
       review_date: this.review_date?.toISOString(),
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),

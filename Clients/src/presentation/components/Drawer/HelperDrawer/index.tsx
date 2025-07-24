@@ -1,12 +1,13 @@
 import React from "react";
-import { Drawer, IconButton, Stack, Typography, useTheme } from "@mui/material";
+import { Drawer, IconButton, Stack, Typography, useTheme, Divider, Box } from "@mui/material";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import { HelperDrawerProps } from "./drawertype";
 
 const HelperDrawer: React.FC<HelperDrawerProps> = ({
-  title,
-  description,
+  pageTitle,
+  overview,
+  sections,
   isOpen,
   onClose,
 }) => {
@@ -36,7 +37,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           },
         }}
       >
-        <Stack spacing={2} position="relative">
+        <Stack spacing={3} position="relative">
           <IconButton
             onClick={onClose}
             aria-label="Close help drawer"
@@ -48,8 +49,40 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           >
             <CloseIcon />
           </IconButton>
-          <Typography variant="h6" component="h2" sx={{mt:1}}>{title}</Typography>
-          <Typography variant="body1">{description}</Typography>
+          {/* Page Title */}
+          <Typography
+            variant="h5"
+            component="h1"
+            sx={{ mt: 1, fontWeight: 600 }}
+          >
+            {pageTitle}
+          </Typography>
+          {/* Overview Section */}
+          <Box>
+            <Typography variant="body1" color="text.secondary">
+              {overview}
+            </Typography>
+          </Box>
+
+          <Divider />
+
+          {/* Help Sections */}
+          <Stack spacing={3}>
+            {sections.map((section, index) => (
+              <Box key={index}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+                  {section.title}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ whiteSpace: "pre-line" }}
+                >
+                  {section.content}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
         </Stack>
       </Drawer>
     </>

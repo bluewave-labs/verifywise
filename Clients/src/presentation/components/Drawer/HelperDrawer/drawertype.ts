@@ -1,6 +1,12 @@
+export interface HelpSection {
+  title:string;
+  content:string;
+}
+
 export interface HelperDrawerProps {
-  title: string;
-  description: string;
+  pageTitle: string;
+  overview: string;
+  sections: HelpSection[];
   isOpen: boolean;
   onClose: () => void;
 }

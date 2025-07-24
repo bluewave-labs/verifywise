@@ -2,6 +2,7 @@ from pathlib import Path
 from src.config import ConfigManager
 from src.data_loader import DataLoader
 from src.model_loader import load_sklearn_model, ModelLoader
+from src.inference import ModelInferencePipeline
 import json
 import re
 from textblob import TextBlob
@@ -163,73 +164,134 @@ def evaluate_prompt_flipping_fairness(prompts, responses, model_loader):
     }
 
 
+class EvaluationRunner:
+    """Orchestrates evaluation by calling metric functions"""
+    
+    def __init__(self, df, model_loader=None, model_pipeline=None, config=None, inference_pipeline=None):
+        """
+        Initialize the evaluation runner.
+        
+        Args:
+            df: DataFrame containing the dataset
+            model_loader: ModelLoader instance for LLM evaluation
+            model_pipeline: HuggingFace pipeline for LLM evaluation
+            config: Configuration object
+            inference_pipeline: ModelInferencePipeline instance
+        """
+        self.df = df
+        self.model_loader = model_loader
+        self.model_pipeline = model_pipeline
+        self.config = config
+        self.inference_pipeline = inference_pipeline
+        self.results = {}
+    
+    def run_llm_evaluations(self, prompts, responses):
+        """Run all LLM evaluation metrics."""
+        print("Running LLM fairness evaluation...")
+        
+        # Evaluate all metrics
+        print("Evaluating toxicity...")
+        self.results["toxicity"] = evaluate_toxicity(prompts, responses)
+        
+        print("Evaluating stereotypes...")
+        self.results["stereotypes"] = evaluate_stereotypes(prompts, responses)
+        
+        print("Evaluating holistic bias...")
+        if self.config and hasattr(self.config, 'metrics') and "holistic_bias" in self.config.metrics.disparity:
+            holistic_prompts, descriptors = load_holistic_bias_dataset("sentences")
+            holistic_prompts = holistic_prompts[:10]
+            descriptors = descriptors[:10]
+            if self.inference_pipeline:
+                holistic_responses = self.inference_pipeline.model_loader.predict(holistic_prompts)
+            elif self.model_loader:
+                holistic_responses = self.model_loader.predict(holistic_prompts)
+            else:
+                raise ValueError("Either inference_pipeline or model_loader must be provided")
+            self.results["holistic_bias"] = evaluate_holistic_bias(holistic_prompts, holistic_responses, descriptors)
+        
+        print("Evaluating LangFair fairness...")
+        if self.inference_pipeline:
+            self.results["langfair_fairness"] = evaluate_langfair_fairness(self.inference_pipeline.model_loader, prompts, responses)
+        elif self.model_loader:
+            self.results["langfair_fairness"] = evaluate_langfair_fairness(self.model_loader, prompts, responses)
+        else:
+            raise ValueError("Either inference_pipeline or model_loader must be provided")
+        
+        print("Evaluating sentiment...")
+        self.results["sentiment"] = evaluate_sentiment(prompts, responses)
+        
+        print("Evaluating keyword hits...")
+        self.results["keyword_hits"] = evaluate_keyword_hits(prompts, responses)
+        
+        print("Evaluating prompt flipping fairness...")
+        if self.inference_pipeline:
+            self.results["prompt_flipping_fairness"] = evaluate_prompt_flipping_fairness(prompts, responses, self.inference_pipeline.model_loader)
+        elif self.model_loader:
+            self.results["prompt_flipping_fairness"] = evaluate_prompt_flipping_fairness(prompts, responses, self.model_loader)
+        else:
+            raise ValueError("Either inference_pipeline or model_loader must be provided")
+        
+        return self.results
+    
+    def run_tabular_evaluations(self, X, y, A, model):
+        """Run tabular fairness evaluation."""
+        print("Running tabular fairness evaluation...")
+        
+        self.results = evaluate_fairness(X, y, A, model)
+        return self.results
+    
+    def run_all_evaluations(self, evaluation_type="llm", **kwargs):
+        """
+        Run all evaluations based on the evaluation type.
+        
+        Args:
+            evaluation_type: "llm" or "tabular"
+            **kwargs: Additional arguments for specific evaluation types
+        """
+        if evaluation_type == "llm":
+            prompts = kwargs.get("prompts")
+            responses = kwargs.get("responses")
+            if not prompts or not responses:
+                raise ValueError("prompts and responses are required for LLM evaluation")
+            return self.run_llm_evaluations(prompts, responses)
+        
+        elif evaluation_type == "tabular":
+            X = kwargs.get("X")
+            y = kwargs.get("y")
+            A = kwargs.get("A")
+            model = kwargs.get("model")
+            if not all([X is not None, y is not None, A is not None, model is not None]):
+                raise ValueError("X, y, A, and model are required for tabular evaluation")
+            return self.run_tabular_evaluations(X, y, A, model)
+        
+        else:
+            raise ValueError(f"Unsupported evaluation type: {evaluation_type}")
+    
+    def get_results(self):
+        """Get the evaluation results."""
+        return self.results
+
+
 def main():
     # Load config using the main module's config system
     config_manager = ConfigManager()
     config = config_manager.config
-    results = {}
-
-    # Load dataset using DataLoader (handles all platforms)
-    data_loader = DataLoader(config.dataset)
-    df = data_loader.load_data()
-    print(f"Loaded dataset with {len(df)} samples")
 
     # Check if HuggingFace model is enabled
     if hasattr(config.model, "huggingface") and config.model.huggingface.enabled:
         print("Running LLM fairness evaluation...")
         
-        # Load model using ModelLoader (handles all model types)
-        hf_cfg = config.model.huggingface
-        model_loader = ModelLoader(
-            model_id=hf_cfg.model_id,
-            device=hf_cfg.device,
-            max_new_tokens=hf_cfg.max_new_tokens,
-            temperature=hf_cfg.temperature,
-            top_p=hf_cfg.top_p,
-            system_prompt=hf_cfg.system_prompt
-        )
-        
-        # Generate prompts from the loaded data
-        prompts = data_loader.get_sample_prompts(list(range(min(16, len(df)))))
-        
-        # Get model responses
-        responses = model_loader.predict(prompts)
-        
-        # Evaluate all metrics
-        print("Evaluating toxicity...")
-        results["toxicity"] = evaluate_toxicity(prompts, responses)
-        
-        print("Evaluating stereotypes...")
-        results["stereotypes"] = evaluate_stereotypes(prompts, responses)
-        
-        print("Evaluating holistic bias...")
-        if "holistic_bias" in config.metrics.disparity:
-            holistic_prompts, descriptors = load_holistic_bias_dataset("sentences")
-            holistic_prompts = holistic_prompts[:10]
-            descriptors = descriptors[:10]
-            holistic_responses = model_loader.predict(holistic_prompts)
-            results["holistic_bias"] = evaluate_holistic_bias(holistic_prompts, holistic_responses, descriptors)
-        
-        print("Evaluating LangFair fairness...")
-        results["langfair_fairness"] = evaluate_langfair_fairness(model_loader, prompts, responses)
-        
-        print("Evaluating sentiment...")
-        results["sentiment"] = evaluate_sentiment(prompts, responses)
-        
-        print("Evaluating keyword hits...")
-        results["keyword_hits"] = evaluate_keyword_hits(prompts, responses)
-        
-        print("Evaluating prompt flipping fairness...")
-        results["prompt_flipping_fairness"] = evaluate_prompt_flipping_fairness(prompts, responses, model_loader)
-        
-        # Save results
-        print(json.dumps(results, indent=2))
-        with open("llm_eval_report.json", "w") as f:
-            json.dump(results, f, indent=2)
-            print("Saved LLM evaluation results to llm_eval_report.json")
+        # Use the run_all_evaluations function from inference.py
+        from src.inference import run_all_evaluations
+        results = run_all_evaluations(limit_samples=16)
             
     else:
         print("Running tabular fairness evaluation...")
+        
+        # Load dataset using DataLoader (handles all platforms)
+        data_loader = DataLoader(config.dataset)
+        df = data_loader.load_data()
+        print(f"Loaded dataset with {len(df)} samples")
         
         # Prepare data for tabular evaluation
         X = df.drop(columns=[config.dataset.target_column])
@@ -240,8 +302,11 @@ def main():
         model_path = "model.joblib"  # Or use config.model.sklearn.model_path if available
         model = load_sklearn_model(model_path)
         
-        # Evaluate tabular fairness
-        results = evaluate_fairness(X, y, A, model)
+        # Use EvaluationRunner to orchestrate evaluations
+        evaluator = EvaluationRunner(df, config=config)
+        results = evaluator.run_all_evaluations("tabular", X=X, y=y, A=A, model=model)
+        
+        # Print tabular results
         for k, v in results.items():
             print(f"{k}: {v:.4f}")
 

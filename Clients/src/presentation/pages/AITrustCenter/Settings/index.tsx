@@ -7,44 +7,138 @@ import CustomizableButton from '../../../vw-v2-components/Buttons';
 import SaveIcon from '@mui/icons-material/Save';
 import DualButtonModal from '../../../vw-v2-components/Dialogs/DualButtonModal';
 import { useAITrustCentreOverview } from "../../../../application/hooks/useAITrustCentreOverview";
-import { uploadAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";
+import { uploadAITrustCentreLogo, deleteAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";
+import { extractUserToken } from "../../../../application/tools/extractToken";
+import { getAuthToken } from "../../../../application/redux/getAuthToken";
+import { apiServices } from "../../../../infrastructure/api/networkServices";
 
 const AITrustCenterSettings: React.FC = () => {
   const styles = useStyles();
-  const { loading, error, updateOverview, fetchOverview } = useAITrustCentreOverview();
+  const { loading, error, updateOverview, data: overviewData } = useAITrustCentreOverview();
   const [saveSuccess, setSaveSuccess] = React.useState(false);
+  const [logoRemoveSuccess, setLogoRemoveSuccess] = React.useState(false);
+  const [logoUploadSuccess, setLogoUploadSuccess] = React.useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const [originalData, setOriginalData] = React.useState<any>(null);
   const [formData, setFormData] = React.useState<any>(null);
   const [logoUploading, setLogoUploading] = React.useState(false);
+  const [logoLoading, setLogoLoading] = React.useState(false);
+  const [logoRemoving, setLogoRemoving] = React.useState(false);
   const [logoError, setLogoError] = React.useState<string | null>(null);
   const [isRemoveLogoModalOpen, setIsRemoveLogoModalOpen] = React.useState(false);
+  const [selectedLogoPreview, setSelectedLogoPreview] = React.useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    const loadData = async () => {
-      try {
-        const response = await fetchOverview();
-        console.log('Overview data fetched successfully');
-        console.log('Raw API Response:', response);
-        
-        // Extract the overview data from the nested response
-        const overviewData = response?.data?.overview || response?.overview || response;
-        setFormData(overviewData);
-        setOriginalData(overviewData);
-      } catch (error) {
-        console.error('Error fetching overview data:', error);
+  // Function to fetch logo and convert Buffer to Blob URL
+  const fetchLogoAsBlobUrl = async (tenantId: string): Promise<string | null> => {
+    try {
+      const authToken = getAuthToken();
+      const response = await apiServices.get(`/aiTrustCentre/${tenantId}/logo`, {
+        responseType: 'json',
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+
+      const responseData = response.data as any;
+      if (responseData?.data?.logo?.content?.data) {
+        // Convert Buffer data to Uint8Array
+        const bufferData = new Uint8Array(responseData.data.logo.content.data);
+        // Create Blob from the buffer data
+        const blob = new Blob([bufferData], { type: 'image/png' }); // Assuming PNG, adjust as needed
+        // Create object URL
+        const blobUrl = URL.createObjectURL(blob);
+        return blobUrl;
       }
-    };
-    loadData();
-  }, [fetchOverview]);
+      return null;
+    } catch (error) {
+      console.error('Error fetching logo:', error);
+      return null;
+    }
+  };
+
+  // Process overview data and fetch logo when data is available
+  React.useEffect(() => {
+    if (overviewData) {
+      const processData = async () => {
+        // Always check if a logo exists for this tenant
+        const authToken = getAuthToken();
+        const tokenData = extractUserToken(authToken);
+        const tenantId = tokenData?.tenantId;
+        
+        if (tenantId) {
+          setLogoLoading(true);
+          try {
+            const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
+            if (logoBlobUrl) {
+              // Logo exists, update the overview data
+              const updatedData = {
+                ...overviewData,
+                info: {
+                  ...overviewData.info,
+                  logo_url: logoBlobUrl,
+                },
+              };
+              setFormData(updatedData);
+              setOriginalData(updatedData);
+            } else {
+              // No logo found, use the original data
+              setFormData(overviewData);
+              setOriginalData(overviewData);
+            }
+          } catch (error) {
+            console.log('No existing logo found or error fetching logo:', error);
+            // Use the original data even if logo fetch fails
+            setFormData(overviewData);
+            setOriginalData(overviewData);
+          } finally {
+            setLogoLoading(false);
+          }
+        } else {
+          // No tenant ID, use the original data
+          setFormData(overviewData);
+          setOriginalData(overviewData);
+        }
+      };
+      
+      processData();
+    }
+  }, [overviewData]);
 
   React.useEffect(() => {
     if (formData && originalData) {
-      const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
+      // Create copies without logo_url to exclude logo changes from unsaved changes
+      const formDataWithoutLogo = {
+        ...formData,
+        info: formData.info ? {
+          ...formData.info,
+          logo_url: undefined
+        } : undefined
+      };
+      
+      const originalDataWithoutLogo = {
+        ...originalData,
+        info: originalData.info ? {
+          ...originalData.info,
+          logo_url: undefined
+        } : undefined
+      };
+      
+      const hasChanges = JSON.stringify(formDataWithoutLogo) !== JSON.stringify(originalDataWithoutLogo);
       setHasUnsavedChanges(hasChanges);
     }
   }, [formData, originalData]);
+
+  // Cleanup function to revoke object URLs when component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (selectedLogoPreview) {
+        URL.revokeObjectURL(selectedLogoPreview);
+      }
+      // Also revoke the logo URL if it's a Blob URL
+      if (formData?.info?.logo_url && formData.info.logo_url.startsWith('blob:')) {
+        URL.revokeObjectURL(formData.info.logo_url);
+      }
+    };
+  }, [selectedLogoPreview, formData?.info?.logo_url]);
 
   // Generic handler for form field changes
   const handleFieldChange = (section: string, field: string, value: boolean | string) => {
@@ -63,39 +157,81 @@ const AITrustCenterSettings: React.FC = () => {
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLogoUploading(true);
+      // Validate file type first
+      if (!file.type.startsWith('image/')) {
+        setLogoError('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setLogoError('File size must be less than 5MB');
+        return;
+      }
+
+      // Create preview URL for the selected file
+      const previewUrl = URL.createObjectURL(file);
+      setSelectedLogoPreview(previewUrl);
       setLogoError(null);
       
+      // Upload the file
+      setLogoUploading(true);
+      
       try {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          throw new Error('Please select a valid image file');
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error('File size must be less than 5MB');
-        }
-
         const response = await uploadAITrustCentreLogo(file);
-        console.log('Logo uploaded successfully:', response);
         
         // Update the form data with the new logo URL if provided in response
-        if (response?.data?.logo_url) {
-          setFormData((prev: any) => ({
-            ...prev,
-            info: {
-              ...prev?.info,
-              logo_url: response.data.logo_url,
-            },
-          }));
+        if (response?.data?.logo) {
+          // Get tenant ID from JWT token
+          const authToken = getAuthToken();
+          const tokenData = extractUserToken(authToken);
+          const tenantId = tokenData?.tenantId;
+          
+          if (tenantId) {
+            // Fetch the logo and convert to Blob URL
+            const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
+            
+            if (logoBlobUrl) {
+              const updatedFormData = {
+                ...formData,
+                info: {
+                  ...formData?.info,
+                  logo_url: logoBlobUrl,
+                },
+              };
+              setFormData(updatedFormData);
+              setOriginalData(updatedFormData);
+            } else {
+              setLogoError('Failed to load uploaded logo');
+            }
+          } else {
+            console.error('Could not extract tenant ID from token');
+            setLogoError('Failed to get tenant information');
+          }
+        } else {
+          console.log('No logo ID in response');
         }
         
-        // Show success message
-        setSaveSuccess(true);
+        // Clear the preview since we now have the uploaded URL
+        if (selectedLogoPreview) {
+          URL.revokeObjectURL(selectedLogoPreview);
+        }
+        setSelectedLogoPreview(null);
+        
+        // Show success message from API response
+        if (response?.data?.message) {
+          setLogoUploadSuccess(response.data.message);
+        } else {
+          setLogoUploadSuccess('Company logo uploaded successfully');
+        }
       } catch (error: any) {
         console.error('Error uploading logo:', error);
         setLogoError(error.message || 'Failed to upload logo');
+        // Clear the preview on error
+        if (selectedLogoPreview) {
+          URL.revokeObjectURL(selectedLogoPreview);
+        }
+        setSelectedLogoPreview(null);
       } finally {
         setLogoUploading(false);
         // Clear the file input
@@ -110,12 +246,47 @@ const AITrustCenterSettings: React.FC = () => {
     setIsRemoveLogoModalOpen(true);
   };
 
-  const handleRemoveLogoConfirm = async () => {
-    // TO Do
-  };
-
   const handleRemoveLogoCancel = () => {
     setIsRemoveLogoModalOpen(false);
+  };
+
+  const handleRemoveLogoConfirm = async () => {
+    setLogoRemoving(true);
+    try {
+      // Call the delete logo API
+      await deleteAITrustCentreLogo();
+      
+      // Clear the logo URL from form data
+      const updatedFormData = {
+        ...formData,
+        info: {
+          ...formData?.info,
+          logo_url: null,
+        },
+      };
+      
+      setFormData(updatedFormData);
+      setOriginalData(updatedFormData);
+      
+      // Clear any preview
+      if (selectedLogoPreview) {
+        URL.revokeObjectURL(selectedLogoPreview);
+        setSelectedLogoPreview(null);
+      }
+      
+      // Also revoke the current logo URL if it's a Blob URL
+      if (formData?.info?.logo_url && formData.info.logo_url.startsWith('blob:')) {
+        URL.revokeObjectURL(formData.info.logo_url);
+      }
+      
+      setIsRemoveLogoModalOpen(false);
+      setLogoRemoveSuccess(true);
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      setLogoError('Failed to remove logo. Please try again.');
+    } finally {
+      setLogoRemoving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -149,8 +320,21 @@ const AITrustCenterSettings: React.FC = () => {
     setSaveSuccess(false);
   };
 
+  const handleLogoRemoveSuccessClose = () => {
+    setLogoRemoveSuccess(false);
+  };
+
+  const handleLogoUploadSuccessClose = () => {
+    setLogoUploadSuccess(null);
+  };
+
   const handleLogoErrorClose = () => {
     setLogoError(null);
+    // Clear any preview when there's an error
+    if (selectedLogoPreview) {
+      URL.revokeObjectURL(selectedLogoPreview);
+      setSelectedLogoPreview(null);
+    }
   };
 
   // Show loading state while data is being fetched
@@ -194,27 +378,91 @@ const AITrustCenterSettings: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{
               width: 120,
-              height: 36,
+              height: 60,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: 2,
-              background: formData?.info?.logo_url 
-                ? `url(${formData.info.logo_url}) center/contain no-repeat`
-                : 'linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%)',
-              color: '#333',
-              fontWeight: 600,
-              fontSize: 16,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+              border: '2px dashed #ddd',
+              backgroundColor: '#fafafa',
+              position: 'relative',
+              overflow: 'hidden',
+              '&:hover': {
+                borderColor: '#999',
+                backgroundColor: '#f5f5f5'
+              }
             }}>
-              {/* {!formData?.info?.logo_url && 'Logo'} */}
+              {logoUploading || logoLoading ? (
+                <CircularProgress size={24} />
+              ) : selectedLogoPreview ? (
+                <Box
+                  component="img"
+                  src={selectedLogoPreview}
+                  alt="Selected Logo Preview"
+                  sx={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain',
+                    borderRadius: 1
+                  }}
+                />
+              ) : formData?.info?.logo_url ? (
+                <Box
+                  component="img"
+                  src={formData.info.logo_url}
+                  alt="Company Logo"
+                  sx={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain',
+                    borderRadius: 1
+                  }}
+                />
+              ) : (
+                <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <Box sx={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    backgroundColor: '#e0e0e0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Typography sx={{ fontSize: 12, color: '#666', fontWeight: 600 }}>
+                      L
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ fontSize: 10, color: '#888', textAlign: 'center' }}>
+                    Logo
+                  </Typography>
+                </Box>
+              )}
             </Box>
             <MUIButton
               variant="outlined"
               component="label"
               sx={styles.replaceButton}
+              disabled={logoUploading || logoLoading}
             >
-              {logoUploading ? <CircularProgress size={20} /> : 'Replace'}
+              {logoUploading ? (
+                <>
+                  <CircularProgress size={16} sx={{ mr: 1 }} />
+                  Uploading...
+                </>
+              ) : logoLoading ? (
+                <>
+                  <CircularProgress size={16} sx={{ mr: 1 }} />
+                  Loading...
+                </>
+              ) : (
+                'Replace'
+              )}
               <input
                 type="file"
                 accept="image/*"
@@ -227,8 +475,16 @@ const AITrustCenterSettings: React.FC = () => {
               variant="outlined"
               sx={styles.removeButton}
               onClick={handleRemoveLogo}
+              disabled={logoRemoving || logoUploading || logoLoading}
             >
-              Remove
+              {logoRemoving ? (
+                <>
+                  <CircularProgress size={16} sx={{ mr: 1 }} />
+                  Removing...
+                </>
+              ) : (
+                'Remove'
+              )}
             </MUIButton>
           </Box>
 
@@ -247,7 +503,32 @@ const AITrustCenterSettings: React.FC = () => {
               onChange={e => handleFieldChange('info', 'header_color', e.target.value)}
               style={styles.customColorInput}
             />
-            <Box sx={styles.customColorCircle(formData?.info?.header_color)} />
+           {/* Hidden color picker input */}
+           <input
+              type="color"
+              value={formData?.info?.header_color || '#000000'}
+              onChange={e => handleFieldChange('info', 'header_color', e.target.value)}
+              style={{
+                position: 'absolute',
+                opacity: 0,
+                pointerEvents: 'none',
+                width: 0,
+                height: 0,
+              }}
+              id="color-picker"
+            />
+            {/* Clickable color circle that triggers color picker */}
+            <Box 
+              sx={{
+                ...styles.customColorCircle(formData?.info?.header_color),
+                cursor: 'pointer',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  transition: 'transform 0.2s ease',
+                }
+              }}
+              onClick={() => document.getElementById('color-picker')?.click()}
+            />
           </Box>
 
           {/* Trust Center Title Row */}
@@ -272,7 +553,7 @@ const AITrustCenterSettings: React.FC = () => {
         <Typography sx={styles.sectionTitle}>Visibility</Typography>
         </Box>
         <Box sx={{ ...styles.toggleRow }}>
-          <Stack direction="column" gap={1} sx={{ flex: 0.5 }}>
+          <Stack direction="column" gap={1}>
             <Typography sx={styles.toggleLabel}>Enable AI Trust Center</Typography>
             <Typography sx={{ color: '#888', fontWeight: 400, fontSize: 12 }}>
               If enabled, page will be available under <b>/ai-trust-center</b> directory.
@@ -322,6 +603,54 @@ const AITrustCenterSettings: React.FC = () => {
         </Alert>
       </Snackbar>
 
+      {/* Logo Remove Success Snackbar */}
+      <Snackbar
+        open={logoRemoveSuccess}
+        autoHideDuration={4000}
+        onClose={handleLogoRemoveSuccessClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleLogoRemoveSuccessClose} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            backgroundColor: '#ecfdf3',
+            border: '1px solid #12715B',
+            color: '#079455',
+            '& .MuiAlert-icon': {
+              color: '#079455',
+            }
+          }}
+        >
+          Logo removed successfully
+        </Alert>
+      </Snackbar>
+
+      {/* Logo Upload Success Snackbar */}
+      <Snackbar
+        open={!!logoUploadSuccess}
+        autoHideDuration={4000}
+        onClose={handleLogoUploadSuccessClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleLogoUploadSuccessClose} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            backgroundColor: '#ecfdf3',
+            border: '1px solid #12715B',
+            color: '#079455',
+            '& .MuiAlert-icon': {
+              color: '#079455',
+            }
+          }}
+        >
+          {logoUploadSuccess}
+        </Alert>
+      </Snackbar>
+
       {/* Error Snackbar for Logo Upload */}
       <Snackbar
         open={!!logoError}
@@ -356,7 +685,7 @@ const AITrustCenterSettings: React.FC = () => {
             </Typography>
           }
           cancelText="Cancel"
-          proceedText="Remove"
+          proceedText={logoRemoving ? "Removing..." : "Remove"}
           onCancel={handleRemoveLogoCancel}
           onProceed={handleRemoveLogoConfirm}
           proceedButtonColor="error"

@@ -16,6 +16,10 @@ import {
   logSuccess,
 } from "../utils/logger/logHelper";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
+import {
+  ValidationException,
+  BusinessLogicException,
+} from "../domain.layer/exceptions/custom.exception";
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -141,31 +145,39 @@ export async function getVendorByProjectId(
 
 export async function createVendor(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
+  const vendorData = req.body;
+
   logProcessing({
     description: "starting createVendor",
     functionName: "createVendor",
     fileName: "vendor.ctrl.ts",
   });
-  try {
-    const newVendor: VendorModel = req.body;
 
-    if (!newVendor.vendor_name || !newVendor.vendor_provides) {
-      await logFailure({
-        eventType: "Create",
-        description: "Validation failed: Missing vendorName or vendorProvides",
-        functionName: "createVendor",
-        fileName: "vendor.ctrl.ts",
-        error: new Error("Missing required fields"),
-      });
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "vendorName and vendorProvides are required",
-        })
-      );
-    }
+  try {
+    // Create vendor using the enhanced VendorModel method
+    const vendorModel = await VendorModel.createNewVendor(
+      vendorData.vendor_name,
+      vendorData.vendor_provides,
+      vendorData.assignee,
+      vendorData.website,
+      vendorData.vendor_contact_person,
+      vendorData.review_result,
+      vendorData.review_status,
+      vendorData.reviewer,
+      vendorData.risk_status,
+      vendorData.review_date,
+      vendorData.order_no,
+      vendorData.is_demo || false
+    );
+
+    // Validate vendor data before saving
+    await vendorModel.validateVendorData();
+
+    // Check if vendor can be modified (demo restrictions)
+    vendorModel.canBeModified();
 
     const createdVendor = await createNewVendorQuery(
-      newVendor,
+      vendorModel,
       req.tenantId!,
       transaction
     );
@@ -190,6 +202,29 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
     return res.status(503).json(STATUS_CODE[503]({}));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Create",
+        description: `Validation failed: ${error.message}`,
+        functionName: "createVendor",
+        fileName: "vendor.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Create",
+        description: `Business logic error: ${error.message}`,
+        functionName: "createVendor",
+        fileName: "vendor.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     await logFailure({
       eventType: "Create",
       description: "Failed to create vendor",
@@ -207,6 +242,8 @@ export async function updateVendorById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const vendorId = parseInt(req.params.id);
+  const updateData = req.body;
+
   logProcessing({
     description: `starting updateVendorById for ID ${vendorId}`,
     functionName: "updateVendorById",
@@ -226,26 +263,47 @@ export async function updateVendorById(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const updatedVendor: VendorModel = req.body;
+    // Find existing vendor
+    const existingVendor = await getVendorByIdQuery(vendorId, req.tenantId!);
 
-    if (!updatedVendor.vendor_name || !updatedVendor.vendor_provides) {
+    if (!existingVendor) {
       await logSuccess({
         eventType: "Update",
-        description: "Missing vendorName or vendorProvides",
+        description: `Vendor not found for update: ID ${vendorId}`,
         functionName: "updateVendorById",
         fileName: "vendor.ctrl.ts",
       });
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "vendorName and vendorProvides are required",
-        })
-      );
+      return res.status(404).json(STATUS_CODE[404]({}));
     }
+
+    // Create VendorModel instance and update it
+    const vendorModel = new VendorModel(existingVendor);
+
+    // Check if vendor can be modified (demo restrictions)
+    vendorModel.canBeModified();
+
+    // Update vendor using the enhanced method
+    await vendorModel.updateVendor({
+      vendor_name: updateData.vendor_name,
+      vendor_provides: updateData.vendor_provides,
+      assignee: updateData.assignee,
+      website: updateData.website,
+      vendor_contact_person: updateData.vendor_contact_person,
+      review_result: updateData.review_result,
+      review_status: updateData.review_status,
+      reviewer: updateData.reviewer,
+      risk_status: updateData.risk_status,
+      review_date: updateData.review_date,
+      order_no: updateData.order_no,
+    });
+
+    // Validate updated data
+    await vendorModel.validateVendorData();
 
     const vendor = await updateVendorByIdQuery(
       {
         id: vendorId,
-        vendor: updatedVendor,
+        vendor: vendorModel,
         userId,
         role,
         transaction,
@@ -273,6 +331,29 @@ export async function updateVendorById(
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Validation failed: ${error.message}`,
+        functionName: "updateVendorById",
+        fileName: "vendor.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Business logic error: ${error.message}`,
+        functionName: "updateVendorById",
+        fileName: "vendor.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     await logFailure({
       eventType: "Update",
       description: "Failed to update vendor",

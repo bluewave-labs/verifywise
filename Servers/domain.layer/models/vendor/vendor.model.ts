@@ -195,14 +195,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       );
     }
 
-    // Validate order_no if provided
-    if (order_no !== undefined && !numberValidation(order_no, 1)) {
-      throw new ValidationException(
-        "Order number must be a positive integer",
-        "order_no",
-        order_no
-      );
-    }
+    // Order number validation removed as requested
 
     // Create and return the vendor model instance
     const vendor = new VendorModel();
@@ -344,15 +337,8 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       this.reviewer = updateData.reviewer;
     }
 
-    // Validate order_no if provided
+    // Order number validation removed as requested
     if (updateData.order_no !== undefined) {
-      if (!numberValidation(updateData.order_no, 1)) {
-        throw new ValidationException(
-          "Order number must be a positive integer",
-          "order_no",
-          updateData.order_no
-        );
-      }
       this.order_no = updateData.order_no;
     }
 
@@ -433,13 +419,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       );
     }
 
-    if (this.order_no !== undefined && !numberValidation(this.order_no, 1)) {
-      throw new ValidationException(
-        "Order number must be a positive integer",
-        "order_no",
-        this.order_no
-      );
-    }
+    // Order number validation removed as requested
   }
 
   /**

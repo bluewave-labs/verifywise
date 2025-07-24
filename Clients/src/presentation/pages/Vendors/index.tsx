@@ -112,7 +112,8 @@ const Vendors = () => {
   });
 
   const isCreatingDisabled =
-    !allowedRoles.vendors.create.includes(userRoleName) || projects.length === 0;
+    !allowedRoles.vendors.create.includes(userRoleName) ||
+    projects.length === 0;
   const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
 
   const createAbortController = () => {
@@ -384,7 +385,10 @@ const Vendors = () => {
         uniqueVendors.set(vendor.id, {
           id: vendor.id,
           name: vendor.vendor_name,
-          project_id: vendor.projects[0], // Assuming first project is the main one
+          project_id:
+            vendor.projects && vendor.projects.length > 0
+              ? vendor.projects[0]
+              : null, // Safely access first project
         });
       }
     });
@@ -394,7 +398,8 @@ const Vendors = () => {
       return vendorList;
     }
     return vendorList.filter(
-      (vendor) => vendor.project_id.toString() === selectedProjectId
+      (vendor) =>
+        vendor.project_id && vendor.project_id.toString() === selectedProjectId
     );
   }, [vendorRisks, selectedProjectId, vendors]);
 
@@ -457,9 +462,7 @@ const Vendors = () => {
             )}
 
             <Stack>
-              <Typography sx={vwhomeHeading}>
-                Vendor risks list
-              </Typography>
+              <Typography sx={vwhomeHeading}>Vendor risks list</Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>
                 This table includes a list of risks related to a vendor. You can
                 create and manage all vendor risks here.

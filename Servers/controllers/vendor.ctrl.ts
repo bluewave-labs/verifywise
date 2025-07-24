@@ -167,7 +167,8 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       vendorData.risk_status,
       vendorData.review_date,
       vendorData.order_no,
-      vendorData.is_demo || false
+      vendorData.is_demo || false,
+      vendorData.projects
     );
 
     // Validate vendor data before saving
@@ -295,6 +296,7 @@ export async function updateVendorById(
       risk_status: updateData.risk_status,
       review_date: updateData.review_date,
       order_no: updateData.order_no,
+      projects: updateData.projects,
     });
 
     // Validate updated data

@@ -114,6 +114,9 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
   })
   created_at?: Date;
 
+  // Projects field (not a database column, used for API)
+  projects?: number[];
+
   /**
    * Create a new vendor with comprehensive validation
    */
@@ -138,7 +141,8 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       | "Very low risk",
     review_date: Date,
     order_no?: number,
-    is_demo: boolean = false
+    is_demo: boolean = false,
+    projects?: number[]
   ): Promise<VendorModel> {
     // Validate required fields
     if (!vendor_name || vendor_name.trim().length === 0) {
@@ -212,6 +216,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
     vendor.order_no = order_no;
     vendor.is_demo = is_demo;
     vendor.created_at = new Date();
+    vendor.projects = projects || [];
 
     return vendor;
   }
@@ -240,6 +245,7 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       | "Very low risk";
     review_date?: Date;
     order_no?: number;
+    projects?: number[];
   }): Promise<void> {
     // Validate vendor_name if provided
     if (updateData.vendor_name !== undefined) {
@@ -353,6 +359,11 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
 
     if (updateData.review_date !== undefined) {
       this.review_date = updateData.review_date;
+    }
+
+    // Update projects if provided
+    if (updateData.projects !== undefined) {
+      this.projects = updateData.projects;
     }
   }
 

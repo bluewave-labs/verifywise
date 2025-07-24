@@ -6,23 +6,23 @@ import {
   Table,
 } from "sequelize-typescript";
 import { ProjectRiskModel } from "../../models/projectRisks/projectRisk.model";
-import { AnnexCategoryISOModel } from "./annexCategoryISO.model";
+import { SubClauseISOModel } from "./subClauseISO.model";
 
-export type AnnexCategoryISORisks = {
-  annexcategory_id?: number;
+export type SubClauseISORisks = {
+  subclause_id?: number;
   projects_risks_id?: number;
 };
 
 @Table({
-  tableName: "annexcategory_risks_iso",
+  tableName: "subclauses_iso__risks",
 })
-export class AnnexCategoryISORisksModel extends Model<AnnexCategoryISORisks> {
-  @ForeignKey(() => AnnexCategoryISOModel)
+export class SubClauseISORisksModel extends Model<SubClauseISORisks> {
+  @ForeignKey(() => SubClauseISOModel)
   @Column({
     type: DataType.INTEGER,
     primaryKey: true,
   })
-  annexcategory_id?: number;
+  subclause_id?: number;
 
   @ForeignKey(() => ProjectRiskModel)
   @Column({

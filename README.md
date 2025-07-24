@@ -295,6 +295,10 @@ Ensure you have following things:
 
 6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
 
+### Ports
+
+You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the internet.
+
 
 ## Security
 

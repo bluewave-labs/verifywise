@@ -12,6 +12,7 @@ import {
   deleteCompanyLogo,
   getAITrustCentreOverview,
   getAITrustCentrePublicPage,
+  getAITrustCentrePublicResource,
   getAITrustCentreResources,
   getAITrustCentreSubprocessors,
   getCompanyLogo,
@@ -29,6 +30,7 @@ router.get("/resources", authenticateJWT, getAITrustCentreResources);
 router.get("/subprocessors", authenticateJWT, getAITrustCentreSubprocessors);
 router.get("/:hash", validateVisibility, getAITrustCentrePublicPage);
 router.get("/:hash/logo", validateVisibility, getCompanyLogo);
+router.get("/:hash/resources/:id", validateVisibility, getAITrustCentrePublicResource);
 
 router.post("/resources", authenticateJWT, upload.single("file"), createAITrustResource);
 router.post("/subprocessors", authenticateJWT, createAITrustSubprocessor);

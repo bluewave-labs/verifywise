@@ -8,10 +8,11 @@ import { sendEmail } from "../services/emailService";
 export const invite = async (req: Request, res: Response, body: {
   to: string;
   name: string;
+  surname?: string;
   roleId: number;
   organizationId: number;
 }) => {
-  const { to, name, roleId, organizationId } = body;
+  const { to, name, surname, roleId, organizationId } = body;
 
   if (!to || !name || !roleId || !organizationId) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -27,6 +28,7 @@ export const invite = async (req: Request, res: Response, body: {
 
     const token = generateToken({
       name,
+      surname,
       roleId,
       email: to,
       organizationId

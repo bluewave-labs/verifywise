@@ -112,11 +112,12 @@ export async function createRole(req: Request, res: Response): Promise<any> {
       return res.status(201).json(STATUS_CODE[201](createdRole));
     }
 
-    await logSuccess({
+    await logFailure({
       eventType: "Create",
       description: "Role creation returned null",
       functionName: "createRole",
       fileName: "role.ctrl.ts",
+      error: new Error("Role creation returned null")
     });
 
     return res.status(503).json(STATUS_CODE[503]({}));

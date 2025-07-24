@@ -474,7 +474,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Box>
         </Stack>
-        <Stack sx={{flex: 1 }}>
+        <Stack sx={{flex: 1 }}
+        mt={theme.spacing(1)}>
           <Stack >
             <Typography
               sx={{

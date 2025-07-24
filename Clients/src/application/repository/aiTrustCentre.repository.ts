@@ -72,6 +72,26 @@ export async function uploadAITrustCentreLogo(
 }
 
 /**
+ * Deletes the AI Trust Center logo.
+ *
+ * @param {string} [authToken=getAuthToken()] - Optional auth token.
+ * @returns {Promise<any>} The response from the API.
+ */
+export async function deleteAITrustCentreLogo(
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const response = await apiServices.delete("/aiTrustCentre/logo", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting AI Trust Center logo:", error);
+    throw error;
+  }
+}
+
+/**
  * Creates a new AI Trust Center resource with file upload.
  *
  * @param {File} file - The file to upload.

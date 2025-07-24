@@ -13,7 +13,7 @@ import { IAITrustCentreResources } from "../domain.layer/interfaces/i.aiTrustCen
 import { IAITrustCentreSubprocessors } from "../domain.layer/interfaces/i.aiTrustCentreSubprocessors";
 import { IAITrustCentrePublic } from "../domain.layer/interfaces/i.aiTrustCentrePublic";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
-import { deleteFileById, uploadFile } from "./fileUpload.utils";
+import { deleteFileById, getFileById, uploadFile } from "./fileUpload.utils";
 
 export const getIsVisibleQuery = async (
   tenant: string
@@ -123,6 +123,32 @@ export const getAITrustCentrePublicPageQuery = async (
   output["info"] = infoQuery[0][0] || {};
 
   return output
+}
+
+export const getAITrustCentrePublicResourceByIdQuery = async (
+  tenant: string,
+  id: number
+) => {
+  const visible = await sequelize.query(
+    `SELECT visible, file_id FROM "${tenant}".ai_trust_center_resources WHERE id = :id;`,
+    { replacements: { id } }
+  ) as [{ visible: boolean, file_id: number }[], number];
+  if (visible[0].length === 0) {
+    return null;
+  }
+  if (!visible[0][0].visible) {
+    throw new ValidationException(
+      "This resource is not visible to the public.",
+      "Resource Not Visible",
+      id
+    );
+  }
+  const fileId = visible[0][0].file_id;
+  const file = await getFileById(fileId, tenant);
+  if (!file) {
+    return null;
+  }
+  return file
 }
 
 export const getAITrustCentreOverviewQuery = async (

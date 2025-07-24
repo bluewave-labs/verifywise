@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
-import { createAITrustCentreResourceQuery, createAITrustCentreSubprocessorQuery, deleteAITrustCentreResourceQuery, deleteAITrustCentreSubprocessorQuery, deleteCompanyLogoQuery, getAITrustCentreOverviewQuery, getAITrustCentrePublicPageQuery, getAITrustCentreResourcesQuery, getAITrustCentreSubprocessorsQuery, getCompanyLogoQuery, updateAITrustCentreOverviewQuery, updateAITrustCentreResourceQuery, updateAITrustCentreSubprocessorQuery, uploadCompanyLogoQuery } from "../utils/aiTrustCentre.utils";
+import { createAITrustCentreResourceQuery, createAITrustCentreSubprocessorQuery, deleteAITrustCentreResourceQuery, deleteAITrustCentreSubprocessorQuery, deleteCompanyLogoQuery, getAITrustCentreOverviewQuery, getAITrustCentrePublicPageQuery, getAITrustCentrePublicResourceByIdQuery, getAITrustCentreResourcesQuery, getAITrustCentreSubprocessorsQuery, getCompanyLogoQuery, updateAITrustCentreOverviewQuery, updateAITrustCentreResourceQuery, updateAITrustCentreSubprocessorQuery, uploadCompanyLogoQuery } from "../utils/aiTrustCentre.utils";
 import { RequestWithFile, UploadedFile } from "../utils/question.utils";
 import { deleteFileById, uploadFile } from "../utils/fileUpload.utils";
 import { IAITrustCentreOverview } from "../domain.layer/interfaces/i.aiTrustCentreOverview";
@@ -47,6 +47,32 @@ export async function getAITrustCentrePublicPage(
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
+
+export async function getAITrustCentrePublicResource(
+  req: Request,
+  res: Response
+) {
+  try {
+    const { hash, id } = req.params;
+
+    const resource = await getAITrustCentrePublicResourceByIdQuery(hash, parseInt(id));
+    if (!resource) {
+      return res.status(404).json(STATUS_CODE[404]({
+        message: "Resource not found"
+      }));
+    }
+
+    res.setHeader("Content-Type", resource.type);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${resource.filename}"`
+    );
+    return res.status(200).end(resource.content);
+  } catch (error) {
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
 
 export async function getAITrustCentreOverview(
   req: Request,

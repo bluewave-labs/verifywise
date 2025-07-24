@@ -41,18 +41,21 @@ interface InviteUserModalProps {
 
 interface FormValues {
   name: string;
+  surname: string;
   email: string;
   roleId: string;
 }
 
 interface FormErrors {
   name?: string;
+  surname?: string;
   email?: string;
   roleId?: string;
 }
 
 const initialState: FormValues = {
   name: "",
+  surname: "",
   email: "",
   roleId: "1",
 };
@@ -129,6 +132,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         to: values.email,
         email: values.email,
         name: values.name,
+        surname: values.surname,
         roleId: values.roleId,
         organizationId
       };
@@ -201,6 +205,14 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             onChange={handleFormFieldChange("name")}
             isRequired
             error={errors.name}
+          />
+          <Field
+            placeholder="Surname"
+            type="surname"
+            value={values.surname}
+            onChange={handleFormFieldChange("surname")}
+            isRequired
+            error={errors.surname}
           />
           <Field
             placeholder="Email"

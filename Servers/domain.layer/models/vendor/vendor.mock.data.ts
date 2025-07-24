@@ -1,6 +1,6 @@
-import { Vendor } from "./vendor.model";
+import { IVendor } from "../../interfaces/i.vendor";
 
-export const vendors = (userId1: number, userId2: number): Vendor[] => {
+export const vendors = (userId1: number, userId2: number): IVendor[] => {
   return [
     {
       id: 1,

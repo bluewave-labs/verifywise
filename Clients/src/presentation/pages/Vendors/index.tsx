@@ -45,6 +45,7 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
+import  HelperDrawer from "../../components/Drawer/HelperDrawer";
 
 interface ExistingRisk {
   id?: number;
@@ -110,6 +111,31 @@ const Vendors = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
+
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+
+  const vendorHelp = {
+    pageTitle: "Vendor Management",
+    overview:
+      "Vendor management allows you to maintain a database of all your suppliers and service providers. Properly managing your vendors is crucial for maintaining quality control and ensuring smooth business operations.",
+    sections: [
+      {
+        title: "Why Add Vendors?",
+        content:
+          "Adding vendors helps you track supplier relationships, maintain consistent quality standards, and streamline your procurement process. It also enables better negotiation and relationship management.",
+      },
+      {
+        title: "How to Add a Vendor",
+        content:
+          "1. Click the 'Add Vendor' button in the top right corner\n2. Fill in the required information (name, contact details, category)\n3. Add any relevant documents or certifications\n4. Click 'Save' to add the vendor to your database",
+      },
+      {
+        title: "Managing Vendors",
+        content:
+          "You can edit vendor details, archive inactive vendors, and track your interaction history. Use the search and filter options to quickly find specific vendors or categories.",
+      },
+    ],
+  };
 
   const isCreatingDisabled =
     !allowedRoles.vendors.create.includes(userRoleName) || projects.length === 0;
@@ -410,6 +436,11 @@ const Vendors = () => {
 
   return (
     <div className="vendors-page">
+      <HelperDrawer
+        {...vendorHelp}
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+      />
       <PageTour
         steps={VendorsSteps}
         run={runVendorTour}
@@ -457,9 +488,7 @@ const Vendors = () => {
             )}
 
             <Stack>
-              <Typography sx={vwhomeHeading}>
-                Vendor risks list
-              </Typography>
+              <Typography sx={vwhomeHeading}>Vendor risks list</Typography>
               <Typography sx={singleTheme.textStyles.pageDescription}>
                 This table includes a list of risks related to a vendor. You can
                 create and manage all vendor risks here.

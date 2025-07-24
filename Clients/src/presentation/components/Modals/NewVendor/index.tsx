@@ -52,7 +52,6 @@ export interface VendorDetails {
   review_result: string;
   review_status: string;
   reviewer: string;
-  risk_status: string;
   review_date: string;
   assignee: string;
   projects: number[];
@@ -68,7 +67,6 @@ interface FormErrors {
   assignee?: string;
   reviewer?: string;
   reviewResult?: string;
-  riskStatus?: string;
 }
 
 const initialState = {
@@ -81,7 +79,6 @@ const initialState = {
     reviewStatus: "",
     reviewer: "",
     reviewResult: "",
-    riskStatus: "",
     assignee: "",
     reviewDate: new Date().toISOString(),
   },
@@ -103,14 +100,6 @@ const REVIEW_STATUS_OPTIONS = [
   { _id: "requiresFollowUp", name: "Requires follow-up" },
 ];
 
-const RISK_LEVEL_OPTIONS = [
-  { _id: "", name: "Select risk status" },
-  { _id: 1, name: "Very high risk" },
-  { _id: 2, name: "High risk" },
-  { _id: 3, name: "Medium risk" },
-  { _id: 4, name: "Low risk" },
-  { _id: 5, name: "Very low risk" },
-];
 
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
   isOpen,
@@ -190,11 +179,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               (user: any) => user._id === existingVendor.reviewer
             )?._id || "",
           reviewResult: existingVendor.review_result,
-          riskStatus: String(
-            RISK_LEVEL_OPTIONS?.find(
-              (s) => s.name === existingVendor.risk_status
-            )?._id ?? ""
-          ),
           assignee:
             formattedUsers?.find(
               (user: any) => user._id === existingVendor.assignee
@@ -318,12 +302,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       newErrors.reviewer = "Please select a reviewer from the dropdown";
     }
     if (
-      !values.vendorDetails.riskStatus ||
-      Number(values.vendorDetails.riskStatus) === 0
-    ) {
-      newErrors.riskStatus = "Please select a risk status from the dropdown";
-    }
-    if (
       !values.vendorDetails.assignee ||
       Number(values.vendorDetails.assignee) === 0
     ) {
@@ -355,10 +333,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       reviewer: formattedUsers?.find(
         (user: any) => user._id === values.vendorDetails.reviewer
       )?._id,
-      risk_status:
-        RISK_LEVEL_OPTIONS?.find(
-          (s) => s._id === values.vendorDetails.riskStatus
-        )?.name || 0,
       review_date: values.vendorDetails.reviewDate,
     };
     if (existingVendor) {
@@ -500,143 +474,179 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Box>
         </Stack>
-        <Stack sx={{ flex: 1 }}>
-          <Typography
-            sx={{
-              fontSize: theme.typography.fontSize,
-              fontWeight: 500,
-              mb: 2,
-            }}
-          >
-            Projects*
-          </Typography>
-          <Autocomplete
-            multiple
-            id="projects-input"
-            size="small"
-            disabled={isEditingDisabled}
-            value={
-              projectOptions?.filter((project) =>
-                values.vendorDetails.projectIds?.includes(project._id)
-              ) || []
-            }
-            options={projectOptions || []}
-            noOptionsText={
-              values?.vendorDetails?.projectIds?.length ===
-              projectOptions?.length
-                ? "All projects are selected"
-                : "No options"
-            }
-            onChange={(_event, newValue: { _id: number; name: string }[]) => {
-              handleOnChange(
-                "projectIds",
-                newValue.map((project) => project._id)
-              );
-            }}
-            getOptionLabel={(project: { _id: number; name: string }) =>
-              project.name
-            }
-            renderOption={(props, option: { _id: number; name: string }) => {
-              const { key, ...optionProps } = props;
-              return (
-                <Box key={option._id} component="li" {...optionProps}>
-                  <Typography sx={{ fontSize: "13px" }}>
-                    {option.name}
-                  </Typography>
-                </Box>
-              );
-            }}
-            filterSelectedOptions
-            popupIcon={<KeyboardArrowDown />}
-            renderInput={(params: AutocompleteRenderInputParams) => (
-              <TextField
-                {...params}
-                placeholder="Select projects"
-                required
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    minHeight: "34px",
-                    height: "auto",
-                    alignItems: "flex-start",
-                    paddingY: "3px !important",
-                    flexWrap: "wrap",
-                    gap: "2px",
-                  },
-                  "& ::placeholder": {
-                    fontSize: "13px",
-                  },
-                }}
-              />
-            )}
-            sx={{
-              width: "100%",
-              backgroundColor: theme.palette.background.main,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "3px",
-                overflowY: "auto",
-                flexWrap: "wrap",
-                maxHeight: "115px",
-                alignItems: "flex-start",
-                "&:hover": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
-                  },
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  border: "none",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
-                  },
-                },
-              },
-              "& .MuiAutocomplete-tag": {
-                margin: "2px",
-                maxWidth: "calc(100% - 25px)",
-                "& .MuiChip-label": {
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                },
-              },
-              border: errors.projectIds ? `1px solid #f04438` : `1px solid ${theme.palette.border.dark}`,
-              borderRadius: "3px",
-              opacity: errors.projectIds ? 0.8 : 1,
-            }}
-            slotProps={{
-              paper: {
-                sx: {
-                  "& .MuiAutocomplete-listbox": {
-                    "& .MuiAutocomplete-option": {
+        <Stack sx={{flex: 1 }}>
+          <Stack >
+            <Typography
+              sx={{
+                fontSize: theme.typography.fontSize,
+                fontWeight: 500,
+                mb: 2,
+              }}
+            >
+              Projects*
+            </Typography>
+            <Autocomplete
+              multiple
+              id="projects-input"
+              size="small"
+              disabled={isEditingDisabled}
+              value={
+                projectOptions?.filter((project) =>
+                  values.vendorDetails.projectIds?.includes(project._id)
+                ) || []
+              }
+              options={projectOptions || []}
+              noOptionsText={
+                values?.vendorDetails?.projectIds?.length ===
+                projectOptions?.length
+                  ? "All projects are selected"
+                  : "No options"
+              }
+              onChange={(_event, newValue: { _id: number; name: string }[]) => {
+                handleOnChange(
+                  "projectIds",
+                  newValue.map((project) => project._id)
+                );
+              }}
+              getOptionLabel={(project: { _id: number; name: string }) =>
+                project.name
+              }
+              renderOption={(props, option: { _id: number; name: string }) => {
+                const { key, ...optionProps } = props;
+                return (
+                  <Box key={option._id} component="li" {...optionProps}>
+                    <Typography sx={{ fontSize: "13px" }}>
+                      {option.name}
+                    </Typography>
+                  </Box>
+                );
+              }}
+              filterSelectedOptions
+              popupIcon={<KeyboardArrowDown />}
+              renderInput={(params: AutocompleteRenderInputParams) => (
+                <TextField
+                  {...params}
+                  placeholder="Select projects"
+                  required
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      minHeight: "34px",
+                      height: "auto",
+                      alignItems: "flex-start",
+                      paddingY: "3px !important",
+                      flexWrap: "wrap",
+                      gap: "2px",
+                    },
+                    "& ::placeholder": {
                       fontSize: "13px",
-                      color: "#1c2130",
+                    },
+                  }}
+                />
+              )}
+              sx={{
+                width: "100%",
+                backgroundColor: theme.palette.background.main,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "3px",
+                  overflowY: "auto",
+                  flexWrap: "wrap",
+                  maxHeight: "115px",
+                  alignItems: "flex-start",
+                  "&:hover": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      border: "none",
+                    },
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "none",
+                  },
+                  "&.Mui-focused": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      border: "none",
+                    },
+                  },
+                },
+                "& .MuiAutocomplete-tag": {
+                  margin: "2px",
+                  maxWidth: "calc(100% - 25px)",
+                  "& .MuiChip-label": {
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  },
+                },
+                border: errors.projectIds ? `1px solid #f04438` : `1px solid ${theme.palette.border.dark}`,
+                borderRadius: "3px",
+                opacity: errors.projectIds ? 0.8 : 1,
+              }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    "& .MuiAutocomplete-listbox": {
+                      "& .MuiAutocomplete-option": {
+                        fontSize: "13px",
+                        color: "#1c2130",
+                        paddingLeft: "9px",
+                        paddingRight: "9px",
+                      },
+                      "& .MuiAutocomplete-option.Mui-focused": {
+                        background: "#f9fafb",
+                      },
+                    },
+                    "& .MuiAutocomplete-noOptions": {
+                      fontSize: "13px",
                       paddingLeft: "9px",
                       paddingRight: "9px",
                     },
-                    "& .MuiAutocomplete-option.Mui-focused": {
-                      background: "#f9fafb",
-                    },
-                  },
-                  "& .MuiAutocomplete-noOptions": {
-                    fontSize: "13px",
-                    paddingLeft: "9px",
-                    paddingRight: "9px",
                   },
                 },
-              },
-            }}
-          />
-          {errors.projectIds && (
-            <Typography
-              color="error"
-              variant="caption"
-              sx={{ mt: 0.5, ml: 1 , color: "#f04438", opacity: 0.8}}
-            >
-              {errors.projectIds}
-            </Typography>
-          )}
+              }}
+            />
+            {errors.projectIds && (
+              <Typography
+                color="error"
+                variant="caption"
+                sx={{ mt: 0.5, ml: 1 , color: "#f04438", opacity: 0.8}}
+              >
+                {errors.projectIds}
+              </Typography>
+            )}
+          </Stack>
+          <Stack
+            direction={"row"}
+            justifyContent={"space-between"}
+            gap={theme.spacing(8)}
+            mt={theme.spacing(8)}
+          >
+            <Field // vendorContactPerson
+                label="Vendor contact person"
+                width={220}
+                value={values.vendorDetails.vendorContactPerson}
+                onChange={(e) =>
+                  handleOnChange("vendorContactPerson", e.target.value)
+                }
+                error={errors.vendorContactPerson}
+                isRequired
+                disabled={isEditingDisabled}
+            />
+            <Select // assignee (not in the server model!)
+              items={formattedUsers}
+              label="Assignee"
+              placeholder="Select person"
+              isHidden={false}
+              id=""
+              onChange={(e) => handleOnChange("assignee", e.target.value)}
+              value={values.vendorDetails.assignee}
+              sx={{
+                width: 220,
+              }}
+              error={errors.assignee}
+              isRequired
+              disabled={isEditingDisabled}
+            />
+          </Stack>
         </Stack>
+        
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
         <Field // vendorProvides
@@ -655,17 +665,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         justifyContent={"space-between"}
         marginBottom={theme.spacing(8)}
       >
-        <Field // vendorContactPerson
-          label="Vendor contact person"
-          width={220}
-          value={values.vendorDetails.vendorContactPerson}
-          onChange={(e) =>
-            handleOnChange("vendorContactPerson", e.target.value)
-          }
-          error={errors.vendorContactPerson}
-          isRequired
-          disabled={isEditingDisabled}
-        />
         <Select // reviewStatus
           items={REVIEW_STATUS_OPTIONS}
           label="Review status"
@@ -696,6 +695,20 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           isRequired
           disabled={isEditingDisabled}
         />
+        <DatePicker // reviewDate
+          label="Review date"
+          sx={{
+            width: 220,
+          }}
+          date={
+            values.vendorDetails.reviewDate
+              ? dayjs(values.vendorDetails.reviewDate)
+              : dayjs(new Date())
+          }
+          handleDateChange={handleDateChange}
+          isRequired
+          disabled={isEditingDisabled}
+        />
       </Stack>
       <Stack
         display={"flex"}
@@ -710,57 +723,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           value={values.vendorDetails.reviewResult}
           error={errors.reviewResult}
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-      </Stack>
-      <Stack
-        display={"flex"}
-        justifyContent={"space-between"}
-        marginBottom={theme.spacing(8)}
-        flexDirection={"row"}
-      >
-        <Select // riskStatus
-          items={RISK_LEVEL_OPTIONS}
-          label="Risk status"
-          placeholder="Select risk status"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("riskStatus", e.target.value)}
-          value={values.vendorDetails.riskStatus || ""}
-          error={errors.riskStatus}
-          sx={{
-            width: 220,
-          }}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-        <Select // assignee (not in the server model!)
-          items={formattedUsers}
-          label="Assignee"
-          placeholder="Select person"
-          isHidden={false}
-          id=""
-          onChange={(e) => handleOnChange("assignee", e.target.value)}
-          value={values.vendorDetails.assignee}
-          sx={{
-            width: 220,
-          }}
-          error={errors.assignee}
-          isRequired
-          disabled={isEditingDisabled}
-        />
-        <DatePicker // reviewDate
-          label="Review date"
-          sx={{
-            width: 220,
-          }}
-          date={
-            values.vendorDetails.reviewDate
-              ? dayjs(values.vendorDetails.reviewDate)
-              : dayjs(new Date())
-          }
-          handleDateChange={handleDateChange}
           isRequired
           disabled={isEditingDisabled}
         />

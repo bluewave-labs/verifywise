@@ -1,7 +1,4 @@
-import {
-  Vendor,
-  VendorModel,
-} from "../domain.layer/models/vendor/vendor.model";
+import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { sequelize } from "../database/db";
 import { deleteVendorRisksForVendorQuery } from "./vendorRisk.utils";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
@@ -10,10 +7,11 @@ import {
   getUserProjects,
   updateProjectUpdatedByIdQuery,
 } from "./project.utils";
+import { IVendor } from "../domain.layer/interfaces/i.vendor";
 
 export const getAllVendorsQuery = async (
   tenant: string
-): Promise<Vendor[]> => {
+): Promise<IVendor[]> => {
   const vendors = await sequelize.query(
     `SELECT * FROM "${tenant}".vendors ORDER BY created_at DESC, id ASC`,
     {
@@ -30,7 +28,7 @@ export const getAllVendorsQuery = async (
         model: VendorsProjectsModel,
       }
     );
-    vendor.dataValues["projects"] = projects.map((p) => p.project_id);
+    vendor["projects"] = projects.map((p) => p.project_id);
   }
   return vendors;
 };
@@ -38,12 +36,15 @@ export const getAllVendorsQuery = async (
 export const getVendorByIdQuery = async (
   id: number,
   tenant: string
-): Promise<Vendor | null> => {
-  const result = await sequelize.query(`SELECT * FROM "${tenant}".vendors WHERE id = :id`, {
-    replacements: { id },
-    mapToModel: true,
-    model: VendorModel,
-  });
+): Promise<IVendor | null> => {
+  const result = await sequelize.query(
+    `SELECT * FROM "${tenant}".vendors WHERE id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: VendorModel,
+    }
+  );
   if (!result.length) return null;
   const projects = await sequelize.query(
     `SELECT project_id FROM "${tenant}".vendors_projects WHERE vendor_id = :vendor_id`,
@@ -62,7 +63,7 @@ export const getVendorByIdQuery = async (
 export const getVendorByProjectIdQuery = async (
   project_id: number,
   tenant: string
-): Promise<Vendor[] | null> => {
+): Promise<IVendor[] | null> => {
   const projectExists = await sequelize.query(
     `SELECT 1 AS exists FROM "${tenant}".projects WHERE id = :project_id`,
     { replacements: { project_id } }
@@ -76,7 +77,7 @@ export const getVendorByProjectIdQuery = async (
       model: VendorsProjectsModel,
     }
   );
-  const vendors: Vendor[] = [];
+  const vendors: IVendor[] = [];
   for (let vendors_project of vendors_projects || []) {
     const vendor = await sequelize.query(
       `SELECT * FROM "${tenant}".vendors WHERE id = :id ORDER BY created_at DESC, id ASC`,
@@ -120,11 +121,11 @@ export const addVendorProjects = async (
 };
 
 export const createNewVendorQuery = async (
-  vendor: Vendor,
+  vendor: IVendor,
   tenant: string,
   transaction: Transaction,
   is_demo: boolean = false
-): Promise<Vendor> => {
+): Promise<VendorModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".vendors (
         order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person,
@@ -157,7 +158,7 @@ export const createNewVendorQuery = async (
   const createdVendor = result[0] as VendorModel & { projects: number[] };
   const vendorId = createdVendor.id!;
 
-  createdVendor.dataValues["projects"] = [];
+  createdVendor["projects"] = [];
   if (vendor.projects && vendor.projects.length > 0) {
     const vendors_projects = await addVendorProjects(
       vendorId,
@@ -165,28 +166,29 @@ export const createNewVendorQuery = async (
       tenant,
       transaction
     );
-    createdVendor.dataValues["projects"] = vendors_projects.map(
-      (p) => p.project_id
-    );
+    createdVendor["projects"] = vendors_projects.map((p) => p.project_id);
   }
   await updateProjectUpdatedByIdQuery(vendorId, "vendors", tenant, transaction);
   return createdVendor;
 };
 
-export const updateVendorByIdQuery = async ({
-  id,
-  vendor,
-  userId,
-  role,
-  transaction,
-}: {
-  id: number;
-  vendor: Partial<Vendor>;
-  userId: number;
-  role: string;
-  transaction: Transaction;
-}, tenant: string): Promise<Vendor> => {
-  const updateVendor: Partial<Record<keyof Vendor, any>> = {};
+export const updateVendorByIdQuery = async (
+  {
+    id,
+    vendor,
+    userId,
+    role,
+    transaction,
+  }: {
+    id: number;
+    vendor: Partial<IVendor>;
+    userId: number;
+    role: string;
+    transaction: Transaction;
+  },
+  tenant: string
+): Promise<IVendor> => {
+  const updateVendor: Partial<Record<keyof IVendor, any>> = {};
   const setClause = [
     "vendor_name",
     "vendor_provides",
@@ -201,10 +203,10 @@ export const updateVendorByIdQuery = async ({
   ]
     .filter((f) => {
       if (
-        vendor[f as keyof Vendor] !== undefined &&
-        vendor[f as keyof Vendor]
+        vendor[f as keyof IVendor] !== undefined &&
+        vendor[f as keyof IVendor]
       ) {
-        updateVendor[f as keyof Vendor] = vendor[f as keyof Vendor];
+        updateVendor[f as keyof IVendor] = vendor[f as keyof IVendor];
         return true;
       }
     })
@@ -215,7 +217,7 @@ export const updateVendorByIdQuery = async ({
 
   updateVendor.id = id;
 
-  const result = await sequelize.query(query, {
+  const result: IVendor[] = await sequelize.query(query, {
     replacements: updateVendor,
     mapToModel: true,
     model: VendorModel,
@@ -225,12 +227,15 @@ export const updateVendorByIdQuery = async ({
 
   if (vendor.projects && vendor.projects.length > 0) {
     // Delete old projects first
-    await deleteAuthorizedVendorProjectsQuery({
-      vendorId: id,
-      userId,
-      role,
-      transaction,
-    }, tenant);
+    await deleteAuthorizedVendorProjectsQuery(
+      {
+        vendorId: id,
+        userId,
+        role,
+        transaction,
+      },
+      tenant
+    );
 
     const vendors_projects = await addVendorProjects(
       id,
@@ -238,9 +243,7 @@ export const updateVendorByIdQuery = async ({
       tenant,
       transaction
     );
-    result[0].dataValues["projects"] = vendors_projects.map(
-      (p) => p.project_id
-    );
+    result[0]["projects"] = vendors_projects.map((p) => p.project_id);
   } else {
     const projects = await sequelize.query(
       "SELECT project_id FROM vendors_projects WHERE vendor_id = :vendor_id",
@@ -250,7 +253,7 @@ export const updateVendorByIdQuery = async ({
         model: VendorsProjectsModel,
       }
     );
-    result[0].dataValues["projects"] = projects.map((p) => p.project_id);
+    result[0]["projects"] = projects.map((p) => p.project_id);
   }
   await updateProjectUpdatedByIdQuery(id, "vendors", tenant, transaction);
   return result[0];
@@ -263,13 +266,16 @@ export const deleteVendorByIdQuery = async (
 ): Promise<Boolean> => {
   await deleteVendorRisksForVendorQuery(id, tenant, transaction);
   await updateProjectUpdatedByIdQuery(id, "vendors", tenant, transaction);
-  await sequelize.query(`DELETE FROM "${tenant}".vendors_projects WHERE vendor_id = :id`, {
-    replacements: { id },
-    mapToModel: true,
-    model: VendorsProjectsModel,
-    type: QueryTypes.DELETE,
-    transaction,
-  });
+  await sequelize.query(
+    `DELETE FROM "${tenant}".vendors_projects WHERE vendor_id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: VendorsProjectsModel,
+      type: QueryTypes.DELETE,
+      transaction,
+    }
+  );
   const result = await sequelize.query(
     `DELETE FROM "${tenant}".vendors WHERE id = :id RETURNING id`,
     {
@@ -290,14 +296,15 @@ interface DeleteAuthorizedVendorProjectsParams {
   transaction?: Transaction;
 }
 
-export const deleteAuthorizedVendorProjectsQuery = async ({
-  vendorId,
-  userId,
-  role,
-  transaction,
-}: DeleteAuthorizedVendorProjectsParams, tenant: string) => {
+export const deleteAuthorizedVendorProjectsQuery = async (
+  { vendorId, userId, role, transaction }: DeleteAuthorizedVendorProjectsParams,
+  tenant: string
+) => {
   // 1. Get user-authorized project IDs
-  const userProjects = await getUserProjects({ userId, role, transaction }, tenant);
+  const userProjects = await getUserProjects(
+    { userId, role, transaction },
+    tenant
+  );
   const userProjectIds = userProjects
     .map((p) => p.id)
     .filter((value, index, self) => self.indexOf(value) === index);

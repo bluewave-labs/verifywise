@@ -16,7 +16,7 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, useContext} from "react";
+import { useState, useEffect, useContext, Suspense} from "react";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -32,7 +32,8 @@ import {
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import allowedRoles from "../../../../application/constants/permissions";
-import LinkedRisksSection from "../Sections/LinkedRisksSection";
+import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
+import LinkedRisksPopup from "../../LinkedRisks";
 
 export const inputStyles = {
   minWidth: 200,
@@ -75,6 +76,10 @@ const VWISO42001ClauseDrawerDialog = ({
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
   const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
+  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
+    const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
+    const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
   const statusIdMap = new Map([
     ["Not started", "0"],
     ["Draft", "1"],
@@ -110,6 +115,7 @@ const VWISO42001ClauseDrawerDialog = ({
     reviewer: "",
     approver: "",
     auditor_feedback: "",
+    risks: [] as number[],
   });
 
   // Filter users to only show project members
@@ -148,6 +154,7 @@ const VWISO42001ClauseDrawerDialog = ({
               reviewer: response.data.reviewer?.toString() || "",
               approver: response.data.approver?.toString() || "",
               auditor_feedback: response.data.auditor_feedback || "",
+              risks: response.data.risks || [],
             });
 
             // Set the date if it exists in the fetched data
@@ -181,7 +188,15 @@ const VWISO42001ClauseDrawerDialog = ({
 
   const handleSelectChange =
     (field: string) => (event: SelectChangeEvent<string | number>) => {
-      handleFieldChange(field, event.target.value.toString());
+      const value = event.target.value.toString();
+      if (field === "status" && value === "6"
+        && (selectedRisks.length > 0 || formData.risks.length > 0 || (
+          formData.risks.length > 0 && deletedRisks.length === formData.risks.length
+        ))
+      ) {
+        setAuditedStatusModalOpen(true)
+      }
+      handleFieldChange(field, value);
     };
 
   // Update handleSave to use evidenceFiles
@@ -216,6 +231,8 @@ const VWISO42001ClauseDrawerDialog = ({
       formDataToSend.append("user_id", userId?.toString() || "");
       formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
+      formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
+      formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
       uploadFiles.forEach((file) => {
         if (file.data instanceof Blob) {
           const fileToUpload =
@@ -553,7 +570,125 @@ const VWISO42001ClauseDrawerDialog = ({
           {alert && (
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
-          <LinkedRisksSection />
+          
+          <Stack direction="row" spacing={2}>
+          <Button
+            variant="contained"
+            sx={{
+              mt: 2,
+              borderRadius: 2,
+              width: 155,
+              height: 25,
+              fontSize: 11,
+              border: "1px solid #D0D5DD",
+              backgroundColor: "white",
+              color: "#344054",
+            }}
+            disableRipple={
+              theme.components?.MuiButton?.defaultProps?.disableRipple
+            }
+            onClick={() => setIsLinkedRisksModalOpen(true)}
+            disabled={isEditingDisabled}
+          >
+            Add/Remove risks
+          </Button>
+          <Stack direction="row" spacing={10}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "#344054",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                textAlign: "center",
+                margin: "auto",
+                textWrap: "wrap",
+              }}
+            >
+              {`${formData.risks.length || 0} risks linked`}
+            </Typography>
+            {selectedRisks.length > 0 && (
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${selectedRisks.length} ${
+                  selectedRisks.length === 1 ? "risk" : "risks"
+                } pending upload`}
+              </Typography>
+            )}
+            {deletedRisks.length > 0 && (
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${deletedRisks.length} ${
+                  deletedRisks.length === 1 ? "risk" : "risks"
+                } pending delete`}
+              </Typography>
+            )}
+          </Stack>
+        </Stack>
+
+        <Dialog 
+          open={auditedStatusModalOpen} 
+          onClose={() => setAuditedStatusModalOpen(false)}
+          PaperProps={{
+            sx: {
+              width: '500px',
+              maxWidth: '500px',
+              minHeight: '300px'
+            },
+          }}
+        >
+          <Suspense fallback={"loading..."}>
+            <AuditRiskPopup
+              onClose={() => setAuditedStatusModalOpen(false)}
+              risks={formData.risks.concat(selectedRisks)}
+              _deletedRisks={deletedRisks}
+              _setDeletedRisks={setDeletedRisks}
+              _selectedRisks={selectedRisks}
+              _setSelectedRisks={setSelectedRisks}
+            />
+          </Suspense>
+        </Dialog>
+
+        <Dialog 
+          open={isLinkedRisksModalOpen} 
+          onClose={() => setIsLinkedRisksModalOpen(false)}
+          PaperProps={{
+            sx: {
+              width: '1100px',
+              maxWidth: '1100px',
+              minHeight: '520px'
+            },
+          }}
+        >
+          <Suspense fallback={"loading..."}>
+            <LinkedRisksPopup
+              onClose={() => setIsLinkedRisksModalOpen(false)}
+              currentRisks={formData.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+              setSelectecRisks={setSelectedRisks}
+              _setDeletedRisks={setDeletedRisks}
+            />
+          </Suspense>
+        </Dialog>
           
         </Stack>
         <Divider />

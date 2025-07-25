@@ -444,7 +444,7 @@ const Vendors = () => {
       <HelperDrawer
         {...vendorHelp}
         isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(false)}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
       />
       <PageTour
         steps={VendorsSteps}

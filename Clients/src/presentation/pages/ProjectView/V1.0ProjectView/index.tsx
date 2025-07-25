@@ -22,9 +22,10 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 
 const VWProjectView = () => {
   const { userRoleName } = useContext(VerifyWiseContext);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
   const tabParam = searchParams.get("tab");
+  const framework = searchParams.get("framework");
   const [refreshKey, setRefreshKey] = useState(0);
   const { project } = useProjectData({ projectId, refreshKey });
 
@@ -43,6 +44,11 @@ const VWProjectView = () => {
   }, [tabParam]);
 
   const handleChange = (_: SyntheticEvent, newValue: string) => {
+    if (tabParam) {
+      searchParams.delete("tab");
+      searchParams.delete("framework");
+      setSearchParams(searchParams);
+    }
     setValue(newValue);
   };
 
@@ -145,7 +151,9 @@ const VWProjectView = () => {
               <ProjectFrameworks
                 project={project}
                 triggerRefresh={handleRefresh}
-                initialFrameworkId={project.framework[0].framework_id}
+                initialFrameworkId={
+                  framework === "iso-42001" ? 2 : framework === "eu-ai-act" ? 1 : project.framework[0].framework_id
+                }
               />
             ) : (
               <CustomizableSkeleton

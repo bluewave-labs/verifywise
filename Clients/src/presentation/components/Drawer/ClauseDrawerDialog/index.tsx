@@ -78,8 +78,8 @@ const VWISO42001ClauseDrawerDialog = ({
   const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
-    const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
-    const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
+  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
   const statusIdMap = new Map([
     ["Not started", "0"],
     ["Draft", "1"],
@@ -651,8 +651,8 @@ const VWISO42001ClauseDrawerDialog = ({
           onClose={() => setAuditedStatusModalOpen(false)}
           PaperProps={{
             sx: {
-              width: '500px',
-              maxWidth: '500px',
+              width: '800px',
+              maxWidth: '800px',
               minHeight: '300px'
             },
           }}
@@ -674,8 +674,8 @@ const VWISO42001ClauseDrawerDialog = ({
           onClose={() => setIsLinkedRisksModalOpen(false)}
           PaperProps={{
             sx: {
-              width: '1100px',
-              maxWidth: '1100px',
+              width: '1500px',
+              maxWidth: '1500px',
               minHeight: '520px'
             },
           }}

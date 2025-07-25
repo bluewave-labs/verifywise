@@ -1,5 +1,15 @@
 // projectRisk.model.ts
 
+export type ProjectRiskMitigation = {
+  id: number;
+  meta_id: number;
+  sup_id: number;
+  sub_id: number;
+  title: string;
+  parent_id: number;
+  type: "subclause" | "annexcategory";
+}
+
 export type ProjectRisk = {
   id: number;
   project_id: number; // Foreign key to refer to the project
@@ -72,5 +82,7 @@ export type ProjectRisk = {
   risk_approval: string;
   approval_status: string;
   date_of_assessment: Date;
+  annexCategories?: ProjectRiskMitigation[];
+  subClauses?: ProjectRiskMitigation[];
   recommendations?: string;
 };

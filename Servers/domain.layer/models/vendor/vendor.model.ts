@@ -116,12 +116,6 @@ export class VendorModel extends Model<VendorModel> implements IVendor {
       | "Reviewed"
       | "Requires follow-up",
     reviewer: number,
-    risk_status:
-      | "Very high risk"
-      | "High risk"
-      | "Medium risk"
-      | "Low risk"
-      | "Very low risk",
     review_date: Date,
     order_no?: number,
     is_demo: boolean = false,

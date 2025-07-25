@@ -1,4 +1,4 @@
-import { Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
+import { Table, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import {
   emptyData,

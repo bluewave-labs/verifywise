@@ -47,14 +47,14 @@ const Overview = ({
                 value={data.intro.purpose}
               />
             )}
-            {data.intro.mission && (
-              <CustomTextField label="Our mission" value={data.intro.mission} />
-            )}
             {data.intro.statement && (
               <CustomTextField
                 label="Our statement"
                 value={data.intro.statement}
               />
+            )}
+             {data.intro.mission && (
+              <CustomTextField label="Our mission" value={data.intro.mission} />
             )}
           </Stack>
         </Paper>

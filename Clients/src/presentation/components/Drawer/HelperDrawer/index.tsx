@@ -1,6 +1,14 @@
 import React from "react";
-import { Drawer, IconButton, Stack, Typography, useTheme, Divider, Box } from "@mui/material";
-import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
+import {
+  Drawer,
+  IconButton,
+  Stack,
+  Typography,
+  useTheme,
+  Divider,
+  Box,
+} from "@mui/material";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import { HelperDrawerProps } from "./drawertype";
 
@@ -16,12 +24,17 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   return (
     <>
       <IconButton
-        onClick={onClose}
+        onClick={() => (!isOpen ? onClose() : null)}
         aria-label="Open help information"
         color="primary"
         size="large"
+        sx={{
+          position: "absolute",
+          right: theme.spacing(2),
+          top: theme.spacing(2),
+        }}
       >
-        <InfoOutlineIcon />
+        <InfoOutlinedIcon />
       </IconButton>
 
       <Drawer
@@ -30,58 +43,84 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
         onClose={onClose}
         variant="temporary"
         sx={{
+          width: 600,
+          margin: 0,
           "& .MuiDrawer-paper": {
-            width: "400px",
-            padding: theme.spacing(3),
-            boxSizing: "border-box",
+            width: 600,
+            margin: 0,
+            borderRadius: 0,
           },
         }}
       >
-        <Stack spacing={3} position="relative">
-          <IconButton
-            onClick={onClose}
-            aria-label="Close help drawer"
+        <Stack sx={{ width: 600 }}>
+          <Stack
             sx={{
-              position: "absolute",
-              top: 8,
-              right: 8,
+              width: "100%",
+              padding: "15px 20px",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <CloseIcon />
-          </IconButton>
-          {/* Page Title */}
-          <Typography
-            variant="h5"
-            component="h1"
-            sx={{ mt: 1, fontWeight: 600 }}
-          >
-            {pageTitle}
-          </Typography>
-          {/* Overview Section */}
-          <Box>
-            <Typography variant="body1" color="text.secondary">
-              {overview}
+            {/* Page Title */}
+            <Typography
+              variant="h5"
+              component="h1"
+              sx={{ mt: 1, fontWeight: 600 }}
+            >
+              {pageTitle}
             </Typography>
-          </Box>
+            <IconButton onClick={onClose} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Stack>
 
           <Divider />
 
-          {/* Help Sections */}
-          <Stack spacing={3}>
-            {sections.map((section, index) => (
-              <Box key={index}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
-                  {section.title}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ whiteSpace: "pre-line" }}
-                >
-                  {section.content}
-                </Typography>
-              </Box>
-            ))}
+          <Stack
+            sx={{
+              padding: "15px 20px",
+              gap: "15px",
+            }}
+          >
+            {/* Overview Section */}
+            <Stack
+              sx={{
+                border: `1px solid #eee`,
+                padding: "10px",
+                backgroundColor: "#f8f9fa",
+                borderRadius: "4px",
+              }}
+            >
+              <Typography fontSize={13}>{overview}</Typography>
+            </Stack>
+
+            {/* Help Sections */}
+            <Stack spacing={3}>
+              {sections.map((section, index) => (
+                <Box key={index}>
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      marginBottom: "5px",
+                    }}
+                  >
+                    {section.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: "text.secondary",
+                      whiteSpace: "pre-line",
+                    }}
+                  >
+                    {section.content}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
           </Stack>
         </Stack>
       </Drawer>

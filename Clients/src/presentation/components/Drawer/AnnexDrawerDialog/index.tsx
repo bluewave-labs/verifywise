@@ -687,8 +687,8 @@ const VWISO42001AnnexDrawerDialog = ({
             onClose={() => setAuditedStatusModalOpen(false)}
             PaperProps={{
               sx: {
-                width: '500px',
-                maxWidth: '500px',
+                width: '800px',
+                maxWidth: '800px',
                 minHeight: '300px'
               },
             }}
@@ -710,8 +710,8 @@ const VWISO42001AnnexDrawerDialog = ({
             onClose={() => setIsLinkedRisksModalOpen(false)}
             PaperProps={{
               sx: {
-                width: '1100px',
-                maxWidth: '1100px',
+                width: '1500px',
+                maxWidth: '1500px',
                 minHeight: '520px'
               },
             }}

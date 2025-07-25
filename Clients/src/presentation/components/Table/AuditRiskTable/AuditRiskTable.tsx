@@ -11,7 +11,7 @@ import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 
 export type Risk = { id: number; title: string; status: string; severity: string }
 
-const TITLE_OF_COLUMNS = ["Unlink", "ID", "Risk Title", "Status", "Severity"]
+const TITLE_OF_COLUMNS = ["Unlink", "ID", "Risk Title", "Status", "Severity", ""]
 
 interface AuditRiskTableProps {
   risks: number[];

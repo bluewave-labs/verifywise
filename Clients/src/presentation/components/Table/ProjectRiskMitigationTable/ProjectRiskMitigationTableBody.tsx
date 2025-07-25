@@ -1,40 +1,27 @@
-import { TableBody, TableCell, TableFooter, TablePagination, TableRow, useTheme, Checkbox as MuiCheckbox } from "@mui/material";
-import { useCallback, useState } from "react";
+import { TableBody, TableCell, TableFooter, TablePagination, TableRow, useTheme } from "@mui/material";
+import { ProjectRiskMitigation } from "../../../../domain/types/ProjectRisk";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
-import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg'
-import {
-  paginationStyle, 
-  paginationDropdown, 
-  paginationSelect
-} from "../styles";
+import { useCallback, useState } from "react";
 import TablePaginationActions from "../../TablePagination";
-import RiskChip from "../../RiskLevel/RiskChip";
-import { Risk } from "./AuditRiskTable";
-import { useSearchParams } from "react-router-dom";
+import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg'
+import { paginationDropdown, paginationSelect, paginationStyle } from "../styles";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
+import { useSearchParams } from "react-router-dom";
 
-interface AuditRiskTableBodyProps {
-  rows: Risk[];
+interface ProjectRiskMitigationTableBodyProps {
+  rows: ProjectRiskMitigation[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
-  deletedRisks: number[];
-  checkedRows: number[];
-  setCheckedRows: (checkedRows: number[]) => void;
 }
 
 const navigteToNewTab = (url: string) => {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
+export const ProjectRiskMitigationTableBody: React.FC<ProjectRiskMitigationTableBodyProps> = ({
   rows,
   page,
-  setCurrentPagingation,
-  deletedRisks,
-  checkedRows,
-  setCheckedRows
+  setCurrentPagingation
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -53,23 +40,17 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
     [setRowsPerPage, setCurrentPagingation]
   );
 
-  const handleChange = (riskData: Risk, event: React.ChangeEvent | React.MouseEvent) => {
-    event.stopPropagation()
-    const riskId = riskData.id;
-    if (deletedRisks.includes(riskId)) {}
-    else if (checkedRows.includes(riskId)) {
-      setCheckedRows(checkedRows.filter(id => id !== riskId));
-    } else {
-      setCheckedRows([...checkedRows, riskId]);
-    }
-  };
-
-  const handleRowClick = (riskData: Risk, event: React.MouseEvent) => {
+  const handleRowClick = (riskData: ProjectRiskMitigation, event: React.MouseEvent) => {
     event.stopPropagation();
     const riskId = riskData.id;
     if (riskId) {
-      navigteToNewTab(`/project-view?projectId=${searchParams.get("projectId")}&tab=project-risks&riskId=${riskId}`);
+      if (riskData.type === "annexcategory") {
+        navigteToNewTab(`/project-view?projectId=${searchParams.get("projectId")}&tab=frameworks&framework=iso-42001&annexId=${riskData.parent_id}&annexCategoryId=${riskData.meta_id}`);
+      } else if (riskData.type === "subclause") {
+        navigteToNewTab(`/project-view?projectId=${searchParams.get("projectId")}&tab=frameworks&framework=iso-42001&clauseId=${riskData.parent_id}&subClauseId=${riskData.meta_id}`);
+      }
     }
+
   }
 
   return (
@@ -78,38 +59,21 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
       {rows &&
         rows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-          .map((row: Risk, index: number) => (
+          .map((row: ProjectRiskMitigation, index: number) => (
             <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
               <TableCell sx={cellStyle}>
-                <MuiCheckbox
-                  size="small"
-                  id="auto-fill"
-                  checked={deletedRisks.includes(row.id) || checkedRows.includes(row.id)}
-                  onChange={(e) => handleChange(row, e)}
-                  onClick={(e) => e.stopPropagation()}  
-                  checkedIcon={<CheckboxFilled />}
-                  icon={<CheckboxOutline />}
-                  sx={{
-                    borderRadius: "4px",
-                    "&:hover": { backgroundColor: "transparent" },
-                    "& svg": { width: "small", height: "small" },
-                    "& .MuiTouchRipple-root": {
-                      display: "none",
-                    },
-                  }}
-                />
+                {
+                  (() => {
+                    const title = `${row.type === "annexcategory" ? "A.": ""}${row.sup_id}.${row.sub_id} ${row.title}`
+                    console.log(title.length);
+                    return title.length > 30
+                      ? `${title.slice(0, 30)}...`
+                      : title
+                  })()
+                }
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.id ? row.id : page * rowsPerPage + index + 1}
-              </TableCell>
-              <TableCell>
-                {row.title ? row.title.length > 30 ? `${row.title.slice(0, 30)}...` : row.title : '-'}
-              </TableCell>
-              <TableCell sx={{maxWidth: '300px'}}>
-                {row.status ? row.status : '-'}
-              </TableCell>
-              <TableCell sx={cellStyle}>
-                {row.severity ? <RiskChip label={row.severity} /> : '-'}
+                {row.type === "annexcategory" ? "ISO42001: Annex Category" : row.type === "subclause" ? "ISO42001: Sub-Clause" : "ISO42001: Clause"}
               </TableCell>
               <TableCell>
                 <CustomizableButton
@@ -165,6 +129,6 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
         />
       </TableRow>
     </TableFooter>
-  </>
+    </>
   )
 }

@@ -495,7 +495,7 @@ const AITrustCenterSettings: React.FC = () => {
               Select or customize your top header color
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
             <Typography sx={styles.customColorLabel}>Custom color:</Typography>
             <input
               type="text"
@@ -503,17 +503,24 @@ const AITrustCenterSettings: React.FC = () => {
               onChange={e => handleFieldChange('info', 'header_color', e.target.value)}
               style={styles.customColorInput}
             />
-           {/* Hidden color picker input */}
-           <input
+            {/* Color picker input positioned to the right and down */}
+            <input
               type="color"
               value={formData?.info?.header_color || '#000000'}
               onChange={e => handleFieldChange('info', 'header_color', e.target.value)}
               style={{
                 position: 'absolute',
+                top: '40px',
+                left: '200px',
                 opacity: 0,
-                pointerEvents: 'none',
-                width: 0,
-                height: 0,
+                width: '1px',
+                height: '1px',
+                border: 'none',
+                padding: 0,
+                margin: 0,
+                overflow: 'hidden',
+                clip: 'rect(0, 0, 0, 0)',
+                whiteSpace: 'nowrap',
               }}
               id="color-picker"
             />

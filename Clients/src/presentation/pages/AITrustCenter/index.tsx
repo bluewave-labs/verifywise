@@ -34,8 +34,9 @@ const AITrustCenter: React.FC = () => {
         console.error('Tenant hash not found in token');
         return;
       }
-      const previewUrl = `http://localhost:3000/api/aiTrustCentre/${tenantHash}`;
-      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      // Open the public page in a new tab
+      const publicUrl = `${window.location.origin}/public`;
+      window.open(publicUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Error opening preview:', error);
     }

@@ -62,19 +62,31 @@ const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data}: {data: 
             </>
           )}
         </Stack>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Link href={data?.terms_and_contact?.terms} target="_blank" rel="noopener" sx={{ fontSize: 13 }}>
-            Terms of service
-          </Link>
-          <Typography sx={{ fontSize: 13 }}>•</Typography>
-          <Link href={data?.terms_and_contact?.privacy} target="_blank" rel="noopener" sx={{ fontSize: 13 }}>
-            Privacy policy
-          </Link>
-          <Typography sx={{ fontSize: 13 }}>•</Typography>
-          <Link href={`mailto:${data?.terms_and_contact?.email}`} sx={{ fontSize: 13 }}>
-            {data?.terms_and_contact?.email}
-          </Link>
-        </Stack>
+        {data?.terms_and_contact && (
+          <Stack direction="row" spacing={2} alignItems="center">
+            {data?.terms_and_contact?.terms && (
+              <Link href={data?.terms_and_contact?.terms} target="_blank" rel="noopener" sx={{ fontSize: 13 }}>
+                Terms of service
+              </Link>
+            )}
+            {data?.terms_and_contact?.terms && data?.terms_and_contact?.privacy && (
+              <Typography sx={{ fontSize: 13 }}>•</Typography>
+            )}
+            {data?.terms_and_contact?.privacy && (
+              <Link href={data?.terms_and_contact?.privacy} target="_blank" rel="noopener" sx={{ fontSize: 13 }}>
+                Privacy policy
+              </Link>
+            )}
+            {data?.terms_and_contact?.privacy && data?.terms_and_contact?.email && (
+              <Typography sx={{ fontSize: 13 }}>•</Typography>
+            )}
+            {data?.terms_and_contact?.email && (
+              <Link href={`mailto:${data?.terms_and_contact?.email}`} sx={{ fontSize: 13 }}>
+                {data?.terms_and_contact?.email}
+              </Link>
+            )}
+          </Stack>
+        )}
       </Stack>
     </Box>
   );

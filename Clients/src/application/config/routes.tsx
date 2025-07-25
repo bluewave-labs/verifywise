@@ -23,6 +23,7 @@ import ProtectedRoute from "../../presentation/components/ProtectedRoute";
 import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
 import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
+import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 
@@ -95,5 +96,6 @@ export const createRoutes = (
     element={<ProtectedRoute Component={ResetPasswordContinue} />}
   />,
   <Route key="playground" path="/playground" element={<Playground />} />,
+  <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

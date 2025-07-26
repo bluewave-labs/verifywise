@@ -160,3 +160,49 @@ class ModelInferencePipeline:
                 results.append(sample)
         
         return results
+
+
+def run_all_evaluations(config_path: Optional[str] = None, limit_samples: Optional[int] = 16):
+    """
+    Run all evaluations using the ModelInferencePipeline and EvaluationRunner.
+    
+    Args:
+        config_path (Optional[str], optional): Path to the config file. Defaults to None.
+        limit_samples (Optional[int], optional): Number of samples to evaluate. Defaults to 16.
+    
+    Returns:
+        Dict[str, Any]: Evaluation results
+    """
+    # Import here to avoid circular imports
+    from .eval_runner import EvaluationRunner
+    import json
+    
+    try:
+        # Create inference pipeline
+        inference_pipeline = ModelInferencePipeline(config_path)
+        
+        # Generate prompts and run inference
+        samples = inference_pipeline.generate_prompts(limit_samples=limit_samples)
+        prompts = [sample["prompt"] for sample in samples]
+        responses = inference_pipeline.model_loader.predict(prompts)
+        
+        # Create evaluation runner and run evaluations
+        evaluator = EvaluationRunner(
+            df=inference_pipeline.data_loader.data,
+            inference_pipeline=inference_pipeline,
+            config=inference_pipeline.config_manager.config
+        )
+        
+        results = evaluator.run_all_evaluations("llm", prompts=prompts, responses=responses)
+        
+        # Save results
+        print(json.dumps(results, indent=2))
+        with open("llm_eval_report.json", "w") as f:
+            json.dump(results, f, indent=2)
+            print("Saved LLM evaluation results to llm_eval_report.json")
+        
+        return results
+        
+    except Exception as e:
+        print(f"Error running evaluations: {str(e)}")
+        raise

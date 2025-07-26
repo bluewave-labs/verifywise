@@ -10,7 +10,6 @@ import React, {
 import { Box, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
 import {
@@ -31,16 +30,16 @@ import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import AvatarPanel from "../../../components/AvatarPanel";
 
 /**
  * Interface representing a user object.
  * @interface
  */
-interface User {
+interface UserDetails {
   firstname: string;
   lastname: string;
   email: string;
-  pathToImage: string;
 }
 
 /**
@@ -63,9 +62,6 @@ const ProfileForm: React.FC = () => {
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  const [profilePhoto, setProfilePhoto] = useState<string>(
-    "/placeholder.svg?height=80&width=80"
-  );
   const [showToast, setShowToast] = useState(false);
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
@@ -87,7 +83,6 @@ const ProfileForm: React.FC = () => {
   });
 
   const theme = useTheme();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
   const isModified =
     firstname !== initialStateRef.current.firstname ||
@@ -120,10 +115,7 @@ const ProfileForm: React.FC = () => {
           email: response.data.email,
         };
 
-        setProfilePhoto(
-          response.data.pathToImage || "/placeholder.svg?height=80&width=80"
-        );
-        console.log(`user ${user.firstname} ${user.lastname} fetched`);
+        console.log(`user ${userDetails.firstname} ${userDetails.lastname} fetched`);
         console.log(firstname);
       } catch (error) {
         console.log(error);
@@ -170,7 +162,6 @@ const ProfileForm: React.FC = () => {
         name: firstname,
         surname: lastname,
         email,
-        pathToImage: profilePhoto,
       };
       const response = await updateEntityById({
         routeUrl: `/users/${id}`,
@@ -212,29 +203,10 @@ const ProfileForm: React.FC = () => {
     firstname,
     lastname,
     email,
-    profilePhoto,
     firstnameError,
     lastnameError,
     emailError,
   ]);
-
-  /**
-   * Handle file input change.
-   *
-   * Updates the profile photo with the selected file.
-   *
-   * @param {ChangeEvent<HTMLInputElement>} event - The change event.
-   */
-  const handleFileChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>): void => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const newPhotoUrl = URL.createObjectURL(file);
-        setProfilePhoto(newPhotoUrl);
-      }
-    },
-    []
-  );
 
   /**
    * Handle delete dialog open.
@@ -252,24 +224,6 @@ const ProfileForm: React.FC = () => {
    */
   const handleCloseDeleteDialog = useCallback((): void => {
     setIsDeleteModalOpen(false);
-  }, []);
-
-  /**
-   * Handle update photo button click.
-   *
-   * Triggers the file input click to update the profile photo.
-   */
-  const handleUpdatePhoto = useCallback((): void => {
-    fileInputRef.current?.click();
-  }, []);
-
-  /**
-   * Handle delete photo button click.
-   *
-   * Resets the profile photo to the default placeholder.
-   */
-  const handleDeletePhoto = useCallback((): void => {
-    setProfilePhoto("/placeholder.svg?height=80&width=80");
   }, []);
 
   /**
@@ -387,14 +341,13 @@ const ProfileForm: React.FC = () => {
   }, [email, firstname, lastname, logout]);
 
   // User object for Avatar component
-  const user: User = useMemo(
+  const userDetails: UserDetails = useMemo(
     () => ({
       firstname,
       lastname,
-      pathToImage: profilePhoto,
       email,
     }),
-    [firstname, lastname, profilePhoto, email]
+    [firstname, lastname, email]
   );
 
   return (
@@ -481,71 +434,7 @@ const ProfileForm: React.FC = () => {
               This is your current email address — it cannot be changed.
             </Typography>
           </Box>
-          <Box
-            sx={{
-              width: { xs: "100%", md: "40%" },
-              textAlign: { xs: "left", md: "center" },
-            }}
-          >
-            <Stack
-              direction="column"
-              alignItems={{ xs: "flex-start", md: "center" }}
-              spacing={2}
-            >
-              <Typography
-                fontWeight="600"
-                variant="subtitle1"
-                color="#344054"
-                pb={theme.spacing(5)}
-              >
-                Your photo
-              </Typography>
-              <Avatar
-                user={user}
-                size="medium"
-                sx={{ width: 80, height: 80 }}
-              />
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-              <Stack
-                direction="row"
-                spacing={2}
-                alignItems={"center"}
-                sx={{ paddingTop: theme.spacing(10) }}
-              >
-                <Typography
-                  sx={{
-                    color: "#667085",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    fontSize: 13,
-                  }}
-                  onClick={handleDeletePhoto}
-                >
-                  Delete
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#13715B",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    paddingLeft: theme.spacing(5),
-                    fontSize: 13,
-                  }}
-                  onClick={handleUpdatePhoto}
-                >
-                  Update
-                </Typography>
-              </Stack>
-            </Stack>
-          </Box>
+          <AvatarPanel userDetails={userDetails} />
         </Box>
       )}
       {!loading && (

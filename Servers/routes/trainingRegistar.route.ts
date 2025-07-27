@@ -16,7 +16,7 @@ router.get("/", authenticateJWT, getAllTrainingRegistar);
 router.get("/training-id/:id", authenticateJWT, getTrainingRegistarById);
 // POST, PATCH, DELETE requests
 router.post("/", authenticateJWT, createNewTrainingRegistar);
-router.patch("/:id", updateTrainingRegistarById);
-router.delete("/:id", deleteTrainingRegistarById);
+router.patch("/:id", authenticateJWT, updateTrainingRegistarById);
+router.delete("/:id", authenticateJWT, deleteTrainingRegistarById);
 
 export default router;

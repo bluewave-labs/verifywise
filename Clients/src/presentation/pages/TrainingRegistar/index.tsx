@@ -256,12 +256,12 @@ const Training: React.FC = () => {
           selectedTraining
             ? {
                 training_name: selectedTraining.training_name,
-                duration: selectedTraining.duration,
+                duration: String(selectedTraining.duration || ""),
                 provider: selectedTraining.provider,
                 department: selectedTraining.department,
                 status: selectedTraining.status,
                 numberOfPeople: selectedTraining.people,
-                description:selectedTraining.description
+                description: selectedTraining.description,
               }
             : undefined
         }

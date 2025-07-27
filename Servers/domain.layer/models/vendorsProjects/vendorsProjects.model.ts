@@ -7,16 +7,15 @@ import {
 } from "sequelize-typescript";
 import { ProjectModel } from "../project/project.model";
 import { VendorModel } from "../vendor/vendor.model";
-
-export type VendorsProjects = {
-  vendor_id: number;
-  project_id: number;
-};
+import { IVendorsProjects } from "../../interfaces/i.vendorProjects";
 
 @Table({
   tableName: "vendor_projects",
 })
-export class VendorsProjectsModel extends Model<VendorsProjects> {
+export class VendorsProjectsModel
+  extends Model<VendorsProjectsModel>
+  implements IVendorsProjects
+{
   @ForeignKey(() => VendorModel)
   @Column({
     type: DataType.INTEGER,
@@ -37,4 +36,31 @@ export class VendorsProjectsModel extends Model<VendorsProjects> {
     defaultValue: false,
   })
   is_demo?: boolean;
+
+  static async createNewVendorProject(
+    vendorId: number,
+    projectId: number,
+    is_demo: boolean = false
+  ): Promise<VendorsProjectsModel> {
+    const vendorProject = new VendorsProjectsModel();
+    vendorProject.vendor_id = vendorId;
+    vendorProject.project_id = projectId;
+    vendorProject.is_demo = is_demo;
+    return vendorProject;
+  }
+
+  static async updateVendorProject(
+    vendorId: number,
+    projectId: number,
+    is_demo: boolean = false
+  ): Promise<void> {
+    const vendorProject = await VendorsProjectsModel.findOne({
+      where: { vendor_id: vendorId, project_id: projectId },
+    });
+    if (!vendorProject) {
+      throw new Error("Vendor project not found");
+    }
+    vendorProject.is_demo = is_demo;
+    await vendorProject.save();
+  }
 }

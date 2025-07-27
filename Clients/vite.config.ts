@@ -4,7 +4,21 @@ import svgr from "@svgr/rollup";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), svgr()],
+  plugins: [
+    react(),
+    svgr(),
+    {
+      name: "html-loader",
+      transform(code, id) {
+        if (id.endsWith(".html")) {
+          return {
+            code: `export default ${JSON.stringify(code)};`,
+            map: null,
+          };
+        }
+      },
+    },
+  ],
   server: {
     host: "0.0.0.0",
     port: process.env.VITE_APP_PORT

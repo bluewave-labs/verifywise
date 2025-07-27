@@ -6,7 +6,6 @@ import {
   Typography,
   useTheme,
   Divider,
-  Box,
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
@@ -14,8 +13,7 @@ import { HelperDrawerProps } from "./drawertype";
 
 const HelperDrawer: React.FC<HelperDrawerProps> = ({
   pageTitle,
-  overview,
-  sections,
+  helpContent,
   isOpen,
   onClose,
 }) => {
@@ -84,43 +82,8 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
               gap: "15px",
             }}
           >
-            {/* Overview Section */}
-            <Stack
-              sx={{
-                border: `1px solid #eee`,
-                padding: "10px",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "4px",
-              }}
-            >
-              <Typography fontSize={13}>{overview}</Typography>
-            </Stack>
-
-            {/* Help Sections */}
-            <Stack spacing={3}>
-              {sections.map((section, index) => (
-                <Box key={index}>
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      marginBottom: "5px",
-                    }}
-                  >
-                    {section.title}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      color: "text.secondary",
-                      whiteSpace: "pre-line",
-                    }}
-                  >
-                    {section.content}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
+            {/* Help Content */}
+            <div dangerouslySetInnerHTML={{ __html: helpContent }} />
           </Stack>
         </Stack>
       </Drawer>

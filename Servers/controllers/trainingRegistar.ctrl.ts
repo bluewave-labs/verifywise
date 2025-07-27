@@ -9,8 +9,8 @@ import {
   deleteTrainingRegistarByIdQuery,
 } from "../utils/trainingRegistar.utils";
 
-import { TrainingRegistar } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 import { sequelize } from "../database/db";
+import { TrainingRegistarModel } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -38,7 +38,8 @@ export async function getTrainingRegistarById(
     const trainingRegistarId = parseInt(req.params.id);
 
     const trainingRegistar = await getTrainingRegistarByIdQuery(
-      trainingRegistarId, req.tenantId!
+      trainingRegistarId,
+      req.tenantId!
     );
 
     if (trainingRegistar) {
@@ -59,7 +60,7 @@ export async function createNewTrainingRegistar(
   const transaction = await sequelize.transaction();
 
   try {
-    const newTrainingRegistar: TrainingRegistar = req.body;
+    const newTrainingRegistar: TrainingRegistarModel = req.body;
 
     if (
       !newTrainingRegistar.training_name ||

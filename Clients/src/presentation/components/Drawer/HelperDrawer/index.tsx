@@ -10,6 +10,7 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import { HelperDrawerProps } from "./drawertype";
+import DOMPurify from "dompurify";  
 
 const HelperDrawer: React.FC<HelperDrawerProps> = ({
   pageTitle,
@@ -90,10 +91,12 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           >
             {/* Help Content */}
             <div
-              dangerouslySetInnerHTML={{ __html: helpContent }}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(helpContent),
+              }}
               style={{
-                maxWidth: "100%", 
-                wordWrap: "break-word", 
+                maxWidth: "100%",
+                wordWrap: "break-word",
               }}
             />
           </Stack>

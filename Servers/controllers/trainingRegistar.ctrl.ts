@@ -11,6 +11,11 @@ import {
 
 import { sequelize } from "../database/db";
 import { TrainingRegistarModel } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
+import {
+  ValidationException,
+  BusinessLogicException,
+  NotFoundException,
+} from "../domain.layer/exceptions/custom.exception";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -58,85 +63,129 @@ export async function createNewTrainingRegistar(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const trainingData = req.body;
 
   try {
-    const newTrainingRegistar: TrainingRegistarModel = req.body;
-
-    if (
-      !newTrainingRegistar.training_name ||
-      !newTrainingRegistar.duration ||
-      !newTrainingRegistar.department ||
-      !newTrainingRegistar.numberOfPeople ||
-      !newTrainingRegistar.provider ||
-      !newTrainingRegistar.status
-    ) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "Missing field from Training Registar",
-        })
+    // Create training register using the enhanced TrainingRegistarModel method
+    const trainingRegistarModel =
+      await TrainingRegistarModel.createNewTrainingRegister(
+        trainingData.training_name,
+        trainingData.duration,
+        trainingData.provider,
+        trainingData.department,
+        trainingData.status || "Planned",
+        trainingData.numberOfPeople,
+        trainingData.description
       );
-    }
+
+    // Validate training register data before saving
+    await trainingRegistarModel.validateTrainingRegisterData();
 
     const createdNewTrainingRegistar = await createNewTrainingRegistarQuery(
-      newTrainingRegistar,
+      trainingRegistarModel,
       req.tenantId!,
       transaction
     );
 
     if (createdNewTrainingRegistar) {
       await transaction.commit();
-      return res.status(201).json(STATUS_CODE[201](createdNewTrainingRegistar));
+      return res
+        .status(201)
+        .json(STATUS_CODE[201](trainingRegistarModel.toJSON()));
     }
 
-    return res.status(503).json(STATUS_CODE[503]({}));
+    await transaction.rollback();
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Failed to create training register"));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 //update a particular training registar by id
-
 export async function updateTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const trainingRegistarId = parseInt(req.params.id);
+  const updateData = req.body;
+
   try {
-    const trainingRegistarId = parseInt(req.params.id);
-    // Map numberOfPeople to people for DB
+    // Find existing training register with validation
+    const existingTrainingRegistar =
+      await TrainingRegistarModel.findByIdWithValidation(trainingRegistarId);
+
+    if (!existingTrainingRegistar) {
+      await transaction.rollback();
+      return res
+        .status(404)
+        .json(STATUS_CODE[404]("Training register not found"));
+    }
+
+    // Update training register using the enhanced method
+    await existingTrainingRegistar.updateTrainingRegister({
+      training_name: updateData.training_name,
+      duration: updateData.duration,
+      provider: updateData.provider,
+      department: updateData.department,
+      status: updateData.status,
+      numberOfPeople: updateData.numberOfPeople,
+      description: updateData.description,
+    });
+
+    // Validate updated data
+    await existingTrainingRegistar.validateTrainingRegisterData();
+
+    // Map numberOfPeople to people for DB (if needed by the query)
     const updatedTrainingRegistar: any = {
-      ...req.body,
-      people: req.body.numberOfPeople,
+      ...existingTrainingRegistar.toJSON(),
+      people: existingTrainingRegistar.numberOfPeople,
     };
     delete updatedTrainingRegistar.numberOfPeople;
-    if (
-      !updatedTrainingRegistar.training_name ||
-      !updatedTrainingRegistar.department ||
-      !updatedTrainingRegistar.duration ||
-      !updatedTrainingRegistar.people ||
-      !updatedTrainingRegistar.provider ||
-      !updatedTrainingRegistar.status
-    ) {
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "All the fields are required to be updated",
-        })
-      );
-    }
+
     const trainingRegistar = await updateTrainingRegistarByIdQuery(
       trainingRegistarId,
       updatedTrainingRegistar,
       req.tenantId!,
       transaction
     );
+
     if (trainingRegistar) {
       await transaction.commit();
       return res.status(202).json(STATUS_CODE[202](trainingRegistar));
     }
-    return res.status(404).json(STATUS_CODE[404]({}));
+
+    await transaction.rollback();
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("Failed to update training register"));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    if (error instanceof NotFoundException) {
+      return res.status(404).json(STATUS_CODE[404](error.message));
+    }
+
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

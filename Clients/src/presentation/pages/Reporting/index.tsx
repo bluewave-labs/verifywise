@@ -8,6 +8,8 @@ const ReportingHeader = lazy(
   () => import("../../components/Reporting/ReportOverviewHeader")
 );
 import { styles } from "./styles";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import reportingHelpContent from "../../../presentation/helpers/reporting-help.html?raw";
 
 const Reporting = () => {
   const [value, setValue] = useState<string>("generate");
@@ -15,9 +17,16 @@ const Reporting = () => {
   const handleTabChange = (_: SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   return (
     <Stack className="vwhome" gap={"20px"}>
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={reportingHelpContent}
+        pageTitle="Reporting Dashboard"
+      />
       <Suspense fallback={"loading..."}>
         <ReportingHeader
           titlesx={styles.vwHeadingTitle}

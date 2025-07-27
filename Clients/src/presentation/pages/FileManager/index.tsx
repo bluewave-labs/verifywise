@@ -47,6 +47,7 @@ const FileManager: React.FC = (): JSX.Element => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
+   
 
   // Fetch projects for the dropdown
   const {

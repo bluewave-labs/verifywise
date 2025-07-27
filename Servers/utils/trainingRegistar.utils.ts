@@ -1,16 +1,14 @@
-import {
-  TrainingRegistar,
-  TrainingRegistarModel,
-} from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
+import { TrainingRegistarModel } from "../domain.layer/models/trainingRegistar/trainingRegistar.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Sequelize, Transaction } from "sequelize";
+import { ITrainingRegister } from "../domain.layer/interfaces/i.trainingRegister";
 
 /**
  *
  * Create a Training Registar
  */
 export const createNewTrainingRegistarQuery = async (
-  trainingRegistar: TrainingRegistar,
+  trainingRegistar: TrainingRegistarModel,
   tenant: string,
   transaction: Transaction
 ) => {
@@ -46,9 +44,7 @@ export const createNewTrainingRegistarQuery = async (
 
 export const getAllTrainingRegistarQuery = async (
   tenant: string
-): Promise<
-  TrainingRegistar[]
-> => {
+): Promise<ITrainingRegister[]> => {
   const trainingRegistars = await sequelize.query(
     `SELECT * FROM "${tenant}".trainingregistar ORDER BY id ASC`,
     {
@@ -58,7 +54,7 @@ export const getAllTrainingRegistarQuery = async (
   );
   // Return all training registars or an empty array if none found
   return Array.isArray(trainingRegistars)
-    ? (trainingRegistars as TrainingRegistar[])
+    ? (trainingRegistars as ITrainingRegister[])
     : [];
 };
 
@@ -66,8 +62,9 @@ export const getAllTrainingRegistarQuery = async (
  * Return the training registars by ID // for now keeping it might not need it eventually
  */
 export const getTrainingRegistarByIdQuery = async (
-  id: number, tenant: string
-): Promise<TrainingRegistar> => {
+  id: number,
+  tenant: string
+): Promise<ITrainingRegister> => {
   const trainingRegistarsById = await sequelize.query(
     `SELECT * FROM "${tenant}".trainingregistar WHERE id = :id`,
     {
@@ -79,7 +76,7 @@ export const getTrainingRegistarByIdQuery = async (
   // Return the first training registar or null if none found
   return Array.isArray(trainingRegistarsById) &&
     trainingRegistarsById.length > 0
-    ? (trainingRegistarsById[0] as TrainingRegistar)
+    ? (trainingRegistarsById[0] as ITrainingRegister)
     : (null as any);
 };
 
@@ -88,12 +85,13 @@ export const getTrainingRegistarByIdQuery = async (
  */
 export const updateTrainingRegistarByIdQuery = async (
   id: number,
-  trainingRegistar: Partial<TrainingRegistar>,
+  trainingRegistar: Partial<TrainingRegistarModel>,
   tenant: string,
   transaction: Transaction
-): Promise<TrainingRegistar> => {
-  const updateTrainingRegistar: Partial<Record<keyof TrainingRegistar, any>> =
-    {};
+): Promise<TrainingRegistarModel> => {
+  const updateTrainingRegistar: Partial<
+    Record<keyof TrainingRegistarModel, any>
+  > = {};
   const setClause = [
     "training_name",
     "duration",
@@ -105,11 +103,11 @@ export const updateTrainingRegistarByIdQuery = async (
   ]
     .filter((f) => {
       if (
-        trainingRegistar[f as keyof TrainingRegistar] !== undefined &&
-        trainingRegistar[f as keyof TrainingRegistar]
+        trainingRegistar[f as keyof TrainingRegistarModel] !== undefined &&
+        trainingRegistar[f as keyof TrainingRegistarModel]
       ) {
-        updateTrainingRegistar[f as keyof TrainingRegistar] =
-          trainingRegistar[f as keyof TrainingRegistar];
+        updateTrainingRegistar[f as keyof TrainingRegistarModel] =
+          trainingRegistar[f as keyof TrainingRegistarModel];
         return true;
       }
     })
@@ -129,7 +127,7 @@ export const updateTrainingRegistarByIdQuery = async (
 
   // Return the first updated training registar or null if none found
   return Array.isArray(result) && result.length > 0
-    ? (result[0] as TrainingRegistar)
+    ? (result[0] as TrainingRegistarModel)
     : (null as any);
 };
 

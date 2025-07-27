@@ -27,7 +27,7 @@ import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/Drawer/HelperDrawer";
-import dashboardHelpContent from "../../../presentation/helpers/dashboard-help.html?raw";
+import dashboardHelpContent from "../../../../presentation/helpers/dashboard-help.html?raw";
 
 const Home = () => {
   const {

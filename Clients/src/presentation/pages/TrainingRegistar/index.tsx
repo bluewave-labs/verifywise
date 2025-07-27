@@ -24,6 +24,8 @@ import NewTraining from "../../../presentation/components/Modals/NewTraining"; /
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw"; 
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -52,6 +54,8 @@ const Training: React.FC = () => {
     title?: string;
     body: string;
   } | null>(null);
+
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Function to simulate fetching training data
   const fetchTrainingData = useCallback(async () => {
@@ -186,6 +190,12 @@ const Training: React.FC = () => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={trainingHelpContent}
+        pageTitle="Training Registry"
+      />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Fade

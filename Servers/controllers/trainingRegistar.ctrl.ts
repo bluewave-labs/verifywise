@@ -44,7 +44,6 @@ export async function getAllTrainingRegistar(
 
   try {
     const trainingRegistars = await getAllTrainingRegistarQuery(req.tenantId!);
-
     if (trainingRegistars && trainingRegistars.length > 0) {
       await logSuccess({
         eventType: "Read",
@@ -360,16 +359,9 @@ export async function updateTrainingRegistarById(
     // Validate updated data
     await existingTrainingRegistar.validateTrainingRegisterData();
 
-    // Map numberOfPeople to people for DB (if needed by the query)
-    const updatedTrainingRegistar: any = {
-      ...existingTrainingRegistar.toJSON(),
-      people: existingTrainingRegistar.numberOfPeople,
-    };
-    delete updatedTrainingRegistar.numberOfPeople;
-
     const trainingRegistar = await updateTrainingRegistarByIdQuery(
       trainingRegistarId,
-      updatedTrainingRegistar,
+      existingTrainingRegistar.toJSON(),
       req.tenantId!,
       transaction
     );

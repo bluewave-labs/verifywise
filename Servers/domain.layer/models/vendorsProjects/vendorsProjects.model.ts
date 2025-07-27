@@ -48,19 +48,4 @@ export class VendorsProjectsModel
     vendorProject.is_demo = is_demo;
     return vendorProject;
   }
-
-  static async updateVendorProject(
-    vendorId: number,
-    projectId: number,
-    is_demo: boolean = false
-  ): Promise<void> {
-    const vendorProject = await VendorsProjectsModel.findOne({
-      where: { vendor_id: vendorId, project_id: projectId },
-    });
-    if (!vendorProject) {
-      throw new Error("Vendor project not found");
-    }
-    vendorProject.is_demo = is_demo;
-    await vendorProject.save();
-  }
 }

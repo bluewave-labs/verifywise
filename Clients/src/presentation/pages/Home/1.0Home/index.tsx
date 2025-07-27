@@ -26,6 +26,8 @@ import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import allowedRoles from "../../../../application/constants/permissions";
+import HelperDrawer from "../../../components/Drawer/HelperDrawer";
+import dashboardHelpContent from "../../../presentation/helpers/dashboard-help.html?raw";
 
 const Home = () => {
   const {
@@ -44,6 +46,8 @@ const Home = () => {
     useState<boolean>(false);
 
   const { projects, fetchProjects } = useProjects();
+
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -131,6 +135,12 @@ const Home = () => {
 
   return (
     <Stack className="vwhome">
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={dashboardHelpContent}
+        pageTitle="VerifyWise Dashboard"
+      />
       {alertState && (
         <Alert
           variant={alertState.variant}

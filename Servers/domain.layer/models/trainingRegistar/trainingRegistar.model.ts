@@ -48,6 +48,7 @@ export class TrainingRegistarModel
 
   @Column({
     type: DataType.INTEGER,
+    field: "people",
   })
   numberOfPeople!: number;
 
@@ -331,7 +332,7 @@ export class TrainingRegistarModel
     progress: number;
     provider: string;
     department: string;
-    numberOfPeople: number;
+    people: number;
   } {
     return {
       id: this.id,
@@ -340,7 +341,7 @@ export class TrainingRegistarModel
       progress: this.getProgressPercentage(),
       provider: this.provider,
       department: this.department,
-      numberOfPeople: this.numberOfPeople,
+      people: this.numberOfPeople,
     };
   }
 
@@ -351,11 +352,11 @@ export class TrainingRegistarModel
     return {
       id: this.id,
       training_name: this.training_name,
-      duration: this.duration,
+      duration: String(this.duration || ""),
       provider: this.provider,
       department: this.department,
       status: this.status,
-      numberOfPeople: this.numberOfPeople,
+      people: this.numberOfPeople,
       description: this.description,
       progressPercentage: this.getProgressPercentage(),
     };

@@ -54,7 +54,7 @@ export const getAllTrainingRegistarQuery = async (
   );
   // Return all training registars or an empty array if none found
   return Array.isArray(trainingRegistars)
-    ? (trainingRegistars as ITrainingRegister[])
+    ? (trainingRegistars as TrainingRegistarModel[])
     : [];
 };
 
@@ -90,7 +90,7 @@ export const updateTrainingRegistarByIdQuery = async (
   transaction: Transaction
 ): Promise<TrainingRegistarModel> => {
   const updateTrainingRegistar: Partial<
-    Record<keyof TrainingRegistarModel, any>
+    Record<keyof TrainingRegistarModel, any> & { people?: number }
   > = {};
   const setClause = [
     "training_name",
@@ -98,18 +98,28 @@ export const updateTrainingRegistarByIdQuery = async (
     "provider",
     "department",
     "status",
-    "numberOfPeople",
+    "people",
     "description",
   ]
     .filter((f) => {
-      if (
+      if (f === "people") {
+        // Handle the people field mapping from numberOfPeople
+        if (
+          trainingRegistar.numberOfPeople !== undefined &&
+          trainingRegistar.numberOfPeople !== null
+        ) {
+          updateTrainingRegistar.people = trainingRegistar.numberOfPeople;
+          return true;
+        }
+      } else if (
         trainingRegistar[f as keyof TrainingRegistarModel] !== undefined &&
-        trainingRegistar[f as keyof TrainingRegistarModel]
+        trainingRegistar[f as keyof TrainingRegistarModel] !== null
       ) {
         updateTrainingRegistar[f as keyof TrainingRegistarModel] =
           trainingRegistar[f as keyof TrainingRegistarModel];
         return true;
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

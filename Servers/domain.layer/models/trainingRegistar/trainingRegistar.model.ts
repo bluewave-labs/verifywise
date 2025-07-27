@@ -109,13 +109,7 @@ export class TrainingRegistarModel
       );
     }
 
-    if (!description || description.trim().length === 0) {
-      throw new ValidationException(
-        "Description is required",
-        "description",
-        description
-      );
-    }
+    // Description is optional, so no validation needed
 
     // Validate status enum
     const validStatuses = ["Planned", "In Progress", "Completed"];
@@ -135,7 +129,7 @@ export class TrainingRegistarModel
     trainingRegister.department = department.trim();
     trainingRegister.status = status;
     trainingRegister.numberOfPeople = numberOfPeople;
-    trainingRegister.description = description.trim();
+    trainingRegister.description = description ? description.trim() : "";
 
     return trainingRegister;
   }
@@ -228,18 +222,8 @@ export class TrainingRegistarModel
       this.numberOfPeople = updateData.numberOfPeople;
     }
 
-    // Validate description if provided
+    // Validate description if provided (optional field)
     if (updateData.description !== undefined) {
-      if (
-        !updateData.description ||
-        updateData.description.trim().length === 0
-      ) {
-        throw new ValidationException(
-          "Description is required",
-          "description",
-          updateData.description
-        );
-      }
       this.description = updateData.description.trim();
     }
   }
@@ -288,13 +272,7 @@ export class TrainingRegistarModel
       );
     }
 
-    if (!this.description || this.description.trim().length === 0) {
-      throw new ValidationException(
-        "Description is required",
-        "description",
-        this.description
-      );
-    }
+    // Description is optional, so no validation needed
 
     const validStatuses = ["Planned", "In Progress", "Completed"];
     if (!validStatuses.includes(this.status)) {

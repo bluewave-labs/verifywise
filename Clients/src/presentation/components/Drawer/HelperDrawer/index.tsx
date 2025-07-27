@@ -47,10 +47,16 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             width: 600,
             margin: 0,
             borderRadius: 0,
+            overflowX: "hidden",
           },
         }}
       >
-        <Stack sx={{ width: 600 }}>
+        <Stack
+          sx={{
+            width: "100%",
+            height: "100%",
+          }}
+        >
           <Stack
             sx={{
               width: "100%",
@@ -83,7 +89,13 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             }}
           >
             {/* Help Content */}
-            <div dangerouslySetInnerHTML={{ __html: helpContent }} />
+            <div
+              dangerouslySetInnerHTML={{ __html: helpContent }}
+              style={{
+                maxWidth: "100%", 
+                wordWrap: "break-word", 
+              }}
+            />
           </Stack>
         </Stack>
       </Drawer>

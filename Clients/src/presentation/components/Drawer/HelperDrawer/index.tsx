@@ -11,7 +11,7 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import { HelperDrawerProps } from "./drawertype";
-import DOMPurify from "dompurify";  
+import DOMPurify from "dompurify";
 
 const HelperDrawer: React.FC<HelperDrawerProps> = ({
   pageTitle,
@@ -21,11 +21,14 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
 }) => {
   const theme = useTheme();
 
-   const sanitizedContent = useMemo(() => 
-    DOMPurify.sanitize(helpContent, {
-      ALLOWED_TAGS: ['div', 'h2', 'h3', 'p', 'br', 'strong'],
-      ALLOWED_ATTR: []
-    }), [helpContent]);
+  const sanitizedContent = useMemo(
+    () =>
+      DOMPurify.sanitize(helpContent, {
+        ALLOWED_TAGS: ["div", "h2", "h3", "p", "br", "strong"],
+        ALLOWED_ATTR: [],
+      }),
+    [helpContent]
+  );
 
   return (
     <>
@@ -63,13 +66,12 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
       >
         <Stack
           sx={{
-            width: "100%",
-            height: "100%",
+            width: 600,
           }}
         >
           <Stack
             sx={{
-              width: "100%",
+              width: 600,
               padding: "15px 20px",
               display: "flex",
               flexDirection: "row",
@@ -77,11 +79,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
               alignItems: "center",
             }}
           >
-            {/* Page Title */}
-            <Typography
-              component="h1"
-              sx={{ mt: 1, fontWeight: 600, fontSize: 17 }}
-            >
+            <Typography fontSize={15} fontWeight={700}>
               {pageTitle}
             </Typography>
             <IconButton onClick={onClose} size="small">
@@ -97,7 +95,6 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
               gap: "15px",
             }}
           >
-            {/* Help Content */}
             <Box
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(sanitizedContent),
@@ -115,6 +112,12 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
                   fontSize: "13px",
                   lineHeight: 1.5,
                   mb: 2,
+                },
+                "& strong": {
+                  fontSize: "13px",
+                },
+                "& div": {
+                  fontSize: "13px",
                 },
               }}
             />

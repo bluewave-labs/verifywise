@@ -43,6 +43,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   return (
     <>
       <IconButton
+        disableRipple
         onClick={() => (!isOpen ? onClose() : null)}
         aria-label="Open help information"
         size="large"
@@ -52,7 +53,6 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           top: theme.spacing(1),
           color: "#344054",
           backgroundColor: "transparent",
-          paddingBottom: theme.spacing(10),
         }}
       >
         <InfoOutlinedIcon />
@@ -92,7 +92,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             <Typography fontSize={15} fontWeight={700}>
               {pageTitle}
             </Typography>
-            <IconButton onClick={onClose} size="small">
+            <IconButton onClick={onClose} size="small" disableRipple>
               <CloseIcon />
             </IconButton>
           </Stack>

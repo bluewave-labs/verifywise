@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Drawer,
   IconButton,
@@ -6,20 +6,25 @@ import {
   Typography,
   useTheme,
   Divider,
-  Box,
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import { HelperDrawerProps } from "./drawertype";
+import DOMPurify from "dompurify";  
 
 const HelperDrawer: React.FC<HelperDrawerProps> = ({
   pageTitle,
-  overview,
-  sections,
+  helpContent,
   isOpen,
   onClose,
 }) => {
   const theme = useTheme();
+
+   const sanitizedContent = useMemo(() => 
+    DOMPurify.sanitize(helpContent, {
+      ALLOWED_TAGS: ['div', 'h2', 'h3', 'p', 'br', 'strong'],
+      ALLOWED_ATTR: []
+    }), [helpContent]);
 
   return (
     <>
@@ -49,10 +54,16 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             width: 600,
             margin: 0,
             borderRadius: 0,
+            overflowX: "hidden",
           },
         }}
       >
-        <Stack sx={{ width: 600 }}>
+        <Stack
+          sx={{
+            width: "100%",
+            height: "100%",
+          }}
+        >
           <Stack
             sx={{
               width: "100%",
@@ -84,43 +95,16 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
               gap: "15px",
             }}
           >
-            {/* Overview Section */}
-            <Stack
-              sx={{
-                border: `1px solid #eee`,
-                padding: "10px",
-                backgroundColor: "#f8f9fa",
-                borderRadius: "4px",
+            {/* Help Content */}
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(sanitizedContent),
               }}
-            >
-              <Typography fontSize={13}>{overview}</Typography>
-            </Stack>
-
-            {/* Help Sections */}
-            <Stack spacing={3}>
-              {sections.map((section, index) => (
-                <Box key={index}>
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      marginBottom: "5px",
-                    }}
-                  >
-                    {section.title}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      color: "text.secondary",
-                      whiteSpace: "pre-line",
-                    }}
-                  >
-                    {section.content}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
+              style={{
+                maxWidth: "100%",
+                wordWrap: "break-word",
+              }}
+            />
           </Stack>
         </Stack>
       </Drawer>

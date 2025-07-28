@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Drawer,
   IconButton,
@@ -19,6 +19,12 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   onClose,
 }) => {
   const theme = useTheme();
+
+   const sanitizedContent = useMemo(() => 
+    DOMPurify.sanitize(helpContent, {
+      ALLOWED_TAGS: ['div', 'h2', 'h3', 'p', 'br', 'strong'],
+      ALLOWED_ATTR: []
+    }), [helpContent]);
 
   return (
     <>
@@ -92,7 +98,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             {/* Help Content */}
             <div
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(helpContent),
+                __html: DOMPurify.sanitize(sanitizedContent),
               }}
               style={{
                 maxWidth: "100%",

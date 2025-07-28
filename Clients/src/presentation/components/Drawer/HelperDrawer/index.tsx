@@ -6,6 +6,7 @@ import {
   Typography,
   useTheme,
   Divider,
+  Box,
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
@@ -31,12 +32,14 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
       <IconButton
         onClick={() => (!isOpen ? onClose() : null)}
         aria-label="Open help information"
-        color="primary"
         size="large"
         sx={{
           position: "absolute",
-          right: theme.spacing(2),
-          top: theme.spacing(2),
+          right: theme.spacing(1),
+          top: theme.spacing(1),
+          color: "#344054",
+          backgroundColor: "transparent",
+          paddingBottom: theme.spacing(10),
         }}
       >
         <InfoOutlinedIcon />
@@ -76,9 +79,8 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           >
             {/* Page Title */}
             <Typography
-              variant="h5"
               component="h1"
-              sx={{ mt: 1, fontWeight: 600 }}
+              sx={{ mt: 1, fontWeight: 600, fontSize: 17 }}
             >
               {pageTitle}
             </Typography>
@@ -96,13 +98,24 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             }}
           >
             {/* Help Content */}
-            <div
+            <Box
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(sanitizedContent),
               }}
-              style={{
+              sx={{
                 maxWidth: "100%",
                 wordWrap: "break-word",
+                "& h3": {
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  mt: 2,
+                  mb: 1,
+                },
+                "& p": {
+                  fontSize: "13px",
+                  lineHeight: 1.5,
+                  mb: 2,
+                },
               }}
             />
           </Stack>

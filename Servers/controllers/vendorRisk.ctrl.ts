@@ -9,7 +9,7 @@ import {
   getVendorRisksByProjectIdQuery,
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.utils";
-import { VendorRisk } from "../domain.layer/models/vendorRisk/vendorRisk.model";
+import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { logProcessing, logSuccess, logFailure } from '../utils/logger/logHelper';
 
 export async function getAllVendorRisksAllProjects(
@@ -141,10 +141,11 @@ export async function createVendorRisk(
   });
 
   try {
-    const newVendorRisk: VendorRisk = req.body;
+    const newVendorRisk: VendorRiskModel = req.body;
+    const vendorRiskModel = await VendorRiskModel.createNewVendorRisk(newVendorRisk);
 
     const createdVendorRisk = await createNewVendorRiskQuery(
-      newVendorRisk,
+      vendorRiskModel,
       req.tenantId!,
       transaction
     );
@@ -186,6 +187,7 @@ export async function updateVendorRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const vendorRiskId = parseInt(req.params.id);
+  const updatedVendorRisk = req.body;
   logProcessing({
     description: `starting updateVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'updateVendorRiskById',
@@ -193,11 +195,12 @@ export async function updateVendorRiskById(
   });
 
   try {
-    const updatedVendorRisk: VendorRisk = req.body;
+    const vendorRiskModel = new VendorRiskModel();
+    await vendorRiskModel.updateVendorRisk(updatedVendorRisk);
 
     const vendorRisk = await updateVendorRiskByIdQuery(
       vendorRiskId,
-      updatedVendorRisk,
+      vendorRiskModel,
       req.tenantId!,
       transaction
     );

@@ -1,5 +1,6 @@
 'use strict';
 const { getTenantHash } = require("../../dist/tools/getTenantHash");
+const logger = require("../../dist/utils/logger");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -33,8 +34,8 @@ module.exports = {
             { transaction }
           );
         } catch (error) {
-          // Continue if column doesn't exist in this tenant
-          console.log(`Column risk_status not found in ${tenantHash}.vendors, skipping...`);
+          logger.error(`Error removing risk_status column from ${tenantHash}.vendors: ${error}`);
+          throw error;
         }
       }
       
@@ -68,7 +69,7 @@ module.exports = {
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
         await queryInterface.sequelize.query(
-          `ALTER TABLE "${tenantHash}".vendors ADD COLUMN risk_status VARCHAR(50);`,
+          `ALTER TABLE "${tenantHash}".vendors ADD COLUMN risk_status VARCHAR(50) CHECK (risk_status IN ('Very high risk', 'High risk', 'Medium risk', 'Low risk', 'Very low risk'));`,
           { transaction }
         );
       }

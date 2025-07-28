@@ -14,7 +14,6 @@ export interface IVendor {
     | "Reviewed"
     | "Requires follow-up"; // won't get any values, will be filled by user
   reviewer: number; // won't get any values, will be filled by user
-
   review_date: Date; // won't get any values, will be filled by user
   created_at?: Date;
 }

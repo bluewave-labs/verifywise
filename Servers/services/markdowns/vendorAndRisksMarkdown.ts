@@ -54,7 +54,7 @@ export async function getVendorReportData(
               } | ${vendor.review_status} | ${vendor.review_date.toLocaleDateString()} |`;
             })
           ).then((rows) => rows.join("\n"))
-        : "| - | - | - | - | - |";
+        : "| - | - | - | - |";
   } catch (error) {
     throw new Error(`Error while fetching the vendor report data`);  
   }
@@ -63,7 +63,7 @@ export async function getVendorReportData(
 Vendor table
 -------------
   | Vendor Name | Assignee | Review Status | Review Date |
-|----|----|----|----|----|
+|----|----|----|----|
 ${vendorRows}
 `;
 }

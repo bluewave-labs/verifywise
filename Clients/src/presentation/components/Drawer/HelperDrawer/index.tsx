@@ -24,7 +24,17 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   const sanitizedContent = useMemo(
     () =>
       DOMPurify.sanitize(helpContent, {
-        ALLOWED_TAGS: ["div", "h2", "h3", "p", "br", "strong"],
+        ALLOWED_TAGS: [
+          "div",
+          "h2",
+          "h3",
+          "p",
+          "br",
+          "strong",
+          "ul",
+          "ol",
+          "li",
+        ],
         ALLOWED_ATTR: [],
       }),
     [helpContent]
@@ -105,19 +115,48 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
                 "& h3": {
                   fontSize: "15px",
                   fontWeight: 600,
-                  mt: 2,
+                  mt: 0,
                   mb: 1,
+                  color: "#344054",
                 },
                 "& p": {
                   fontSize: "13px",
                   lineHeight: 1.5,
                   mb: 2,
+                  color: "#344054",
+                  mt: 0,
                 },
                 "& strong": {
                   fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#344054",
                 },
                 "& div": {
                   fontSize: "13px",
+                  color: "#344054",
+                },
+                "& ul": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  pl: 2,
+                  mb: 2,
+                  mt: 0,
+                },
+                "& ol": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  pl: 2,
+                  mb: 2,
+                  mt: 0,
+                },
+                "& li": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  mb: 0.5,
+                  lineHeight: 1.5,
+                },
+                "& section": {
+                  mb: 2,
                 },
               }}
             />

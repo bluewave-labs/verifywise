@@ -9,10 +9,16 @@ export default defineConfig({
     svgr(),
     {
       name: "html-loader",
+      enforce: "pre",
       transform(code, id) {
         if (id.endsWith(".html")) {
+          const cleaned = code
+            .replace(/<!--[\s\S]*?-->/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+
           return {
-            code: `export default ${JSON.stringify(code)};`,
+            code: `export default ${JSON.stringify(cleaned)};`,
             map: null,
           };
         }

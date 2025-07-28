@@ -51,7 +51,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           position: "absolute",
           right: theme.spacing(1),
           top: theme.spacing(1),
-          color: "#344054",
+          color: "#667085",
           backgroundColor: "transparent",
         }}
       >

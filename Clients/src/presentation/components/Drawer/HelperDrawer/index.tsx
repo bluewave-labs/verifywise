@@ -11,7 +11,7 @@ import {
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import { HelperDrawerProps } from "./drawertype";
-import DOMPurify from "dompurify";  
+import DOMPurify from "dompurify";
 
 const HelperDrawer: React.FC<HelperDrawerProps> = ({
   pageTitle,
@@ -21,15 +21,29 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
 }) => {
   const theme = useTheme();
 
-   const sanitizedContent = useMemo(() => 
-    DOMPurify.sanitize(helpContent, {
-      ALLOWED_TAGS: ['div', 'h2', 'h3', 'p', 'br', 'strong'],
-      ALLOWED_ATTR: []
-    }), [helpContent]);
+  const sanitizedContent = useMemo(
+    () =>
+      DOMPurify.sanitize(helpContent, {
+        ALLOWED_TAGS: [
+          "div",
+          "h2",
+          "h3",
+          "p",
+          "br",
+          "strong",
+          "ul",
+          "ol",
+          "li",
+        ],
+        ALLOWED_ATTR: [],
+      }),
+    [helpContent]
+  );
 
   return (
     <>
       <IconButton
+        disableRipple
         onClick={() => (!isOpen ? onClose() : null)}
         aria-label="Open help information"
         size="large"
@@ -37,9 +51,8 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           position: "absolute",
           right: theme.spacing(1),
           top: theme.spacing(1),
-          color: "#344054",
+          color: "#667085",
           backgroundColor: "transparent",
-          paddingBottom: theme.spacing(10),
         }}
       >
         <InfoOutlinedIcon />
@@ -63,13 +76,12 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
       >
         <Stack
           sx={{
-            width: "100%",
-            height: "100%",
+            width: 600,
           }}
         >
           <Stack
             sx={{
-              width: "100%",
+              width: 600,
               padding: "15px 20px",
               display: "flex",
               flexDirection: "row",
@@ -77,14 +89,10 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
               alignItems: "center",
             }}
           >
-            {/* Page Title */}
-            <Typography
-              component="h1"
-              sx={{ mt: 1, fontWeight: 600, fontSize: 17 }}
-            >
+            <Typography fontSize={15} fontWeight={700}>
               {pageTitle}
             </Typography>
-            <IconButton onClick={onClose} size="small">
+            <IconButton onClick={onClose} size="small" disableRipple>
               <CloseIcon />
             </IconButton>
           </Stack>
@@ -94,10 +102,9 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           <Stack
             sx={{
               padding: "15px 20px",
-              gap: "15px",
+              gap: "20px",
             }}
           >
-            {/* Help Content */}
             <Box
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(sanitizedContent),
@@ -108,13 +115,76 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
                 "& h3": {
                   fontSize: "15px",
                   fontWeight: 600,
-                  mt: 2,
-                  mb: 1,
+                  mt: 4,
+                  mb: 2,
+                  color: "#344054",
                 },
                 "& p": {
                   fontSize: "13px",
                   lineHeight: 1.5,
                   mb: 2,
+                  color: "#344054",
+                  mt: 0,
+                },
+                "& strong": {
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#344054",
+                },
+                "& div": {
+                  fontSize: "13px",
+                  color: "#344054",
+                },
+                "& ul": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  pl: 10,
+                  mb: 2,
+                  mt: 0,
+                },
+                "& ol": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  pl: 10,
+                  mb: 2,
+                  mt: 0,
+                },
+                "& li": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  mb: 1,
+                  lineHeight: 1.5,
+                },
+                "& section": {
+                  mb: 6,
+                  "&:last-child": {
+                    mb: 0,
+                  },
+                },
+                "& section > h3": {
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  mb: 2,
+                  mt: 10,
+                  color: "#344054",
+                },
+                "& section > p": {
+                  fontSize: "13px",
+                  lineHeight: 1.5,
+                  mb: 2,
+                  color: "#344054",
+                },
+                "& section > ul, & section > ol": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  pl: 10,
+                  mb: 2,
+                },
+                "& section > li": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  mb: 1,
+                  lineHeight: 1.5,
                 },
               }}
             />

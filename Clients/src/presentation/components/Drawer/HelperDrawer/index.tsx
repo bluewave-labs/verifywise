@@ -102,7 +102,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           <Stack
             sx={{
               padding: "15px 20px",
-              gap: "15px",
+              gap: "20px",
             }}
           >
             <Box
@@ -115,8 +115,8 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
                 "& h3": {
                   fontSize: "15px",
                   fontWeight: 600,
-                  mt: 0,
-                  mb: 1,
+                  mt: 4,
+                  mb: 2,
                   color: "#344054",
                 },
                 "& p": {
@@ -138,25 +138,53 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
                 "& ul": {
                   fontSize: "13px",
                   color: "#344054",
-                  pl: 2,
+                  pl: 10,
                   mb: 2,
                   mt: 0,
                 },
                 "& ol": {
                   fontSize: "13px",
                   color: "#344054",
-                  pl: 2,
+                  pl: 10,
                   mb: 2,
                   mt: 0,
                 },
                 "& li": {
                   fontSize: "13px",
                   color: "#344054",
-                  mb: 0.5,
+                  mb: 1,
                   lineHeight: 1.5,
                 },
                 "& section": {
+                  mb: 6,
+                  "&:last-child": {
+                    mb: 0,
+                  },
+                },
+                "& section > h3": {
+                  fontSize: "15px",
+                  fontWeight: 600,
                   mb: 2,
+                  mt: 10,
+                  color: "#344054",
+                },
+                "& section > p": {
+                  fontSize: "13px",
+                  lineHeight: 1.5,
+                  mb: 2,
+                  color: "#344054",
+                },
+                "& section > ul, & section > ol": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  pl: 10,
+                  mb: 2,
+                },
+                "& section > li": {
+                  fontSize: "13px",
+                  color: "#344054",
+                  mb: 1,
+                  lineHeight: 1.5,
                 },
               }}
             />

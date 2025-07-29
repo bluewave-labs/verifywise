@@ -35,6 +35,9 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import Uppy from "@uppy/core";
 import allowedRoles from "../../../../application/constants/permissions";
+const AuditRiskPopup = lazy(
+  () => import("../../RiskPopup/AuditRiskPopup")
+);
 const LinkedRisksPopup = lazy(
   () => import("../../LinkedRisks")
 );
@@ -84,6 +87,9 @@ const VWISO42001AnnexDrawerDialog = ({
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
+  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
+  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
 
   // Get context and project data
   const { users, userId, userRoleName } = useContext(VerifyWiseContext);
@@ -105,6 +111,7 @@ const VWISO42001AnnexDrawerDialog = ({
     reviewer: "",
     approver: "",
     auditor_feedback: "",
+    risks: [] as number[]
   });
 
   // Filter users to only show project members
@@ -202,6 +209,7 @@ const VWISO42001AnnexDrawerDialog = ({
               reviewer: response.data.reviewer?.toString() || "",
               approver: response.data.approver?.toString() || "",
               auditor_feedback: response.data.auditor_feedback || "",
+              risks: response.data.risks || [],
             });
             // Set the date if it exists in the fetched data
             if (response.data.due_date) {
@@ -232,7 +240,15 @@ const VWISO42001AnnexDrawerDialog = ({
   };
 
   const handleSelectChange = (field: string) => (event: any) => {
-    handleFieldChange(field, event.target.value.toString());
+    const value = event.target.value.toString();
+    if (field === "status" && value === "Audited"
+        && (selectedRisks.length > 0 || formData.risks.length > 0 || (
+          formData.risks.length > 0 && deletedRisks.length === formData.risks.length
+        ))
+      ) {
+      setAuditedStatusModalOpen(true)
+    }
+    handleFieldChange(field, value);
   };
 
   // Setup Uppy instance
@@ -261,6 +277,8 @@ const VWISO42001AnnexDrawerDialog = ({
       formDataToSend.append("user_id", userId?.toString() || "");
       formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
+      formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
+      formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
       uploadFiles.forEach((file) => {
         if (file.data instanceof Blob) {
           const fileToUpload =
@@ -610,21 +628,101 @@ const VWISO42001AnnexDrawerDialog = ({
             >
               Add/Remove risks
             </Button>
+            <Stack direction="row" spacing={10}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${formData.risks.length || 0} risks linked`}
+              </Typography>
+              {selectedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${selectedRisks.length} ${
+                    selectedRisks.length === 1 ? "risk" : "risks"
+                  } pending upload`}
+                </Typography>
+              )}
+              {deletedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${deletedRisks.length} ${
+                    deletedRisks.length === 1 ? "risk" : "risks"
+                  } pending delete`}
+                </Typography>
+              )}
+            </Stack>
           </Stack>
+
+          <Dialog 
+            open={auditedStatusModalOpen} 
+            onClose={() => setAuditedStatusModalOpen(false)}
+            PaperProps={{
+              sx: {
+                width: '800px',
+                maxWidth: '800px',
+                minHeight: '300px'
+              },
+            }}
+          >
+            <Suspense fallback={"loading..."}>
+              <AuditRiskPopup
+                onClose={() => setAuditedStatusModalOpen(false)}
+                risks={formData.risks.concat(selectedRisks)}
+                _deletedRisks={deletedRisks}
+                _setDeletedRisks={setDeletedRisks}
+                _selectedRisks={selectedRisks}
+                _setSelectedRisks={setSelectedRisks}
+              />
+            </Suspense>
+          </Dialog>
 
           <Dialog 
             open={isLinkedRisksModalOpen} 
             onClose={() => setIsLinkedRisksModalOpen(false)}
             PaperProps={{
               sx: {
-                width: '1100px',
-                maxWidth: '1100px',
+                width: '1500px',
+                maxWidth: '1500px',
                 minHeight: '520px'
               },
             }}
           >
             <Suspense fallback={"loading..."}>
-              <LinkedRisksPopup onClose={() => setIsLinkedRisksModalOpen(false)} />
+              <LinkedRisksPopup
+                onClose={() => setIsLinkedRisksModalOpen(false)}
+                currentRisks={formData.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+                setSelectecRisks={setSelectedRisks}
+                _setDeletedRisks={setDeletedRisks}
+              />
             </Suspense>
           </Dialog>
           

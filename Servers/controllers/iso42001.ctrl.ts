@@ -239,9 +239,11 @@ export async function saveClauses(
   try {
     const subClauseId = parseInt(req.params.id);
     const subClause = req.body as SubClauseISO & {
-      user_id: number;
-      project_id: number;
+      user_id: string;
+      project_id: string;
       delete: string;
+      risksDelete: string;
+      risksMitigated: string;
     };
 
     const filesToDelete = JSON.parse(subClause.delete || "[]") as number[];
@@ -249,8 +251,8 @@ export async function saveClauses(
 
     let uploadedFiles = await uploadFiles(
       req.files! as UploadedFile[],
-      subClause.user_id,
-      subClause.project_id,
+      parseInt(subClause.user_id),
+      parseInt(subClause.project_id),
       "Management system clauses group",
       req.tenantId!,
       transaction
@@ -284,8 +286,8 @@ export async function saveAnnexes(
   try {
     const annexCategoryId = parseInt(req.params.id);
     const annexCategory = req.body as AnnexCategoryISO & {
-      user_id: number;
-      project_id: number;
+      user_id: string;
+      project_id: string;
       delete: string;
       risksDelete: string;
       risksMitigated: string;
@@ -296,8 +298,8 @@ export async function saveAnnexes(
 
     let uploadedFiles = await uploadFiles(
       req.files! as UploadedFile[],
-      annexCategory.user_id,
-      annexCategory.project_id,
+      parseInt(annexCategory.user_id),
+      parseInt(annexCategory.project_id),
       "Reference controls group",
       req.tenantId!,
       transaction

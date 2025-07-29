@@ -1,6 +1,6 @@
-import { Question } from "./question.model";
+import { IQuestion } from "../../interfaces/I.question";
 
-export const questions = (subTopics: number[]): Question[] => {
+export const questions = (subTopics: number[]): IQuestion[] => {
   return [
     {
       order_no: 1,

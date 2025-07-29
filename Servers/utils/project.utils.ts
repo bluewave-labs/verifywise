@@ -22,15 +22,15 @@ export const getUserProjects = async ({
   userId,
   role,
   transaction,
-}: GetUserProjectsOptions) => {
-  const baseQueryParts: string[] = ["SELECT DISTINCT p.*", "FROM projects p"];
+}: GetUserProjectsOptions, tenant: string) => {
+  const baseQueryParts: string[] = [`SELECT DISTINCT p.*`, `FROM "${tenant}".projects p`];
 
   const whereConditions: string[] = [];
   const replacements: { [key: string]: any } = {};
 
   if (role !== "Admin") {
     baseQueryParts.push(
-      "LEFT JOIN projects_members pm ON pm.project_id = p.id"
+      `LEFT JOIN "${tenant}".projects_members pm ON pm.project_id = p.id`
     );
     whereConditions.push("(p.owner = :userId OR pm.user_id = :userId)");
     replacements.userId = userId;
@@ -59,12 +59,12 @@ export const getAllProjectsQuery = async ({
 }: {
   userId: number;
   role: IRoleAttributes["name"];
-}): Promise<IProjectAttributes[]> => {
+}, tenant: string): Promise<IProjectAttributes[]> => {
   if (!userId || !role) {
     throw new Error("User ID and role are required to fetch projects.");
   }
 
-  const projects = await getUserProjects({ userId, role });
+  const projects = await getUserProjects({ userId, role }, tenant);
 
   if (!projects || projects.length === 0) return [];
 
@@ -74,23 +74,23 @@ export const getAllProjectsQuery = async ({
         SELECT 
           pf.id AS project_framework_id, pf.framework_id,
           f.name AS name
-        FROM projects_frameworks pf
-        JOIN frameworks f ON pf.framework_id = f.id
+        FROM "${tenant}".projects_frameworks pf
+        JOIN public.frameworks f ON pf.framework_id = f.id
         WHERE project_id = :project_id`,
       {
         replacements: { project_id: project.id },
       }
     )) as [
-      { project_framework_id: number; framework_id: number; name: string }[],
-      number
-    ];
+        { project_framework_id: number; framework_id: number; name: string }[],
+        number
+      ];
     (project.dataValues as any)["framework"] = [];
     for (let pf of projectFramework[0]) {
       (project.dataValues as any)["framework"].push(pf);
     }
 
     const members = await sequelize.query(
-      "SELECT user_id FROM projects_members WHERE project_id = :project_id",
+      `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
       {
         replacements: { project_id: project.id },
         mapToModel: true,
@@ -104,10 +104,11 @@ export const getAllProjectsQuery = async ({
 };
 
 export const getProjectByIdQuery = async (
-  id: number
+  id: number,
+  tenant: string
 ): Promise<IProjectAttributes | null> => {
   const result = await sequelize.query(
-    "SELECT * FROM projects WHERE id = :id",
+    `SELECT * FROM "${tenant}".projects WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -121,23 +122,23 @@ export const getProjectByIdQuery = async (
       SELECT 
         pf.id AS project_framework_id, pf.framework_id,
         f.name AS name
-      FROM projects_frameworks pf
-      JOIN frameworks f ON pf.framework_id = f.id
+      FROM "${tenant}".projects_frameworks pf
+      JOIN public.frameworks f ON pf.framework_id = f.id
       WHERE project_id = :project_id`,
     {
       replacements: { project_id: project.id },
     }
   )) as [
-    { project_framework_id: number; framework_id: number; name: string }[],
-    number
-  ];
+      { project_framework_id: number; framework_id: number; name: string }[],
+      number
+    ];
   (project.dataValues as any)["framework"] = [];
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf);
   }
 
   const members = await sequelize.query(
-    "SELECT user_id FROM projects_members WHERE project_id = :project_id",
+    `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
     {
       replacements: { project_id: project.id },
       mapToModel: true,
@@ -150,15 +151,16 @@ export const getProjectByIdQuery = async (
 };
 
 export const countSubControlsByProjectId = async (
-  project_id: number
+  project_id: number,
+  tenant: string
 ): Promise<{
   totalSubcontrols: string;
   doneSubcontrols: string;
 }> => {
   const result = await sequelize.query(
     `SELECT COUNT(*) AS "totalSubcontrols", COUNT(CASE WHEN sc.status = 'Done' THEN 1 END) AS "doneSubcontrols" FROM
-      controlcategories cc JOIN controls c ON cc.id = c.control_category_id
-        JOIN subcontrols sc ON c.id = sc.control_id WHERE cc.project_id = :project_id`,
+      "${tenant}".controlcategories cc JOIN "${tenant}".controls c ON cc.id = c.control_category_id
+        JOIN "${tenant}".subcontrols sc ON c.id = sc.control_id WHERE cc.project_id = :project_id`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
@@ -171,16 +173,17 @@ export const countSubControlsByProjectId = async (
 };
 
 export const countAnswersByProjectId = async (
-  project_id: number
+  project_id: number,
+  tenant: string
 ): Promise<{
   totalAssessments: string;
   answeredAssessments: string;
 }> => {
   const result = await sequelize.query(
     `SELECT COUNT(*) AS "totalAssessments", COUNT(CASE WHEN q.status = 'Done' THEN 1 END) AS "answeredAssessments" FROM
-      assessments a JOIN topics t ON a.id = t.assessment_id
-        JOIN subtopics st ON t.id = st.topic_id
-          JOIN questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,
+      "${tenant}".assessments a JOIN "${tenant}".topics t ON a.id = t.assessment_id
+        JOIN "${tenant}".subtopics st ON t.id = st.topic_id
+          JOIN "${tenant}".questions q ON st.id = q.subtopic_id WHERE a.project_id = :project_id`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
@@ -196,11 +199,12 @@ export const createNewProjectQuery = async (
   project: Partial<ProjectModel>,
   members: number[],
   frameworks: number[],
+  tenant: string,
   transaction: Transaction,
   isDemo: boolean = false
 ): Promise<ProjectModel> => {
   const result = await sequelize.query(
-    `INSERT INTO projects (
+    `INSERT INTO "${tenant}".projects (
       project_title, owner, start_date, ai_risk_classification, 
       type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo
     ) VALUES (
@@ -229,7 +233,7 @@ export const createNewProjectQuery = async (
   (createdProject.dataValues as any)["members"] = [];
   for (let member of members) {
     await sequelize.query(
-      `INSERT INTO projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
+      `INSERT INTO "${tenant}".projects_members (project_id, user_id, is_demo) VALUES (:project_id, :user_id, :is_demo) RETURNING *`,
       {
         replacements: {
           project_id: createdProject.id,
@@ -247,7 +251,7 @@ export const createNewProjectQuery = async (
   (createdProject.dataValues as any)["framework"] = [];
   for (let framework of frameworks) {
     await sequelize.query(
-      `INSERT INTO projects_frameworks (project_id, framework_id, is_demo) VALUES (:project_id, :framework_id, :is_demo) RETURNING *`,
+      `INSERT INTO "${tenant}".projects_frameworks (project_id, framework_id, is_demo) VALUES (:project_id, :framework_id, :is_demo) RETURNING *`,
       {
         replacements: {
           project_id: createdProject.id,
@@ -273,27 +277,28 @@ export const updateProjectUpdatedByIdQuery = async (
     | "vendors"
     | "subclauses"
     | "annexcategories",
+  tenant: string,
   transaction: Transaction
 ): Promise<void> => {
   const queryMap = {
-    controls: `SELECT pf.project_id as id FROM controls_eu c JOIN projects_frameworks pf ON pf.id = c.projects_frameworks_id WHERE c.id = :id;`,
-    answers: `SELECT pf.project_id as id FROM assessments a JOIN answers_eu ans ON ans.assessment_id = a.id JOIN projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE ans.id = :id;`,
+    controls: `SELECT pf.project_id as id FROM "${tenant}".controls_eu c JOIN "${tenant}".projects_frameworks pf ON pf.id = c.projects_frameworks_id WHERE c.id = :id;`,
+    answers: `SELECT pf.project_id as id FROM "${tenant}".assessments a JOIN "${tenant}".answers_eu ans ON ans.assessment_id = a.id JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE ans.id = :id;`,
     projectrisks: `SELECT p.id FROM
-      projects p JOIN projectrisks pr ON p.id = pr.project_id
+      "${tenant}".projects p JOIN "${tenant}".projectrisks pr ON p.id = pr.project_id
         WHERE pr.id = :id;`,
-    vendors: `SELECT project_id as id FROM vendors_projects WHERE vendor_id = :id;`,
-    subclauses: `SELECT pf.project_id as id FROM subclauses_iso sc JOIN projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
-    annexcategories: `SELECT pf.project_id as id FROM annexcategories_iso a JOIN projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`,
+    vendors: `SELECT project_id as id FROM "${tenant}".vendors_projects WHERE vendor_id = :id;`,
+    subclauses: `SELECT pf.project_id as id FROM "${tenant}".subclauses_iso sc JOIN "${tenant}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    annexcategories: `SELECT pf.project_id as id FROM "${tenant}".annexcategories_iso a JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`,
   };
   const query = queryMap[byTable];
   const result = (await sequelize.query(query, {
     replacements: { id },
     transaction,
   })) as [{ id: number }[], number];
-  if (result.length > 0) {
+  if (result[0].length > 0) {
     const projectIds = result[0].map(({ id }) => id);
     await sequelize.query(
-      `UPDATE projects SET last_updated = :last_updated WHERE id IN (:project_ids);`,
+      `UPDATE "${tenant}".projects SET last_updated = :last_updated WHERE id IN (:project_ids);`,
       {
         replacements: {
           last_updated: new Date(),
@@ -309,10 +314,11 @@ export const updateProjectByIdQuery = async (
   id: number,
   project: Partial<ProjectModel>,
   members: number[],
+  tenant: string,
   transaction: Transaction
 ): Promise<(IProjectAttributes & { members: number[] }) | null> => {
   const _currentMembers = await sequelize.query(
-    `SELECT user_id FROM projects_members WHERE project_id = :project_id`,
+    `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
     {
       replacements: { project_id: id },
       mapToModel: true,
@@ -326,7 +332,7 @@ export const updateProjectByIdQuery = async (
 
   for (let member of deletedMembers) {
     await sequelize.query(
-      `DELETE FROM projects_members WHERE user_id = :user_id AND project_id = :project_id`,
+      `DELETE FROM "${tenant}".projects_members WHERE user_id = :user_id AND project_id = :project_id`,
       {
         replacements: { user_id: member, project_id: id },
         mapToModel: true,
@@ -339,7 +345,7 @@ export const updateProjectByIdQuery = async (
 
   for (let member of newMembers) {
     await sequelize.query(
-      `INSERT INTO projects_members (project_id, user_id) VALUES (:project_id, :user_id);`,
+      `INSERT INTO "${tenant}".projects_members (project_id, user_id) VALUES (:project_id, :user_id);`,
       {
         replacements: { user_id: member, project_id: id },
         mapToModel: true,
@@ -374,7 +380,7 @@ export const updateProjectByIdQuery = async (
     .map((f) => `${f} = :${f}`)
     .join(", ");
 
-  const query = `UPDATE projects SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE "${tenant}".projects SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateProject.id = id;
 
@@ -387,7 +393,7 @@ export const updateProjectByIdQuery = async (
   });
 
   const updatedMembers = await sequelize.query(
-    `SELECT user_id FROM projects_members WHERE project_id = :project_id`,
+    `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
     {
       replacements: { project_id: id },
       mapToModel: true,
@@ -397,9 +403,9 @@ export const updateProjectByIdQuery = async (
   );
   return result.length
     ? {
-        ...result[0].dataValues,
-        members: updatedMembers.map((m) => m.user_id),
-      }
+      ...result[0].dataValues,
+      members: updatedMembers.map((m) => m.user_id),
+    }
     : null;
 };
 
@@ -407,7 +413,7 @@ const deleteTable = async (
   entity: string,
   foreignKey: string,
   id: number,
-  // model: Object
+  tenant: string,
   transaction: Transaction
 ) => {
   let tableToDelete = entity;
@@ -416,7 +422,7 @@ const deleteTable = async (
     // model = VendorsProjectsModel
   }
   await sequelize.query(
-    `DELETE FROM ${tableToDelete} WHERE ${foreignKey} = :x;`,
+    `DELETE FROM "${tenant}".${tableToDelete} WHERE ${foreignKey} = :x;`,
     {
       replacements: { x: id },
       mapToModel: true,
@@ -430,6 +436,7 @@ const deleteTable = async (
 export const deleteHelper = async (
   childObject: Record<string, any>,
   parent_id: number,
+  tenant: string,
   transaction: Transaction
 ) => {
   const childTableName = Object.keys(childObject).filter(
@@ -442,7 +449,7 @@ export const deleteHelper = async (
   ) {
     if (childTableName === "vendors") {
       childIds = await sequelize.query(
-        `SELECT vendor_id FROM vendors_projects WHERE project_id = :project_id`,
+        `SELECT vendor_id FROM "${tenant}".vendors_projects WHERE project_id = :project_id`,
         {
           replacements: { project_id: parent_id },
           mapToModel: true,
@@ -452,7 +459,7 @@ export const deleteHelper = async (
       );
     } else {
       childIds = await sequelize.query(
-        `SELECT id FROM ${childTableName} WHERE ${childObject[childTableName].foreignKey} = :x`,
+        `SELECT id FROM "${tenant}".${childTableName} WHERE ${childObject[childTableName].foreignKey} = :x`,
         {
           replacements: { x: parent_id },
           mapToModel: true,
@@ -472,6 +479,7 @@ export const deleteHelper = async (
           await deleteHelper(
             { [k]: childObject[childTableName][k] },
             childId,
+            tenant,
             transaction
           );
         }
@@ -481,16 +489,18 @@ export const deleteHelper = async (
     childTableName,
     childObject[childTableName].foreignKey,
     parent_id,
+    tenant,
     transaction
   );
 };
 
 export const deleteProjectByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
-): Promise<Boolean> => {
+): Promise<boolean> => {
   const frameworks = await sequelize.query(
-    `SELECT framework_id FROM projects_frameworks WHERE project_id = :project_id`,
+    `SELECT framework_id FROM "${tenant}".projects_frameworks WHERE project_id = :project_id`,
     {
       replacements: { project_id: id },
       mapToModel: true,
@@ -519,7 +529,7 @@ export const deleteProjectByIdQuery = async (
     },
   ];
   for (let entity of dependantEntities) {
-    await deleteHelper(entity, id, transaction);
+    await deleteHelper(entity, id, tenant, transaction);
   }
   await Promise.all(
     frameworks.map(({ framework_id }) => {
@@ -529,12 +539,12 @@ export const deleteProjectByIdQuery = async (
           `Unsupported framework_id encountered: ${framework_id}`
         );
       }
-      return deleteFunction(id, transaction);
+      return deleteFunction(id, tenant, transaction);
     })
   );
 
   const result = await sequelize.query(
-    "DELETE FROM projects WHERE id = :id RETURNING *",
+    `DELETE FROM "${tenant}".projects WHERE id = :id RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
@@ -547,7 +557,8 @@ export const deleteProjectByIdQuery = async (
 };
 
 export const calculateProjectRisks = async (
-  project_id: number
+  project_id: number,
+  tenant: string
 ): Promise<
   {
     risk_level_autocalculated: string;
@@ -558,7 +569,7 @@ export const calculateProjectRisks = async (
     risk_level_autocalculated: string;
     count: string;
   }>(
-    "SELECT risk_level_autocalculated, count(*) AS count FROM projectrisks WHERE project_id = :project_id GROUP BY risk_level_autocalculated",
+    `SELECT risk_level_autocalculated, count(*) AS count FROM "${tenant}".projectrisks WHERE project_id = :project_id GROUP BY risk_level_autocalculated`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,
@@ -568,7 +579,8 @@ export const calculateProjectRisks = async (
 };
 
 export const calculateVendirRisks = async (
-  project_id: number
+  project_id: number,
+  tenant: string
 ): Promise<
   {
     risk_level: string;
@@ -576,7 +588,7 @@ export const calculateVendirRisks = async (
   }[]
 > => {
   const result = await sequelize.query<{ risk_level: string; count: string }>(
-    "SELECT risk_level, count(*) AS count FROM vendorrisks WHERE project_id = :project_id GROUP BY risk_level",
+    `SELECT risk_level, count(*) AS count FROM "${tenant}".vendorrisks WHERE project_id = :project_id GROUP BY risk_level`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,

@@ -8,11 +8,13 @@ import { sendEmail } from "../services/emailService";
 export const invite = async (req: Request, res: Response, body: {
   to: string;
   name: string;
+  surname?: string;
   roleId: number;
+  organizationId: number;
 }) => {
-  const { to, name, roleId } = body;
+  const { to, name, surname, roleId, organizationId } = body;
 
-  if (!to || !name || !roleId) {
+  if (!to || !name || !roleId || !organizationId) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -26,8 +28,10 @@ export const invite = async (req: Request, res: Response, body: {
 
     const token = generateToken({
       name,
+      surname,
       roleId,
       email: to,
+      organizationId
     }) as string
 
     const link = `${frontEndUrl}/user-reg?${new URLSearchParams(
@@ -48,9 +52,9 @@ export const invite = async (req: Request, res: Response, body: {
 
     if (info.error) {
       console.error("Error sending email:", info.error);
-      return res.status(500).json({
-        error: info.error.name,
-        details: info.error.message
+      return res.status(206).json({
+        error: `${info.error.name}: ${info.error.message}`,
+        message: link
       });
     } else {
       return res.status(200).json({ message: "Email sent successfully" });

@@ -29,7 +29,10 @@ import { sequelize } from "../database/db";
 import {
   ValidationException,
   BusinessLogicException,
+  ConflictException,
 } from "../domain.layer/exceptions/custom.exception";
+import { getTenantHash } from "../tools/getTenantHash";
+import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 
@@ -38,21 +41,20 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
   logger.debug('🔍 Fetching all users');
 
   try {
-    const users = (await getAllUsersQuery()) as UserModel[];
+    const users = (await getAllUsersQuery(
+      req.organizationId!
+    )) as UserModel[];
 
-    if (users && users.length > 0) {
-      await logEvent('Read', `Retrieved ${users.length} users`);
+    if (users && users.length > 0) {   
       return res
         .status(200)
         .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
-    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts');
-    await logEvent('Read', 'No users found');
+    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts'); 
     return res.status(204).json(STATUS_CODE[204](users));
   } catch (error) {
-    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');
-    await logEvent('Error', `Failed to retrieve users: ${(error as Error).message}`);
+    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');  
     logger.error('❌ Error in getAllUsers:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -69,17 +71,14 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
-      await logEvent('Read', `User retrieved by email: ${email}`);
+      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');   
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
-    await logEvent('Read', `No user found with email: ${email}`);
+    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
-    await logEvent('Error', `Failed to retrieve user by email: ${email}`);
+    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
     logger.error('❌ Error in getUserByEmail:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -94,25 +93,67 @@ async function getUserById(req: Request, res: Response) {
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
-      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
-      await logEvent('Read', `User retrieved by ID: ${id}`);
+      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');      
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
-    await logEvent('Read', `No user found with ID: ${id}`);
+    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Failed to retrieve user by ID: ${id}`);
+    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
     logger.error('❌ Error in getUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
+async function createNewUserWrapper(
+  body: {
+    name: string;
+    surname: string;
+    email: string;
+    password: string;
+    roleId: number;
+    organizationId: number;
+  },
+  transaction: Transaction
+) {
+  const { name, surname, email, password, roleId, organizationId } = body;
+
+  // Check if user already exists
+  const existingUser = await getUserByEmailQuery(email);
+  if (existingUser) {
+    throw new ConflictException("User with this email already exists",)
+  }
+
+  // Create user using the enhanced UserModel method
+  const userModel = await UserModel.createNewUser(
+    name,
+    surname,
+    email,
+    password,
+    roleId,
+    organizationId
+  );
+
+  // Validate user data before saving
+  await userModel.validateUserData();
+
+  // Check email uniqueness
+  const isEmailUnique = await UserModel.validateEmailUniqueness(email);
+  if (!isEmailUnique) {
+    throw new ConflictException("Email already exists");
+  }
+
+  const user = (await createNewUserQuery(
+    userModel,
+    transaction
+  )) as UserModel;
+  return user;
+}
+
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
-  const { name, surname, email, password, roleId } = req.body;
+  const { name, surname, email, password, roleId, organizationId } = req.body;
 
   logStructured('processing', `starting user creation for ${email}`, 'createNewUser', 'user.ctrl.ts');
   logger.debug(`🛠️ Creating user: ${email}`);
@@ -128,7 +169,8 @@ async function createNewUser(req: Request, res: Response) {
         .json(STATUS_CODE[409]('User with this email already exists'));
     }
 
-    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId);
+    // const user = await createNewUserWrapper(req.body, transaction);
+    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId, organizationId);
     await userModel.validateUserData();
 
     const isEmailUnique = await UserModel.validateEmailUniqueness(email);
@@ -154,6 +196,10 @@ async function createNewUser(req: Request, res: Response) {
     return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ConflictException) {
+      return res.status(409).json(STATUS_CODE[409](error.message));
+    }
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
@@ -206,12 +252,16 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           id: user.id,
           email: email,
           roleName: (userData as any).role_name,
+          tenantId: getTenantHash((userData as any).organization_id.toString()),
+          organizationId: (userData as any).organization_id,
         });
 
         const refreshToken = generateRefreshToken({
           id: user.id,
           email: email,
           roleName: (userData as any).role_name,
+          tenantId: getTenantHash((userData as any).organization_id.toString()),
+          organizationId: (userData as any).organization_id,
         });
 
         res.cookie('refresh_token', refreshToken, {
@@ -223,7 +273,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         });
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
-        await logEvent('Read', `User logged in: ${email}`, user.id);
+       
 
         return res.status(202).json(
           STATUS_CODE[202]({
@@ -231,18 +281,15 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           })
         );
       } else {
-        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
-        await logEvent('Error', `Password mismatch for ${email}`);
+        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');      
         return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
       }
     }
 
-    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
-    await logEvent('Error', `Login failed — user not found: ${email}`);
+    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');  
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
-    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected login error for ${email}: ${(error as Error).message}`);
+    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');   
     logger.error('❌ Error in loginUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -256,22 +303,19 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');
-      await logEvent('Error', 'Refresh token missing in request');
+      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');     
       return res.status(400).json(STATUS_CODE[400]('Refresh token is required'));
     }
 
     const decoded = getRefreshTokenPayload(refreshToken);
 
     if (!decoded) {
-      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');
-      await logEvent('Error', 'Invalid refresh token used');
+      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');    
       return res.status(401).json(STATUS_CODE[401]('Invalid refresh token'));
     }
 
     if (decoded.expire < Date.now()) {
-      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');
-      await logEvent('Error', `Expired refresh token used by ${decoded.email}`);
+      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');     
       return res.status(406).json(STATUS_CODE[406]({ message: 'Token expired' }));
     }
 
@@ -279,10 +323,11 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       id: decoded.id,
       email: decoded.email,
       roleName: decoded.roleName,
+      tenantId: decoded.tenantId,
+      organizationId: decoded.organizationId,
     });
 
-    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');
-    await logEvent('Read', `Access token refreshed for ${decoded.email}`);
+    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');   
 
     return res.status(200).json(
       STATUS_CODE[200]({
@@ -290,8 +335,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       })
     );
   } catch (error) {
-    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during token refresh: ${(error as Error).message}`);
+    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');  
     logger.error('❌ Error in refreshAccessToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -308,7 +352,7 @@ async function resetPassword(req: Request, res: Response) {
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
-    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id)
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, _user.organization_id!);
 
     if (user) {
       await user.updatePassword(newPassword);
@@ -548,8 +592,7 @@ async function calculateProgress(
       });
     }
 
-    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
-    await logEvent('Read', `Progress calculated for user ID ${id}`);
+    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
 
     return res.status(200).json({
       assessmentsMetadata,
@@ -560,8 +603,7 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
-    await logEvent('Error', `Progress calculation failed for user ID ${id}: ${(error as Error).message}`);
+    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
     logger.error('❌ Error in calculateProgress:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
@@ -690,6 +732,7 @@ export {
   getAllUsers,
   getUserByEmail,
   getUserById,
+  createNewUserWrapper,
   createNewUser,
   loginUser,
   resetPassword,

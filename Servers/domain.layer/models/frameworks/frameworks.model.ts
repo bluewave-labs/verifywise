@@ -15,7 +15,7 @@ export interface Framework {
 
 @Table({
   tableName: "frameworks",
-  timestamps: true,
+  timestamps: false,
 })
 export class FrameworkModel
   extends Model<FrameworkModel>

@@ -17,13 +17,13 @@ export interface FormValues {
   email: string;
   password: string;
   confirmPassword: string;
-  roleId?: number; // Optional role property
+  roleId?: number;  // Optional role property
+  organizationId?: number; // Optional organization property
 }
 
 // Define the shape of organization form values for multi-tenant
 export interface OrganizationFormValues {
   organizationName: string;
-  organizationEmail: string;
 }
 
 // Define the shape of form errors
@@ -164,23 +164,6 @@ export const validateOrganizationForm = (
   if (!organizationName.accepted) {
     newErrors.organizationName = organizationName.message;
   }
-
-  // Validate organization email
-  const organizationEmail = checkStringValidation(
-    "Organization email",
-    values.organizationEmail,
-    VALIDATION_RULES.EMAIL.min,
-    VALIDATION_RULES.EMAIL.max,
-    false,
-    false,
-    false,
-    false,
-    "email"
-  );
-  if (!organizationEmail.accepted) {
-    newErrors.organizationEmail = organizationEmail.message;
-  }
-
   return {
     isFormValid: Object.keys(newErrors).length === 0,
     errors: newErrors,

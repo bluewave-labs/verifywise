@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 from datasets import Dataset, load_dataset
+from sklearn.datasets import fetch_openml
 
 
 class DataLoader:
@@ -19,7 +20,7 @@ class DataLoader:
                 - name: Name of the dataset
                 - source: Source path/identifier of the dataset
                 - split: Split of the dataset to use
-                - platform: Platform to load from (e.g., 'huggingface')
+                - platform: Platform to load from (e.g., 'huggingface', 'scikit-learn')
                 - protected_attributes: List of protected attribute columns
                 - target_column: Name of the target column
                 - sampling: Optional sampling configuration
@@ -50,6 +51,14 @@ class DataLoader:
                 self.data = self.data.replace("?", "Unknown")
             else:
                 raise ValueError("Expected a Dataset object from Huggingface")
+        elif self.dataset_config.platform.lower() == "scikit-learn":
+            # Support for scikit-learn datasets
+            if self.dataset_config.source == "scikit-learn/adult-census-income":
+                data = fetch_openml("adult", version=2, as_frame=True)
+                df = data.frame
+                self.data = df
+            else:
+                raise ValueError(f"Unknown scikit-learn dataset: {self.dataset_config.source}")
         else:
             raise ValueError(f"Unsupported platform: {self.dataset_config.platform}")
 

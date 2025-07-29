@@ -4,7 +4,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 
 export async function postAutoDriver(req: Request, res: Response) {
   try {
-    await insertMockData(req.userId!)
+    await insertMockData(req.tenantId!, req.organizationId!, req.userId!);
     res.status(201).json(STATUS_CODE[201]("Mock data inserted"))
   } catch(error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -13,7 +13,7 @@ export async function postAutoDriver(req: Request, res: Response) {
 
 export async function deleteAutoDriver(req: Request, res: Response) {
   try {
-    await deleteMockData()
+    await deleteMockData(req.tenantId!)
     res.status(200).json(STATUS_CODE[200]("Mock data deleted"))
   } catch(error) {
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

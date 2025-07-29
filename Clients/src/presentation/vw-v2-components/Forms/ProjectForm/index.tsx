@@ -52,7 +52,6 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
   const { users } = useUsers();
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [memberRequired, setMemberRequired] = useState<boolean>(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
@@ -108,11 +107,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           ...prevValues,
           [prop]: newValue,
         }));
-        if (prop === "members") {
-          setMemberRequired(newValue.length === 0);
-        } else {
-          setFrameworkRequired(newValue.length === 0);
-        }
+        if (prop !== "members") setFrameworkRequired(newValue.length === 0);
       },
     []
   );
@@ -170,10 +165,6 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
     );
     if (!typeOfHighRiskRole.accepted) {
       newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
-    }
-    if (values.members.length === 0) {
-      newErrors.members = "At least one team member is required.";
-      setMemberRequired(true);
     }
 
     if (values.monitored_regulations_and_standards.length === 0) {
@@ -361,7 +352,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                   mb: 2,
                 }}
               >
-                Team members *
+                Team members
               </Typography>
               <Autocomplete
                 multiple
@@ -435,14 +426,6 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                 }}
                 slotProps={teamMembersSlotProps}
               />
-              {memberRequired && (
-                <Typography
-                  variant="caption"
-                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
-                >
-                  {errors.members}
-                </Typography>
-              )}
             </Stack>
             <Stack>
               <Typography

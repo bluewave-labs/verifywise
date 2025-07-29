@@ -73,6 +73,7 @@ const RegisterUser: React.FC = () => {
       firstname: values.name || "",
       lastname: values.surname || "",
       roleId: Number(values.roleId) || 1,
+      organizationId: Number(values.organizationId),
     };
     const { isFormValid, errors } = validateForm(values);
     if (!isFormValid) {
@@ -106,7 +107,7 @@ const RegisterUser: React.FC = () => {
         handleAlert({
           variant: "error",
           body:
-            isSuccess === 409 ? "User already exist." : "Registration failed.",
+            isSuccess === 409 ? "This user already exists." : "Registration failed.",
           setAlert,
         });
       }
@@ -143,8 +144,10 @@ const RegisterUser: React.FC = () => {
           const userData: FormValues = {
             ...initialState,
             name: userInfo.name ?? "",
+            surname: userInfo.surname ?? "",
             email: userInfo.email ?? "",
             roleId: Number(userInfo.roleId) ?? 1,
+            organizationId: Number(userInfo.organizationId),
           };
           setValues(userData);
         }
@@ -306,7 +309,7 @@ const RegisterUser: React.FC = () => {
               type="submit"
               disableRipple
               variant="contained"
-              sx={singleTheme.buttons.primary}
+              sx={singleTheme.buttons.primary.contained}
               disabled={!isInvitationValid}
             >
               Get started

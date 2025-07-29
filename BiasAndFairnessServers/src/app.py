@@ -5,6 +5,7 @@ dotenv.load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.bias_and_fairness import router as bias_and_fairness
+from middlewares.middleware import TenantMiddleware
 from database.redis import close_redis
 from alembic.config import Config
 from alembic import command
@@ -35,6 +36,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(TenantMiddleware)
 
 @app.get("/")
 def root():

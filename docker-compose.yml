@@ -3,8 +3,6 @@ version: '3.9'
 services:
   postgresdb:
     image: postgres:16.8
-    ports:
-      - $LOCAL_DB_PORT:$DB_PORT
     volumes:
       - db:/var/lib/postgresql/data
     environment:
@@ -18,7 +16,7 @@ services:
       retries: 5
   redis:
     image: redis:7
-    ports:
+    expose:
       - "6379"
     restart: unless-stopped
   backend:
@@ -52,7 +50,9 @@ services:
       - redis
     image: ghcr.io/bluewave-labs/verifywise-bias-and-fairness-backend:latest
     # pull_policy: always
-    ports:
+    # ports:
+    #   - "8000"
+    expose:
       - "8000"
     environment:
       - DB_HOST=postgresdb

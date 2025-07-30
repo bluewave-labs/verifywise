@@ -1,4 +1,4 @@
-import { VendorRisk } from "./vendorRisk.model";
+import { IVendorRisk } from "../../interfaces/i.vendorRisk";
 
 // Sample mock data for VendorRisk
 const mockVendorRisks = (
@@ -8,7 +8,7 @@ const mockVendorRisks = (
   vendor4: number,
   userId1: number,
   userId2: number
-): VendorRisk[] => {
+): IVendorRisk[] => {
   return [
     {
       id: 1,

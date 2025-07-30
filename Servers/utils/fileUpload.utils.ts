@@ -66,7 +66,7 @@ export const uploadFile = async (
 };
 
 export const deleteFileById = async (id: number, tenant: string, transaction: Transaction) => {
-  const query = `DELETE FROM "${tenant}".files WHERE id = :id`;
+  const query = `DELETE FROM "${tenant}".files WHERE id = :id returning id`;
   console.log(`Executing query: ${query} with id: ${id}`);
   const result = await sequelize.query(query, {
     replacements: { id },

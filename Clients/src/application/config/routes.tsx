@@ -23,8 +23,10 @@ import ProtectedRoute from "../../presentation/components/ProtectedRoute";
 import FairnessDashboard from "../../presentation/pages/FairnessDashboard/FairnessDashboard";
 import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
+import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
 
 import Training from "../../presentation/pages/TrainingRegistar";
+import WatchTower from "../../presentation/pages/WatchTower";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -51,8 +53,9 @@ export const createRoutes = (
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
-    <Route path="/training" element={<Training />}/>
+    <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
+    <Route path="/event-tracker" element={<WatchTower />} />
   </Route>,
   <Route
     key="admin-reg"
@@ -95,5 +98,6 @@ export const createRoutes = (
     element={<ProtectedRoute Component={ResetPasswordContinue} />}
   />,
   <Route key="playground" path="/playground" element={<Playground />} />,
+  <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

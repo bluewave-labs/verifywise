@@ -36,6 +36,7 @@ import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
+import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -48,9 +49,6 @@ import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
-
-
-
 
 const menu = [
   {
@@ -91,6 +89,11 @@ const menu = [
 ];
 
 const other = [
+  {
+    name: "Event Tracker",
+    icon: <WatchTower />,
+    path: "/event-tracker",
+  },
   {
     name: "Settings",
     icon: <Settings />,

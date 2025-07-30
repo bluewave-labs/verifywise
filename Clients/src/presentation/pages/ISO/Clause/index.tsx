@@ -21,6 +21,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
+import { useSearchParams } from "react-router-dom";
 
 const ISO42001Clauses = ({
   project,
@@ -51,6 +52,9 @@ const ISO42001Clauses = ({
     totalSubclauses: number;
     doneSubclauses: number;
   }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clauseId = searchParams.get("clauseId");
+  const subClauseId = searchParams.get("subClauseId");
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -119,17 +123,22 @@ const ISO42001Clauses = ({
       setExpanded(isExpanded ? panel : false);
     };
 
-  const handleSubClauseClick = (clause: any, subClause: any, index: number) => {
+  const handleSubClauseClick = useCallback((clause: any, subClause: any, index: number) => {
     setSelectedClause(clause);
     setSelectedSubClause(subClause);
     setSelectedIndex(index);
     setDrawerOpen(true);
-  };
+  }, []);
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
     setSelectedSubClause(null);
     setSelectedClause(null);
+    if (clauseId && subClauseId) {
+      searchParams.delete("clauseId");
+      searchParams.delete("subClauseId");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleSaveSuccess = async (
@@ -205,6 +214,26 @@ const ISO42001Clauses = ({
       </AccordionDetails>
     );
   }
+
+  useEffect(() => {
+    if (clauseId && subClauseId && clauses.length > 0) {
+      const clause = clauses.find((c) => c.id === parseInt(clauseId));
+      async function fetchSubClause() {
+        try {
+          const response = await getEntityById({
+            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
+          });
+          setSelectedSubClause({...response.data, id: response.data.clause_id});
+          if (clause && clauseId) {
+            handleSubClauseClick(clause, {...response.data, id: response.data.clause_id}, parseInt(clauseId));
+          }
+        } catch (error) {
+          console.error("Error fetching subclause:", error);
+        }
+      }
+      fetchSubClause();
+    }
+  }, [clauseId, subClauseId, clauses]);
 
   return (
     <Stack className="iso-42001-clauses">

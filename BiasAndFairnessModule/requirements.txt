@@ -1,0 +1,10 @@
+pydantic
+pyyaml
+pandas
+scikit-learn
+fairlearn
+transformers
+torch
+datasets
+tqdm
+langfair

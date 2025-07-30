@@ -1,6 +1,6 @@
-import { Topic } from "./topic.model";
+import { ITopic } from "../../interfaces/i.topic";
 
-export const topics = (assessment1: number, assessment2: number): Topic[] => {
+export const topics = (assessment1: number, assessment2: number): ITopic[] => {
   return [
     {
       assessment_id: assessment1,

@@ -6,6 +6,7 @@ A reusable table component for displaying system events with pagination, followi
 
 - **Pagination**: Built-in pagination with configurable rows per page
 - **Event Type Badges**: Color-coded badges for different event types (Create, Read, Update, Delete, Error)
+- **User Name Display**: Shows user names alongside user IDs for better readability
 - **Timestamp Formatting**: Displays date and time (hours, minutes, seconds) in a readable format
 - **Loading States**: Shows loading indicator while fetching data
 - **Empty States**: Displays placeholder when no data is available
@@ -17,18 +18,28 @@ A reusable table component for displaying system events with pagination, followi
 ```tsx
 import EventsTable from "../../../components/Table/EventsTable";
 import { Event } from "../../../../domain/types/Event";
+import { User } from "../../../../domain/types/User";
 
 const MyComponent = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  return <EventsTable data={events} isLoading={isLoading} paginated={true} />;
+  return (
+    <EventsTable
+      data={events}
+      users={users}
+      isLoading={isLoading}
+      paginated={true}
+    />
+  );
 };
 ```
 
 ## Props
 
 - `data: Event[]` - Array of event objects to display
+- `users?: User[]` - Array of user objects for name resolution (optional)
 - `isLoading?: boolean` - Shows loading state when true
 - `paginated?: boolean` - Enables/disables pagination (default: true)
 
@@ -43,6 +54,15 @@ interface Event {
   timestamp: string; // ISO date string (e.g., "2025-01-30T14:30:25.000Z")
 }
 ```
+
+## User Display Format
+
+When users are provided, the user column displays: `"John Doe (123)"` where:
+
+- "John Doe" is the user's full name (name + surname)
+- "(123)" is the user ID in parentheses
+
+If no user is found for the user_id, only the user ID is displayed.
 
 ## Timestamp Format
 

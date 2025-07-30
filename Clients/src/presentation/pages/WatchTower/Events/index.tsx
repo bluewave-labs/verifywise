@@ -1,11 +1,13 @@
 import { Stack, Typography, useTheme } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import EventsTable from "../../../components/Table/EventsTable";
 import { getAllEvents } from "../../../../application/repository/event.repository";
 import { Event } from "../../../../domain/types/Event";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 const WatchTowerEvents = () => {
   const theme = useTheme();
+  const { users } = useContext(VerifyWiseContext);
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,12 @@ const WatchTowerEvents = () => {
         </Typography>
       )}
 
-      <EventsTable data={events} isLoading={isLoading} paginated={true} />
+      <EventsTable
+        data={events}
+        users={users}
+        isLoading={isLoading}
+        paginated={true}
+      />
     </Stack>
   );
 };

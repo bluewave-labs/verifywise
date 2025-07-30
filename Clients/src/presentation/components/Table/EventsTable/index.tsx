@@ -18,17 +18,19 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
+import { User } from "../../../../domain/types/User";
 
 const TABLE_COLUMNS = [
   { id: "id", label: "ID" },
   { id: "event_type", label: "EVENT TYPE" },
   { id: "description", label: "DESCRIPTION" },
-  { id: "user_id", label: "USER ID" },
+  { id: "user_id", label: "USER (ID)" },
   { id: "timestamp", label: "TIMESTAMP" },
 ];
 
 interface EventsTableProps {
   data: Event[];
+  users?: User[];
   isLoading?: boolean;
   paginated?: boolean;
 }
@@ -71,12 +73,21 @@ const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
 
 const EventsTable: React.FC<EventsTableProps> = ({
   data,
+  users = [],
   isLoading,
   paginated = true,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+
+  // Format users data like other tables do
+  const formattedUsers = useMemo(() => {
+    return users?.map((user: User) => ({
+      _id: user.id,
+      name: `${user.name} ${user.surname}`,
+    }));
+  }, [users]);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -143,7 +154,14 @@ const EventsTable: React.FC<EventsTableProps> = ({
                   {event.description}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {event.user_id}
+                  {(() => {
+                    const userName = formattedUsers?.find(
+                      (user: any) => user._id === event.user_id
+                    )?.name;
+                    return userName
+                      ? `${userName} (${event.user_id})`
+                      : event.user_id;
+                  })()}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {event.timestamp ? formatDateTime(event.timestamp) : "N/A"}
@@ -163,7 +181,7 @@ const EventsTable: React.FC<EventsTableProps> = ({
         )}
       </TableBody>
     ),
-    [data, page, rowsPerPage]
+    [data, page, rowsPerPage, formattedUsers]
   );
 
   if (isLoading) {

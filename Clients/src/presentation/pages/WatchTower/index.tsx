@@ -5,6 +5,7 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Tab } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
+import WatchTowerEvents from "./Events";
 
 // Tab styles similar to Vendors page
 const tabStyle = {
@@ -22,7 +23,6 @@ const tabStyle = {
 
 const tabPanelStyle = {
   padding: 0,
-  pt: 10,
 };
 
 const WatchTower = () => {
@@ -86,13 +86,7 @@ const WatchTower = () => {
           </Box>
 
           <TabPanel value="1" sx={tabPanelStyle}>
-            <Stack>
-              <Typography variant="body1" color="text.secondary">
-                Events content will be displayed here. This tab will show
-                real-time system events, user activities, and application state
-                changes.
-              </Typography>
-            </Stack>
+            <WatchTowerEvents />
           </TabPanel>
 
           <TabPanel value="2" sx={tabPanelStyle}>

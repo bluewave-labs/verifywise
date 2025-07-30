@@ -46,12 +46,13 @@ const WatchTower = () => {
               marginBottom: 8,
             }}
           >
-            Watch Tower
+            Event Tracker
           </Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
-            Watch Tower uses Events and logs to provide insight about the latest
-            series of event, helping users to have a string understanding of the
-            applications state. Also, it provides a powerful debugging tool.
+            Event Tracker uses Events and logs to provide insight about the
+            latest series of event, helping users to have a string understanding
+            of the applications state. Also, it provides a powerful debugging
+            tool.
           </Typography>
           {value === "1" ? (
             <Typography sx={singleTheme.textStyles.pageDescription}>

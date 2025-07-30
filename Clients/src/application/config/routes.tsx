@@ -55,7 +55,7 @@ export const createRoutes = (
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
-    <Route path="/watch-tower" element={<WatchTower />} />
+    <Route path="/event-tracker" element={<WatchTower />} />
   </Route>,
   <Route
     key="admin-reg"

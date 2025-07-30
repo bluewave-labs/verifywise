@@ -6,6 +6,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import { Tab } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import WatchTowerEvents from "./Events";
+import WatchTowerLogs from "./Loggings";
 
 // Tab styles similar to Vendors page
 const tabStyle = {
@@ -90,12 +91,7 @@ const WatchTower = () => {
           </TabPanel>
 
           <TabPanel value="2" sx={tabPanelStyle}>
-            <Stack>
-              <Typography variant="body1" color="text.secondary">
-                Logs content will be displayed here. This tab will show detailed
-                application logs with filtering and search capabilities.
-              </Typography>
-            </Stack>
+            <WatchTowerLogs />
           </TabPanel>
         </TabContext>
       </Stack>

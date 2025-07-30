@@ -91,9 +91,9 @@ const menu = [
 
 const other = [
   {
-    name: "Watch Tower",
+    name: "Event Tracker",
     icon: <WatchTower />,
-    path: "/watch-tower",
+    path: "/event-tracker",
   },
   {
     name: "Settings",

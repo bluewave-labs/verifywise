@@ -435,6 +435,14 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
+    await sequelize.query(`CREATE TABLE "${tenantHash}".subclauses_iso__risks (
+      subclause_id INTEGER NOT NULL,
+      projects_risks_id INTEGER NOT NULL,
+      PRIMARY KEY (subclause_id, projects_risks_id),
+      FOREIGN KEY (subclause_id) REFERENCES "${tenantHash}".subclauses_iso(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );`, { transaction });
+
     await Promise.all([
       `CREATE TABLE "${tenantHash}".ai_trust_center (
         id INTEGER GENERATED ALWAYS AS (1) STORED UNIQUE PRIMARY KEY,

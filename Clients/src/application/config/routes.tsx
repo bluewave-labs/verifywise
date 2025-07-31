@@ -25,6 +25,7 @@ import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/Fair
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 
 import Training from "../../presentation/pages/TrainingRegistar";
+import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -53,6 +54,7 @@ export const createRoutes = (
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
     <Route path="/training" element={<Training />}/>
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
+    <Route path="/policies" element={<PolicyDashboard/>}/>
   </Route>,
   <Route
     key="admin-reg"

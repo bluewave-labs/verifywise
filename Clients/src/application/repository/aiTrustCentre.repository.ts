@@ -1,5 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/getAuthToken";
+import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Fetches the AI Trust Center overview data.

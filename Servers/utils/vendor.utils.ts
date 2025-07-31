@@ -129,10 +129,10 @@ export const createNewVendorQuery = async (
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".vendors (
         order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person,
-        review_result, review_status, reviewer, risk_status, review_date, is_demo
+        review_result, review_status, reviewer, review_date, is_demo
       ) VALUES (
         :order_no, :vendor_name, :vendor_provides, :assignee, :website, :vendor_contact_person,
-        :review_result, :review_status, :reviewer, :risk_status, :review_date, :is_demo
+        :review_result, :review_status, :reviewer, :review_date, :is_demo
       ) RETURNING *`,
     {
       replacements: {
@@ -145,7 +145,6 @@ export const createNewVendorQuery = async (
         review_result: vendor.review_result,
         review_status: vendor.review_status,
         reviewer: vendor.reviewer,
-        risk_status: vendor.risk_status,
         review_date: vendor.review_date,
         is_demo: is_demo,
       },
@@ -198,7 +197,6 @@ export const updateVendorByIdQuery = async (
     "review_result",
     "review_status",
     "reviewer",
-    "risk_status",
     "review_date",
   ]
     .filter((f) => {

@@ -5,7 +5,7 @@ import PolicyForm, { FormData } from './PolicyForm';
 import { Policy } from '../pages/PolicyDashboard/PoliciesDashboard';
 import { getAuthToken } from '../../application/redux/getAuthToken';
 
-import { Plate, usePlateEditor } from 'platejs/react';
+import { Plate, PlateContent, usePlateEditor } from 'platejs/react';
 import {
   BoldPlugin,
   ItalicPlugin,
@@ -16,7 +16,6 @@ import {
   BlockquotePlugin,
 } from '@platejs/basic-nodes/react';
 
-import PlateEditor from './PlateEditor';
 import { serializeHtml } from 'platejs';
 import { HtmlPlugin } from 'platejs';
 
@@ -84,11 +83,18 @@ const PolicyDetailModal: React.FC<Props> = ({
   }) as any;
 
   // Keep editor content in sync if formData.content changes (e.g. when loading a policy)
-  useEffect(() => {
-    if (editor && formData.content != null) {
-      editor.tf.setValue(formData.content);
-    }
-  }, [formData.content, editor]);
+useEffect(() => {
+  if (policy && editor) {
+    const api = editor.api.html;
+    const nodes =
+      typeof policy.content_html === 'string'
+        ? api.deserialize({ element: Object.assign(document.createElement('div'), { innerHTML: policy.content_html }) })
+        : (policy.content_html || editor.children);
+
+    editor.tf.reset();
+    editor.tf.setValue(nodes);
+  }
+}, [policy, editor]);
 
   const save = async () => {
 
@@ -138,11 +144,17 @@ const html = await serializeHtml(editor);
           tags={tags}
         />
 
-        <Plate editor={editor} onChange={({ value }) => {
-          setFormData((prev) => ({ ...prev, content: value }));
-        }}>
-          <PlateEditor htmlValue={formData.content} />
-        </Plate>
+<Plate editor={editor}
+       onChange={({ value }) => setFormData(prev => ({
+         ...prev,
+         content: value
+       }))}>
+  <PlateContent         style={{
+          minHeight: '200px',
+          padding: '16px',
+          border: '1px solid #ddd',
+        }} placeholder="Start typing…" />
+</Plate>
 
         <button onClick={save}>{isNew ? 'Create' : 'Save'}</button>
         <button onClick={onClose}>Cancel</button>

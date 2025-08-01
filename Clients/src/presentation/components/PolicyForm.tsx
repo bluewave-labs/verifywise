@@ -82,10 +82,10 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags }) => (
 
     {/* Content Editor */}
     <label>Content</label>
-    <PlateEditor
+    {/* <PlateEditor
       htmlValue={formData.content}
       onSlateChange={(value: any) => setFormData({ ...formData, content: value })}
-    />
+    /> */}
   </div>
 );
 

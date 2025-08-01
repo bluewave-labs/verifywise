@@ -1,9 +1,24 @@
+// PolicyDetailModal.tsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PolicyForm, { FormData } from './PolicyForm';
 import { Policy } from '../pages/PolicyDashboard/PoliciesDashboard';
 import { getAuthToken } from '../../application/redux/getAuthToken';
-import { usePlateEditor } from 'platejs/react';
+
+import { Plate, usePlateEditor } from 'platejs/react';
+import {
+  BoldPlugin,
+  ItalicPlugin,
+  UnderlinePlugin,
+  H1Plugin,
+  H2Plugin,
+  H3Plugin,
+  BlockquotePlugin,
+} from '@platejs/basic-nodes/react';
+
+import PlateEditor from './PlateEditor';
+import { serializeHtml } from 'platejs';
+import { HtmlPlugin } from 'platejs';
 
 interface Props {
   policy: Policy | null;
@@ -12,10 +27,13 @@ interface Props {
   onSaved: () => void;
 }
 
-const PolicyDetailModal: React.FC<Props> = ({ policy, tags, onClose, onSaved }) => {
+const PolicyDetailModal: React.FC<Props> = ({
+  policy,
+  tags,
+  onClose,
+  onSaved,
+}) => {
   const isNew = !policy;
-
-  const editor = usePlateEditor() as any;
 
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -26,47 +44,66 @@ const PolicyDetailModal: React.FC<Props> = ({ policy, tags, onClose, onSaved }) 
     content: '',
   });
 
-useEffect(() => {
-  if (policy) {
-    // If there's a policy, set the form data to the policy's values
-    setFormData({
-      title: policy.title,
-      status: policy.status,
-      tags: policy.tags || [],
-      nextReviewDate: policy.next_review_date
-        ? new Date(policy.next_review_date).toISOString().slice(0, 10)
-        : '',
-      assignedReviewers: (policy.assigned_reviewer_ids || []).map(String),
-      content: policy.content_html, // Use policy content for editing
-    });
-  } else {
-    // Reset content for new policy
-    setFormData({
-      title: '',
-      status: 'Draft',
-      tags: [],
-      nextReviewDate: '',
-      assignedReviewers: [],
-      content: '', // Reset content
-    });
-  }
-}, [policy]); // This hook will re-run whenever the policy is changed
+  useEffect(() => {
+    if (policy) {
+      setFormData({
+        title: policy.title,
+        status: policy.status,
+        tags: policy.tags || [],
+        nextReviewDate: policy.next_review_date
+          ? new Date(policy.next_review_date).toISOString().slice(0, 10)
+          : '',
+        assignedReviewers: (policy.assigned_reviewer_ids || []).map(String),
+        content: policy.content_html || '',
+      });
+    } else {
+      setFormData({
+        title: '',
+        status: 'Draft',
+        tags: [],
+        nextReviewDate: '',
+        assignedReviewers: [],
+        content: '',
+      });
+    }
+  }, [policy]);
 
+  // Initialize Plate editor once, with content from formData
+  const editor = usePlateEditor({
+    plugins: [
+      HtmlPlugin,
+      BoldPlugin,
+      ItalicPlugin,
+      UnderlinePlugin,
+      H1Plugin,
+      H2Plugin,
+      H3Plugin,
+      BlockquotePlugin,
+    ],
+    value: formData.content || '<p></p>',
+  }) as any;
+
+  // Keep editor content in sync if formData.content changes (e.g. when loading a policy)
+  useEffect(() => {
+    if (editor && formData.content != null) {
+      editor.tf.setValue(formData.content);
+    }
+  }, [formData.content, editor]);
 
   const save = async () => {
-    const serializedContent = editor.api.html.serialize(editor.getValue());
 
+const html = await serializeHtml(editor);
     const payload = {
       title: formData.title,
       status: formData.status,
       tags: formData.tags,
-      content_html: serializedContent,
+      content_html: html,
       next_review_date: formData.nextReviewDate
         ? new Date(formData.nextReviewDate)
         : undefined,
       assigned_reviewer_ids: formData.assignedReviewers
         .filter(Boolean)
-        .map(id => parseInt(id, 10)),
+        .map((id) => parseInt(id, 10)),
     };
 
     try {
@@ -90,16 +127,23 @@ useEffect(() => {
     }
   };
 
-
   return (
     <div className="modal">
       <div className="modal-content">
-        {isNew ? (
-          <h2>New Policy</h2>
-        ) : (
-          <h2>{formData.title}</h2>
-        )}
-        <PolicyForm formData={formData} setFormData={setFormData} tags={tags} />
+        <h2>{isNew ? 'New Policy' : formData.title}</h2>
+
+        <PolicyForm
+          formData={formData}
+          setFormData={setFormData}
+          tags={tags}
+        />
+
+        <Plate editor={editor} onChange={({ value }) => {
+          setFormData((prev) => ({ ...prev, content: value }));
+        }}>
+          <PlateEditor htmlValue={formData.content} />
+        </Plate>
+
         <button onClick={save}>{isNew ? 'Create' : 'Save'}</button>
         <button onClick={onClose}>Cancel</button>
       </div>

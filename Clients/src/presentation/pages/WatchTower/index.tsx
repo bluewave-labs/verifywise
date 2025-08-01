@@ -49,24 +49,11 @@ const WatchTower = () => {
             Event Tracker
           </Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
-            Event Tracker uses Events and logs to provide insight about the
-            latest series of event, helping users to have a string understanding
-            of the applications state. Also, it provides a powerful debugging
-            tool.
+            Event Tracker gives you a live window into VerifyWise. It records
+            every user action and system event, then lets you dive into the raw
+            logs for deeper troubleshooting. Use it to see who did what, spot
+            patterns, and keep your application healthy
           </Typography>
-          {value === "1" ? (
-            <Typography sx={singleTheme.textStyles.pageDescription}>
-              Monitor and track system events in real-time. View event history,
-              analyze patterns, and get insights into application behavior and
-              performance.
-            </Typography>
-          ) : (
-            <Typography sx={singleTheme.textStyles.pageDescription}>
-              Access detailed application logs for debugging and monitoring
-              purposes. Filter and search through log entries to identify issues
-              and track system activities.
-            </Typography>
-          )}
         </Stack>
 
         <TabContext value={value}>

@@ -5,6 +5,10 @@ export const vwhomeHeading = {
   marginBottom: 8,
 };
 
+export const vwhomeRiskSection = {
+  marginBottom: 4,
+};
+
 export const headerCardPlaceholder = {
   minHeight: 68,
   minWidth: 300,

@@ -1,6 +1,6 @@
 import { Routes } from "react-router-dom";
 import "./App.css";
-import { ThemeProvider } from "@emotion/react";
+import { ThemeProvider } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 import light from "./presentation/themes/light";
 import dark from "./presentation/themes/dark";

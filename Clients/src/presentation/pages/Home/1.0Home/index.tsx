@@ -12,6 +12,7 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import ProjectCard from "../../../components/Cards/ProjectCard";
+import RiskDashboard from "../../../components/RiskDashboard";
 
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -153,6 +154,13 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
+      
+      {/* Risk Dashboard Section */}
+      <Stack sx={{ mb: 4 }}>
+        <Typography sx={vwhomeHeading}>Risk Overview</Typography>
+        <RiskDashboard projectId={projects?.[0]?.id?.toString()} />
+      </Stack>
+
       <Stack className="vwhome-body">
         <Stack sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Projects overview</Typography>

@@ -6,6 +6,24 @@ interface DashboardState {
   vendors: unknown[];
 }
 
+// Add proper interfaces for better type safety
+interface UIValues {
+  sidebarCollapsed?: boolean;
+  activeTab?: string;
+  filters?: Record<string, any>;
+}
+
+interface AuthValues {
+  isAuthenticated: boolean;
+  permissions?: string[];
+  lastLoginTime?: Date;
+}
+
+interface InputValues {
+  formData?: Record<string, any>;
+  validationErrors?: Record<string, string>;
+}
+
 interface AppState {
   ui: {
     mode: "light" | "dark";

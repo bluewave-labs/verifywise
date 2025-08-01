@@ -20,7 +20,6 @@ import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import {
   ValidationException,
   BusinessLogicException,
-  NotFoundException,
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
@@ -43,12 +42,6 @@ export async function getAllTopics(req: Request, res: Response): Promise<any> {
     const topics = await getAllTopicsQuery(req.tenantId!);
 
     if (topics && topics.length > 0) {
-      await logSuccess({
-        eventType: "Read",
-        description: "Retrieved all topics",
-        functionName: "getAllTopics",
-        fileName: "topic.ctrl.ts",
-      });
       logStructured(
         "successful",
         `${topics.length} topics found`,
@@ -66,13 +59,6 @@ export async function getAllTopics(req: Request, res: Response): Promise<any> {
     );
     return res.status(204).json(STATUS_CODE[204](topics));
   } catch (error) {
-    await logFailure({
-      eventType: "Read",
-      description: "Failed to retrieve topics",
-      functionName: "getAllTopics",
-      fileName: "topic.ctrl.ts",
-      error: error as Error,
-    });
     logStructured(
       "error",
       "failed to retrieve topics",
@@ -103,12 +89,6 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
     const topic = await getTopicByIdQuery(topicId, req.tenantId!);
 
     if (topic) {
-      await logSuccess({
-        eventType: "Read",
-        description: `Retrieved topic ID ${topicId}`,
-        functionName: "getTopicById",
-        fileName: "topic.ctrl.ts",
-      });
       logStructured(
         "successful",
         `topic found: ID ${topicId}`,
@@ -126,13 +106,6 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
     );
     return res.status(404).json(STATUS_CODE[404](topic));
   } catch (error) {
-    await logFailure({
-      eventType: "Read",
-      description: "Failed to retrieve topic by ID",
-      functionName: "getTopicById",
-      fileName: "topic.ctrl.ts",
-      error: error as Error,
-    });
     logStructured(
       "error",
       `failed to fetch topic: ID ${topicId}`,
@@ -515,13 +488,6 @@ export async function getTopicByAssessmentId(
       req.tenantId!
     );
 
-    await logSuccess({
-      eventType: "Read",
-      description: `Retrieved topics for assessment ID ${assessmentId}`,
-      functionName: "getTopicByAssessmentId",
-      fileName: "topic.ctrl.ts",
-    });
-
     if (topics && topics.length > 0) {
       logStructured(
         "successful",
@@ -540,13 +506,6 @@ export async function getTopicByAssessmentId(
     );
     return res.status(204).json(STATUS_CODE[204](topics));
   } catch (error) {
-    await logFailure({
-      eventType: "Read",
-      description: "Failed to retrieve topics by assessment ID",
-      functionName: "getTopicByAssessmentId",
-      fileName: "topic.ctrl.ts",
-      error: error as Error,
-    });
     logStructured(
       "error",
       `failed to fetch topics for assessment ID ${assessmentId}`,

@@ -279,9 +279,6 @@ export async function updateVendorById(
     // Create VendorModel instance and update it
     const vendorModel = new VendorModel(existingVendor);
 
-    // Check if vendor can be modified (demo restrictions)
-    vendorModel.canBeModified();
-
     // Update vendor using the enhanced method
     await vendorModel.updateVendor({
       vendor_name: updateData.vendor_name,

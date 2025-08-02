@@ -1,8 +1,17 @@
-import { Stack, Typography, useTheme, Box, Paper } from "@mui/material";
+import {
+  Stack,
+  Typography,
+  useTheme,
+  Box,
+  Paper,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { getAllLogs } from "../../../../application/repository/logs.repository";
 import LogLine from "../../../components/LogLine";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 const WatchTowerLogs = () => {
   const theme = useTheme();
@@ -11,35 +20,41 @@ const WatchTowerLogs = () => {
   const [error, setError] = useState<string | null>(null);
   const [logsInfo, setLogsInfo] = useState<string>("");
 
-  useEffect(() => {
-    const fetchLogs = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await getAllLogs({ routeUrl: "/logger/logs" });
-        const logsData = response.data;
+  const fetchLogs = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await getAllLogs({ routeUrl: "/logger/logs" });
+      const logsData = response.data;
 
-        if (logsData?.success && logsData?.data) {
-          setLogs(logsData.data);
-          setLogsInfo(logsData.message);
-        } else if (logsData?.success === false) {
-          setError(logsData.message || "No logs available for today");
-          setLogs([]);
-        } else {
-          setError("Failed to load logs. Please try again later.");
-          setLogs([]);
-        }
-      } catch (err) {
-        console.error("Error fetching logs:", err);
+      if (logsData?.success && logsData?.data) {
+        // Sort logs in descending order (most recent first)
+        const sortedLogs = [...logsData.data].reverse();
+        setLogs(sortedLogs);
+        setLogsInfo(logsData.message);
+      } else if (logsData?.success === false) {
+        setError(logsData.message || "No logs available for today");
+        setLogs([]);
+      } else {
         setError("Failed to load logs. Please try again later.");
         setLogs([]);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching logs:", err);
+      setError("Failed to load logs. Please try again later.");
+      setLogs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLogs();
   }, []);
+
+  const handleRefresh = () => {
+    fetchLogs();
+  };
 
   if (isLoading) {
     return (
@@ -139,6 +154,39 @@ const WatchTowerLogs = () => {
               >
                 {logs.length} lines
               </Typography>
+              <Tooltip
+                title="Refresh logs"
+                disableInteractive
+                sx={{ fontSize: 13 }}
+              >
+                <IconButton
+                  disableRipple={
+                    theme.components?.MuiIconButton?.defaultProps?.disableRipple
+                  }
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  sx={{
+                    "&:focus": { outline: "none" },
+                    "& svg": {
+                      width: "20px",
+                      height: "20px",
+                    },
+                    "& svg path": {
+                      stroke: theme.palette.text.secondary,
+                    },
+                    "&:hover": {
+                      backgroundColor: theme.palette.grey[100],
+                    },
+                    "&:disabled": {
+                      "& svg path": {
+                        stroke: theme.palette.action.disabled,
+                      },
+                    },
+                  }}
+                >
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
           </Box>
 

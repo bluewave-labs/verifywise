@@ -6,7 +6,6 @@ module.exports = {
     await queryInterface.sequelize.query(`
       -- Add subscription-related columns to organizations table
       ALTER TABLE organizations 
-      ADD COLUMN is_subscribed BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN subscription_id INTEGER NULL;
       
       -- Add foreign key constraint for subscription_id

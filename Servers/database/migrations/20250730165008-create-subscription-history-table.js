@@ -9,7 +9,7 @@ module.exports = {
         id SERIAL PRIMARY KEY,
         organization_id INTEGER NOT NULL,
         subscription_id INTEGER NOT NULL,
-        action VARCHAR(15) NOT NULL CHECK (action IN ('created', 'upgraded', 'downgraded', 'canceled')),
+        action VARCHAR(50) NOT NULL CHECK (action IN ('created', 'upgraded', 'downgraded', 'canceled')),
         timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         
         -- Foreign key constraints

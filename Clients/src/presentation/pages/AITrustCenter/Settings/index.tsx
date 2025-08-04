@@ -9,7 +9,7 @@ import DualButtonModal from '../../../vw-v2-components/Dialogs/DualButtonModal';
 import { useAITrustCentreOverview } from "../../../../application/hooks/useAITrustCentreOverview";
 import { uploadAITrustCentreLogo, deleteAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import { getAuthToken } from "../../../../application/redux/getAuthToken";
+import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 
 const AITrustCenterSettings: React.FC = () => {

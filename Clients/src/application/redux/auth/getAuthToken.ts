@@ -1,5 +1,5 @@
-import { RootState } from "../../domain/types/RootState";
-import { store } from "./store";
+import { RootState } from "../../../domain/types/RootState";
+import { store } from "../store";
 
 /**
  * Retrieves the authToken from the Redux store.

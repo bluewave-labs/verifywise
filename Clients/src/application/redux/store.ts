@@ -1,9 +1,9 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import uiSlice from "../../presentation/tools/uiSlice";
-import authReducer from "../authentication/authSlice";
-import fileReducer from "./slices/fileSlice";
+import uiSlice from "./ui/uiSlice";
+import authReducer from "./auth/authSlice";
+import fileReducer from "./file/fileSlice";
 
 const persistConfig = {
   key: "root",
@@ -16,6 +16,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   files: fileReducer, //file slice
 });
+
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

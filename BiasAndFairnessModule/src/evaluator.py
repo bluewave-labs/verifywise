@@ -6,8 +6,8 @@ from typing import Any, Dict, Optional
 import pandas as pd
 
 # Import metrics to ensure they are registered
-from src.metric_registry import METRIC_REGISTRY, get_metric
-from src.metrics import *  # This imports and registers all metric functions
+from .metric_registry import get_metric
+from .metrics import *  # This imports and registers all metric functions
 
 
 class FairnessEvaluator:
@@ -69,3 +69,25 @@ class FairnessEvaluator:
             raise ValueError(f"Results file is empty: {self.results_path}")
         except pd.errors.ParserError:
             raise ValueError(f"Invalid CSV format in results file: {self.results_path}")
+
+    def evaluate(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Get the metric functions specified in the configuration for both fairness and performance metrics.
+
+        Returns:
+            Dict[str, Dict[str, Any]]: A nested dictionary with 'fairness' and 'performance' sections,
+                                     each containing metric names mapped to their corresponding functions
+        """
+        metric_functions = {"fairness": {}, "performance": {}}
+
+        # Get fairness metrics if enabled
+        if self.config.fairness.enabled:
+            for metric_name in self.config.fairness.metrics:
+                metric_functions["fairness"][metric_name] = get_metric(metric_name)
+
+        # Get performance metrics if enabled
+        if self.config.performance.enabled:
+            for metric_name in self.config.performance.metrics:
+                metric_functions["performance"][metric_name] = get_metric(metric_name)
+
+        return metric_functions

@@ -263,6 +263,14 @@ const VWProjectRisksTableBody = ({
               ...item,
               type: "subclause",
             })) || []}
+            assessments={showMitigationProjectRisk?.assessments?.map((item) => ({
+              ...item,
+              type: "assessment",
+            })) || []}
+            controls={showMitigationProjectRisk?.controls?.map((item) => ({
+              ...item,
+              type: "control",
+            })) || []}
             onClose={() => {setShowMitigations(false); setShowMitigationProjectRisk(null)}}
           />
         </Suspense>

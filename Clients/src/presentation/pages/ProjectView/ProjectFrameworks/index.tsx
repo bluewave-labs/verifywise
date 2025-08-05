@@ -115,7 +115,7 @@ const ProjectFrameworks = ({
         setTracker(
           initialFrameworkId === FRAMEWORK_IDS.ISO_42001
             ? searchParams.get("annexId") && searchParams.get("annexCategoryId") ? "annexes" : "clauses"
-            : "compliance"
+            : searchParams.get("controlId") ? "compliance" : "assessment"
         );
       }
       // Otherwise, use the default logic

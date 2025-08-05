@@ -18,6 +18,7 @@ export const getAllProjectRisksQuery = async (
   for (let risk of projectRisks) {
     (risk as any).subClauses = [];
     (risk as any).annexCategories = [];
+    (risk as any).controls = [];
 
     const attachedSubClauses = await sequelize.query(
       `SELECT
@@ -44,6 +45,33 @@ export const getAllProjectRisksQuery = async (
     if (attachedAnnexCategories[0].length > 0) {
       (risk as any).annexCategories = attachedAnnexCategories[0];
     }
+
+    const attachedControls = await sequelize.query(
+      `SELECT cr.control_id AS id, ac.control_meta_id AS meta_id, ccs.id AS sup_id, cse.id AS sub_id, cse.title, cse.id AS parent_id
+      FROM "${tenant}".controls_eu__risks cr JOIN "${tenant}".controls_eu ac ON cr.control_id = ac.id
+      JOIN public.controls_struct_eu cse ON cse.id = ac.control_meta_id
+      JOIN public.controlcategories_struct_eu ccs ON ccs.id = cse.control_category_id
+      WHERE projects_risks_id = :riskId`,
+      { replacements: { riskId: risk.id } }
+    ) as [Mitigation[], number];
+    if (attachedControls[0].length > 0) {
+      (risk as any).controls = attachedControls[0];
+    }
+
+    const attachedAssessments = await sequelize.query(
+      `SELECT ans.id AS id, ans.question_id AS meta_id, ts.id AS sup_id, sts.id AS sub_id, 
+        ts.title || '. ' || sts.title || '. ' || qse.question AS title, 
+        qse.id AS parent_id
+      FROM "${tenant}".answers_eu__risks aur JOIN "${tenant}".answers_eu ans ON aur.answer_id = ans.id
+      JOIN public.questions_struct_eu qse ON qse.id = ans.question_id
+      JOIN public.subtopics_struct_eu sts ON sts.id = qse.subtopic_id
+      JOIN public.topics_struct_eu ts ON ts.id = sts.topic_id
+      WHERE projects_risks_id = :riskId`,
+      { replacements: { riskId: risk.id } }
+    ) as [Mitigation[], number];
+    if (attachedAssessments[0].length > 0) {
+      (risk as any).assessments = attachedAssessments[0];
+    }
   }
   return projectRisks;
 };
@@ -57,8 +85,12 @@ export const getProjectRiskByIdQuery = async (
     { replacements: { id } }
   ) as [IProjectRisk[], number];
   const projectRisk = result[0][0];
+  if (!projectRisk) return null;
+
   (projectRisk as any).subClauses = [];
   (projectRisk as any).annexCategories = [];
+  (projectRisk as any).controls = [];
+  (projectRisk as any).assessments = [];
 
   const attachedSubClauses = await sequelize.query(
     `SELECT
@@ -85,6 +117,34 @@ export const getProjectRiskByIdQuery = async (
   if (attachedAnnexCategories[0].length > 0) {
     (projectRisk as any).annexCategories = attachedAnnexCategories[0];
   }
+
+  const attachedControls = await sequelize.query(
+    `SELECT cr.control_id AS id, ac.control_meta_id AS meta_id, ccs.id AS sup_id, cse.id AS sub_id, cse.title, cse.id AS parent_id
+      FROM "${tenant}".controls_eu__risks cr JOIN "${tenant}".controls_eu ac ON cr.control_id = ac.id
+      JOIN public.controls_struct_eu cse ON cse.id = ac.control_meta_id
+      JOIN public.controlcategories_struct_eu ccs ON ccs.id = cse.control_category_id
+      WHERE projects_risks_id = :riskId`,
+    { replacements: { riskId: projectRisk.id } }
+  ) as [Mitigation[], number];
+  if (attachedControls[0].length > 0) {
+    (projectRisk as any).controls = attachedControls[0];
+  }
+
+  const attachedAssessments = await sequelize.query(
+    `SELECT ans.id AS id, ans.question_id AS meta_id, ts.id AS sup_id, sts.id AS sub_id, 
+        ts.title || '. ' || sts.title || '. ' || qse.question AS title, 
+        qse.id AS parent_id
+      FROM "${tenant}".answers_eu__risks aur JOIN "${tenant}".answers_eu ans ON aur.answer_id = ans.id
+      JOIN public.questions_struct_eu qse ON qse.id = ans.question_id
+      JOIN public.subtopics_struct_eu sts ON sts.id = qse.subtopic_id
+      JOIN public.topics_struct_eu ts ON ts.id = sts.topic_id
+      WHERE projects_risks_id = :riskId`,
+    { replacements: { riskId: projectRisk.id } }
+  ) as [Mitigation[], number];
+  if (attachedAssessments[0].length > 0) {
+    (projectRisk as any).assessments = attachedAssessments[0];
+  }
+
   return projectRisk;
 };
 

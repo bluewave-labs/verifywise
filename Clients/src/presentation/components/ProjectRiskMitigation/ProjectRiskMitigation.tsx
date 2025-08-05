@@ -7,12 +7,16 @@ interface ProjectRiskMitigationProps {
   onClose: () => void;
   annexCategories: ProjectRiskMitigationType[];
   subClauses: ProjectRiskMitigationType[];
+  assessments: ProjectRiskMitigationType[];
+  controls: ProjectRiskMitigationType[];
 }
 
 export const ProjectRiskMitigation: React.FC<ProjectRiskMitigationProps> = ({
   onClose,
   annexCategories,
   subClauses,
+  assessments,
+  controls
 }) => {
   return (
     <Stack sx={{
@@ -44,7 +48,7 @@ export const ProjectRiskMitigation: React.FC<ProjectRiskMitigationProps> = ({
       </Stack>
       <Stack>
         <ProjectRiskMitigationTable
-          rows={[...subClauses, ...annexCategories]}
+          rows={[...subClauses, ...annexCategories, ...assessments, ...controls]}
         />
       </Stack>
     </Stack>

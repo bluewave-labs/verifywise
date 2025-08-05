@@ -10,7 +10,7 @@ dataset:
   target_column: "income"
   sampling:
     enabled: true
-    n_samples: 5000 # Number of samples to use for quick experiments
+    n_samples: 20 # Number of samples to use for quick experiments
     random_seed: 42
 
 # Model Configuration

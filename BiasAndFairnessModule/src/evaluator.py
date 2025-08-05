@@ -5,6 +5,10 @@ from typing import Any, Dict, Optional
 
 import pandas as pd
 
+# Import metrics to ensure they are registered
+from src.metric_registry import METRIC_REGISTRY, get_metric
+from src.metrics import *  # This imports and registers all metric functions
+
 
 class FairnessEvaluator:
     """

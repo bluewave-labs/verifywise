@@ -27,17 +27,17 @@ model:
 
 # Metrics Configuration
 metrics:
-  # Disparity metrics for fairness evaluation
-  disparity:
+  # Fairness metrics for evaluation
+  fairness:
     enabled: true
     metrics:
-      - name: "demographic_parity"
-      - name: "equal_opportunity"
-      - name: "disparate_impact"
+      - "demographic_parity"
+      - "equalized_odds"
+      - "predictive_parity"
 
   # Performance metrics
   performance:
     enabled: true
     metrics:
-      - name: "accuracy"
-      - name: "precision"
+      - "accuracy"
+      - "precision"

@@ -86,33 +86,25 @@ class ModelConfig(BaseModel):
     )
 
 
-class DisparityMetric(BaseModel):
-    """Configuration for a single disparity metric."""
+class MetricConfig(BaseModel):
+    """Base configuration for metrics with thresholds."""
 
-    name: str = Field(..., description="Name of the metric")
-    threshold: Optional[float] = Field(
-        None, description="Threshold for acceptable disparity"
-    )
-
-
-class PerformanceMetric(BaseModel):
-    """Configuration for a single performance metric."""
-
-    name: str = Field(..., description="Name of the metric")
-    threshold: Optional[float] = Field(
-        None, description="Threshold for acceptable performance"
+    metrics: List[str] = Field(default_factory=list, description="List of metric names")
+    enabled: bool = Field(default=True, description="Whether metrics are enabled")
+    thresholds: Optional[Dict[str, float]] = Field(
+        default_factory=dict, description="Optional thresholds for each metric"
     )
 
 
 class MetricsConfig(BaseModel):
     """Configuration for metrics."""
 
-    disparity: Dict[str, Any] = Field(
-        default_factory=lambda: {"enabled": True, "metrics": []},
-        description="Disparity metrics configuration",
+    fairness: MetricConfig = Field(
+        default_factory=MetricConfig,
+        description="Fairness metrics configuration",
     )
-    performance: Dict[str, Any] = Field(
-        default_factory=lambda: {"enabled": True, "metrics": []},
+    performance: MetricConfig = Field(
+        default_factory=MetricConfig,
         description="Performance metrics configuration",
     )
 

@@ -42,10 +42,10 @@ const AssessmentTracker = ({
   const currentProjectFramework = project.framework.filter(
     (p) => p.framework_id === 1
   )[0]?.project_framework_id;
-  const [activeTab, setActiveTab] = useState<number>(0);
-  const [runAssessmentTour, setRunAssessmentTour] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const topicId = searchParams.get("topicId");
+  const [activeTab, setActiveTab] = useState<number>(Number(topicId) || 0);
+  const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
   const { assessmentProgress, loading: loadingAssessmentProgress } =
     useAssessmentProgress({
@@ -81,7 +81,7 @@ const AssessmentTracker = ({
     if (topicId && assessmentTopics && assessmentTopics.length > 0) {
       const topicIndex = assessmentTopics.findIndex(
         (topic) => topic.id === parseInt(topicId)
-      );
+      ) || 0;
       if (topicIndex >= 0) {
         setActiveTab(topicIndex);
       }

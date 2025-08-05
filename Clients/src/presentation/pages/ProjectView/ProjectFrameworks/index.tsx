@@ -143,10 +143,10 @@ const ProjectFrameworks = ({
   ]);
 
   const handleFrameworkChange = (frameworkId: number) => {
-    if (searchParams.get("framework")) {
-      searchParams.delete("framework");
-      setSearchParams(searchParams);
-    }
+    searchParams.delete("framework");
+    searchParams.delete("topicId");
+    searchParams.delete("questionId");
+    setSearchParams(searchParams);
     setSelectedFrameworkId(frameworkId);
     setTracker(
       frameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"

@@ -1,6 +1,6 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { RequestParams } from "../../domain/interfaces/iRequestParams";
-import { getAuthToken } from "../redux/getAuthToken";
+import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Retrieves all events from the server.

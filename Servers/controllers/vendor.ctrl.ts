@@ -164,7 +164,6 @@ export async function createVendor(req: Request, res: Response): Promise<any> {
       vendorData.review_result,
       vendorData.review_status,
       vendorData.reviewer,
-      vendorData.risk_status,
       vendorData.review_date,
       vendorData.order_no,
       vendorData.is_demo || false,
@@ -280,9 +279,6 @@ export async function updateVendorById(
     // Create VendorModel instance and update it
     const vendorModel = new VendorModel(existingVendor);
 
-    // Check if vendor can be modified (demo restrictions)
-    vendorModel.canBeModified();
-
     // Update vendor using the enhanced method
     await vendorModel.updateVendor({
       vendor_name: updateData.vendor_name,
@@ -293,7 +289,6 @@ export async function updateVendorById(
       review_result: updateData.review_result,
       review_status: updateData.review_status,
       reviewer: updateData.reviewer,
-      risk_status: updateData.risk_status,
       review_date: updateData.review_date,
       order_no: updateData.order_no,
       projects: updateData.projects,

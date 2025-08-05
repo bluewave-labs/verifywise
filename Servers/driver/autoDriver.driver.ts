@@ -137,7 +137,6 @@ export async function insertMockData(
             review_result: "Positive",
             review_status: "Requires follow-up",
             reviewer: users[1].id!,
-            risk_status: "Very high risk",
             review_date: new Date(Date.now()),
           },
           tenant,

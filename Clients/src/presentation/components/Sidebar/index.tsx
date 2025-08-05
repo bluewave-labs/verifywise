@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
 import React, { useContext, useState, useEffect } from "react";
-import { toggleSidebar } from "../../tools/uiSlice";
+import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";

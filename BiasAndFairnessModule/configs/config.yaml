@@ -13,6 +13,20 @@ dataset:
     n_samples: 20 # Number of samples to use for quick experiments
     random_seed: 42
 
+# Post-processing Configuration
+post_processing:
+  binary_mapping:
+    favorable_outcome: ">50K"
+    unfavorable_outcome: "<=50K"
+
+  attribute_groups:
+    sex:
+      privileged: ["Male"]
+      unprivileged: ["Female"]
+    race:
+      privileged: ["White"]
+      unprivileged: ["Black", "Other"]
+
 # Model Configuration
 model:
   # Hugging Face model configuration
@@ -37,7 +51,8 @@ metrics:
 
   # Performance metrics
   performance:
-    enabled: true
+    enabled: false
     metrics:
       - "accuracy"
       - "precision"
+

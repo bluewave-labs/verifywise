@@ -109,12 +109,40 @@ class MetricsConfig(BaseModel):
     )
 
 
+class BinaryMappingConfig(BaseModel):
+    """Configuration for binary outcome mapping."""
+
+    favorable_outcome: str = Field(..., description="The favorable outcome value")
+    unfavorable_outcome: str = Field(..., description="The unfavorable outcome value")
+
+
+class AttributeGroupConfig(BaseModel):
+    """Configuration for protected attribute groups."""
+
+    privileged: List[str] = Field(..., description="List of privileged group values")
+    unprivileged: List[str] = Field(
+        ..., description="List of unprivileged group values"
+    )
+
+
+class PostProcessingConfig(BaseModel):
+    """Configuration for post-processing settings."""
+
+    binary_mapping: BinaryMappingConfig = Field(
+        ..., description="Binary outcome mapping configuration"
+    )
+    attribute_groups: Dict[str, AttributeGroupConfig] = Field(
+        ..., description="Protected attribute groups configuration"
+    )
+
+
 class Config(BaseModel):
     """Main configuration class that includes all sub-configurations."""
 
     dataset: DatasetConfig
     model: ModelConfig
     metrics: MetricsConfig
+    post_processing: PostProcessingConfig
 
 
 class ConfigManager:
@@ -171,6 +199,14 @@ class ConfigManager:
             MetricsConfig: The complete metrics configuration.
         """
         return self.config.metrics
+
+    def get_post_processing_config(self) -> PostProcessingConfig:
+        """Get the complete post-processing configuration.
+
+        Returns:
+            PostProcessingConfig: The complete post-processing configuration.
+        """
+        return self.config.post_processing
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

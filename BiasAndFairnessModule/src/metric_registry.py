@@ -78,10 +78,3 @@ def remove_metric(name: str) -> None:
     if name not in METRIC_REGISTRY:
         raise KeyError(f"No metric registered with name '{name}'")
     del METRIC_REGISTRY[name]
-
-
-# Example usage:
-# @register_metric("demographic_parity")
-# def demographic_parity_difference(y_true, y_pred, protected_attributes):
-#     # Implementation here
-#     pass

@@ -1,5 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/getAuthToken";
+import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Fetches the AI Trust Center overview data.
@@ -67,6 +67,26 @@ export async function uploadAITrustCentreLogo(
     return response.data;
   } catch (error) {
     console.error("Error uploading AI Trust Center logo:", error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes the AI Trust Center logo.
+ *
+ * @param {string} [authToken=getAuthToken()] - Optional auth token.
+ * @returns {Promise<any>} The response from the API.
+ */
+export async function deleteAITrustCentreLogo(
+  authToken = getAuthToken()
+): Promise<any> {
+  try {
+    const response = await apiServices.delete("/aiTrustCentre/logo", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting AI Trust Center logo:", error);
     throw error;
   }
 }

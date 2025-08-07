@@ -1,14 +1,14 @@
 import {
-  VendorRisk,
   VendorRiskModel,
 } from "../domain.layer/models/vendorRisk/vendorRisk.model";
+import { IVendorRisk } from "../domain.layer/interfaces/i.vendorRisk";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction } from "sequelize";
 
 export const getVendorRisksByProjectIdQuery = async (
   projectId: number,
   tenant: string
-): Promise<VendorRisk[]> => {
+): Promise<IVendorRisk[]> => {
   const vendorRisks = await sequelize.query(
     `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM "${tenant}".vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;`,
     {
@@ -23,7 +23,7 @@ export const getVendorRisksByProjectIdQuery = async (
 export const getVendorRiskByIdQuery = async (
   id: number,
   tenant: string
-): Promise<VendorRisk | null> => {
+): Promise<IVendorRisk | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC`,
     {
@@ -36,10 +36,10 @@ export const getVendorRiskByIdQuery = async (
 };
 
 export const createNewVendorRiskQuery = async (
-  vendorRisk: VendorRisk,
+  vendorRisk: IVendorRisk,
   tenant: string,
   transaction: Transaction
-): Promise<VendorRisk> => {
+): Promise<VendorRiskModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".vendorRisks (
       vendor_id, order_no, risk_description, impact_description,
@@ -71,11 +71,11 @@ export const createNewVendorRiskQuery = async (
 
 export const updateVendorRiskByIdQuery = async (
   id: number,
-  vendorRisk: Partial<VendorRisk>,
+  vendorRisk: Partial<VendorRiskModel>,
   tenant: string,
   transaction: Transaction
-): Promise<VendorRisk | null> => {
-  const updateVendorRisk: Partial<Record<keyof VendorRisk, any>> = {};
+): Promise<VendorRiskModel | null> => {
+  const updateVendorRisk: Partial<Record<keyof VendorRiskModel, any>> = {};
   const setClause = [
     "vendor_id",
     "risk_description",
@@ -88,11 +88,11 @@ export const updateVendorRiskByIdQuery = async (
   ]
     .filter((f) => {
       if (
-        vendorRisk[f as keyof VendorRisk] !== undefined &&
-        vendorRisk[f as keyof VendorRisk]
+        vendorRisk[f as keyof VendorRiskModel] !== undefined &&
+        vendorRisk[f as keyof VendorRiskModel]
       ) {
-        updateVendorRisk[f as keyof VendorRisk] =
-          vendorRisk[f as keyof VendorRisk];
+        updateVendorRisk[f as keyof VendorRiskModel] =
+          vendorRisk[f as keyof VendorRiskModel];
         return true;
       }
     })

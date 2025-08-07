@@ -7,6 +7,16 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
 
 from .config import HuggingFaceModelConfig
 
+import joblib
+import os
+
+def load_sklearn_model(model_path):
+    """Load a scikit-learn model from a joblib file."""
+    if os.path.exists(model_path):
+        return joblib.load(model_path)
+    else:
+        raise FileNotFoundError(f"Model not found at {model_path}")
+
 
 class ModelLoader:
     """Handles loading and inference for language models."""

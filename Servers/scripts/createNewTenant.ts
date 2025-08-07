@@ -41,7 +41,6 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         review_result character varying(255) NOT NULL,
         review_status enum_vendors_review_status NOT NULL,
         reviewer integer,
-        risk_status enum_vendors_risk_status NOT NULL,
         review_date timestamp with time zone NOT NULL,
         is_demo boolean NOT NULL DEFAULT false,
         created_at timestamp without time zone NOT NULL DEFAULT now(),
@@ -433,6 +432,14 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       CONSTRAINT annexcategories_iso__risks_projects_risks_id_fkey FOREIGN KEY (projects_risks_id)
         REFERENCES "${tenantHash}".projectrisks (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".subclauses_iso__risks (
+      subclause_id INTEGER NOT NULL,
+      projects_risks_id INTEGER NOT NULL,
+      PRIMARY KEY (subclause_id, projects_risks_id),
+      FOREIGN KEY (subclause_id) REFERENCES "${tenantHash}".subclauses_iso(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
     );`, { transaction });
 
     await Promise.all([

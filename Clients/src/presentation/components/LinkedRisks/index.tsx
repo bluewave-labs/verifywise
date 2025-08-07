@@ -14,18 +14,28 @@ import {
 
 interface LinkedRisksModalProps {
   onClose: () => void;
+  currentRisks: number[];
+  setSelectecRisks: (selectedRisks: number[]) => void;
+  _setDeletedRisks: (deletedRisks: number[]) => void;
 }
 
 const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
-  onClose
+  onClose,
+  currentRisks,
+  setSelectecRisks,
+  _setDeletedRisks,
 }) => {
   const [searchParams] = useSearchParams();
   const pId = searchParams.get("projectId");
   const projectId = parseInt(pId ?? "0");
   const { projectRisks } = useProjectRisks({ projectId });  
   const [searchInput, setSearchInput] = useState<string>("");
+  const [checkedRows, setCheckedRows] = useState<number[]>(currentRisks);
+  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
 
   const handleFormSubmit = () => {
+    setSelectecRisks(checkedRows.filter(r => !currentRisks.includes(r)));
+    _setDeletedRisks(deletedRisks);
     onClose();
   }
 
@@ -62,7 +72,15 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
             />
           </Stack>
         </Stack>
-        <LinkedRisksTable projectRisksGroup={projectRisks} filteredRisksGroup={filteredRisks}/>
+        <LinkedRisksTable
+          projectRisksGroup={projectRisks}
+          filteredRisksGroup={filteredRisks}
+          currentRisks={currentRisks}
+          checkedRows={checkedRows}
+          setCheckedRows={setCheckedRows}
+          deletedRisks={deletedRisks}
+          setDeletedRisks={setDeletedRisks}
+        />
       </Stack>
       <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end'}}>
         <Button 

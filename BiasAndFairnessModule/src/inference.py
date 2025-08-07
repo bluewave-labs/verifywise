@@ -162,13 +162,16 @@ class ModelInferencePipeline:
         return results
 
 
-def run_all_evaluations(config_path: Optional[str] = None, limit_samples: Optional[int] = 16):
+def run_all_evaluations(config_path: Optional[str] = None, limit_samples: Optional[int] = 16, 
+                       compass_config: Optional[Dict[str, Any]] = None):
     """
     Run all evaluations using the ModelInferencePipeline and EvaluationRunner.
     
     Args:
         config_path (Optional[str], optional): Path to the config file. Defaults to None.
         limit_samples (Optional[int], optional): Number of samples to evaluate. Defaults to 16.
+        compass_config (Optional[Dict[str, Any]], optional): Configuration for Fairness Compass Engine.
+            Defaults to None.
     
     Returns:
         Dict[str, Any]: Evaluation results
@@ -195,6 +198,18 @@ def run_all_evaluations(config_path: Optional[str] = None, limit_samples: Option
         
         results = evaluator.run_all_evaluations("llm", prompts=prompts, responses=responses)
         
+        # Add fairness compass information to results
+        if compass_config is None:
+            compass_config = {
+                "enforce_policy": False,
+                "ground_truth_available": True,
+                "output_type": "label",
+                "fairness_focus": "precision"
+            }
+        
+        # Add compass configuration to results
+        results["fairness_compass_config"] = compass_config
+        
         # Save results
         print(json.dumps(results, indent=2))
         with open("llm_eval_report.json", "w") as f:
@@ -205,4 +220,59 @@ def run_all_evaluations(config_path: Optional[str] = None, limit_samples: Option
         
     except Exception as e:
         print(f"Error running evaluations: {str(e)}")
+        raise
+
+
+def run_fairness_compass_evaluation(config_path: Optional[str] = None, 
+                                   compass_config: Optional[Dict[str, Any]] = None):
+    """
+    Run fairness compass evaluation specifically for tabular data.
+    
+    Args:
+        config_path (Optional[str], optional): Path to the config file. Defaults to None.
+        compass_config (Optional[Dict[str, Any]], optional): Configuration for Fairness Compass Engine.
+            Defaults to None.
+    
+    Returns:
+        Dict[str, Any]: Fairness compass evaluation results
+    """
+    # Import here to avoid circular imports
+    from .eval_runner import evaluate_fairness_compass
+    from .data_loader import DataLoader
+    from .model_loader import load_sklearn_model
+    from .config import ConfigManager
+    import json
+    
+    try:
+        # Load configuration
+        config_manager = ConfigManager(config_path)
+        config = config_manager.config
+        
+        # Load dataset
+        data_loader = DataLoader(config.dataset)
+        df = data_loader.load_data()
+        print(f"Loaded dataset with {len(df)} samples")
+        
+        # Prepare data for tabular evaluation
+        X = df.drop(columns=[config.dataset.target_column])
+        y = df[config.dataset.target_column]
+        A = df[config.dataset.protected_attributes[0]]
+        
+        # Load model
+        model_path = "model.joblib"
+        model = load_sklearn_model(model_path)
+        
+        # Run fairness compass evaluation
+        results = evaluate_fairness_compass(X, y, A, model, compass_config)
+        
+        # Save results
+        print(json.dumps(results, indent=2))
+        with open("fairness_compass_report.json", "w") as f:
+            json.dump(results, f, indent=2)
+            print("Saved Fairness Compass evaluation results to fairness_compass_report.json")
+        
+        return results
+        
+    except Exception as e:
+        print(f"Error running fairness compass evaluation: {str(e)}")
         raise

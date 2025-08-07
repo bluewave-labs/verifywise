@@ -29,6 +29,7 @@ import trainingRoutes from "./routes/trainingRegistar.route";
 import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import loggerRoutes from "./routes/logger.route";
+import dashboardRoutes from "./routes/dashboard.route"
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -110,6 +111,7 @@ try {
   app.use("/api/logger", loggerRoutes);
 
   app.use("/api/reporting", reportRoutes);
+  app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
   app.use("/api", (req, res) => {

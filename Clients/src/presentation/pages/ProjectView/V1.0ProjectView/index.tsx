@@ -47,6 +47,8 @@ const VWProjectView = () => {
     if (tabParam) {
       searchParams.delete("tab");
       searchParams.delete("framework");
+      searchParams.delete("topicId");
+      searchParams.delete("questionId");
       setSearchParams(searchParams);
     }
     setValue(newValue);

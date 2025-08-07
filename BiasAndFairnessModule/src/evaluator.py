@@ -40,7 +40,6 @@ class FairnessEvaluator:
                 "sample_id",
                 "prompt",
                 "answer",
-                "protected_attributes",
                 "prediction",
             ]
             missing_columns = [
@@ -51,18 +50,6 @@ class FairnessEvaluator:
                     f"Missing required columns in results file: {missing_columns}"
                 )
 
-            # Convert protected_attributes from string to dict using ast for safety
-            self.results["protected_attributes"] = self.results[
-                "protected_attributes"
-            ].apply(ast.literal_eval)
-            # Expand protected_attributes dictionary into separate columns
-            protected_attrs_expanded = pd.json_normalize(
-                self.results["protected_attributes"].tolist()
-            )
-
-            # Add expanded columns back to results DataFrame with 'protected_' prefix
-            for col in protected_attrs_expanded.columns:
-                self.results[col] = protected_attrs_expanded[col]
         except FileNotFoundError:
             raise FileNotFoundError(f"Results file not found at: {self.results_path}")
         except pd.errors.EmptyDataError:

@@ -6,17 +6,18 @@ import {
   Table,
 } from "sequelize-typescript";
 import { numberValidation } from "../../validations/number.valid";
-import {
-  ValidationException,
-  BusinessLogicException,
-} from "../../exceptions/custom.exception";
+import { ValidationException } from "../../exceptions/custom.exception";
 import { FrameworkModel } from "../../models/frameworks/frameworks.model";
 import { ProjectModel } from "../../models/project/project.model";
+import { IISO27001AnnexCategory } from "../../interfaces/i.ISO27001AnnexCategory";
 
 @Table({
   tableName: "iso27001annex_category",
 })
-export class ISO27001AnnexCategoryModel extends Model<ISO27001AnnexCategoryModel> {
+export class ISO27001AnnexCategoryModel
+  extends Model<ISO27001AnnexCategoryModel>
+  implements IISO27001AnnexCategory
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,

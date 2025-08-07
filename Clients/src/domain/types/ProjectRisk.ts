@@ -7,7 +7,7 @@ export type ProjectRiskMitigation = {
   sub_id: number;
   title: string;
   parent_id: number;
-  type: "subclause" | "annexcategory";
+  type: "subclause" | "annexcategory" | "assessment" | "control";
 }
 
 export type ProjectRisk = {
@@ -84,5 +84,7 @@ export type ProjectRisk = {
   date_of_assessment: Date;
   annexCategories?: ProjectRiskMitigation[];
   subClauses?: ProjectRiskMitigation[];
+  assessments?: ProjectRiskMitigation[];
+  controls?: ProjectRiskMitigation[];
   recommendations?: string;
 };

@@ -6,7 +6,7 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import { useCallback, useContext, useMemo, useState, useEffect } from "react";
+import { useCallback, useContext, useMemo, useState, useEffect, Suspense } from "react";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import createUppy from "../../../application/tools/createUppy";
@@ -21,6 +21,8 @@ import { useSelector } from "react-redux";
 import Button from "../Button";
 import Select from "../Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
+import LinkedRisksPopup from "../LinkedRisks";
+import AuditRiskPopup from "../RiskPopup/AuditRiskPopup";
 
 interface QuestionProps {
   question: Question;
@@ -54,6 +56,10 @@ const QuestionFrame = ({
 
   const authToken = useSelector((state: any) => state.auth.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
+  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
+  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
 
   const isEditingDisabled = !(allowedRoles?.frameworks?.edit || []).includes(
     userRoleName
@@ -72,10 +78,17 @@ const QuestionFrame = ({
     }));
   }, []);
 
-  const handleStatusChange = (field: string, value: string | number) => {
+  const handleStatusChange = (field: string, statusValue: string | number) => {
+    if (field === "status" && statusValue === "Done"
+        && (selectedRisks.length > 0 || values.risks.length > 0 || (
+          values.risks.length > 0 && deletedRisks.length === values.risks.length
+        ))
+      ) {
+      setAuditedStatusModalOpen(true)
+    }
     setValues((prevValues) => ({
       ...prevValues,
-      [field]: value,
+      [field]: statusValue,
     }));
   };
 
@@ -111,10 +124,12 @@ const QuestionFrame = ({
     try {
       const response = await updateEntityById({
         routeUrl: `/eu-ai-act/saveAnswer/${question.answer_id}`,
-        body: values,
+        body: {...values, risksDelete: deletedRisks, risksMitigated: selectedRisks},
       });
       if (response.status === 202) {
         setValues(response.data.data);
+        setSelectedRisks([]);
+        setDeletedRisks([]);
         setRefreshKey();
         handleAlert({
           variant: "success",
@@ -323,6 +338,79 @@ const QuestionFrame = ({
           >
             {`${values?.evidence_files?.length || 0} evidence files attached`}
           </Typography>
+
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              sx={{
+                mt: 2,
+                borderRadius: 2,
+                width: 155,
+                height: 25,
+                fontSize: 11,
+                border: "1px solid #D0D5DD",
+                backgroundColor: "white",
+                color: "#344054",
+              }}
+              disableRipple
+              onClick={() => setIsLinkedRisksModalOpen(true)}
+              disabled={isEditingDisabled}
+            >
+              Add/Remove risks
+            </Button>
+            <Stack direction="row" spacing={10}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${values.risks.length || 0} risks linked`}
+              </Typography>
+              {selectedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${selectedRisks.length} ${
+                    selectedRisks.length === 1 ? "risk" : "risks"
+                  } pending upload`}
+                </Typography>
+              )}
+              {deletedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${deletedRisks.length} ${
+                    deletedRisks.length === 1 ? "risk" : "risks"
+                  } pending delete`}
+                </Typography>
+              )}
+            </Stack>
+          </Stack>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
           {question.is_required === true ? "required" : ""}
@@ -338,6 +426,48 @@ const QuestionFrame = ({
           onClose={() => setIsFileUploadOpen(false)}
           onRemoveFile={handleRemoveFile}
         />
+      </Dialog>
+      <Dialog 
+        open={isLinkedRisksModalOpen} 
+        onClose={() => setIsLinkedRisksModalOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '1500px',
+            maxWidth: '1500px',
+            minHeight: '520px'
+          },
+        }}
+      >
+        <Suspense fallback={"loading..."}>
+          <LinkedRisksPopup
+            onClose={() => setIsLinkedRisksModalOpen(false)}
+            currentRisks={values.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+            setSelectecRisks={setSelectedRisks}
+            _setDeletedRisks={setDeletedRisks}
+          />
+        </Suspense>
+      </Dialog>
+      <Dialog 
+        open={auditedStatusModalOpen} 
+        onClose={() => setAuditedStatusModalOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '800px',
+            maxWidth: '800px',
+            minHeight: '300px'
+          },
+        }}
+      >
+        <Suspense fallback={"loading..."}>
+          <AuditRiskPopup
+            onClose={() => setAuditedStatusModalOpen(false)}
+            risks={values.risks.concat(selectedRisks)}
+            _deletedRisks={deletedRisks}
+            _setDeletedRisks={setDeletedRisks}
+            _selectedRisks={selectedRisks}
+            _setSelectedRisks={setSelectedRisks}
+          />
+        </Suspense>
       </Dialog>
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />

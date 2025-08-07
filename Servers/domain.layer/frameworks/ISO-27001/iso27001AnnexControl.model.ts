@@ -9,6 +9,7 @@ import { numberValidation } from "../../validations/number.valid";
 import { ValidationException } from "../../exceptions/custom.exception";
 import { UserModel } from "../../models/user/user.model";
 import { ISO27001AnnexCategoryModel } from "./ISO27001AnnexCategory.model";
+import { IISO27001AnnexControl } from "../../interfaces/i.iso27001AnnexControl";
 
 export type ControlStatus =
   | "Waiting"
@@ -20,7 +21,10 @@ export type ControlStatus =
 @Table({
   tableName: "iso27001annex_control",
 })
-export class ISO27001AnnexControlModel extends Model<ISO27001AnnexControlModel> {
+export class ISO27001AnnexControlModel
+  extends Model<ISO27001AnnexControlModel>
+  implements IISO27001AnnexControl
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,

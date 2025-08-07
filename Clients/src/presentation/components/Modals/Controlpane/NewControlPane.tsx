@@ -725,6 +725,13 @@ const NewControlPane = ({
       <Dialog 
         open={isLinkedRisksModalOpen} 
         onClose={() => setIsLinkedRisksModalOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '1500px',
+            maxWidth: '1500px',
+            minHeight: '520px'
+          },
+        }}
       >
         <Suspense fallback={"loading..."}>
           <LinkedRisksPopup
@@ -738,6 +745,13 @@ const NewControlPane = ({
       <Dialog 
         open={auditedStatusModalOpen} 
         onClose={() => setAuditedStatusModalOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '800px',
+            maxWidth: '800px',
+            minHeight: '300px'
+          },
+        }}
       >
         <Suspense fallback={"loading..."}>
           <AuditRiskPopup

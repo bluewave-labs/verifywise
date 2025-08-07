@@ -21,6 +21,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
+import { useSearchParams } from "react-router-dom";
 
 const ISO42001Clauses = ({
   project,
@@ -51,6 +52,9 @@ const ISO42001Clauses = ({
     totalSubclauses: number;
     doneSubclauses: number;
   }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clauseId = searchParams.get("clauseId");
+  const subClauseId = searchParams.get("subClauseId");
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -63,6 +67,7 @@ const ISO42001Clauses = ({
         routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
       });
       setClauses(response);
+      setSubClausesMap({});
     } catch (error) {
       console.error("Error fetching clauses:", error);
       setClauses([]);
@@ -104,29 +109,36 @@ const ISO42001Clauses = ({
     []
   );
 
+  useEffect(() => {
+    if (expanded !== false && !subClausesMap[expanded]) {
+      const clause = clauses.find((c) => c.id === expanded);
+      if (clause) {
+        fetchSubClauses(expanded, clause.subClauses);
+      }
+    }
+  }, [clauses, expanded, fetchSubClauses, subClausesMap]);
+
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
-
-      if (isExpanded && !subClausesMap[panel]) {
-        const clause = clauses.find((c) => c.id === panel);
-        if (clause) {
-          await fetchSubClauses(panel, clause.subClauses);
-        }
-      }
     };
 
-  const handleSubClauseClick = (clause: any, subClause: any, index: number) => {
+  const handleSubClauseClick = useCallback((clause: any, subClause: any, index: number) => {
     setSelectedClause(clause);
     setSelectedSubClause(subClause);
     setSelectedIndex(index);
     setDrawerOpen(true);
-  };
+  }, []);
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
     setSelectedSubClause(null);
     setSelectedClause(null);
+    if (clauseId && subClauseId) {
+      searchParams.delete("clauseId");
+      searchParams.delete("subClauseId");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleSaveSuccess = async (
@@ -145,13 +157,6 @@ const ISO42001Clauses = ({
     if (success && savedSubClauseId) {
       setFlashingRowId(savedSubClauseId);
       setTimeout(() => setFlashingRowId(null), 2000);
-
-      if (expanded !== false) {
-        const clause = clauses.find((c) => c.id === expanded);
-        if (clause) {
-          await fetchSubClauses(expanded, clause.subClauses);
-        }
-      }
 
       setRefreshTrigger((prev) => prev + 1);
     }
@@ -209,6 +214,26 @@ const ISO42001Clauses = ({
       </AccordionDetails>
     );
   }
+
+  useEffect(() => {
+    if (clauseId && subClauseId && clauses.length > 0) {
+      const clause = clauses.find((c) => c.id === parseInt(clauseId));
+      async function fetchSubClause() {
+        try {
+          const response = await getEntityById({
+            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
+          });
+          setSelectedSubClause({...response.data, id: response.data.clause_id});
+          if (clause && clauseId) {
+            handleSubClauseClick(clause, {...response.data, id: response.data.clause_id}, parseInt(clauseId));
+          }
+        } catch (error) {
+          console.error("Error fetching subclause:", error);
+        }
+      }
+      fetchSubClause();
+    }
+  }, [clauseId, subClauseId, clauses]);
 
   return (
     <Stack className="iso-42001-clauses">

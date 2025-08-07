@@ -23,6 +23,7 @@ import NewControlPane from "../../../components/Modals/Controlpane/NewControlPan
 import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useSearchParams } from "react-router-dom";
 
 interface Column {
   name: string;
@@ -62,6 +63,19 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const controlId = searchParams.get("controlId");
+
+  useEffect(() => {
+    if (controlId) {
+      const controlExists = controls.find(control => control.id === Number(controlId));
+      if (controlExists) {
+        (async () => {
+          await handleRowClick(Number(controlId));
+        })();
+      }
+    }
+  }, [controlId, controls])
 
   // Reset state when project changes
   useEffect(() => {
@@ -86,6 +100,10 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedRow(null);
+    if (controlId) {
+      searchParams.delete("controlId");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleControlUpdate = () => {

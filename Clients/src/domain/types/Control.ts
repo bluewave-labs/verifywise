@@ -16,4 +16,5 @@ export type Control = {
   numberOfSubcontrols?: number;
   numberOfDoneSubcontrols?: number;
   subControls?: Subcontrol[];
+  risks: number[];
 };

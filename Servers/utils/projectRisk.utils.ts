@@ -4,18 +4,75 @@ import { QueryTypes, Transaction } from "sequelize";
 import { updateProjectUpdatedByIdQuery } from "./project.utils";
 import { IProjectRisk } from "../domain.layer/interfaces/I.projectRisk";
 
+type Mitigation = { id: number, meta_id: number, parent_id: number, sup_id: string, title: string, sub_id: number }
+
 export const getAllProjectRisksQuery = async (
   projectId: number,
   tenant: string
 ): Promise<IProjectRisk[]> => {
-  const projectRisks = await sequelize.query(
+  const result = await sequelize.query(
     `SELECT * FROM "${tenant}".projectrisks WHERE project_id = :project_id ORDER BY created_at DESC, id ASC`,
-    {
-      replacements: { project_id: projectId },
-      mapToModel: true,
-      model: ProjectRiskModel,
+    { replacements: { project_id: projectId } }
+  ) as [IProjectRisk[], number];
+  const projectRisks = result[0]
+  for (let risk of projectRisks) {
+    (risk as any).subClauses = [];
+    (risk as any).annexCategories = [];
+    (risk as any).controls = [];
+
+    const attachedSubClauses = await sequelize.query(
+      `SELECT
+        scr.subclause_id AS id, sc.subclause_meta_id AS meta_id, csi.clause_no AS sup_id, scs.title, scs.order_no AS sub_id, csi.id AS parent_id
+      FROM "${tenant}".subclauses_iso__risks scr JOIN "${tenant}".subclauses_iso sc ON scr.subclause_id = sc.id
+      JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
+      JOIN public.clauses_struct_iso csi ON csi.id = scs.clause_id
+      WHERE projects_risks_id = :riskId`,
+      { replacements: { riskId: risk.id } }
+    ) as [Mitigation[], number];
+    if (attachedSubClauses[0].length > 0) {
+      (risk as any).subClauses = attachedSubClauses[0];
     }
-  );
+
+    const attachedAnnexCategories = await sequelize.query(
+      `SELECT
+       acr.annexcategory_id AS id, ac.annexcategory_meta_id AS meta_id, asi.annex_no AS sup_id, acs.sub_id AS sub_id, acs.title, asi.id AS parent_id
+      FROM "${tenant}".annexcategories_iso__risks acr JOIN "${tenant}".annexcategories_iso ac ON acr.annexcategory_id = ac.id
+      JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
+      JOIN public.annex_struct_iso asi ON asi.id = acs.annex_id
+      WHERE projects_risks_id = :riskId`,
+      { replacements: { riskId: risk.id } }
+    ) as [Mitigation[], number];
+    if (attachedAnnexCategories[0].length > 0) {
+      (risk as any).annexCategories = attachedAnnexCategories[0];
+    }
+
+    const attachedControls = await sequelize.query(
+      `SELECT cr.control_id AS id, ac.control_meta_id AS meta_id, ccs.id AS sup_id, cse.id AS sub_id, cse.title, cse.id AS parent_id
+      FROM "${tenant}".controls_eu__risks cr JOIN "${tenant}".controls_eu ac ON cr.control_id = ac.id
+      JOIN public.controls_struct_eu cse ON cse.id = ac.control_meta_id
+      JOIN public.controlcategories_struct_eu ccs ON ccs.id = cse.control_category_id
+      WHERE projects_risks_id = :riskId`,
+      { replacements: { riskId: risk.id } }
+    ) as [Mitigation[], number];
+    if (attachedControls[0].length > 0) {
+      (risk as any).controls = attachedControls[0];
+    }
+
+    const attachedAssessments = await sequelize.query(
+      `SELECT ans.id AS id, ans.question_id AS meta_id, ts.id AS sup_id, sts.id AS sub_id, 
+        ts.title || '. ' || sts.title || '. ' || qse.question AS title, 
+        qse.id AS parent_id
+      FROM "${tenant}".answers_eu__risks aur JOIN "${tenant}".answers_eu ans ON aur.answer_id = ans.id
+      JOIN public.questions_struct_eu qse ON qse.id = ans.question_id
+      JOIN public.subtopics_struct_eu sts ON sts.id = qse.subtopic_id
+      JOIN public.topics_struct_eu ts ON ts.id = sts.topic_id
+      WHERE projects_risks_id = :riskId`,
+      { replacements: { riskId: risk.id } }
+    ) as [Mitigation[], number];
+    if (attachedAssessments[0].length > 0) {
+      (risk as any).assessments = attachedAssessments[0];
+    }
+  }
   return projectRisks;
 };
 
@@ -25,13 +82,70 @@ export const getProjectRiskByIdQuery = async (
 ): Promise<IProjectRisk | null> => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".projectrisks WHERE id = :id`,
-    {
-      replacements: { id },
-      mapToModel: true,
-      model: ProjectRiskModel,
-    }
-  );
-  return result[0];
+    { replacements: { id } }
+  ) as [IProjectRisk[], number];
+  const projectRisk = result[0][0];
+  if (!projectRisk) return null;
+
+  (projectRisk as any).subClauses = [];
+  (projectRisk as any).annexCategories = [];
+  (projectRisk as any).controls = [];
+  (projectRisk as any).assessments = [];
+
+  const attachedSubClauses = await sequelize.query(
+    `SELECT
+        scr.subclause_id AS id, sc.subclause_meta_id AS meta_id, csi.clause_no AS sup_id, scs.title, scs.order_no AS sub_id, csi.id AS parent_id
+      FROM "${tenant}".subclauses_iso__risks scr JOIN "${tenant}".subclauses_iso sc ON scr.subclause_id = sc.id
+      JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
+      JOIN public.clauses_struct_iso csi ON csi.id = scs.clause_id
+      WHERE projects_risks_id = :riskId`,
+    { replacements: { riskId: projectRisk.id } }
+  ) as [Mitigation[], number];
+  if (attachedSubClauses[0].length > 0) {
+    (projectRisk as any).subClauses = attachedSubClauses[0];
+  }
+
+  const attachedAnnexCategories = await sequelize.query(
+    `SELECT
+       acr.annexcategory_id AS id, ac.annexcategory_meta_id AS meta_id, asi.annex_no AS sup_id, acs.sub_id AS sub_id, acs.title, asi.id AS parent_id
+      FROM "${tenant}".annexcategories_iso__risks acr JOIN "${tenant}".annexcategories_iso ac ON acr.annexcategory_id = ac.id
+      JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
+      JOIN public.annex_struct_iso asi ON asi.id = acs.annex_id
+      WHERE projects_risks_id = :riskId`,
+    { replacements: { riskId: projectRisk.id } }
+  ) as [Mitigation[], number];
+  if (attachedAnnexCategories[0].length > 0) {
+    (projectRisk as any).annexCategories = attachedAnnexCategories[0];
+  }
+
+  const attachedControls = await sequelize.query(
+    `SELECT cr.control_id AS id, ac.control_meta_id AS meta_id, ccs.id AS sup_id, cse.id AS sub_id, cse.title, cse.id AS parent_id
+      FROM "${tenant}".controls_eu__risks cr JOIN "${tenant}".controls_eu ac ON cr.control_id = ac.id
+      JOIN public.controls_struct_eu cse ON cse.id = ac.control_meta_id
+      JOIN public.controlcategories_struct_eu ccs ON ccs.id = cse.control_category_id
+      WHERE projects_risks_id = :riskId`,
+    { replacements: { riskId: projectRisk.id } }
+  ) as [Mitigation[], number];
+  if (attachedControls[0].length > 0) {
+    (projectRisk as any).controls = attachedControls[0];
+  }
+
+  const attachedAssessments = await sequelize.query(
+    `SELECT ans.id AS id, ans.question_id AS meta_id, ts.id AS sup_id, sts.id AS sub_id, 
+        ts.title || '. ' || sts.title || '. ' || qse.question AS title, 
+        qse.id AS parent_id
+      FROM "${tenant}".answers_eu__risks aur JOIN "${tenant}".answers_eu ans ON aur.answer_id = ans.id
+      JOIN public.questions_struct_eu qse ON qse.id = ans.question_id
+      JOIN public.subtopics_struct_eu sts ON sts.id = qse.subtopic_id
+      JOIN public.topics_struct_eu ts ON ts.id = sts.topic_id
+      WHERE projects_risks_id = :riskId`,
+    { replacements: { riskId: projectRisk.id } }
+  ) as [Mitigation[], number];
+  if (attachedAssessments[0].length > 0) {
+    (projectRisk as any).assessments = attachedAssessments[0];
+  }
+
+  return projectRisk;
 };
 
 export const getNonMitigatedProjectRisksQuery = async (

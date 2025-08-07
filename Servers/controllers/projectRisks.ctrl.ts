@@ -31,7 +31,10 @@ export async function getAllProjectRisks(
   );
   logger.debug(`🔍 Fetching all project risks for project ID: ${projectId}`);
   try {
-    const projectRisks = await getAllProjectRisksQuery(projectId, req.tenantId!);
+    const projectRisks = await getAllProjectRisksQuery(
+      projectId,
+      req.tenantId!
+    );
 
     if (projectRisks) {
       logStructured(
@@ -39,10 +42,6 @@ export async function getAllProjectRisks(
         `project risks found for project ID: ${projectId}`,
         "getAllProjectRisks",
         "projectRisks.ctrl.ts"
-      );
-      await logEvent(
-        "Read",
-        `Project risks retrieved for project ID: ${projectId}`
       );
       return res.status(200).json(STATUS_CODE[200](projectRisks));
     }
@@ -52,10 +51,6 @@ export async function getAllProjectRisks(
       `no project risks found for project ID: ${projectId}`,
       "getAllProjectRisks",
       "projectRisks.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `No project risks found for project ID: ${projectId}`
     );
     return res.status(204).json(STATUS_CODE[204](projectRisks));
   } catch (error) {
@@ -87,7 +82,10 @@ export async function getProjectRiskById(
   );
   logger.debug(`🔍 Looking up project risk with ID: ${projectRiskId}`);
   try {
-    const projectRisk = await getProjectRiskByIdQuery(projectRiskId, req.tenantId!);
+    const projectRisk = await getProjectRiskByIdQuery(
+      projectRiskId,
+      req.tenantId!
+    );
 
     if (projectRisk) {
       logStructured(
@@ -96,7 +94,6 @@ export async function getProjectRiskById(
         "getProjectRiskById",
         "projectRisks.ctrl.ts"
       );
-      await logEvent("Read", `Project risk retrieved by ID: ${projectRiskId}`);
       return res.status(200).json(STATUS_CODE[200](projectRisk));
     }
 
@@ -106,7 +103,6 @@ export async function getProjectRiskById(
       "getProjectRiskById",
       "projectRisks.ctrl.ts"
     );
-    await logEvent("Read", `No project risk found with ID: ${projectRiskId}`);
     return res.status(204).json(STATUS_CODE[204](projectRisk));
   } catch (error) {
     logStructured(
@@ -139,16 +135,15 @@ export async function getNonMitigatedProjectRisks(
     `🔍 Fetching non-mitigated project risks for project ID: ${projectId}`
   );
   try {
-    const projectRisks = await getNonMitigatedProjectRisksQuery(projectId, req.tenantId!);
+    const projectRisks = await getNonMitigatedProjectRisksQuery(
+      projectId,
+      req.tenantId!
+    );
     logStructured(
       "successful",
       `non-mitigated project risks fetched for project ID: ${projectId}`,
       "getNonMitigatedProjectRisks",
       "projectRisks.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `Non-mitigated project risks retrieved for project ID: ${projectId}`
     );
     return res.status(200).json(STATUS_CODE[200](projectRisks));
   } catch (error) {
@@ -289,19 +284,37 @@ export async function updateProjectRiskById(
   try {
     const updateData = req.body;
 
-    // Find the project risk by ID with validation
-    const projectRisk =
-      await ProjectRiskModel.findByIdWithValidation(projectRiskId);
+    // First, get the existing project risk to update
+    const existingProjectRisk = await getProjectRiskByIdQuery(
+      projectRiskId,
+      req.tenantId!
+    );
 
-    // Update the project risk using the model's update method
-    await projectRisk.updateProjectRisk(updateData);
+    if (!existingProjectRisk) {
+      logStructured(
+        "error",
+        `project risk not found: ID ${projectRiskId}`,
+        "updateProjectRiskById",
+        "projectRisks.ctrl.ts"
+      );
+      await logEvent(
+        "Error",
+        `Project risk not found for update: ID ${projectRiskId}`
+      );
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
+    }
+
+    // Create a ProjectRiskModel instance with the existing data and update it
+    const projectRiskModel = new ProjectRiskModel(existingProjectRisk);
+    await projectRiskModel.updateProjectRisk(updateData);
 
     // Validate the updated project risk data
-    await projectRisk.validateProjectRiskData();
+    await projectRiskModel.validateProjectRiskData();
 
     const updatedProjectRisk = await updateProjectRiskByIdQuery(
       projectRiskId,
-      projectRisk,
+      projectRiskModel,
       req.tenantId!,
       transaction
     );

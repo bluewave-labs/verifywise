@@ -1,5 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/getAuthToken";
+import { getAuthToken } from "../redux/auth/getAuthToken";
 
 //Add training registry data to the database by sending a "POST" request to "/training"
 /**

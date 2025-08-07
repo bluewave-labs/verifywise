@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography, Stack } from "@mui/material";
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -20,6 +20,8 @@ import {
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import aiTrustCenterHelpContent from "../../../presentation/helpers/ai-trust-center-help.html?raw";
 
 const AITrustCenter: React.FC = () => {
   const [tabValue, setTabValue] = React.useState('overview');
@@ -27,6 +29,8 @@ const AITrustCenter: React.FC = () => {
   const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const tenantHash = userToken?.tenantId;
+
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   
   const handlePreviewMode = () => {
     try {
@@ -34,8 +38,9 @@ const AITrustCenter: React.FC = () => {
         console.error('Tenant hash not found in token');
         return;
       }
-      const previewUrl = `http://localhost:3000/api/aiTrustCentre/${tenantHash}`;
-      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      // Open the public page in a new tab
+      const publicUrl = `${window.location.origin}/public`;
+      window.open(publicUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Error opening preview:', error);
     }
@@ -43,12 +48,17 @@ const AITrustCenter: React.FC = () => {
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={aiTrustCenterHelpContent}
+        pageTitle="AI Trust Center"
+      />
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
-        <Typography sx={aiTrustCenterHeaderTitle}>
-          AI trust center
-        </Typography>
+        <Typography sx={aiTrustCenterHeaderTitle}>AI trust center</Typography>
         <Typography sx={aiTrustCenterHeaderDesc}>
-          Manage and monitor AI governance, compliance, and trust-related activities
+          Manage and monitor AI governance, compliance, and trust-related
+          activities
         </Typography>
       </Stack>
       <Stack className="vw-project-view-body">
@@ -83,13 +93,13 @@ const AITrustCenter: React.FC = () => {
                 value="settings"
                 disableRipple
               />
-               <CustomizableButton
+              <CustomizableButton
                 variant="contained"
                 text="Preview mode"
                 sx={{
                   ...aiTrustCenterPreviewButtonStyle,
                   opacity: !tenantHash ? 0.5 : 1,
-                  cursor: !tenantHash ? 'not-allowed' : 'pointer',
+                  cursor: !tenantHash ? "not-allowed" : "pointer",
                 }}
                 icon={<VisibilityIcon />}
                 onClick={handlePreviewMode}

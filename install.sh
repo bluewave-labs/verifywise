@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# verify_checksum() {
+#     local file=$1
+#     local expected_checksum=$2
+    
+#     if command -v sha256sum &> /dev/null; then
+#         echo "$expected_checksum  $file" | sha256sum -c -
+#     elif command -v shasum &> /dev/null; then
+#         echo "$expected_checksum  $file" | shasum -a 256 -c -
+#     else
+#         echo "Error: Neither sha256sum nor shasum found. Cannot verify checksums."
+#         exit 1
+#     fi
+# }
+
 # Function to detect whether to use `docker-compose` or `docker compose`
 detect_docker_compose() {
     if command -v docker-compose &> /dev/null; then
@@ -22,6 +36,19 @@ check_and_download_compose_files() {
             exit 1
         fi
     fi
+    # if [ ! -f "docker-compose.yml" ]; then
+    #     echo "docker-compose.yml not found. Downloading..."
+    #     curl -fSL --output docker-compose.yml https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.yml
+    #     if [ $? -ne 0 ]; then
+    #         echo "Error: Failed to download docker-compose.yml."
+    #         exit 1
+    #     fi
+        
+    #     # Extract checksum for docker-compose.yml
+    #     COMPOSE_CHECKSUM=$(grep "docker-compose.yml" checksums.sha256 | awk '{print $1}')
+    #     echo "Verifying docker-compose.yml..."
+    #     verify_checksum "docker-compose.yml" "$COMPOSE_CHECKSUM" || exit 1
+    # fi
 
     if [ ! -f "docker-compose.prod.yml" ]; then
         echo "docker-compose.prod.yml not found. Downloading..."
@@ -31,6 +58,19 @@ check_and_download_compose_files() {
             exit 1
         fi
     fi
+    # if [ ! -f "docker-compose.prod.yml" ]; then
+    #     echo "docker-compose.prod.yml not found. Downloading..."
+    #     curl -fSL --output docker-compose.prod.yml https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/docker-compose.prod.yml
+    #     if [ $? -ne 0 ]; then
+    #         echo "Error: Failed to download docker-compose.prod.yml."
+    #         exit 1
+    #     fi
+        
+    #     # Extract checksum for docker-compose.prod.yml
+    #     PROD_CHECKSUM=$(grep "docker-compose.prod.yml" checksums.sha256 | awk '{print $1}')
+    #     echo "Verifying docker-compose.prod.yml..."
+    #     verify_checksum "docker-compose.prod.yml" "$PROD_CHECKSUM" || exit 1
+    # fi
 }
 
 # Function to read environment variables from .env file

@@ -1,4 +1,11 @@
-import { useState, useRef, useCallback, useMemo, useEffect, Suspense } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+  Suspense,
+} from "react";
 import {
   Box,
   Button,
@@ -9,7 +16,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
@@ -23,6 +30,8 @@ import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabPanelStyle } from "../Vendors/style";
 import Alert from "../../components/Alert";
 import CustomizableToast from "../../vw-v2-components/Toast";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import biasFairnessHelpContent from "../../../presentation/helpers/bias-fairness-help.html?raw";
 
 export type FairnessModel = {
   id: number | string; // Use number or string based on your backend response
@@ -49,26 +58,27 @@ export default function FairnessDashboard() {
   const targetColumnItems = useMemo(() => {
     return columnOptions.map((col) => ({ _id: col, name: col }));
   }, [columnOptions]);
-  
+
   const [page, setPage] = useState(0);
-  
-  
+
   const [uploadedModels, setUploadedModels] = useState<FairnessModel[]>([]);
+
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const fetchMetrics = async () => {
     try {
       const metrics = await fairnessService.getAllFairnessMetrics();
 
       if (!metrics || metrics.length === 0) {
-        setUploadedModels([]);  // Show empty table
+        setUploadedModels([]); // Show empty table
         return; // Don't raise error
       }
-      
+
       const formatted = metrics.map((item: any) => ({
         id: item.metrics_id, // use this for "ID" column
         model: item.model_filename,
         dataset: item.data_filename,
-        status: 'Completed', // Assuming all fetched metrics are completed
+        status: "Completed", // Assuming all fetched metrics are completed
       }));
       setUploadedModels(formatted);
     } catch {
@@ -79,16 +89,15 @@ export default function FairnessDashboard() {
       setTimeout(() => setAlert(null), 8000);
     }
   };
-  
+
   useEffect(() => {
     fetchMetrics();
   }, []);
-  
+
   const buttonRef = useRef(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
   const datasetInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-
 
   const uploadFields: {
     label: string;
@@ -96,42 +105,41 @@ export default function FairnessDashboard() {
     file: File | null;
     setFile: (file: File | null) => void;
     ref: React.RefObject<HTMLInputElement>;
-    errorKey: 'modelFile' | 'datasetFile';
-    }[] = [
-        {
-        label: 'model',
-        accept: '.pkl',
-        file: modelFile,
-        setFile: setModelFile,
-        ref: modelInputRef,
-        errorKey: 'modelFile',
-        },
-        {
-        label: 'dataset',
-        accept: '.csv',
-        file: datasetFile,
-        setFile: setDatasetFile,
-        ref: datasetInputRef,
-        errorKey: 'datasetFile',
-        },
-    ];
-  
-  const FAIRNESS_COLUMNS = [
-    { id: 'id', label: 'Check ID' },
-    { id: 'model', label: 'Model' },
-    { id: 'dataset', label: 'Dataset' },
-    { id: 'status', label: 'Status' },
-    { id: 'report', label: 'Report' },
-    { id : 'action', label: 'Action'}
+    errorKey: "modelFile" | "datasetFile";
+  }[] = [
+    {
+      label: "model",
+      accept: ".pkl",
+      file: modelFile,
+      setFile: setModelFile,
+      ref: modelInputRef,
+      errorKey: "modelFile",
+    },
+    {
+      label: "dataset",
+      accept: ".csv",
+      file: datasetFile,
+      setFile: setDatasetFile,
+      ref: datasetInputRef,
+      errorKey: "datasetFile",
+    },
   ];
-  
+
+  const FAIRNESS_COLUMNS = [
+    { id: "id", label: "Check ID" },
+    { id: "model", label: "Model" },
+    { id: "dataset", label: "Dataset" },
+    { id: "status", label: "Status" },
+    { id: "report", label: "Report" },
+    { id: "action", label: "Action" },
+  ];
+
   const [errors, setErrors] = useState({
     modelFile: false,
     datasetFile: false,
     targetColumn: false,
-    sensitiveColumn: false
+    sensitiveColumn: false,
   });
-  
 
   const handleDotClick = () => {
     if (hasInteracted) return;
@@ -140,19 +148,20 @@ export default function FairnessDashboard() {
     setHasInteracted(true);
   };
 
-
-  const handleShowDetails = useCallback((model: FairnessModel) => {
-    if (model?.id) {
-      navigate(`/fairness-results/${model.id}`);
-    } else {
+  const handleShowDetails = useCallback(
+    (model: FairnessModel) => {
+      if (model?.id) {
+        navigate(`/fairness-results/${model.id}`);
+      } else {
         setAlert({
-            variant: "error",
-            body: "Invalid model:" + model.id + "Please try again.",
-          });
-          setTimeout(() => setAlert(null), 8000);
-    }
-  }, [navigate]);
-    
+          variant: "error",
+          body: "Invalid model:" + model.id + "Please try again.",
+        });
+        setTimeout(() => setAlert(null), 8000);
+      }
+    },
+    [navigate]
+  );
 
   const handlePopoverClose = () => {
     setAnchorEl(null);
@@ -169,62 +178,63 @@ export default function FairnessDashboard() {
     if (modelInputRef.current) modelInputRef.current.value = "";
     if (datasetInputRef.current) datasetInputRef.current.value = "";
     setErrors({
-        modelFile: false,
-        datasetFile: false,
-        targetColumn: false,
-        sensitiveColumn: false
+      modelFile: false,
+      datasetFile: false,
+      targetColumn: false,
+      sensitiveColumn: false,
     });
-      
   };
-  
+
   const confirmDelete = async (id: number) => {
     if (id === null) return;
     try {
       await fairnessService.deleteFairnessCheck(id);
-      const filtered = uploadedModels.filter(model => model.id !== id);
+      const filtered = uploadedModels.filter((model) => model.id !== id);
       setUploadedModels(filtered);
     } catch {
-        setAlert({
-            variant: "error",
-            body: "Failed to delete model. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 8000);
+      setAlert({
+        variant: "error",
+        body: "Failed to delete model. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 8000);
     }
   };
-  
 
   const handleSaveModel = async () => {
     const newErrors = {
-        modelFile: !modelFile,
-        datasetFile: !datasetFile,
-        targetColumn: !targetColumn,
-        sensitiveColumn: !sensitiveColumn
+      modelFile: !modelFile,
+      datasetFile: !datasetFile,
+      targetColumn: !targetColumn,
+      sensitiveColumn: !sensitiveColumn,
     };
     setErrors(newErrors);
-    
+
     const hasError = Object.values(newErrors).some(Boolean);
     if (hasError) return;
     if (!modelFile || !datasetFile || !targetColumn || !sensitiveColumn) return;
-  
+
     setShowToastNotification(true);
     try {
-      await fairnessService.uploadFairnessFiles({
-        model: modelFile,
-        data: datasetFile,
-        target_column: targetColumn,
-        sensitive_column: sensitiveColumn,
-      }, setUploadedModels);
+      await fairnessService.uploadFairnessFiles(
+        {
+          model: modelFile,
+          data: datasetFile,
+          target_column: targetColumn,
+          sensitive_column: sensitiveColumn,
+        },
+        setUploadedModels
+      );
 
       // await fetchMetrics(); // Refresh entire fairness model list with IDs
       resetForm();
     } catch {
-        setAlert({
-            variant: "error",
-            body: "Failed to upload model. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 8000);
-    } finally{
-        setShowToastNotification(false);
+      setAlert({
+        variant: "error",
+        body: "Failed to upload model. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 8000);
+    } finally {
+      setShowToastNotification(false);
     }
   };
 
@@ -234,41 +244,65 @@ export default function FairnessDashboard() {
     body: string;
   } | null>(null);
 
-  
-
   return (
     <Stack className="vwhome" gap="20px">
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={biasFairnessHelpContent}
+        pageTitle="Bias & Fairness Assessment"
+      />
       <Box>
-        <Typography sx={styles.vwHeadingTitle}>Bias & fairness dashboard</Typography>
+        <Typography sx={styles.vwHeadingTitle}>
+          Bias & fairness dashboard
+        </Typography>
         <Typography sx={styles.vwSubHeadingTitle}>
-        This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model’s input requirements.
+          This table displays fairness evaluation results for your uploaded
+          models. To evaluate a new model, upload the model along with its
+          dataset, target column, and at least one sensitive feature. Only
+          classification models are supported at the moment. Make sure your
+          model includes preprocessing steps, such as an sklearn.Pipeline, and
+          that the dataset is already formatted to match the model’s input
+          requirements.
         </Typography>
       </Box>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-            <Alert
+          <Alert
             variant={alert.variant}
             title={alert.title}
             body={alert.body}
             isToast={true}
             onClick={() => setAlert(null)}
-            />
+          />
         </Suspense>
-        )}
+      )}
 
       <TabContext value={tab}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <TabList
             onChange={(_, newVal) => setTab(newVal)}
-            TabIndicatorProps={{ style: { backgroundColor: "#13715B", height: "2px" } }}
+            TabIndicatorProps={{
+              style: { backgroundColor: "#13715B", height: "2px" },
+            }}
             sx={styles.tabList}
           >
-            <Tab label="Fairness checks" value="uploads" disableRipple sx={{textTransform: 'none !important'}}/>
+            <Tab
+              label="Fairness checks"
+              value="uploads"
+              disableRipple
+              sx={{ textTransform: "none !important" }}
+            />
           </TabList>
         </Box>
 
         <TabPanel value="uploads" sx={tabPanelStyle}>
-          <Box display="flex" justifyContent="flex-end" mb={3} position="relative">
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            mb={3}
+            position="relative"
+          >
             <Button
               ref={buttonRef}
               variant="contained"
@@ -282,7 +316,8 @@ export default function FairnessDashboard() {
                 fontWeight: 500,
                 padding: "6px 16px",
                 borderRadius: 2,
-                fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+                fontFamily:
+                  "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
                 lineHeight: 1.75,
                 minWidth: "64px",
                 position: "relative",
@@ -321,7 +356,9 @@ export default function FairnessDashboard() {
               disableRestoreFocus
             >
               <Box sx={{ p: 2, maxWidth: 300 }}>
-                <Typography variant="body2">Click "Validate fairness" to start a new fairness validation.</Typography>
+                <Typography variant="body2">
+                  Click "Validate fairness" to start a new fairness validation.
+                </Typography>
               </Box>
             </Popover>
             <Backdrop
@@ -332,126 +369,188 @@ export default function FairnessDashboard() {
           </Box>
 
           <FairnessTable
-            columns={FAIRNESS_COLUMNS.map(col => col.label)}
+            columns={FAIRNESS_COLUMNS.map((col) => col.label)}
             rows={uploadedModels}
             page={page}
             setCurrentPagingation={setPage}
             onShowDetails={handleShowDetails}
             removeModel={{
-                onConfirm: confirmDelete
-              }}
-            
+              onConfirm: confirmDelete,
+            }}
           />
-          
 
           <Dialog open={dialogOpen} onClose={resetForm} maxWidth="sm" fullWidth>
             <DialogTitle>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Box>
-                <Typography sx={{ fontWeight: 600 }}>Validate fairness</Typography>
-                <Typography variant="body2" sx={{ fontSize: "13px", color: "#667085", mt: 0.5 }}>
-                Ensure your model includes preprocessing steps, and your dataset is preprocessed in the same way before upload.
-                </Typography>
+                  <Typography sx={{ fontWeight: 600 }}>
+                    Validate fairness
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: "13px", color: "#667085", mt: 0.5 }}
+                  >
+                    Ensure your model includes preprocessing steps, and your
+                    dataset is preprocessed in the same way before upload.
+                  </Typography>
                 </Box>
-                <IconButton onClick={resetForm}><CloseIcon /></IconButton>
+                <IconButton onClick={resetForm}>
+                  <CloseIcon />
+                </IconButton>
               </Box>
             </DialogTitle>
             <DialogContent>
               <Stack spacing={2}>
-                {uploadFields.map(({ label, accept, file, setFile, ref, errorKey }) => (
-                  <Box key={label}>
-                    <Typography sx={{ fontWeight: 500, mb: 0.5 , mt: 3}}>{`Upload ${label} (${accept})`}</Typography>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      sx={{ borderColor:  errors[errorKey] ? "#F04438" : "#13715B", 
-                        color: "#13715B", 
-                        textTransform: "none", 
-                        fontWeight: 500, 
-                        mb:5, 
-                        borderOpacity: errors[errorKey] ? 0.8 : 1
+                {uploadFields.map(
+                  ({ label, accept, file, setFile, ref, errorKey }) => (
+                    <Box key={label}>
+                      <Typography
+                        sx={{ fontWeight: 500, mb: 0.5, mt: 3 }}
+                      >{`Upload ${label} (${accept})`}</Typography>
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        sx={{
+                          borderColor: errors[errorKey] ? "#F04438" : "#13715B",
+                          color: "#13715B",
+                          textTransform: "none",
+                          fontWeight: 500,
+                          mb: 5,
+                          borderOpacity: errors[errorKey] ? 0.8 : 1,
                         }}
-                    >
-                      {`Choose ${label} file`}
-                      <input
-                        type="file"
-                        hidden
-                        accept={accept}
-                        ref={ref}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          setFile(file || null);
-                          setErrors((prev) => ({ ...prev, [errorKey]: false }));
-                            if (file && label === 'dataset') {
+                      >
+                        {`Choose ${label} file`}
+                        <input
+                          type="file"
+                          hidden
+                          accept={accept}
+                          ref={ref}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            setFile(file || null);
+                            setErrors((prev) => ({
+                              ...prev,
+                              [errorKey]: false,
+                            }));
+                            if (file && label === "dataset") {
                               const reader = new FileReader();
                               reader.onload = (event) => {
                                 const text = event.target?.result as string;
                                 const firstLine = text.split("\n")[0];
-                                const columns = firstLine.split(",").map((col) => col.trim());
+                                const columns = firstLine
+                                  .split(",")
+                                  .map((col) => col.trim());
                                 setColumnOptions(columns);
                               };
                               reader.readAsText(file);
                             }
-                          }
-                        }
-                      />
-                    </Button>
-                    <Typography
-                      sx={{ 
-                          fontWeight: 200, 
-                          fontSize: "12px", 
+                          }}
+                        />
+                      </Button>
+                      <Typography
+                        sx={{
+                          fontWeight: 200,
+                          fontSize: "12px",
                           color: "#667085",
                         }}
                       >
-                      {`Max file size: 200MB`}</Typography>
-                    {errors[errorKey] && (
-                        <Typography fontSize={11} color="#F04438" sx={{ mt: 0.5, ml: 0, lineHeight: 1.5, opacity:0.8}}>
-                        {`${label.charAt(0).toUpperCase() + label.slice(1)} file is required`}
+                        {`Max file size: 200MB`}
+                      </Typography>
+                      {errors[errorKey] && (
+                        <Typography
+                          fontSize={11}
+                          color="#F04438"
+                          sx={{ mt: 0.5, ml: 0, lineHeight: 1.5, opacity: 0.8 }}
+                        >
+                          {`${
+                            label.charAt(0).toUpperCase() + label.slice(1)
+                          } file is required`}
                         </Typography>
-                    )}
-                    {file && (
-                      <Box display="flex" alignItems="center" mt={1} px={1} py={0.5} border="1px solid #E5E7EB" borderRadius={1} justifyContent="space-between">
-                        <Typography fontSize="14px">{file.name}</Typography>
-                        <IconButton size="small" onClick={() => { setFile(null); if (ref.current) ref.current.value = ""; }}>{<CloseIcon fontSize="small" />}</IconButton>
-                      </Box>
-                    )}
-                  </Box>
-                ))}
-                <Box sx={{mb: 5}}>
-                    <Select 
-                        id="target-column"
-                        label="Target column"
-                        placeholder="Select target"
-                        value={targetColumn}
-                        items={targetColumnItems}
-                        onChange={(e) => {
-                            setTargetColumn(e.target.value as string);
-                            setErrors((prev) => ({ ...prev, targetColumn: false }));
-                        }}
-                        error={errors.targetColumn ? "Target column is required" : ""}
-                        sx={{ mb: 1 }}
-                    />
+                      )}
+                      {file && (
+                        <Box
+                          display="flex"
+                          alignItems="center"
+                          mt={1}
+                          px={1}
+                          py={0.5}
+                          border="1px solid #E5E7EB"
+                          borderRadius={1}
+                          justifyContent="space-between"
+                        >
+                          <Typography fontSize="14px">{file.name}</Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setFile(null);
+                              if (ref.current) ref.current.value = "";
+                            }}
+                          >
+                            {<CloseIcon fontSize="small" />}
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
+                  )
+                )}
+                <Box sx={{ mb: 5 }}>
+                  <Select
+                    id="target-column"
+                    label="Target column"
+                    placeholder="Select target"
+                    value={targetColumn}
+                    items={targetColumnItems}
+                    onChange={(e) => {
+                      setTargetColumn(e.target.value as string);
+                      setErrors((prev) => ({ ...prev, targetColumn: false }));
+                    }}
+                    error={
+                      errors.targetColumn ? "Target column is required" : ""
+                    }
+                    sx={{ mb: 1 }}
+                  />
                 </Box>
-                
-                <Box sx={{mb: 5}}>
-                <Select
+
+                <Box sx={{ mb: 5 }}>
+                  <Select
                     id="sensitive-column"
                     label="Sensitive column"
                     placeholder="Select sensitive feature"
                     value={sensitiveColumn}
                     items={targetColumnItems}
                     onChange={(e) => {
-                        setSensitiveColumn(e.target.value as string);
-                        setErrors((prev) => ({ ...prev, sensitiveColumn: false }));
-                      }}
-                    error={errors.sensitiveColumn ? "Sensitive column is required" : ""}
+                      setSensitiveColumn(e.target.value as string);
+                      setErrors((prev) => ({
+                        ...prev,
+                        sensitiveColumn: false,
+                      }));
+                    }}
+                    error={
+                      errors.sensitiveColumn
+                        ? "Sensitive column is required"
+                        : ""
+                    }
                     sx={{ mb: 1 }}
-                />
+                  />
                 </Box>
 
-
                 <Box display="flex" justifyContent="flex-end">
-                  <Button variant="contained" sx={{ backgroundColor: "#13715B", color: "white", textTransform: "none", mt: 8 }} onClick={handleSaveModel}>Upload</Button>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      backgroundColor: "#13715B",
+                      color: "white",
+                      textTransform: "none",
+                      mt: 8,
+                    }}
+                    onClick={handleSaveModel}
+                  >
+                    Upload
+                  </Button>
                 </Box>
               </Stack>
             </DialogContent>

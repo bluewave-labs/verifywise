@@ -145,7 +145,6 @@ const ProjectSettings = React.memo(
       isToast: boolean;
       visible: boolean;
     } | null>(null);
-    const [memberRequired, setMemberRequired] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isFrameworkOperationInProgress, setIsFrameworkOperationInProgress] =
       useState(false);
@@ -436,7 +435,6 @@ const ProjectSettings = React.memo(
               ...prevValues,
               [prop]: newValue.map((user) => user.id),
             }));
-            setMemberRequired(false);
           }
         },
       [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
@@ -548,15 +546,6 @@ const ProjectSettings = React.memo(
       );
       if (!startDate.accepted) {
         newErrors.startDate = startDate.message;
-      }
-
-      const addTeamMember = selectValidation(
-        "Team members",
-        values.members.length
-      );
-      if (!addTeamMember.accepted) {
-        newErrors.members = addTeamMember.message;
-        setMemberRequired(true);
       }
 
       const owner = selectValidation("Owner", values.owner);
@@ -972,7 +961,7 @@ const ProjectSettings = React.memo(
               <Typography
                 sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
               >
-                Team members *
+                Team members
               </Typography>
               <Typography sx={{ fontSize: theme.typography.fontSize }}>
                 Add all team members of the project. Only those who are added
@@ -1084,14 +1073,6 @@ const ProjectSettings = React.memo(
                 },
               }}
             />
-            {memberRequired && (
-              <Typography
-                variant="caption"
-                sx={{ color: "#f04438", fontWeight: 300 }}
-              >
-                {errors.members}
-              </Typography>
-            )}
 
             <Stack gap="5px" sx={{ mt: "6px" }}>
               <Typography

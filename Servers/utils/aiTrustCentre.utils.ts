@@ -13,7 +13,7 @@ import { IAITrustCentreResources } from "../domain.layer/interfaces/i.aiTrustCen
 import { IAITrustCentreSubprocessors } from "../domain.layer/interfaces/i.aiTrustCentreSubprocessors";
 import { IAITrustCentrePublic } from "../domain.layer/interfaces/i.aiTrustCentrePublic";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
-import { deleteFileById, uploadFile } from "./fileUpload.utils";
+import { deleteFileById, getFileById, uploadFile } from "./fileUpload.utils";
 
 export const getIsVisibleQuery = async (
   tenant: string
@@ -125,6 +125,32 @@ export const getAITrustCentrePublicPageQuery = async (
   return output
 }
 
+export const getAITrustCentrePublicResourceByIdQuery = async (
+  tenant: string,
+  id: number
+) => {
+  const visible = await sequelize.query(
+    `SELECT visible, file_id FROM "${tenant}".ai_trust_center_resources WHERE id = :id;`,
+    { replacements: { id } }
+  ) as [{ visible: boolean, file_id: number }[], number];
+  if (visible[0].length === 0) {
+    return null;
+  }
+  if (!visible[0][0].visible) {
+    throw new ValidationException(
+      "This resource is not visible to the public.",
+      "Resource Not Visible",
+      id
+    );
+  }
+  const fileId = visible[0][0].file_id;
+  const file = await getFileById(fileId, tenant);
+  if (!file) {
+    return null;
+  }
+  return file
+}
+
 export const getAITrustCentreOverviewQuery = async (
   tenant: string
 ) => {
@@ -147,12 +173,11 @@ export const getAITrustCentreOverviewQuery = async (
 export const getAITrustCentreResourcesQuery = async (
   tenant: string
 ) => {
-  const query = `SELECT * FROM "${tenant}".ai_trust_center_resources ORDER BY id ASC;`;
-  const resources = await sequelize.query(query, {
-    mapToModel: true,
-    model: AITrustCenterResourcesModel, // Using the same model for resources
-  });
-  return resources;
+  const query = `SELECT ai.*, f.filename FROM "${tenant}".ai_trust_center_resources ai
+    JOIN "${tenant}".files f ON ai.file_id = f.id
+  ORDER BY id ASC;`;
+  const resources = await sequelize.query(query) as [(AITrustCenterResourcesModel & { filename: string })[], number];
+  return resources[0];
 }
 
 export const getAITrustCentreSubprocessorsQuery = async (
@@ -172,13 +197,14 @@ export const createAITrustCentreResourceQuery = async (
   transaction: Transaction
 ) => {
   const query = `INSERT INTO "${tenant}".ai_trust_center_resources (
-    name, description, file_id) VALUES (:name, :description, :fileId) RETURNING *`;
+    name, description, file_id, visible) VALUES (:name, :description, :fileId, :visible) RETURNING *`;
 
   const result = await sequelize.query(query, {
     replacements: {
       name: resource.name,
       description: resource.description,
       fileId: resource.file_id,
+      visible: resource.visible
     },
     mapToModel: true,
     model: AITrustCenterResourcesModel,

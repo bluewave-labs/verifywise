@@ -35,7 +35,7 @@ interface AddFrameworkModalProps {
   onClose: () => void;
   frameworks: Framework[];
   project: Project;
-  onFrameworksChanged?: (action: "add" | "remove") => void;
+  onFrameworksChanged?: (action: "add" | "remove", frameworkId?: number) => void;
 }
 
 const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
@@ -112,7 +112,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           isToast: true,
           visible: true,
         });
-        if (onFrameworksChanged) onFrameworksChanged("remove");
+        if (onFrameworksChanged) onFrameworksChanged("remove", parseInt(frameworkToRemove.id));
       } else {
         setAlert({
           variant: "error",

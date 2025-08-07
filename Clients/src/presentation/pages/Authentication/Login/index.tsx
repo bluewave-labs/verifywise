@@ -8,8 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
-import { setAuthToken } from "../../../../application/authentication/authSlice";
-import { setExpiration } from "../../../../application/authentication/authSlice";
+import { setAuthToken } from "../../../../application/redux/auth/authSlice";
+import { setExpiration } from "../../../../application/redux/auth/authSlice";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
@@ -136,8 +136,13 @@ const Login: React.FC = () => {
           message: `An error occurred: ${error.message}`,
         });
 
+        let message = "Error submitting form";
+        if (error.message === "Not Found") {
+          message = "User not found. Please try again.";
+        }
+
         setIsSubmitting(false);
-        setAlert({ variant: "error", body: "Error submitting form" });
+        setAlert({ variant: "error", body: message });
         setTimeout(() => setAlert(null), 3000);
       });
   };

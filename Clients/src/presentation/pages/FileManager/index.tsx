@@ -10,6 +10,9 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
+import HelperDrawer  from "../../components/Drawer/HelperDrawer";
+import evidencesHelpContent from "../../../presentation/helpers/evidences-help.html?raw";
+
 
 const COLUMN_NAMES = [
   "File",
@@ -47,6 +50,7 @@ const FileManager: React.FC = (): JSX.Element => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
+   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Fetch projects for the dropdown
   const {
@@ -93,6 +97,12 @@ const FileManager: React.FC = (): JSX.Element => {
           setRunFileTour(false);
         }}
         tourKey="file-tour"
+      />
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={evidencesHelpContent}
+        pageTitle="Evidences & Documents"
       />
       <FileManagerHeader theme={theme} ref={refs[0]} />
       {/* Project filter dropdown */}

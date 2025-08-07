@@ -1,4 +1,4 @@
-import { VendorsProjects } from "./vendorsProjects.model";
+import { IVendorsProjects } from "../../interfaces/i.vendorProjects";
 
 export const vendorsProjects = (
   vendorId1: number,
@@ -7,7 +7,7 @@ export const vendorsProjects = (
   vendorId4: number,
   projectId1: number,
   projectId2: number
-): VendorsProjects[] => {
+): IVendorsProjects[] => {
   return [
     { vendor_id: vendorId1, project_id: projectId1 },
     { vendor_id: vendorId2, project_id: projectId1 },

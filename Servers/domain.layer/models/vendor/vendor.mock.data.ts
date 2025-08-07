@@ -1,6 +1,6 @@
-import { Vendor } from "./vendor.model";
+import { IVendor } from "../../interfaces/i.vendor";
 
-export const vendors = (userId1: number, userId2: number): Vendor[] => {
+export const vendors = (userId1: number, userId2: number): IVendor[] => {
   return [
     {
       id: 1,
@@ -14,7 +14,6 @@ export const vendors = (userId1: number, userId2: number): Vendor[] => {
       review_result: "Positive",
       review_status: "Requires follow-up",
       reviewer: userId2,
-      risk_status: "Very high risk",
       review_date: new Date("2023-05-15"),
     },
     {
@@ -29,7 +28,6 @@ export const vendors = (userId1: number, userId2: number): Vendor[] => {
       review_result: "Neutral",
       review_status: "In review",
       reviewer: userId2,
-      risk_status: "High risk",
       review_date: new Date("2023-06-20"),
     },
     {
@@ -44,7 +42,6 @@ export const vendors = (userId1: number, userId2: number): Vendor[] => {
       review_result: "Negative",
       review_status: "Not started",
       reviewer: userId1,
-      risk_status: "Medium risk",
       review_date: new Date("2023-07-10"),
     },
     {
@@ -59,7 +56,6 @@ export const vendors = (userId1: number, userId2: number): Vendor[] => {
       review_result: "Positive",
       review_status: "In review",
       reviewer: userId1,
-      risk_status: "Very low risk",
       review_date: new Date("2023-08-01"),
     },
   ];

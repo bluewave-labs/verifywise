@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { setUserExists } from "../../../application/authentication/authSlice";
+import { setUserExists } from "../../../application/redux/auth/authSlice";
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../../vw-v2-components/Toast";
 
@@ -40,6 +40,9 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
           routeUrl: "/users/check/exists",
         });
         const userExists = response ?? false;
+        // if (!userExists) {
+        //   dispatch(clearAuthState())
+        // }
 
         dispatch(setUserExists(userExists));
       } catch (error) {
@@ -69,12 +72,6 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
   // Redirect to login if trying to access "/admin-reg" (legacy route)
   if (location.pathname === "/admin-reg") {
     console.log("Redirecting admin-reg to login");
-    return <Navigate to="/login" />;
-  }
-
-  // For root route and any other route, redirect to login if no users exist
-  if (!authState.userExists) {
-    console.log("No users exist, redirecting to login");
     return <Navigate to="/login" />;
   }
 

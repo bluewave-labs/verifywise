@@ -116,7 +116,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 
   try {
     const newProject: Partial<ProjectModel> & {
-      members: number[];
+      members: number[] | undefined;
       framework: number[];
       enable_ai_data_insertion: boolean;
     } = {
@@ -132,7 +132,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 
     const createdProject = await createNewProjectQuery(
       newProject,
-      newProject.members,
+      newProject.members ?? [],
       newProject.framework,
       req.tenantId!,
       transaction

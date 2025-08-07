@@ -44,7 +44,6 @@ export async function getAllQuestions(
         "getAllQuestions",
         "question.ctrl.ts"
       );
-      await logEvent("Read", `Retrieved ${questions.length} questions`);
       return res.status(200).json(STATUS_CODE[200](questions));
     }
 
@@ -54,7 +53,6 @@ export async function getAllQuestions(
       "getAllQuestions",
       "question.ctrl.ts"
     );
-    await logEvent("Read", "No questions found");
     return res.status(204).json(STATUS_CODE[204](questions));
   } catch (error) {
     logStructured(
@@ -95,7 +93,6 @@ export async function getQuestionById(
         "getQuestionById",
         "question.ctrl.ts"
       );
-      await logEvent("Read", `Question retrieved by ID: ${questionId}`);
       return res.status(200).json(STATUS_CODE[200](question));
     }
 
@@ -105,7 +102,6 @@ export async function getQuestionById(
       "getQuestionById",
       "question.ctrl.ts"
     );
-    await logEvent("Read", `No question found with ID: ${questionId}`);
     return res.status(404).json(STATUS_CODE[404](question));
   } catch (error) {
     logStructured(
@@ -425,7 +421,6 @@ export async function deleteQuestionById(
       "deleteQuestionById",
       "question.ctrl.ts"
     );
-    await logEvent("Read", `No question found to delete: ID ${questionId}`);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
@@ -482,10 +477,6 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
         "getQuestionsBySubtopicId",
         "question.ctrl.ts"
       );
-      await logEvent(
-        "Read",
-        `Retrieved ${questions.length} questions for subtopic ID: ${subtopicId}`
-      );
       return res.status(200).json(STATUS_CODE[200](questions));
     }
 
@@ -495,7 +486,6 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
       "getQuestionsBySubtopicId",
       "question.ctrl.ts"
     );
-    await logEvent("Read", `No questions found for subtopic ID: ${subtopicId}`);
     return res.status(404).json(
       STATUS_CODE[404]({
         message: "No questions found for the given subtopic ID",
@@ -551,10 +541,6 @@ export async function getQuestionsByTopicId(req: Request, res: Response) {
         "getQuestionsByTopicId",
         "question.ctrl.ts"
       );
-      await logEvent(
-        "Read",
-        `Retrieved ${questions.length} questions for topic ID: ${topicId}`
-      );
       return res.status(200).json(STATUS_CODE[200](questions));
     }
 
@@ -564,7 +550,6 @@ export async function getQuestionsByTopicId(req: Request, res: Response) {
       "getQuestionsByTopicId",
       "question.ctrl.ts"
     );
-    await logEvent("Read", `No questions found for topic ID: ${topicId}`);
     return res.status(404).json(
       STATUS_CODE[404]({
         message: "No questions found for the given topic id",

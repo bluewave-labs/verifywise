@@ -18,16 +18,25 @@ interface TableProps {
   rows: ProjectRisk[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
+  currentRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+  deletedRisks: number[];
+  setDeletedRisks: (deletedRisks: number[]) => void;
 }
 
 const LinkedRisksTableBody: React.FC<TableProps> = ({
   rows,
   page,
-  setCurrentPagingation
+  setCurrentPagingation,
+  currentRisks,
+  checkedRows,
+  setCheckedRows,
+  deletedRisks,
+  setDeletedRisks
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [checkedRows, setCheckedRows] = useState<ProjectRisk[]>([]);
   const theme = useTheme();  
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
@@ -42,12 +51,21 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
     [setRowsPerPage, setCurrentPagingation]
   );
 
-  const handleRowClick = (riskData: ProjectRisk) => {
-    setCheckedRows((prev) =>
-      prev.find(data => data.id === riskData.id)
-        ? prev.filter((risk) => risk.id !== riskData.id)
-        : [...prev, riskData]
-    );
+  const handleRowClick = (riskData: ProjectRisk, event: React.ChangeEvent | React.MouseEvent) => {
+    event.stopPropagation();
+    const riskId = riskData.id;
+
+    if (checkedRows.includes(riskId)) {
+      setCheckedRows(checkedRows.filter(id => id !== riskId));
+      if (currentRisks.includes(riskId)) {
+        setDeletedRisks([...deletedRisks, riskId]);
+      }
+    } else {
+      setCheckedRows([...checkedRows, riskId]);
+      if (deletedRisks.includes(riskId)) {
+        setDeletedRisks(deletedRisks.filter(id => id !== riskId));
+      }
+    }
   };
 
   return (
@@ -57,13 +75,13 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
           rows
           .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((row: ProjectRisk, index: number) => (
-              <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={() => handleRowClick(row)}>
+              <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={(e) => handleRowClick(row, e)}>
                 <TableCell sx={cellStyle}>
                   <MuiCheckbox
                     size="small"
                     id="auto-fill"
-                    checked={checkedRows.some(risk => risk.id === row.id)}
-                    onChange={() => handleRowClick(row)}
+                    checked={checkedRows.includes(row.id)}
+                    onChange={(e) => handleRowClick(row, e)}
                     onClick={(e) => e.stopPropagation()}  
                     checkedIcon={<CheckboxFilled />}
                     icon={<CheckboxOutline />}

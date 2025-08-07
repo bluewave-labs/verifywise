@@ -51,7 +51,7 @@ const initialState: NewTrainingFormValues = {
   department: "",
   status: "Planned",
   numberOfPeople: 0,
-  description: ""
+  description: "",
 };
 
 const statusOptions = [
@@ -92,7 +92,14 @@ const NewTraining: FC<NewTrainingProps> = ({
     (prop: keyof NewTrainingFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
-        setValues((prev) => ({ ...prev, [prop]: value }));
+        if (prop === "numberOfPeople") {
+          const numValue = value === "" ? 0 : Number(value);
+          if (!isNaN(numValue) && numValue >= 0) {
+            setValues((prev) => ({ ...prev, [prop]: numValue }));
+          }
+        } else {
+          setValues((prev) => ({ ...prev, [prop]: value }));
+        }
         setErrors((prev) => ({ ...prev, [prop]: "" }));
       },
     []
@@ -110,19 +117,19 @@ const NewTraining: FC<NewTrainingProps> = ({
   const validateForm = (): boolean => {
     const newErrors: NewTrainingFormErrors = {};
 
-    if (!values.training_name.trim()) {
+    if (!values.training_name || !String(values.training_name).trim()) {
       newErrors.training_name = "Training name is required.";
     }
 
-    if (!values.duration.trim()) {
+    if (!values.duration || !String(values.duration).trim()) {
       newErrors.duration = "Duration is required.";
     }
 
-    if (!values.provider.trim()) {
+    if (!values.provider || !String(values.provider).trim()) {
       newErrors.provider = "Provider is required.";
     }
 
-    if (!values.department.trim()) {
+    if (!values.department || !String(values.department).trim()) {
       newErrors.department = "Department is required.";
     }
 
@@ -131,7 +138,8 @@ const NewTraining: FC<NewTrainingProps> = ({
     }
 
     if (
-      !values.numberOfPeople ||
+      values.numberOfPeople === undefined ||
+      values.numberOfPeople === null ||
       isNaN(Number(values.numberOfPeople)) ||
       Number(values.numberOfPeople) < 1
     ) {
@@ -153,9 +161,9 @@ const NewTraining: FC<NewTrainingProps> = ({
       if (onSuccess) {
         onSuccess({
           ...values,
-          numberOfPeople: Number(values.numberOfPeople),
+          numberOfPeople: values.numberOfPeople,
           duration: values.duration,
-          description: values.description
+          description: values.description,
         });
       }
       handleClose();
@@ -318,16 +326,8 @@ const NewTraining: FC<NewTrainingProps> = ({
                     <Field
                       id="number-of-people"
                       label="Number of people"
-                      value={values.numberOfPeople.toString()}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (
-                          value === "" ||
-                          (!isNaN(Number(value)) && Number(value) >= 0)
-                        ) {
-                          handleOnTextFieldChange("numberOfPeople")(e);
-                        }
-                      }}
+                      value={values.numberOfPeople?.toString() || ""}
+                      onChange={handleOnTextFieldChange("numberOfPeople")}
                       error={errors.numberOfPeople}
                       isRequired
                       sx={fieldStyle}
@@ -337,21 +337,20 @@ const NewTraining: FC<NewTrainingProps> = ({
                   </Suspense>
                 </Box>
               </Stack>
-              <Box sx={{ width: "100%",
-               }}>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="description"
-                      label="Description"
-                      type="description"
-                       value={values.description}
-                      onChange={handleOnTextFieldChange("description")}
-                      error={errors.description}
-                      sx={fieldStyle}
-                      placeholder="Description of the AI training"
-                    />
-                  </Suspense>
-                </Box>
+              <Box sx={{ width: "100%" }}>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
+                    id="description"
+                    label="Description"
+                    type="description"
+                    value={values.description}
+                    onChange={handleOnTextFieldChange("description")}
+                    error={errors.description}
+                    sx={fieldStyle}
+                    placeholder="Description of the AI training"
+                  />
+                </Suspense>
+              </Box>
             </Stack>
           </DialogContent>
           <Stack

@@ -26,6 +26,7 @@ import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
 import allowedRoles from "../../../../application/constants/permissions";
 import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
+import { useSearchParams } from "react-router-dom";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -52,7 +53,7 @@ const ProjectFrameworks = ({
 }: {
   project: Project;
   triggerRefresh?: (isTrigger: boolean, toastMessage?: string) => void;
-  initialFrameworkId?: number;
+  initialFrameworkId: number;
 }) => {
   const {
     filteredFrameworks,
@@ -64,14 +65,13 @@ const ProjectFrameworks = ({
   } = useFrameworks({
     listOfFrameworks: project.framework,
   });
-  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number | null>(
-    null
-  );
+  const [selectedFrameworkId, setSelectedFrameworkId] = useState<number>(initialFrameworkId);
   const [tracker, setTracker] = useState<TrackerTab | ISO42001Tab>(
     "compliance"
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { changeComponentVisibility, userRoleName } =
     useContext(VerifyWiseContext);
@@ -114,8 +114,8 @@ const ProjectFrameworks = ({
         setSelectedFrameworkId(initialFrameworkId);
         setTracker(
           initialFrameworkId === FRAMEWORK_IDS.ISO_42001
-            ? "clauses"
-            : "compliance"
+            ? searchParams.get("annexId") && searchParams.get("annexCategoryId") ? "annexes" : "clauses"
+            : searchParams.get("controlId") ? "compliance" : "assessment"
         );
       }
       // Otherwise, use the default logic
@@ -143,6 +143,10 @@ const ProjectFrameworks = ({
   ]);
 
   const handleFrameworkChange = (frameworkId: number) => {
+    searchParams.delete("framework");
+    searchParams.delete("topicId");
+    searchParams.delete("questionId");
+    setSearchParams(searchParams);
     setSelectedFrameworkId(frameworkId);
     setTracker(
       frameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"
@@ -257,12 +261,19 @@ const ProjectFrameworks = ({
         onClose={() => setIsModalOpen(false)}
         frameworks={allFrameworks}
         project={project}
-        onFrameworksChanged={(action) => {
+        onFrameworksChanged={(action, frameworkId?: number) => {
           if (triggerRefresh) {
             if (action === "add")
               triggerRefresh(true, "Framework added successfully");
             else if (action === "remove")
+            {
               triggerRefresh(true, "Framework removed successfully");
+              // Find a framework whose id is not the removed one, and set its id as selected
+              const nextFramework = project.framework.find(
+                (f) => Number(f.framework_id) !== frameworkId
+              );
+              handleFrameworkChange(nextFramework?.framework_id!);
+            }
             else triggerRefresh(true);
           }
           refreshFilteredFrameworks();

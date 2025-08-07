@@ -16,4 +16,5 @@ export type Question = {
   subtopic_id: number;
   status: string;
   answer_id: number;
+  risks: number[];
 };

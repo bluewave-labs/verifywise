@@ -1,0 +1,7 @@
+### get all events
+
+GET http://localhost:3000/api/logger/events
+
+### get all logs
+
+GET http://localhost:3000/api/logger/logs

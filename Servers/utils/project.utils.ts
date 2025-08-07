@@ -295,7 +295,7 @@ export const updateProjectUpdatedByIdQuery = async (
     replacements: { id },
     transaction,
   })) as [{ id: number }[], number];
-  if (result.length > 0) {
+  if (result[0].length > 0) {
     const projectIds = result[0].map(({ id }) => id);
     await sequelize.query(
       `UPDATE "${tenant}".projects SET last_updated = :last_updated WHERE id IN (:project_ids);`,

@@ -73,6 +73,7 @@ export interface DropDownsProps {
   isControl?: boolean;
   projectId?: number;
   readOnly?: boolean;
+  setAuditedStatusModalOpen?: (open: boolean) => void;
 }
 
 export interface FieldProps {

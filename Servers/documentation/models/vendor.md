@@ -23,7 +23,6 @@ type Vendor = {
   reviewStatus: string;
   reviewer: string;
   reviewResult: string;
-  riskStatus: "Active" | "Under review" | "Not active";
   assignee: string;
   reviewDate: Date;
   riskDescription: string;
@@ -56,7 +55,6 @@ type Vendor = {
 | reviewStatus        | string | Current status of vendor review                        |
 | reviewer            | string | Name of the reviewer                                   |
 | reviewResult        | string | Outcome of the vendor review                           |
-| riskStatus          | enum   | Risk status: "Active", "Under review", or "Not active" |
 | assignee            | string | Person assigned to vendor management                   |
 | reviewDate          | Date   | Date of vendor review                                  |
 | riskDescription     | string | Description of identified risks                        |

@@ -4,7 +4,28 @@ import svgr from "@svgr/rollup";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), svgr()],
+  plugins: [
+    react(),
+    svgr(),
+    // Removed the problematic HTML loader plugin that was causing parsing errors
+    // {
+    //   name: "html-loader",
+    //   enforce: "pre",
+    //   transform(code, id) {
+    //     if (id.endsWith(".html")) {
+    //       const cleaned = code
+    //         .replace(/<!--[\s\S]*?-->/g, "")
+    //         .replace(/\s+/g, " ")
+    //         .trim();
+
+    //       return {
+    //         code: `export default ${JSON.stringify(cleaned)};`,
+    //         map: null,
+    //       };
+    //     }
+    //   },
+    // },
+  ],
   server: {
     host: "0.0.0.0",
     port: process.env.VITE_APP_PORT

@@ -29,6 +29,7 @@ import trainingRoutes from "./routes/trainingRegistar.route";
 import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import loggerRoutes from "./routes/logger.route";
+import iso27001Routes from "./routes/iso27001.route";
 
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
@@ -104,6 +105,7 @@ try {
   app.use("/api/eu-ai-act", euRouter);
   app.use("/api/organizations", organizationRoutes);
   app.use("/api/iso-42001", isoRoutes);
+  app.use("/api/iso-27001", iso27001Routes);
   app.use("/api/training", trainingRoutes);
   app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);

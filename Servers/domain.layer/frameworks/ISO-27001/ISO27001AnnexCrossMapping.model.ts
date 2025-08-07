@@ -8,11 +8,15 @@ import {
 import { numberValidation } from "../../validations/number.valid";
 import { ValidationException } from "../../exceptions/custom.exception";
 import { ISO27001AnnexControlModel } from "./iso27001AnnexControl.model";
+import { IISO27001AnnexCrossMapping } from "../../interfaces/i.ISO27001AnnexCrossMapping";
 
 @Table({
   tableName: "iso27001annex_cross_mapping",
 })
-export class ISO27001AnnexCrossMappingModel extends Model<ISO27001AnnexCrossMappingModel> {
+export class ISO27001AnnexCrossMappingModel
+  extends Model<ISO27001AnnexCrossMappingModel>
+  implements IISO27001AnnexCrossMapping
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,

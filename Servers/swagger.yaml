@@ -5354,36 +5354,164 @@ paths:
         "500":
           description: internal server error
 
-  /bias_and_fairness:
-    get:
+  /bias_and_fairness/upload:
+    post:
       tags: [bias_and_fairness]
+      summary: Upload model and data for bias and fairness analysis
       security:
         - JWTAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  format: binary
+                  description: Model file for analysis
+                data:
+                  type: string
+                  format: binary
+                  description: Dataset file for analysis
+                target_column:
+                  type: string
+                  description: Name of the target column in the dataset
+                sensitive_column:
+                  type: string
+                  description: Name of the sensitive attribute column
+              required:
+                - model
+                - data
+                - target_column
+                - sensitive_column
       responses:
-        "200":
-          description: bias and fairness data (proxied)
+        "202":
+          description: Upload initiated successfully
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  job_id:
+                    type: integer
+                    example: 123
+                  message:
+                    type: string
+                    example: "Upload initiated"
+        "400":
+          description: Bad request - invalid file format or missing parameters
         "500":
-          description: internal server error
-    post:
+          description: Internal server error
+  /bias_and_fairness/upload/status/{job_id}:
+    get:
       tags: [bias_and_fairness]
+      summary: Get upload job status
       security:
         - JWTAuth: []
-      requestBody:
-        description: Bias and fairness data
-        content:
-          application/json:
-            schema:
-              type: object
-        required: true
+      parameters:
+        - in: path
+          name: job_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the upload job
       responses:
-        "201":
-          description: bias and fairness data created
+        "200":
+          description: Upload job status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: integer
+                    example: 123
+                  status:
+                    type: string
+                    enum: [pending, processing, completed, failed]
+                    example: "completed"
+                  progress:
+                    type: number
+                    example: 100.0
+                  message:
+                    type: string
+                    example: "Analysis completed successfully"
+        "404":
+          description: Job not found
         "500":
-          description: internal server error
+          description: Internal server error
+  /bias_and_fairness/metrics/all:
+    get:
+      tags: [bias_and_fairness]
+      summary: Get all bias and fairness metrics for the tenant
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: List of all metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BiasAndFairnessMetrics"
+        "500":
+          description: Internal server error
+  /bias_and_fairness/metrics/{id}:
+    get:
+      tags: [bias_and_fairness]
+      summary: Get specific bias and fairness metrics by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the metrics record
+      responses:
+        "200":
+          description: Bias and fairness metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BiasAndFairnessMetrics"
+        "404":
+          description: Metrics not found
+        "500":
+          description: Internal server error
+    delete:
+      tags: [bias_and_fairness]
+      summary: Delete bias and fairness metrics by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the metrics record to delete
+      responses:
+        "200":
+          description: Metrics deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Metrics deleted successfully"
+        "404":
+          description: Metrics not found
+        "500":
+          description: Internal server error
 
   /aiTrustCentre/overview:
     get:
@@ -6432,3 +6560,68 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AITrustCentreSubprocessor"
+
+    BiasAndFairnessMetrics:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_id:
+          type: integer
+          example: 123
+        model_name:
+          type: string
+          example: "RandomForestClassifier"
+        dataset_name:
+          type: string
+          example: "customer_data.csv"
+        target_column:
+          type: string
+          example: "approved"
+        sensitive_column:
+          type: string
+          example: "gender"
+        demographic_parity:
+          type: number
+          format: float
+          example: 0.85
+          description: "Demographic parity score (0-1, closer to 1 is better)"
+        equalized_odds:
+          type: number
+          format: float
+          example: 0.78
+          description: "Equalized odds score (0-1, closer to 1 is better)"
+        statistical_parity:
+          type: number
+          format: float
+          example: 0.82
+          description: "Statistical parity score (0-1, closer to 1 is better)"
+        individual_fairness:
+          type: number
+          format: float
+          example: 0.89
+          description: "Individual fairness score (0-1, closer to 1 is better)"
+        overall_fairness_score:
+          type: number
+          format: float
+          example: 0.835
+          description: "Overall fairness score (0-1, closer to 1 is better)"
+        bias_detected:
+          type: boolean
+          example: true
+          description: "Whether bias was detected in the model"
+        recommendations:
+          type: array
+          items:
+            type: string
+          example:
+            ["Consider rebalancing training data", "Review feature selection"]
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"

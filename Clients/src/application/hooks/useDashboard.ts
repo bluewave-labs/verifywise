@@ -5,14 +5,14 @@ import { Dashboard } from "../../domain/types/Dashboard";
 
 export const useDashboard = () => {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await getAllEntities({ routeUrl: "/dashboard" });
       setDashboard(response.data);
     } catch (error) {
-      // Handle error
       console.error("Error fetching dashboard:", error);
     } finally {
       setLoading(false);

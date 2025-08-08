@@ -29,7 +29,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/Assessment"
+                      $ref: "#/components/schemas/Assessment"
         "204":
           description: no content to display
           content:
@@ -83,7 +83,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/Assessment"
+                  $ref: "#/components/schemas/Assessment"
         "500":
           description: internal server error
           content:
@@ -130,7 +130,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Assessment"
+                    $ref: "#/components/schemas/Assessment"
         "404":
           description: no content to display
           content:
@@ -190,7 +190,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/Assessment"
+                    $ref: "#/components/schemas/Assessment"
         "404":
           description: no content to display
           content:
@@ -284,7 +284,52 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Assessment"
+                    $ref: "#/components/schemas/Assessment"
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
+  /assessments/project/byid/{id}:
+    get:
+      tags: [assessments]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the project
+      responses:
+        "200":
+          description: assessment by project id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    $ref: "#/components/schemas/Assessment"
+        "404":
+          description: assessment not found
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
         "500":
           description: internal server error
           content:
@@ -316,7 +361,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/Control"
+                      $ref: "#/components/schemas/Control"
         "204":
           description: no content to display
           content:
@@ -391,7 +436,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/Control"
+                  $ref: "#/components/schemas/Control"
         "500":
           description: internal server error
           content:
@@ -438,7 +483,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Control"
+                    $ref: "#/components/schemas/Control"
         "404":
           description: no content to display
           content:
@@ -520,7 +565,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/Control"
+                    $ref: "#/components/schemas/Control"
         "404":
           description: no content to display
           content:
@@ -610,7 +655,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/Project"
+                      $ref: "#/components/schemas/Project"
         "204":
           description: no content to display
           content:
@@ -698,7 +743,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/Project"
+                  $ref: "#/components/schemas/Project"
         "500":
           description: internal server error
           content:
@@ -745,7 +790,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Project"
+                    $ref: "#/components/schemas/Project"
         "404":
           description: no content to display
           content:
@@ -844,7 +889,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/Project"
+                    $ref: "#/components/schemas/Project"
         "404":
           description: no content to display
           content:
@@ -1046,7 +1091,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/ProjectRisk"
+                      $ref: "#/components/schemas/ProjectRisk"
         "204":
           description: no content to display
           content:
@@ -1180,7 +1225,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/ProjectRisk"
+                  $ref: "#/components/schemas/ProjectRisk"
         "500":
           description: internal server error
           content:
@@ -1227,7 +1272,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/ProjectRisk"
+                    $ref: "#/components/schemas/ProjectRisk"
         "404":
           description: no content to display
           content:
@@ -1368,7 +1413,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/ProjectRisk"
+                    $ref: "#/components/schemas/ProjectRisk"
         "404":
           description: no content to display
           content:
@@ -1458,7 +1503,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/ProjectScope"
+                      $ref: "#/components/schemas/ProjectScope"
         "204":
           description: no content to display
           content:
@@ -1535,7 +1580,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/ProjectScope"
+                  $ref: "#/components/schemas/ProjectScope"
         "500":
           description: internal server error
           content:
@@ -1582,7 +1627,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/ProjectScope"
+                    $ref: "#/components/schemas/ProjectScope"
         "404":
           description: no content to display
           content:
@@ -1666,7 +1711,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/ProjectScope"
+                    $ref: "#/components/schemas/ProjectScope"
         "404":
           description: no content to display
           content:
@@ -1756,7 +1801,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/Question"
+                      $ref: "#/components/schemas/Question"
         "204":
           description: no content to display
           content:
@@ -1841,7 +1886,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/Question"
+                  $ref: "#/components/schemas/Question"
         "500":
           description: internal server error
           content:
@@ -1888,7 +1933,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Question"
+                    $ref: "#/components/schemas/Question"
         "404":
           description: no content to display
           content:
@@ -1980,7 +2025,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/Question"
+                    $ref: "#/components/schemas/Question"
         "404":
           description: no content to display
           content:
@@ -2070,7 +2115,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/SubControl"
+                      $ref: "#/components/schemas/SubControl"
         "204":
           description: no content to display
           content:
@@ -2160,7 +2205,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/SubControl"
+                  $ref: "#/components/schemas/SubControl"
         "500":
           description: internal server error
           content:
@@ -2207,7 +2252,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/SubControl"
+                    $ref: "#/components/schemas/SubControl"
         "404":
           description: no content to display
           content:
@@ -2304,7 +2349,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/SubControl"
+                    $ref: "#/components/schemas/SubControl"
         "404":
           description: no content to display
           content:
@@ -2394,7 +2439,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/SubTopic"
+                      $ref: "#/components/schemas/SubTopic"
         "204":
           description: no content to display
           content:
@@ -2447,7 +2492,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/SubTopic"
+                  $ref: "#/components/schemas/SubTopic"
         "500":
           description: internal server error
           content:
@@ -2494,7 +2539,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/SubTopic"
+                    $ref: "#/components/schemas/SubTopic"
         "404":
           description: no content to display
           content:
@@ -2554,7 +2599,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/SubTopic"
+                    $ref: "#/components/schemas/SubTopic"
         "404":
           description: no content to display
           content:
@@ -2644,7 +2689,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/Topic"
+                      $ref: "#/components/schemas/Topic"
         "204":
           description: no content to display
           content:
@@ -2697,7 +2742,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/Topic"
+                  $ref: "#/components/schemas/Topic"
         "500":
           description: internal server error
           content:
@@ -2744,7 +2789,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Topic"
+                    $ref: "#/components/schemas/Topic"
         "404":
           description: no content to display
           content:
@@ -2804,7 +2849,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/Topic"
+                    $ref: "#/components/schemas/Topic"
         "404":
           description: no content to display
           content:
@@ -2894,7 +2939,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/Vendor"
+                      $ref: "#/components/schemas/Vendor"
         "204":
           description: no content to display
           content:
@@ -3006,7 +3051,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/Vendor"
+                  $ref: "#/components/schemas/Vendor"
         "500":
           description: internal server error
           content:
@@ -3053,7 +3098,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Vendor"
+                    $ref: "#/components/schemas/Vendor"
         "404":
           description: no content to display
           content:
@@ -3180,7 +3225,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/Vendor"
+                    $ref: "#/components/schemas/Vendor"
         "404":
           description: no content to display
           content:
@@ -3270,7 +3315,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/VendorRisk"
+                      $ref: "#/components/schemas/VendorRisk"
         "204":
           description: no content to display
           content:
@@ -3343,7 +3388,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/VendorRisk"
+                  $ref: "#/components/schemas/VendorRisk"
         "500":
           description: internal server error
           content:
@@ -3390,7 +3435,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/VendorRisk"
+                    $ref: "#/components/schemas/VendorRisk"
         "404":
           description: no content to display
           content:
@@ -3470,7 +3515,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/VendorRisk"
+                    $ref: "#/components/schemas/VendorRisk"
         "404":
           description: no content to display
           content:
@@ -3560,7 +3605,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/User"
+                      $ref: "#/components/schemas/User"
         "204":
           description: no content to display
           content:
@@ -3607,7 +3652,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/User"
+                    $ref: "#/components/schemas/User"
         "404":
           description: no content to display
           content:
@@ -3681,7 +3726,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/User"
+                    $ref: "#/components/schemas/User"
         "404":
           description: no content to display
           content:
@@ -3797,7 +3842,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/User"
+                  $ref: "#/components/schemas/User"
         "500":
           description: internal server error
           content:
@@ -3844,7 +3889,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/User"
+                    $ref: "#/components/schemas/User"
         "404":
           description: no content to display
           content:
@@ -3962,7 +4007,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/User"
+                  $ref: "#/components/schemas/User"
         "406":
           description: not acceptable error
           content:
@@ -4100,7 +4145,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#components/schemas/Role"
+                      $ref: "#/components/schemas/Role"
         "204":
           description: no content to display
           content:
@@ -4153,7 +4198,7 @@ paths:
                   example: created
                 data:
                   type: object
-                  $ref: "#components/schemas/Role"
+                  $ref: "#/components/schemas/Role"
         "500":
           description: internal server error
           content:
@@ -4200,7 +4245,7 @@ paths:
                     type: string
                     example: ok
                   data:
-                    $ref: "#components/schemas/Role"
+                    $ref: "#/components/schemas/Role"
         "404":
           description: no content to display
           content:
@@ -4260,7 +4305,7 @@ paths:
                     type: string
                     example: accepted
                   data:
-                    $ref: "#components/schemas/Role"
+                    $ref: "#/components/schemas/Role"
         "404":
           description: no content to display
           content:
@@ -4330,28 +4375,28 @@ paths:
                   example: internal server error
                 error:
                   type: object
-  
+
   /training:
     get:
       summary: Returns all the training modules
       tags: [training]
       security:
-       - JWTAuth: []
+        - JWTAuth: []
       responses:
         "200":
           description: list all the training modules
           content:
             application/json:
               schema:
-               type: object
-               properties:
-                 message:
-                   type: string
-                   example: ok
-                 data:
-                  type: object
-                  items:
-                    $ref: "#components/schemas/TrainingModule"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: object
+                    items:
+                      $ref: "#/components/schemas/TrainingModule"
         "204":
           description: no content to display
           content:
@@ -4364,11 +4409,11 @@ paths:
                 data:
                   type: object
                   items:
-                    $ref: "#components/schemas/TrainingModule"
+                    $ref: "#/components/schemas/TrainingModule"
         "500":
           description: internal server error
           content:
-            appliction/json:
+            application/json:
               type: object
               properties:
                 message:
@@ -4376,15 +4421,22 @@ paths:
                   example: internal server error
                 error:
                   type: object
-    
+
     post:
-      summary: Creates new training registar
+      summary: Creates new training register
       tags: [training]
       security:
-       - JWTAuth: []
+        - JWTAuth: []
+      requestBody:
+        description: Training module data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrainingModule"
+        required: true
       responses:
         "201":
-          description: create new training registar
+          description: create new training register
           content:
             application/json:
               schema:
@@ -4393,12 +4445,8 @@ paths:
                   message:
                     type: string
                     example: Training successfully created
-                data:
-                type: object
-                items:
-                  $ref: 
-
-        
+                  data:
+                    $ref: "#/components/schemas/TrainingModule"
         "500":
           description: Error creating new training (internal server error)
           content:
@@ -4409,7 +4457,6 @@ paths:
                   message:
                     type: string
                     example: internal server error
-
                   error:
                     type: object
 
@@ -4428,47 +4475,47 @@ paths:
           description: id of the role
       responses:
         "200":
-           decription: get one training data depending on the id
-           content:
-             application/json:
-               schema:
-                 type: object
-                 properties:
-                   message:
-                     type: string
-                     example: ok
-                       
-                 data:
-                   $ref: "#components/schemas/TrainingModule"
-        
+          decription: get one training data depending on the id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+
+                data:
+                  $ref: "#/components/schemas/TrainingModule"
+
         "404":
-           description: no content to display
-           content:
-              application/json:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: not found
-                  data:
-                    type: object
+          description: no content to display
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: not found
+                data:
+                  type: object
         "500":
-            description: internal server error
-            content:
-              application/json:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: internal server error
-                  error:
-                    type: object
+          description: internal server error
+          content:
+            application/json:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: internal server error
+                error:
+                  type: object
 
   /training/{id}:
     patch:
       tags: [training]
       security:
-       - JWTAuth: []
+        - JWTAuth: []
       parameters:
         - in: path
           name: id
@@ -4481,8 +4528,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#components/schemas/TrainingModule"            
-      response:
+              $ref: "#/components/schemas/TrainingModule"
+      responses:
         "202":
           description: training data
           content:
@@ -4491,10 +4538,10 @@ paths:
                 type: object
                 properties:
                   message:
-                   type: object
-                   example: accepted
+                    type: string
+                    example: accepted
                   data:
-                    $ref: "#components/schemas/TrainingModule"
+                    $ref: "#/components/schemas/TrainingModule"
         "400":
           description: Need to add all the fields
           content:
@@ -4516,7 +4563,7 @@ paths:
                     example: not found
                   data:
                     type: object
-        
+
         "500":
           description: internal server error
           content:
@@ -4531,29 +4578,29 @@ paths:
     delete:
       tags: [training]
       security:
-       - JWTAuth: []
+        - JWTAuth: []
       parameters:
-       - in: path
-         name: id
-         schema:
-           type: integer
-         required: true
-         description: id of the training to delete
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the training to delete
       responses:
-       "202":
-         description: training data
-         content:
-           application/json:
-             schema:
-               type: object
-               properties:
-                 message:
-                   type: string
-                   example: accepted
-                 data:
-                   type: boolean
-                   example: true
-       "404":
+        "202":
+          description: training data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: accepted
+                  data:
+                    type: boolean
+                    example: true
+        "404":
           description: no content to display
           content:
             application/json:
@@ -4564,7 +4611,7 @@ paths:
                   example: not found
                 data:
                   type: object
-       "500":
+        "500":
           description: internal server error
           content:
             application/json:
@@ -4576,8 +4623,1213 @@ paths:
                 error:
                   type: object
 
+  /files:
+    get:
+      tags: [files]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of user file metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FileMetadata"
+        "204":
+          description: no content to display
+        "500":
+          description: internal server error
+    post:
+      tags: [files]
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: files uploaded successfully
+        "500":
+          description: internal server error
+  /files/by-projid/{id}:
+    get:
+      tags: [files]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: file metadata by project id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileMetadata"
+        "404":
+          description: files not found
+        "500":
+          description: internal server error
+  /files/{id}:
+    get:
+      tags: [files]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: file id
+      responses:
+        "200":
+          description: file content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: file not found
+        "500":
+          description: internal server error
 
-                
+  /organizations:
+    post:
+      tags: [organizations]
+      requestBody:
+        description: Organization data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Organization"
+        required: true
+      responses:
+        "201":
+          description: organization created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: created
+                  data:
+                    $ref: "#/components/schemas/Organization"
+        "500":
+          description: internal server error
+  /organizations/exists:
+    get:
+      tags: [organizations]
+      responses:
+        "200":
+          description: organizations exist check
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
+                    example: true
+  /organizations/{id}:
+    get:
+      tags: [organizations]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: organization id
+      responses:
+        "200":
+          description: organization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "404":
+          description: organization not found
+        "500":
+          description: internal server error
+
+  /frameworks:
+    get:
+      tags: [frameworks]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all frameworks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Framework"
+        "204":
+          description: no content to display
+        "500":
+          description: internal server error
+  /frameworks/{id}:
+    get:
+      tags: [frameworks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: framework id
+      responses:
+        "200":
+          description: framework
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Framework"
+        "404":
+          description: framework not found
+        "500":
+          description: internal server error
+  /frameworks/toProject:
+    post:
+      tags: [frameworks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: Add framework to project
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                frameworkId:
+                  type: integer
+                  example: 1
+                projectId:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        "201":
+          description: framework added to project
+        "500":
+          description: internal server error
+  /frameworks/fromProject:
+    delete:
+      tags: [frameworks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: Remove framework from project
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                frameworkId:
+                  type: integer
+                  example: 1
+                projectId:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        "202":
+          description: framework removed from project
+        "404":
+          description: framework or project not found
+        "500":
+          description: internal server error
+
+  /autoDrivers:
+    post:
+      tags: [autoDrivers]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: Auto driver data
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "201":
+          description: auto driver created
+        "500":
+          description: internal server error
+    delete:
+      tags: [autoDrivers]
+      security:
+        - JWTAuth: []
+      responses:
+        "202":
+          description: auto driver deleted
+        "500":
+          description: internal server error
+
+  /controlCategory:
+    get:
+      tags: [controlCategory]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all control categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ControlCategories"
+        "204":
+          description: no content to display
+        "500":
+          description: internal server error
+    post:
+      tags: [controlCategory]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: Control category data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ControlCategories"
+        required: true
+      responses:
+        "201":
+          description: control category created
+        "500":
+          description: internal server error
+  /controlCategory/{id}:
+    get:
+      tags: [controlCategory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: control category id
+      responses:
+        "200":
+          description: control category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControlCategories"
+        "404":
+          description: control category not found
+        "500":
+          description: internal server error
+    put:
+      tags: [controlCategory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: control category id
+      requestBody:
+        description: Control category data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ControlCategories"
+        required: true
+      responses:
+        "202":
+          description: control category updated
+        "404":
+          description: control category not found
+        "500":
+          description: internal server error
+    delete:
+      tags: [controlCategory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: control category id
+      responses:
+        "202":
+          description: control category deleted
+        "404":
+          description: control category not found
+        "500":
+          description: internal server error
+
+  /eu-ai-act/controlCategories:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all control categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ControlCategories"
+        "500":
+          description: internal server error
+  /eu-ai-act/controls/byControlCategoryId/{id}:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: control category id
+      responses:
+        "200":
+          description: controls by control category id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Control"
+        "500":
+          description: internal server error
+  /eu-ai-act/topics:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: list of all topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Topic"
+        "500":
+          description: internal server error
+  /eu-ai-act/assessments/byProjectId/{id}:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: assessments by project id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assessment"
+        "500":
+          description: internal server error
+    delete:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: project id
+      responses:
+        "202":
+          description: assessments deleted
+        "500":
+          description: internal server error
+  /eu-ai-act/compliances/byProjectId/{id}:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: compliances by project id
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: internal server error
+    delete:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: project id
+      responses:
+        "202":
+          description: compliances deleted
+        "500":
+          description: internal server error
+  /eu-ai-act/compliances/progress/{id}:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: project compliance progress
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: internal server error
+  /eu-ai-act/assessments/progress/{id}:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: project assessment progress
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: internal server error
+  /eu-ai-act/all/compliances/progress:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: all projects compliance progress
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: internal server error
+  /eu-ai-act/all/assessments/progress:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: all projects assessment progress
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: internal server error
+  /eu-ai-act/topicById:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: topic id
+      responses:
+        "200":
+          description: topic by id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Topic"
+        "500":
+          description: internal server error
+  /eu-ai-act/controlById:
+    get:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: control id
+      responses:
+        "200":
+          description: control by id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Control"
+        "500":
+          description: internal server error
+  /eu-ai-act/saveControls/{id}:
+    patch:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: control id
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        "202":
+          description: controls saved
+        "500":
+          description: internal server error
+  /eu-ai-act/saveAnswer/{id}:
+    patch:
+      tags: [eu-ai-act]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: question id
+      requestBody:
+        description: Answer data
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "202":
+          description: answer saved
+        "500":
+          description: internal server error
+
+  /iso-42001:
+    get:
+      tags: [iso-42001]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: ISO 42001 data
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: internal server error
+
+  /reporting:
+    get:
+      tags: [reporting]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: reporting data
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: internal server error
+
+  /mail:
+    post:
+      tags: [mail]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: Email data
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  example: "user@example.com"
+                subject:
+                  type: string
+                  example: "Subject"
+                body:
+                  type: string
+                  example: "Email body"
+        required: true
+      responses:
+        "200":
+          description: email sent successfully
+        "500":
+          description: internal server error
+
+  /bias_and_fairness/upload:
+    post:
+      tags: [bias_and_fairness]
+      summary: Upload model and data for bias and fairness analysis
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  format: binary
+                  description: Model file for analysis
+                data:
+                  type: string
+                  format: binary
+                  description: Dataset file for analysis
+                target_column:
+                  type: string
+                  description: Name of the target column in the dataset
+                sensitive_column:
+                  type: string
+                  description: Name of the sensitive attribute column
+              required:
+                - model
+                - data
+                - target_column
+                - sensitive_column
+      responses:
+        "202":
+          description: Upload initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: integer
+                    example: 123
+                  message:
+                    type: string
+                    example: "Upload initiated"
+        "400":
+          description: Bad request - invalid file format or missing parameters
+        "500":
+          description: Internal server error
+  /bias_and_fairness/upload/status/{job_id}:
+    get:
+      tags: [bias_and_fairness]
+      summary: Get upload job status
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: job_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the upload job
+      responses:
+        "200":
+          description: Upload job status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: integer
+                    example: 123
+                  status:
+                    type: string
+                    enum: [pending, processing, completed, failed]
+                    example: "completed"
+                  progress:
+                    type: number
+                    example: 100.0
+                  message:
+                    type: string
+                    example: "Analysis completed successfully"
+        "404":
+          description: Job not found
+        "500":
+          description: Internal server error
+  /bias_and_fairness/metrics/all:
+    get:
+      tags: [bias_and_fairness]
+      summary: Get all bias and fairness metrics for the tenant
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: List of all metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BiasAndFairnessMetrics"
+        "500":
+          description: Internal server error
+  /bias_and_fairness/metrics/{id}:
+    get:
+      tags: [bias_and_fairness]
+      summary: Get specific bias and fairness metrics by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the metrics record
+      responses:
+        "200":
+          description: Bias and fairness metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BiasAndFairnessMetrics"
+        "404":
+          description: Metrics not found
+        "500":
+          description: Internal server error
+    delete:
+      tags: [bias_and_fairness]
+      summary: Delete bias and fairness metrics by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the metrics record to delete
+      responses:
+        "200":
+          description: Metrics deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Metrics deleted successfully"
+        "404":
+          description: Metrics not found
+        "500":
+          description: Internal server error
+
+  /aiTrustCentre/overview:
+    get:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: AI Trust Centre overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AITrustCentreOverview"
+        "500":
+          description: internal server error
+    put:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: AI Trust Centre overview data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AITrustCentreOverview"
+        required: true
+      responses:
+        "202":
+          description: AI Trust Centre overview updated
+        "500":
+          description: internal server error
+  /aiTrustCentre/resources:
+    get:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: AI Trust Centre resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AITrustCentreResource"
+        "500":
+          description: internal server error
+    post:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: AI Trust Centre resource created
+        "500":
+          description: internal server error
+  /aiTrustCentre/resources/{id}:
+    put:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: resource id
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "202":
+          description: AI Trust Centre resource updated
+        "404":
+          description: resource not found
+        "500":
+          description: internal server error
+    delete:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: resource id
+      responses:
+        "202":
+          description: AI Trust Centre resource deleted
+        "404":
+          description: resource not found
+        "500":
+          description: internal server error
+  /aiTrustCentre/subprocessors:
+    get:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: AI Trust Centre subprocessors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AITrustCentreSubprocessor"
+        "500":
+          description: internal server error
+    post:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      requestBody:
+        description: Subprocessor data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AITrustCentreSubprocessor"
+        required: true
+      responses:
+        "201":
+          description: AI Trust Centre subprocessor created
+        "500":
+          description: internal server error
+  /aiTrustCentre/subprocessors/{id}:
+    put:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: subprocessor id
+      requestBody:
+        description: Subprocessor data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AITrustCentreSubprocessor"
+        required: true
+      responses:
+        "202":
+          description: AI Trust Centre subprocessor updated
+        "404":
+          description: subprocessor not found
+        "500":
+          description: internal server error
+    delete:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: subprocessor id
+      responses:
+        "202":
+          description: AI Trust Centre subprocessor deleted
+        "404":
+          description: subprocessor not found
+        "500":
+          description: internal server error
+  /aiTrustCentre/logo:
+    post:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                logo:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: company logo uploaded
+        "500":
+          description: internal server error
+    delete:
+      tags: [aiTrustCentre]
+      security:
+        - JWTAuth: []
+      responses:
+        "202":
+          description: company logo deleted
+        "500":
+          description: internal server error
+  /aiTrustCentre/{hash}:
+    get:
+      tags: [aiTrustCentre]
+      parameters:
+        - in: path
+          name: hash
+          schema:
+            type: string
+          required: true
+          description: public hash
+      responses:
+        "200":
+          description: AI Trust Centre public page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AITrustCentrePublic"
+        "404":
+          description: page not found
+        "500":
+          description: internal server error
+  /aiTrustCentre/{hash}/logo:
+    get:
+      tags: [aiTrustCentre]
+      parameters:
+        - in: path
+          name: hash
+          schema:
+            type: string
+          required: true
+          description: public hash
+      responses:
+        "200":
+          description: company logo
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: logo not found
+        "500":
+          description: internal server error
+  /aiTrustCentre/{hash}/resources/{id}:
+    get:
+      tags: [aiTrustCentre]
+      parameters:
+        - in: path
+          name: hash
+          schema:
+            type: string
+          required: true
+          description: public hash
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: resource id
+      responses:
+        "200":
+          description: AI Trust Centre public resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AITrustCentreResource"
+        "404":
+          description: resource not found
+        "500":
+          description: internal server error
+
+  /logger/events:
+    get:
+      tags: [logger]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: system events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "500":
+          description: internal server error
+  /logger/logs:
+    get:
+      tags: [logger]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: system logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "500":
+          description: internal server error
 
 components:
   securitySchemes:
@@ -4593,9 +5845,16 @@ components:
         id:
           type: integer
           example: 1
-        projectId:
+        project_id:
           type: integer
           example: 1
+        is_demo:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
     Role:
       type: object
       properties:
@@ -5128,28 +6387,241 @@ components:
           example: 1
 
     TrainingModule:
+      type: object
       properties:
         id:
-         type: integer
-         example: 1
+          type: integer
+          example: 1
         training_name:
           type: string
           example: "AI Training"
         duration:
-           type: string
-           example: "6 weeks"
+          type: string
+          example: "6 weeks"
         provider:
-           type: string
-           example: "Verifywise open source AI governance"
+          type: string
+          example: "Verifywise open source AI governance"
         department:
           type: string
           example: "Maths Department"
         status:
           type: string
-          enum: [Planned,In Progress, Completed]
-        people:
+          enum: [Planned, In Progress, Completed]
+        numberOfPeople:
           type: integer
           example: 10
         description:
-           type: string
-           example: "A training module requiring 6 weeks"
+          type: string
+          example: "A training module requiring 6 weeks"
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "VerifyWise Corp"
+        logo:
+          type: string
+          example: "logo.png"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+
+    Framework:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "EU AI Act"
+        description:
+          type: string
+          example: "European Union Artificial Intelligence Act"
+        version:
+          type: string
+          example: "1.0"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+
+    FileMetadata:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        filename:
+          type: string
+          example: "document.pdf"
+        originalName:
+          type: string
+          example: "Original Document.pdf"
+        mimetype:
+          type: string
+          example: "application/pdf"
+        size:
+          type: integer
+          example: 1024
+        uploadedAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+        projectId:
+          type: integer
+          example: 1
+
+    AITrustCentreOverview:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        companyName:
+          type: string
+          example: "VerifyWise Corp"
+        description:
+          type: string
+          example: "AI governance and compliance platform"
+        website:
+          type: string
+          example: "https://verifywise.ai"
+        isPublic:
+          type: boolean
+          example: true
+        publicHash:
+          type: string
+          example: "abc123def456"
+
+    AITrustCentreResource:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "AI Policy Document"
+        description:
+          type: string
+          example: "Company AI usage policy"
+        resourceType:
+          type: string
+          example: "policy"
+        isPublic:
+          type: boolean
+          example: true
+        filePath:
+          type: string
+          example: "/resources/ai-policy.pdf"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+
+    AITrustCentreSubprocessor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "AI Service Provider"
+        description:
+          type: string
+          example: "Third-party AI model provider"
+        website:
+          type: string
+          example: "https://aiservice.com"
+        dataProcessed:
+          type: string
+          example: "User queries and responses"
+        safeguards:
+          type: string
+          example: "Data encryption and access controls"
+
+    AITrustCentrePublic:
+      type: object
+      properties:
+        overview:
+          $ref: "#/components/schemas/AITrustCentreOverview"
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/AITrustCentreResource"
+        subprocessors:
+          type: array
+          items:
+            $ref: "#/components/schemas/AITrustCentreSubprocessor"
+
+    BiasAndFairnessMetrics:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_id:
+          type: integer
+          example: 123
+        model_name:
+          type: string
+          example: "RandomForestClassifier"
+        dataset_name:
+          type: string
+          example: "customer_data.csv"
+        target_column:
+          type: string
+          example: "approved"
+        sensitive_column:
+          type: string
+          example: "gender"
+        demographic_parity:
+          type: number
+          format: float
+          example: 0.85
+          description: "Demographic parity score (0-1, closer to 1 is better)"
+        equalized_odds:
+          type: number
+          format: float
+          example: 0.78
+          description: "Equalized odds score (0-1, closer to 1 is better)"
+        statistical_parity:
+          type: number
+          format: float
+          example: 0.82
+          description: "Statistical parity score (0-1, closer to 1 is better)"
+        individual_fairness:
+          type: number
+          format: float
+          example: 0.89
+          description: "Individual fairness score (0-1, closer to 1 is better)"
+        overall_fairness_score:
+          type: number
+          format: float
+          example: 0.835
+          description: "Overall fairness score (0-1, closer to 1 is better)"
+        bias_detected:
+          type: boolean
+          example: true
+          description: "Whether bias was detected in the model"
+        recommendations:
+          type: array
+          items:
+            type: string
+          example:
+            ["Consider rebalancing training data", "Review feature selection"]
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"

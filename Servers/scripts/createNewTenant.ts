@@ -386,6 +386,21 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
+    await sequelize.query(`CREATE TABLE "${tenantHash}".controls_eu__risks (
+      control_id INTEGER NOT NULL,
+      projects_risks_id INTEGER NOT NULL,
+      PRIMARY KEY (control_id, projects_risks_id),
+      FOREIGN KEY (control_id) REFERENCES "${tenantHash}".controls_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );`, { transaction });
+    await sequelize.query(`CREATE TABLE "${tenantHash}".answers_eu__risks (
+      answer_id INTEGER NOT NULL,
+      projects_risks_id INTEGER NOT NULL,
+      PRIMARY KEY (answer_id, projects_risks_id),
+      FOREIGN KEY (answer_id) REFERENCES "${tenantHash}".answers_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      );`, { transaction });
+
     await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".annexcategories_iso
     (
       id serial NOT NULL,

@@ -24,7 +24,7 @@ import FairnessDashboard from "../../presentation/pages/FairnessDashboard/Fairne
 import FairnessResultsPage from "../../presentation/pages/FairnessDashboard/FairnessResultsPage";
 import AITrustCenter from "../../presentation/pages/AITrustCenter";
 import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
-
+import ModelInventoryPage from "../../presentation/pages/ModelInventory";
 import Training from "../../presentation/pages/TrainingRegistar";
 import WatchTower from "../../presentation/pages/WatchTower";
 
@@ -56,6 +56,7 @@ export const createRoutes = (
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/event-tracker" element={<WatchTower />} />
+    <Route path="/model-inventory" element={<ModelInventoryPage />} />
   </Route>,
   <Route
     key="admin-reg"

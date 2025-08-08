@@ -456,7 +456,13 @@ const NewControlPane = ({
               }))
             }
             readOnly={isEditingDisabled}
-            setAuditedStatusModalOpen={setAuditedStatusModalOpen}
+            setAuditedStatusModalOpen={(open: boolean) => {
+              if (selectedRisks.length > 0 || state.risks.length > 0 || (
+                state.risks.length > 0 && deletedRisks.length === state.risks.length
+              )) {
+                setAuditedStatusModalOpen(open);
+              }
+            }}
           />
           <Stack direction="row" spacing={2}>
             <Button
@@ -729,7 +735,6 @@ const NewControlPane = ({
           sx: {
             width: '1500px',
             maxWidth: '1500px',
-            minHeight: '520px'
           },
         }}
       >
@@ -749,7 +754,6 @@ const NewControlPane = ({
           sx: {
             width: '800px',
             maxWidth: '800px',
-            minHeight: '300px'
           },
         }}
       >

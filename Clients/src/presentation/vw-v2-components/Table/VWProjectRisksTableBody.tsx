@@ -211,7 +211,7 @@ const VWProjectRisksTableBody = ({
                     border: "1px solid #13715B",
                   }}
                   variant="contained"
-                  text="Mitigation"
+                  text="View controls"
                   onClick={(e: React.MouseEvent<HTMLElement>) => toggleMitigations(row, e)}
                 />
               </TableCell>

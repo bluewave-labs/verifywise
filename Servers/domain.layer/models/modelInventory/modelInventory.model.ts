@@ -4,7 +4,7 @@ import { ModelInventoryStatus } from "../../enums/model-inventory-status.enum";
 import { ValidationException } from "../../exceptions/custom.exception";
 
 @Table({
-  tableName: "model_inventory",
+  tableName: "model_inventories",
   timestamps: true,
 })
 export class ModelInventoryModel

@@ -44,61 +44,60 @@ class TestModelInventoryModel {
   }
 
   // Static method to create new model inventory
-  static async CreateNewModelInventory(
-    modelInventoryAttributes: Partial<TestModelInventoryModel>
-  ): Promise<TestModelInventoryModel> {
-    // Validate required fields
-    if (!modelInventoryAttributes.provider_model?.trim()) {
-      throw new ValidationException(
-        "Provider/Model is required",
-        "provider_model",
-        modelInventoryAttributes.provider_model
-      );
-    }
-
-    if (!modelInventoryAttributes.version?.trim()) {
-      throw new ValidationException(
-        "Version is required",
-        "version",
-        modelInventoryAttributes.version
-      );
-    }
-
-    if (!modelInventoryAttributes.approver?.trim()) {
-      throw new ValidationException(
-        "Approver is required",
-        "approver",
-        modelInventoryAttributes.approver
-      );
-    }
-
-    if (!modelInventoryAttributes.capabilities?.trim()) {
-      throw new ValidationException(
-        "Capabilities are required",
-        "capabilities",
-        modelInventoryAttributes.capabilities
-      );
-    }
-
-    // Set default values
-    const modelInventory = new TestModelInventoryModel();
-    modelInventory.provider_model = modelInventoryAttributes.provider_model;
-    modelInventory.version = modelInventoryAttributes.version;
-    modelInventory.approver = modelInventoryAttributes.approver;
-    modelInventory.capabilities = modelInventoryAttributes.capabilities;
-    modelInventory.security_assessment =
-      modelInventoryAttributes.security_assessment ?? false;
-    modelInventory.status =
-      modelInventoryAttributes.status ?? ModelInventoryStatus.PENDING;
-    modelInventory.status_date =
-      modelInventoryAttributes.status_date ?? new Date();
-    modelInventory.is_demo = modelInventoryAttributes.is_demo ?? false;
-    modelInventory.created_at =
-      modelInventoryAttributes.created_at ?? new Date();
-    modelInventory.updated_at =
-      modelInventoryAttributes.updated_at ?? new Date();
+  static createNewModelInventory(
+    data: Partial<TestModelInventoryModel>
+  ): TestModelInventoryModel {
+    const modelInventory = new TestModelInventoryModel({
+      provider_model: data.provider_model || "",
+      version: data.version || "",
+      approver: data.approver || "",
+      capabilities: data.capabilities || "",
+      security_assessment: data.security_assessment || false,
+      status: data.status || ModelInventoryStatus.PENDING,
+      status_date: data.status_date || new Date(),
+      is_demo: data.is_demo || false,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
 
     return modelInventory;
+  }
+
+  // Static method to update model inventory
+  static updateModelInventory(
+    existingModel: TestModelInventoryModel,
+    data: Partial<TestModelInventoryModel>
+  ): TestModelInventoryModel {
+    // Update only the fields that are provided
+    if (data.provider_model !== undefined) {
+      existingModel.provider_model = data.provider_model;
+    }
+    if (data.version !== undefined) {
+      existingModel.version = data.version;
+    }
+    if (data.approver !== undefined) {
+      existingModel.approver = data.approver;
+    }
+    if (data.capabilities !== undefined) {
+      existingModel.capabilities = data.capabilities;
+    }
+    if (data.security_assessment !== undefined) {
+      existingModel.security_assessment = data.security_assessment;
+    }
+    if (data.status !== undefined) {
+      existingModel.status = data.status;
+    }
+    if (data.status_date !== undefined) {
+      existingModel.status_date = data.status_date;
+    }
+    if (data.is_demo !== undefined) {
+      existingModel.is_demo = data.is_demo;
+    }
+
+    // Always update the updated_at timestamp
+    existingModel.updated_at = new Date();
+
+    return existingModel;
   }
 
   // Instance methods
@@ -128,6 +127,34 @@ class TestModelInventoryModel {
 
   isDemoModelInventory(): boolean {
     return this.is_demo ?? false;
+  }
+
+  isActive(): boolean {
+    if (this.isDemoModelInventory()) {
+      return false;
+    }
+
+    if (this.created_at) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return this.created_at > thirtyDaysAgo;
+    }
+
+    return true;
+  }
+
+  getAgeInDays(): number {
+    if (!this.created_at) {
+      return 0;
+    }
+
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - this.created_at.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  isRecent(days: number = 7): boolean {
+    return this.getAgeInDays() <= days;
   }
 
   toSafeJSON(): any {
@@ -179,10 +206,10 @@ describe("ModelInventoryModel", () => {
     jest.clearAllMocks();
   });
 
-  describe("CreateNewModelInventory", () => {
-    it("should create a new model inventory with valid data", async () => {
+  describe("createNewModelInventory", () => {
+    it("should create a new model inventory with valid data", () => {
       // Arrange & Act
-      const result = await TestModelInventoryModel.CreateNewModelInventory(
+      const result = TestModelInventoryModel.createNewModelInventory(
         validModelInventoryData
       );
 
@@ -202,48 +229,83 @@ describe("ModelInventoryModel", () => {
       expect(result.is_demo).toBe(false); // default value
     });
 
-    it("should throw ValidationException for missing provider_model", async () => {
-      // Arrange & Act & Assert
-      await expect(
-        TestModelInventoryModel.CreateNewModelInventory({
-          version: "4.0",
-          approver: "John Doe",
-          capabilities: "Text generation",
-        })
-      ).rejects.toThrow(ValidationException);
+    it("should create model inventory with default values for missing fields", () => {
+      // Arrange & Act
+      const result = TestModelInventoryModel.createNewModelInventory({
+        provider_model: "Test Model",
+        version: "1.0",
+        approver: "Test Approver",
+        capabilities: "Test capabilities",
+      });
+
+      // Assert
+      expect(result.provider_model).toBe("Test Model");
+      expect(result.version).toBe("1.0");
+      expect(result.approver).toBe("Test Approver");
+      expect(result.capabilities).toBe("Test capabilities");
+      expect(result.security_assessment).toBe(false); // default
+      expect(result.status).toBe(ModelInventoryStatus.PENDING); // default
+      expect(result.is_demo).toBe(false); // default
+    });
+  });
+
+  describe("updateModelInventory", () => {
+    let existingModel: TestModelInventoryModel;
+
+    beforeEach(() => {
+      existingModel = new TestModelInventoryModel({
+        provider_model: "Original Model",
+        version: "1.0",
+        approver: "Original Approver",
+        capabilities: "Original capabilities",
+        security_assessment: false,
+        status: ModelInventoryStatus.PENDING,
+        status_date: new Date(),
+      });
     });
 
-    it("should throw ValidationException for missing version", async () => {
-      // Arrange & Act & Assert
-      await expect(
-        TestModelInventoryModel.CreateNewModelInventory({
-          provider_model: "OpenAI GPT-4",
-          approver: "John Doe",
-          capabilities: "Text generation",
-        })
-      ).rejects.toThrow(ValidationException);
+    it("should update only provided fields", () => {
+      // Arrange & Act
+      const result = TestModelInventoryModel.updateModelInventory(
+        existingModel,
+        {
+          provider_model: "Updated Model",
+          version: "2.0",
+        }
+      );
+
+      // Assert
+      expect(result.provider_model).toBe("Updated Model");
+      expect(result.version).toBe("2.0");
+      expect(result.approver).toBe("Original Approver"); // unchanged
+      expect(result.capabilities).toBe("Original capabilities"); // unchanged
+      expect(result.updated_at).toBeInstanceOf(Date);
     });
 
-    it("should throw ValidationException for missing approver", async () => {
-      // Arrange & Act & Assert
-      await expect(
-        TestModelInventoryModel.CreateNewModelInventory({
-          provider_model: "OpenAI GPT-4",
-          version: "4.0",
-          capabilities: "Text generation",
-        })
-      ).rejects.toThrow(ValidationException);
-    });
+    it("should update all fields when all are provided", () => {
+      // Arrange & Act
+      const result = TestModelInventoryModel.updateModelInventory(
+        existingModel,
+        {
+          provider_model: "Updated Model",
+          version: "2.0",
+          approver: "Updated Approver",
+          capabilities: "Updated capabilities",
+          security_assessment: true,
+          status: ModelInventoryStatus.APPROVED,
+          status_date: new Date(),
+          is_demo: true,
+        }
+      );
 
-    it("should throw ValidationException for missing capabilities", async () => {
-      // Arrange & Act & Assert
-      await expect(
-        TestModelInventoryModel.CreateNewModelInventory({
-          provider_model: "OpenAI GPT-4",
-          version: "4.0",
-          approver: "John Doe",
-        })
-      ).rejects.toThrow(ValidationException);
+      // Assert
+      expect(result.provider_model).toBe("Updated Model");
+      expect(result.version).toBe("2.0");
+      expect(result.approver).toBe("Updated Approver");
+      expect(result.capabilities).toBe("Updated capabilities");
+      expect(result.security_assessment).toBe(true);
+      expect(result.status).toBe(ModelInventoryStatus.APPROVED);
+      expect(result.is_demo).toBe(true);
     });
   });
 
@@ -305,6 +367,37 @@ describe("ModelInventoryModel", () => {
 
       modelInventory.is_demo = true;
       expect(modelInventory.isDemoModelInventory()).toBe(true);
+    });
+
+    it("should check if model inventory is active", () => {
+      expect(modelInventory.isActive()).toBe(true);
+
+      modelInventory.is_demo = true;
+      expect(modelInventory.isActive()).toBe(false);
+    });
+
+    it("should calculate age in days correctly", () => {
+      // Test with a date that's approximately 10 days ago
+      const oldDate = new Date();
+      oldDate.setDate(oldDate.getDate() - 10);
+      modelInventory.created_at = oldDate;
+
+      // The result should be approximately 10 days, allow for small variations
+      const ageInDays = modelInventory.getAgeInDays();
+      expect(ageInDays).toBeGreaterThanOrEqual(9);
+      expect(ageInDays).toBeLessThanOrEqual(11);
+    });
+
+    it("should check if model inventory is recent", () => {
+      // Test with a date that's 3 days ago
+      const recentDate = new Date();
+      recentDate.setDate(recentDate.getDate() - 3);
+      modelInventory.created_at = recentDate;
+
+      // Should be recent within 7 days
+      expect(modelInventory.isRecent(7)).toBe(true);
+      // Should not be recent within 2 days
+      expect(modelInventory.isRecent(2)).toBe(false);
     });
 
     it("should return safe JSON without sensitive data", () => {

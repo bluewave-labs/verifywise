@@ -294,6 +294,67 @@ export class ModelInventoryModel
     return `${this.provider_model} ${this.version}`.trim();
   }
 
+  /**
+   * Create a new ModelInventoryModel instance with minimal validations
+   */
+  static createNewModelInventory(
+    data: Partial<IModelInventory>
+  ): ModelInventoryModel {
+    const modelInventory = new ModelInventoryModel({
+      provider_model: data.provider_model || "",
+      version: data.version || "",
+      approver: data.approver || "",
+      capabilities: data.capabilities || "",
+      security_assessment: data.security_assessment || false,
+      status: data.status || ModelInventoryStatus.PENDING,
+      status_date: data.status_date || new Date(),
+      is_demo: data.is_demo || false,
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    return modelInventory;
+  }
+
+  /**
+   * Update an existing ModelInventoryModel instance with minimal validations
+   */
+  static updateModelInventory(
+    existingModel: ModelInventoryModel,
+    data: Partial<ModelInventoryModel>
+  ): ModelInventoryModel {
+    // Update only the fields that are provided
+    if (data.provider_model !== undefined) {
+      existingModel.provider_model = data.provider_model;
+    }
+    if (data.version !== undefined) {
+      existingModel.version = data.version;
+    }
+    if (data.approver !== undefined) {
+      existingModel.approver = data.approver;
+    }
+    if (data.capabilities !== undefined) {
+      existingModel.capabilities = data.capabilities;
+    }
+    if (data.security_assessment !== undefined) {
+      existingModel.security_assessment = data.security_assessment;
+    }
+    if (data.status !== undefined) {
+      existingModel.status = data.status;
+    }
+    if (data.status_date !== undefined) {
+      existingModel.status_date = data.status_date;
+    }
+    if (data.is_demo !== undefined) {
+      existingModel.is_demo = data.is_demo;
+    }
+
+    // Always update the updated_at timestamp
+    existingModel.updated_at = new Date();
+
+    return existingModel;
+  }
+
   constructor(init?: Partial<IModelInventory>) {
     super();
     Object.assign(this, init);

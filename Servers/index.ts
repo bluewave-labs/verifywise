@@ -30,7 +30,7 @@ import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import loggerRoutes from "./routes/logger.route";
 import iso27001Routes from "./routes/iso27001.route";
-
+import modelInventoryRoutes from "./routes/modelInventory.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -110,7 +110,7 @@ try {
   app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
-
+  app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

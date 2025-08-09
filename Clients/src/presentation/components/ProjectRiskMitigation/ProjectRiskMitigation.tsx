@@ -24,7 +24,6 @@ export const ProjectRiskMitigation: React.FC<ProjectRiskMitigationProps> = ({
       backgroundColor: "#FCFCFD",
       padding: 10,
       borderRadius: "4px",
-      gap: 10,
       minHeight: "300px"
     }}>
       <Stack sx={{
@@ -37,8 +36,8 @@ export const ProjectRiskMitigation: React.FC<ProjectRiskMitigationProps> = ({
         <Typography sx={{
           fontSize: 16, 
           color: "#344054", 
-          fontWeight: "bold"
-        }}>Mitigation Components</Typography>
+          fontWeight: "bold",
+        }}>Linked controls components</Typography>
         <ClearIcon sx={{
           color: "#98A2B3", 
           cursor: "pointer"

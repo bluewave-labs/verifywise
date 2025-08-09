@@ -38,6 +38,7 @@ import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCente
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
 import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
+import { ReactComponent as ModelInventory } from "../../assets/icons/list.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -86,6 +87,11 @@ const menu = [
     name: "AI Trust Center",
     icon: <AITrustCenter />,
     path: "/ai-trust-center",
+  },
+  {
+    name: "Model Inventory",
+    icon: <ModelInventory />,
+    path: "/model-inventory",
   },
 ];
 

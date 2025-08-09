@@ -9,14 +9,14 @@ import { Box, Stack, Typography, Fade } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import CustomizableButton from "../../vw-v2-components/Buttons";
-import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context"; // Assuming this path is correct for context
+import { logEngine } from "../../../application/tools/log.engine"; 
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context"; 
 import {
   getAllEntities,
   deleteEntityById,
   getEntityById,
   updateEntityById,
-} from "../../../application/repository/entity.repository"; // Assuming this path is correct for data fetching
+} from "../../../application/repository/entity.repository"; 
 
 // Import the table and modal components specific to Training
 import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable

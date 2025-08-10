@@ -2,7 +2,7 @@ import React from "react";
 import Overview from "./Overview";
 import Resources from "./Resources";
 import Subprocessors from "./Subprocessors";
-import { Box,Stack } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";

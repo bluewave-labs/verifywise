@@ -11,7 +11,6 @@ import {
 } from "../utils/modelInventory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import { logEvent } from "../utils/logger/dbLogger";
 
 export async function getAllModelInventories(req: Request, res: Response) {
   logStructured(
@@ -164,7 +163,12 @@ export async function createNewModelInventory(req: Request, res: Response) {
   } catch (error) {
     // Rollback transaction if it exists
     if (transaction) {
-      await transaction.rollback();
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        // Transaction might already be committed, ignore rollback errors
+        console.warn("Transaction rollback failed:", rollbackError);
+      }
     }
 
     logStructured(
@@ -257,7 +261,12 @@ export async function updateModelInventoryById(req: Request, res: Response) {
   } catch (error) {
     // Rollback transaction if it exists
     if (transaction) {
-      await transaction.rollback();
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        // Transaction might already be committed, ignore rollback errors
+        console.warn("Transaction rollback failed:", rollbackError);
+      }
     }
 
     logStructured(
@@ -320,7 +329,12 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
   } catch (error) {
     // Rollback transaction if it exists
     if (transaction) {
-      await transaction.rollback();
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        // Transaction might already be committed, ignore rollback errors
+        console.warn("Transaction rollback failed:", rollbackError);
+      }
     }
 
     logStructured(

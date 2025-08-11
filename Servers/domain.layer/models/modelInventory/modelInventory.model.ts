@@ -213,7 +213,9 @@ export class ModelInventoryModel
       provider_model: this.provider_model,
       version: this.version,
       approver: this.approver,
-      capabilities: this.capabilities,
+      capabilities: this.capabilities
+        ? this.capabilities.split(", ").filter((cap) => cap.trim())
+        : [],
       security_assessment: this.security_assessment,
       status: this.status,
       status_date: this.status_date?.toISOString(),
@@ -239,7 +241,9 @@ export class ModelInventoryModel
       provider_model: this.provider_model,
       version: this.version,
       approver: this.approver,
-      capabilities: this.capabilities,
+      capabilities: this.capabilities
+        ? this.capabilities.split(", ").filter((cap) => cap.trim())
+        : [],
       security_assessment: this.security_assessment,
       status: this.status,
       status_date: this.status_date?.toISOString(),
@@ -304,7 +308,9 @@ export class ModelInventoryModel
       provider_model: data.provider_model || "",
       version: data.version || "",
       approver: data.approver || "",
-      capabilities: data.capabilities || "",
+      capabilities: Array.isArray(data.capabilities)
+        ? data.capabilities.join(", ")
+        : data.capabilities || "",
       security_assessment: data.security_assessment || false,
       status: data.status || ModelInventoryStatus.PENDING,
       status_date: data.status_date || new Date(),
@@ -334,7 +340,9 @@ export class ModelInventoryModel
       existingModel.approver = data.approver;
     }
     if (data.capabilities !== undefined) {
-      existingModel.capabilities = data.capabilities;
+      existingModel.capabilities = Array.isArray(data.capabilities)
+        ? data.capabilities.join(", ")
+        : data.capabilities;
     }
     if (data.security_assessment !== undefined) {
       existingModel.security_assessment = data.security_assessment;

@@ -22,10 +22,9 @@ import SelectComponent from "../../Inputs/Select";
 import SaveIcon from "@mui/icons-material/Save";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import {
-  IModelInventory,
-  ModelInventoryStatus,
-} from "../../../../domain/interfaces/i.modelInventory";
+import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";
+import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { User } from "../../../../domain/types/User";
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -106,14 +105,32 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     initialData || initialState
   );
   const [errors, setErrors] = useState<NewModelInventoryFormErrors>({});
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   useEffect(() => {
-    if (initialData) {
+    if (initialData && users.length > 0) {
+      // If we have initialData and users are loaded, set the values
+      if (initialData.approver) {
+        // Check if the approver ID exists in the loaded users
+        const approverExists = users.some(
+          (user) => user.id.toString() === initialData.approver
+        );
+        if (approverExists) {
+          setValues(initialData);
+        }
+      } else {
+        // If no approver, just set the values
+        setValues(initialData);
+      }
+    } else if (initialData && !isEdit) {
+      // If we have initialData but no users yet, set values temporarily
       setValues(initialData);
     } else if (!isEdit) {
+      // If not editing, set initial state
       setValues(initialState);
     }
-  }, [initialData, isEdit]);
+  }, [initialData, isEdit, users]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -121,6 +138,37 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       setErrors({});
     }
   }, [isOpen]);
+
+  // Fetch users when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchUsers();
+    }
+  }, [isOpen]);
+
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      if (response?.data) {
+        setUsers(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  // Transform users to the format expected by SelectComponent
+  const userOptions = useMemo(() => {
+    return users.map((user) => ({
+      _id: user.id,
+      name: user.name,
+      surname: user.surname,
+      email: user.email,
+    }));
+  }, [users]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
@@ -317,16 +365,31 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
               <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
                 <Box sx={{ width: "50%" }}>
                   <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="approver"
-                      label="Approver"
-                      value={values.approver}
-                      onChange={handleOnTextFieldChange("approver")}
-                      error={errors.approver}
-                      isRequired
-                      sx={fieldStyle}
-                      placeholder="Enter approver name"
-                    />
+                    {isLoadingUsers ? (
+                      <div
+                        style={{
+                          padding: "16px",
+                          textAlign: "center",
+                          color: theme.palette.text.secondary,
+                          fontSize: "13px",
+                        }}
+                      >
+                        Loading users...
+                      </div>
+                    ) : (
+                      <SelectComponent
+                        id="approver"
+                        label="Approver"
+                        value={values.approver}
+                        error={errors.approver}
+                        isRequired
+                        sx={{ width: "100%" }}
+                        items={userOptions}
+                        onChange={handleOnSelectChange("approver")}
+                        placeholder="Select approver"
+                        disabled={isLoadingUsers}
+                      />
+                    )}
                   </Suspense>
                 </Box>
                 <Box sx={{ width: "50%" }}>

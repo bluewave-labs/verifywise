@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -26,6 +26,8 @@ import {
   IModelInventory,
   ModelInventoryStatus,
 } from "../../../domain/interfaces/i.modelInventory";
+import { getAllEntities } from "../../../application/repository/entity.repository";
+import { User } from "../../../domain/types/User";
 
 // Constants for table
 const TABLE_COLUMNS = [
@@ -151,6 +153,32 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   const { userRoleName } = useContext(VerifyWiseContext);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [users, setUsers] = useState<User[]>([]);
+
+  // Fetch users when component mounts
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      if (response?.data) {
+        setUsers(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  // Create a mapping of user IDs to user names
+  const userMap = useMemo(() => {
+    const map = new Map<string, string>();
+    users.forEach((user) => {
+      map.set(user.id.toString(), `${user.name} ${user.surname}`.trim());
+    });
+    return map;
+  }, [users]);
 
   const isDeletingAllowed =
     allowedRoles.modelInventory?.delete?.includes(userRoleName);
@@ -234,7 +262,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   {modelInventory.version || "-"}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.approver}
+                  {userMap.get(modelInventory.approver) ||
+                    modelInventory.approver}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <CapabilitiesChips
@@ -294,7 +323,16 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
         )}
       </TableBody>
     ),
-    [data, page, rowsPerPage, isDeletingAllowed, onEdit, onDelete, deletingId]
+    [
+      data,
+      page,
+      rowsPerPage,
+      isDeletingAllowed,
+      onEdit,
+      onDelete,
+      deletingId,
+      userMap,
+    ]
   );
 
   if (isLoading) {

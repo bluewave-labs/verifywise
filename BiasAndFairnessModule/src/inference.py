@@ -182,7 +182,7 @@ class ModelInferencePipeline:
             Path: The path where the CSV file was written.
         """
         artifacts_config = self.config_manager.get_artifacts_config()
-        inference_results_path: Path = artifacts_config.inference_results_path
+        inference_results_path = artifacts_config.inference_results_path
         inference_results_path.parent.mkdir(parents=True, exist_ok=True)
 
         pd.DataFrame(results).to_csv(inference_results_path, index=False)

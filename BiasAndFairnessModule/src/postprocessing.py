@@ -4,26 +4,35 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from .config import PostProcessingConfig
+from .config import ConfigManager
 
 
 class PostProcessor:
     """Class for handling post-processing operations on model predictions."""
 
-    def __init__(self, config: PostProcessingConfig, dataset_path: str | Path):
+    def __init__(self, config_manager: ConfigManager):
         """
-        Initialize the PostProcessor with configuration and dataset path.
+        Initialize the PostProcessor with a configuration manager.
 
         Args:
-            config (PostProcessingConfig): Configuration containing binary mapping and attribute groups
-            dataset_path (str | Path): Path to the dataset being processed
+            config_manager (ConfigManager): Manager used to access configuration sections.
         """
-        self.config = config
-        self.dataset_path = Path(dataset_path)
+
+        # Store config manager and extract relevant sections
+        self.config_manager = config_manager
+        self.post_processing_config = self.config_manager.get_post_processing_config()
+        self.artifacts_config = self.config_manager.get_artifacts_config()
+
+        # Always use inference_results_path from artifacts for loading the dataset
+        self.dataset_path = self.artifacts_config.inference_results_path
 
         # Store binary mapping
-        self.favorable_outcome = config.binary_mapping.favorable_outcome
-        self.unfavorable_outcome = config.binary_mapping.unfavorable_outcome
+        self.favorable_outcome = (
+            self.post_processing_config.binary_mapping.favorable_outcome
+        )
+        self.unfavorable_outcome = (
+            self.post_processing_config.binary_mapping.unfavorable_outcome
+        )
 
         # Create binary encoding mapping
         self.binary_mapping = {self.favorable_outcome: 1, self.unfavorable_outcome: 0}
@@ -31,7 +40,7 @@ class PostProcessor:
         # Store attribute groups
         self.attribute_groups = {
             attr: {"privileged": group.privileged, "unprivileged": group.unprivileged}
-            for attr, group in config.attribute_groups.items()
+            for attr, group in self.post_processing_config.attribute_groups.items()
         }
 
         # Initialize internal state
@@ -142,6 +151,9 @@ class PostProcessor:
             # Step 3: Encode protected attributes
             self.encode_protected_attributes()
 
+            # Persist results to disk
+            self.save_results()
+
             return self.df.copy()
 
         except Exception as e:
@@ -168,3 +180,23 @@ class PostProcessor:
                 for attr, groups in self.attribute_groups.items()
             },
         }
+
+    def save_results(self) -> Path:
+        """
+        Save post-processed results to the configured artifacts path as a CSV file.
+
+        Returns:
+            Path: The file path where results were saved.
+
+        Raises:
+            ValueError: If there is no DataFrame available to save.
+        """
+        if self.df is None:
+            raise ValueError(
+                "No DataFrame available to save. Run processing or pass a DataFrame."
+            )
+
+        output_path = self.artifacts_config.postprocessed_results_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        self.df.to_csv(output_path, index=False)
+        return output_path

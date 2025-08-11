@@ -15,7 +15,8 @@ import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWis
 import { User } from "../../../../../domain/types/User";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import { getEUAIActAssessmentsProgress, getEUAIActCompliancesProgress } from "../../../../../application/repository/euaiAct.repository";
-import { getAnnexesProgress, getClausesProgressByProjectFrameworkId } from "../../../../../application/repository/subClause.repository";
+import { getAnnexesProgress } from "../../../../../application/repository/annex_struct_iso.repository";
+import { getClausesProgressByProjectFrameworkId } from "../../../../../application/repository/clause_struct_iso.repository";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId, setProjectFrameworkId] = useState<number | null>(

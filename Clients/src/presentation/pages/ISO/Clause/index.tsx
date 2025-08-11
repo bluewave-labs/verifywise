@@ -10,8 +10,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useState, useEffect, useCallback } from "react";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
-import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
-import { GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
+import { GetClausesByProjectFrameworkId, getClausesProgressByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
+import { getSubClauseById, GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
 import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
 import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
 import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
@@ -21,7 +21,6 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
-import { getClausesProgressByProjectFrameworkId, getSubClauseById } from "../../../../application/repository/subClause.repository";
 
 const ISO42001Clauses = ({
   project,

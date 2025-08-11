@@ -35,3 +35,20 @@ export async function GetAnnexesByProjectFrameworkId({
     data: response.data,
   };
 }
+
+export async function getAnnexesProgress({ projectId, authToken = getAuthToken() }: { projectId: number; authToken?: string }): Promise<any> {
+  const response = await apiServices.get(`/iso-42001/annexes/progress/${projectId}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response.data;
+}
+
+export async function getAnnexesStructByProjectId({ projectId, authToken = getAuthToken() }: { projectId: number; authToken?: string }): Promise<any> {
+  const response = await apiServices.get(`/iso-42001/annexes/struct/byProjectId/${projectId}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return {
+    status: response.status,
+    data: response.data,
+  };
+}

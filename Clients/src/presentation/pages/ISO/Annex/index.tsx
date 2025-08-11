@@ -10,7 +10,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { AnnexStructISO } from "../../../../domain/types/AnnexStructISO";
-import { GetAnnexCategoriesById } from "../../../../application/repository/annexCategory_iso.repository";
+import { GetAnnexCategoriesById, getAnnexCategoryById } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryStructISO } from "../../../../domain/types/AnnexCategoryStructISO";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
 import Alert from "../../../components/Alert";
@@ -19,7 +19,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
-import { getAnnexCategoryById, getAnnexesProgress, getAnnexesStructByProjectId } from "../../../../application/repository/subClause.repository";
+import { getAnnexesProgress, getAnnexesStructByProjectId } from "../../../../application/repository/annex_struct_iso.repository";
 
 const ISO42001Annex = ({
   project,

@@ -15,3 +15,22 @@ export async function GetClausesByProjectFrameworkId({
   });
   return response.data;
 }
+
+
+export async function getClausesProgressByProjectFrameworkId(
+  {
+    projectFrameworkId,
+    authToken = getAuthToken(),
+  }: {
+    projectFrameworkId: number;
+    authToken?: string;
+  }
+): Promise<any> {
+  const response = await apiServices.get(
+    `/iso-42001/clauses/progress/${projectFrameworkId}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+  return response.data;
+}

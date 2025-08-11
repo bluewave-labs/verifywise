@@ -16,29 +16,24 @@ export async function GetSubClausesById({
   return response.data;
 }
 
-// Update subclause by ID (with file upload)
-export async function UpdateSubClauseById({
-  routeUrl,
-  body,
-  authToken = getAuthToken(),
-  headers = {},
-}: {
-  routeUrl: string;
-  body: FormData;
-  authToken?: string;
-  headers?: Record<string, string>;
-}): Promise<any> {
-  try {
-    const response = await apiServices.patch(routeUrl, body, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        "Content-Type": "multipart/form-data",
-        ...headers,
-      },
-    });
-    return response;
-  } catch (error) {
-    console.error("Error updating subclause by ID:", error);
-    throw error;
-  }
+export async function getSubClauseById({ subClauseId, projectFrameworkId, authToken = getAuthToken() }: { subClauseId: number; projectFrameworkId: number; authToken?: string }): Promise<any> {
+  const response = await apiServices.get(`/iso-42001/subClause/byId/${subClauseId}?projectFrameworkId=${projectFrameworkId}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response.data;
 }
+
+// Update subclause by ID (with file upload)
+export const updateSubClauseById = async ({ subClauseId, formData }: { subClauseId: number, formData: FormData }) => {
+  const token = getAuthToken();
+  const response = await apiServices.patch(`/iso-42001/saveClauses/${subClauseId}`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response;
+
+};
+
+

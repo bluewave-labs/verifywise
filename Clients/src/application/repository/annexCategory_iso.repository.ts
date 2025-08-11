@@ -21,6 +21,15 @@ export async function GetAnnexCategoriesById({
   }
 }
 
+
+export async function getAnnexCategoryById({ annexCategoryId, projectFrameworkId, authToken = getAuthToken() }: { annexCategoryId: number; projectFrameworkId: number; authToken?: string }): Promise<any> {
+  const response = await apiServices.get(`/iso-42001/annexCategory/byId/${annexCategoryId}?projectFrameworkId=${projectFrameworkId}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response.data;
+}
+
+
 // Update annex category by ID (with file upload)
 export async function UpdateAnnexCategoryById({
   routeUrl,

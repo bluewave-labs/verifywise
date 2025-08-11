@@ -27,13 +27,10 @@ import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Uppy from "@uppy/core";
-import {
-  getSubClauseById,
-  updateSubClauseById,
-} from "../../../../application/repository/subClause.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 import LinkedRisksPopup from "../../LinkedRisks";
+import { getSubClauseById, updateSubClauseById } from "../../../../application/repository/subClause_iso.repository";
 
 export const inputStyles = {
   minWidth: 200,

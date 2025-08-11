@@ -45,6 +45,7 @@ interface ModelInventoryTableProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   paginated?: boolean;
+  deletingId?: string | null;
 }
 
 const DEFAULT_ROWS_PER_PAGE = 5;
@@ -144,6 +145,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   onEdit,
   onDelete,
   paginated = true,
+  deletingId,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useContext(VerifyWiseContext);
@@ -215,6 +217,10 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                  ...(deletingId === modelInventory.id?.toString() && {
+                    opacity: 0.6,
+                    backgroundColor: "#f5f5f5",
+                  }),
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -288,7 +294,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
         )}
       </TableBody>
     ),
-    [data, page, rowsPerPage, isDeletingAllowed, onEdit, onDelete]
+    [data, page, rowsPerPage, isDeletingAllowed, onEdit, onDelete, deletingId]
   );
 
   if (isLoading) {

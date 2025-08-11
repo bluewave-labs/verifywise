@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useContext,
-  Suspense,
-} from "react";
+import React, { useState, useEffect, useContext, Suspense } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
@@ -63,6 +57,8 @@ const ModelInventory: React.FC = () => {
   } | null>(null);
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [tableKey, setTableKey] = useState(0);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Calculate summary from data
   const summary: Summary = {
@@ -88,12 +84,18 @@ const ModelInventory: React.FC = () => {
       : modelInventoryData.filter((item) => item.status === statusFilter);
 
   // Function to fetch model inventory data
-  const fetchModelInventoryData = useCallback(async () => {
-    setIsLoading(true);
+  const fetchModelInventoryData = async (showLoading = true) => {
+    if (showLoading) {
+      setIsLoading(true);
+    }
     try {
       const response = await getAllEntities({ routeUrl: "/modelInventory" });
       if (response?.data) {
         setModelInventoryData(response.data);
+        // Only force table re-render if we're not in an optimistic update scenario
+        if (showLoading) {
+          setTableKey((prev) => prev + 1);
+        }
       }
     } catch (error) {
       console.error("Error fetching model inventory data:", error);
@@ -107,13 +109,15 @@ const ModelInventory: React.FC = () => {
       });
       setShowAlert(true);
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchModelInventoryData();
-  }, [fetchModelInventoryData]);
+  }, []);
 
   useEffect(() => {
     if (alert) {
@@ -202,18 +206,47 @@ const ModelInventory: React.FC = () => {
   const handleDeleteModelInventory = async (id: string) => {
     try {
       console.log("Deleting model inventory with ID:", id);
+      setDeletingId(id);
+
+      // Optimistically remove the item from the local state for immediate UI feedback
+      setModelInventoryData((prevData) => {
+        const newData = prevData.filter((item) => item.id?.toString() !== id);
+        console.log(
+          "Optimistic update: removed item",
+          id,
+          "New data length:",
+          newData.length
+        );
+        return newData;
+      });
+
+      // Perform the actual delete operation
       await deleteEntityById({ routeUrl: `/modelInventory/${id}` });
-      await fetchModelInventoryData();
+      console.log("Delete API call successful");
+
+      // Fetch fresh data to ensure consistency with server (without loading state)
+      await fetchModelInventoryData(false);
+
+      // Force a smooth table re-render after the data update
+      setTableKey((prev) => prev + 1);
+      console.log("Fresh data fetched, UI updated");
+
       setAlert({
         variant: "success",
         body: "Model inventory deleted successfully!",
       });
     } catch (error) {
       console.error("Error deleting model inventory:", error);
+
+      // If delete failed, revert the optimistic update by fetching fresh data (without loading state)
+      await fetchModelInventoryData(false);
+
       setAlert({
         variant: "error",
         body: "Failed to delete model inventory. Please try again.",
       });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -309,10 +342,12 @@ const ModelInventory: React.FC = () => {
         </Stack>
 
         <ModelInventoryTable
+          key={tableKey}
           data={filteredData}
           isLoading={isLoading}
           onEdit={handleEditModelInventory}
           onDelete={handleDeleteModelInventory}
+          deletingId={deletingId}
         />
       </Stack>
 

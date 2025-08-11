@@ -259,7 +259,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 >
                   {isDeletingAllowed && (
                     <CustomIconButton
-                      id={modelInventory.id}
+                      id={modelInventory.id || 0}
                       onDelete={() =>
                         onDelete?.(modelInventory.id?.toString() || "")
                       }

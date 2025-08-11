@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
+import { getProjectById } from "../repository/project.repository";
 import { VerifyWiseContext } from "../contexts/VerifyWise.context";
 import { Project } from "../../domain/types/Project";
 import { User } from "../../domain/types/User";
@@ -39,8 +39,8 @@ const useProjectData = ({
     const controller = new AbortController();
     setIsLoading(true);
 
-    getEntityById({
-      routeUrl: `/projects/${projectId}`,
+    getProjectById({
+      id: projectId,
       signal: controller.signal,
     })
       .then(({ data }) => {

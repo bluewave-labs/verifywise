@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { getEntityById } from "../repository/entity.repository";
+import { getAssessmentProgress } from "../repository/assessment.repository";
 import { AssessmentProgress } from "../../domain/interfaces/iAssessment";
 
 /**
@@ -37,8 +37,8 @@ const useAssessmentProgress = ({
 
       setLoading(true);
       try {
-        const response = await getEntityById({
-          routeUrl: `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
+        const response = await getAssessmentProgress({
+          projectFrameworkId,
           signal,
         });
         // if (!response.ok) {

@@ -12,11 +12,11 @@ import CustomizableButton from "../../vw-v2-components/Buttons";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context"; // Assuming this path is correct for context
 import {
-  getAllEntities,
-  deleteEntityById,
-  getEntityById,
-  updateEntityById,
-} from "../../../application/repository/entity.repository"; // Assuming this path is correct for data fetching
+  getAllTrainings,
+  deleteTrainingById,
+  getTrainingDetails,
+  updateTrainingById,
+} from "../../../application/repository/training.repository";
 
 // Import the table and modal components specific to Training
 import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable
@@ -61,8 +61,8 @@ const Training: React.FC = () => {
   const fetchTrainingData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Simulate API call to fetch training data
-      const response = await getAllEntities({ routeUrl: "/training" });
+      // Fetch training data using dedicated repository method
+      const response = await getAllTrainings();
       if (response?.data) {
         setTrainingData(response.data);
       }
@@ -111,8 +111,8 @@ const Training: React.FC = () => {
     const fetchTrainingDetails = async () => {
       if (selectedTrainingId && isNewTrainingModalOpen) {
         try {
-          const response = await getEntityById({
-            routeUrl: `/training/training-id/${selectedTrainingId}`,
+          const response = await getTrainingDetails({
+            trainingId: parseInt(selectedTrainingId),
           });
           console.log("Fetching training details:", response);
           if (response?.data) {
@@ -142,9 +142,9 @@ const Training: React.FC = () => {
       if (selectedTraining) {
         // Update existing training
         console.log("Updating training with data:", formData);
-        await updateEntityById({
-          routeUrl: `/training/${selectedTraining.id}`,
-          body: formData,
+        await updateTrainingById({
+          trainingId: selectedTraining.id,
+          trainingData: formData,
         });
         setAlert({
           variant: "success",
@@ -173,7 +173,7 @@ const Training: React.FC = () => {
   const handleDeleteTraining = async (id: string) => {
     try {
       console.log("Deleting training with ID:", id);
-      await deleteEntityById({ routeUrl: `/training/${id}` });
+      await deleteTrainingById({ trainingId: parseInt(id) });
       await fetchTrainingData();
       setAlert({
         variant: "success",

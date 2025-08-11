@@ -5,8 +5,8 @@ import { Outlet, useLocation } from "react-router";
 import { useContext, useEffect, FC } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
-  getEntityById,
-} from "../../../application/repository/entity.repository";
+  getAllProjects,
+} from "../../../application/repository/project.repository";
 import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 
 interface DashboardProps {
@@ -23,7 +23,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await getEntityById({ routeUrl: "/projects" });
+        const response = await getAllProjects();
         if (!response?.data) return;
         setProjects(response.data);
         setDashboardValues((prevValues: any) => ({

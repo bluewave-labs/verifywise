@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { getEntityById } from "../repository/entity.repository";
+import { getUserFilesMetaData } from "../repository/file.repository";
 import { FileData } from "../../domain/types/File";
 
 export const useUserFilesMetaData = () => {
@@ -22,9 +22,7 @@ export const useUserFilesMetaData = () => {
       try {
         setLoading(true);
         setError(null);
-        const routeUrl = "/files";
-        const filesResponse = await getEntityById({
-          routeUrl,
+        const filesResponse = await getUserFilesMetaData({
           signal: abortController.signal,
         });
 

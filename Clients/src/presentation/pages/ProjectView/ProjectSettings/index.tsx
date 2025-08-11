@@ -25,11 +25,11 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import { assignFrameworkToProject, removeFrameworkFromProject } from "../../../../application/repository/framework.repository";
 import {
-  deleteEntityById,
-  updateEntityById,
-  assignFrameworkToProject,
-} from "../../../../application/repository/entity.repository";
+  updateProject,
+  deleteProject,
+} from "../../../../application/repository/project.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
@@ -445,8 +445,9 @@ const ProjectSettings = React.memo(
 
       setIsLoading(true);
       try {
-        const response = await deleteEntityById({
-          routeUrl: `/frameworks/fromProject?frameworkId=${frameworkToRemove._id}&projectId=${projectId}`,
+        const response = await removeFrameworkFromProject({
+          frameworkId: frameworkToRemove._id,
+          projectId,
         });
 
         if (response.status === 200) {
@@ -627,8 +628,8 @@ const ProjectSettings = React.memo(
         (reg) => reg.name
       );
 
-      await updateEntityById({
-        routeUrl: `/projects/${projectId}`,
+      await updateProject({
+        id: Number(projectId),
         body: {
           id: projectId,
           project_title: values.projectTitle,
@@ -675,8 +676,8 @@ const ProjectSettings = React.memo(
     const handleConfirmDelete = useCallback(async () => {
       setIsLoading(true);
       try {
-        const response = await deleteEntityById({
-          routeUrl: `/projects/${projectId}`,
+        const response = await deleteProject({
+          id: Number(projectId),
         });
         const isError = response.status === 404 || response.status === 500;
         setAlert({

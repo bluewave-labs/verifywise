@@ -28,9 +28,9 @@ import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Uppy from "@uppy/core";
 import {
-  getEntityById,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
+  getSubClauseById,
+  updateSubClauseById,
+} from "../../../../application/repository/subClause.repository";
 import allowedRoles from "../../../../application/constants/permissions";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 import LinkedRisksPopup from "../../LinkedRisks";
@@ -138,8 +138,9 @@ const VWISO42001ClauseDrawerDialog = ({
       if (open && subClause?.id) {
         setIsLoading(true);
         try {
-          const response = await getEntityById({
-            routeUrl: `/iso-42001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
+          const response = await getSubClauseById({
+            subClauseId: subClause.id,
+            projectFrameworkId,
           });
           setFetchedSubClause(response.data);
 
@@ -244,12 +245,9 @@ const VWISO42001ClauseDrawerDialog = ({
           formDataToSend.append("files", fileToUpload);
         }
       });
-      const response = await updateEntityById({
-        routeUrl: `/iso-42001/saveClauses/${fetchedSubClause.id}`,
-        body: formDataToSend,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await updateSubClauseById({
+        subClauseId: fetchedSubClause.id,
+        formData: formDataToSend,
       });
 
       if (response.status === 200) {

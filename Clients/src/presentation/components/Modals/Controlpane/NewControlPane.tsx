@@ -14,7 +14,7 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, useContext, Suspense } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
+import { updateControlCompliance } from "../../../../application/repository/control.repository";
 import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
@@ -314,8 +314,8 @@ const NewControlPane = ({
       formData.append("risksDelete", JSON.stringify(deletedRisks));
       formData.append("risksMitigated", JSON.stringify(selectedRisks));
 
-      const response = await updateEntityById({
-        routeUrl: `/eu-ai-act/saveControls/${state.id}`,
+      const response = await updateControlCompliance({
+        controlId: state.id,
         body: formData,
         headers: {
           "Content-Type": "multipart/form-data",

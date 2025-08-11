@@ -36,8 +36,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
-import { deleteEntityById } from "../../../../application/repository/entity.repository";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
+import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -87,9 +86,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const handleUpdateRole = async (memberId: string, newRole: string) => {
     try {
-      const response = await updateEntityById({
-        routeUrl: `/users/${memberId}`,
-        body: { roleId: newRole },
+      const response = await updateUserById({
+        userId: parseInt(memberId),
+        userData: { roleId: newRole },
       });
 
       if (response.status === 202) {
@@ -129,8 +128,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
     const memberId = Number(memberToDelete);
 
-    const response = await deleteEntityById({
-      routeUrl: `/users/${memberId}`,
+    const response = await deleteUserById({
+      userId: memberId,
     });
     if (response.status === 202) {
       handleAlert({

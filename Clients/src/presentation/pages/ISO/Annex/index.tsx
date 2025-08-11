@@ -9,7 +9,6 @@ import { useCallback, useEffect, useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
-import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
 import { AnnexStructISO } from "../../../../domain/types/AnnexStructISO";
 import { GetAnnexCategoriesById } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryStructISO } from "../../../../domain/types/AnnexCategoryStructISO";
@@ -18,9 +17,9 @@ import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
-import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
+import { getAnnexCategoryById, getAnnexesProgress, getAnnexesStructByProjectId } from "../../../../application/repository/subClause.repository";
 
 const ISO42001Annex = ({
   project,
@@ -56,12 +55,12 @@ const ISO42001Annex = ({
   useEffect(() => {
     const fetchClauses = async () => {
       try {
-        const annexProgressResponse = await getEntityById({
-          routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId}`,
+        const annexProgressResponse = await getAnnexesProgress({
+          projectId: projectFrameworkId,
         });
         setAnnexesProgress(annexProgressResponse.data);
-        const response = await GetAnnexesByProjectFrameworkId({
-          routeUrl: `/iso-42001/annexes/struct/byProjectId/${projectFrameworkId}`,
+        const response = await getAnnexesStructByProjectId({
+          projectId: projectFrameworkId,
         });
         setAnnexes(response.data);
       } catch (error) {
@@ -149,8 +148,9 @@ const ISO42001Annex = ({
       const annex = annexes.find((a) => a.id === parseInt(annexId));
       async function fetchAnnexCategory() {
         try {
-          const response = await getEntityById({
-            routeUrl: `/iso-42001/annexCategory/byId/${annexCategoryId}?projectFrameworkId=${projectFrameworkId}`,
+          const response = await getAnnexCategoryById({
+            annexCategoryId: Number(annexCategoryId),
+            projectFrameworkId: projectFrameworkId,
           });
           setSelectedAnnex({...response.data, id: response.data.annex_id});
           if (annex && annexCategoryId) {

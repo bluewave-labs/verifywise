@@ -5,7 +5,7 @@ import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.c
 import { TITLE_OF_COLUMNS } from './constants';
 import useGeneratedReports, { GeneratedReports } from '../../../../application/hooks/useGeneratedReports';
 import {styles, reportTablePlaceholder} from './styles';
-import { deleteEntityById } from '../../../../application/repository/entity.repository';
+import { deleteReport } from '../../../../application/repository/reporting.repository';
 import { handleAlert } from '../../../../application/tools/alertUtils';
 import Alert from '../../../components/Alert';
 import ProjectFilterDropdown from '../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown';
@@ -50,8 +50,8 @@ const Reports = () => {
 
   const handleRemoveReport = async (id: number) => {
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/reporting/${id}`,
+      const response = await deleteReport({
+        id: id,
       });
       if (response.status === 200) {
         handleToast("success", "Report deleted successfully.");

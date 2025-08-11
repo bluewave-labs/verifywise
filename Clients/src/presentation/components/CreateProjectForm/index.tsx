@@ -15,7 +15,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 import { Suspense, lazy } from "react";
-import { createNewUser } from "../../../application/repository/entity.repository";
+import { createProject } from "../../../application/repository/project.repository";
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
@@ -160,8 +160,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     const userInfo = extractUserToken(authState.authToken);
 
     const teamMember = values.members.map((user) => String(user._id));
-    await createNewUser({
-      routeUrl: "/projects",
+    await createProject({
       body: {
         ...values,
         type_of_high_risk_role: highRiskRoleItems.find(

@@ -7,14 +7,13 @@ import RisksCard from "../../../../components/Cards/RisksCard";
 import { rowStyle } from "./style";
 import CustomizableButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import { getEntityById } from "../../../../../application/repository/entity.repository";
+import { getAllProjectRisksByProjectId, deleteProjectRisk } from "../../../../../application/repository/projectRisk.repository";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
 import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../../../components/AddNewRiskForm";
 import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
-import { deleteEntityById } from "../../../../../application/repository/entity.repository";
 import CustomizableToast from "../../../../vw-v2-components/Toast";
 import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
@@ -90,8 +89,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   const fetchProjectRisks = useCallback(async () => {
     try {
-      const response = await getEntityById({
-        routeUrl: `/projectRisks/by-projid/${projectId}`,
+      const response = await getAllProjectRisksByProjectId({
+        projectId: String(projectId),
       });
       setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
@@ -206,8 +205,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const handleDelete = async (riskId: number) => {
     handleLoading("Deleting the risk. Please wait...");
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/projectRisks/${riskId}`,
+      const response = await deleteProjectRisk({
+        id: Number(riskId),
       });
       if (response.status === 200) {
         // Set current pagination number after deleting the risk

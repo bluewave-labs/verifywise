@@ -16,9 +16,11 @@ import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { styles } from "./styles";
 import {
-  getAllEntities,
   postAutoDrivers,
 } from "../../../application/repository/entity.repository";
+import {
+  getAllProjects,
+} from "../../../application/repository/project.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
 import {
   Assessments,
@@ -55,8 +57,8 @@ const useProjects = (
   const fetchProjects = ({ controller }: { controller: AbortController }) => {
     if (controller) {
       setIsLoading(true);
-      getAllEntities({ routeUrl: "/projects" })
-        .then(({ data }) => {
+      getAllProjects()
+        .then((data) => {
           setProjects(data);
           setError(null);
           resetIsNewProject();

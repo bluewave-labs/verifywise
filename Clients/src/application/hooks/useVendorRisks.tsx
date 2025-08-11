@@ -12,7 +12,7 @@
  *   - `refetchVendorRisks` {Function} - Function to manually refetch vendor risks data.
  */
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { getEntityById } from "../repository/entity.repository";
+import { getAllVendorRisks } from "../repository/vendorRisk.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
 import { VendorRisk } from "../../domain/types/VendorRisk";
 
@@ -24,9 +24,7 @@ const useVendorRisks = ({ projectId, vendorId }: { projectId?: string | null; ve
   const fetchVendorRisks = useCallback(async () => {
     setLoadingVendorRisks(true);
     try {
-      const response = await getEntityById({
-        routeUrl: `/vendorRisks/all`,
-      });
+      const response = await getAllVendorRisks();
       if (response?.data) {
         setVendorRisks(response?.data);
       }

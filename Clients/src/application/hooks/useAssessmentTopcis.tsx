@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
+import { getAllAssessmentTopics } from "../repository/assessment.repository";
 import { Topic } from "../../domain/types/Topic";
 
 /**
@@ -26,8 +26,7 @@ const useAssessmentTopics = () => {
 
       setLoading(true);
       try {
-        const response = await getEntityById({
-          routeUrl: `eu-ai-act/topics`,
+        const response = await getAllAssessmentTopics({
           signal,
         });
         // if (!response.ok) {

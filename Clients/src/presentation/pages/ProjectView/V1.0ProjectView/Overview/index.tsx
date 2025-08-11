@@ -13,8 +13,9 @@ import { formatDate } from "../../../../tools/isoDateToString";
 import { useContext, useEffect, useState } from "react";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../../domain/types/User";
-import { getEntityById } from "../../../../../application/repository/entity.repository";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
+import { getEUAIActAssessmentsProgress, getEUAIActCompliancesProgress } from "../../../../../application/repository/euaiAct.repository";
+import { getAnnexesProgress, getClausesProgressByProjectFrameworkId } from "../../../../../application/repository/subClause.repository";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId, setProjectFrameworkId] = useState<number | null>(
@@ -93,15 +94,15 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           !isNaN(projectFrameworkId)
         ) {
           try {
-            const complianceData = await getEntityById({
-              routeUrl: `/eu-ai-act/compliances/progress/${projectFrameworkId}`,
+            const complianceData = await getEUAIActCompliancesProgress({
+              projectFrameworkId,
             });
             if (complianceData?.data) {
               setComplianceProgress(complianceData.data);
             }
 
-            const assessmentData = await getEntityById({
-              routeUrl: `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
+            const assessmentData = await getEUAIActAssessmentsProgress({
+              projectFrameworkId,
             });
             if (assessmentData?.data) {
               setAssessmentProgress(assessmentData.data);
@@ -127,15 +128,15 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
           !isNaN(projectFrameworkId2)
         ) {
           try {
-            const annexesData = await getEntityById({
-              routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId2}`,
+            const annexesData = await getAnnexesProgress({
+              projectId: projectFrameworkId2,
             });
             if (annexesData?.data) {
               setAnnexesProgress(annexesData.data);
             }
 
-            const clausesData = await getEntityById({
-              routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId2}`,
+            const clausesData = await getClausesProgressByProjectFrameworkId({
+              projectFrameworkId: projectFrameworkId2,
             });
             if (clausesData?.data) {
               setClausesProgress(clausesData.data);

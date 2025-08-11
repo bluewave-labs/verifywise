@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
+import { generateReport } from "../repository/reporting.repository";
 import { Project } from "../../domain/types/Project";
 
 export interface GeneratedReports {
@@ -51,8 +51,7 @@ const useGeneratedReports = ({
     const fetchGeneratedReports = async () => {
       setLoadingReports(true);
       try{
-        const response = await getEntityById({
-          routeUrl: `/reporting/generate-report`,
+        const response = await generateReport({
           signal,
         });
         if(response){

@@ -1,7 +1,9 @@
-import { createNewUser } from "../repository/entity.repository";
 import { logEngine } from "../tools/log.engine";
 import { FormValues } from "../validations/formValidation";
 import { API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
+import { Create } from "@mui/icons-material";
+import { createNewUser } from "../repository/user.repository";
+
 
 interface User {
   id: string;
@@ -41,8 +43,7 @@ const useRegisterUser = () => {
   }) => {
     try {
       const response = await createNewUser({
-        routeUrl: "/users/register",
-        body: { ...values, role_id: user.roleId || 1 },
+        userData: { ...values, role_id: user.roleId || 1 },
       });
       handleApiResponse({ response, user, setIsSubmitting });
       return {
@@ -66,3 +67,7 @@ const useRegisterUser = () => {
 };
 
 export default useRegisterUser;
+function createUser(arg0: { userData: { role_id: number; name: string; surname: string; email: string; password: string; confirmPassword: string; roleId?: number; organizationId?: number; }; }) {
+  throw new Error("Function not implemented.");
+}
+

@@ -21,10 +21,18 @@ import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
-  deleteEntityById,
-  getAllEntities,
-  getEntityById,
-} from "../../../application/repository/entity.repository";
+  getAllVendors,
+  getVendorsByProjectId,
+  deleteVendor,
+  getVendorById,
+} from "../../../application/repository/vendor.repository";
+import {
+  deleteVendorRisk,
+  getVendorRiskById,
+} from "../../../application/repository/vendorRisk.repository";
+import {
+  getAllProjects,
+} from "../../../application/repository/project.repository";
 import { tabPanelStyle, tabStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
@@ -141,7 +149,7 @@ const Vendors = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await getAllEntities({ routeUrl: "/projects" });
+        const response = await getAllProjects();
         if (response?.data && response.data.length > 0) {
           setProjects(response.data);
           setSelectedProjectId("all"); // Always default to 'all' after fetching
@@ -159,14 +167,12 @@ const Vendors = () => {
     setIsVendorsLoading(true);
     if (!selectedProjectId) return;
     try {
-      const routeUrl =
-        selectedProjectId === "all"
-          ? "/vendors"
-          : `/vendors/project-id/${selectedProjectId}`;
-      const response = await getAllEntities({
-        routeUrl,
-        signal,
-      });
+      const response = selectedProjectId === "all"
+        ? await getAllVendors({ signal })
+        : await getVendorsByProjectId({ 
+            projectId: parseInt(selectedProjectId), 
+            signal 
+          });
       if (response?.data) {
         setVendors(response.data);
       }
@@ -197,8 +203,8 @@ const Vendors = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/vendors/${vendorId}`,
+      const response = await deleteVendor({
+        id: Number(vendorId),
       });
 
       if (response.status === 202) {
@@ -255,13 +261,11 @@ const Vendors = () => {
       setTimeout(() => setAlert(null), 3000);
       return;
     }
-    const signal = createAbortController();
     setIsSubmitting(true);
 
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/vendorRisks/${riskId}`,
-        signal,
+      const response = await deleteVendorRisk({
+        id: Number(riskId),
       });
 
       if (response.status === 202) {
@@ -316,8 +320,8 @@ const Vendors = () => {
       return;
     }
     try {
-      const response = await getEntityById({
-        routeUrl: `/vendorRisks/${riskId}`,
+      const response = await getVendorRiskById({
+        id: Number(riskId),
       });
       setSelectedRisk(response.data);
       setIsRiskModalOpen(true);
@@ -335,8 +339,8 @@ const Vendors = () => {
   };
   const handleEditVendor = async (id: number) => {
     try {
-      const response = await getEntityById({
-        routeUrl: `/vendors/${id}`,
+      const response = await getVendorById({
+        id: Number(id),
       });
       setSelectedVendor(response.data);
       setIsOpen(true);

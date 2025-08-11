@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
-import { getEntityById } from "../../../../application/repository/entity.repository";
+import { getControlCategoriesByProject, getComplianceData } from "../../../../application/repository/control.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
@@ -61,8 +61,8 @@ const ComplianceTracker = ({
     if (!currentProjectId || !currentProjectFramework) return;
 
     try {
-      const response = await getEntityById({
-        routeUrl: `/eu-ai-act/compliances/progress/${currentProjectFramework}`,
+      const response = await getComplianceData({
+        projectFrameworkId: currentProjectFramework,
       });
       setComplianceData(response.data);
     } catch (err) {
@@ -74,11 +74,11 @@ const ComplianceTracker = ({
   };
 
   const fetchControlCategories = async () => {
-    if (!currentProjectId) return;
+    if (!currentProjectId || !currentProjectFramework) return;
 
     try {
-      const response = await getEntityById({
-        routeUrl: `/eu-ai-act/controlCategories`,
+      const response = await getControlCategoriesByProject({
+        projectFrameworkId: currentProjectFramework,
       });
       setControlCategories(response);
     } catch (err) {

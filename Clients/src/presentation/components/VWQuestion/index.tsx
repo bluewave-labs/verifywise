@@ -10,7 +10,6 @@ import { useCallback, useContext, useMemo, useState, useEffect, Suspense } from 
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import createUppy from "../../../application/tools/createUppy";
-import { updateEntityById } from "../../../application/repository/entity.repository";
 import Alert from "../Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
@@ -23,6 +22,7 @@ import Select from "../Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import LinkedRisksPopup from "../LinkedRisks";
 import AuditRiskPopup from "../RiskPopup/AuditRiskPopup";
+import { updateEUAIActAnswerById } from "../../../application/repository/question.repository";
 
 interface QuestionProps {
   question: Question;
@@ -122,9 +122,9 @@ const QuestionFrame = ({
 
   const handleSave = async () => {
     try {
-      const response = await updateEntityById({
-        routeUrl: `/eu-ai-act/saveAnswer/${question.answer_id}`,
-        body: {...values, risksDelete: deletedRisks, risksMitigated: selectedRisks},
+      const response = await updateEUAIActAnswerById({
+        answerId: question.answer_id,
+        body: { ...values, risksDelete: deletedRisks, risksMitigated: selectedRisks },
       });
       if (response.status === 202) {
         setValues(response.data.data);

@@ -3,8 +3,8 @@ import { Navigate, useLocation } from "react-router-dom";
 import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUserExists } from "../../../application/redux/auth/authSlice";
-import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../../vw-v2-components/Toast";
+import { checkUserExists } from "../../../application/repository/user.repository";
 
 interface ProtectedRouteProps {
   Component: ComponentType<any>;
@@ -36,9 +36,7 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
     // Check if user exists in the database
     const checkUserExistsInDatabase = async () => {
       try {
-        const response = await getAllEntities({
-          routeUrl: "/users/check/exists",
-        });
+        const response = await checkUserExists({ authToken: authState.authToken });
         const userExists = response ?? false;
         // if (!userExists) {
         //   dispatch(clearAuthState())

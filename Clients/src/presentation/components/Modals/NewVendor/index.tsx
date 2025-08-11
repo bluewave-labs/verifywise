@@ -30,9 +30,9 @@ import { ReactComponent as Close } from "../../../assets/icons/close.svg";
 import { Suspense, useContext, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import {
-  createNewUser,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
+  createVendor,
+  updateVendor,
+} from "../../../../application/repository/vendor.repository";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -336,9 +336,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       review_date: values.vendorDetails.reviewDate,
     };
     if (existingVendor) {
-      await updateVendor(existingVendor.id!, _vendorDetails);
+      await handleUpdateVendor(existingVendor.id!, _vendorDetails);
     } else {
-      await createVendor(_vendorDetails);
+      await handleCreateVendor(_vendorDetails);
     }
   };
 
@@ -346,11 +346,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * Creates a new vendor in the system
    * @param vendorDetails - The vendor details to create
    */
-  const createVendor = async (vendorDetails: object) => {
+  const handleCreateVendor = async (vendorDetails: object) => {
     setIsSubmitting(true);
     try {
-      const response = await createNewUser({
-        routeUrl: "/vendors",
+      const response = await createVendor({
         body: vendorDetails,
       });
 
@@ -398,14 +397,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * @param vendorId - The ID of the vendor to update
    * @param updatedVendorDetails - The new vendor details
    */
-  const updateVendor = async (
+  const handleUpdateVendor = async (
     vendorId: number,
     updatedVendorDetails: object
   ) => {
     setIsSubmitting(true);
     try {
-      const response = await updateEntityById({
-        routeUrl: `/vendors/${vendorId}`,
+      const response = await updateVendor({
+        id: vendorId,
         body: updatedVendorDetails,
       });
 

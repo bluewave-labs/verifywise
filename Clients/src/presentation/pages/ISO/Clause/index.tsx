@@ -19,9 +19,9 @@ import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
-import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
+import { getClausesProgressByProjectFrameworkId, getSubClauseById } from "../../../../application/repository/subClause.repository";
 
 const ISO42001Clauses = ({
   project,
@@ -58,8 +58,8 @@ const ISO42001Clauses = ({
 
   const fetchClauses = useCallback(async () => {
     try {
-      const clauseProgressResponse = await getEntityById({
-        routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}`,
+      const clauseProgressResponse = await getClausesProgressByProjectFrameworkId({
+        projectFrameworkId,
       });
       setClauseProgress(clauseProgressResponse.data);
 
@@ -220,8 +220,9 @@ const ISO42001Clauses = ({
       const clause = clauses.find((c) => c.id === parseInt(clauseId));
       async function fetchSubClause() {
         try {
-          const response = await getEntityById({
-            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
+          const response = await getSubClauseById({
+            subClauseId: Number(subClauseId),
+            projectFrameworkId: projectFrameworkId,
           });
           setSelectedSubClause({...response.data, id: response.data.clause_id});
           if (clause && clauseId) {

@@ -20,7 +20,8 @@ import Popup from "../../../components/Popup";
 import AddNewVendorRiskForm from "../../../components/AddNewVendorRiskForm";
 import { ProjectRisk } from "../../../../application/hooks/useProjectRisks";
 
-import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { getAllProjectRisksByProjectId } from "../../../../application/repository/projectRisk.repository";
+import { getVendorRisksByProjectId } from "../../../../application/repository/vendorRisk.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 import RisksCard from "../../../components/Cards/RisksCard";
@@ -178,16 +179,14 @@ const RisksView: FC<RisksViewProps> = memo(
 
     const fetchRiskData = useCallback(async () => {
       try {
-        const url =
-          title === "Project"
-            ? `/projectRisks/by-projid/${projectId}`
-            : `/vendorRisks/by-projid/${projectId}`;
-        const response = await getAllEntities({ routeUrl: url });
+        const response = title === "Project"
+          ? await getAllProjectRisksByProjectId({ projectId: projectId.toString() })
+          : await getVendorRisksByProjectId({ projectId: parseInt(projectId) });
         setRiskData(response.data);
       } catch (error) {
-        console.error("Error fetching vendor risks:", error);
+        console.error("Error fetching risks:", error);
       }
-    }, []);
+    }, [projectId, title]);
 
     useEffect(() => {
       fetchRiskData();

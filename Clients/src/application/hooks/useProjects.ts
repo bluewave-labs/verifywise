@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useCallback } from "react";
-import { getAllEntities } from "../repository/entity.repository";
+import { getAllProjects } from "../repository/project.repository";
 import { Project } from "../../domain/types/Project";
 
 export const useProjects = () => {
@@ -9,7 +9,7 @@ export const useProjects = () => {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const response = await getAllEntities({ routeUrl: "/projects" });
+      const response = await getAllProjects();
       setProjects(response.data);
     } catch (error) {
       // Handle error

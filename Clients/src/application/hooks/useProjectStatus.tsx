@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { getEntityById } from "../repository/entity.repository";
+import { getProjectProgressData } from "../repository/project.repository";
 import { useSelector } from "react-redux";
 
 /**
@@ -85,11 +85,11 @@ const useProjectStatus = ({ userId }: { userId: number | null }) => {
 
   const fetchProjectStatus = useCallback(async (signal: AbortSignal) => {
     try {
-      const compliance = await getEntityById({
+      const compliance = await getProjectProgressData({
         routeUrl: `eu-ai-act/all/compliances/progress`,
         signal,
       });
-      const assessment = await getEntityById({
+      const assessment = await getProjectProgressData({
         routeUrl: `eu-ai-act/all/assessments/progress`,
         signal,
       });

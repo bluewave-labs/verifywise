@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getEntityById } from '../repository/entity.repository';
+import { getAllRoles } from '../repository/role.repository';
 
 interface Role {
   id: number;
@@ -16,9 +16,7 @@ export const useRoles = () => {
     const fetchRoles = async () => {
       try {
         setLoading(true);
-        const response = await getEntityById({
-          routeUrl: '/roles',
-        });
+        const response = await getAllRoles();
         setRoles(response.data);
       } catch (err) {
         setError(err as Error);
@@ -33,9 +31,7 @@ export const useRoles = () => {
   const refreshRoles = async () => {
     try {
       setLoading(true);
-      const response = await getEntityById({
-        routeUrl: '/roles',
-      });
+      const response = await getAllRoles();
       setRoles(response.data);
     } catch (err) {
       setError(err as Error);

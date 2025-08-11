@@ -21,10 +21,7 @@ import {
   frameworkCardDescriptionStyle,
   modalDoneButtonStyle,
 } from "./styles";
-import {
-  assignFrameworkToProject,
-  deleteEntityById,
-} from "../../../../application/repository/entity.repository";
+import { assignFrameworkToProject, removeFrameworkFromProject } from "../../../../application/repository/framework.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../vw-v2-components/Toast";
@@ -102,8 +99,9 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
     if (!frameworkToRemove) return;
     setIsLoading(true);
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/frameworks/fromProject?frameworkId=${frameworkToRemove.id}&projectId=${project.id}`,
+      const response = await removeFrameworkFromProject({
+        frameworkId: frameworkToRemove.id,
+        projectId: project.id,
       });
       if (response.status === 200) {
         setAlert({

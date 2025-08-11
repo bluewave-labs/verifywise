@@ -1,7 +1,6 @@
 import { logEngine } from "../tools/log.engine";
 import { FormValues } from "../validations/formValidation";
 import { API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
-import { Create } from "@mui/icons-material";
 import { createNewUser } from "../repository/user.repository";
 
 
@@ -67,7 +66,5 @@ const useRegisterUser = () => {
 };
 
 export default useRegisterUser;
-function createUser(arg0: { userData: { role_id: number; name: string; surname: string; email: string; password: string; confirmPassword: string; roleId?: number; organizationId?: number; }; }) {
-  throw new Error("Function not implemented.");
-}
+
 

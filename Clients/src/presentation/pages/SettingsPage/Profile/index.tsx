@@ -30,7 +30,7 @@ import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import AvatarPanel from "../../../components/AvatarPanel";
+
 
 /**
  * Interface representing a user object.

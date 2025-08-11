@@ -6,18 +6,15 @@ import {
   DialogContent,
   Stack,
   Box,
-  Chip,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  Select,
-  MenuItem,
-  FormHelperText,
   Switch,
   FormControlLabel,
+  Autocomplete,
+  TextField,
+  Typography,
 } from "@mui/material";
 import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
+const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
 import SaveIcon from "@mui/icons-material/Save";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
@@ -25,6 +22,8 @@ import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
+import dayjs, { Dayjs } from "dayjs";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -189,14 +188,22 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     []
   );
 
-  const handleCapabilityChange = useCallback((event: any) => {
-    const {
-      target: { value },
-    } = event;
-    const selectedCapabilities =
-      typeof value === "string" ? value.split(",") : value;
-    setValues((prev) => ({ ...prev, capabilities: selectedCapabilities }));
-    setErrors((prev) => ({ ...prev, capabilities: "" }));
+  const handleCapabilityChange = useCallback(
+    (_event: React.SyntheticEvent, newValue: string[]) => {
+      setValues((prev) => ({ ...prev, capabilities: newValue }));
+      setErrors((prev) => ({ ...prev, capabilities: "" }));
+    },
+    []
+  );
+
+  const handleDateChange = useCallback((newDate: Dayjs | null) => {
+    if (newDate?.isValid()) {
+      setValues((prev) => ({
+        ...prev,
+        status_date: newDate ? newDate.toISOString().split("T")[0] : "",
+      }));
+      setErrors((prev) => ({ ...prev, status_date: "" }));
+    }
   }, []);
 
   const handleSecurityAssessmentChange = useCallback(
@@ -208,15 +215,6 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     },
     []
   );
-
-  const handleCapabilityDelete = useCallback((capabilityToDelete: string) => {
-    setValues((prev) => ({
-      ...prev,
-      capabilities: prev.capabilities.filter(
-        (capability) => capability !== capabilityToDelete
-      ),
-    }));
-  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: NewModelInventoryFormErrors = {};
@@ -268,6 +266,54 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     }),
     [theme.palette.background.main]
   );
+
+  // Styles for Autocomplete (following ProjectForm approach)
+  const capabilitiesRenderInputStyle = {
+    "& .MuiOutlinedInput-root": {
+      paddingTop: "3.8px !important",
+      paddingBottom: "3.8px !important",
+    },
+    "& ::placeholder": {
+      fontSize: "13px",
+    },
+  };
+
+  const capabilitiesSxStyle = {
+    width: "100%",
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "3px",
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "none",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#888",
+        borderWidth: "1px",
+      },
+    },
+  };
+
+  const capabilitiesSlotProps = {
+    paper: {
+      sx: {
+        "& .MuiAutocomplete-listbox": {
+          "& .MuiAutocomplete-option": {
+            fontSize: "13px",
+            color: "#1c2130",
+            paddingLeft: "9px",
+            paddingRight: "9px",
+          },
+          "& .MuiAutocomplete-option.Mui-focused": {
+            background: "#f9fafb",
+          },
+        },
+        "& .MuiAutocomplete-noOptions": {
+          fontSize: "13px",
+          paddingLeft: "9px",
+          paddingRight: "9px",
+        },
+      },
+    },
+  };
 
   return (
     <Dialog
@@ -411,15 +457,20 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
               <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
                 <Box sx={{ width: "50%" }}>
                   <Suspense fallback={<div>Loading...</div>}>
-                    <Field
-                      id="status-date"
+                    <DatePicker
                       label="Status Date"
-                      value={values.status_date}
-                      onChange={handleOnTextFieldChange("status_date")}
-                      error={errors.status_date}
+                      date={
+                        values.status_date
+                          ? dayjs(values.status_date)
+                          : dayjs(new Date())
+                      }
+                      handleDateChange={handleDateChange}
+                      sx={{
+                        width: "100%",
+                        backgroundColor: theme.palette.background.main,
+                      }}
                       isRequired
-                      sx={fieldStyle}
-                      type="date"
+                      error={errors.status_date}
                     />
                   </Suspense>
                 </Box>
@@ -451,55 +502,60 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 </Box>
               </Stack>
               <Box sx={{ width: "100%" }}>
-                <FormControl fullWidth error={!!errors.capabilities}>
-                  <InputLabel id="capabilities-label">Capabilities</InputLabel>
-                  <Select
-                    labelId="capabilities-label"
-                    multiple
-                    value={values.capabilities}
-                    onChange={handleCapabilityChange}
-                    input={<OutlinedInput label="Capabilities" />}
-                    renderValue={(selected) => (
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                        {selected.map((value) => (
-                          <Chip
-                            key={value}
-                            label={value}
-                            size="small"
-                            onDelete={() => handleCapabilityDelete(value)}
-                            sx={{
-                              fontSize: "0.7rem",
-                              height: "20px",
-                              backgroundColor: "#f5f5f5",
-                              color: "#666",
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    )}
-                    sx={{
-                      backgroundColor: theme.palette.background.main,
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: theme.palette.border.dark,
-                      },
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: theme.palette.border.dark,
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: theme.palette.border.dark,
-                      },
-                    }}
-                  >
-                    {capabilityOptions.map((capability) => (
-                      <MenuItem key={capability} value={capability}>
-                        {capability}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.capabilities && (
-                    <FormHelperText>{errors.capabilities}</FormHelperText>
+                <Typography
+                  sx={{
+                    fontSize: theme.typography.fontSize,
+                    fontWeight: 500,
+                    mb: 2,
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  Capabilities
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="capabilities-input"
+                  size="small"
+                  value={values.capabilities}
+                  options={capabilityOptions}
+                  onChange={handleCapabilityChange}
+                  getOptionLabel={(option) => option}
+                  noOptionsText={
+                    values.capabilities.length === capabilityOptions.length
+                      ? "All capabilities selected"
+                      : "No options"
+                  }
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props}>
+                      <Typography sx={{ fontSize: "13px" }}>
+                        {option}
+                      </Typography>
+                    </Box>
                   )}
-                </FormControl>
+                  filterSelectedOptions
+                  popupIcon={<KeyboardArrowDown />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.capabilities}
+                      placeholder="Select capabilities"
+                      sx={capabilitiesRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...capabilitiesSxStyle,
+                  }}
+                  slotProps={capabilitiesSlotProps}
+                />
+                {errors.capabilities && (
+                  <Typography
+                    variant="caption"
+                    sx={{ mt: 1, color: "#f04438", fontWeight: 300 }}
+                  >
+                    {errors.capabilities}
+                  </Typography>
+                )}
               </Box>
             </Stack>
           </DialogContent>

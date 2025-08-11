@@ -56,3 +56,6 @@ metrics:
       - "accuracy"
       - "precision"
 
+artifacts:
+  inference_results_path: "artifacts/inference_results.csv"
+  postprocessed_results_path: "artifacts/postprocessed_results.csv"

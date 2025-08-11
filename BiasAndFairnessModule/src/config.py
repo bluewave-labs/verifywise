@@ -136,6 +136,17 @@ class PostProcessingConfig(BaseModel):
     )
 
 
+class ArtifactsConfig(BaseModel):
+    """Configuration for on-disk artifact paths."""
+
+    inference_results_path: Path = Field(
+        ..., description="Path to save raw inference results"
+    )
+    postprocessed_results_path: Path = Field(
+        ..., description="Path to save post-processed results"
+    )
+
+
 class Config(BaseModel):
     """Main configuration class that includes all sub-configurations."""
 
@@ -143,6 +154,7 @@ class Config(BaseModel):
     model: ModelConfig
     metrics: MetricsConfig
     post_processing: PostProcessingConfig
+    artifacts: ArtifactsConfig
 
 
 class ConfigManager:
@@ -207,6 +219,14 @@ class ConfigManager:
             PostProcessingConfig: The complete post-processing configuration.
         """
         return self.config.post_processing
+
+    def get_artifacts_config(self) -> ArtifactsConfig:
+        """Get the artifacts configuration.
+
+        Returns:
+            ArtifactsConfig: The artifacts configuration containing output paths.
+        """
+        return self.config.artifacts
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

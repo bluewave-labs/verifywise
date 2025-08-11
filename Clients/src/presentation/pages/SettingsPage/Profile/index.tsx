@@ -115,7 +115,9 @@ const ProfileForm: React.FC = () => {
           email: response.data.email,
         };
 
-        console.log(`user ${userDetails.firstname} ${userDetails.lastname} fetched`);
+        console.log(
+          `user ${userDetails.firstname} ${userDetails.lastname} fetched`
+        );
         console.log(firstname);
       } catch (error) {
         console.log(error);
@@ -199,14 +201,7 @@ const ProfileForm: React.FC = () => {
         setShowToast(false);
       }, 1000);
     }
-  }, [
-    firstname,
-    lastname,
-    email,
-    firstnameError,
-    lastnameError,
-    emailError,
-  ]);
+  }, [firstname, lastname, email, firstnameError, lastnameError, emailError]);
 
   /**
    * Handle delete dialog open.
@@ -361,7 +356,7 @@ const ProfileForm: React.FC = () => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{borderRadius: 2 }}
+          sx={{ borderRadius: 2 }}
         />
       )}
       {alert.visible && (
@@ -434,7 +429,6 @@ const ProfileForm: React.FC = () => {
               This is your current email address — it cannot be changed.
             </Typography>
           </Box>
-          <AvatarPanel userDetails={userDetails} />
         </Box>
       )}
       {!loading && (
@@ -470,7 +464,7 @@ const ProfileForm: React.FC = () => {
           height="200px"
           minWidth={"100%"}
           minHeight={200}
-          sx={{borderRadius: 2 }}
+          sx={{ borderRadius: 2 }}
         />
       )}
       {!loading && (

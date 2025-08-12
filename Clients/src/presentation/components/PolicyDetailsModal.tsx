@@ -1,11 +1,9 @@
-// PolicyDetailModal.tsx
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import PolicyForm, { FormData } from './PolicyForm';
-import { Policy } from '../pages/PolicyDashboard/PoliciesDashboard';
-import { getAuthToken } from '../../application/redux/getAuthToken';
+import React, { useEffect, useState } from "react";
+import PolicyForm, { FormData } from "./PolicyForm";
+import { Policy } from "../pages/PolicyDashboard/PoliciesDashboard";
+import SaveIcon from "@mui/icons-material/Save";
+import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 
-import { Plate, PlateContent, usePlateEditor } from 'platejs/react';
 import {
   BoldPlugin,
   ItalicPlugin,
@@ -14,10 +12,25 @@ import {
   H2Plugin,
   H3Plugin,
   BlockquotePlugin,
-} from '@platejs/basic-nodes/react';
-
-import { serializeHtml } from 'platejs';
-import { HtmlPlugin } from 'platejs';
+} from "@platejs/basic-nodes/react";
+import { serializeHtml } from "platejs";
+import {
+  FormatBold,
+  FormatItalic,
+  FormatUnderlined,
+  FormatQuote,
+  LooksOne,
+  LooksTwo,
+  Looks3,
+} from "@mui/icons-material";
+import { IconButton, Tooltip, Box, Grid } from "@mui/material";
+import { Drawer, Stack, Typography, Divider, useTheme } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import CustomizableButton from "../vw-v2-components/Buttons";
+import {
+  createPolicy,
+  updatePolicy,
+} from "../../application/repository/policy.repository";
 
 interface Props {
   policy: Policy | null;
@@ -35,12 +48,12 @@ const PolicyDetailModal: React.FC<Props> = ({
   const isNew = !policy;
 
   const [formData, setFormData] = useState<FormData>({
-    title: '',
-    status: 'Draft',
+    title: "",
+    status: "Draft",
     tags: [],
-    nextReviewDate: '',
+    nextReviewDate: "",
     assignedReviewers: [],
-    content: '',
+    content: "",
   });
 
   useEffect(() => {
@@ -51,26 +64,24 @@ const PolicyDetailModal: React.FC<Props> = ({
         tags: policy.tags || [],
         nextReviewDate: policy.next_review_date
           ? new Date(policy.next_review_date).toISOString().slice(0, 10)
-          : '',
+          : "",
         assignedReviewers: (policy.assigned_reviewer_ids || []).map(String),
-        content: policy.content_html || '',
+        content: policy.content_html || "",
       });
     } else {
       setFormData({
-        title: '',
-        status: 'Draft',
+        title: "",
+        status: "Draft",
         tags: [],
-        nextReviewDate: '',
+        nextReviewDate: "",
         assignedReviewers: [],
-        content: '',
+        content: "",
       });
     }
   }, [policy]);
 
-  // Initialize Plate editor once, with content from formData
   const editor = usePlateEditor({
     plugins: [
-      HtmlPlugin,
       BoldPlugin,
       ItalicPlugin,
       UnderlinePlugin,
@@ -79,26 +90,28 @@ const PolicyDetailModal: React.FC<Props> = ({
       H3Plugin,
       BlockquotePlugin,
     ],
-    value: formData.content || '<p></p>',
+    value: formData.content || "<p></p>",
   }) as any;
 
-  // Keep editor content in sync if formData.content changes (e.g. when loading a policy)
-useEffect(() => {
-  if (policy && editor) {
-    const api = editor.api.html;
-    const nodes =
-      typeof policy.content_html === 'string'
-        ? api.deserialize({ element: Object.assign(document.createElement('div'), { innerHTML: policy.content_html }) })
-        : (policy.content_html || editor.children);
+  useEffect(() => {
+    if (policy && editor) {
+      const api = editor.api.html;
+      const nodes =
+        typeof policy.content_html === "string"
+          ? api.deserialize({
+              element: Object.assign(document.createElement("div"), {
+                innerHTML: policy.content_html,
+              }),
+            })
+          : policy.content_html || editor.children;
 
-    editor.tf.reset();
-    editor.tf.setValue(nodes);
-  }
-}, [policy, editor]);
+      editor.tf.reset();
+      editor.tf.setValue(nodes);
+    }
+  }, [policy, editor]);
 
   const save = async () => {
-
-const html = await serializeHtml(editor);
+    const html = await serializeHtml(editor);
     const payload = {
       title: formData.title,
       status: formData.status,
@@ -113,53 +126,152 @@ const html = await serializeHtml(editor);
     };
 
     try {
-      const baseURL = 'http://localhost:3000';
-      const token = getAuthToken();
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
       if (isNew) {
-        await axios.post(`${baseURL}/api/policies`, payload, config);
+        await createPolicy(payload);
       } else {
-        await axios.put(`${baseURL}/api/policies/${policy!.id}`, payload, config);
+        await updatePolicy(policy!.id, payload);
       }
-
       onSaved();
-    } catch (error) {
-      console.error('Error saving policy:', error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>{isNew ? 'New Policy' : formData.title}</h2>
+    <Drawer
+      open={true}
+      onClose={onClose}
+      anchor="right"
+      sx={{
+        width: 800,
+        "& .MuiDrawer-paper": {
+          width: 800,
+          borderRadius: 0,
+          padding: "15px 20px",
+        },
+      }}
+    >
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="h6">
+          {isNew ? "New Policy" : formData.title}
+        </Typography>
+        <CloseIcon onClick={onClose} sx={{ cursor: "pointer" }} />
+      </Stack>
 
-        <PolicyForm
-          formData={formData}
-          setFormData={setFormData}
-          tags={tags}
+      <Divider sx={{ my: 2 }} />
+
+      <Stack spacing={2}>
+        <PolicyForm formData={formData} setFormData={setFormData} tags={tags} />
+
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1">Content</Typography>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              {/* Toolbar */}
+              <div>
+                {[
+                  {
+                    title: "Bold",
+                    icon: <FormatBold />,
+                    action: () => editor.tf.bold.toggle(),
+                  },
+                  {
+                    title: "Italic",
+                    icon: <FormatItalic />,
+                    action: () => editor.tf.italic.toggle(),
+                  },
+                  {
+                    title: "Underline",
+                    icon: <FormatUnderlined />,
+                    action: () => editor.tf.underline.toggle(),
+                  },
+                  {
+                    title: "Heading 1",
+                    icon: <LooksOne />,
+                    action: () => editor.tf.h1.toggle(),
+                  },
+                  {
+                    title: "Heading 2",
+                    icon: <LooksTwo />,
+                    action: () => editor.tf.h2.toggle(),
+                  },
+                  {
+                    title: "Heading 3",
+                    icon: <Looks3 />,
+                    action: () => editor.tf.h3.toggle(),
+                  },
+                  {
+                    title: "Blockquote",
+                    icon: <FormatQuote />,
+                    action: () => editor.tf.blockquote.toggle(),
+                  },
+                ].map(({ title, icon, action }) => (
+                  <Tooltip key={title} title={title}>
+                    <IconButton
+                      onClick={action}
+                      disableRipple
+                      // color={isActive ? "primary" : "default"}
+                      size="small"
+                      sx={{
+                        padding: "6px",
+                        borderRadius: "4px",
+                        "&:hover": {
+                          backgroundColor: "#e0e0e0",
+                        },
+                      }}
+                    >
+                      {icon}
+                    </IconButton>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
+            <Plate
+              editor={editor}
+              onChange={({ value }) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  content: value,
+                }))
+              }
+            >
+              <PlateContent
+                style={{
+                  minHeight: "500px",
+                  padding: "16px",
+                  border: "1px solid #ddd",
+                }}
+                placeholder="Start typing..."
+              />
+            </Plate>
+          </Grid>
+        </Grid>
+      </Stack>
+
+      <Divider sx={{ my: 2 }} />
+
+      <Stack
+        className="vw-iso-42001-clause-drawer-dialog-footer"
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          padding: "15px 20px",
+        }}
+      >
+        <CustomizableButton
+          variant="contained"
+          text="Save"
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+          }}
+          onClick={save}
+          icon={<SaveIcon />}
         />
-
-<Plate editor={editor}
-       onChange={({ value }) => setFormData(prev => ({
-         ...prev,
-         content: value
-       }))}>
-  <PlateContent         style={{
-          minHeight: '200px',
-          padding: '16px',
-          border: '1px solid #ddd',
-        }} placeholder="Start typing…" />
-</Plate>
-
-        <button onClick={save}>{isNew ? 'Create' : 'Save'}</button>
-        <button onClick={onClose}>Cancel</button>
-      </div>
-    </div>
+      </Stack>
+    </Drawer>
   );
 };
 

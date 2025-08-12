@@ -21,4 +21,8 @@ router.post('/', authenticateJWT, PolicyController.createPolicy);
 // PUT /policies/:id - Update policy
 router.put('/:id', authenticateJWT, PolicyController.updatePolicy);
 
+// In routes file
+router.delete('/:id', authenticateJWT, PolicyController.deletePolicy);
+
+
 export default router;

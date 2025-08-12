@@ -130,4 +130,30 @@ export class PolicyController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+
+  // In PolicyController
+static async deletePolicy(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const policy = await PolicyModel.findByPk(id);
+
+    if (!policy) {
+      return res.status(404).json({ error: 'Policy not found' });
+    }
+
+    await policy.destroy();
+
+    res.status(204).send(); // No Content
+  } catch (error) {
+    console.error('Error deleting policy:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 }

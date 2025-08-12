@@ -1,89 +1,68 @@
-// src/repositories/policyRepository.ts
+// src/repositories/policies.repository.ts
 
-import { apiServices } from '../../infrastructure/api/networkServices';
-import { getAuthToken } from '../redux/getAuthToken';
-import { Policy } from '../../presentation/pages/PolicyDashboard/PoliciesDashboard';
+import { apiServices } from "../../infrastructure/api/networkServices";
+import { getAuthToken } from "../redux/getAuthToken";  
+import { Policy, PolicyInput } from "../../domain/types/Policy";
 
-const BASE_URL = '/api/policies';
+const authHeader = (token?: string) => ({
+  headers: { Authorization: `Bearer ${token ?? getAuthToken()}` },
+});
 
-/**
- * Fetch all policies.
- */
-export async function getAllPolicies(authToken = getAuthToken()): Promise<Policy[]> {
+export async function getAllPolicies(authToken?: string): Promise<Policy[]> {
   try {
-    const response = await apiServices.get(BASE_URL, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    return response.data as Policy[];
+    const { data } = await apiServices.get<Policy[]>("/policies", authHeader(authToken));
+    return data;
   } catch (error) {
-    console.error('Error fetching policies:', error);
+    console.error("Error fetching policies:", error);
     throw error;
   }
 }
 
-/**
- * Fetch a policy by ID.
- */
-export async function getPolicyById(id: string, authToken = getAuthToken()): Promise<Policy> {
+export async function getAllTags(authToken?: string): Promise<string[]> {
   try {
-    const response = await apiServices.get(`${BASE_URL}/${id}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    return response.data as Policy;
+    const { data } = await apiServices.get<string[]>("/tags", authHeader(authToken));
+    return data;
   } catch (error) {
-    console.error(`Error fetching policy ${id}:`, error);
+    console.error("Error fetching tags:", error);
     throw error;
   }
 }
 
-/**
- * Create a new policy.
- */
-export async function createPolicy(
-  policyData: Partial<Policy>,
-  authToken = getAuthToken()
-): Promise<Policy> {
+export async function getPolicyById(id: string, authToken?: string): Promise<Policy> {
   try {
-    const response = await apiServices.post(BASE_URL, policyData, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    return response.data as Policy;
+    const { data } = await apiServices.get<Policy>(`/policies/${id}`, authHeader(authToken));
+    return data;
   } catch (error) {
-    console.error('Error creating policy:', error);
+    console.error(`Error fetching policy with id ${id}:`, error);
     throw error;
   }
 }
 
-/**
- * Update an existing policy.
- */
-export async function updatePolicy(
-  id: string,
-  policyData: Partial<Policy>,
-  authToken = getAuthToken()
-): Promise<Policy> {
+export async function createPolicy(input: PolicyInput, authToken?: string): Promise<Policy> {
   try {
-    const response = await apiServices.put(`${BASE_URL}/${id}`, policyData, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    return response.data as Policy;
+    const { data } = await apiServices.post<Policy>("/policies", input, authHeader(authToken));
+    return data;
   } catch (error) {
-    console.error(`Error updating policy ${id}:`, error);
+    console.error("Error creating policy:", error);
     throw error;
   }
 }
 
-/**
- * Get all available policy tags.
- */
-export async function getPolicyTags(authToken = getAuthToken()): Promise<string[]> {
+export async function updatePolicy(id: string, input: PolicyInput, authToken?: string): Promise<Policy> {
   try {
-    const response = await apiServices.get(`${BASE_URL}/tags`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    return (response.data as { tags: string[] }).tags;
+    const { data } = await apiServices.put<Policy>(`/policies/${id}`, input, authHeader(authToken));
+    return data;
   } catch (error) {
-    console.error('Error fetching policy tags:', error);
+    console.error(`Error updating policy with id ${id}:`, error);
+    throw error;
+  }
+}
+
+export async function deletePolicy(id: string, authToken?: string): Promise<void> {
+  try {
+    await apiServices.delete(`/policies/${id}`, authHeader(authToken));
+  } catch (error) {
+    console.error(`Error deleting policy with id ${id}:`, error);
     throw error;
   }
 }

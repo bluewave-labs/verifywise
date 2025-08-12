@@ -1,5 +1,9 @@
-
-import PlateEditor from "./PlateEditor";
+import { Stack, Grid, Typography } from "@mui/material";
+import Field from "./Inputs/Field";
+import Select from "./Inputs/Select";
+import DatePicker from "./Inputs/Datepicker";
+import dayjs from "dayjs";
+import ReviewerMultiSelect from "../vw-v2-components/Selects/ReviewerSelect";
 
 export interface FormData {
   title: string;
@@ -16,77 +20,101 @@ interface Props {
   tags: string[];
 }
 
-const statuses: FormData['status'][] = ['Draft', 'In review', 'Approved', 'Published', 'Archived'];
+const statuses: FormData["status"][] = [
+  "Draft",
+  "In review",
+  "Approved",
+  "Published",
+  "Archived",
+];
 
-const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags }) => (
-  <div>
-    {/* Title */}
-    <label>
-      Title
-      <input
-        type="text"
-        value={formData.title}
-        onChange={e => setFormData({ ...formData, title: e.target.value })}
-      />
-    </label>
+const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags }) => {
 
-    {/* Status */}
-    <label>
-      Status
-      <select
-        value={formData.status}
-        onChange={e => setFormData({ ...formData, status: e.target.value as FormData['status'] })}
-      >
-        {statuses.map(s => <option key={s} value={s}>{s}</option>)}
-      </select>
-    </label>
+  return (
+    <Stack spacing={4}>
+      {/* Header Label */}
+      <Typography variant="subtitle1" color="textSecondary">
+        Policy Details
+      </Typography>
 
-    {/* Tags */}
-    <label>
-      Tags
-      <select
-        multiple
-        value={formData.tags}
-        onChange={e => {
-          const opts = Array.from(e.target.selectedOptions, o => o.value);
-          setFormData({ ...formData, tags: opts });
-        }}
-      >
-        {tags.map(t => <option key={t} value={t}>{t}</option>)}
-      </select>
-    </label>
+      {/* Row 1: Title + Status */}
+      <Grid container spacing={3}>
+        <Grid item xs={6}>
+          <Field
+            label="Title"
+            isRequired
+            value={formData.title}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, title: e.target.value }))
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <Select
+            id="policy-status"
+            label="Status"
+            isRequired
+            value={formData.status}
+            onChange={(e) =>
+              setFormData((prev) => {
+                const statusValue = e.target.value;
+                if (typeof statusValue === 'string') {
+                  return { ...prev, status: statusValue };
+                } else {
+                  return prev;
+                }
+              })
+            }
+            items={statuses.map((s) => ({ _id: s, name: s }))}
+            getOptionValue={(item) => item._id}
+          />
+        </Grid>
+      </Grid>
 
-    {/* Next Review Date */}
-    <label>
-      Next Review
-      <input
-        type="date"
-        value={formData.nextReviewDate}
-        onChange={e => setFormData({ ...formData, nextReviewDate: e.target.value })}
-      />
-    </label>
+      {/* Row 2: Next Review Date + Assigned Reviewers */}
+      <Grid container spacing={3}>
+        <Grid item xs={6}>
+          <DatePicker
+            label="Next review"
+            date={
+              formData.nextReviewDate
+                ? dayjs(formData.nextReviewDate)
+                : null
+            }
+            handleDateChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                nextReviewDate: value ? dayjs(value).format("YYYY-MM-DD") : "",
+              }))
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <ReviewerMultiSelect
+            selected={formData.assignedReviewers}
+            setSelected={(ids) =>
+              setFormData((prev) => ({ ...prev, assignedReviewers: ids }))
+            }
+          />
+        </Grid>
+      </Grid>
 
-    {/* Assigned Reviewers */}
-    <label>
-      Assigned Reviewers
-      <input
-        type="text"
-        value={formData.assignedReviewers.join(', ')}
-        onChange={e => {
-          const list = e.target.value.split(',').map(s => s.trim());
-          setFormData({ ...formData, assignedReviewers: list });
-        }}
-        placeholder="comma-separated usernames"
-      />
-    </label>
-
-    {/* Content Editor */}
-    <label>Content</label>
-    {/* <PlateEditor
-      htmlValue={formData.content}
-      onSlateChange={(value: any) => setFormData({ ...formData, content: value })}
-    /> */}
-  </div>
-);
+      {/* Row 3: Tags Full Width */}
+<Grid container spacing={3}>
+  <Grid item xs={12}>
+    <Field
+      label="Tags"
+      value={formData.tags.join(", ")}
+      onChange={(e) => {
+        const tagsArray = e.target.value.split(",").map((t) => t.trim());
+        setFormData((prev) => ({ ...prev, tags: tagsArray }));
+      }}
+      placeholder="Comma-separated tags"
+    />
+  </Grid>
+</Grid>
+    </Stack>
+  );
+};
 
 export default PolicyForm;

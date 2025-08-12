@@ -34,6 +34,7 @@ import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
+import { ReactComponent as Chart } from "../../assets/icons/chart.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
@@ -92,6 +93,11 @@ const menu = [
     name: "Model Inventory",
     icon: <ModelInventory />,
     path: "/model-inventory",
+  },
+  {
+    name: "AI Health Monitor",
+    icon: <Chart />,
+    path: "/ai-health-monitor",
   },
 ];
 

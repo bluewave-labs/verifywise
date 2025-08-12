@@ -32,6 +32,7 @@ import loggerRoutes from "./routes/logger.route";
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
+import aiSystemHealthRoutes from "./routes/aiSystemHealth.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
@@ -111,6 +112,7 @@ try {
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
+  app.use("/api/ai-system-health", aiSystemHealthRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

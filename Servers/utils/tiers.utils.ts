@@ -13,17 +13,16 @@
  */
 
 import { TiersModel } from "../domain.layer/models/tiers/tiers.model";
-import { ITiers, TierFeatures } from "../domain.layer/interfaces/i.tiers";
+import { TierFeatures } from "../domain.layer/interfaces/i.tiers";
 import { sequelize } from "../database/db";
 import { Transaction } from "sequelize";
 
-export const getAllTiersQuery = async(transaction: Transaction): Promise<ITiers[]> => {
+export const getAllTiersQuery = async(): Promise<TiersModel[]> => {
   const tiers = await sequelize.query(
     `SELECT * FROM tiers ORDER BY id ASC`,
     {
       mapToModel: true,
       model: TiersModel,
-      ...(transaction && { transaction }),
     }
   );
   return tiers;
@@ -39,4 +38,47 @@ export const getTiersFeaturesQuery = async (id: number): Promise<TierFeatures> =
     }
   );
   return tiersFeatures[0].dataValues.features;
+};
+
+export const createTiersQuery = async (tier: Partial<TiersModel>, transaction: Transaction): Promise<TiersModel> => {
+    const result = await sequelize.query(
+        `INSERT INTO tiers (name, price, features, created_at) VALUES (:name, :price, :features, :created_at) RETURNING *`,
+        {
+            replacements: { 
+                name: tier.name, 
+                price: tier.price, 
+                features: JSON.stringify(tier.features), 
+                created_at: new Date() 
+            },
+            mapToModel: true,
+            model: TiersModel,
+            transaction,
+        }
+    );
+    return result[0];
+};
+
+export const updateTiersQuery = async (id: number, tier: Partial<TiersModel>, transaction: Transaction): Promise<TiersModel> => {
+    const result = await sequelize.query(
+        `UPDATE tiers SET name = :name, price = :price, features = :features, updated_at = :updated_at WHERE id = :id RETURNING *`,
+        {
+            replacements: { id, name: tier.name, price: tier.price, features: JSON.stringify(tier.features), updated_at: new Date() },
+            mapToModel: true,
+            model: TiersModel,
+            transaction,
+        }
+    );
+    return result[0];
+};
+
+export const deleteTiersQuery = async (id: number, transaction: Transaction): Promise<void> => {
+  await sequelize.query(
+    `DELETE FROM tiers WHERE id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: TiersModel,
+      transaction,
+    }
+  );
 };

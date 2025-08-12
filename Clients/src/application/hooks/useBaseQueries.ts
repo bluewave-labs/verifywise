@@ -58,7 +58,7 @@ export const useUpdateEntity = (routeUrl: string, invalidateKeys?: string[][]) =
   return useMutation({
     mutationFn: ({ id, body }: { id: string | number; body: any }) => 
       updateEntityById({ routeUrl: `${routeUrl}/${id}`, body }),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       // Invalidate related queries
       if (invalidateKeys) {
         invalidateQueries(invalidateKeys);

@@ -27,8 +27,8 @@ export const ISO27001Annex = [
           "Audit reports verifying control effectiveness",
           "Change management records for updates to this control",
         ],
-        implementation_description: "",
-        status: "",
+        implementation_description: "Establish comprehensive information security policies that define the organization's approach to protecting information assets. This includes developing formal policy documents, obtaining management approval, communicating policies to all stakeholders, and establishing regular review cycles. The policies should cover all aspects of information security including data classification, access controls, incident response, and compliance requirements. Implementation involves policy distribution, staff training, and regular compliance monitoring.",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -66,8 +66,8 @@ export const ISO27001Annex = [
           "Audit reports verifying control effectiveness",
           "Change management records for updates to this control",
         ],
-        implementation_description: "",
-        status: "",
+        implementation_description: "Define and document clear information security roles and responsibilities across the organization. This includes establishing security governance structure, appointing information security officers, defining accountability for information assets, and ensuring all personnel understand their security responsibilities. Implementation involves creating role descriptions, establishing reporting lines, conducting regular role reviews, and maintaining up-to-date responsibility matrices that align with business objectives and regulatory requirements.",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -107,7 +107,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Segregation of duties' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -147,7 +147,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Management responsibilities' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -187,7 +187,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Contact with authorities' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -227,7 +227,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Contact with special interest groups' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -267,7 +267,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Threat intelligence' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -307,7 +307,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Information security in project management' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -347,7 +347,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Inventory of information and assets' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -387,7 +387,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Acceptable use of information and assets' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -427,7 +427,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Return of assets' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -467,7 +467,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Classification of information' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -507,7 +507,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Labelling of information' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -547,7 +547,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Handling of information' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -587,7 +587,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Access control policy' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -627,7 +627,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Access to networks and network services' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -667,7 +667,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'User registration and de-registration' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -707,7 +707,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Management of privileged access rights' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -747,7 +747,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Management of secret authentication information' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -787,7 +787,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Review of user access rights' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -827,7 +827,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Removal or adjustment of access rights' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -867,7 +867,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Use of secret authentication information' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -907,7 +907,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Information security in supplier relationships' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -947,7 +947,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Addressing information security within supplier agreements' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -987,7 +987,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Information and communication technology supply chain security' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1027,7 +1027,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Monitoring, review, and change management of supplier services' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1067,7 +1067,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Incident management responsibilities and procedures' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1107,7 +1107,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Reporting information security events' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1147,7 +1147,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Reporting information security weaknesses' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1187,7 +1187,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Assessment and decision on information security events' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1227,7 +1227,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Response to information security incidents' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1267,7 +1267,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Learning from information security incidents' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1307,7 +1307,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Collection of evidence' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1347,7 +1347,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Business continuity planning for information security' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1387,7 +1387,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Redundancy of information processing facilities' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1427,7 +1427,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Documented operating procedures' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1474,7 +1474,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Screening' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1514,7 +1514,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Terms and conditions of employment' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1554,7 +1554,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Information security awareness, education and training' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1594,7 +1594,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Disciplinary process' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1634,7 +1634,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Confidentiality or non-disclosure agreements' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1674,7 +1674,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Remote working' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1714,7 +1714,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Termination or change of employment responsibilities' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1754,7 +1754,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'User responsibilities' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1801,7 +1801,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Physical security perimeters' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1841,7 +1841,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Physical entry controls' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1881,7 +1881,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Securing offices, rooms and facilities' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1921,7 +1921,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Protecting against physical and environmental threats' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -1961,7 +1961,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Working in secure areas' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2001,7 +2001,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Visitor access records' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2041,7 +2041,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Delivery and loading areas' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2081,7 +2081,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Equipment siting and protection' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2121,7 +2121,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Supporting utilities' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2161,7 +2161,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Cabling security' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2201,7 +2201,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Equipment maintenance' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2241,7 +2241,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Secure disposal or re-use of equipment' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2281,7 +2281,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Removal of assets' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2321,7 +2321,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Clear desk and clear screen policy' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2368,7 +2368,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'User endpoint devices' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2407,7 +2407,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Privileged access rights' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2446,7 +2446,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Access to source code' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2485,7 +2485,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Change management' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2524,7 +2524,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Capacity management' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2563,7 +2563,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Development, testing and operational environments' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2602,7 +2602,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Protection of test data' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2641,7 +2641,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Logging and monitoring' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2680,7 +2680,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Clock synchronization' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2719,7 +2719,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Protection of log information' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2758,7 +2758,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Administrator and operator logs' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2797,7 +2797,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Fault logging' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2836,7 +2836,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Cryptographic controls policy' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2875,7 +2875,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Key management' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2914,7 +2914,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Network controls' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2953,7 +2953,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Security of network services' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -2992,7 +2992,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Segregation of networks' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3031,7 +3031,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Use of network services' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3070,7 +3070,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Web filtering' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3109,7 +3109,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Cryptographic key usage' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3148,7 +3148,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Backup' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3187,7 +3187,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Information transfer policies and procedures' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3226,7 +3226,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Electronic messaging' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3265,7 +3265,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Confidentiality of information in networks' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3304,7 +3304,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Security of system files' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3343,7 +3343,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Malware protection' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3382,7 +3382,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Technical vulnerability management' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3421,7 +3421,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Configuration management' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3460,7 +3460,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Monitoring of system use' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3499,7 +3499,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Protection of application services' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3538,7 +3538,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Data masking' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3577,7 +3577,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Network service security audit' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3617,7 +3617,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Network service security compliance' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3657,7 +3657,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Network service security reporting' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",
@@ -3697,7 +3697,7 @@ export const ISO27001Annex = [
         ],
         implementation_description:
           "Describe how 'Network service security improvement' is planned, implemented, communicated, and reviewed. Include tools, systems, or teams responsible. Mention how often this control is tested and improved.",
-        status: "",
+        status: "Not Started",
         owner: "",
         reviewer: "",
         approver: "",

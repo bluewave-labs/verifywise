@@ -115,7 +115,7 @@ const ProjectFrameworks = ({
         setTracker(
           initialFrameworkId === FRAMEWORK_IDS.ISO_42001
             ? searchParams.get("annexId") && searchParams.get("annexCategoryId") ? "annexes" : "clauses"
-            : "compliance"
+            : searchParams.get("controlId") ? "compliance" : "assessment"
         );
       }
       // Otherwise, use the default logic
@@ -143,10 +143,10 @@ const ProjectFrameworks = ({
   ]);
 
   const handleFrameworkChange = (frameworkId: number) => {
-    if (searchParams.get("framework")) {
-      searchParams.delete("framework");
-      setSearchParams(searchParams);
-    }
+    searchParams.delete("framework");
+    searchParams.delete("topicId");
+    searchParams.delete("questionId");
+    setSearchParams(searchParams);
     setSelectedFrameworkId(frameworkId);
     setTracker(
       frameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"

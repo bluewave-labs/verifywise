@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Dialog,
   Divider,
   Modal,
   Stack,
@@ -11,7 +12,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useContext } from "react";
+import { useState, useContext, Suspense } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { Subcontrol } from "../../../../domain/types/Subcontrol";
@@ -29,6 +30,8 @@ import {
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import allowedRoles from "../../../../application/constants/permissions";
+import LinkedRisksPopup from "../../LinkedRisks";
+import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 
 const tabStyle = {
   textTransform: "none",
@@ -73,6 +76,10 @@ const NewControlPane = ({
       feedback: FileData[];
     };
   }>({});
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
+  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
+  const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
   const context = useContext(VerifyWiseContext);
   const userRoleName = context?.userRoleName;
   const isEditingDisabled =
@@ -122,8 +129,8 @@ const NewControlPane = ({
     implementation_details: data.implementation_details,
     due_date: data.due_date,
     control_category_id: data.control_category_id, // Added missing property
-
     subControls: initialSubControlState || [],
+    risks: data.risks || [],
   }));
 
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
@@ -304,6 +311,9 @@ const NewControlPane = ({
       // Add delete array if needed (you might want to track deleted files)
       formData.append("delete", JSON.stringify(deletedFilesIds));
 
+      formData.append("risksDelete", JSON.stringify(deletedRisks));
+      formData.append("risksMitigated", JSON.stringify(selectedRisks));
+
       const response = await updateEntityById({
         routeUrl: `/eu-ai-act/saveControls/${state.id}`,
         body: formData,
@@ -446,7 +456,86 @@ const NewControlPane = ({
               }))
             }
             readOnly={isEditingDisabled}
+            setAuditedStatusModalOpen={(open: boolean) => {
+              if (selectedRisks.length > 0 || state.risks.length > 0 || (
+                state.risks.length > 0 && deletedRisks.length === state.risks.length
+              )) {
+                setAuditedStatusModalOpen(open);
+              }
+            }}
           />
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              sx={{
+                mt: 2,
+                borderRadius: 2,
+                width: 155,
+                height: 25,
+                fontSize: 11,
+                border: "1px solid #D0D5DD",
+                backgroundColor: "white",
+                color: "#344054",
+              }}
+              disableRipple
+              onClick={() => setIsLinkedRisksModalOpen(true)}
+              disabled={isEditingDisabled}
+            >
+              Add/Remove risks
+            </Button>
+            <Stack direction="row" spacing={10}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: "#344054",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  margin: "auto",
+                  textWrap: "wrap",
+                }}
+              >
+                {`${state.risks.length || 0} risks linked`}
+              </Typography>
+              {selectedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${selectedRisks.length} ${
+                    selectedRisks.length === 1 ? "risk" : "risks"
+                  } pending upload`}
+                </Typography>
+              )}
+              {deletedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${deletedRisks.length} ${
+                    deletedRisks.length === 1 ? "risk" : "risks"
+                  } pending delete`}
+                </Typography>
+              )}
+            </Stack>
+          </Stack>
 
           {/* this is working fine */}
           <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
@@ -639,6 +728,46 @@ const NewControlPane = ({
           </Stack>
         </Stack>
       </Modal>
+      <Dialog 
+        open={isLinkedRisksModalOpen} 
+        onClose={() => setIsLinkedRisksModalOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '1500px',
+            maxWidth: '1500px',
+          },
+        }}
+      >
+        <Suspense fallback={"loading..."}>
+          <LinkedRisksPopup
+            onClose={() => setIsLinkedRisksModalOpen(false)}
+            currentRisks={state.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+            setSelectecRisks={setSelectedRisks}
+            _setDeletedRisks={setDeletedRisks}
+          />
+        </Suspense>
+      </Dialog>
+      <Dialog 
+        open={auditedStatusModalOpen} 
+        onClose={() => setAuditedStatusModalOpen(false)}
+        PaperProps={{
+          sx: {
+            width: '800px',
+            maxWidth: '800px',
+          },
+        }}
+      >
+        <Suspense fallback={"loading..."}>
+          <AuditRiskPopup
+            onClose={() => setAuditedStatusModalOpen(false)}
+            risks={state.risks.concat(selectedRisks)}
+            _deletedRisks={deletedRisks}
+            _setDeletedRisks={setDeletedRisks}
+            _selectedRisks={selectedRisks}
+            _setSelectedRisks={setSelectedRisks}
+          />
+        </Suspense>
+      </Dialog>
     </>
   );
 };

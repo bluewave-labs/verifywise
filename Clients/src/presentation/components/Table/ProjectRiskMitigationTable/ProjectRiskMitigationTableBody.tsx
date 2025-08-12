@@ -48,10 +48,15 @@ export const ProjectRiskMitigationTableBody: React.FC<ProjectRiskMitigationTable
         navigteToNewTab(`/project-view?projectId=${searchParams.get("projectId")}&tab=frameworks&framework=iso-42001&annexId=${riskData.parent_id}&annexCategoryId=${riskData.meta_id}`);
       } else if (riskData.type === "subclause") {
         navigteToNewTab(`/project-view?projectId=${searchParams.get("projectId")}&tab=frameworks&framework=iso-42001&clauseId=${riskData.parent_id}&subClauseId=${riskData.meta_id}`);
+      } else if (riskData.type === "control") {
+        navigteToNewTab(`/project-view?projectId=${searchParams.get("projectId")}&tab=frameworks&framework=eu-ai-act&controlId=${riskData.meta_id}`);
+      } else if (riskData.type === "assessment") {
+        navigteToNewTab(`/project-view?projectId=${searchParams.get("projectId")}&tab=frameworks&framework=eu-ai-act&topicId=${riskData.sup_id}&questionId=${riskData.meta_id}`);
       }
     }
 
   }
+  console.log("Rows in ProjectRiskMitigationTableBody:", rows);
 
   return (
     <>
@@ -64,16 +69,17 @@ export const ProjectRiskMitigationTableBody: React.FC<ProjectRiskMitigationTable
               <TableCell sx={cellStyle}>
                 {
                   (() => {
-                    const title = `${row.type === "annexcategory" ? "A.": ""}${row.sup_id}.${row.sub_id} ${row.title}`
-                    console.log(title.length);
-                    return title.length > 30
-                      ? `${title.slice(0, 30)}...`
+                    const title = `${row.type === "annexcategory" ? `A.${row.sup_id}.${row.sub_id} `:
+                      row.type === "assessment" ? "" : `${row.sup_id}.${row.sub_id} `
+                    }${row.title}`
+                    return title.length > 50
+                      ? `${title.slice(0, 50)}...`
                       : title
                   })()
                 }
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.type === "annexcategory" ? "ISO42001: Annex Category" : row.type === "subclause" ? "ISO42001: Sub-Clause" : "ISO42001: Clause"}
+                {row.type === "annexcategory" ? "ISO42001: Annex Category" : row.type === "subclause" ? "ISO42001: Sub-Clause" : row.type === "assessment" ? "EU-AI-Act: Assessment" : "EU-AI-Act: Control"}
               </TableCell>
               <TableCell>
                 <CustomizableButton

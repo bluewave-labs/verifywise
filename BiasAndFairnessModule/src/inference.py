@@ -171,7 +171,7 @@ class ModelInferencePipeline:
         if auto_save:
             self.save_inference_results(results)
         return results
-
+    
     def save_inference_results(self, results: List[Dict[str, Any]]) -> Path:
         """Save inference results to the configured artifacts path without column expansion.
 

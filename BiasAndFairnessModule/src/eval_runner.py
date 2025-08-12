@@ -3,6 +3,7 @@ from src.config import ConfigManager
 from src.data_loader import DataLoader
 from src.model_loader import load_sklearn_model, ModelLoader
 from src.inference import ModelInferencePipeline
+from src.fairness_compass_engine import FairnessCompassEngine
 import json
 import re
 from textblob import TextBlob
@@ -11,7 +12,7 @@ import numpy as np
 import pandas as pd
 from datasets import load_dataset
 from fairlearn.metrics import MetricFrame, demographic_parity_difference, equalized_odds_difference
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
 from langfair.metrics.toxicity import ToxicityMetrics
 from langfair.metrics.stereotype import StereotypeMetrics
@@ -19,26 +20,104 @@ from collections import defaultdict
 
 
 def evaluate_fairness(X, y, A, model):
-    """Evaluate fairness and accuracy of a model on a dataset."""
+    """Evaluate fairness and accuracy of a model on a dataset using Fairlearn."""
+    from sklearn.model_selection import train_test_split
+    from fairlearn.metrics import MetricFrame, demographic_parity_difference, equalized_odds_difference
+    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+    
     X_train, X_test, y_train, y_test, A_train, A_test = train_test_split(X, y, A, test_size=0.3, random_state=42, shuffle=True)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     
-    # Compute group fairness metrics
+    # Compute comprehensive fairness metrics using Fairlearn's MetricFrame
+    metrics = {
+        "accuracy": accuracy_score,
+        "precision": precision_score,
+        "recall": recall_score,
+        "f1": f1_score,
+        "demographic_parity": demographic_parity_difference,
+        "equalized_odds": equalized_odds_difference
+    }
+    
     metric_frame = MetricFrame(
-        metrics={
-            "Demographic Parity Difference": demographic_parity_difference,
-            "Equalized Odds Difference": equalized_odds_difference
-        },
+        metrics=metrics,
         y_true=y_test,
         y_pred=y_pred,
         sensitive_features=A_test
     )
-    group_metrics = metric_frame.overall
+    
+    # Extract overall differences
+    group_metrics = {}
+    for metric_name in metrics.keys():
+        if metric_name in metric_frame.overall:
+            group_metrics[f"{metric_name}_difference"] = metric_frame.overall[metric_name]
+    
+    # Add overall accuracy
+    group_metrics["Accuracy"] = accuracy_score(y_test, y_pred)
+    
+    return group_metrics
+
+
+def evaluate_fairness_compass(X, y, A, model, compass_config=None):
+    """
+    Evaluate fairness using the Fairness Compass Engine.
+    
+    Args:
+        X: Features
+        y: True labels
+        A: Sensitive attributes
+        model: Trained model
+        compass_config: Configuration for Fairness Compass Engine
+        
+    Returns:
+        Dict: Fairness compass metrics and recommendations
+    """
+    # Split data
+    X_train, X_test, y_train, y_test, A_train, A_test = train_test_split(X, y, A, test_size=0.3, random_state=42, shuffle=True)
+    
+    # Train model if not already trained
+    if hasattr(model, 'fit'):
+        model.fit(X_train, y_train)
+    
+    # Get predictions
+    y_pred = model.predict(X_test)
+    
+    # Get scores if available
+    y_scores = None
+    if hasattr(model, 'predict_proba'):
+        y_scores = model.predict_proba(X_test)[:, 1]  # Probability of positive class
+    
+    # Create Fairness Compass Engine with default config if none provided
+    if compass_config is None:
+        compass_config = {
+            "enforce_policy": False,
+            "ground_truth_available": True,
+            "output_type": "label",
+            "fairness_focus": "precision"
+        }
+    
+    engine = FairnessCompassEngine(**compass_config)
+    
+    # Get recommendations
+    recommendations = engine.get_metric_recommendations()
+    explanation = engine.explain()
+    
+    # Calculate fairness metrics
+    fairness_metrics = engine.calculate_fairness_metrics(
+        y_true=y_test,
+        y_pred=y_pred,
+        sensitive_attr=A_test,
+        y_scores=y_scores
+    )
+    
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test, y_pred)
     
     return {
-        "Accuracy": accuracy_score(y_test, y_pred),
-        **group_metrics
+        "accuracy": accuracy,
+        "recommendations": recommendations,
+        "fairness_metrics": fairness_metrics,
+        "explanation": explanation
     }
 
 
@@ -237,7 +316,19 @@ class EvaluationRunner:
         """Run tabular fairness evaluation."""
         print("Running tabular fairness evaluation...")
         
-        self.results = evaluate_fairness(X, y, A, model)
+        # Run traditional fairness evaluation
+        traditional_results = evaluate_fairness(X, y, A, model)
+        
+        # Run fairness compass evaluation
+        print("Running Fairness Compass evaluation...")
+        compass_results = evaluate_fairness_compass(X, y, A, model)
+        
+        # Combine results
+        self.results = {
+            "traditional_fairness": traditional_results,
+            "fairness_compass": compass_results
+        }
+        
         return self.results
     
     def run_all_evaluations(self, evaluation_type="llm", **kwargs):
@@ -307,8 +398,20 @@ def main():
         results = evaluator.run_all_evaluations("tabular", X=X, y=y, A=A, model=model)
         
         # Print tabular results
-        for k, v in results.items():
+        print("\n=== Traditional Fairness Results ===")
+        for k, v in results["traditional_fairness"].items():
             print(f"{k}: {v:.4f}")
+        
+        print("\n=== Fairness Compass Results ===")
+        compass_results = results["fairness_compass"]
+        print(f"Accuracy: {compass_results['accuracy']:.4f}")
+        print(f"Recommended Metrics: {compass_results['recommendations']}")
+        print("Fairness Metrics:")
+        for metric, value in compass_results['fairness_metrics'].items():
+            if not np.isnan(value):
+                print(f"  {metric}: {value:.4f}")
+        
+        print(f"\nReasoning: {compass_results['explanation']['reasoning']}")
 
 
 if __name__ == "__main__":

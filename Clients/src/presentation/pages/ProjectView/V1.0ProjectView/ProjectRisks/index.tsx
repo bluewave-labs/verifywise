@@ -29,7 +29,7 @@ const TITLE_OF_COLUMNS = [
   "MITIGATION STATUS", // mitigation status
   "RISK LEVEL", // risk auto calculated value from risk tab
   "TARGET DATE", // start date (deadline) value from mitigation tab
-  "MITIGATION",
+  "Linked controls",
   "",
 ];
 

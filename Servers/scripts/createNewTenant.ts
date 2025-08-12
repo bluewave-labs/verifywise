@@ -7,6 +7,26 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
     const tenantHash = getTenantHash(organization_id);
     await sequelize.query(`CREATE SCHEMA "${tenantHash}";`, { transaction });
 
+    await sequelize.query(
+      `CREATE OR REPLACE FUNCTION "${tenantHash}".check_only_one_organizational_project()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          -- If this row is being set to TRUE...
+          IF NEW.is_organizational = TRUE THEN
+            -- Count other rows (exclude the row we're updating/inserting)
+            IF EXISTS (
+              SELECT 1
+              FROM "${tenantHash}".projects
+              WHERE is_organizational = TRUE
+                AND (TG_OP = 'INSERT' OR id <> NEW.id)
+            ) THEN
+              RAISE EXCEPTION 'Only one project can have is_organizational = TRUE';
+            END IF;
+          END IF;
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;`,
+      { transaction });
     await Promise.all([
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".projects
       (
@@ -14,8 +34,8 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         project_title character varying(255) NOT NULL,
         owner integer,
         start_date timestamp with time zone NOT NULL,
-        ai_risk_classification enum_projects_ai_risk_classification NOT NULL,
-        type_of_high_risk_role enum_projects_type_of_high_risk_role NOT NULL,
+        ai_risk_classification enum_projects_ai_risk_classification,
+        type_of_high_risk_role enum_projects_type_of_high_risk_role,
         goal character varying(255),
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
@@ -29,6 +49,10 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
           REFERENCES public.users (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE SET NULL
       );`,
+      `CREATE TRIGGER "trg_${tenantHash}_ensure_one_organizational_project"
+        BEFORE INSERT OR UPDATE ON "${tenantHash}".projects
+        FOR EACH ROW
+          EXECUTE FUNCTION "${tenantHash}".check_only_one_organizational_project();`,
       `CREATE TABLE IF NOT EXISTS "${tenantHash}".vendors
       (
         id serial NOT NULL,

@@ -79,6 +79,12 @@ export class ProjectModel
   })
   created_at?: Date;
 
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_organizational!: boolean;
+
   static async CreateNewProject(
     projectAttributes: Partial<IProjectAttributes>
   ) {

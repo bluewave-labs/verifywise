@@ -203,13 +203,32 @@ export const createNewProjectQuery = async (
   transaction: Transaction,
   isDemo: boolean = false
 ): Promise<ProjectModel> => {
+
+  const allowedFrameworks: number[] = []
+  if (project.is_organizational === true) {
+    const result = await sequelize.query(
+      `SELECT id FROM public.frameworks WHERE is_organizational = true;`, { transaction }
+    ) as [{ id: number }[], number];
+    allowedFrameworks.push(...result[0].map(f => f.id));
+  } else {
+    const result = await sequelize.query(
+      `SELECT id FROM public.frameworks WHERE is_organizational = false;`, { transaction }
+    ) as [{ id: number }[], number];
+    allowedFrameworks.push(...result[0].map(f => f.id));
+  }
+  for (let framework of frameworks) {
+    if (!allowedFrameworks.includes(framework)) {
+      throw new Error(`Framework with ID ${framework} is not allowed for this project.`);
+    }
+  }
+
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
       project_title, owner, start_date, ai_risk_classification, 
-      type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo
+      type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo, is_organizational
     ) VALUES (
       :project_title, :owner, :start_date, :ai_risk_classification, 
-      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by, :is_demo
+      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by, :is_demo, :is_organizational
     ) RETURNING *`,
     {
       replacements: {
@@ -222,6 +241,7 @@ export const createNewProjectQuery = async (
         last_updated: new Date(Date.now()),
         last_updated_by: project.last_updated_by,
         is_demo: isDemo,
+        is_organizational: project.is_organizational || false,
       },
       mapToModel: true,
       model: ProjectModel,
@@ -276,7 +296,9 @@ export const updateProjectUpdatedByIdQuery = async (
     | "projectrisks"
     | "vendors"
     | "subclauses"
-    | "annexcategories",
+    | "annexcategories"
+    | "annexcontrols_iso27001"
+    | "subclauses_iso27001",
   tenant: string,
   transaction: Transaction
 ): Promise<void> => {
@@ -289,6 +311,8 @@ export const updateProjectUpdatedByIdQuery = async (
     vendors: `SELECT project_id as id FROM "${tenant}".vendors_projects WHERE vendor_id = :id;`,
     subclauses: `SELECT pf.project_id as id FROM "${tenant}".subclauses_iso sc JOIN "${tenant}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
     annexcategories: `SELECT pf.project_id as id FROM "${tenant}".annexcategories_iso a JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`,
+    subclauses_iso27001: `SELECT pf.project_id as id FROM "${tenant}".subclauses_iso27001 sc JOIN "${tenant}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    annexcontrols_iso27001: `SELECT pf.project_id as id FROM "${tenant}".annexcontrols_iso27001 a JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`,
   };
   const query = queryMap[byTable];
   const result = (await sequelize.query(query, {

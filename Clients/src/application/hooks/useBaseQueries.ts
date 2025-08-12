@@ -77,7 +77,7 @@ export const useDeleteEntity = (routeUrl: string, invalidateKeys?: string[][]) =
   return useMutation({
     mutationFn: (id: string | number) => 
       deleteEntityById({ routeUrl: `${routeUrl}/${id}` }),
-    onSuccess: (data, id) => {
+    onSuccess: (_, id) => {
       // Invalidate related queries
       if (invalidateKeys) {
         invalidateQueries(invalidateKeys);

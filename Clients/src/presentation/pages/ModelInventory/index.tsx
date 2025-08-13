@@ -22,6 +22,11 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
+import { 
+  toastFadeStyle, 
+  statusFilterSelectStyle, 
+  addNewModelButtonStyle 
+} from "./style";
 import {
   ModelInventoryStatus,
   ModelInventorySummary as Summary,
@@ -275,13 +280,7 @@ const ModelInventory: React.FC = () => {
           <Fade
             in={showAlert}
             timeout={300}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-            }}
+            style={toastFadeStyle}
           >
             <Box mb={2}>
               <Alert
@@ -322,18 +321,11 @@ const ModelInventory: React.FC = () => {
             value={statusFilter}
             items={statusFilterOptions}
             onChange={handleStatusFilterChange}
-            sx={{
-              width: "200px",
-              minHeight: "34px",
-            }}
+            sx={statusFilterSelectStyle}
           />
           <CustomizableButton
             variant="contained"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
+            sx={addNewModelButtonStyle}
             text="Add new model"
             icon={<AddCircleOutlineIcon />}
             onClick={handleNewModelInventoryClick}

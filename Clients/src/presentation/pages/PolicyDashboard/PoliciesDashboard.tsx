@@ -11,19 +11,7 @@ import {
   getAllPolicies,
   getAllTags,
 } from "../../../application/repository/policy.repository";
-
-export interface Policy {
-  id: string;
-  title: string;
-  content_html: string;
-  status: string;
-  tags?: string[];
-  next_review_date?: string; // ISO string representation
-  author_id: number;
-  assigned_reviewer_ids?: number[];
-  last_updated_by: number;
-  last_updated_at?: string; // ISO string
-}
+import { Policy } from "../../../domain/types/Policy";
 
 const PolicyDashboard: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);

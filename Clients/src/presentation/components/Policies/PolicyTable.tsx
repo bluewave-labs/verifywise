@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useContext } from "react";
-import { Policy } from "../../pages/PolicyDashboard/PoliciesDashboard";
+import { Policy } from "../../../domain/types/Policy";
 import CustomizablePolicyTable from "../Table/PolicyTable";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";

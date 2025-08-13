@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
-import { Policy } from "../../pages/PolicyDashboard/PoliciesDashboard";
+import { Policy } from "../../../domain/types/Policy";
 import SaveIcon from "@mui/icons-material/Save";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 

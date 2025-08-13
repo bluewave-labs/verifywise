@@ -85,7 +85,7 @@ const menu = [
     path: "/training",
   },
   {
-    name: "Policiy Manager",
+    name: "Policy Manager",
     icon: <Policies />,
     path: "/policies",
   },

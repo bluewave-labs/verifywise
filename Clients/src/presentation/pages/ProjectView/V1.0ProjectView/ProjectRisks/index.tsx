@@ -29,6 +29,7 @@ const TITLE_OF_COLUMNS = [
   "MITIGATION STATUS", // mitigation status
   "RISK LEVEL", // risk auto calculated value from risk tab
   "TARGET DATE", // start date (deadline) value from mitigation tab
+  "Linked controls",
   "",
 ];
 
@@ -47,9 +48,10 @@ const initialLoadingState: LoadingStatus = {
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
   const { userRoleName } = useContext(VerifyWiseContext);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const projectId =
     parseInt(searchParams.get("projectId") ?? "0") || project!.id;
+  const riskId = searchParams.get("riskId");
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
   const { projectRisksSummary } = useProjectRisks({
     projectId,
@@ -119,6 +121,10 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
     setSelectedRow([]);
+    if (riskId) {
+      searchParams.delete("riskId");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleAIModalOpen = () => {

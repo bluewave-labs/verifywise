@@ -29,7 +29,10 @@ import trainingRoutes from "./routes/trainingRegistar.route";
 import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
 import policyRoutes from "./routes/policy.route"
-
+import loggerRoutes from "./routes/logger.route";
+import dashboardRoutes from "./routes/dashboard.route"
+import iso27001Routes from "./routes/iso27001.route";
+import modelInventoryRoutes from "./routes/modelInventory.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -48,8 +51,6 @@ const host = process.env.HOST || DEFAULT_HOST;
 
 const port = parseInt(portString, 10); // Convert to number
 
-
-
 try {
   // (async () => {
   //   await checkAndCreateTables();
@@ -61,7 +62,9 @@ try {
   //   await sequelize.sync();
   // })();
 
-  const allowedOrigins = parseOrigins(process.env.ALLOWED_ORIGINS || frontEndUrl);
+  const allowedOrigins = parseOrigins(
+    process.env.ALLOWED_ORIGINS || frontEndUrl
+  );
 
   app.use(
     cors({
@@ -74,7 +77,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.includes('/upload')) {
+    if (req.url.includes("/upload")) {
       // Let the proxy handle the raw body
       return next();
     }
@@ -104,11 +107,14 @@ try {
   app.use("/api/eu-ai-act", euRouter);
   app.use("/api/organizations", organizationRoutes);
   app.use("/api/iso-42001", isoRoutes);
+  app.use("/api/iso-27001", iso27001Routes);
   app.use("/api/training", trainingRoutes);
-  app.use('/api/bias_and_fairness', biasAndFairnessRoutes());
+  app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
-
+  app.use("/api/logger", loggerRoutes);
+  app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/reporting", reportRoutes);
+  app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes)
 

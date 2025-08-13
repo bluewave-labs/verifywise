@@ -36,23 +36,26 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 interface InviteUserModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSendInvite: (email: string, status: number | string) => void;
+  onSendInvite: (email: string, status: number | string, link?: string) => void;
 }
 
 interface FormValues {
   name: string;
+  surname: string;
   email: string;
   roleId: string;
 }
 
 interface FormErrors {
   name?: string;
+  surname?: string;
   email?: string;
   roleId?: string;
 }
 
 const initialState: FormValues = {
   name: "",
+  surname: "",
   email: "",
   roleId: "1",
 };
@@ -129,13 +132,22 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         to: values.email,
         email: values.email,
         name: values.name,
+        surname: values.surname,
         roleId: values.roleId,
         organizationId
       };
 
       try {
         const response = await apiServices.post("/mail/invite", formData);
-        onSendInvite(values.email, response.status);
+        const data = response.data as {
+          message: string;
+          error?: string;
+        };
+        if (response.status === 206) {
+          onSendInvite(values.email, response.status, data.message);
+        } else {
+          onSendInvite(values.email, response.status);
+        }
       } catch (error) {
         onSendInvite(values.email, -1);
       } finally {
@@ -193,6 +205,14 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
             onChange={handleFormFieldChange("name")}
             isRequired
             error={errors.name}
+          />
+          <Field
+            placeholder="Surname"
+            type="surname"
+            value={values.surname}
+            onChange={handleFormFieldChange("surname")}
+            isRequired
+            error={errors.surname}
           />
           <Field
             placeholder="Email"

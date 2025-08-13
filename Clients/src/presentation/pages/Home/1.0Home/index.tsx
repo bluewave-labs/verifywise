@@ -20,12 +20,17 @@ import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
-import { useProjects } from "../../../../application/hooks/useProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import allowedRoles from "../../../../application/constants/permissions";
+import HelperDrawer from "../../../components/Drawer/HelperDrawer";
+import dashboardHelpContent from "../../../../presentation/helpers/dashboard-help.html?raw";
+import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
+import TaskRadar from "../../../components/Cards/TaskRadarCard";
+import { useDashboard } from "../../../../application/hooks/useDashboard";
+import { Project } from "../../../../domain/types/Project";
 
 const Home = () => {
   const {
@@ -43,7 +48,16 @@ const Home = () => {
   const [showToastNotification, setShowToastNotification] =
     useState<boolean>(false);
 
-  const { projects, fetchProjects } = useProjects();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const { dashboard, fetchDashboard } = useDashboard();
+
+  useEffect(() => {
+    if (dashboard) {
+      setProjects(dashboard.projects_list);
+    }
+  }, [dashboard]);
+
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -65,11 +79,11 @@ const Home = () => {
     const fetchProgressData = async () => {
       await refreshUsers();
 
-      await fetchProjects();
+      await fetchDashboard();
     };
 
     fetchProgressData();
-  }, [setDashboardValues, fetchProjects, refreshProjectsFlag]);
+  }, [setDashboardValues, fetchDashboard, refreshProjectsFlag]);
 
   const handleProjectFormModalClose = () => {
     setIsProjectFormModalOpen(false);
@@ -93,7 +107,7 @@ const Home = () => {
           setAlertState(undefined);
         }, 100);
 
-        await fetchProjects();
+        await fetchDashboard();
         setShowToastNotification(false);
         window.location.reload();
       } else {
@@ -131,6 +145,12 @@ const Home = () => {
 
   return (
     <Stack className="vwhome">
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={dashboardHelpContent}
+        pageTitle="VerifyWise Dashboard"
+      />
       {alertState && (
         <Alert
           variant={alertState.variant}
@@ -180,6 +200,37 @@ const Home = () => {
               />
             </div>
           </Stack>
+        </Stack>
+        <Stack sx={vwhomeBody}>
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "20px",
+            }}
+          >
+            <HeaderCard title="Projects" count={dashboard?.projects || 0} />
+            <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
+            <HeaderCard title="Models" count={dashboard?.models || 0} />
+            <HeaderCard title="Reports" count={dashboard?.reports || 0} />
+          </Box>
+        </Stack>
+        <Stack sx={vwhomeBody}>
+          <Box
+            sx={{
+              width: "50%",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "20px",
+            }}
+          >
+            <TaskRadar overdue={dashboard?.task_radar.overdue || 0} due={dashboard?.task_radar.due || 0} upcoming={dashboard?.task_radar.upcoming || 0} />
+          </Box>
         </Stack>
         <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
           {projects?.length === 0 || !projects ? (

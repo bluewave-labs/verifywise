@@ -10,7 +10,7 @@ import { AnnexCategoryISOModel } from "./annexCategoryISO.model";
 
 export type AnnexCategoryISORisks = {
   annexcategory_id?: number;
-  project_risk_id?: number;
+  projects_risks_id?: number;
 };
 
 @Table({
@@ -29,5 +29,5 @@ export class AnnexCategoryISORisksModel extends Model<AnnexCategoryISORisks> {
     type: DataType.INTEGER,
     primaryKey: true,
   })
-  project_risk_id?: number;
+  projects_risks_id?: number;
 }

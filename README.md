@@ -21,6 +21,7 @@ We are democratizing AI best practices with an open-source solution that can be 
 - The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
 - [Need to talk to someone](https://tidycal.com/verifywise/info-session)? Get with us to see the latest demo, or [click here](https://verifywise.ai/see-a-demo-of-verifywise/) to experience the demo yourself.
+- If you are looking for the FlagWise, the Shadow AI detection tool, [check this repository](https://github.com/bluewave-labs/flagwise).
 
 ## Screenshot
 
@@ -294,6 +295,10 @@ Ensure you have following things:
 ![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
 
 6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
+
+### Ports
+
+You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the internet.
 
 
 ## Security

@@ -16,6 +16,11 @@ export enum HighRiskRoleEnum {
   AuthorizedRepresentative = "Authorized representative",
 }
 
+export enum FrameworkTypeEnum {
+  ProjectBased = "project-based",
+  OrganizationWide = "organization-wide",
+}
+
 export interface User {
   _id: string;
   name: string;
@@ -33,6 +38,7 @@ export interface FormValues {
   goal: string;
   enable_ai_data_insertion: boolean;
   monitored_regulations_and_standards: { _id: number; name: string }[];
+  framework_type: FrameworkTypeEnum | null;
 }
 
 export interface FormErrors {
@@ -44,6 +50,7 @@ export interface FormErrors {
   riskClassification?: string;
   typeOfHighRiskRole?: string;
   goal?: string;
+  frameworkType?: string;
 }
 
 export const initialState: FormValues = {
@@ -56,9 +63,29 @@ export const initialState: FormValues = {
   goal: "",
   enable_ai_data_insertion: false,
   monitored_regulations_and_standards: [],
+  framework_type: null,
 };
 
 export interface ProjectFormProps {
   onClose: () => void;
   sx?: SxProps<Theme> | undefined;
 }
+
+export interface FrameworkOption {
+  value: FrameworkTypeEnum;
+  title: string;
+  description: string;
+}
+
+export const frameworkOptions: FrameworkOption[] = [
+  {
+    value: FrameworkTypeEnum.ProjectBased,
+    title: "Project-based frameworks",
+    description: "EU AI Act, ISO 42001 (specific to an AI system/project)",
+  },
+  {
+    value: FrameworkTypeEnum.OrganizationWide,
+    title: "Organization-wide framework",
+    description: "ISO 27001 (company-wide project)",
+  },
+];

@@ -1,7 +1,7 @@
 // src/repositories/policies.repository.ts
 
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/getAuthToken";  
+import { getAuthToken } from "../redux/auth/getAuthToken"; 
 import { Policy, PolicyInput } from "../../domain/types/Policy";
 
 const authHeader = (token?: string) => ({

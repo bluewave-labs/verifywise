@@ -4,13 +4,11 @@ import React, {
   useEffect,
   useCallback,
   ChangeEvent,
-  useMemo,
   useContext,
 } from "react";
 import { Box, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import Avatar from "../../../components/Avatar/VWAvatar/index";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
 import {
@@ -33,17 +31,6 @@ import useLogout from "../../../../application/hooks/useLogout";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 
 /**
- * Interface representing a user object.
- * @interface
- */
-interface User {
-  firstname: string;
-  lastname: string;
-  email: string;
-  pathToImage: string;
-}
-
-/**
  * ProfileForm component for managing user profile information.
  *
  * This component allows users to view and update their profile information,
@@ -63,9 +50,6 @@ const ProfileForm: React.FC = () => {
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  const [profilePhoto, setProfilePhoto] = useState<string>(
-    "/placeholder.svg?height=80&width=80"
-  );
   const [showToast, setShowToast] = useState(false);
   const [firstnameError, setFirstnameError] = useState<string | null>(null);
   const [lastnameError, setLastnameError] = useState<string | null>(null);
@@ -87,7 +71,6 @@ const ProfileForm: React.FC = () => {
   });
 
   const theme = useTheme();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
   const isModified =
     firstname !== initialStateRef.current.firstname ||
@@ -120,10 +103,9 @@ const ProfileForm: React.FC = () => {
           email: response.data.email,
         };
 
-        setProfilePhoto(
-          response.data.pathToImage || "/placeholder.svg?height=80&width=80"
+        console.log(
+          `user ${response.data.name} ${response.data.surname} fetched`
         );
-        console.log(`user ${user.firstname} ${user.lastname} fetched`);
         console.log(firstname);
       } catch (error) {
         console.log(error);
@@ -170,7 +152,6 @@ const ProfileForm: React.FC = () => {
         name: firstname,
         surname: lastname,
         email,
-        pathToImage: profilePhoto,
       };
       const response = await updateEntityById({
         routeUrl: `/users/${id}`,
@@ -208,33 +189,7 @@ const ProfileForm: React.FC = () => {
         setShowToast(false);
       }, 1000);
     }
-  }, [
-    firstname,
-    lastname,
-    email,
-    profilePhoto,
-    firstnameError,
-    lastnameError,
-    emailError,
-  ]);
-
-  /**
-   * Handle file input change.
-   *
-   * Updates the profile photo with the selected file.
-   *
-   * @param {ChangeEvent<HTMLInputElement>} event - The change event.
-   */
-  const handleFileChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>): void => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const newPhotoUrl = URL.createObjectURL(file);
-        setProfilePhoto(newPhotoUrl);
-      }
-    },
-    []
-  );
+  }, [firstname, lastname, email, firstnameError, lastnameError, emailError]);
 
   /**
    * Handle delete dialog open.
@@ -252,24 +207,6 @@ const ProfileForm: React.FC = () => {
    */
   const handleCloseDeleteDialog = useCallback((): void => {
     setIsDeleteModalOpen(false);
-  }, []);
-
-  /**
-   * Handle update photo button click.
-   *
-   * Triggers the file input click to update the profile photo.
-   */
-  const handleUpdatePhoto = useCallback((): void => {
-    fileInputRef.current?.click();
-  }, []);
-
-  /**
-   * Handle delete photo button click.
-   *
-   * Resets the profile photo to the default placeholder.
-   */
-  const handleDeletePhoto = useCallback((): void => {
-    setProfilePhoto("/placeholder.svg?height=80&width=80");
   }, []);
 
   /**
@@ -386,19 +323,15 @@ const ProfileForm: React.FC = () => {
     }
   }, [email, firstname, lastname, logout]);
 
-  // User object for Avatar component
-  const user: User = useMemo(
-    () => ({
-      firstname,
-      lastname,
-      pathToImage: profilePhoto,
-      email,
-    }),
-    [firstname, lastname, profilePhoto, email]
-  );
-
   return (
-    <Box sx={{ position: "relative", mt: 3, width: { xs: "90%", md: "70%" } }}>
+    <Box
+      sx={{
+        position: "relative",
+        mt: 3,
+        width: { xs: "90%", md: "70%" },
+        maxWidth: "600px",
+      }}
+    >
       {showToast && <CustomizableToast />}{" "}
       {/* Show CustomizableToast when showToast is true */}
       {loading && (
@@ -408,7 +341,7 @@ const ProfileForm: React.FC = () => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{borderRadius: 2 }}
+          sx={{ borderRadius: 2 }}
         />
       )}
       {alert.visible && (
@@ -431,13 +364,13 @@ const ProfileForm: React.FC = () => {
             mt: 20,
           }}
         >
-          <Box sx={{ width: { xs: "100%", md: "40%" } }}>
+          <Box sx={{ width: { xs: "100%", md: "100%" } }}>
             <Field
               id="First name"
               label="Name"
               value={firstname}
               onChange={handleFirstnameChange}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
             />
             {firstnameError && (
               <Typography color="error" variant="caption">
@@ -449,7 +382,7 @@ const ProfileForm: React.FC = () => {
               label="Surname"
               value={lastname}
               onChange={handleLastnameChange}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
             />
             {lastnameError && (
               <Typography color="error" variant="caption">
@@ -461,7 +394,7 @@ const ProfileForm: React.FC = () => {
               label="Email"
               value={email}
               onChange={handleEmailChange}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
               disabled
             />
             {emailError && (
@@ -480,71 +413,6 @@ const ProfileForm: React.FC = () => {
             >
               This is your current email address — it cannot be changed.
             </Typography>
-          </Box>
-          <Box
-            sx={{
-              width: { xs: "100%", md: "40%" },
-              textAlign: { xs: "left", md: "center" },
-            }}
-          >
-            <Stack
-              direction="column"
-              alignItems={{ xs: "flex-start", md: "center" }}
-              spacing={2}
-            >
-              <Typography
-                fontWeight="600"
-                variant="subtitle1"
-                color="#344054"
-                pb={theme.spacing(5)}
-              >
-                Your photo
-              </Typography>
-              <Avatar
-                user={user}
-                size="medium"
-                sx={{ width: 80, height: 80 }}
-              />
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-              <Stack
-                direction="row"
-                spacing={2}
-                alignItems={"center"}
-                sx={{ paddingTop: theme.spacing(10) }}
-              >
-                <Typography
-                  sx={{
-                    color: "#667085",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    fontSize: 13,
-                  }}
-                  onClick={handleDeletePhoto}
-                >
-                  Delete
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#13715B",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
-                    paddingLeft: theme.spacing(5),
-                    fontSize: 13,
-                  }}
-                  onClick={handleUpdatePhoto}
-                >
-                  Update
-                </Typography>
-              </Stack>
-            </Stack>
           </Box>
         </Box>
       )}
@@ -581,7 +449,7 @@ const ProfileForm: React.FC = () => {
           height="200px"
           minWidth={"100%"}
           minHeight={200}
-          sx={{borderRadius: 2 }}
+          sx={{ borderRadius: 2 }}
         />
       )}
       {!loading && (

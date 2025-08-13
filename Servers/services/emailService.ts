@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { compileMjmlToHtml } from "../tools/mjmlCompiler";
 
-const resend = new Resend(process.env.RESEND_API_KEY || "Abd");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function to send an email
 export const sendEmail = async (

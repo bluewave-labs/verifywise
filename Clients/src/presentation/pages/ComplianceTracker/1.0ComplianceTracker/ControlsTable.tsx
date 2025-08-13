@@ -14,7 +14,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { useCallback, useEffect, useState, useContext } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
@@ -22,8 +22,8 @@ import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { useSearchParams } from "react-router-dom";
+import useUsers from "../../../../application/hooks/useUsers";
 
 interface Column {
   name: string;
@@ -49,7 +49,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   projectFrameworkId,
   statusFilter,
 }) => {
-  const { users } = useContext(VerifyWiseContext);
+  const { users } = useUsers();
   const currentProjectId = projectId;
   const [controls, setControls] = useState<Control[]>([]);
   const [selectedControl, setSelectedControl] = useState<Control | null>(null);

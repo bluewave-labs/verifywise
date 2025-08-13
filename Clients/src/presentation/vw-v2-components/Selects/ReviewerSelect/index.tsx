@@ -1,8 +1,6 @@
 import {
   MenuItem,
   Select,
-  InputLabel,
-  FormControl,
   SelectChangeEvent,
   Checkbox,
   ListItemText,

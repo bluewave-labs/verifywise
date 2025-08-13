@@ -117,7 +117,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
                 backgroundColor: "#F8f8f8",
               },
             }}
-            onClick={(event) => onOpen(policy.id)}
+            onClick={(_event) => onOpen(policy.id)}
           >
             <TableCell sx={{ fontSize: 12 }}>{policy.title}</TableCell>
             <TableCell>

@@ -28,7 +28,7 @@ const statuses: FormData["status"][] = [
   "Archived",
 ];
 
-const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags }) => {
+const PolicyForm: React.FC<Props> = ({ formData, setFormData }) => {
 
   return (
     <Stack spacing={4}>

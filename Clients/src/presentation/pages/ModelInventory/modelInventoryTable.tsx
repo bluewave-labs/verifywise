@@ -28,22 +28,22 @@ import {
 } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
-import { 
-  statusBadgeStyle, 
-  securityAssessmentBadgeStyle, 
+import {
+  statusBadgeStyle,
+  securityAssessmentBadgeStyle,
   capabilitiesChipContainerStyle,
-  capabilityChipStyle, 
-  capabilityChipExtraStyle, 
-  tableRowHoverStyle, 
-  tableRowDeletingStyle, 
-  loadingContainerStyle, 
-  emptyStateContainerStyle, 
-  emptyStateTextStyle, 
-  tableFooterRowStyle, 
-  showingTextCellStyle, 
-  paginationMenuProps, 
-  paginationSelectStyle, 
-  paginationStyle 
+  capabilityChipStyle,
+  capabilityChipExtraStyle,
+  tableRowHoverStyle,
+  tableRowDeletingStyle,
+  loadingContainerStyle,
+  emptyStateContainerStyle,
+  emptyStateTextStyle,
+  tableFooterRowStyle,
+  showingTextCellStyle,
+  paginationMenuProps,
+  paginationSelectStyle,
+  paginationStyle,
 } from "./style";
 
 // Constants for table
@@ -72,11 +72,7 @@ const DEFAULT_ROWS_PER_PAGE = 5;
 const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
   status,
 }) => {
-  return (
-    <span style={statusBadgeStyle(status)}>
-      {status}
-    </span>
-  );
+  return <span style={statusBadgeStyle(status)}>{status}</span>;
 };
 
 const SecurityAssessmentBadge: React.FC<{ assessment: boolean }> = ({
@@ -184,6 +180,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
           {TABLE_COLUMNS.map((column) => (
             <TableCell
+              component={"td"}
+              className="model-inventory-table-header-cel"
               key={column.id}
               sx={{
                 ...singleTheme.tableStyles.primary.header.cell,
@@ -196,7 +194,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }),
               }}
             >
-              {column.label}
+              <div style={{ fontWeight: 400 }}>{column.label}</div>
             </TableCell>
           ))}
         </TableRow>
@@ -217,7 +215,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
                   ...tableRowHoverStyle,
-                  ...(deletingId === modelInventory.id?.toString() && tableRowDeletingStyle),
+                  ...(deletingId === modelInventory.id?.toString() &&
+                    tableRowDeletingStyle),
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -338,12 +337,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
         {tableBody}
         {paginated && (
           <TableFooter>
-            <TableRow
-              sx={tableFooterRowStyle(theme)}
-            >
-              <TableCell
-                sx={showingTextCellStyle(theme)}
-              >
+            <TableRow sx={tableFooterRowStyle(theme)}>
+              <TableCell sx={showingTextCellStyle(theme)}>
                 Showing {getRange} of {data?.length} model(s)
               </TableCell>
               <TablePagination

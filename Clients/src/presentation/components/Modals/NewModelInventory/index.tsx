@@ -115,18 +115,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   useEffect(() => {
     if (initialData && users.length > 0) {
       // If we have initialData and users are loaded, set the values
-      if (initialData.approver) {
-        // Check if the approver ID exists in the loaded users
-        const approverExists = users.some(
-          (user) => user.id.toString() === initialData.approver
-        );
-        if (approverExists) {
-          setValues(initialData);
-        }
-      } else {
-        // If no approver, just set the values
-        setValues(initialData);
-      }
+      setValues(initialData);
     } else if (initialData && !isEdit) {
       // If we have initialData but no users yet, set values temporarily
       setValues(initialData);
@@ -168,8 +157,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const userOptions = useMemo(() => {
     return users.map((user) => ({
       _id: user.id,
-      name: user.name,
-      surname: user.surname,
+      name: `${user.name} ${user.surname}`,
       email: user.email,
     }));
   }, [users]);
@@ -279,7 +267,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       paddingBottom: "3.8px !important",
     },
     "& ::placeholder": {
-      fontSize: "13px",
+      fontSize: 13,
     },
   };
 
@@ -302,7 +290,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       sx: {
         "& .MuiAutocomplete-listbox": {
           "& .MuiAutocomplete-option": {
-            fontSize: "13px",
+            fontSize: 13,
+            fontWeight: 400,
             color: "#1c2130",
             paddingLeft: "9px",
             paddingRight: "9px",
@@ -312,7 +301,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           },
         },
         "& .MuiAutocomplete-noOptions": {
-          fontSize: "13px",
+          fontSize: 13,
+          fontWeight: 400,
           paddingLeft: "9px",
           paddingRight: "9px",
         },
@@ -468,8 +458,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
               <Stack>
                 <Typography
                   sx={{
-                    fontSize: theme.typography.fontSize,
-                    fontWeight: 500,
+                    fontSize: 13,
+                    fontWeight: 400,
                     mb: theme.spacing(2),
                     color: theme.palette.text.secondary,
                   }}
@@ -491,7 +481,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   }
                   renderOption={(props, option) => (
                     <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: "13px" }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
                         {option}
                       </Typography>
                     </Box>
@@ -515,7 +505,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 {errors.capabilities && (
                   <Typography
                     variant="caption"
-                    sx={{ mt: 1, color: "#f04438", fontWeight: 300 }}
+                    sx={{
+                      mt: 1,
+                      color: "#f04438",
+                      fontWeight: 300,
+                      fontSize: 11,
+                    }}
                   >
                     {errors.capabilities}
                   </Typography>
@@ -535,8 +530,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   label="Security assessment"
                   sx={{
                     "& .MuiFormControlLabel-label": {
-                      fontSize: "13px",
-                      fontWeight: 500,
+                      fontSize: 13,
+                      fontWeight: 400,
                       color: theme.palette.text.secondary,
                     },
                   }}

@@ -6,10 +6,6 @@ export const mainStackStyle = {
   gap: "20px",
 };
 
-export const headerSectionStyle = {
-  gap: "20px",
-};
-
 export const filterButtonRowStyle = {
   gap: "20px",
 };
@@ -62,8 +58,8 @@ export const summaryCardNumberStyle = (color: string) => ({
 });
 
 export const summaryCardLabelStyle = (theme: Theme) => ({
-  fontSize: "13px",
-  fontWeight: 600,
+  fontSize: 13,
+  fontWeight: 400,
   color: theme.palette.text.secondary,
   textTransform: "uppercase" as const,
   margin: 0,
@@ -85,8 +81,8 @@ export const statusBadgeStyle = (status: ModelInventoryStatus) => {
     color: style.color,
     padding: "4px 8px",
     borderRadius: 8,
-    fontWeight: 600,
-    fontSize: "0.75rem",
+    fontWeight: 400,
+    fontSize: 11,
     textTransform: "uppercase" as const,
     display: "inline-block" as const,
   };
@@ -102,8 +98,8 @@ export const securityAssessmentBadgeStyle = (assessment: boolean) => {
     color: style.color,
     padding: "4px 8px",
     borderRadius: 8,
-    fontWeight: 600,
-    fontSize: "0.75rem",
+    fontWeight: 400,
+    fontSize: 11,
     textTransform: "uppercase" as const,
     display: "inline-block" as const,
   };
@@ -114,19 +110,21 @@ export const capabilitiesChipContainerStyle = {
 };
 
 export const capabilityChipStyle = {
-  fontSize: "0.7rem",
+  fontSize: 11,
   height: "20px",
   backgroundColor: "#f5f5f5",
   color: "#666",
   margin: 0,
+  fontWeight: 400,
 };
 
 export const capabilityChipExtraStyle = {
-  fontSize: "0.7rem",
+  fontSize: 11,
   height: "20px",
   backgroundColor: "#e0e0e0",
   color: "#666",
   margin: 0,
+  fontWeight: 400,
 };
 
 export const tableRowHoverStyle = {
@@ -154,9 +152,10 @@ export const emptyStateContainerStyle = (_: Theme) => ({
 });
 
 export const emptyStateTextStyle = {
-  fontSize: "13px",
+  fontSize: 13,
   color: "#475467",
   margin: 0,
+  fontWeight: 400,
 };
 
 export const tableFooterRowStyle = (theme: Theme) => ({
@@ -168,8 +167,9 @@ export const tableFooterRowStyle = (theme: Theme) => ({
 
 export const showingTextCellStyle = (theme: Theme) => ({
   paddingX: theme.spacing(2),
-  fontSize: 12,
+  fontSize: 11,
   opacity: 0.7,
+  fontWeight: 400,
 });
 
 export const paginationMenuProps = (theme: Theme) => ({

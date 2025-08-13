@@ -22,13 +22,12 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
-import { 
+import {
   mainStackStyle,
-  headerSectionStyle,
   filterButtonRowStyle,
-  toastFadeStyle, 
-  statusFilterSelectStyle, 
-  addNewModelButtonStyle 
+  toastFadeStyle,
+  statusFilterSelectStyle,
+  addNewModelButtonStyle,
 } from "./style";
 import {
   ModelInventoryStatus,
@@ -280,11 +279,7 @@ const ModelInventory: React.FC = () => {
       />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Fade
-            in={showAlert}
-            timeout={300}
-            style={toastFadeStyle}
-          >
+          <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
             <Box mb={2}>
               <Alert
                 variant={alert.variant}
@@ -302,7 +297,7 @@ const ModelInventory: React.FC = () => {
       )}
 
       <Stack sx={mainStackStyle}>
-        <Stack sx={headerSectionStyle}>
+        <Stack>
           <Typography sx={vwhomeHeading}>Model Inventory</Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             This registry lists all AI/LLM models used within your organization

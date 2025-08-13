@@ -31,6 +31,7 @@ import { User } from "../../../domain/types/User";
 import { 
   statusBadgeStyle, 
   securityAssessmentBadgeStyle, 
+  capabilitiesChipContainerStyle,
   capabilityChipStyle, 
   capabilityChipExtraStyle, 
   tableRowHoverStyle, 
@@ -92,7 +93,7 @@ const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({
   capabilities,
 }) => {
   return (
-    <Stack direction="row" gap={1} flexWrap="wrap">
+    <Stack direction="row" flexWrap="wrap" sx={capabilitiesChipContainerStyle}>
       {capabilities.slice(0, 3).map((capability, index) => (
         <Chip
           key={index}

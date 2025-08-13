@@ -23,6 +23,9 @@ import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
 import { 
+  mainStackStyle,
+  headerSectionStyle,
+  filterButtonRowStyle,
   toastFadeStyle, 
   statusFilterSelectStyle, 
   addNewModelButtonStyle 
@@ -268,7 +271,7 @@ const ModelInventory: React.FC = () => {
   ];
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" sx={mainStackStyle}>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -298,8 +301,8 @@ const ModelInventory: React.FC = () => {
         </Suspense>
       )}
 
-      <Stack gap={4}>
-        <Stack>
+      <Stack sx={mainStackStyle}>
+        <Stack sx={headerSectionStyle}>
           <Typography sx={vwhomeHeading}>Model Inventory</Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             This registry lists all AI/LLM models used within your organization
@@ -315,6 +318,7 @@ const ModelInventory: React.FC = () => {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
+          sx={filterButtonRowStyle}
         >
           <SelectComponent
             id="status-filter"

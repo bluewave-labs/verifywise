@@ -35,7 +35,8 @@ export const addNewModelButtonStyle = {
 
 // Summary component styles (ModelInventorySummary.tsx)
 export const summaryContainerStyle = {
-  mb: 3,
+  marginBottom: "20px",
+  gap: "20px",
   flexWrap: "wrap" as const,
 };
 
@@ -45,18 +46,19 @@ export const summaryCardBoxStyle = (theme: Theme) => ({
   backgroundColor: "white",
   border: `1px solid ${theme.palette.border.light}`,
   borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(3),
+  padding: "20px",
   display: "flex",
   flexDirection: "column" as const,
   alignItems: "center" as const,
   justifyContent: "center" as const,
-  gap: 1,
+  gap: "20px",
 });
 
 export const summaryCardNumberStyle = (color: string) => ({
   fontWeight: 700,
   color: color,
   fontSize: "2rem",
+  margin: 0,
 });
 
 export const summaryCardLabelStyle = (theme: Theme) => ({
@@ -64,6 +66,7 @@ export const summaryCardLabelStyle = (theme: Theme) => ({
   fontWeight: 600,
   color: theme.palette.text.secondary,
   textTransform: "uppercase" as const,
+  margin: 0,
 });
 
 // Table component styles (modelInventoryTable.tsx)
@@ -106,11 +109,16 @@ export const securityAssessmentBadgeStyle = (assessment: boolean) => {
   };
 };
 
+export const capabilitiesChipContainerStyle = {
+  gap: "8px",
+};
+
 export const capabilityChipStyle = {
   fontSize: "0.7rem",
   height: "20px",
   backgroundColor: "#f5f5f5",
   color: "#666",
+  margin: 0,
 };
 
 export const capabilityChipExtraStyle = {
@@ -118,6 +126,7 @@ export const capabilityChipExtraStyle = {
   height: "20px",
   backgroundColor: "#e0e0e0",
   color: "#666",
+  margin: 0,
 };
 
 export const tableRowHoverStyle = {
@@ -129,25 +138,25 @@ export const tableRowDeletingStyle = {
   backgroundColor: "#f5f5f5",
 };
 
-export const loadingContainerStyle = (theme: Theme) => ({
+export const loadingContainerStyle = (_: Theme) => ({
   border: "1px solid #EEEEEE",
   borderRadius: "4px",
-  padding: theme.spacing(15, 5),
+  padding: "60px 20px",
   minHeight: 200,
 });
 
-export const emptyStateContainerStyle = (theme: Theme) => ({
+export const emptyStateContainerStyle = (_: Theme) => ({
   border: "1px solid #EEEEEE",
   borderRadius: "4px",
-  padding: theme.spacing(15, 5),
-  paddingBottom: theme.spacing(20),
-  gap: theme.spacing(10),
+  padding: "60px 20px 80px 20px",
+  gap: "20px",
   minHeight: 200,
 });
 
 export const emptyStateTextStyle = {
   fontSize: "13px",
   color: "#475467",
+  margin: 0,
 };
 
 export const tableFooterRowStyle = (theme: Theme) => ({

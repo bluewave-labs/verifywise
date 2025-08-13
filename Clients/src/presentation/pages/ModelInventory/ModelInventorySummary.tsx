@@ -47,7 +47,6 @@ const ModelInventorySummary: React.FC<ModelInventorySummaryProps> = ({
   return (
     <Stack
       direction="row"
-      gap={2}
       sx={summaryContainerStyle}
     >
       {summaryCards.map((card) => (

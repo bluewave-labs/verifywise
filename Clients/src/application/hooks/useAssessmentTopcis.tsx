@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { Topic } from "../../domain/types/Topic";
 import { getAllAssessmentTopics } from "../repository/assesment.repository";
 

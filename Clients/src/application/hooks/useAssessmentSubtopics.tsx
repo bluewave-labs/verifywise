@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { Subtopic } from "../../domain/types/Subtopic";
 import { getAssessmentTopicById } from "../repository/assesment.repository";
 

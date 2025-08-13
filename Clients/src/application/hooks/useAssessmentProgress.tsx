@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { AssessmentProgress } from "../../domain/interfaces/iAssessment";
 import { getAssessmentProgress } from "../repository/assesment.repository";
 

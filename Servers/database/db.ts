@@ -48,6 +48,7 @@ import { AITrustCenterIntroModel } from "../domain.layer/models/aiTrustCentre/ai
 import { AITrustCenterResourcesModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreResources.model";
 import { AITrustCenterSubprocessorsModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreSubprocessors.model";
 import { AITrustCenterTermsAndContactModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreTermsAndContract.model";
+import { TiersModel } from "../domain.layer/models/tiers/tiers.model";
 
 dotenv.config();
 
@@ -105,6 +106,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AITrustCenterResourcesModel,
     AITrustCenterSubprocessorsModel,
     AITrustCenterTermsAndContactModel,
+    TiersModel,
   ],
 }) as Sequelize;
 

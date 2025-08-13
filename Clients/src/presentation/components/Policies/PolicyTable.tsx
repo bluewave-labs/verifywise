@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useContext } from "react";
-import { Policy } from "../pages/PolicyDashboard/PoliciesDashboard";
-import CustomizablePolicyTable from "./Table/PolicyTable";
+import { Policy } from "../../pages/PolicyDashboard/PoliciesDashboard";
+import CustomizablePolicyTable from "../Table/PolicyTable";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { TableRow, TableCell, Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography } from "@mui/material";
-import { ReactComponent as Settings } from "../assets/icons/setting.svg"; // You can keep this for settings
-import { VerifyWiseContext } from "../../application/contexts/VerifyWise.context";
-import CustomizableButton from "../vw-v2-components/Buttons";
+import { ReactComponent as Settings } from "../../assets/icons/setting.svg" 
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import CustomizableButton from "../../vw-v2-components/Buttons";
 
 interface Props {
   data: Policy[];
@@ -56,7 +56,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
     setSelectedPolicy(policy);
   };
 
-    const { dashboardValues, users, userRoleName } =
+    const { users } =
     useContext(VerifyWiseContext);
 
   const handleMenuClose = () => {
@@ -114,7 +114,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
               cursor: "pointer",
               height: 36,
               "&:hover": {
-                backgroundColor: "#F8f8f8", // Hover effect added here
+                backgroundColor: "#F8f8f8",
               },
             }}
             onClick={(event) => onOpen(policy.id)}

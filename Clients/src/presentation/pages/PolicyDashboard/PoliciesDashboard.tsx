@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import PolicyTable from "../../components/PolicyTable";
-import PolicyDetailModal from "../../components/PolicyDetailsModal";
+import PolicyTable from "../../components/Policies/PolicyTable";
+import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { Stack, Typography } from "@mui/material";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";

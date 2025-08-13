@@ -1,9 +1,9 @@
 import { Stack, Grid, Typography } from "@mui/material";
-import Field from "./Inputs/Field";
-import Select from "./Inputs/Select";
-import DatePicker from "./Inputs/Datepicker";
+import Field from "../Inputs/Field";
+import Select from "../Inputs/Select";
+import DatePicker from "../Inputs/Datepicker";
 import dayjs from "dayjs";
-import ReviewerMultiSelect from "../vw-v2-components/Selects/ReviewerSelect";
+import ReviewerMultiSelect from "../../vw-v2-components/Selects/ReviewerSelect";
 
 export interface FormData {
   title: string;

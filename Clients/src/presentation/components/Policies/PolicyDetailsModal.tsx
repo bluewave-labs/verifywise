@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
-import { Policy } from "../pages/PolicyDashboard/PoliciesDashboard";
+import { Policy } from "../../pages/PolicyDashboard/PoliciesDashboard";
 import SaveIcon from "@mui/icons-material/Save";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 
@@ -23,14 +23,14 @@ import {
   LooksTwo,
   Looks3,
 } from "@mui/icons-material";
-import { IconButton, Tooltip, Box, Grid } from "@mui/material";
-import { Drawer, Stack, Typography, Divider, useTheme } from "@mui/material";
+import { IconButton, Tooltip, Grid } from "@mui/material";
+import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import CustomizableButton from "../vw-v2-components/Buttons";
+import CustomizableButton from "../../vw-v2-components/Buttons";
 import {
   createPolicy,
   updatePolicy,
-} from "../../application/repository/policy.repository";
+} from "../../../application/repository/policy.repository";
 
 interface Props {
   policy: Policy | null;

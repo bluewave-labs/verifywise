@@ -23,6 +23,13 @@ import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
 import {
+  mainStackStyle,
+  filterButtonRowStyle,
+  toastFadeStyle,
+  statusFilterSelectStyle,
+  addNewModelButtonStyle,
+} from "./style";
+import {
   ModelInventoryStatus,
   ModelInventorySummary as Summary,
 } from "../../../domain/interfaces/i.modelInventory";
@@ -263,7 +270,7 @@ const ModelInventory: React.FC = () => {
   ];
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" sx={mainStackStyle}>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -272,17 +279,7 @@ const ModelInventory: React.FC = () => {
       />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Fade
-            in={showAlert}
-            timeout={300}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-            }}
-          >
+          <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
             <Box mb={2}>
               <Alert
                 variant={alert.variant}
@@ -299,7 +296,7 @@ const ModelInventory: React.FC = () => {
         </Suspense>
       )}
 
-      <Stack gap={4}>
+      <Stack sx={mainStackStyle}>
         <Stack>
           <Typography sx={vwhomeHeading}>Model Inventory</Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
@@ -316,24 +313,18 @@ const ModelInventory: React.FC = () => {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
+          sx={filterButtonRowStyle}
         >
           <SelectComponent
             id="status-filter"
             value={statusFilter}
             items={statusFilterOptions}
             onChange={handleStatusFilterChange}
-            sx={{
-              width: "200px",
-              minHeight: "34px",
-            }}
+            sx={statusFilterSelectStyle}
           />
           <CustomizableButton
             variant="contained"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
+            sx={addNewModelButtonStyle}
             text="Add new model"
             icon={<AddCircleOutlineIcon />}
             onClick={handleNewModelInventoryClick}

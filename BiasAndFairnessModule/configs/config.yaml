@@ -13,6 +13,20 @@ dataset:
     n_samples: 20 # Number of samples to use for quick experiments
     random_seed: 42
 
+# Post-processing Configuration
+post_processing:
+  binary_mapping:
+    favorable_outcome: ">50K"
+    unfavorable_outcome: "<=50K"
+
+  attribute_groups:
+    sex:
+      privileged: ["Male"]
+      unprivileged: ["Female"]
+    race:
+      privileged: ["White"]
+      unprivileged: ["Black", "Other"]
+
 # Model Configuration
 model:
   # Hugging Face model configuration
@@ -27,17 +41,21 @@ model:
 
 # Metrics Configuration
 metrics:
-  # Disparity metrics for fairness evaluation
-  disparity:
+  # Fairness metrics for evaluation
+  fairness:
     enabled: true
     metrics:
-      - name: "demographic_parity"
-      - name: "equal_opportunity"
-      - name: "disparate_impact"
+      - "demographic_parity"
+      - "equalized_odds"
+      - "predictive_parity"
 
   # Performance metrics
   performance:
-    enabled: true
+    enabled: false
     metrics:
-      - name: "accuracy"
-      - name: "precision"
+      - "accuracy"
+      - "precision"
+
+artifacts:
+  inference_results_path: "artifacts/inference_results.csv"
+  postprocessed_results_path: "artifacts/postprocessed_results.csv"

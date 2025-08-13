@@ -51,7 +51,10 @@ const QuestionFrame = ({
   currentProjectId,
 }: QuestionProps) => {
   const { userId, userRoleName } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<Question>(question);
+  const [values, setValues] = useState<Question>({
+    ...question,
+    risks: question.risks || []
+  });
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
   const authToken = useSelector((state: any) => state.auth.authToken);
@@ -62,7 +65,7 @@ const QuestionFrame = ({
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
 
   const isEditingDisabled = !(allowedRoles?.frameworks?.edit || []).includes(
-    userRoleName
+    userRoleName || ''
   );
 
   const STATUS_OPTIONS = [
@@ -74,14 +77,14 @@ const QuestionFrame = ({
   const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {
     setValues((prevValues) => ({
       ...prevValues,
-      evidence_files: files,
+      evidence_files: files || [],
     }));
   }, []);
 
   const handleStatusChange = (field: string, statusValue: string | number) => {
     if (field === "status" && statusValue === "Done"
-        && (selectedRisks.length > 0 || values.risks.length > 0 || (
-          values.risks.length > 0 && deletedRisks.length === values.risks.length
+        && (selectedRisks.length > 0 || (values.risks?.length || 0) > 0 || (
+          (values.risks?.length || 0) > 0 && deletedRisks.length === (values.risks?.length || 0)
         ))
       ) {
       setAuditedStatusModalOpen(true)
@@ -93,7 +96,10 @@ const QuestionFrame = ({
   };
 
   useEffect(() => {
-    setValues(question);
+    setValues({
+      ...question,
+      risks: question.risks || []
+    });
   }, [question, currentProjectId]);
 
   const createUppyProps = useMemo(
@@ -101,9 +107,9 @@ const QuestionFrame = ({
       onChangeFiles: handleChangeEvidenceFiles,
       allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
       meta: {
-        question_id: question.question_id,
-        user_id: userId,
-        project_id: currentProjectId.toString(),
+        question_id: question.question_id || '',
+        user_id: userId || '',
+        project_id: currentProjectId?.toString() || '',
         delete: "[]",
       },
       routeUrl: "api/files",
@@ -123,11 +129,14 @@ const QuestionFrame = ({
   const handleSave = async () => {
     try {
       const response = await updateEntityById({
-        routeUrl: `/eu-ai-act/saveAnswer/${question.answer_id}`,
+        routeUrl: `/eu-ai-act/saveAnswer/${question.answer_id || ''}`,
         body: {...values, risksDelete: deletedRisks, risksMitigated: selectedRisks},
       });
       if (response.status === 202) {
-        setValues(response.data.data);
+        setValues({
+          ...response.data.data,
+          risks: response.data.data.risks || []
+        });
         setSelectedRisks([]);
         setDeletedRisks([]);
         setRefreshKey();
@@ -155,8 +164,8 @@ const QuestionFrame = ({
 
   const handleContentChange = (answer: string) => {
     // Remove <p> tags from the beginning and end of the answer
-    const cleanedAnswer = answer.replace(/^<p>|<\/p>$/g, "");
-    setValues({ ...values, answer: cleanedAnswer });
+    const cleanedAnswer = answer?.replace(/^<p>|<\/p>$/g, "") || "";
+    setValues({ ...values, answer: cleanedAnswer || '' });
   };
 
   const handleRemoveFile = async (fileId: string) => {
@@ -175,7 +184,7 @@ const QuestionFrame = ({
     }
     formData.append("delete", JSON.stringify([fileIdNumber]));
     formData.append("question_id", question.question_id?.toString() || "");
-    formData.append("user_id", String(userId));
+    formData.append("user_id", String(userId || ''));
     if (currentProjectId) {
       formData.append("project_id", currentProjectId.toString());
     }
@@ -189,7 +198,7 @@ const QuestionFrame = ({
 
       if (response.status === 201 && response.data) {
         const newEvidenceFiles =
-          values?.evidence_files?.filter((file) => file.id !== fileId) || [];
+          (values?.evidence_files || []).filter((file) => file?.id !== fileId);
         setValues((prevValues) => ({
           ...prevValues,
           evidence_files: newEvidenceFiles,
@@ -218,7 +227,7 @@ const QuestionFrame = ({
   };
 
   return (
-    <Box key={question.question_id} mt={10}>
+            <Box key={question.question_id || 'default'} mt={10}>
       <Box
         sx={{
           display: "flex",
@@ -233,10 +242,10 @@ const QuestionFrame = ({
         }}
       >
         <Typography sx={{ fontSize: 13, color: "#344054" }}>
-          {question.question}
+          {question.question || ''}
           {question.hint && (
             <Box component="span" ml={2}>
-              <Tooltip title={question.hint} sx={{ fontSize: 13 }}>
+              <Tooltip title={question.hint || ''} sx={{ fontSize: 13 }}>
                 <InfoOutlinedIcon fontSize="inherit" />
               </Tooltip>
             </Box>
@@ -248,7 +257,7 @@ const QuestionFrame = ({
             isHidden={false}
             id=""
             onChange={(e) => handleStatusChange("status", e.target.value)}
-            value={values.status}
+            value={values.status || 'notStarted'}
             getOptionValue={(item) => item.name}
             sx={{
               width: 175,
@@ -257,10 +266,10 @@ const QuestionFrame = ({
             disabled={isEditingDisabled}
           />
           <Chip
-            label={question.priority_level}
+            label={question.priority_level || 'low priority'}
             sx={{
               backgroundColor:
-                priorities[question.priority_level as PriorityLevel].color,
+                priorities[(question.priority_level || 'low priority') as PriorityLevel]?.color || '#666',
               color: "#FFFFFF",
               borderRadius: "4px",
             }}
@@ -269,7 +278,7 @@ const QuestionFrame = ({
         </Stack>
       </Box>
       <RichTextEditor
-        key={question.question_id}
+                  key={question.question_id || 'default'}
         onContentChange={handleContentChange}
         headerSx={{
           borderRadius: 0,
@@ -283,7 +292,7 @@ const QuestionFrame = ({
             margin: 0,
           },
         }}
-        initialContent={question.answer}
+        initialContent={question.answer || ''}
         isEditable={!isEditingDisabled}
       />
       <Stack
@@ -371,7 +380,7 @@ const QuestionFrame = ({
                   textWrap: "wrap",
                 }}
               >
-                {`${values.risks.length || 0} risks linked`}
+                {`${values.risks?.length || 0} risks linked`}
               </Typography>
               {selectedRisks.length > 0 && (
                 <Typography
@@ -413,7 +422,7 @@ const QuestionFrame = ({
           </Stack>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
-          {question.is_required === true ? "required" : ""}
+          {(question.is_required === true) ? "required" : ""}
         </Typography>
       </Stack>
       <Dialog
@@ -440,7 +449,7 @@ const QuestionFrame = ({
         <Suspense fallback={"loading..."}>
           <LinkedRisksPopup
             onClose={() => setIsLinkedRisksModalOpen(false)}
-            currentRisks={values.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+            currentRisks={(values.risks || []).concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
           />
@@ -459,7 +468,7 @@ const QuestionFrame = ({
         <Suspense fallback={"loading..."}>
           <AuditRiskPopup
             onClose={() => setAuditedStatusModalOpen(false)}
-            risks={values.risks.concat(selectedRisks)}
+            risks={(values.risks || []).concat(selectedRisks)}
             _deletedRisks={deletedRisks}
             _setDeletedRisks={setDeletedRisks}
             _selectedRisks={selectedRisks}

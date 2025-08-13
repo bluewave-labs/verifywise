@@ -56,6 +56,7 @@ import { ISO27001SubClauseRisksModel } from "../domain.layer/frameworks/ISO-2700
 import { ISO27001SubClauseStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001SubClauseStruct.model";
 import { ISO27001AnnexControlRisksModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexControlRisks.model";
 import { ISO27001AnnexControlStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexControlStruct.model";
+import { TiersModel } from "../domain.layer/models/tiers/tiers.model";
 
 dotenv.config();
 
@@ -120,7 +121,8 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     ISO27001SubClauseRisksModel,
     ISO27001SubClauseStructModel,
     ISO27001AnnexControlRisksModel,
-    ISO27001AnnexControlStructModel
+    ISO27001AnnexControlStructModel,
+    TiersModel,
   ],
 }) as Sequelize;
 

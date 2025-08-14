@@ -1,6 +1,15 @@
-import React, { useState, useEffect, useContext, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  Suspense,
+  useMemo,
+} from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { useSearchParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
 
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -23,6 +32,13 @@ import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
 import {
+  mainStackStyle,
+  filterButtonRowStyle,
+  toastFadeStyle,
+  statusFilterSelectStyle,
+  addNewModelButtonStyle,
+} from "./style";
+import {
   ModelInventoryStatus,
   ModelInventorySummary as Summary,
 } from "../../../domain/interfaces/i.modelInventory";
@@ -43,7 +59,11 @@ const ModelInventory: React.FC = () => {
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dispatch = useDispatch();
+  const statusFilter = useSelector(
+    (state: any) => state.ui?.modelInventory?.statusFilter || "all"
+  );
 
   // Context for user roles/permissions
   const { userRoleName } = useContext(VerifyWiseContext);
@@ -78,10 +98,13 @@ const ModelInventory: React.FC = () => {
   };
 
   // Filter data based on status
-  const filteredData =
-    statusFilter === "all"
-      ? modelInventoryData
-      : modelInventoryData.filter((item) => item.status === statusFilter);
+  const filteredData = useMemo(() => {
+    if (statusFilter === "all") {
+      return modelInventoryData;
+    }
+
+    return modelInventoryData.filter((item) => item.status === statusFilter);
+  }, [modelInventoryData, statusFilter]);
 
   // Function to fetch model inventory data
   const fetchModelInventoryData = async (showLoading = true) => {
@@ -118,6 +141,22 @@ const ModelInventory: React.FC = () => {
   useEffect(() => {
     fetchModelInventoryData();
   }, []);
+
+  // Initialize and sync status filter with URL parameters
+  useEffect(() => {
+    const urlStatusFilter = searchParams.get("statusFilter");
+
+    if (urlStatusFilter) {
+      dispatch(setModelInventoryStatusFilter(urlStatusFilter));
+    } else {
+      dispatch(setModelInventoryStatusFilter("all"));
+    }
+  }, [searchParams, dispatch]);
+
+  // Force table re-render when status filter changes
+  useEffect(() => {
+    setTableKey((prev) => prev + 1);
+  }, [statusFilter]);
 
   useEffect(() => {
     if (alert) {
@@ -251,7 +290,16 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleStatusFilterChange = (event: any) => {
-    setStatusFilter(event.target.value);
+    const newStatusFilter = event.target.value;
+    dispatch(setModelInventoryStatusFilter(newStatusFilter));
+
+    // Update URL search params to persist the filter
+    if (newStatusFilter === "all") {
+      searchParams.delete("statusFilter");
+    } else {
+      searchParams.set("statusFilter", newStatusFilter);
+    }
+    setSearchParams(searchParams);
   };
 
   const statusFilterOptions = [
@@ -263,7 +311,7 @@ const ModelInventory: React.FC = () => {
   ];
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" sx={mainStackStyle}>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -272,17 +320,7 @@ const ModelInventory: React.FC = () => {
       />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Fade
-            in={showAlert}
-            timeout={300}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-            }}
-          >
+          <Fade in={showAlert} timeout={300} style={toastFadeStyle}>
             <Box mb={2}>
               <Alert
                 variant={alert.variant}
@@ -299,7 +337,7 @@ const ModelInventory: React.FC = () => {
         </Suspense>
       )}
 
-      <Stack gap={4}>
+      <Stack sx={mainStackStyle}>
         <Stack>
           <Typography sx={vwhomeHeading}>Model Inventory</Typography>
           <Typography sx={singleTheme.textStyles.pageDescription}>
@@ -316,24 +354,18 @@ const ModelInventory: React.FC = () => {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
+          sx={filterButtonRowStyle}
         >
           <SelectComponent
             id="status-filter"
             value={statusFilter}
             items={statusFilterOptions}
             onChange={handleStatusFilterChange}
-            sx={{
-              width: "200px",
-              minHeight: "34px",
-            }}
+            sx={statusFilterSelectStyle}
           />
           <CustomizableButton
             variant="contained"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
+            sx={addNewModelButtonStyle}
             text="Add new model"
             icon={<AddCircleOutlineIcon />}
             onClick={handleNewModelInventoryClick}

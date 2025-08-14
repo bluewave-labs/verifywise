@@ -1,30 +1,21 @@
-import { useEffect, useState } from "react";
-import { useCallback } from "react";
-import { getAllEntities } from "../repository/entity.repository";
-import { Project } from "../../domain/types/Project";
+import { useGetAllEntities } from './useBaseQueries';
+import { Project } from '../../domain/types/Project';
 
 export const useProjects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useGetAllEntities('/projects');
 
-  const fetchProjects = useCallback(async () => {
-    try {
-      const response = await getAllEntities({ routeUrl: "/projects" });
-      setProjects(response.data);
-    } catch (error) {
-      // Handle error
-      console.error("Error fetching projects:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Handle different possible response structures
+  const projects = data?.data || data || [];
 
-  // Fetch projects when the component mounts
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
-
-
-
-  return { projects, loading, fetchProjects };
+  return { 
+    projects: Array.isArray(projects) ? projects as Project[] : [], 
+    loading: isLoading, 
+    error, 
+    fetchProjects: refetch 
+  };
 };

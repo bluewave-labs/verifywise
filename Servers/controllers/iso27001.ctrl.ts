@@ -35,7 +35,7 @@ import {
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { IISO27001SubClause } from "../domain.layer/interfaces/i.ISO27001SubClause";
-import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.ISO27001AnnexControl";
+import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001AnnexControl";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -844,10 +844,7 @@ export async function getProjectAnnxesProgress(
 
   try {
     const { totalAnnexControls, doneAnnexControls } =
-      await countAnnexControlsISOByProjectId(
-        projectFrameworkId,
-        req.tenantId!
-      );
+      await countAnnexControlsISOByProjectId(projectFrameworkId, req.tenantId!);
 
     await logSuccess({
       eventType: "Read",

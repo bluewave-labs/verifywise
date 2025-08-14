@@ -6,14 +6,6 @@ import {
   NotFoundException,
 } from "../../exceptions/custom.exception";
 
-export interface Framework {
-  id?: number;
-  name: string;
-  description: string;
-  is_organizational: boolean;
-  created_at: Date;
-}
-
 @Table({
   tableName: "frameworks",
   timestamps: false,

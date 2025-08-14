@@ -86,34 +86,64 @@ class ModelConfig(BaseModel):
     )
 
 
-class DisparityMetric(BaseModel):
-    """Configuration for a single disparity metric."""
+class MetricConfig(BaseModel):
+    """Base configuration for metrics with thresholds."""
 
-    name: str = Field(..., description="Name of the metric")
-    threshold: Optional[float] = Field(
-        None, description="Threshold for acceptable disparity"
-    )
-
-
-class PerformanceMetric(BaseModel):
-    """Configuration for a single performance metric."""
-
-    name: str = Field(..., description="Name of the metric")
-    threshold: Optional[float] = Field(
-        None, description="Threshold for acceptable performance"
+    metrics: List[str] = Field(default_factory=list, description="List of metric names")
+    enabled: bool = Field(default=True, description="Whether metrics are enabled")
+    thresholds: Optional[Dict[str, float]] = Field(
+        default_factory=dict, description="Optional thresholds for each metric"
     )
 
 
 class MetricsConfig(BaseModel):
     """Configuration for metrics."""
 
-    disparity: Dict[str, Any] = Field(
-        default_factory=lambda: {"enabled": True, "metrics": []},
-        description="Disparity metrics configuration",
+    fairness: MetricConfig = Field(
+        default_factory=MetricConfig,
+        description="Fairness metrics configuration",
     )
-    performance: Dict[str, Any] = Field(
-        default_factory=lambda: {"enabled": True, "metrics": []},
+    performance: MetricConfig = Field(
+        default_factory=MetricConfig,
         description="Performance metrics configuration",
+    )
+
+
+class BinaryMappingConfig(BaseModel):
+    """Configuration for binary outcome mapping."""
+
+    favorable_outcome: str = Field(..., description="The favorable outcome value")
+    unfavorable_outcome: str = Field(..., description="The unfavorable outcome value")
+
+
+class AttributeGroupConfig(BaseModel):
+    """Configuration for protected attribute groups."""
+
+    privileged: List[str] = Field(..., description="List of privileged group values")
+    unprivileged: List[str] = Field(
+        ..., description="List of unprivileged group values"
+    )
+
+
+class PostProcessingConfig(BaseModel):
+    """Configuration for post-processing settings."""
+
+    binary_mapping: BinaryMappingConfig = Field(
+        ..., description="Binary outcome mapping configuration"
+    )
+    attribute_groups: Dict[str, AttributeGroupConfig] = Field(
+        ..., description="Protected attribute groups configuration"
+    )
+
+
+class ArtifactsConfig(BaseModel):
+    """Configuration for on-disk artifact paths."""
+
+    inference_results_path: Path = Field(
+        ..., description="Path to save raw inference results"
+    )
+    postprocessed_results_path: Path = Field(
+        ..., description="Path to save post-processed results"
     )
 
 
@@ -123,6 +153,8 @@ class Config(BaseModel):
     dataset: DatasetConfig
     model: ModelConfig
     metrics: MetricsConfig
+    post_processing: PostProcessingConfig
+    artifacts: ArtifactsConfig
 
 
 class ConfigManager:
@@ -179,6 +211,22 @@ class ConfigManager:
             MetricsConfig: The complete metrics configuration.
         """
         return self.config.metrics
+
+    def get_post_processing_config(self) -> PostProcessingConfig:
+        """Get the complete post-processing configuration.
+
+        Returns:
+            PostProcessingConfig: The complete post-processing configuration.
+        """
+        return self.config.post_processing
+
+    def get_artifacts_config(self) -> ArtifactsConfig:
+        """Get the artifacts configuration.
+
+        Returns:
+            ArtifactsConfig: The artifacts configuration containing output paths.
+        """
+        return self.config.artifacts
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

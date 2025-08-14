@@ -40,6 +40,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
         is_demo boolean NOT NULL DEFAULT false,
+        is_organizational boolean NOT NULL DEFAULT false,
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)
@@ -563,6 +564,65 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `INSERT INTO "${tenantHash}".ai_trust_center_compliance_badges DEFAULT VALUES;`,
       `INSERT INTO "${tenantHash}".ai_trust_center_terms_and_contact (terms_text, privacy_text, email_text) VALUES ('', '', '');`
     ].map(query => sequelize.query(query, { transaction })));
+
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".subclauses_iso27001(
+        id SERIAL PRIMARY KEY,
+        implementation_description TEXT,
+        evidence_links JSONB,
+        status enum_subclauses_iso_status DEFAULT 'Not started',
+        owner INT,
+        reviewer INT,
+        approver INT,
+        due_date DATE,
+        auditor_feedback TEXT,
+        subclause_meta_id INT,
+        projects_frameworks_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_demo BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (subclause_meta_id) REFERENCES public.subclauses_struct_iso27001(id) ON DELETE CASCADE,
+        FOREIGN KEY (projects_frameworks_id) REFERENCES "${tenantHash}".projects_frameworks(id) ON DELETE CASCADE,
+        FOREIGN KEY (owner) REFERENCES public.users(id) ON DELETE SET NULL,
+        FOREIGN KEY (reviewer) REFERENCES public.users(id) ON DELETE SET NULL,
+        FOREIGN KEY (approver) REFERENCES public.users(id) ON DELETE SET NULL
+      );`, { transaction });
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".subclauses_iso27001__risks(
+        subclause_id INT,
+        projects_risks_id INT PRIMARY KEY,
+        FOREIGN KEY (subclause_id) REFERENCES "${tenantHash}".subclauses_iso27001(id) ON DELETE CASCADE,
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
+      );`, { transaction });
+
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".annexcontrols_iso27001(
+        id SERIAL PRIMARY KEY,
+        implementation_description TEXT,
+        evidence_links JSONB,
+        status enum_annexcategories_iso_status DEFAULT 'Not started',
+        owner INT,
+        reviewer INT,
+        approver INT,
+        due_date DATE,
+        auditor_feedback TEXT,
+        projects_frameworks_id INT,
+        annexcontrol_meta_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_demo BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (annexcontrol_meta_id) REFERENCES public.annexcontrols_struct_iso27001(id) ON DELETE CASCADE,
+        FOREIGN KEY (projects_frameworks_id) REFERENCES "${tenantHash}".projects_frameworks(id) ON DELETE CASCADE,
+        FOREIGN KEY (owner) REFERENCES public.users(id) ON DELETE SET NULL,
+        FOREIGN KEY (reviewer) REFERENCES public.users(id) ON DELETE SET NULL,
+        FOREIGN KEY (approver) REFERENCES public.users(id) ON DELETE SET NULL
+      );`, { transaction });
+
+    await sequelize.query(
+      `CREATE TABLE "${tenantHash}".annexcontrols_iso27001__risks(
+        annexcontrol_id INT,
+        projects_risks_id INT PRIMARY KEY,
+        FOREIGN KEY (annexcontrol_id) REFERENCES "${tenantHash}".annexcontrols_iso27001(id) ON DELETE CASCADE,
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
+      );`, { transaction });
   }
   catch (error) {
     throw error;

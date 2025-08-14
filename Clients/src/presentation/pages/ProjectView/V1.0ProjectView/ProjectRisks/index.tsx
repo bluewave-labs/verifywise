@@ -7,7 +7,6 @@ import RisksCard from "../../../../components/Cards/RisksCard";
 import { rowStyle } from "./style";
 import CustomizableButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import { getEntityById } from "../../../../../application/repository/entity.repository";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
 import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../../../components/AddNewRiskForm";
@@ -20,6 +19,7 @@ import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
+import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -90,8 +90,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   const fetchProjectRisks = useCallback(async () => {
     try {
-      const response = await getEntityById({
-        routeUrl: `/projectRisks/by-projid/${projectId}`,
+    const response = await getAllProjectRisksByProjectId({
+        projectId: String(projectId),
       });
       setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);

@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from ..eval_engine.fairness_compass_engine import FairnessCompassEngine
+from src.eval_engine.fairness_compass_engine import FairnessCompassEngine
 
 
 class TestFairnessCompassEngine(unittest.TestCase):

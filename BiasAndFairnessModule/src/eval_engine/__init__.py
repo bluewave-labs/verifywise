@@ -6,7 +6,6 @@ from .evaluator import FairnessEvaluator
 from .evaluation_module import FairnessEvaluator as LegacyFairnessEvaluator
 from .fairness_compass_engine import FairnessCompassEngine
 from .compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
-from .metrics import *
 from .metric_registry import register_metric, get_metric, list_metrics, remove_metric
 from .postprocessing import PostProcessor
 from .results_summarizer import summarize_results

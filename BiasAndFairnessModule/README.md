@@ -48,9 +48,24 @@ This project aims to explore and validate methodologies for evaluating **bias** 
 
 ## Tech Stack
 
-- **Language**: Python
+- **Language**: Python 3.8+
 - **Frameworks/Libraries**: PyTorch, Hugging Face Transformers, Fairlearn, scikit-learn, pandas, matplotlib/seaborn
 - **Hardware**: Designed to run on GPU
+- **Dependencies**: See `requirements.txt` for details
+
+### Dependency Management
+
+The project uses multiple requirements files for different use cases:
+
+- **`requirements.txt`**: Flexible versions for development (recommended)
+- **`requirements-exact.txt`**: Exact versions for reproducible builds
+- **`requirements-dev.txt`**: Development tools and testing frameworks
+
+### Version Compatibility
+
+- **NumPy**: >=1.26.4, <2.0.0 (critical for langfair compatibility)
+- **Python**: 3.8+ (tested with 3.12)
+- **PyTorch**: >=2.7.0 (with optional CUDA support)
 
 ## Development Philosophy
 
@@ -59,7 +74,139 @@ This project aims to explore and validate methodologies for evaluating **bias** 
 - **Fail-safe**: Better to try and break it here than in production
 - **Collaborative**: Encourage collaboration through clear, modular design and code comments
 
-## Usage
+## Troubleshooting
+
+### Common Issues
+
+#### NumPy Version Conflicts
+
+If you encounter NumPy version conflicts:
+
+```bash
+# Check current version
+make status
+
+# Reinstall with correct version
+make install-exact
+```
+
+#### Virtual Environment Issues
+
+Ensure you're using the virtual environment:
+
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Verify activation
+which python  # Should point to venv/bin/python
+```
+
+#### Import Errors
+
+If you get import errors:
+
+```bash
+# Check environment
+make check-env
+
+# Reinstall dependencies
+make install
+```
+
+### Getting Help
+
+1. **Check environment**: `make check-env`
+2. **View status**: `make status`
+3. **Run tests**: `make test`
+4. **Check documentation**: See `INSTALLATION.md` for detailed setup
+
+## Quick Start
+
+### 1. Environment Setup
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd BiasAndFairnessModule
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+make install
+```
+
+### 2. Verify Installation
+
+```bash
+# Check environment status
+make status
+
+# Run comprehensive environment check
+make check-env
+
+# Run tests (choose one method)
+make test                    # Using Makefile (recommended)
+# OR
+source venv/bin/activate    # Activate venv first
+python run_tests.py         # Then run directly
+```
+
+### 3. Run Evaluation
+
+```bash
+# Run the complete evaluation pipeline
+python src/inference/evaluation_runner.py
+
+# Or use the CLI
+python -m src.cli predict --config configs/config.yaml
+```
+
+### 4. Running Python Scripts Directly
+
+**Important**: When running Python scripts directly (not through `make`), you need to activate the virtual environment first:
+
+```bash
+# Method 1: Activate venv, then run
+source venv/bin/activate
+python run_tests.py
+python src/inference/evaluation_runner.py
+
+# Method 2: Use venv Python directly
+./venv/bin/python run_tests.py
+./venv/bin/python src/inference/evaluation_runner.py
+
+# Method 3: Use Makefile (automatically handles venv)
+make test
+```
+
+## Development Workflow
+
+### Available Make Commands
+
+```bash
+# Environment Management
+make venv              # Create virtual environment
+make install           # Install dependencies
+make install-dev       # Install development dependencies
+make install-exact     # Install exact versions for reproducibility
+
+# Testing
+make test              # Run all tests
+make test-coverage     # Run tests with coverage
+make check-env         # Comprehensive environment check
+
+# Code Quality
+make format            # Format code with black/isort
+make lint              # Run linters (flake8, mypy, pylint)
+make check             # Format + lint + test
+
+# Utilities
+make status            # Show environment status
+make clean             # Clean cache files
+```
 
 ### Command Line Interface
 

@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { IISO27001AnnexControl } from "../../interfaces/i.ISO27001AnnexControl";
+import { IISO27001AnnexControl } from "../../interfaces/i.iso27001AnnexControl";
 import { UserModel } from "../../models/user/user.model";
 import { ProjectFrameworksModel } from "../../models/projectFrameworks/projectFrameworks.model";
 import { ISO27001AnnexControlStructModel } from "./ISO27001AnnexControlStruct.model";
@@ -16,8 +16,8 @@ import { ISO27001AnnexControlStructModel } from "./ISO27001AnnexControlStruct.mo
 })
 export class ISO27001AnnexControlModel
   extends Model<ISO27001AnnexControlModel>
-  implements IISO27001AnnexControl {
-
+  implements IISO27001AnnexControl
+{
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -126,5 +126,4 @@ export class ISO27001AnnexControlModel
       is_demo: this.is_demo,
     };
   }
-
 }

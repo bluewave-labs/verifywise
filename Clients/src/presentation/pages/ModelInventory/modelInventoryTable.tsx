@@ -259,6 +259,9 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                     zIndex: 10,
                     minWidth: "50px",
                   }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                 >
                   {isDeletingAllowed && (
                     <CustomIconButton
@@ -272,7 +275,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                       onMouseEvent={() => {}}
                       warningTitle="Delete this model?"
                       warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
-                      type="ModelInventory"
+                      type=""
                     />
                   )}
                 </TableCell>

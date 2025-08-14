@@ -1,6 +1,15 @@
-import React, { useState, useEffect, useContext, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  Suspense,
+  useMemo,
+} from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { useSearchParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
 
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { logEngine } from "../../../application/tools/log.engine";
@@ -50,7 +59,11 @@ const ModelInventory: React.FC = () => {
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dispatch = useDispatch();
+  const statusFilter = useSelector(
+    (state: any) => state.ui?.modelInventory?.statusFilter || "all"
+  );
 
   // Context for user roles/permissions
   const { userRoleName } = useContext(VerifyWiseContext);
@@ -85,10 +98,13 @@ const ModelInventory: React.FC = () => {
   };
 
   // Filter data based on status
-  const filteredData =
-    statusFilter === "all"
-      ? modelInventoryData
-      : modelInventoryData.filter((item) => item.status === statusFilter);
+  const filteredData = useMemo(() => {
+    if (statusFilter === "all") {
+      return modelInventoryData;
+    }
+
+    return modelInventoryData.filter((item) => item.status === statusFilter);
+  }, [modelInventoryData, statusFilter]);
 
   // Function to fetch model inventory data
   const fetchModelInventoryData = async (showLoading = true) => {
@@ -125,6 +141,22 @@ const ModelInventory: React.FC = () => {
   useEffect(() => {
     fetchModelInventoryData();
   }, []);
+
+  // Initialize and sync status filter with URL parameters
+  useEffect(() => {
+    const urlStatusFilter = searchParams.get("statusFilter");
+
+    if (urlStatusFilter) {
+      dispatch(setModelInventoryStatusFilter(urlStatusFilter));
+    } else {
+      dispatch(setModelInventoryStatusFilter("all"));
+    }
+  }, [searchParams, dispatch]);
+
+  // Force table re-render when status filter changes
+  useEffect(() => {
+    setTableKey((prev) => prev + 1);
+  }, [statusFilter]);
 
   useEffect(() => {
     if (alert) {
@@ -258,7 +290,16 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleStatusFilterChange = (event: any) => {
-    setStatusFilter(event.target.value);
+    const newStatusFilter = event.target.value;
+    dispatch(setModelInventoryStatusFilter(newStatusFilter));
+
+    // Update URL search params to persist the filter
+    if (newStatusFilter === "all") {
+      searchParams.delete("statusFilter");
+    } else {
+      searchParams.set("statusFilter", newStatusFilter);
+    }
+    setSearchParams(searchParams);
   };
 
   const statusFilterOptions = [

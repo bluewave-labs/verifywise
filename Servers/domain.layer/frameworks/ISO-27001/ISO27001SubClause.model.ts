@@ -5,19 +5,19 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { IISO27001AnnexControl } from "../../interfaces/i.iso27001AnnexControl";
+import { IISO27001SubClause } from "../../interfaces/i.ISO27001SubClause";
 import { UserModel } from "../../models/user/user.model";
+import { ISO27001ClauseStructModel } from "./ISO27001ClauseStruct.model";
 import { ProjectFrameworksModel } from "../../models/projectFrameworks/projectFrameworks.model";
-import { ISO27001AnnexControlStructModel } from "./ISO27001AnnexControlStruct.model";
 
 @Table({
-  tableName: "annexcontrols_iso27001",
+  tableName: "subclauses_iso27001",
   timestamps: true,
 })
-export class ISO27001AnnexControlModel
-  extends Model<ISO27001AnnexControlModel>
-  implements IISO27001AnnexControl
-{
+export class ISO27001SubClauseModel
+  extends Model<ISO27001SubClauseModel>
+  implements IISO27001SubClause {
+
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -76,12 +76,12 @@ export class ISO27001AnnexControlModel
   })
   auditor_feedback!: string;
 
-  @ForeignKey(() => ISO27001AnnexControlStructModel)
+  @ForeignKey(() => ISO27001ClauseStructModel)
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
   })
-  annexcontrol_meta_id!: number;
+  subclause_meta_id!: number;
 
   @ForeignKey(() => ProjectFrameworksModel)
   @Column({
@@ -103,12 +103,15 @@ export class ISO27001AnnexControlModel
   is_demo!: boolean;
 
   /**
-   * Create ISO27001AnnexControlModel instance from JSON data
+   * Create ISO27001SubClauseModel instance from JSON data
    */
-  static fromJSON(json: any): ISO27001AnnexControlModel {
-    return new ISO27001AnnexControlModel(json);
+  static fromJSON(json: any): ISO27001SubClauseModel {
+    return new ISO27001SubClauseModel(json);
   }
 
+  /**
+   * Convert clause model to JSON representation
+   */
   toJSON(): any {
     return {
       id: this.id,
@@ -120,10 +123,11 @@ export class ISO27001AnnexControlModel
       approver: this.approver,
       due_date: this.due_date,
       auditor_feedback: this.auditor_feedback,
-      annexcontrol_meta_id: this.annexcontrol_meta_id,
+      subclause_meta_id: this.subclause_meta_id,
       projects_frameworks_id: this.projects_frameworks_id,
       created_at: this.created_at,
       is_demo: this.is_demo,
     };
   }
+
 }

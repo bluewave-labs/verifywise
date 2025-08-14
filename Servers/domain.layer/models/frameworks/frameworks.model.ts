@@ -6,13 +6,6 @@ import {
   NotFoundException,
 } from "../../exceptions/custom.exception";
 
-export interface Framework {
-  id?: number;
-  name: string;
-  description: string;
-  created_at: Date;
-}
-
 @Table({
   tableName: "frameworks",
   timestamps: false,
@@ -42,6 +35,11 @@ export class FrameworkModel
     type: DataType.DATE,
   })
   created_at!: Date;
+
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  is_organizational!: boolean;
 
   /**
    * Create a new framework with comprehensive validation

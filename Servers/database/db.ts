@@ -48,6 +48,14 @@ import { AITrustCenterIntroModel } from "../domain.layer/models/aiTrustCentre/ai
 import { AITrustCenterResourcesModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreResources.model";
 import { AITrustCenterSubprocessorsModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreSubprocessors.model";
 import { AITrustCenterTermsAndContactModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreTermsAndContract.model";
+import { ISO27001SubClauseModel } from "../domain.layer/frameworks/ISO-27001/ISO27001SubClause.model";
+import { ISO27001AnnexStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexStruct.model";
+import { ISO27001AnnexControlModel } from "../domain.layer/frameworks/ISO-27001/iso27001AnnexControl.model";
+import { ISO27001ClauseStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001ClauseStruct.model";
+import { ISO27001SubClauseRisksModel } from "../domain.layer/frameworks/ISO-27001/ISO27001SubClauseRisks.model";
+import { ISO27001SubClauseStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001SubClauseStruct.model";
+import { ISO27001AnnexControlRisksModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexControlRisks.model";
+import { ISO27001AnnexControlStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexControlStruct.model";
 import { TiersModel } from "../domain.layer/models/tiers/tiers.model";
 
 dotenv.config();
@@ -106,6 +114,14 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AITrustCenterResourcesModel,
     AITrustCenterSubprocessorsModel,
     AITrustCenterTermsAndContactModel,
+    ISO27001SubClauseModel,
+    ISO27001AnnexStructModel,
+    ISO27001AnnexControlModel,
+    ISO27001ClauseStructModel,
+    ISO27001SubClauseRisksModel,
+    ISO27001SubClauseStructModel,
+    ISO27001AnnexControlRisksModel,
+    ISO27001AnnexControlStructModel,
     TiersModel,
   ],
 }) as Sequelize;

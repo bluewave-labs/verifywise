@@ -1,7 +1,7 @@
 import unittest
 
-from tests.base_test_metrics import BaseMetricsTestCase
 from src.metrics import conditional_statistical_parity
+from tests.base_test_metrics import BaseMetricsTestCase
 
 
 class TestConditionalStatisticalParity(BaseMetricsTestCase):
@@ -26,7 +26,10 @@ class TestConditionalStatisticalParity(BaseMetricsTestCase):
             },
             {
                 "stratum": "1",
-                "group_selection_rates": {"0": 0.2376237623762376, "1": 0.44680851063829785},
+                "group_selection_rates": {
+                    "0": 0.2376237623762376,
+                    "1": 0.44680851063829785,
+                },
                 "disparity": 0.20918474826206024,
             },
         ]
@@ -50,9 +53,10 @@ class TestConditionalStatisticalParity(BaseMetricsTestCase):
                 self.assertAlmostEqual(got_rates[group_key], exp_val, places=12)
 
             # Check disparity
-            self.assertAlmostEqual(got_entry["disparity"], expected_entry["disparity"], places=12)
+            self.assertAlmostEqual(
+                got_entry["disparity"], expected_entry["disparity"], places=12
+            )
 
 
 if __name__ == "__main__":
     unittest.main()
-

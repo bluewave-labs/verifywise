@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from tests.base_test_metrics import BaseMetricsTestCase
 from src.metrics import demographic_parity
+from tests.base_test_metrics import BaseMetricsTestCase
 
 
 class TestDemographicParity(BaseMetricsTestCase):
@@ -21,5 +21,3 @@ class TestDemographicParity(BaseMetricsTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

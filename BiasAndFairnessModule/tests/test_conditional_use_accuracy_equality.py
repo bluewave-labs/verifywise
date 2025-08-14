@@ -1,7 +1,7 @@
 import unittest
 
-from tests.base_test_metrics import BaseMetricsTestCase
 from src.metrics import conditional_use_accuracy_equality
+from tests.base_test_metrics import BaseMetricsTestCase
 
 
 class TestConditionalUseAccuracyEquality(BaseMetricsTestCase):
@@ -27,4 +27,3 @@ class TestConditionalUseAccuracyEquality(BaseMetricsTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

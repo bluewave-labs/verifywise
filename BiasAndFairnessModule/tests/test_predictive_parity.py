@@ -1,7 +1,7 @@
 import unittest
 
-from tests.base_test_metrics import BaseMetricsTestCase
 from src.metrics import predictive_parity
+from tests.base_test_metrics import BaseMetricsTestCase
 
 
 class TestPredictiveParity(BaseMetricsTestCase):
@@ -21,4 +21,3 @@ class TestPredictiveParity(BaseMetricsTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

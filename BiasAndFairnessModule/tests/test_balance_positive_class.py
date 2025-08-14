@@ -1,7 +1,7 @@
 import unittest
 
-from tests.base_test_metrics import BaseMetricsTestCase
 from src.metrics import balance_positive_class
+from tests.base_test_metrics import BaseMetricsTestCase
 
 
 class TestBalancePositiveClass(BaseMetricsTestCase):
@@ -21,4 +21,3 @@ class TestBalancePositiveClass(BaseMetricsTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

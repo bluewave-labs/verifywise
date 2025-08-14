@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from tests.base_test_metrics import BaseMetricsTestCase
 from src.metrics import equal_selection_parity
+from tests.base_test_metrics import BaseMetricsTestCase
 
 
 class TestEqualSelectionParity(BaseMetricsTestCase):
@@ -25,5 +25,3 @@ class TestEqualSelectionParity(BaseMetricsTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

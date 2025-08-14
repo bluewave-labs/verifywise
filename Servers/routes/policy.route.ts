@@ -22,7 +22,7 @@ router.post('/', authenticateJWT, PolicyController.createPolicy);
 router.put('/:id', authenticateJWT, PolicyController.updatePolicy);
 
 // In routes file
-router.delete('/:id', authenticateJWT, PolicyController.deletePolicy);
+router.delete('/:id', authenticateJWT, PolicyController.deletePolicyById);
 
 
 export default router;

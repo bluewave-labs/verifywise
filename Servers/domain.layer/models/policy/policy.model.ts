@@ -3,92 +3,103 @@ import {
   Column,
   DataType,
   Model,
-  PrimaryKey,
-  Default,
   ForeignKey,
-  BelongsTo,
-  CreatedAt,
-  UpdatedAt,
 } from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
 import { UserModel } from "../user/user.model";
-import { IPolicy } from "../../interfaces/i.policy";
+import { IPolicy, PolicyTag } from "../../interfaces/i.policy";
 
 @Table({
-  tableName: "policies",
-  timestamps: true,
+  tableName: "policy_manager",
 })
-export class PolicyModel extends Model<PolicyModel> implements IPolicy {
-  @PrimaryKey
-  @Default(() => uuidv4())
-  @Column(DataType.UUID)
-  id!: string;
+export class PolicyManagerModel extends Model<PolicyManagerModel> implements IPolicy {
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id!: number;
 
-  @Column(DataType.STRING)
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
   title!: string;
 
-  @Default("")
-  @Column(DataType.TEXT)
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
   content_html!: string;
 
-  @Default("Draft")
-  @Column(DataType.STRING)
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
   status!: string;
 
-  @Column(DataType.ARRAY(DataType.STRING))
-  tags?: string[];
+  @Column({
+    type: DataType.ARRAY(DataType.STRING),
+    allowNull: true,
+  })
+  tags?: PolicyTag[];
 
-  @Column(DataType.DATE)
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
   next_review_date?: Date;
 
   @ForeignKey(() => UserModel)
-  @Column(DataType.UUID)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
   author_id!: number;
 
-  @Column(DataType.ARRAY(DataType.UUID))
+  @Column({
+    type: DataType.ARRAY(DataType.INTEGER),
+    allowNull: true,
+  })
   assigned_reviewer_ids?: number[];
 
   @ForeignKey(() => UserModel)
-  @Column(DataType.UUID)
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
   last_updated_by!: number;
 
-  @UpdatedAt
-  @Column(DataType.DATE)
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
   last_updated_at!: Date;
 
-  @CreatedAt
-  @Column(DataType.DATE)
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
   created_at!: Date;
 
-  // Associations
-  @BelongsTo(() => UserModel, 'author_id')
-  author!: UserModel;
-
-  @BelongsTo(() => UserModel, 'last_updated_by')
-  lastUpdatedByUser!: UserModel;
-
-  // Instance methods
-  async createPolicy(policyData: any, userId: string): Promise<PolicyModel> {
-    const policy = await PolicyModel.create({
-      ...policyData,
-      author_id: userId,
-      last_updated_by: userId,
-      status: 'Draft',
-    });
-    return policy;
+  toJSON(): any {
+    return {
+      id: this.id,
+      title: this.title,
+      content_html: this.content_html,
+      status: this.status,
+      tags: this.tags,
+      next_review_date: this.next_review_date,
+      author_id: this.author_id,
+      assigned_reviewer_ids: this.assigned_reviewer_ids,
+      last_updated_by: this.last_updated_by,
+      last_updated_at: this.last_updated_at,
+    };
   }
 
-  async updatePolicy(policyId: string, policyData: any, userId: string): Promise<PolicyModel | null> {
-    const policy = await PolicyModel.findByPk(policyId);
-    if (!policy) {
-      return null;
-    }
-
-    await policy.update({
-      ...policyData,
-      last_updated_by: userId,
-    });
-
-    return policy;
+  /**
+   * Static method to create organization from JSON data
+   */
+  static fromJSON(json: any): PolicyManagerModel {
+    return new PolicyManagerModel(json);
   }
 }

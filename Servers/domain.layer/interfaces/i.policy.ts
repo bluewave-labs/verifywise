@@ -1,9 +1,11 @@
+export type PolicyTag = (typeof POLICY_TAGS)[number];
+
 export interface IPolicy {
-  id?: string;
+  id?: number;
   title: string;
   content_html: string;
   status: string;
-  tags?: string[];
+  tags?: PolicyTag[];
   next_review_date?: Date;
   author_id: number;
   assigned_reviewer_ids?: number[];
@@ -13,7 +15,7 @@ export interface IPolicy {
 
 export const POLICY_TAGS = [
   'AI ethics',
-  'Fairness', 
+  'Fairness',
   'Transparency',
   'Explainability',
   'Bias mitigation',
@@ -31,4 +33,6 @@ export const POLICY_TAGS = [
   'Audit',
   'Monitoring',
   'Vendor management'
-];
+] as const;
+
+export const PolicyTagsSet = new Set(POLICY_TAGS);

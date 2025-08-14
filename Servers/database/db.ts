@@ -48,7 +48,7 @@ import { AITrustCenterIntroModel } from "../domain.layer/models/aiTrustCentre/ai
 import { AITrustCenterResourcesModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreResources.model";
 import { AITrustCenterSubprocessorsModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreSubprocessors.model";
 import { AITrustCenterTermsAndContactModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreTermsAndContract.model";
-import { PolicyModel } from "../domain.layer/models/policy/policy.model";
+import { PolicyManagerModel } from "../domain.layer/models/policy/policy.model";
 import { ISO27001SubClauseModel } from "../domain.layer/frameworks/ISO-27001/ISO27001SubClause.model";
 import { ISO27001AnnexStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexStruct.model";
 import { ISO27001AnnexControlModel } from "../domain.layer/frameworks/ISO-27001/iso27001AnnexControl.model";
@@ -115,7 +115,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AITrustCenterResourcesModel,
     AITrustCenterSubprocessorsModel,
     AITrustCenterTermsAndContactModel,
-    PolicyModel,
+    PolicyManagerModel,
     ISO27001SubClauseModel,
     ISO27001AnnexStructModel,
     ISO27001AnnexControlModel,

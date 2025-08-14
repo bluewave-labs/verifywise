@@ -47,6 +47,7 @@ import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import  HelperDrawer from "../../components/Drawer/HelperDrawer";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
+import { getAllProjects } from "../../../application/repository/project.repository";
 
 interface ExistingRisk {
   id?: number;
@@ -141,7 +142,7 @@ const Vendors = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await getAllEntities({ routeUrl: "/projects" });
+        const response = await getAllProjects();
         if (response?.data && response.data.length > 0) {
           setProjects(response.data);
           setSelectedProjectId("all"); // Always default to 'all' after fetching

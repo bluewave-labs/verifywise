@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pandas as pd
-from src.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data, validate_metric_availability
+from ..eval_engine.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data, validate_metric_availability
 
 
 class TestCompassRouter(unittest.TestCase):

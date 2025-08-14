@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pandas as pd
-from src.evaluation_module import FairnessEvaluator
+from ..eval_engine.evaluation_module import FairnessEvaluator
 
 
 class TestFairnessEvaluator(unittest.TestCase):

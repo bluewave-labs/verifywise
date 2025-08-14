@@ -15,12 +15,12 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 from .config import ConfigManager
-from .data_loader import DataLoader
-from .model_loader import ModelLoader, load_sklearn_model
-from .eval_runner import EvaluationRunner
-from .inference import ModelInferencePipeline
-from .compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
-from .evaluation_module import FairnessEvaluator
+from ..dataset_loader.data_loader import DataLoader
+from ..model_loader.model_loader import ModelLoader, load_sklearn_model
+from ..eval_engine.eval_runner import EvaluationRunner
+from ..inference.inference import ModelInferencePipeline
+from ..eval_engine.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
+from ..eval_engine.evaluation_module import FairnessEvaluator
 
 
 def setup_logging(verbose: bool = False) -> None:

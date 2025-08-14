@@ -6,8 +6,8 @@ This script shows how to use the Fairness Compass Engine with both LLM and tabul
 """
 
 import json
-from src.inference import run_all_evaluations, run_fairness_compass_evaluation
-from src.fairness_compass_engine import FairnessCompassEngine
+from ..inference.inference import run_all_evaluations, run_fairness_compass_evaluation
+from ..eval_engine.fairness_compass_engine import FairnessCompassEngine
 
 
 def example_llm_evaluation():

@@ -5,9 +5,9 @@ import pandas as pd
 from tqdm import tqdm
 import pandas as pd
 
-from .config import ConfigManager
-from .data_loader import DataLoader
-from .model_loader import ModelLoader
+from ..core.config import ConfigManager
+from ..dataset_loader.data_loader import DataLoader
+from ..model_loader.model_loader import ModelLoader
 
 
 class ModelInferencePipeline:

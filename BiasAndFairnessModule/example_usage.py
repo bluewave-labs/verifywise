@@ -13,9 +13,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_classification
 
-from src.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
-from src.evaluation_module import FairnessEvaluator
-from src.eval_runner import EvaluationRunner
+from src.eval_engine.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
+from src.eval_engine.evaluation_module import FairnessEvaluator
+from src.eval_engine.eval_runner import EvaluationRunner
 
 
 def example_metric_routing():

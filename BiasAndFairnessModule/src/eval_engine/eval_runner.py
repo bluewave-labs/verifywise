@@ -1,11 +1,11 @@
 from pathlib import Path
-from src.config import ConfigManager
-from src.data_loader import DataLoader
-from src.model_loader import load_sklearn_model, ModelLoader
-from src.inference import ModelInferencePipeline
-from src.fairness_compass_engine import FairnessCompassEngine
-from src.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
-from src.evaluation_module import FairnessEvaluator
+from ..core.config import ConfigManager
+from ..dataset_loader.data_loader import DataLoader
+from ..model_loader.model_loader import load_sklearn_model, ModelLoader
+from ..inference.inference import ModelInferencePipeline
+from .fairness_compass_engine import FairnessCompassEngine
+from .compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
+from .evaluation_module import FairnessEvaluator
 import json
 import re
 from textblob import TextBlob
@@ -458,7 +458,7 @@ def main():
         print("Running LLM fairness evaluation...")
         
         # Use the run_all_evaluations function from inference.py
-        from src.inference import run_all_evaluations
+        from ..inference.inference import run_all_evaluations
         results = run_all_evaluations(limit_samples=16)
             
     else:

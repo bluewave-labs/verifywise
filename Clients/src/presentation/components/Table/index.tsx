@@ -16,6 +16,7 @@ import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.cont
 import singleTheme from "../../themes/v1SingleTheme";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import { getAllEntities } from "../../../application/repository/entity.repository";
+import { getAllVendors } from "../../../application/repository/vendor.repository";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -70,7 +71,7 @@ const CustomizableBasicTable = ({
 
   const fetchVendors = useCallback(async () => {
     try {
-      const response = await getAllEntities({ routeUrl: "/vendors" });
+      const response = await getAllVendors();
       setDashboardValues((prev: DashboardValues) => ({
         ...prev,
         vendors: response.data,

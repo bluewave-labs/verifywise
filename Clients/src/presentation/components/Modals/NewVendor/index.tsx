@@ -30,7 +30,6 @@ import { ReactComponent as Close } from "../../../assets/icons/close.svg";
 import { Suspense, useContext, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import {
-  createNewUser,
   updateEntityById,
 } from "../../../../application/repository/entity.repository";
 import Alert from "../../Alert";
@@ -42,6 +41,7 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import allowedRoles from "../../../../application/constants/permissions";
+import { createNewVendor, update } from "../../../../application/repository/vendor.repository";
 
 export interface VendorDetails {
   id?: number;
@@ -349,8 +349,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const createVendor = async (vendorDetails: object) => {
     setIsSubmitting(true);
     try {
-      const response = await createNewUser({
-        routeUrl: "/vendors",
+     const response = await createNewVendor({
         body: vendorDetails,
       });
 
@@ -404,8 +403,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   ) => {
     setIsSubmitting(true);
     try {
-      const response = await updateEntityById({
-        routeUrl: `/vendors/${vendorId}`,
+      const response = await update({
+        id: vendorId,
         body: updatedVendorDetails,
       });
 

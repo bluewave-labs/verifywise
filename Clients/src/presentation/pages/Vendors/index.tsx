@@ -47,6 +47,7 @@ import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import  HelperDrawer from "../../components/Drawer/HelperDrawer";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
+import { deleteVendor, getAllVendors, getVendorById, getVendorsByProjectId } from "../../../application/repository/vendor.repository";
 
 interface ExistingRisk {
   id?: number;
@@ -159,14 +160,12 @@ const Vendors = () => {
     setIsVendorsLoading(true);
     if (!selectedProjectId) return;
     try {
-      const routeUrl =
-        selectedProjectId === "all"
-          ? "/vendors"
-          : `/vendors/project-id/${selectedProjectId}`;
-      const response = await getAllEntities({
-        routeUrl,
-        signal,
-      });
+   const response = selectedProjectId === "all"
+        ? await getAllVendors({ signal })
+        : await getVendorsByProjectId({ 
+            projectId: parseInt(selectedProjectId), 
+            signal 
+          });
       if (response?.data) {
         setVendors(response.data);
       }
@@ -197,8 +196,8 @@ const Vendors = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/vendors/${vendorId}`,
+       const response = await deleteVendor({
+        id: Number(vendorId),
       });
 
       if (response.status === 202) {
@@ -335,8 +334,8 @@ const Vendors = () => {
   };
   const handleEditVendor = async (id: number) => {
     try {
-      const response = await getEntityById({
-        routeUrl: `/vendors/${id}`,
+     const response = await getVendorById({
+        id: Number(id),
       });
       setSelectedVendor(response.data);
       setIsOpen(true);

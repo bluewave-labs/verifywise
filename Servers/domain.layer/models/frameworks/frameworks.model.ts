@@ -43,6 +43,11 @@ export class FrameworkModel
   })
   created_at!: Date;
 
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  is_organizational!: boolean;
+
   /**
    * Create a new framework with comprehensive validation
    */

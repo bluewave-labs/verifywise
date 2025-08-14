@@ -4,6 +4,8 @@ from src.data_loader import DataLoader
 from src.model_loader import load_sklearn_model, ModelLoader
 from src.inference import ModelInferencePipeline
 from src.fairness_compass_engine import FairnessCompassEngine
+from src.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
+from src.evaluation_module import FairnessEvaluator
 import json
 import re
 from textblob import TextBlob
@@ -17,6 +19,9 @@ from sklearn.model_selection import train_test_split
 from langfair.metrics.toxicity import ToxicityMetrics
 from langfair.metrics.stereotype import StereotypeMetrics
 from collections import defaultdict
+import logging
+import argparse
+from typing import Optional, Dict, Any, List, Union
 
 
 def evaluate_fairness(X, y, A, model):
@@ -34,9 +39,7 @@ def evaluate_fairness(X, y, A, model):
         "accuracy": accuracy_score,
         "precision": precision_score,
         "recall": recall_score,
-        "f1": f1_score,
-        "demographic_parity": demographic_parity_difference,
-        "equalized_odds": equalized_odds_difference
+        "f1": f1_score
     }
     
     metric_frame = MetricFrame(
@@ -46,11 +49,23 @@ def evaluate_fairness(X, y, A, model):
         sensitive_features=A_test
     )
     
+    # Calculate fairness metrics separately
+    fairness_metrics = {}
+    fairness_metrics["demographic_parity"] = demographic_parity_difference(
+        y_true=y_test, y_pred=y_pred, sensitive_features=A_test
+    )
+    fairness_metrics["equalized_odds"] = equalized_odds_difference(
+        y_true=y_test, y_pred=y_pred, sensitive_features=A_test
+    )
+    
     # Extract overall differences
     group_metrics = {}
     for metric_name in metrics.keys():
         if metric_name in metric_frame.overall:
             group_metrics[f"{metric_name}_difference"] = metric_frame.overall[metric_name]
+    
+    # Add fairness metrics
+    group_metrics.update(fairness_metrics)
     
     # Add overall accuracy
     group_metrics["Accuracy"] = accuracy_score(y_test, y_pred)
@@ -246,7 +261,7 @@ def evaluate_prompt_flipping_fairness(prompts, responses, model_loader):
 class EvaluationRunner:
     """Orchestrates evaluation by calling metric functions"""
     
-    def __init__(self, df, model_loader=None, model_pipeline=None, config=None, inference_pipeline=None):
+    def __init__(self, df, model_loader=None, model_pipeline=None, config=None, inference_pipeline=None, mode="prompt"):
         """
         Initialize the evaluation runner.
         
@@ -256,13 +271,22 @@ class EvaluationRunner:
             model_pipeline: HuggingFace pipeline for LLM evaluation
             config: Configuration object
             inference_pipeline: ModelInferencePipeline instance
+            mode: Evaluation mode ("prompt" for LLM, "predict" for tabular)
         """
         self.df = df
         self.model_loader = model_loader
         self.model_pipeline = model_pipeline
         self.config = config
         self.inference_pipeline = inference_pipeline
+        self.mode = mode
         self.results = {}
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize fairness evaluator based on mode
+        if self.mode == "predict":
+            self.fairness_evaluator = FairnessEvaluator(task_type="binary_classification")
+        else:
+            self.fairness_evaluator = FairnessEvaluator(task_type="generation")
     
     def run_llm_evaluations(self, prompts, responses):
         """Run all LLM evaluation metrics."""
@@ -357,6 +381,67 @@ class EvaluationRunner:
         
         else:
             raise ValueError(f"Unsupported evaluation type: {evaluation_type}")
+    
+    def run_dual_evaluation(self, **kwargs):
+        """
+        Run evaluation in dual mode (prompt or predict).
+        
+        Args:
+            **kwargs: Arguments for the specific mode
+            
+        Returns:
+            Dict: Evaluation results
+        """
+        if self.mode == "prompt":
+            return self._run_prompt_evaluation(**kwargs)
+        elif self.mode == "predict":
+            return self._run_predict_evaluation(**kwargs)
+        else:
+            raise ValueError(f"Unknown mode: {self.mode}")
+    
+    def _run_prompt_evaluation(self, prompts=None, responses=None, sensitive_attributes=None):
+        """Run prompt-based LLM evaluation."""
+        self.logger.info("Running prompt-based LLM evaluation...")
+        
+        if prompts is None or responses is None:
+            raise ValueError("Prompts and responses must be provided for prompt evaluation")
+        
+        if sensitive_attributes is None:
+            # Generate default sensitive attributes if not provided
+            sensitive_attributes = [{"gender": "unknown"} for _ in prompts]
+        
+        # Use the fairness evaluator for LLM responses
+        results = self.fairness_evaluator.evaluate_llm_responses(
+            prompts=prompts,
+            responses=responses,
+            sensitive_attributes=sensitive_attributes
+        )
+        
+        # Add traditional LLM metrics
+        results.update(self.run_llm_evaluations(prompts, responses))
+        
+        return results
+    
+    def _run_predict_evaluation(self, X=None, y=None, A=None, model=None):
+        """Run feature-based tabular evaluation."""
+        self.logger.info("Running feature-based tabular evaluation...")
+        
+        if X is None or y is None or A is None or model is None:
+            raise ValueError("X, y, A, and model must be provided for predict evaluation")
+        
+        # Use the fairness evaluator for tabular models
+        results = self.fairness_evaluator.evaluate_tabular_model(
+            y_true=y,
+            y_pred=model.predict(X),
+            sensitive_features=A,
+            y_scores=model.predict_proba(X)[:, 1] if hasattr(model, 'predict_proba') else None
+        )
+        
+        # Add traditional tabular metrics
+        tabular_results = self.run_tabular_evaluations(X, y, A, model)
+        results.update(tabular_results)
+        
+        return results
     
     def get_results(self):
         """Get the evaluation results."""

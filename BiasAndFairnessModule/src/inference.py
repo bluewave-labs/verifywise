@@ -1,5 +1,6 @@
 from typing import List, Optional, Union, Dict, Any, cast
 from tqdm import tqdm
+import pandas as pd
 
 from .data_loader import DataLoader
 from .model_loader import ModelLoader
@@ -140,9 +141,13 @@ class ModelInferencePipeline:
             prompts = [sample["prompt"] for sample in samples_list]
             predictions = self._run_inference(prompts, system_prompt)
             
-            # Add predictions to samples
+            # Add predictions to samples with enhanced metadata
             for sample, prediction in zip(samples_list, predictions):
                 sample["prediction"] = prediction
+                sample["model_name"] = self.model_loader.model_config.model_id
+                sample["subgroup_info"] = sample["protected_attributes"]
+                sample["output"] = prediction
+                sample["timestamp"] = pd.Timestamp.now().isoformat()
             
             return samples_list
         
@@ -154,9 +159,13 @@ class ModelInferencePipeline:
             prompts = [sample["prompt"] for sample in batch]
             predictions = self._run_inference(prompts, system_prompt)
             
-            # Add predictions to samples
+            # Add predictions to samples with enhanced metadata
             for sample, prediction in zip(batch, predictions):
                 sample["prediction"] = prediction
+                sample["model_name"] = self.model_loader.model_config.model_id
+                sample["subgroup_info"] = sample["protected_attributes"]
+                sample["output"] = prediction
+                sample["timestamp"] = pd.Timestamp.now().isoformat()
                 results.append(sample)
         
         return results

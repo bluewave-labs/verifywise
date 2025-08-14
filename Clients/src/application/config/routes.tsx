@@ -27,6 +27,7 @@ import AITrustCentrePublic from "../../presentation/pages/AITrustCentrePublic";
 
 import Training from "../../presentation/pages/TrainingRegistar";
 import WatchTower from "../../presentation/pages/WatchTower";
+import ModelInventory from "../../presentation/pages/ModelInventory";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -56,6 +57,7 @@ export const createRoutes = (
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/event-tracker" element={<WatchTower />} />
+    <Route path="/model-inventory" element={<ModelInventory />} />
   </Route>,
   <Route
     key="admin-reg"

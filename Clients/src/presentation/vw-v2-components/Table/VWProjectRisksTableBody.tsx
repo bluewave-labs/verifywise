@@ -211,7 +211,7 @@ const VWProjectRisksTableBody = ({
                     border: "1px solid #13715B",
                   }}
                   variant="contained"
-                  text="Mitigation"
+                  text="View controls"
                   onClick={(e: React.MouseEvent<HTMLElement>) => toggleMitigations(row, e)}
                 />
               </TableCell>
@@ -262,6 +262,14 @@ const VWProjectRisksTableBody = ({
             subClauses={showMitigationProjectRisk?.subClauses?.map((item) => ({
               ...item,
               type: "subclause",
+            })) || []}
+            assessments={showMitigationProjectRisk?.assessments?.map((item) => ({
+              ...item,
+              type: "assessment",
+            })) || []}
+            controls={showMitigationProjectRisk?.controls?.map((item) => ({
+              ...item,
+              type: "control",
             })) || []}
             onClose={() => {setShowMitigations(false); setShowMitigationProjectRisk(null)}}
           />

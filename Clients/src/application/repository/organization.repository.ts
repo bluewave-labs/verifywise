@@ -1,6 +1,6 @@
 import { GetRequestParams } from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/getAuthToken";
+import { getAuthToken } from "../redux/auth/getAuthToken";
 import { RequestParams } from "../../domain/interfaces/iRequestParams";
 
 /**

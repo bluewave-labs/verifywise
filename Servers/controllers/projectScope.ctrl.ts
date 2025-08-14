@@ -39,10 +39,6 @@ export async function getAllProjectScopes(
         "getAllProjectScopes",
         "projectScope.ctrl.ts"
       );
-      await logEvent(
-        "Read",
-        `Retrieved ${projectScopes.length} project scopes`
-      );
       return res.status(200).json(STATUS_CODE[200](projectScopes));
     }
 
@@ -52,7 +48,6 @@ export async function getAllProjectScopes(
       "getAllProjectScopes",
       "projectScope.ctrl.ts"
     );
-    await logEvent("Read", "No project scopes found");
     return res.status(204).json(STATUS_CODE[204](projectScopes));
   } catch (error) {
     logStructured(
@@ -84,7 +79,10 @@ export async function getProjectScopeById(
   logger.debug(`🔍 Looking up project scope with ID: ${projectScopeId}`);
 
   try {
-    const projectScope = await getProjectScopeByIdQuery(projectScopeId, req.tenantId!);
+    const projectScope = await getProjectScopeByIdQuery(
+      projectScopeId,
+      req.tenantId!
+    );
 
     if (projectScope) {
       logStructured(
@@ -92,10 +90,6 @@ export async function getProjectScopeById(
         `project scope found: ID ${projectScopeId}`,
         "getProjectScopeById",
         "projectScope.ctrl.ts"
-      );
-      await logEvent(
-        "Read",
-        `Project scope retrieved by ID: ${projectScopeId}`
       );
       return res.status(200).json(STATUS_CODE[200](projectScope));
     }
@@ -106,7 +100,6 @@ export async function getProjectScopeById(
       "getProjectScopeById",
       "projectScope.ctrl.ts"
     );
-    await logEvent("Read", `No project scope found with ID: ${projectScopeId}`);
     return res.status(404).json(STATUS_CODE[404]("Project scope not found"));
   } catch (error) {
     logStructured(
@@ -269,7 +262,10 @@ export async function updateProjectScopeById(
 
   try {
     // First, get the existing project scope to validate it can be modified
-    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId, req.tenantId!);
+    const existingProjectScope = await getProjectScopeByIdQuery(
+      projectScopeId,
+      req.tenantId!
+    );
 
     if (!existingProjectScope) {
       logStructured(
@@ -399,7 +395,10 @@ export async function deleteProjectScopeById(
 
   try {
     // First, get the existing project scope to validate it can be deleted
-    const existingProjectScope = await getProjectScopeByIdQuery(projectScopeId, req.tenantId!);
+    const existingProjectScope = await getProjectScopeByIdQuery(
+      projectScopeId,
+      req.tenantId!
+    );
 
     if (!existingProjectScope) {
       logStructured(

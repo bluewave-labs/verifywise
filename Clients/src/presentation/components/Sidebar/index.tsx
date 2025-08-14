@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
 import React, { useContext, useState, useEffect } from "react";
-import { toggleSidebar } from "../../tools/uiSlice";
+import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
@@ -38,6 +38,7 @@ import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCente
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
 import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
+import { ReactComponent as ModelInventory } from "../../assets/icons/list.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -86,6 +87,11 @@ const menu = [
     name: "AI Trust Center",
     icon: <AITrustCenter />,
     path: "/ai-trust-center",
+  },
+  {
+    name: "Model Inventory",
+    icon: <ModelInventory />,
+    path: "/model-inventory",
   },
 ];
 

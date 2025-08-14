@@ -37,10 +37,6 @@ export async function getAllControlCategories(
     const controlCategories = await getAllControlCategoriesQuery(req.tenantId!);
 
     if (controlCategories && controlCategories.length > 0) {
-      await logEvent(
-        "Read",
-        `Retrieved ${controlCategories.length} control categories`
-      );
       logStructured(
         "successful",
         `retrieved ${controlCategories.length} control categories`,
@@ -56,7 +52,6 @@ export async function getAllControlCategories(
       "getAllControlCategories",
       "controlCategory.ctrl.ts"
     );
-    await logEvent("Read", "No control categories found");
     return res.status(204).json(STATUS_CODE[204](controlCategories));
   } catch (error) {
     logStructured(
@@ -89,7 +84,8 @@ export async function getControlCategoryById(
 
   try {
     const controlCategory = await getControlCategoryByIdQuery(
-      controlCategoryId, req.tenantId!
+      controlCategoryId,
+      req.tenantId!
     );
 
     if (controlCategory) {
@@ -99,10 +95,6 @@ export async function getControlCategoryById(
         "getControlCategoryById",
         "controlCategory.ctrl.ts"
       );
-      await logEvent(
-        "Read",
-        `Control category retrieved by ID: ${controlCategoryId}`
-      );
       return res.status(200).json(STATUS_CODE[200](controlCategory));
     }
 
@@ -111,10 +103,6 @@ export async function getControlCategoryById(
       `no control category found: ID ${controlCategoryId}`,
       "getControlCategoryById",
       "controlCategory.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `No control category found with ID: ${controlCategoryId}`
     );
     return res.status(404).json(STATUS_CODE[404](controlCategory));
   } catch (error) {
@@ -148,7 +136,8 @@ export async function getControlCategoryByProjectId(
 
   try {
     const controlCategories = await getControlCategoryByProjectIdQuery(
-      projectId, req.tenantId!
+      projectId,
+      req.tenantId!
     );
 
     if (controlCategories && controlCategories.length > 0) {
@@ -158,10 +147,6 @@ export async function getControlCategoryByProjectId(
         "getControlCategoryByProjectId",
         "controlCategory.ctrl.ts"
       );
-      await logEvent(
-        "Read",
-        `Retrieved ${controlCategories.length} control categories for project ID: ${projectId}`
-      );
       return res.status(200).json(STATUS_CODE[200](controlCategories));
     }
 
@@ -170,10 +155,6 @@ export async function getControlCategoryByProjectId(
       `no control categories found for project ID ${projectId}`,
       "getControlCategoryByProjectId",
       "controlCategory.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `No control categories found for project ID: ${projectId}`
     );
     return res.status(204).json(STATUS_CODE[204](controlCategories));
   } catch (error) {
@@ -343,7 +324,8 @@ export async function updateControlCategoryById(
 
   try {
     const existingControlCategory = await getControlCategoryByIdQuery(
-      controlCategoryId, req.tenantId!
+      controlCategoryId,
+      req.tenantId!
     );
 
     if (!existingControlCategory) {
@@ -519,7 +501,8 @@ export async function deleteControlCategoryById(
 
   try {
     const existingControlCategory = await getControlCategoryByIdQuery(
-      controlCategoryId, req.tenantId!
+      controlCategoryId,
+      req.tenantId!
     );
 
     if (!existingControlCategory) {

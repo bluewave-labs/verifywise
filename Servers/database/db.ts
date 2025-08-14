@@ -17,6 +17,7 @@ import { UserModel } from "../domain.layer/models/user/user.model";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
+import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
 import dbConfig from "./config/config";
 import { Dialect } from "sequelize";
 import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
@@ -47,6 +48,7 @@ import { AITrustCenterIntroModel } from "../domain.layer/models/aiTrustCentre/ai
 import { AITrustCenterResourcesModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreResources.model";
 import { AITrustCenterSubprocessorsModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreSubprocessors.model";
 import { AITrustCenterTermsAndContactModel } from "../domain.layer/models/aiTrustCentre/aiTrustCentreTermsAndContract.model";
+import { TiersModel } from "../domain.layer/models/tiers/tiers.model";
 
 dotenv.config();
 
@@ -75,6 +77,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     VendorModel,
     VendorRiskModel,
     VendorsProjectsModel,
+    ModelInventoryModel,
     FrameworkModel,
     ProjectFrameworksModel,
     AssessmentEUModel,
@@ -102,7 +105,8 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AITrustCenterIntroModel,
     AITrustCenterResourcesModel,
     AITrustCenterSubprocessorsModel,
-    AITrustCenterTermsAndContactModel
+    AITrustCenterTermsAndContactModel,
+    TiersModel,
   ],
 }) as Sequelize;
 

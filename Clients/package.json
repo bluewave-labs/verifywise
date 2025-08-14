@@ -22,6 +22,8 @@
     "@mui/x-date-pickers": "^7.18.0",
     "@reduxjs/toolkit": "^2.2.7",
     "@svgr/rollup": "^8.1.0",
+    "@tanstack/react-query": "^5.84.2",
+    "@tanstack/react-query-devtools": "^5.84.2",
     "@tiptap/react": "^2.8.0",
     "@tiptap/starter-kit": "^2.8.0",
     "@uppy/core": "^4.2.3",

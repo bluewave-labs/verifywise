@@ -4,9 +4,12 @@ import * as fs from "fs";
 import * as path from "path";
 
 export const getEventsQuery = async () => {
-  const events = await sequelize.query("SELECT * FROM event_logs", {
-    type: QueryTypes.SELECT,
-  });
+  const events = await sequelize.query(
+    "SELECT * FROM event_logs ORDER BY timestamp DESC",
+    {
+      type: QueryTypes.SELECT,
+    }
+  );
   return events;
 };
 
@@ -36,7 +39,7 @@ export const getLogsQuery = async () => {
 
     return {
       success: true,
-      message: `Successfully read last ${lastLines.length} lines from ${logFileName}`,
+      message: `Successfully read last ${lastLines.length} lines`,
       data: lastLines,
     };
   } catch (error) {

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { AssessmentProgress } from "../../domain/interfaces/iAssessment";
+import { getAssessmentProgress } from "../repository/assesment.repository";
 
 /**
  * Custom hook to fetch and manage assessment progress data for a selected project.
@@ -37,8 +37,8 @@ const useAssessmentProgress = ({
 
       setLoading(true);
       try {
-        const response = await getEntityById({
-          routeUrl: `/eu-ai-act/assessments/progress/${projectFrameworkId}`,
+        const response = await getAssessmentProgress({
+          projectFrameworkId,
           signal,
         });
         // if (!response.ok) {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { Framework } from "../../domain/types/Framework";
+import { getAssessmentById } from "../repository/assesment.repository";
 
 /**
  * Custom hook to fetch and manage assessment data based on the selected project ID.
@@ -30,10 +30,7 @@ const useAssessmentData = ({
 
       setLoading(true);
       try {
-        const response = await getEntityById({
-          routeUrl: `/assessments/project/byid/${selectedProjectId}`,
-          signal,
-        });
+       const response = await getAssessmentById({ id: selectedProjectId, signal });
         if (!response.ok) {
           console.error(`Failed to fetch progress data: ${response.message}`);
         }

@@ -42,9 +42,9 @@ class BaseMetricsTestCase(unittest.TestCase):
             else:
                 self.y_pred[i] = np.random.choice([0, 1], p=[0.6, 0.4])
 
-        # Continuous scores (not clipped to preserve the intended bias pattern)
-        self.y_scores = np.random.random(self.n_samples)
-        self.y_scores[self.protected_attributes == 1] += 0.2
+        # Continuous scores (clipped to [0,1] while preserving bias pattern)
+        self.y_scores = np.random.random(self.n_samples) * 0.8  # Scale down initial values
+        self.y_scores[self.protected_attributes == 1] += 0.2  # Add bias while staying in [0,1]
 
         # Legitimate attribute for conditional metrics (e.g., conditional statistical parity)
         self.legitimate_attributes = np.random.choice(

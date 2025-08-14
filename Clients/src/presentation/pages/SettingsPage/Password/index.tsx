@@ -8,7 +8,6 @@ import {
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
@@ -17,6 +16,7 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
+import { updatePassword } from "../../../../application/repository/user.repository";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
@@ -142,9 +142,10 @@ const PasswordForm: React.FC = () => {
     setShowToast(true); // Show CustomizableToast
 
     try {
-      await updateEntityById({
-        routeUrl: `/users/chng-pass/${id}`,
-        body: { id, currentPassword, newPassword },
+       await updatePassword({
+        userId: id,
+        currentPassword,
+        newPassword,
       });
       setCurrentPassword("");
       setNewPassword("");

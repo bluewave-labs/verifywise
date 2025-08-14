@@ -35,7 +35,6 @@ import DatePicker from "../../../components/Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
-import { createNewUser } from "../../../../application/repository/entity.repository";
 import CustomizableToast from "../../Toast";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import { extractUserToken } from "../../../../application/tools/extractToken";
@@ -53,6 +52,7 @@ import {
 import { FormValues } from "./constants";
 import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
+import { createProject } from "../../../../application/repository/project.repository";
 
 const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
   const theme = useTheme();
@@ -247,8 +247,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           body.framework = []; // ISO 27001 frameworks will be handled by backend
         }
 
-        const res = await createNewUser({
-          routeUrl: "/projects",
+         const res = await createProject({
           body,
         });
 

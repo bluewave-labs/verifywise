@@ -9,7 +9,7 @@ import { ISO27001SubClauseStructModel } from "../domain.layer/frameworks/ISO-270
 import { ISO27001SubClauseModel } from "../domain.layer/frameworks/ISO-27001/ISO27001SubClause.model";
 import { ISO27001AnnexStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexStruct.model";
 import { ISO27001AnnexControlStructModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexControlStruct.model";
-import { ISO27001AnnexControlModel } from "../domain.layer/frameworks/ISO-27001/iso27001AnnexControl.model";
+import { ISO27001AnnexControlModel } from "../domain.layer/frameworks/ISO-27001/ISO27001AnnexControl.model";
 import { IISO27001SubClause } from "../domain.layer/interfaces/i.ISO27001SubClause";
 import { ISO27001SubClauseRisksModel } from "../domain.layer/frameworks/ISO-27001/ISO27001SubClauseRisks.model";
 import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001AnnexControl";

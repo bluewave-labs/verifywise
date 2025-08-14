@@ -6,7 +6,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { ProjectRiskModel } from "../../models/projectRisks/projectRisk.model";
-import { ISO27001AnnexControlModel } from "./iso27001AnnexControl.model";
+import { ISO27001AnnexControlModel } from "./ISO27001AnnexControl.model";
 import { ISO27001SubClauseRisks } from "../../interfaces/i.ISO27001SubClauseRisks";
 
 @Table({

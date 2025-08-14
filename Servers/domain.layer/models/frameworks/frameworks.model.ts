@@ -38,6 +38,7 @@ export class FrameworkModel
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
   })
   is_organizational!: boolean;
 
@@ -295,6 +296,7 @@ export class FrameworkModel
       name: this.name,
       description: this.description,
       created_at: this.created_at?.toISOString(),
+      is_organizational: this.is_organizational,
       ageInDays: this.getAgeInDays(),
       isActive: this.isActive(),
     };

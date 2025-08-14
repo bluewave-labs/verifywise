@@ -1,6 +1,4 @@
-import { ISO27001AnnexCategoryModel } from "../frameworks/ISO-27001/ISO27001AnnexCategory.model";
 import { ValidationException } from "../exceptions/custom.exception";
-import { IISO27001AnnexCategory } from "../interfaces/i.ISO27001AnnexCategory";
 
 // Mock sequelize-typescript completely
 jest.mock("sequelize-typescript", () => ({

@@ -47,6 +47,7 @@ import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import  HelperDrawer from "../../components/Drawer/HelperDrawer";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
+import { deleteVendorRisk, getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 
 interface ExistingRisk {
   id?: number;
@@ -255,13 +256,11 @@ const Vendors = () => {
       setTimeout(() => setAlert(null), 3000);
       return;
     }
-    const signal = createAbortController();
     setIsSubmitting(true);
 
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/vendorRisks/${riskId}`,
-        signal,
+       const response = await deleteVendorRisk({
+        id: Number(riskId),
       });
 
       if (response.status === 202) {
@@ -316,8 +315,8 @@ const Vendors = () => {
       return;
     }
     try {
-      const response = await getEntityById({
-        routeUrl: `/vendorRisks/${riskId}`,
+     const response = await getVendorRiskById({
+        id: Number(riskId),
       });
       setSelectedRisk(response.data);
       setIsRiskModalOpen(true);

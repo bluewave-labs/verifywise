@@ -34,6 +34,7 @@ import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
 import { SelectChangeEvent } from "@mui/material";
+import { createVendorRisk, updateVendorRisk } from "../../../../application/repository/vendorRisk.repository";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
 interface ExistingRisk {
@@ -306,8 +307,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const createRisk = async (riskDetails: object) => {
     setIsSubmitting(true);
     try {
-      const response = await createNewUser({
-        routeUrl: "/vendorRisks",
+      const response = await createVendorRisk({
         body: riskDetails,
       });
 
@@ -357,8 +357,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const updateRisk = async (riskId: number, updatedRiskDetails: object) => {
     setIsSubmitting(true);
     try {
-      const response = await updateEntityById({
-        routeUrl: `/vendorRisks/${riskId}`,
+      const response = await updateVendorRisk({
+        id: riskId,
         body: updatedRiskDetails,
       });
 

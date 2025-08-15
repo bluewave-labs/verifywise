@@ -5,7 +5,7 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
                           GenerationConfig, PreTrainedModel,
                           PreTrainedTokenizer)
 
-from .config import HuggingFaceModelConfig
+from ..core.config import HuggingFaceModelConfig
 
 import joblib
 import os

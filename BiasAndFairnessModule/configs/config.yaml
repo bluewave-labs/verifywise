@@ -10,7 +10,7 @@ dataset:
   target_column: "income"
   sampling:
     enabled: true
-    n_samples: 20 # Number of samples to use for quick experiments
+    n_samples: 50 # Increased for more meaningful evaluation
     random_seed: 42
 
 # Post-processing Configuration
@@ -57,5 +57,5 @@ metrics:
       - "precision"
 
 artifacts:
-  inference_results_path: "artifacts/inference_results.csv"
+  inference_results_path: "artifacts/cleaned_inference_results.csv"
   postprocessed_results_path: "artifacts/postprocessed_results.csv"

@@ -1,0 +1,29 @@
+# Exact versions for reproducible builds
+# Generated from working virtual environment
+
+# Core dependencies
+numpy==1.26.4
+pandas==2.3.1
+pydantic==2.11.7
+pyyaml==6.0.2
+
+# Machine learning and fairness
+scikit-learn==1.7.0
+fairlearn==0.12.0
+langfair==0.6.6
+
+# Deep learning and transformers
+torch==2.7.1
+transformers==4.53.2
+sentence-transformers==2.7.0
+huggingface-hub==0.33.4
+
+# Data handling
+datasets==4.0.0
+pyarrow==21.0.0
+
+# Utilities
+tqdm==4.67.1
+
+# Additional dependencies that may be needed
+pydantic-core==2.33.2

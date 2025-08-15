@@ -34,7 +34,7 @@ const statuses: FormData["status"][] = [
   "Archived",
 ];
 
-const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors, setErrors }) => {
+const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) => {
   const theme = useTheme();
   const { users } = useUsers();
   // const [tags, setTags] = useState<string[]>([]);

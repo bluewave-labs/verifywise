@@ -15,14 +15,13 @@ module.exports = {
             "title" VARCHAR(255) NOT NULL,
             "content_html" TEXT DEFAULT '',
             "status" VARCHAR(50) DEFAULT 'Draft',
-            "tags" TEXT[],
-            "next_review_date" TIMESTAMP,
-            "author_id" INTEGER NOT NULL,
+            "tags" TEXT[] NOT NULL,
+            "next_review_date" TIMESTAMP NOT NULL,
+            "author_id" INTEGER NOT NULL NOT NULL,
             "assigned_reviewer_ids" INTEGER[],
             "last_updated_by" INTEGER NOT NULL,
             "last_updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY ("author_id") REFERENCES public.users(id) ON DELETE CASCADE,
             FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL
           );

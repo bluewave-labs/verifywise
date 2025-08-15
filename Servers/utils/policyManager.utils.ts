@@ -55,7 +55,7 @@ export const createPolicyQuery = async (
     `INSERT INTO "${tenant}".policy_manager (
       title, content_html, status, tags, next_review_date, author_id, assigned_reviewer_ids, last_updated_by, last_updated_at
     ) VALUES (
-      :title, :content_html, :status, :tags, :next_review_date, :author_id, :assigned_reviewer_ids, :last_updated_by, :last_updated_at
+      :title, :content_html, :status, ARRAY[:tags], :next_review_date, :author_id, ARRAY[:assigned_reviewer_ids], :last_updated_by, :last_updated_at
     ) RETURNING *`,
     {
       replacements: {
@@ -112,6 +112,9 @@ export const updatePolicyByIdQuery = async (
       }
     })
     .map((f) => {
+      if (f === "tags" || f === "assigned_reviewer_ids") {
+        return `${f} = ARRAY[:${f}]`;
+      }
       return `${f} = :${f}`;
     })
     .join(", ");
@@ -136,7 +139,7 @@ export const deletePolicyByIdQuery = async (
   id: number
 ) => {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".policy_manager WHERE id = :id`,
+    `DELETE FROM "${tenant}".policy_manager WHERE id = :id RETURNING *`,
     {
       replacements: { tenant, id },
       mapToModel: true,

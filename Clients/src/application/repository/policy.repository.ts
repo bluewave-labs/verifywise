@@ -24,7 +24,7 @@ export async function getAllPolicies(authToken?: string): Promise<Policy[]> {
 
 export async function getAllTags(authToken?: string): Promise<string[]> {
   try {
-    const { data } = await apiServices.get("/tags", authHeader(authToken)) as {
+    const { data } = await apiServices.get("/policies/tags", authHeader(authToken)) as {
       data: {
         message: string, data: string[]
       }

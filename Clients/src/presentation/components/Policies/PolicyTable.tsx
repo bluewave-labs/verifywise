@@ -13,6 +13,7 @@ interface Props {
   data: Policy[];
   onOpen: (id: string) => void;
   onDelete: (id: string) => void;
+  onRefresh?: () => void;
   isLoading?: boolean;
   error?: Error | null;
 }
@@ -37,7 +38,7 @@ const statusColors: Record<string, string> = {
   Archived: "#6c757d",
 };
 
-const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error }) => {
+const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error, onRefresh }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -46,7 +47,6 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
     const user = users.find((u) => u.id === id);
     return user ? user.name : "-";
   };
-
 
   const isMenuOpen = Boolean(anchorEl);
 
@@ -65,13 +65,15 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
   };
 
   const handleDeleteConfirmation = useCallback(() => {
-    console.log("SELECTED POLICY: ", selectedPolicy)
     if (selectedPolicy) {
       onDelete(selectedPolicy.id);
     }
     setOpenDeleteDialog(false);
     handleMenuClose();
-  }, [selectedPolicy, onDelete]);
+    if (typeof onRefresh === 'function') {
+      onRefresh();
+    }
+  }, [selectedPolicy, onDelete, onRefresh]);
 
   const handleDeleteCancel = () => {
     setOpenDeleteDialog(false);
@@ -119,7 +121,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
             }}
             onClick={(_event) => onOpen(policy.id)}
           >
-            <TableCell sx={{ fontSize: 12 }}>{policy.title}</TableCell>
+            <TableCell sx={{ fontSize: 12 }}>{policy.title.length > 30 ? `${policy.title.slice(0, 30)}...` : policy.title}</TableCell>
             <TableCell>
               <span
                 style={{
@@ -133,13 +135,17 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
                 {policy.status}
               </span>
             </TableCell>
-            <TableCell sx={{ fontSize: 12 }}>{policy.tags?.join(", ") || "-"}</TableCell>
+            <TableCell sx={{ fontSize: 12 }}>{
+              policy.tags?.join(", ").length > 30 ? `${policy.tags?.join(", ").slice(0, 30)}...` : policy.tags?.join(", ") || "-"
+            }</TableCell>
             <TableCell sx={{ fontSize: 12 }}>
               {policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : "-"}
             </TableCell>
             <TableCell sx={{ fontSize: 12 }}>{getUserNameById(policy.author_id)}</TableCell>
             <TableCell sx={{ fontSize: 12 }}>
-                {policy.assigned_reviewer_ids?.map(getUserNameById).join(", ") || "-"}
+              {
+                policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").length > 30 ? `${policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").slice(0, 30)}...` : policy.assigned_reviewer_ids?.map(getUserNameById).join(", ") || "-"
+              }
             </TableCell>
             <TableCell sx={{ fontSize: 12 }}>
               {policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : "-"}

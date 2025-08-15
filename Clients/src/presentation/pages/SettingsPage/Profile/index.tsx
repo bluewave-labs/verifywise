@@ -11,11 +11,6 @@ import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import validator from "validator";
-import {
-  deleteEntityById,
-  getEntityById,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
@@ -29,6 +24,7 @@ import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { deleteUserById, getUserById, updateUserById } from "../../../../application/repository/user.repository";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -92,7 +88,7 @@ const ProfileForm: React.FC = () => {
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        const response = await getEntityById({ routeUrl: `/users/${id}` });
+       const response = await getUserById({ userId: id });
         setFirstname(response.data.name || "");
         setLastname(response.data.surname || "");
         setEmail(response.data.email || "");
@@ -153,9 +149,9 @@ const ProfileForm: React.FC = () => {
         surname: lastname,
         email,
       };
-      const response = await updateEntityById({
-        routeUrl: `/users/${id}`,
-        body: updatedUser,
+        const response = await updateUserById({
+        userId: id,
+        userData: updatedUser,
       });
       console.log(response);
       setAlert({
@@ -286,7 +282,7 @@ const ProfileForm: React.FC = () => {
   const handleDeleteAccount = useCallback(async () => {
     setShowToast(true); // Show toast when request is sent
     try {
-      await deleteEntityById({ routeUrl: `/users/${Number(id)}` });
+      await deleteUserById({ userId: Number(id) });
       //clear all storage
       await localStorage.removeItem("userId");
       await localStorage.removeItem("authToken");

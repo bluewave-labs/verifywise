@@ -1,4 +1,4 @@
-import { Stack, Grid, Typography, useTheme, Autocomplete, Box, TextField } from "@mui/material";
+import { Stack, Typography, useTheme, Autocomplete, Box, TextField } from "@mui/material";
 import Field from "../Inputs/Field";
 import Select from "../Inputs/Select";
 import DatePicker from "../Inputs/Datepicker";
@@ -6,9 +6,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { User } from "../../../domain/types/User";
 import useUsers from "../../../application/hooks/useUsers";
 import { KeyboardArrowDown } from "@mui/icons-material";
-import { useCallback, useEffect, useState } from "react";
-import { getAllTags } from "../../../application/repository/policy.repository";
-import { checkStringValidation } from "../../../application/validations/stringValidation";
+import { useCallback} from "react";
 import { FormErrors } from "./PolicyDetailsModal";
 
 export interface FormData {

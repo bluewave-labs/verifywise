@@ -10,8 +10,8 @@
  *   - `projectRisksSummary` {Object} - The summary of project risks categorized by risk levels.
  */
 import { useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { convertToCamelCaseRiskKey } from "../tools/stringUtil";
+import { getAllProjectRisksByProjectId } from "../repository/projectRisk.repository";
 
 export interface ProjectRisk {
   id: number;
@@ -55,10 +55,10 @@ const useProjectRisks = ({ projectId, refreshKey }: { projectId: number, refresh
     const updateProjectRisks = async () => {
       setLoadingProjectRisks(true);
       try {
-        const response = await getEntityById({
-          routeUrl: `/projectRisks/by-projid/${projectId}`,
-          signal,
-        });
+        const response = await getAllProjectRisksByProjectId({
+        projectId: String(projectId),
+        signal,
+      });
         if (response.data) {
           const filteredProjectRisks = projectId
             ? response.data.filter(

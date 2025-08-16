@@ -16,7 +16,6 @@ import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { styles } from "./styles";
 import {
-  getAllEntities,
   postAutoDrivers,
 } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
@@ -32,6 +31,7 @@ import CustomizableButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
+import { getAllProjects } from "../../../application/repository/project.repository";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -55,7 +55,7 @@ const useProjects = (
   const fetchProjects = ({ controller }: { controller: AbortController }) => {
     if (controller) {
       setIsLoading(true);
-      getAllEntities({ routeUrl: "/projects" })
+       getAllProjects()
         .then(({ data }) => {
           setProjects(data);
           setError(null);

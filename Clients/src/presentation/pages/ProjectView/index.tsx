@@ -11,7 +11,7 @@ import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../application/hooks/useProjectData";
-import { getEntityById } from "../../../application/repository/entity.repository";
+import { getProjectById } from "../../../application/repository/project.repository";
 
 const ProjectView = () => {
   const [searchParams] = useSearchParams();
@@ -56,8 +56,8 @@ const ProjectView = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const project = await getEntityById({
-          routeUrl: `/projects/${projectId}`,
+       const project = await getProjectById({
+          id: projectId,
         });
         setProject(project);
       } catch (error) {

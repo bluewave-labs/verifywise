@@ -15,7 +15,6 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
 import { Suspense, lazy } from "react";
-import { createNewUser } from "../../../application/repository/entity.repository";
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
 const Field = lazy(() => import("../Inputs/Field"));
@@ -32,6 +31,7 @@ import {
 } from "../../../domain/interfaces/iForm";
 import allowedRoles from "../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { createProject } from "../../../application/repository/project.repository";
 
 const initialState: CreateProjectFormValues = {
   project_title: "",
@@ -160,32 +160,31 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     const userInfo = extractUserToken(authState.authToken);
 
     const teamMember = values.members.map((user) => String(user._id));
-    await createNewUser({
-      routeUrl: "/projects",
-      body: {
-        ...values,
-        type_of_high_risk_role: highRiskRoleItems.find(
-          (item) => item._id === values.type_of_high_risk_role
-        )?.name,
-        ai_risk_classification: riskClassificationItems.find(
-          (item) => item._id === values.ai_risk_classification
-        )?.name,
-        last_updated: values.start_date,
-        last_updated_by: userInfo?.id,
-        members: teamMember,
-      },
-    }).then((response) => {
-      // Reset form after successful submission
-      setValues(initialState);
-      setErrors({});
-      closePopup();
-      if (response.status === 201) {
-        onNewProject({
-          isNewProject: true,
-          project: response.data.data.project,
-        });
-      }
-    });
+    await createProject({
+        body: {
+          ...values,
+          type_of_high_risk_role: highRiskRoleItems.find(
+            (item) => item._id === values.type_of_high_risk_role
+          )?.name,
+          ai_risk_classification: riskClassificationItems.find(
+            (item) => item._id === values.ai_risk_classification
+          )?.name,
+          last_updated: values.start_date,
+          last_updated_by: userInfo?.id,
+          members: teamMember,
+        },
+      }).then((response) => {
+        // Reset form after successful submission
+        setValues(initialState);
+        setErrors({});
+        closePopup();
+        if (response.status === 201) {
+          onNewProject({
+            isNewProject: true,
+            project: response.data.data.project,
+          });
+        }
+      });
   };
 
   const riskClassificationItems = useMemo(

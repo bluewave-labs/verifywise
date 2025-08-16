@@ -26,9 +26,8 @@ import selectValidation from "../../../../application/validations/selectValidati
 import Alert from "../../../components/Alert";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import {
-  deleteEntityById,
-  updateEntityById,
   assignFrameworkToProject,
+  deleteEntityById,
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -44,6 +43,7 @@ import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../domain/types/User";
+import { deleteProject, updateProject } from "../../../../application/repository/project.repository";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -627,8 +627,8 @@ const ProjectSettings = React.memo(
         (reg) => reg.name
       );
 
-      await updateEntityById({
-        routeUrl: `/projects/${projectId}`,
+      await updateProject({
+        id: Number(projectId),
         body: {
           id: projectId,
           project_title: values.projectTitle,
@@ -675,8 +675,8 @@ const ProjectSettings = React.memo(
     const handleConfirmDelete = useCallback(async () => {
       setIsLoading(true);
       try {
-        const response = await deleteEntityById({
-          routeUrl: `/projects/${projectId}`,
+        const response = await deleteProject({
+          id: Number(projectId),
         });
         const isError = response.status === 404 || response.status === 500;
         setAlert({

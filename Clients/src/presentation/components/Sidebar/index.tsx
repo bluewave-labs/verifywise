@@ -57,6 +57,16 @@ const menu = [
     name: "Dashboard",
     icon: <Dashboard />,
     path: "/",
+    children: [
+      {
+        name: "Overview",
+        path: "/overview",
+      },
+      {
+        name: "Framework",
+        path: "/framework",
+      },
+    ],
   },
   {
     name: "Vendors",
@@ -198,6 +208,7 @@ const Sidebar = () => {
       py={theme.spacing(6)}
       gap={theme.spacing(6)}
       sx={{
+        height: "100vh",
         border: 1,
         borderColor: theme.palette.border.light,
         borderRadius: theme.shape.borderRadius,
@@ -287,13 +298,228 @@ const Sidebar = () => {
         component="nav"
         aria-labelledby="nested-menu-subheader"
         disablePadding
-        sx={{ px: theme.spacing(8) }}
+        sx={{
+          px: theme.spacing(8),
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          "&::-webkit-scrollbar": {
+            width: "4px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: theme.palette.border.light,
+            borderRadius: "2px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: theme.palette.border.dark,
+          },
+        }}
         data-joyride-id="dashboard-navigation"
         ref={refs[1]}
       >
         {/* Items of the menu */}
         {menu.map((item) =>
-          item.path ? (
+          item.children ? (
+            collapsed ? (
+              <React.Fragment key={item.name}>
+                <Tooltip
+                  sx={{ fontSize: 13 }}
+                  placement="right"
+                  title={collapsed ? item.name : ""}
+                  slotProps={{
+                    popper: {
+                      modifiers: [
+                        {
+                          name: "offset",
+                          options: [0, -16],
+                        },
+                      ],
+                    },
+                  }}
+                  disableInteractive
+                >
+                  <ListItemButton
+                    disableRipple={
+                      theme.components?.MuiListItemButton?.defaultProps
+                        ?.disableRipple
+                    }
+                    className={
+                      Boolean(anchorEl) && popup === item.name
+                        ? "selected-path"
+                        : ""
+                    }
+                    onClick={(event) => openPopup(event, item.name)}
+                    sx={{
+                      position: "relative",
+                      gap: theme.spacing(4),
+                      borderRadius: theme.shape.borderRadius,
+                      px: theme.spacing(4),
+                      backgroundColor:
+                        location.pathname === item.path ||
+                        location.pathname === "/overview" ||
+                        location.pathname === "/framework"
+                          ? "#F9F9F9"
+                          : "transparent",
+                      "&:hover": {
+                        backgroundColor: "#F9F9F9",
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 0 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "fit-content",
+                          height: "fit-content",
+                        }}
+                      >
+                        {item.icon}
+                      </Box>
+                    </ListItemIcon>
+                    <ListItemText>{item.name}</ListItemText>
+                  </ListItemButton>
+                </Tooltip>
+                <Menu
+                  className="sidebar-popup"
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl) && popup === item.name}
+                  onClose={closePopup}
+                  disableScrollLock
+                  anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        mt: theme.spacing(-2),
+                        ml: theme.spacing(1),
+                      },
+                    },
+                  }}
+                  MenuListProps={{ sx: { px: 1, py: 2 } }}
+                  sx={{
+                    ml: theme.spacing(8),
+                    "& .selected-path": {
+                      backgroundColor: theme.palette.background.accent,
+                    },
+                  }}
+                >
+                  {item.children.map((child) => (
+                    <MenuItem
+                      key={child.path}
+                      onClick={() => {
+                        navigate(`${child.path}`);
+                        closePopup();
+                      }}
+                      sx={{
+                        gap: theme.spacing(4),
+                        borderRadius: theme.shape.borderRadius,
+                        pl: theme.spacing(4),
+                        backgroundColor:
+                          location.pathname === child.path
+                            ? theme.palette.background.accent
+                            : "transparent",
+                        "&:hover": {
+                          backgroundColor: theme.palette.background.accent,
+                        },
+                      }}
+                    >
+                      {child.name}
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </React.Fragment>
+            ) : (
+              <React.Fragment key={item.name}>
+                <ListItemButton
+                  disableRipple={
+                    theme.components?.MuiListItemButton?.defaultProps
+                      ?.disableRipple
+                  }
+                  onClick={() =>
+                    setOpen((prev) => ({
+                      ...prev,
+                      [`${item.name}`]: !prev[`${item.name}`],
+                    }))
+                  }
+                  sx={{
+                    gap: theme.spacing(4),
+                    borderRadius: theme.shape.borderRadius,
+                    px: theme.spacing(4),
+                    backgroundColor:
+                      location.pathname === item.path ||
+                      location.pathname === "/overview" ||
+                      location.pathname === "/framework"
+                        ? "#F9F9F9"
+                        : "transparent",
+                    "&:hover": {
+                      backgroundColor: "#F9F9F9",
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "fit-content",
+                        height: "fit-content",
+                      }}
+                    >
+                      {item.icon}
+                    </Box>
+                  </ListItemIcon>
+                  <ListItemText>{item.name}</ListItemText>
+                </ListItemButton>
+                <Collapse in={open[`${item.name}`]} timeout="auto">
+                  <List
+                    component="div"
+                    disablePadding
+                    sx={{ pl: theme.spacing(12) }}
+                  >
+                    {item.children.map((child) => (
+                      <ListItemButton
+                        key={child.path}
+                        disableRipple={
+                          theme.components?.MuiListItemButton?.defaultProps
+                            ?.disableRipple
+                        }
+                        className={
+                          location.pathname === child.path
+                            ? "selected-path"
+                            : "unselected"
+                        }
+                        onClick={() => navigate(`${child.path}`)}
+                        sx={{
+                          height: "37px",
+                          gap: theme.spacing(4),
+                          borderRadius: theme.shape.borderRadius,
+                          px: theme.spacing(4),
+                          my: theme.spacing(1),
+                          backgroundColor:
+                            location.pathname === child.path
+                              ? "#F9F9F9"
+                              : "transparent",
+                          "&:hover": {
+                            backgroundColor: "#F9F9F9",
+                          },
+                        }}
+                      >
+                        <ListItemText>{child.name}</ListItemText>
+                      </ListItemButton>
+                    ))}
+                  </List>
+                </Collapse>
+              </React.Fragment>
+            )
+          ) : item.path ? (
             <Tooltip
               sx={{ fontSize: 13 }}
               key={item.path}
@@ -345,108 +571,7 @@ const Sidebar = () => {
                 <ListItemText>{item.name}</ListItemText>
               </ListItemButton>
             </Tooltip>
-          ) : collapsed ? (
-            <React.Fragment key={item.name}>
-              <Tooltip
-                sx={{ fontSize: 13 }}
-                placement="right"
-                title={collapsed ? item.name : ""}
-                slotProps={{
-                  popper: {
-                    modifiers: [
-                      {
-                        name: "offset",
-                        options: [0, -16],
-                      },
-                    ],
-                  },
-                }}
-                disableInteractive
-              >
-                <ListItemButton
-                  disableRipple={
-                    theme.components?.MuiListItemButton?.defaultProps
-                      ?.disableRipple
-                  }
-                  className={
-                    Boolean(anchorEl) && popup === item.name
-                      ? "selected-path"
-                      : ""
-                  }
-                  onClick={(event) => openPopup(event, item.name)}
-                  sx={{
-                    position: "relative",
-                    gap: theme.spacing(4),
-                    borderRadius: theme.shape.borderRadius,
-                    px: theme.spacing(4),
-                    backgroundColor:
-                      location.pathname === item.path
-                        ? "#F9F9F9"
-                        : "transparent",
-
-                    "&:hover": {
-                      backgroundColor: "#F9F9F9",
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-                  <ListItemText>{item.name}</ListItemText>
-                </ListItemButton>
-              </Tooltip>
-              <Menu
-                className="sidebar-popup"
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl) && popup === item.name}
-                onClose={closePopup}
-                disableScrollLock
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      mt: theme.spacing(-2),
-                      ml: theme.spacing(1),
-                    },
-                  },
-                }}
-                MenuListProps={{ sx: { px: 1, py: 2 } }}
-                sx={{
-                  ml: theme.spacing(8),
-                  "& .selected-path": {
-                    backgroundColor: theme.palette.background.accent,
-                  },
-                }}
-              ></Menu>
-            </React.Fragment>
-          ) : (
-            <React.Fragment key={item.name}>
-              <ListItemButton
-                onClick={() =>
-                  setOpen((prev) => ({
-                    ...prev,
-                    [`${item.name}`]: !prev[`${item.name}`],
-                  }))
-                }
-                sx={{
-                  gap: theme.spacing(4),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(4),
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-                <ListItemText>{item.name}</ListItemText>
-              </ListItemButton>
-              <Collapse in={open[`${item.name}`]} timeout="auto">
-                <List
-                  component="div"
-                  disablePadding
-                  sx={{ pl: theme.spacing(12) }}
-                ></List>
-              </Collapse>
-            </React.Fragment>
-          )
+          ) : null
         )}
       </List>
       <Divider sx={{ my: theme.spacing(4) }} />
@@ -454,7 +579,10 @@ const Sidebar = () => {
       <List
         component={"nav"}
         aria-labelledby="nested-other-subheader"
-        sx={{ px: theme.spacing(8) }}
+        sx={{
+          px: theme.spacing(8),
+          flexShrink: 0,
+        }}
       >
         {other.map((item) => (
           <Tooltip
@@ -514,9 +642,9 @@ const Sidebar = () => {
           sx={{
             display: "flex",
             flexDirection: "column",
-            height: "100%",
             justifyContent: "flex-end",
             alignItems: "center",
+            flexShrink: 0,
           }}
         >
           <ReadyToSubscribeBox />
@@ -531,6 +659,7 @@ const Sidebar = () => {
         px={theme.spacing(8)}
         gap={theme.spacing(2)}
         borderRadius={theme.shape.borderRadius}
+        sx={{ flexShrink: 0 }}
       >
         {collapsed ? (
           <>

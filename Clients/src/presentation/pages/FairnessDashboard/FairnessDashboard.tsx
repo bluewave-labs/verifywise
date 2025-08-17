@@ -18,6 +18,7 @@ import {
   DialogContent,
   IconButton,
 } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
@@ -246,6 +247,7 @@ export default function FairnessDashboard() {
 
   return (
     <Stack className="vwhome" gap="20px">
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

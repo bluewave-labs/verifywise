@@ -100,7 +100,7 @@ export const createRoutes = (
     element={<ProtectedRoute Component={ResetPasswordContinue} />}
   />,
   <Route key="playground" path="/playground" element={<Playground />} />,
-  <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
+  // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,
   <Route key="aiTrustCentrepublic" path="/aiTrustCentre/:hash" element={<AITrustCentrePublic />} />,
   <Route key="not-found" path="*" element={<PageNotFound />} />,
 ];

@@ -25,8 +25,8 @@ const AITrustCentrePublic: React.FC = () => {
   const params = useParams();
 
   useEffect(() => {
-    const hash = "a4ayc80OGd";
-    setHash(hash || null);
+    const hash = params.hash || null;
+    setHash(hash);
   }, [params]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => setTabValue(newValue);

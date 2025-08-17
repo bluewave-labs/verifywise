@@ -1,4 +1,5 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -56,7 +57,7 @@ const ProjectView = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-       const project = await getProjectById({
+        const project = await getProjectById({
           id: projectId,
         });
         setProject(project);
@@ -87,6 +88,7 @@ const ProjectView = () => {
 
   return (
     <Stack>
+      <PageBreadcrumbs />
       {noProject ? (
         //no project found template
         <Box

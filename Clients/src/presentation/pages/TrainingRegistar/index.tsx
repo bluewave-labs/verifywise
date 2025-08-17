@@ -6,6 +6,7 @@ import React, {
   Suspense,
 } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import CustomizableButton from "../../vw-v2-components/Buttons";
@@ -25,7 +26,7 @@ import { createTraining } from "../../../application/repository/trainingregistar
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
-import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw"; 
+import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -190,6 +191,7 @@ const Training: React.FC = () => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

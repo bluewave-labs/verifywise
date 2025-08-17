@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, forwardRef } from "react";
 import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
@@ -10,9 +11,8 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
-import HelperDrawer  from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import evidencesHelpContent from "../../../presentation/helpers/evidences-help.html?raw";
-
 
 const COLUMN_NAMES = [
   "File",
@@ -50,16 +50,15 @@ const FileManager: React.FC = (): JSX.Element => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
-   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Fetch projects for the dropdown
-  const {
-    projects,
-    loading: loadingProjects,
-  } = useProjects();
+  const { projects, loading: loadingProjects } = useProjects();
 
   // State for selected project
-  const [selectedProject, setSelectedProject] = useState<string | number | null>("all");
+  const [selectedProject, setSelectedProject] = useState<
+    string | number | null
+  >("all");
 
   // Fetch files based on selected project
   const { filesData, loading: loadingFiles } = useUserFilesMetaData();
@@ -89,6 +88,7 @@ const FileManager: React.FC = (): JSX.Element => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
       <PageTour
         steps={FileSteps}
         run={runFileTour}

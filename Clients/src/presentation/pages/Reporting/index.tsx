@@ -1,5 +1,6 @@
 import { Suspense, lazy, useState, useCallback } from "react";
 import { Stack, Box } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 const GenerateReport = lazy(() => import("./GenerateReport"));
 const ReportLists = lazy(() => import("./Reports"));
 const ReportingHeader = lazy(
@@ -20,6 +21,7 @@ const Reporting = () => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

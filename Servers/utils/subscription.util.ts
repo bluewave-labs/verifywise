@@ -10,6 +10,15 @@ export async function getSubscription(): Promise<SubscriptionModel[]> {
   return subscription;
 }
 
+export async function getSubscriptionById(id: number): Promise<SubscriptionModel> {
+  const subscription = await sequelize.query(`SELECT * FROM subscriptions WHERE id = :id`, {
+    replacements: { id },
+    mapToModel: true,
+    model: SubscriptionModel,
+  });
+  return subscription[0];
+}
+
 export async function createSubscription(
   subscription: Omit<SubscriptionModel, "id">,
   transaction: Transaction

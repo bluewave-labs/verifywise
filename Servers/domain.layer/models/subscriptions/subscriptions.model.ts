@@ -76,8 +76,6 @@ export class SubscriptionModel
     subscriptionModel.status = subscription.status;
     subscriptionModel.start_date = subscription.start_date;
     subscriptionModel.end_date = subscription.end_date;
-    subscriptionModel.created_at = subscription.created_at;
-    subscriptionModel.updated_at = subscription.updated_at;
     return subscriptionModel;
   }
 

@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5bf188d7-9d3b-4835-94c9-885c17da28d3" name="Changes" comment="Add a Breadcrumbs component with auto-generation support and reusable route mappings across the application. Introduce repository functions for managing projects, roles, subcontrols, controls, and related entities.">
+      <change beforePath="$PROJECT_DIR$/Clients/src/application/hooks/useProjectStatus.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Clients/src/application/hooks/useProjectStatus.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Clients/src/presentation/components/Sidebar/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Clients/src/presentation/components/Sidebar/index.tsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;solan117&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/solan117/verifywise.git&quot;,
+    &quot;accountId&quot;: &quot;78cfb08a-d6c6-4fd2-b931-8482c1c90c77&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="316RrAwMck2T2ezAAYiZiLFeDVb" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "ks-002-aug-17-Back-To-Dashboard-Button",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/VerifyWise",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "C:\\Users\\Karan\\AppData\\Roaming\\JetBrains\\IntelliJIdea2024.3\\node\\versions\\20.15.0\\node_modules\\prettier",
+    "settings.editor.selected.configurable": "preferences.editor",
+    "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.3.5\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="ReactDesignerToolWindowState">
+    <option name="myId2Visible">
+      <map>
+        <entry key="com.intellij.reactbuddy.reactComponents" value="false" />
+        <entry key="com.intellij.reactbuddy.reactInspector" value="false" />
+        <entry key="com.intellij.reactbuddy.storybook" value="false" />
+      </map>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="DjangoTestsConfigurationType">
+      <module name="VerifyWise" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="TARGET" value="" />
+      <option name="SETTINGS_FILE" value="" />
+      <option name="CUSTOM_SETTINGS" value="false" />
+      <option name="USE_OPTIONS" value="false" />
+      <option name="OPTIONS" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="VerifyWise" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="VerifyWise" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="VerifyWise" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Python.FlaskServer">
+      <module name="VerifyWise" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <module name="VerifyWise" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.23892.409" />
+        <option value="bundled-js-predefined-d6986cc7102b-e03c56caf84a-JavaScript-IU-252.23892.409" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5bf188d7-9d3b-4835-94c9-885c17da28d3" name="Changes" comment="" />
+      <created>1754842732387</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1754842732387</updated>
+      <workItem from="1754842733879" duration="368000" />
+      <workItem from="1754843173980" duration="3369000" />
+      <workItem from="1754847949578" duration="147000" />
+      <workItem from="1754862045360" duration="774000" />
+      <workItem from="1754924205456" duration="1676000" />
+      <workItem from="1754927196312" duration="4968000" />
+      <workItem from="1754967638681" duration="189000" />
+      <workItem from="1755022517408" duration="104000" />
+      <workItem from="1755034005951" duration="2014000" />
+      <workItem from="1755118500303" duration="7594000" />
+      <workItem from="1755203966157" duration="3000" />
+      <workItem from="1755224309461" duration="1355000" />
+      <workItem from="1755286090759" duration="35000" />
+      <workItem from="1755292534061" duration="10661000" />
+      <workItem from="1755310448240" duration="955000" />
+      <workItem from="1755311554330" duration="979000" />
+      <workItem from="1755366817246" duration="431000" />
+      <workItem from="1755367511976" duration="3188000" />
+      <workItem from="1755381509398" duration="3000" />
+      <workItem from="1755459869304" duration="5365000" />
+    </task>
+    <task id="LOCAL-00001" summary="Refactor the Reporting page to simplify structure by removing tabs and optimized styling.">
+      <option name="closed" value="true" />
+      <created>1755126689255</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1755126689255</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Remove unused tab-related styles from Reporting page styles.">
+      <option name="closed" value="true" />
+      <created>1755224748703</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1755224748703</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add back button to Project View with navigation to Dashboard and define its styles.">
+      <option name="closed" value="true" />
+      <created>1755305065541</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1755305065541</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Add a Breadcrumbs component with auto-generation support and reusable route mappings across the application. Introduce repository functions for managing projects, roles, subcontrols, controls, and related entities.">
+      <option name="closed" value="true" />
+      <created>1755461625202</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1755461625202</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/Clients/src/domain/types/Event.js" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="37386372-5231-4e3a-8137-db00451a5895" value="TOOL_WINDOW" />
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="37386372-5231-4e3a-8137-db00451a5895">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Refactor the Reporting page to simplify structure by removing tabs and optimized styling." />
+    <MESSAGE value="Remove unused tab-related styles from Reporting page styles." />
+    <MESSAGE value="Add back button to Project View with navigation to Dashboard and define its styles." />
+    <MESSAGE value="Merge branch 'develop' of https://github.com/bluewave-labs/verifywise into 003-Aug-16-Back-To-Dashboard-Button&#10;&#10;# Conflicts:&#10;#&#9;Clients/src/presentation/pages/ProjectView/V1.0ProjectView/index.tsx&#10;" />
+    <MESSAGE value="Add a Breadcrumbs component with auto-generation support and reusable route mappings across the application. Introduce repository functions for managing projects, roles, subcontrols, controls, and related entities." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add a Breadcrumbs component with auto-generation support and reusable route mappings across the application. Introduce repository functions for managing projects, roles, subcontrols, controls, and related entities." />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

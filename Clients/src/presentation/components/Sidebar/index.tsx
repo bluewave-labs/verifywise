@@ -57,6 +57,7 @@ const menu = [
     name: "Dashboard",
     icon: <Dashboard />,
     path: "/",
+    highlightPaths: ["/project-view"],
   },
   {
     name: "Vendors",
@@ -319,10 +320,11 @@ const Sidebar = () => {
                     ?.disableRipple
                 }
                 className={
-                  location.pathname === item.path ||
-                  customMenuHandler() === item.path
-                    ? "selected-path"
-                    : "unselected"
+                    location.pathname === item.path ||
+                    (item.highlightPaths?.some(p => location.pathname.startsWith(p))) ||
+                    customMenuHandler() === item.path
+                        ? "selected-path"
+                        : "unselected"
                 }
                 onClick={() => navigate(`${item.path}`)}
                 sx={{

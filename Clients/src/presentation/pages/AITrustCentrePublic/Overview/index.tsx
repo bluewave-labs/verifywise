@@ -10,19 +10,18 @@ const Overview = ({
   loading,
   error,
   onShowAllResources,
+  hash
 }: {
   data: any;
   loading: boolean;
   error: string | null;
   onShowAllResources: () => void;
+  hash: string | null;
 }) => {
-  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
-  const userToken = extractUserToken(authToken);
-  const tenantHash = userToken?.tenantId;
 
   const handleDownload = async (id: string) => {
-    if (tenantHash) {
-      await downloadResource(id, tenantHash);
+    if (hash) {
+      await downloadResource(id, hash);
     }
   };
 

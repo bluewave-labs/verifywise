@@ -39,7 +39,7 @@ const AITrustCenter: React.FC = () => {
         return;
       }
       // Open the public page in a new tab
-      const publicUrl = `${window.location.origin}/public`;
+      const publicUrl = `${window.location.origin}/aiTrustCentre/${tenantHash}`;
       window.open(publicUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Error opening preview:', error);

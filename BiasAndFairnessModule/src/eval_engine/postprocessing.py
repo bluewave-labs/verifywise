@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from .config import ConfigManager
+from ..core.config import ConfigManager
 
 
 class PostProcessor:

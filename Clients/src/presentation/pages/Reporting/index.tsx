@@ -1,7 +1,6 @@
-import { Suspense, SyntheticEvent, lazy, useState } from "react";
-import { Stack, Tab, Box } from "@mui/material";
-import { TabContext, TabPanel, TabList } from "@mui/lab";
-import { tabStyle, tabPanelStyle } from "../Vendors/style";
+import { Suspense, lazy, useState, useCallback } from "react";
+import { Stack, Box } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 const GenerateReport = lazy(() => import("./GenerateReport"));
 const ReportLists = lazy(() => import("./Reports"));
 const ReportingHeader = lazy(
@@ -12,62 +11,41 @@ import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import reportingHelpContent from "../../../presentation/helpers/reporting-help.html?raw";
 
 const Reporting = () => {
-  const [value, setValue] = useState<string>("generate");
-
-  const handleTabChange = (_: SyntheticEvent, newValue: string) => {
-    setValue(newValue);
-  };
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleReportGenerated = useCallback(() => {
+    // Increment refresh key to trigger re-render of Reports component
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
   return (
     <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         helpContent={reportingHelpContent}
         pageTitle="Reporting Dashboard"
       />
+
       <Suspense fallback={"loading..."}>
         <ReportingHeader
           titlesx={styles.vwHeadingTitle}
           subsx={styles.vwSubHeadingTitle}
         />
       </Suspense>
+
       <Stack>
-        <TabContext value={value}>
-          <Box sx={styles.tabDivider}>
-            <TabList
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={styles.tabList}
-              onChange={handleTabChange}
-            >
-              <Tab
-                sx={tabStyle}
-                label="Generate a report"
-                value="generate"
-                disableRipple
-              />
-              <Tab
-                sx={tabStyle}
-                label="Reports generated"
-                value="reports"
-                disableRipple
-              />
-            </TabList>
-          </Box>
-          <TabPanel value="generate" sx={tabPanelStyle}>
-            {/* Render generate view */}
-            <Suspense fallback={"loading..."}>
-              <GenerateReport />
-            </Suspense>
-          </TabPanel>
-          <TabPanel value="reports" sx={tabPanelStyle}>
-            {/* Render a report view */}
-            <Suspense fallback={"loading..."}>
-              <ReportLists />
-            </Suspense>
-          </TabPanel>
-        </TabContext>
+        <Box sx={styles.reportButtonContainer}>
+          <Suspense fallback={"loading..."}>
+            <GenerateReport onReportGenerated={handleReportGenerated} />
+          </Suspense>
+        </Box>
+
+        <Suspense fallback={"loading..."}>
+          <ReportLists refreshKey={refreshKey} />
+        </Suspense>
       </Stack>
     </Stack>
   );

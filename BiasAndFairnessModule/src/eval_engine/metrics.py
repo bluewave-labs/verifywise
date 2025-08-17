@@ -529,3 +529,93 @@ def balance_negative_class(
         sensitive_features=sensitive_features_array,
     )
     return metric_frame
+
+
+# Utility function for Fairness Compass Engine compatibility
+# This function converts any metric result to a simple float value
+
+def convert_metric_to_float(metric_result, metric_name: str = "unknown") -> float:
+    """
+    Convert any metric result to a simple float value for the Fairness Compass Engine.
+    
+    Args:
+        metric_result: The result from any metric function
+        metric_name: Name of the metric for error reporting
+        
+    Returns:
+        float: Simple float value representing the metric
+        
+    Raises:
+        ValueError: If the metric result cannot be converted to a float
+    """
+    # If already a float, return as is
+    if isinstance(metric_result, (int, float)):
+        return float(metric_result)
+    
+    # Handle MetricFrame objects (from Fairlearn)
+    if hasattr(metric_result, 'by_group'):
+        group_values = metric_result.by_group.values
+        if len(group_values) >= 2:
+            # Calculate difference between max and min values
+            return float(max(group_values) - min(group_values))
+        else:
+            return 0.0
+    
+    # Handle dictionaries (like equal_selection_parity)
+    if isinstance(metric_result, dict):
+        if not metric_result:  # Empty dict
+            return 0.0
+        
+        # For equal_selection_parity: convert counts to selection rates
+        if metric_name == "equal_selection_parity":
+            # This is a special case - we need to know the total samples
+            # For now, return the count difference as a proxy
+            counts = list(metric_result.values())
+            if len(counts) >= 2:
+                return float(max(counts) - min(counts))
+            else:
+                return 0.0
+        else:
+            # For other dict metrics, try to extract numeric values
+            values = [v for v in metric_result.values() if isinstance(v, (int, float))]
+            if len(values) >= 2:
+                return float(max(values) - min(values))
+            else:
+                return 0.0
+    
+    # Handle lists of dictionaries (like conditional_statistical_parity)
+    if isinstance(metric_result, list) and metric_result:
+        if isinstance(metric_result[0], dict) and "disparity" in metric_result[0]:
+            # Extract maximum disparity from the list
+            disparities = [item.get("disparity", 0.0) for item in metric_result]
+            return float(max(disparities))
+        else:
+            # Try to convert list items to floats
+            try:
+                float_values = [float(item) for item in metric_result if isinstance(item, (int, float))]
+                if len(float_values) >= 2:
+                    return float(max(float_values) - min(float_values))
+                else:
+                    return 0.0
+            except (ValueError, TypeError):
+                pass
+    
+    # Handle named tuples (like conditional_use_accuracy_equality)
+    if hasattr(metric_result, '_fields'):  # NamedTuple
+        # Extract numeric values from the named tuple
+        numeric_values = []
+        for field_value in metric_result:
+            if hasattr(field_value, 'by_group'):
+                group_vals = field_value.by_group.values
+                if len(group_vals) >= 2:
+                    numeric_values.append(float(max(group_vals) - min(group_vals)))
+            elif isinstance(field_value, (int, float)):
+                numeric_values.append(float(field_value))
+        
+        if numeric_values:
+            return float(max(numeric_values))
+        else:
+            return 0.0
+    
+    # If we can't convert, raise an error
+    raise ValueError(f"Cannot convert metric '{metric_name}' result of type {type(metric_result)} to float")

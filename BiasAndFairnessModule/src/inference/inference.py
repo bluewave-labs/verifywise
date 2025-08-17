@@ -3,10 +3,11 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 import pandas as pd
 from tqdm import tqdm
+import pandas as pd
 
-from .config import ConfigManager
-from .data_loader import DataLoader
-from .model_loader import ModelLoader
+from ..core.config import ConfigManager
+from ..dataset_loader.data_loader import DataLoader
+from ..model_loader.model_loader import ModelLoader
 
 
 class ModelInferencePipeline:
@@ -167,6 +168,10 @@ class ModelInferencePipeline:
             # Add predictions to samples
             for sample, prediction in zip(batch, predictions):
                 sample["prediction"] = prediction
+                sample["model_name"] = self.model_loader.model_config.model_id
+                sample["subgroup_info"] = sample["protected_attributes"]
+                sample["output"] = prediction
+                sample["timestamp"] = pd.Timestamp.now().isoformat()
                 results.append(sample)
         if auto_save:
             self.save_inference_results(results)

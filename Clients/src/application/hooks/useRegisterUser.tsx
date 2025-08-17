@@ -1,7 +1,7 @@
-import { createNewUser } from "../repository/entity.repository";
 import { logEngine } from "../tools/log.engine";
 import { FormValues } from "../validations/formValidation";
 import { API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
+import { createNewUser } from "../repository/user.repository";
 
 interface User {
   id: string;
@@ -40,9 +40,8 @@ const useRegisterUser = () => {
     setIsSubmitting: (value: boolean) => void;
   }) => {
     try {
-      const response = await createNewUser({
-        routeUrl: "/users/register",
-        body: { ...values, role_id: user.roleId || 1 },
+       const response = await createNewUser({
+        userData: { ...values, role_id: user.roleId || 1 },
       });
       handleApiResponse({ response, user, setIsSubmitting });
       return {

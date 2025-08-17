@@ -169,7 +169,7 @@ class ConfigManager:
                 relative to the module root.
         """
         if config_path is None:
-            module_root = Path(__file__).parent.parent
+            module_root = Path(__file__).parent.parent.parent
             config_path = str(module_root / "configs" / "config.yaml")
 
         self.config_path = config_path

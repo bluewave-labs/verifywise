@@ -1,8 +1,10 @@
 export const styles = {
   tableContainer: {
-    pt: "1rem"
-  }
-}
+    pt: "1rem",
+    transition: "opacity 0.3s ease-in-out",
+    opacity: 1,
+  },
+};
 
 export const reportTablePlaceholder = {
   width: "100%",

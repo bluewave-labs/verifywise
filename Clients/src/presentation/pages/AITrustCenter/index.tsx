@@ -1,21 +1,22 @@
 import React, { useState } from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import Tab from '@mui/material/Tab';
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
+import Tab from "@mui/material/Tab";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
 import AITrustCenterSettings from "./Settings";
 import AITrustCenterOverview from "./Overview";
-import { 
-  aiTrustCenterHeaderTitle, 
-  aiTrustCenterHeaderDesc, 
-  aiTrustCenterTabStyle, 
-  aiTrustCenterTabPanelStyle, 
+import {
+  aiTrustCenterHeaderTitle,
+  aiTrustCenterHeaderDesc,
+  aiTrustCenterTabStyle,
+  aiTrustCenterTabPanelStyle,
   aiTrustCenterTabListStyle,
-  aiTrustCenterPreviewButtonStyle
+  aiTrustCenterPreviewButtonStyle,
 } from "./styles";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { extractUserToken } from "../../../application/tools/extractToken";
@@ -24,30 +25,34 @@ import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import aiTrustCenterHelpContent from "../../../presentation/helpers/ai-trust-center-help.html?raw";
 
 const AITrustCenter: React.FC = () => {
-  const [tabValue, setTabValue] = React.useState('overview');
-  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => setTabValue(newValue);
-  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
+  const [tabValue, setTabValue] = React.useState("overview");
+  const handleTabChange = (_: React.SyntheticEvent, newValue: string) =>
+    setTabValue(newValue);
+  const authToken = useSelector(
+    (state: { auth: { authToken: string } }) => state.auth.authToken
+  );
   const userToken = extractUserToken(authToken);
   const tenantHash = userToken?.tenantId;
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-  
+
   const handlePreviewMode = () => {
     try {
       if (!tenantHash) {
-        console.error('Tenant hash not found in token');
+        console.error("Tenant hash not found in token");
         return;
       }
       // Open the public page in a new tab
       const publicUrl = `${window.location.origin}/aiTrustCentre/${tenantHash}`;
       window.open(publicUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      console.error('Error opening preview:', error);
+      console.error("Error opening preview:", error);
     }
   };
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -125,4 +130,4 @@ const AITrustCenter: React.FC = () => {
   );
 };
 
-export default AITrustCenter; 
+export default AITrustCenter;

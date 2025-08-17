@@ -6,6 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -312,6 +313,7 @@ const ModelInventory: React.FC = () => {
 
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

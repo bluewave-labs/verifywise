@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Stack, Typography, Link, CircularProgress } from "@mui/material";
 import axios from "axios";
+import { ENV_VARs } from "../../../../../../env.vars";
 
 interface AITrustCentreHeaderProps {
   data: any;
@@ -13,7 +14,7 @@ const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data, hash}) =
   React.useEffect(() => {
     if (!hash) return;
     setLoading(true);
-    axios.get(`http://localhost:3000/api/aiTrustCentre/${hash}/logo`)
+    axios.get(`${ENV_VARs.URL}/api/aiTrustCentre/${hash}/logo`)
       .then((response) => {
         // Extract the buffer and type
         const logoData = response?.data?.data?.logo;

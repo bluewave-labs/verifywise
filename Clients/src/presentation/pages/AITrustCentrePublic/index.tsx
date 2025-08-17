@@ -15,6 +15,7 @@ import {
 import AITrustCentreHeader from "./Components/Header/AITrustCentreHeader";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { ENV_VARs } from "../../../../env.vars";
 
 const AITrustCentrePublic: React.FC = () => {
   const [tabValue, setTabValue] = React.useState("overview");
@@ -35,7 +36,7 @@ const AITrustCentrePublic: React.FC = () => {
     if (!hash) return;
     setLoading(true);
     setError(null);
-    axios.get(`http://localhost:3000/api/aiTrustCentre/${hash}`)
+    axios.get(`${ENV_VARs.URL}/api/aiTrustCentre/${hash}`)
       .then((response) => {
         if (response?.data) {
           setData(response?.data?.data?.trustCentre);

@@ -11,8 +11,6 @@ import {
   Box
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { useSelector } from 'react-redux';
-import { extractUserToken } from '../../../../application/tools/extractToken';
 import { downloadResource } from '../../../../application/tools/downloadResource';
 import { aiTrustCenterTableCell } from '../style';
 

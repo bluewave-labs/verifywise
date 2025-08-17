@@ -1,8 +1,6 @@
 import { Box, Paper, Typography, Stack, Button } from "@mui/material";
-import { useSelector } from 'react-redux';
 import CustomTextField from "../Components/CustomTextField/CustomTextField";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import { extractUserToken } from "../../../../application/tools/extractToken";
 import { downloadResource } from "../../../../application/tools/downloadResource";
 
 const Overview = ({

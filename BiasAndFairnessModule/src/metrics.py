@@ -27,12 +27,6 @@ def _balance_for_negative_class_metric(y_t: np.ndarray, y_p: np.ndarray) -> floa
     return float(np.mean(y_p[mask])) if np.any(mask) else float("nan")
 
 
-# Result type for conditional use accuracy equality
-class ConditionalUseAccuracyResult(NamedTuple):
-    npv: MetricFrame
-    ppv: MetricFrame
-
-
 @register_metric("equal_selection_parity")
 def equal_selection_parity(
     y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray

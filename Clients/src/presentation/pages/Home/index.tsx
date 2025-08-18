@@ -10,7 +10,6 @@ import React, {
   useCallback,
   useMemo,
   FC,
-  useContext,
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -24,7 +23,6 @@ import {
 } from "../../../application/hooks/useProjectStatus";
 import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import CreateDemoData from "../../components/CreateDemoData";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
@@ -113,8 +111,12 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     newProjectData,
     () => setIsNewProjectCreate(false)
   );
-  const { projectStatus, loadingProjectStatus, errorFetchingProjectStatus } =
-    useContext(VerifyWiseContext);
+  
+  const authToken = useSelector((state: AppState) => state.auth.authToken);
+  const userToken = extractUserToken(authToken);
+  const userId = userToken?.id ? parseInt(userToken.id) : null;
+  const { projectStatus, loading: loadingProjectStatus, error: errorFetchingProjectStatus } =
+    useProjectStatus({ userId });
 
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [openDemoDataModal, setOpenDemoDataModal] = useState(false);

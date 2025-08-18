@@ -57,7 +57,7 @@ export const getAllFrameworkByIdQuery = async (
   return framework;
 };
 
-export const addFrameworkToProjectQuery = async (
+const checkFrameworkExistsQuery = async (
   frameworkId: number,
   projectId: number,
   tenant: string,
@@ -69,6 +69,46 @@ export const addFrameworkToProjectQuery = async (
   )) as [[{ exists: boolean }], number];
   if (exists) {
     return false; // Framework already added
+  }
+  return true; // Framework can be added
+}
+
+export const canAddFrameworkToProjectQuery = async (
+  frameworkId: number,
+  projectId: number,
+  tenant: string,
+  transaction: Transaction
+): Promise<boolean> => {
+  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
+  if (exists) {
+    return false; // Framework already added
+  }
+
+  const [[{ is_framework_organizational }]] = (await sequelize.query(
+    `SELECT is_organizational AS is_framework_organizational FROM "${tenant}".frameworks WHERE id = :frameworkId;`,
+    { replacements: { frameworkId }, transaction }
+  )) as [[{ is_framework_organizational: boolean }], number];
+  const [[{ is_project_organizational }]] = (await sequelize.query(
+    `SELECT is_organizational AS is_project_organizational FROM "${tenant}".projects WHERE id = :projectId;`,
+    { replacements: { projectId }, transaction }
+  )) as [[{ is_project_organizational: boolean }], number];
+
+  if (is_framework_organizational !== is_project_organizational) {
+    return false; // Cannot add organizational framework to non-organizational project
+  }
+
+  return true; // Framework can be added
+}
+
+export const addFrameworkToProjectQuery = async (
+  frameworkId: number,
+  projectId: number,
+  tenant: string,
+  transaction: Transaction
+): Promise<boolean> => {
+  const canAdd = await canAddFrameworkToProjectQuery(frameworkId, projectId, tenant, transaction);
+  if (!canAdd) {
+    return false;
   }
 
   const frameworkAdditionFunction = frameworkAdditionMap[frameworkId];
@@ -110,10 +150,7 @@ export const deleteFrameworkFromProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const [[{ exists }]] = (await sequelize.query(
-    `SELECT EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
-    { replacements: { projectId, frameworkId }, transaction }
-  )) as [[{ exists: boolean }], number];
+  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
   if (!exists) {
     return false; // Framework not found in the project
   }

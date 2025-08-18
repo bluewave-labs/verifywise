@@ -18,7 +18,9 @@ export interface File {
     | "Assessment tracker group"
     | "Compliance tracker group"
     | "Management system clauses group"
-    | "Reference controls group";
+    | "Reference controls group"
+    | "Main clauses group"
+    | "Annex controls group";
 }
 
 export interface FileType {
@@ -32,7 +34,9 @@ export interface FileType {
     | "Assessment tracker group"
     | "Compliance tracker group"
     | "Management system clauses group"
-    | "Reference controls group";
+    | "Reference controls group"
+    | "Main clauses group"
+    | "Annex controls group";
 }
 
 @Table({
@@ -78,14 +82,18 @@ export class FileModel extends Model<File> {
       "Assessment tracker group",
       "Compliance tracker group",
       "Management system clauses group",
-      "Reference controls group"
+      "Reference controls group",
+      "Main clauses group",
+      "Annex controls group"
     ),
   })
   source!:
     | "Assessment tracker group"
     | "Compliance tracker group"
     | "Management system clauses group"
-    | "Reference controls group";
+    | "Reference controls group"
+    | "Main clauses group"
+    | "Annex controls group";
 
   @Column({
     type: DataType.STRING,

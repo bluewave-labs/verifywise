@@ -1,4 +1,5 @@
-import { getEntityById, generateReport } from "../repository/entity.repository";
+import { generateReport } from "../repository/entity.repository";
+import { getFileById } from "../repository/file.repository";
 
 interface GenerateReportProps {
   projectId: number | null;
@@ -12,8 +13,8 @@ interface GenerateReportProps {
 
 export const handleDownload = async (fileId: string, fileName: string) => {
   try {
-    const response = await getEntityById({
-      routeUrl: `/files/${fileId}`,
+   const response = await getFileById({
+      id: typeof fileId === 'string' ? fileId : String(fileId),
       responseType: "blob",
     });
     const blob = new Blob([response], { type: response.type });

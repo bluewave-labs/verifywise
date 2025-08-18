@@ -31,6 +31,7 @@ function mapReportTypeToFileSource(
   | "Assessment tracker report"
   | "Vendors and risks report"
   | "Clauses and annexes report"
+  | "ISO 27001 report"
   | "All reports" {
   // These values must match the enum_files_source in the database
   switch (reportType) {

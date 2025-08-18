@@ -38,8 +38,9 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
+    allowNull: false,
   })
-  assignee_id?: number;
+  creator_id!: number;
 
   @Column({
     type: DataType.DATE,
@@ -69,12 +70,6 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   categories?: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  })
-
-  @Column({
     type: DataType.DATE,
     allowNull: false,
   })
@@ -90,7 +85,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     const taskModel = new TasksModel();
     taskModel.title = task.title;
     taskModel.description = task.description;
-    taskModel.assignee_id = task.assignee_id;
+    taskModel.creator_id = task.creator_id;
     taskModel.due_date = task.due_date;
     taskModel.priority = task.priority;
     taskModel.status = task.status;
@@ -101,7 +96,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   async updateTask(updateData: {
     title?: string;
     description?: string;
-    assignee_id?: number;
+    creator_id?: number;
     due_date?: Date;
     priority?: TaskPriority;
     status?: TaskStatus;
@@ -114,8 +109,8 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     if (updateData.description !== undefined) {
       this.description = updateData.description;
     }
-    if (updateData.assignee_id !== undefined) {
-      this.assignee_id = updateData.assignee_id;
+    if (updateData.creator_id !== undefined) {
+      this.creator_id = updateData.creator_id;
     }
     if (updateData.due_date !== undefined) {
       this.due_date = updateData.due_date;
@@ -148,7 +143,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       id: this.id,
       title: this.title,
       description: this.description,
-      assignee_id: this.assignee_id,
+      creator_id: this.creator_id,
       due_date: this.due_date?.toISOString(),
       priority: this.priority,
       status: this.status,
@@ -166,7 +161,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       id: this.id,
       title: this.title,
       description: this.description,
-      assignee_id: this.assignee_id,
+      creator_id: this.creator_id,
       due_date: this.due_date?.toISOString(),
       priority: this.priority,
       status: this.status,

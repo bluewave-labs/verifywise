@@ -5,7 +5,7 @@ export interface ITask {
   id?: number;
   title: string;
   description?: string;
-  assignee_id?: number;
+  creator_id: number;
   due_date?: Date;
   priority: TaskPriority;
   status: TaskStatus;

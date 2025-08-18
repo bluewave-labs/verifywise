@@ -19,16 +19,6 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-      assignee_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: "users",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
       due_date: {
         type: Sequelize.DATE,
         allowNull: true,
@@ -61,7 +51,7 @@ module.exports = {
     });
 
     // Add indexes for efficient querying
-    await queryInterface.addIndex("tasks", ["assignee_id"]);
+    await queryInterface.addIndex("tasks", ["creator_id"]);
     await queryInterface.addIndex("tasks", ["due_date"]);
     await queryInterface.addIndex("tasks", ["status"]);
     await queryInterface.addIndex("tasks", ["priority"]);

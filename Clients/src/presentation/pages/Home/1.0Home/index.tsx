@@ -28,7 +28,6 @@ import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/Drawer/HelperDrawer";
 import dashboardHelpContent from "../../../../presentation/helpers/dashboard-help.html?raw";
 import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
-import TaskRadar from "../../../components/Cards/TaskRadarCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 

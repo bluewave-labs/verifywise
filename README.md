@@ -64,6 +64,11 @@ VerifyWise is designed for:
   - AI project risks
   - Bias & fairness check of ML systems
   - Evidence center
+  - AI trust center
+  - Integration with MIT AI risk repository
+  - Model inventory that keeps a list of models used
+  - Policy manager to create and manage internal company AI policies
+  - Risk and control mappings for EU AI Act & ISO 42001
   - Reports
   - AI literacy training
  
@@ -71,10 +76,7 @@ VerifyWise is designed for:
 
 - More frameworks
 - Mappings between frameworks
-- AI trust center
-- Integration with MIT AI risk repository
 - Automated reports
-- Risk and control mappings
 
 ## Installation
 

@@ -623,6 +623,72 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         FOREIGN KEY (annexcontrol_id) REFERENCES "${tenantHash}".annexcontrols_iso27001(id) ON DELETE CASCADE,
         FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
       );`, { transaction });
+
+    // Create task ENUM types if they don't exist
+    await sequelize.query(`DO $$ BEGIN
+      CREATE TYPE enum_tasks_priority AS ENUM ('Low', 'Medium', 'High');
+    EXCEPTION
+      WHEN duplicate_object THEN null;
+    END $$;`, { transaction });
+    
+    await sequelize.query(`DO $$ BEGIN
+      CREATE TYPE enum_tasks_status AS ENUM ('Open', 'In Progress', 'Completed', 'Overdue', 'Deleted');
+    EXCEPTION
+      WHEN duplicate_object THEN null;
+    END $$;`, { transaction });
+
+    // Create tasks table
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".tasks
+    (
+      id serial NOT NULL,
+      title character varying(255) NOT NULL,
+      description text,
+      creator_id integer NOT NULL,
+      due_date timestamp with time zone,
+      priority enum_tasks_priority NOT NULL DEFAULT 'Medium',
+      status enum_tasks_status NOT NULL DEFAULT 'Open',
+      categories jsonb DEFAULT '[]',
+      created_at timestamp with time zone NOT NULL DEFAULT now(),
+      updated_at timestamp with time zone NOT NULL DEFAULT now(),
+      CONSTRAINT tasks_pkey PRIMARY KEY (id),
+      CONSTRAINT tasks_creator_id_fkey FOREIGN KEY (creator_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE CASCADE
+    );`, { transaction });
+
+    // Add indexes for tasks table
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_creator_id_idx" ON "${tenantHash}".tasks (creator_id);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_due_date_idx" ON "${tenantHash}".tasks (due_date);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_status_idx" ON "${tenantHash}".tasks (status);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_priority_idx" ON "${tenantHash}".tasks (priority);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_created_at_idx" ON "${tenantHash}".tasks (created_at);`
+    ].map(query => sequelize.query(query, { transaction })));
+
+    // Create task_assignees table
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".task_assignees
+    (
+      id serial NOT NULL,
+      task_id integer NOT NULL,
+      user_id integer NOT NULL,
+      assigned_at timestamp with time zone NOT NULL DEFAULT now(),
+      created_at timestamp with time zone NOT NULL DEFAULT now(),
+      updated_at timestamp with time zone NOT NULL DEFAULT now(),
+      CONSTRAINT task_assignees_pkey PRIMARY KEY (id),
+      CONSTRAINT task_assignees_task_id_fkey FOREIGN KEY (task_id)
+        REFERENCES "${tenantHash}".tasks (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+      CONSTRAINT task_assignees_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+      CONSTRAINT unique_task_user_assignment UNIQUE (task_id, user_id)
+    );`, { transaction });
+
+    // Add indexes for task_assignees table
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_task_id_idx" ON "${tenantHash}".task_assignees (task_id);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_user_id_idx" ON "${tenantHash}".task_assignees (user_id);`
+    ].map(query => sequelize.query(query, { transaction })));
   }
   catch (error) {
     throw error;

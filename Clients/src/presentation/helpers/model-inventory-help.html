@@ -1,0 +1,113 @@
+<div>
+  <h3>Model Inventory Management</h3>
+  <p>
+    The Model Inventory serves as a centralized location to track all AI/LLM
+    models used within your organization and their compliance status. This is a
+    core compliance component for the VerifyWise platform.
+  </p>
+
+  <section>
+    <h3>Summary Cards</h3>
+    <p>
+      The summary cards at the top show the count of models under each status:
+    </p>
+    <ul>
+      <li>
+        <strong>Approved:</strong> Models that have passed all security and
+        compliance checks
+      </li>
+      <li>
+        <strong>Restricted:</strong> Models with limited usage due to security
+        concerns
+      </li>
+      <li><strong>Pending:</strong> Models awaiting review and approval</li>
+      <li>
+        <strong>Blocked:</strong> Models that have been blocked due to security
+        or compliance issues
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>Adding New Models</h3>
+    <p>To add a new model to the inventory:</p>
+    <ol>
+      <li>Click the "Add new model" button</li>
+      <li>
+        Fill in the required fields:
+        <ul>
+          <li>
+            <strong>Provider/Model:</strong> The name of the AI model (e.g.,
+            OpenAI GPT-4)
+          </li>
+          <li>
+            <strong>Version:</strong> The specific version of the model
+            (optional)
+          </li>
+          <li>
+            <strong>Approver:</strong> The person responsible for approving this
+            model
+          </li>
+          <li><strong>Status:</strong> Current approval status</li>
+          <li>
+            <strong>Status Date:</strong> When the status was last updated
+          </li>
+          <li>
+            <strong>Capabilities:</strong> Select all applicable capabilities
+            from the list
+          </li>
+          <li>
+            <strong>Security Assessment:</strong> Toggle to indicate if security
+            assessment is complete
+          </li>
+        </ul>
+      </li>
+      <li>Click "Create Model" to save</li>
+    </ol>
+  </section>
+
+  <section>
+    <h3>Managing Models</h3>
+    <p>For each model in the table, you can:</p>
+    <ul>
+      <li>
+        <strong>Edit:</strong> Click on a row or use the actions menu to edit
+        model details
+      </li>
+      <li>
+        <strong>Delete:</strong> Use the actions menu to remove a model
+        (requires confirmation)
+      </li>
+      <li>
+        <strong>Filter:</strong> Use the status filter dropdown to view models
+        by specific status
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>Status Colors</h3>
+    <p>Each status has a specific color coding:</p>
+    <ul>
+      <li><strong>Green:</strong> Approved models</li>
+      <li><strong>Orange:</strong> Pending models</li>
+      <li><strong>Orange-Red:</strong> Restricted models</li>
+      <li><strong>Red:</strong> Blocked models</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>Capabilities</h3>
+    <p>
+      The capabilities field allows you to select multiple capabilities that the
+      model supports, such as:
+    </p>
+    <ul>
+      <li>Vision, Audio, Video processing</li>
+      <li>Text Generation, Translation, Summarization</li>
+      <li>Code generation and analysis</li>
+      <li>Question Answering and Sentiment Analysis</li>
+      <li>And many more specialized capabilities</li>
+    </ul>
+  </section>
+</div>

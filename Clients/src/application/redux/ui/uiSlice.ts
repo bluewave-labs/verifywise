@@ -5,6 +5,9 @@ const initialState = {
     collapsed: false,
   },
   mode: "light",
+  modelInventory: {
+    statusFilter: "all",
+  },
 };
 
 const uiSlice = createSlice({
@@ -23,8 +26,16 @@ const uiSlice = createSlice({
     setMode: (state, action) => {
       state.mode = action.payload;
     },
+    setModelInventoryStatusFilter: (state, action) => {
+      state.modelInventory.statusFilter = action.payload;
+    },
   },
 });
 
 export default uiSlice.reducer;
-export const { setRowsPerPage, toggleSidebar, setMode } = uiSlice.actions;
+export const {
+  setRowsPerPage,
+  toggleSidebar,
+  setMode,
+  setModelInventoryStatusFilter,
+} = uiSlice.actions;

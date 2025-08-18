@@ -689,7 +689,6 @@ const VWISO42001AnnexDrawerDialog = ({
               sx: {
                 width: '800px',
                 maxWidth: '800px',
-                minHeight: '300px'
               },
             }}
           >
@@ -712,7 +711,6 @@ const VWISO42001AnnexDrawerDialog = ({
               sx: {
                 width: '1500px',
                 maxWidth: '1500px',
-                minHeight: '520px'
               },
             }}
           >

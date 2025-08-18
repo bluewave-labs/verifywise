@@ -49,7 +49,7 @@ const Select: React.FC<SelectProps> = ({
   };
 
   const renderValue = (value: unknown) => {
-    const selected = value as (string | number)[];
+    const selected = value as string | number;
     const selectedItem = items.find(
       (item) => (getOptionValue ? getOptionValue(item) : item._id) === selected
     );

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Overview from "./Overview";
 import Resources from "./Resources";
 import Subprocessors from "./Subprocessors";
@@ -13,26 +13,30 @@ import {
   aiTrustCenterTabListStyle,
 } from "./style";
 import AITrustCentreHeader from "./Components/Header/AITrustCentreHeader";
-import { extractUserToken } from "../../../application/tools/extractToken";
-import { useSelector } from "react-redux";
 import axios from "axios";
+import { useParams } from "react-router-dom";
+import { ENV_VARs } from "../../../../env.vars";
 
 const AITrustCentrePublic: React.FC = () => {
   const [tabValue, setTabValue] = React.useState("overview");
   const [data, setData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
-  const userToken = extractUserToken(authToken);
-  const tenantId = userToken?.tenantId;
+  const [hash, setHash] = React.useState<string | null>(null);
+  const params = useParams();
+
+  useEffect(() => {
+    const hash = params.hash || null;
+    setHash(hash);
+  }, [params]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => setTabValue(newValue);
 
   React.useEffect(() => {
-    if (!tenantId) return;
+    if (!hash) return;
     setLoading(true);
     setError(null);
-    axios.get(`http://localhost:3000/api/aiTrustCentre/${tenantId}`)
+    axios.get(`${ENV_VARs.URL}/api/aiTrustCentre/${hash}`)
       .then((response) => {
         if (response?.data) {
           setData(response?.data?.data?.trustCentre);
@@ -47,7 +51,7 @@ const AITrustCentrePublic: React.FC = () => {
     return () => {
     
     };
-  }, [tenantId]);
+  }, [hash]);
 
 
   return (
@@ -81,7 +85,7 @@ const AITrustCentrePublic: React.FC = () => {
             zIndex: 2,
           }}
         >
-          <AITrustCentreHeader data={data} />
+          <AITrustCentreHeader data={data} hash={hash} />
         </Box>
       </Box>
       {/* Tabs */}
@@ -124,10 +128,10 @@ const AITrustCentrePublic: React.FC = () => {
             </TabList>
           </Box>
           <TabPanel value="overview" sx={aiTrustCenterTabPanelStyle}>
-            <Overview data={data} loading={loading} error={error} onShowAllResources={() => setTabValue("resources")} />
+            <Overview data={data} loading={loading} error={error} onShowAllResources={() => setTabValue("resources")} hash={hash} />
           </TabPanel>
           <TabPanel value="resources" sx={aiTrustCenterTabPanelStyle}>
-            <Resources data={data} loading={loading} error={error} />
+            <Resources data={data} loading={loading} error={error} hash={hash} />
           </TabPanel>
           <TabPanel value="subprocessors" sx={aiTrustCenterTabPanelStyle}>
             <Subprocessors data={data} loading={loading} error={error} />

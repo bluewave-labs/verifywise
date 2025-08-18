@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { Topic } from "../../domain/types/Topic";
+import { getAllAssessmentTopics } from "../repository/assesment.repository";
 
 /**
  * Custom hook to fetch and manage assessment topics.
@@ -26,8 +26,7 @@ const useAssessmentTopics = () => {
 
       setLoading(true);
       try {
-        const response = await getEntityById({
-          routeUrl: `eu-ai-act/topics`,
+        const response = await getAllAssessmentTopics({
           signal,
         });
         // if (!response.ok) {

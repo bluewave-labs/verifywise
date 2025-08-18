@@ -49,7 +49,6 @@ export async function getAllControls(
         "getAllControls",
         "control.ctrl.ts"
       );
-      await logEvent("Read", `Retrieved ${controls.length} controls`);
       return res.status(200).json(STATUS_CODE[200](controls));
     }
 
@@ -59,7 +58,6 @@ export async function getAllControls(
       "getAllControls",
       "control.ctrl.ts"
     );
-    await logEvent("Read", "No controls found");
     return res.status(204).json(STATUS_CODE[204](controls));
   } catch (error) {
     logStructured(
@@ -100,7 +98,6 @@ export async function getControlById(
         "getControlById",
         "control.ctrl.ts"
       );
-      await logEvent("Read", `Control retrieved by ID: ${controlId}`);
       return res.status(200).json(STATUS_CODE[200](control));
     }
 
@@ -110,7 +107,6 @@ export async function getControlById(
       "getControlById",
       "control.ctrl.ts"
     );
-    await logEvent("Read", `No control found with ID: ${controlId}`);
     return res.status(204).json(STATUS_CODE[204](control));
   } catch (error) {
     logStructured(
@@ -461,7 +457,11 @@ export async function deleteControlById(
         );
     }
 
-    const deletedControl = await deleteControlByIdQuery(controlId, req.tenantId!, transaction);
+    const deletedControl = await deleteControlByIdQuery(
+      controlId,
+      req.tenantId!,
+      transaction
+    );
 
     if (deletedControl) {
       await transaction.commit();
@@ -726,7 +726,7 @@ export async function saveControls(
           transaction,
           evidenceUploadedFiles,
           feedbackUploadedFiles,
-          filesToDelete,
+          filesToDelete
         );
         subControlResp.push(subcontrolToSave);
       }
@@ -735,7 +735,12 @@ export async function saveControls(
       ...{ control, subControls: subControlResp },
     };
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(controlId, "controls", req.tenantId!, transaction);
+    await updateProjectUpdatedByIdQuery(
+      controlId,
+      "controls",
+      req.tenantId!,
+      transaction
+    );
 
     await transaction.commit();
 
@@ -814,20 +819,20 @@ export async function getComplianceById(
 
   try {
     const control = (await getControlByIdQuery(
-      parseInt(control_id), req.tenantId!
+      parseInt(control_id),
+      req.tenantId!
     )) as IControl;
     if (control && control.id) {
-      const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
+      const subControls = await getAllSubcontrolsByControlIdQuery(
+        control.id,
+        req.tenantId!
+      );
       control.subControls = subControls;
       logStructured(
         "successful",
         `compliance found for control ID: ${control_id}`,
         "getComplianceById",
         "control.ctrl.ts"
-      );
-      await logEvent(
-        "Read",
-        `Compliance retrieved for control ID: ${control_id}`
       );
       return res.status(200).json(STATUS_CODE[200](control));
     } else {
@@ -874,11 +879,15 @@ export async function getControlsByControlCategoryId(
 
   try {
     const controls = (await getAllControlsByControlGroupQuery(
-      controlCategoryId, req.tenantId!
+      controlCategoryId,
+      req.tenantId!
     )) as IControl[];
     for (const control of controls) {
       if (control && control.id !== undefined) {
-        const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
+        const subControls = await getAllSubcontrolsByControlIdQuery(
+          control.id,
+          req.tenantId!
+        );
         let numberOfSubcontrols = 0;
         let numberOfDoneSubcontrols = 0;
 
@@ -900,10 +909,6 @@ export async function getControlsByControlCategoryId(
       `retrieved ${controls.length} controls for category ID: ${controlCategoryId}`,
       "getControlsByControlCategoryId",
       "control.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `Retrieved ${controls.length} controls for category ID: ${controlCategoryId}`
     );
     return res.status(200).json(STATUS_CODE[200](controls));
   } catch (error) {

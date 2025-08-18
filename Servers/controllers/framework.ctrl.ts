@@ -33,7 +33,6 @@ export async function getAllFrameworks(
     const frameworks = await getAllFrameworksQuery(req.tenantId!);
 
     if (frameworks && frameworks.length > 0) {
-      await logEvent("Read", `Retrieved ${frameworks.length} frameworks`);
       logStructured(
         "successful",
         `retrieved ${frameworks.length} frameworks`,
@@ -49,7 +48,6 @@ export async function getAllFrameworks(
       "getAllFrameworks",
       "framework.ctrl.ts"
     );
-    await logEvent("Read", "No frameworks found");
     return res.status(204).json(STATUS_CODE[204](frameworks));
   } catch (error) {
     logStructured(
@@ -81,7 +79,10 @@ export async function getFrameworkById(
   logger.debug(`🔍 Looking up framework with ID: ${frameworkId}`);
 
   try {
-    const framework = await getAllFrameworkByIdQuery(frameworkId, req.tenantId!);
+    const framework = await getAllFrameworkByIdQuery(
+      frameworkId,
+      req.tenantId!
+    );
 
     if (framework) {
       logStructured(
@@ -90,7 +91,6 @@ export async function getFrameworkById(
         "getFrameworkById",
         "framework.ctrl.ts"
       );
-      await logEvent("Read", `Framework retrieved by ID: ${frameworkId}`);
       return res.status(200).json(STATUS_CODE[200](framework));
     }
 
@@ -100,7 +100,6 @@ export async function getFrameworkById(
       "getFrameworkById",
       "framework.ctrl.ts"
     );
-    await logEvent("Read", `No framework found with ID: ${frameworkId}`);
     return res.status(404).json(STATUS_CODE[404](framework));
   } catch (error) {
     logStructured(
@@ -249,9 +248,8 @@ export async function updateFrameworkById(
   logger.debug(`✏️ Update requested for framework ID ${frameworkId}`);
 
   try {
-    const existingFramework = await FrameworkModel.findByIdWithValidation(
-      frameworkId
-    );
+    const existingFramework =
+      await FrameworkModel.findByIdWithValidation(frameworkId);
 
     if (!existingFramework) {
       logStructured(
@@ -420,9 +418,8 @@ export async function deleteFrameworkById(
   logger.debug(`🗑️ Delete request for framework ID ${frameworkId}`);
 
   try {
-    const existingFramework = await FrameworkModel.findByIdWithValidation(
-      frameworkId
-    );
+    const existingFramework =
+      await FrameworkModel.findByIdWithValidation(frameworkId);
 
     if (!existingFramework) {
       logStructured(
@@ -579,10 +576,6 @@ export async function searchFrameworksByName(
         "searchFrameworksByName",
         "framework.ctrl.ts"
       );
-      await logEvent(
-        "Read",
-        `Found ${frameworks.length} frameworks matching: ${searchName}`
-      );
       return res
         .status(200)
         .json(STATUS_CODE[200](frameworks.map((f) => f.toSafeJSON())));
@@ -594,7 +587,6 @@ export async function searchFrameworksByName(
       "searchFrameworksByName",
       "framework.ctrl.ts"
     );
-    await logEvent("Read", `No frameworks found matching: ${searchName}`);
     return res.status(204).json(STATUS_CODE[204](frameworks));
   } catch (error) {
     logStructured(
@@ -662,7 +654,6 @@ export async function getFrameworkMetadata(
       "getFrameworkMetadata",
       "framework.ctrl.ts"
     );
-    await logEvent("Read", `Framework metadata retrieved: ID ${frameworkId}`);
     return res.status(200).json(STATUS_CODE[200](fullMetadata));
   } catch (error) {
     logStructured(

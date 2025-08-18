@@ -110,6 +110,8 @@ export const useStyles = () => {
       alignItems: 'center',
       gap: theme.spacing(2),
       marginBottom: theme.spacing(10),
+      flex: 0.5,
+      columnGap: 50,
     },
     toggleLabel: {
       fontSize: 13,

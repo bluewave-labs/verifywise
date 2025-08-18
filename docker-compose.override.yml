@@ -1,6 +1,10 @@
 version: '3.9'
 
 services:
+  postgresdb:
+    ports:
+      - $LOCAL_DB_PORT:$DB_PORT
+
   backend:
     build:
       context: ./Servers

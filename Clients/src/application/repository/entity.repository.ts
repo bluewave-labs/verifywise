@@ -3,7 +3,7 @@ import {
   RequestParams,
 } from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/getAuthToken";
+import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.

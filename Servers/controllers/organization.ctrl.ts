@@ -43,7 +43,6 @@ export async function getAllOrganizations(
     const organizations = await getAllOrganizationsQuery();
 
     if (organizations && organizations.length > 0) {
-      await logEvent("Read", `Retrieved ${organizations.length} organizations`);
       logStructured(
         "successful",
         "organizations found",
@@ -58,7 +57,6 @@ export async function getAllOrganizations(
       "getAllOrganizations",
       "organization.ctrl.ts"
     );
-    await logEvent("Read", "No organizations found");
     return res.status(204).json(STATUS_CODE[204]([]));
   } catch (error) {
     logStructured(
@@ -116,7 +114,6 @@ export async function getOrganizationById(
         "getOrganizationById",
         "organization.ctrl.ts"
       );
-      await logEvent("Read", `Organization retrieved by ID: ${organizationId}`);
       return res.status(200).json(STATUS_CODE[200](organization));
     }
     logStructured(
@@ -125,7 +122,6 @@ export async function getOrganizationById(
       "getOrganizationById",
       "organization.ctrl.ts"
     );
-    await logEvent("Read", `No organization found with ID: ${organizationId}`);
     return res.status(404).json(STATUS_CODE[404](null));
   } catch (error) {
     logStructured(
@@ -180,7 +176,10 @@ export async function createOrganization(
     }
 
     // Use the OrganizationModel's createNewOrganization method with validation
-    const organizationModel = await OrganizationModel.createNewOrganization(body.name, body.logo);
+    const organizationModel = await OrganizationModel.createNewOrganization(
+      body.name,
+      body.logo
+    );
 
     // Validate the organization data before saving
     await organizationModel.validateOrganizationData();
@@ -204,7 +203,7 @@ export async function createOrganization(
           organizationId: organization_id,
         },
         transaction
-      )
+      );
       await transaction.commit();
       logStructured(
         "successful",
@@ -212,7 +211,10 @@ export async function createOrganization(
         "createOrganization",
         "organization.ctrl.ts"
       );
-      await logEvent("Create", `Organization created: ${createdOrganization.name}`);
+      await logEvent(
+        "Create",
+        `Organization created: ${createdOrganization.name}`
+      );
       return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 
@@ -267,7 +269,8 @@ export async function createOrganization(
     );
     await logEvent(
       "Error",
-      `Unexpected error during organization creation: ${(error as Error).message
+      `Unexpected error during organization creation: ${
+        (error as Error).message
       }`
     );
     logger.error("❌ Error in createOrganization:", error);
@@ -299,9 +302,8 @@ export async function updateOrganizationById(
     const updateData = req.body;
 
     // Find the organization by ID with validation
-    const organization = await OrganizationModel.findByIdWithValidation(
-      organizationId
-    );
+    const organization =
+      await OrganizationModel.findByIdWithValidation(organizationId);
 
     // Update the organization using the model's update method
     await organization.updateOrganization(updateData);
@@ -380,7 +382,8 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for organization ID ${organizationId}: ${(error as Error).message
+      `Unexpected error during update for organization ID ${organizationId}: ${
+        (error as Error).message
       }`
     );
     logger.error("❌ Error in updateOrganizationById:", error);
@@ -464,7 +467,8 @@ export async function deleteOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for organization ID ${organizationId}: ${(error as Error).message
+      `Unexpected error during delete for organization ID ${organizationId}: ${
+        (error as Error).message
       }`
     );
     logger.error("❌ Error in deleteOrganizationById:", error);

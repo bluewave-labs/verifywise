@@ -17,6 +17,7 @@ import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks
 import { Clauses } from "../structures/ISO-42001/clauses/clauses.struct";
 import { Annex } from "../structures/ISO-42001/annex/annex.struct";
 import { STATUSES } from "../types/status.type";
+import { SubClauseISORisks } from "../domain.layer/frameworks/ISO-42001/subClauseISORisks.model";
 
 const getDemoSubClauses = (): Object[] => {
   const subClauses = [];
@@ -252,7 +253,19 @@ export const getSubClauseByIdQuery = async (
       ...(transaction ? { transaction } : {}),
     }
   )) as [Partial<SubClauseStructISOModel & SubClauseISOModel>[], number];
-  return subClauses[0][0];
+  const subClause = subClauses[0][0];
+  (subClause as any).risks = [];
+  const risks = (await sequelize.query(
+    `SELECT projects_risks_id FROM "${tenant}".subclauses_iso__risks WHERE subclause_id = :id`,
+    {
+      replacements: { id: subClauseId },
+      transaction,
+    }
+  )) as [{ projects_risks_id: number }[], number];
+  for (let risk of risks[0]) {
+    (subClause as any).risks.push(risk.projects_risks_id);
+  }
+  return subClause;
 };
 
 export const getClausesByProjectIdQuery = async (
@@ -697,7 +710,7 @@ export const createISOFrameworkQuery = async (
 
 export const updateSubClauseQuery = async (
   id: number,
-  subClause: Partial<SubClauseISOModel>,
+  subClause: Partial<SubClauseISOModel & { risksDelete: string; risksMitigated: string }>,
   uploadedFiles: {
     id: string;
     fileName: string;
@@ -771,13 +784,53 @@ export const updateSubClauseQuery = async (
 
   const result = await sequelize.query(query, {
     replacements: updateSubClause,
-    mapToModel: true,
-    model: SubClauseISOModel,
+    // mapToModel: true,
+    // model: SubClauseISOModel,
     // type: QueryTypes.UPDATE,
     transaction,
-  });
+  }) as [SubClauseISOModel[], number];
+  const subClauseResult = result[0][0];
+  (subClauseResult as any).risks = [];
 
-  return result[0];
+  // update the risks
+  const risksDeleted = JSON.parse(
+    subClause.risksDelete || "[]"
+  ) as number[];
+  const risksMitigated = JSON.parse(
+    subClause.risksMitigated || "[]"
+  ) as number[];
+  const risks = (await sequelize.query(
+    `SELECT projects_risks_id FROM "${tenant}".subclauses_iso__risks WHERE subclause_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  )) as [SubClauseISORisks[], number];
+  let currentRisks = risks[0].map((r) => r.projects_risks_id!);
+  currentRisks = currentRisks.filter((r) => !risksDeleted.includes(r));
+  currentRisks = currentRisks.concat(risksMitigated);
+
+  await sequelize.query(
+    `DELETE FROM "${tenant}".subclauses_iso__risks WHERE subclause_id = :id;`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+  const subClauseRisksInsert = currentRisks
+    .map((risk) => `(${id}, ${risk})`)
+    .join(", ");
+  if (subClauseRisksInsert) {
+    const subClauseRisksInsertResult = (await sequelize.query(
+      `INSERT INTO "${tenant}".subclauses_iso__risks (subclause_id, projects_risks_id) VALUES ${subClauseRisksInsert} RETURNING projects_risks_id;`,
+      {
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+    for (let risk of subClauseRisksInsertResult[0]) {
+      (subClauseResult as any).risks.push(risk.projects_risks_id);
+    }
+  }
 };
 
 export const updateAnnexCategoryQuery = async (
@@ -880,7 +933,7 @@ export const updateAnnexCategoryQuery = async (
       transaction,
     }
   )) as [AnnexCategoryISORisksModel[], number];
-  let currentRisks = risks[0].map((r) => r.project_risk_id!);
+  let currentRisks = risks[0].map((r) => r.projects_risks_id!);
   currentRisks = currentRisks.filter((r) => !risksDeleted.includes(r));
   currentRisks = currentRisks.concat(risksMitigated);
 

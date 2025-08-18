@@ -1,26 +1,21 @@
-import React from 'react';
-import { Typography } from '@mui/material';
-import {styles} from '../styles';
+import React from "react";
+import { Typography } from "@mui/material";
+import { styles } from "../styles";
 
 interface DisabledProps {
-  isDisabled: boolean
+  isDisabled: boolean;
 }
 
-const ReportStatus: React.FC<DisabledProps> = ({
-  isDisabled
-}) => {
+const ReportStatus: React.FC<DisabledProps> = ({ isDisabled }) => {
   return (
     <>
-      {isDisabled ? 
+      {isDisabled && (
         <Typography sx={styles.baseText}>
           There is no report to download.
-        </Typography> : 
-        <Typography sx={styles.baseText}>
-          Clicking on this link will generate a report in Microsoft Word file you can modify.          
         </Typography>
-      }
+      )}
     </>
-  )
-}
+  );
+};
 
-export default ReportStatus
+export default ReportStatus;

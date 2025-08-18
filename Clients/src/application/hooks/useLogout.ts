@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
-import { clearAuthState } from "../authentication/authSlice";
+import { clearAuthState } from "../redux/auth/authSlice";
 
 /**
  * Custom hook for handling user logout

@@ -27,6 +27,7 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 import AssessmentSteps from "./AssessmentSteps";
 import { Project } from "../../../../domain/types/Project";
 import { Question } from "../../../../domain/types/Question";
+import { useSearchParams } from "react-router-dom";
 
 const AssessmentTracker = ({
   project,
@@ -41,7 +42,9 @@ const AssessmentTracker = ({
   const currentProjectFramework = project.framework.filter(
     (p) => p.framework_id === 1
   )[0]?.project_framework_id;
-  const [activeTab, setActiveTab] = useState<number>(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const topicId = searchParams.get("topicId");
+  const [activeTab, setActiveTab] = useState<number>(Number(topicId) || 0);
   const [runAssessmentTour, setRunAssessmentTour] = useState(false);
 
   const { assessmentProgress, loading: loadingAssessmentProgress } =
@@ -70,13 +73,29 @@ const AssessmentTracker = ({
 
   // Reset active tab when project changes
   useEffect(() => {
-    setActiveTab(0);
     setRefreshKey((prev) => !prev); // Force refresh when project changes
   }, [currentProjectId]);
 
+  // Handle topicId from URL to set active tab
+  useEffect(() => {
+    if (topicId && assessmentTopics && assessmentTopics.length > 0) {
+      const topicIndex = assessmentTopics.findIndex(
+        (topic) => topic.id === parseInt(topicId)
+      ) || 0;
+      if (topicIndex >= 0) {
+        setActiveTab(topicIndex);
+      }
+    }
+  }, [topicId, assessmentTopics]);
+
   const handleListItemClick = useCallback((index: number) => {
+    if (topicId) {
+      searchParams.delete("topicId");
+      searchParams.delete("questionId");
+      setSearchParams(searchParams);
+    }
     setActiveTab(index);
-  }, []);
+  }, [topicId, searchParams, setSearchParams]);
 
   // Filter subtopics based on the statusFilter, if provided
   const filteredSubtopics = assessmentSubtopics

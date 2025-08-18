@@ -23,7 +23,7 @@ import { useDispatch } from "react-redux";
 import {
   setUserExists,
   setAuthToken,
-} from "../../../../application/authentication/authSlice";
+} from "../../../../application/redux/auth/authSlice";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 

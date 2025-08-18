@@ -28,19 +28,51 @@ import {
 import { AnswerEU } from "../domain.layer/frameworks/EU-AI-Act/answerEU.model";
 import { sequelize } from "../database/db";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
+import logger, { logStructured } from "../utils/logger/fileLogger";
+import { logEvent } from "../utils/logger/dbLogger";
 
 export async function getAssessmentsByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting getAssessmentsByProjectId for project framework ID ${projectFrameworkId}`,
+    functionName: "getAssessmentsByProjectId",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `🔍 Fetching assessments for project framework ID ${projectFrameworkId}`
+  );
+
   try {
-    const projectFrameworkId = parseInt(req.params.id);
     const assessments = await getAssessmentsEUByProjectIdQuery(
-      projectFrameworkId, req.tenantId!
+      projectFrameworkId,
+      req.tenantId!
     );
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved assessments for project framework ID ${projectFrameworkId}`,
+      functionName: "getAssessmentsByProjectId",
+      fileName: "eu.ctrl.ts",
+    });
+
     // send calculated progress
     return res.status(200).json(STATUS_CODE[200](assessments));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to retrieve assessments for project framework ID ${projectFrameworkId}`,
+      functionName: "getAssessmentsByProjectId",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -49,35 +81,99 @@ export async function getCompliancesByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting getCompliancesByProjectId for project framework ID ${projectFrameworkId}`,
+    functionName: "getCompliancesByProjectId",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `🔍 Fetching compliances for project framework ID ${projectFrameworkId}`
+  );
+
   try {
-    const projectFrameworkId = parseInt(req.params.id);
     const complainces = await getComplianceEUByProjectIdQuery(
-      projectFrameworkId, req.tenantId!
+      projectFrameworkId,
+      req.tenantId!
     );
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved compliances for project framework ID ${projectFrameworkId}`,
+      functionName: "getCompliancesByProjectId",
+      fileName: "eu.ctrl.ts",
+    });
+
     // send calculated progress
     return res.status(200).json(STATUS_CODE[200](complainces));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to retrieve compliances for project framework ID ${projectFrameworkId}`,
+      functionName: "getCompliancesByProjectId",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function getTopicById(req: Request, res: Response): Promise<any> {
+  const topicId = parseInt(req.query.topicId as string);
+  const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+
+  logProcessing({
+    description: `starting getTopicById for topic ID ${topicId} and project framework ID ${projectFrameworkId}`,
+    functionName: "getTopicById",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `🔍 Looking up topic ID ${topicId} for project framework ID ${projectFrameworkId}`
+  );
+
   try {
-    const topicId = parseInt(req.query.topicId as string);
-    const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     if (isNaN(topicId) || isNaN(projectFrameworkId)) {
+      await logFailure({
+        eventType: "Read",
+        description: "Invalid query parameters for getTopicById",
+        functionName: "getTopicById",
+        fileName: "eu.ctrl.ts",
+        error: new Error("Invalid query parameters"),
+      });
       return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
     }
+
     const topic = await getTopicByIdForProjectQuery(
       topicId,
       projectFrameworkId,
       req.tenantId!
     );
+
     if (topic) {
+      await logSuccess({
+        eventType: "Read",
+        description: `Retrieved topic ID ${topicId} for project framework ID ${projectFrameworkId}`,
+        functionName: "getTopicById",
+        fileName: "eu.ctrl.ts",
+      });
       return res.status(200).json(STATUS_CODE[200](topic));
     }
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Topic not found: ID ${topicId} for project framework ID ${projectFrameworkId}`,
+      functionName: "getTopicById",
+      fileName: "eu.ctrl.ts",
+    });
     return res.status(404).json(STATUS_CODE[404](topic));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to retrieve topic ID ${topicId} for project framework ID ${projectFrameworkId}`,
+      functionName: "getTopicById",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -86,22 +182,61 @@ export async function getControlById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const controlId = parseInt(req.query.controlId as string);
+  const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+
+  logProcessing({
+    description: `starting getControlById for control ID ${controlId} and project framework ID ${projectFrameworkId}`,
+    functionName: "getControlById",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `🔍 Looking up control ID ${controlId} for project framework ID ${projectFrameworkId}`
+  );
+
   try {
-    const controlId = parseInt(req.query.controlId as string);
-    const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     if (isNaN(controlId) || isNaN(projectFrameworkId)) {
+      await logFailure({
+        eventType: "Read",
+        description: "Invalid query parameters for getControlById",
+        functionName: "getControlById",
+        fileName: "eu.ctrl.ts",
+        error: new Error("Invalid query parameters"),
+      });
       return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
     }
+
     const topic = await getControlByIdForProjectQuery(
       controlId,
       projectFrameworkId,
       req.tenantId!
     );
+
     if (topic) {
+      await logSuccess({
+        eventType: "Read",
+        description: `Retrieved control ID ${controlId} for project framework ID ${projectFrameworkId}`,
+        functionName: "getControlById",
+        fileName: "eu.ctrl.ts",
+      });
       return res.status(200).json(STATUS_CODE[200](topic));
     }
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Control not found: ID ${controlId} for project framework ID ${projectFrameworkId}`,
+      functionName: "getControlById",
+      fileName: "eu.ctrl.ts",
+    });
     return res.status(404).json(STATUS_CODE[404](topic));
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to retrieve control ID ${controlId} for project framework ID ${projectFrameworkId}`,
+      functionName: "getControlById",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -111,13 +246,23 @@ export async function saveControls(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const controlId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting saveControls for control ID ${controlId}`,
+    functionName: "saveControls",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(`💾 Saving controls for control ID ${controlId}`);
+
   try {
-    const controlId = parseInt(req.params.id);
     const Control = req.body as ControlEU & {
       subControls: string;
       user_id: number;
       project_id: number;
       delete: string;
+      risksDelete: string;
+      risksMitigated: string;
     };
 
     // now we need to create the control for the control category, and use the control category id as the foreign key
@@ -131,6 +276,8 @@ export async function saveControls(
         reviewer: Control.reviewer,
         due_date: Control.due_date,
         implementation_details: Control.implementation_details,
+        risksDelete: JSON.parse(Control.risksDelete || "[]") as number[],
+        risksMitigated: JSON.parse(Control.risksMitigated || "[]") as number[],
       },
       req.tenantId!,
       transaction
@@ -230,12 +377,31 @@ export async function saveControls(
       ...{ control, subControls: subControlResp },
     };
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(controlId, "controls", req.tenantId!, transaction);
+    await updateProjectUpdatedByIdQuery(
+      controlId,
+      "controls",
+      req.tenantId!,
+      transaction
+    );
     await transaction.commit();
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Successfully saved controls for control ID ${controlId}`,
+      functionName: "saveControls",
+      fileName: "eu.ctrl.ts",
+    });
 
     return res.status(200).json(STATUS_CODE[200]({ response }));
   } catch (error) {
     await transaction.rollback();
+    await logFailure({
+      eventType: "Update",
+      description: `Failed to save controls for control ID ${controlId}`,
+      functionName: "saveControls",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -245,9 +411,20 @@ export async function updateQuestionById(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const questionId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting updateQuestionById for question ID ${questionId}`,
+    functionName: "updateQuestionById",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(`✏️ Updating question ID ${questionId}`);
+
   try {
-    const questionId = parseInt(req.params.id);
-    const body: Partial<AnswerEU> = req.body;
+    const body: Partial<AnswerEU & {
+      risksDelete: number[];
+      risksMitigated: number[];
+    }> = req.body;
 
     const question = (await updateQuestionEUByIdQuery(
       questionId,
@@ -255,19 +432,46 @@ export async function updateQuestionById(
       req.tenantId!,
       transaction
     )) as AnswerEU;
+    console.log("Updated question:", question);
 
     if (!question) {
       await transaction.rollback();
+      await logFailure({
+        eventType: "Update",
+        description: `Question not found: ID ${questionId}`,
+        functionName: "updateQuestionById",
+        fileName: "eu.ctrl.ts",
+        error: new Error("Question not found"),
+      });
       return res.status(404).json(STATUS_CODE[404]({}));
     }
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(questionId, "answers", req.tenantId!, transaction);
+    await updateProjectUpdatedByIdQuery(
+      questionId,
+      "answers",
+      req.tenantId!,
+      transaction
+    );
     await transaction.commit();
+
+    await logSuccess({
+      eventType: "Update",
+      description: `Successfully updated question ID ${questionId}`,
+      functionName: "updateQuestionById",
+      fileName: "eu.ctrl.ts",
+    });
 
     return res.status(202).json(STATUS_CODE[202](question));
   } catch (error) {
     await transaction.rollback();
+    await logFailure({
+      eventType: "Update",
+      description: `Failed to update question ID ${questionId}`,
+      functionName: "updateQuestionById",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -277,8 +481,18 @@ export async function deleteAssessmentsByProjectId(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting deleteAssessmentsByProjectId for project framework ID ${projectFrameworkId}`,
+    functionName: "deleteAssessmentsByProjectId",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `🗑️ Deleting assessments for project framework ID ${projectFrameworkId}`
+  );
+
   try {
-    const projectFrameworkId = parseInt(req.params.id);
     const result = await deleteAssessmentEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -287,12 +501,33 @@ export async function deleteAssessmentsByProjectId(
 
     if (result) {
       await transaction.commit();
+      await logSuccess({
+        eventType: "Delete",
+        description: `Successfully deleted assessments for project framework ID ${projectFrameworkId}`,
+        functionName: "deleteAssessmentsByProjectId",
+        fileName: "eu.ctrl.ts",
+      });
       return res.status(200).json(STATUS_CODE[200](result));
     }
 
+    await transaction.rollback();
+    await logFailure({
+      eventType: "Delete",
+      description: `Failed to delete assessments for project framework ID ${projectFrameworkId}`,
+      functionName: "deleteAssessmentsByProjectId",
+      fileName: "eu.ctrl.ts",
+      error: new Error("Delete operation failed"),
+    });
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
     await transaction.rollback();
+    await logFailure({
+      eventType: "Delete",
+      description: `Failed to delete assessments for project framework ID ${projectFrameworkId}`,
+      functionName: "deleteAssessmentsByProjectId",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -302,8 +537,18 @@ export async function deleteCompliancesByProjectId(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting deleteCompliancesByProjectId for project framework ID ${projectFrameworkId}`,
+    functionName: "deleteCompliancesByProjectId",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `🗑️ Deleting compliances for project framework ID ${projectFrameworkId}`
+  );
+
   try {
-    const projectFrameworkId = parseInt(req.params.id);
     const result = await deleteComplianeEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -312,12 +557,33 @@ export async function deleteCompliancesByProjectId(
 
     if (result) {
       await transaction.commit();
+      await logSuccess({
+        eventType: "Delete",
+        description: `Successfully deleted compliances for project framework ID ${projectFrameworkId}`,
+        functionName: "deleteCompliancesByProjectId",
+        fileName: "eu.ctrl.ts",
+      });
       return res.status(200).json(STATUS_CODE[200](result));
     }
 
+    await transaction.rollback();
+    await logFailure({
+      eventType: "Delete",
+      description: `Failed to delete compliances for project framework ID ${projectFrameworkId}`,
+      functionName: "deleteCompliancesByProjectId",
+      fileName: "eu.ctrl.ts",
+      error: new Error("Delete operation failed"),
+    });
     return res.status(400).json(STATUS_CODE[400](result));
   } catch (error) {
     await transaction.rollback();
+    await logFailure({
+      eventType: "Delete",
+      description: `Failed to delete compliances for project framework ID ${projectFrameworkId}`,
+      functionName: "deleteCompliancesByProjectId",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -327,6 +593,16 @@ export async function getProjectAssessmentProgress(
   res: Response
 ) {
   const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectAssessmentProgress for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectAssessmentProgress",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `📊 Calculating assessment progress for project framework ID ${projectFrameworkId}`
+  );
+
   try {
     // const project = await getProjectByIdQuery(projectId);
     // if (project) {
@@ -336,6 +612,14 @@ export async function getProjectAssessmentProgress(
     // }
     const { totalAssessments, answeredAssessments } =
       await countAnswersEUByProjectId(projectFrameworkId, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved assessment progress for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAssessmentProgress",
+      fileName: "eu.ctrl.ts",
+    });
+
     return res.status(200).json(
       STATUS_CODE[200]({
         totalQuestions: parseInt(totalAssessments),
@@ -343,6 +627,13 @@ export async function getProjectAssessmentProgress(
       })
     );
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get assessment progress for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAssessmentProgress",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -352,6 +643,16 @@ export async function getProjectComplianceProgress(
   res: Response
 ) {
   const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectComplianceProgress for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectComplianceProgress",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `📊 Calculating compliance progress for project framework ID ${projectFrameworkId}`
+  );
+
   try {
     // const project = await getProjectByIdQuery(projectId);
     // if (project) {
@@ -361,6 +662,14 @@ export async function getProjectComplianceProgress(
     // }
     const { totalSubcontrols, doneSubcontrols } =
       await countSubControlsEUByProjectId(projectFrameworkId, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved compliance progress for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectComplianceProgress",
+      fileName: "eu.ctrl.ts",
+    });
+
     return res.status(200).json(
       STATUS_CODE[200]({
         allsubControls: parseInt(totalSubcontrols),
@@ -368,6 +677,13 @@ export async function getProjectComplianceProgress(
       })
     );
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get compliance progress for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectComplianceProgress",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -378,11 +694,28 @@ export async function getAllProjectsAssessmentProgress(
 ) {
   let totalNumberOfQuestions = 0;
   let totalNumberOfAnsweredQuestions = 0;
+
+  logProcessing({
+    description: "starting getAllProjectsAssessmentProgress",
+    functionName: "getAllProjectsAssessmentProgress",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug("📊 Calculating assessment progress across all projects");
+
   try {
     const { userId, role } = req;
     if (!userId || !role) {
+      await logFailure({
+        eventType: "Read",
+        description:
+          "Unauthorized access attempt for getAllProjectsAssessmentProgress",
+        functionName: "getAllProjectsAssessmentProgress",
+        fileName: "eu.ctrl.ts",
+        error: new Error("Unauthorized"),
+      });
       return res.status(401).json({ message: "Unauthorized" });
     }
+
     const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
@@ -402,6 +735,14 @@ export async function getAllProjectsAssessmentProgress(
           totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
         })
       );
+
+      await logSuccess({
+        eventType: "Read",
+        description: `Retrieved assessment progress across ${projects.length} projects`,
+        functionName: "getAllProjectsAssessmentProgress",
+        fileName: "eu.ctrl.ts",
+      });
+
       return res.status(200).json(
         STATUS_CODE[200]({
           totalQuestions: totalNumberOfQuestions,
@@ -409,9 +750,22 @@ export async function getAllProjectsAssessmentProgress(
         })
       );
     } else {
+      await logSuccess({
+        eventType: "Read",
+        description: "No projects found for assessment progress calculation",
+        functionName: "getAllProjectsAssessmentProgress",
+        fileName: "eu.ctrl.ts",
+      });
       return res.status(200).json(STATUS_CODE[200](projects));
     }
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to get assessment progress across all projects",
+      functionName: "getAllProjectsAssessmentProgress",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -422,11 +776,28 @@ export async function getAllProjectsComplianceProgress(
 ) {
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
+
+  logProcessing({
+    description: "starting getAllProjectsComplianceProgress",
+    functionName: "getAllProjectsComplianceProgress",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug("📊 Calculating compliance progress across all projects");
+
   try {
     const { userId, role } = req;
     if (!userId || !role) {
+      await logFailure({
+        eventType: "Read",
+        description:
+          "Unauthorized access attempt for getAllProjectsComplianceProgress",
+        functionName: "getAllProjectsComplianceProgress",
+        fileName: "eu.ctrl.ts",
+        error: new Error("Unauthorized"),
+      });
       return res.status(401).json({ message: "Unauthorized" });
     }
+
     const projects = await getAllProjectsQuery({ userId, role }, req.tenantId!);
     if (projects && projects.length > 0) {
       await Promise.all(
@@ -441,11 +812,22 @@ export async function getAllProjectsComplianceProgress(
             return;
           }
           const { totalSubcontrols, doneSubcontrols } =
-            await countSubControlsEUByProjectId(projectFrameworkId, req.tenantId!);
+            await countSubControlsEUByProjectId(
+              projectFrameworkId,
+              req.tenantId!
+            );
           totalNumberOfSubcontrols += parseInt(totalSubcontrols);
           totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
         })
       );
+
+      await logSuccess({
+        eventType: "Read",
+        description: `Retrieved compliance progress across ${projects.length} projects`,
+        functionName: "getAllProjectsComplianceProgress",
+        fileName: "eu.ctrl.ts",
+      });
+
       return res.status(200).json(
         STATUS_CODE[200]({
           allsubControls: totalNumberOfSubcontrols,
@@ -453,9 +835,22 @@ export async function getAllProjectsComplianceProgress(
         })
       );
     } else {
+      await logSuccess({
+        eventType: "Read",
+        description: "No projects found for compliance progress calculation",
+        functionName: "getAllProjectsComplianceProgress",
+        fileName: "eu.ctrl.ts",
+      });
       return res.status(200).json(STATUS_CODE[200](projects));
     }
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to get compliance progress across all projects",
+      functionName: "getAllProjectsComplianceProgress",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -464,10 +859,32 @@ export async function getAllControlCategories(
   req: Request,
   res: Response
 ): Promise<any> {
+  logProcessing({
+    description: "starting getAllControlCategories",
+    functionName: "getAllControlCategories",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug("🔍 Fetching all control categories");
+
   try {
     const controlCategories = await getAllControlCategoriesQuery(req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved all control categories",
+      functionName: "getAllControlCategories",
+      fileName: "eu.ctrl.ts",
+    });
+
     return res.status(200).json(controlCategories);
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve control categories",
+      functionName: "getAllControlCategories",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -476,25 +893,72 @@ export async function getControlsByControlCategoryId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const controlCategoryId = parseInt(req.params.id);
+  const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
+
+  logProcessing({
+    description: `starting getControlsByControlCategoryId for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`,
+    functionName: "getControlsByControlCategoryId",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug(
+    `🔍 Fetching controls for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`
+  );
+
   try {
-    const controlCategoryId = parseInt(req.params.id);
-    const projectFrameworkId = parseInt(req.query.projectFrameworkId as string);
     const controls = await getControlStructByControlCategoryIdForAProjectQuery(
       controlCategoryId,
       projectFrameworkId,
       req.tenantId!
     );
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved controls for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`,
+      functionName: "getControlsByControlCategoryId",
+      fileName: "eu.ctrl.ts",
+    });
+
     return res.status(200).json(controls);
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to retrieve controls for control category ID ${controlCategoryId} and project framework ID ${projectFrameworkId}`,
+      functionName: "getControlsByControlCategoryId",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
 export async function getAllTopics(req: Request, res: Response): Promise<any> {
+  logProcessing({
+    description: "starting getAllTopics",
+    functionName: "getAllTopics",
+    fileName: "eu.ctrl.ts",
+  });
+  logger.debug("🔍 Fetching all topics");
+
   try {
     const topics = await getAllTopicsQuery(req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved all topics",
+      functionName: "getAllTopics",
+      fileName: "eu.ctrl.ts",
+    });
+
     return res.status(200).json(topics);
   } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve topics",
+      functionName: "getAllTopics",
+      fileName: "eu.ctrl.ts",
+      error: error as Error,
+    });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

@@ -26,6 +26,7 @@ import ISO42001Annex from "../../ISO/Annex";
 import ISO42001Clauses from "../../ISO/Clause";
 import allowedRoles from "../../../../application/constants/permissions";
 import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
+import { useSearchParams } from "react-router-dom";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -70,6 +71,7 @@ const ProjectFrameworks = ({
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { changeComponentVisibility, userRoleName } =
     useContext(VerifyWiseContext);
@@ -112,8 +114,8 @@ const ProjectFrameworks = ({
         setSelectedFrameworkId(initialFrameworkId);
         setTracker(
           initialFrameworkId === FRAMEWORK_IDS.ISO_42001
-            ? "clauses"
-            : "compliance"
+            ? searchParams.get("annexId") && searchParams.get("annexCategoryId") ? "annexes" : "clauses"
+            : searchParams.get("controlId") ? "compliance" : "assessment"
         );
       }
       // Otherwise, use the default logic
@@ -141,6 +143,10 @@ const ProjectFrameworks = ({
   ]);
 
   const handleFrameworkChange = (frameworkId: number) => {
+    searchParams.delete("framework");
+    searchParams.delete("topicId");
+    searchParams.delete("questionId");
+    setSearchParams(searchParams);
     setSelectedFrameworkId(frameworkId);
     setTracker(
       frameworkId === FRAMEWORK_IDS.ISO_42001 ? "clauses" : "compliance"

@@ -2955,14 +2955,6 @@ paths:
                 reviewer:
                   type: string
                   example: "Bob Johnson"
-                riskStatus:
-                  anyOf:
-                    - type: string
-                      enum:
-                        - "Active"
-                        - "Under review"
-                        - "Not active"
-                  example: "Not active"
                 reviewDate:
                   type: string
                   format: date-time

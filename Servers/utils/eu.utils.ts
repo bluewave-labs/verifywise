@@ -27,6 +27,8 @@ import { ControlCategories } from "../structures/EU-AI-Act/compliance-tracker/co
 import { deleteHelper } from "./project.utils";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { STATUSES_ANSWERS, STATUSES_COMPLIANCE } from "../types/status.type";
+import { AnswerEURisksModel } from "../domain.layer/frameworks/EU-AI-Act/answerEURisks.model";
+import { ControlsEURisksModel } from "../domain.layer/frameworks/EU-AI-Act/controlsEURisks.model";
 
 const getDemoAnswers = (): string[] => {
   const answers = [];
@@ -231,7 +233,7 @@ export const getAllQuestionsQuery = async (
   tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const questionAnswers = (await sequelize.query(
+  const result = (await sequelize.query(
     `SELECT 
       q.id AS question_id,
       q.order_no AS order_no,
@@ -258,8 +260,22 @@ export const getAllQuestionsQuery = async (
       replacements: { subtopic_id: subtopicId, assessment_id: assessmentId },
       ...(transaction && { transaction }),
     }
-  )) as [Partial<QuestionStructEUModel & AnswerEU>[], number];
-  return questionAnswers[0];
+  )) as [Partial<QuestionStructEUModel & AnswerEU & { answer_id: number }>[], number];
+  const questionAnswers = result[0];
+  for (let questionAnswer of questionAnswers) {
+    (questionAnswer as any).risks = [];
+    const risks = (await sequelize.query(
+      `SELECT projects_risks_id FROM "${tenant}".answers_eu__risks WHERE answer_id = :id`,
+      {
+        replacements: { id: questionAnswer.answer_id },
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+    for (let risk of risks[0]) {
+      (questionAnswer as any).risks.push(risk.projects_risks_id);
+    }
+  }
+  return questionAnswers;
 };
 
 export const getAssessmentsEUByIdQuery = async (
@@ -353,7 +369,7 @@ export const getControlByIdQuery = async (
   tenant: string,
   transaction: Transaction | null = null
 ) => {
-  const controls = (await sequelize.query(
+  const result = (await sequelize.query(
     `SELECT 
       cs.title AS title,
       cs.description AS description,
@@ -375,7 +391,21 @@ export const getControlByIdQuery = async (
       ...(transaction && { transaction }),
     }
   )) as [Partial<ControlEUModel & ControlStructEUModel>[], number];
-  return controls[0];
+  const control = result[0];
+  for (let c of control) {
+    (c as any).risks = [];
+    const risks = (await sequelize.query(
+      `SELECT projects_risks_id FROM "${tenant}".controls_eu__risks WHERE control_id = :id`,
+      {
+        replacements: { id: c.id },
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+    for (let risk of risks[0]) {
+      (c as any).risks.push(risk.projects_risks_id);
+    }
+  }
+  return control
 };
 
 export const getSubControlsByIdQuery = async (
@@ -725,7 +755,10 @@ export const createEUFrameworkQuery = async (
 
 export const updateControlEUByIdQuery = async (
   id: number,
-  control: Partial<ControlEU>,
+  control: Partial<ControlEU & {
+    risksDelete: number[];
+    risksMitigated: number[];
+  }>,
   tenant: string,
   transaction: Transaction
 ): Promise<ControlEU> => {
@@ -765,7 +798,43 @@ export const updateControlEUByIdQuery = async (
     // type: QueryTypes.UPDATE,
     transaction,
   });
-  return result[0];
+  const controlResult = result[0];
+  (controlResult as any).dataValues.risks = [];
+
+  const risks = (await sequelize.query(
+    `SELECT projects_risks_id FROM "${tenant}".controls_eu__risks WHERE control_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  )) as [ControlsEURisksModel[], number];
+  let currentRisks = risks[0].map((r) => r.projects_risks_id!);
+  currentRisks = currentRisks.filter((r) => !(control.risksDelete || []).includes(r));
+  currentRisks = currentRisks.concat(control.risksMitigated || []);
+
+  await sequelize.query(
+    `DELETE FROM "${tenant}".controls_eu__risks WHERE control_id = :id;`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+  const subClauseRisksInsert = currentRisks
+    .map((risk) => `(${id}, ${risk})`)
+    .join(", ");
+  if (subClauseRisksInsert) {
+    const subClauseRisksInsertResult = (await sequelize.query(
+      `INSERT INTO "${tenant}".controls_eu__risks (control_id, projects_risks_id) VALUES ${subClauseRisksInsert} RETURNING projects_risks_id;`,
+      {
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+    for (let risk of subClauseRisksInsertResult[0]) {
+      (controlResult as any).dataValues.risks.push(risk.projects_risks_id);
+    }
+  }
+
+  return controlResult;
 };
 
 export const updateSubcontrolEUByIdQuery = async (
@@ -978,7 +1047,10 @@ export const addFileToAnswerEU = async (
 
 export const updateQuestionEUByIdQuery = async (
   id: number,
-  question: Partial<AnswerEU>,
+  question: Partial<AnswerEU & {
+    risksDelete: number[];
+    risksMitigated: number[];
+  }>,
   tenant: string,
   transaction: Transaction
 ): Promise<AnswerEU | null> => {
@@ -1007,8 +1079,43 @@ export const updateQuestionEUByIdQuery = async (
     // type: QueryTypes.UPDATE,
     transaction,
   });
+  const answer = result[0];
+  (answer as any).dataValues.risks = [];
 
-  return result[0];
+  const risks = (await sequelize.query(
+    `SELECT projects_risks_id FROM "${tenant}".answers_eu__risks WHERE answer_id = :id`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  )) as [AnswerEURisksModel[], number];
+  let currentRisks = risks[0].map((r) => r.projects_risks_id!);
+  currentRisks = currentRisks.filter((r) => !(question.risksDelete || []).includes(r));
+  currentRisks = currentRisks.concat(question.risksMitigated || []);
+
+  await sequelize.query(
+    `DELETE FROM "${tenant}".answers_eu__risks WHERE answer_id = :id;`,
+    {
+      replacements: { id },
+      transaction,
+    }
+  );
+  const subClauseRisksInsert = currentRisks
+    .map((risk) => `(${id}, ${risk})`)
+    .join(", ");
+  if (subClauseRisksInsert) {
+    const subClauseRisksInsertResult = (await sequelize.query(
+      `INSERT INTO "${tenant}".answers_eu__risks (answer_id, projects_risks_id) VALUES ${subClauseRisksInsert} RETURNING projects_risks_id;`,
+      {
+        transaction,
+      }
+    )) as [{ projects_risks_id: number }[], number];
+    for (let risk of subClauseRisksInsertResult[0]) {
+      (answer as any).dataValues.risks.push(risk.projects_risks_id);
+    }
+  }
+
+  return answer;
 };
 
 export const deleteAssessmentEUByProjectIdQuery = async (

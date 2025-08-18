@@ -67,3 +67,44 @@ export const teamMembersSlotProps = {
     },
   },
 };
+
+export const radioGroupStyle = {
+  width: "100%",
+  gap: 2,
+};
+
+export const radioOptionStyle = {
+  width: "100%",
+  padding: "16px",
+  border: "1px solid #E4E7EC",
+  borderRadius: "4px",
+  backgroundColor: "#FFFFFF",
+  cursor: "pointer",
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    borderColor: "#13715B",
+    backgroundColor: "#F9F9F9",
+  },
+  "&.selected": {
+    borderColor: "#13715B",
+    backgroundColor: "#F0F9F6",
+  },
+};
+
+export const continueButtonStyle = {
+  backgroundColor: "#13715B",
+  border: "1px solid #13715B",
+  gap: 2,
+  marginTop: 2,
+};
+
+export const backButtonStyle = {
+  backgroundColor: "#FFFFFF",
+  border: "1px solid #D0D5DD",
+  color: "#344054",
+  gap: 2,
+  "&:hover": {
+    backgroundColor: "#F9F9F9",
+    border: "1px solid #D0D5DD",
+  },
+};

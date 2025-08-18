@@ -12,6 +12,7 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { ComplianceData } from "../../../../domain/interfaces/iCompliance";
 import { Project } from "../../../../domain/types/Project";
+import { getComplianceProgress } from "../../../../application/repository/control_eu_act.repository";
 
 const ComplianceTracker = ({
   project,
@@ -61,8 +62,8 @@ const ComplianceTracker = ({
     if (!currentProjectId || !currentProjectFramework) return;
 
     try {
-      const response = await getEntityById({
-        routeUrl: `/eu-ai-act/compliances/progress/${currentProjectFramework}`,
+      const response = await getComplianceProgress({
+        projectFrameworkId: currentProjectFramework,
       });
       setComplianceData(response.data);
     } catch (err) {

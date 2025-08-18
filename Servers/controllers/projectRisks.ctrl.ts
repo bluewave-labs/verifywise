@@ -43,10 +43,6 @@ export async function getAllProjectRisks(
         "getAllProjectRisks",
         "projectRisks.ctrl.ts"
       );
-      await logEvent(
-        "Read",
-        `Project risks retrieved for project ID: ${projectId}`
-      );
       return res.status(200).json(STATUS_CODE[200](projectRisks));
     }
 
@@ -55,10 +51,6 @@ export async function getAllProjectRisks(
       `no project risks found for project ID: ${projectId}`,
       "getAllProjectRisks",
       "projectRisks.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `No project risks found for project ID: ${projectId}`
     );
     return res.status(204).json(STATUS_CODE[204](projectRisks));
   } catch (error) {
@@ -102,7 +94,6 @@ export async function getProjectRiskById(
         "getProjectRiskById",
         "projectRisks.ctrl.ts"
       );
-      await logEvent("Read", `Project risk retrieved by ID: ${projectRiskId}`);
       return res.status(200).json(STATUS_CODE[200](projectRisk));
     }
 
@@ -112,7 +103,6 @@ export async function getProjectRiskById(
       "getProjectRiskById",
       "projectRisks.ctrl.ts"
     );
-    await logEvent("Read", `No project risk found with ID: ${projectRiskId}`);
     return res.status(204).json(STATUS_CODE[204](projectRisk));
   } catch (error) {
     logStructured(
@@ -154,10 +144,6 @@ export async function getNonMitigatedProjectRisks(
       `non-mitigated project risks fetched for project ID: ${projectId}`,
       "getNonMitigatedProjectRisks",
       "projectRisks.ctrl.ts"
-    );
-    await logEvent(
-      "Read",
-      `Non-mitigated project risks retrieved for project ID: ${projectId}`
     );
     return res.status(200).json(STATUS_CODE[200](projectRisks));
   } catch (error) {

@@ -17,6 +17,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
   setState,
   projectId,
   readOnly = false,
+  setAuditedStatusModalOpen
 }) => {
   const [status, setStatus] = useState("");
   const [approver, setApprover] = useState("");
@@ -109,6 +110,9 @@ const DropDowns: React.FC<DropDownsProps> = ({
   ) => {
     const stringValue = e.target.value.toString();
     setter(stringValue);
+    if (field === "status" && stringValue === "Done") {
+      setAuditedStatusModalOpen?.(true);
+    }
     if (setState) {
       setState({ ...state, [field]: e.target.value });
     }

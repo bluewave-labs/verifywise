@@ -20,6 +20,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
+import { useSearchParams } from "react-router-dom";
 
 const ISO42001Annex = ({
   project,
@@ -48,6 +49,9 @@ const ISO42001Annex = ({
     totalAnnexcategories: number;
     doneAnnexcategories: number;
   }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const annexId = searchParams.get("annexId");
+  const annexCategoryId = searchParams.get("annexCategoryId");
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -107,6 +111,11 @@ const ISO42001Annex = ({
     setDrawerOpen(false);
     setSelectedControl(null);
     setSelectedAnnex(null);
+    if (annexId && annexCategoryId) {
+      searchParams.delete("annexId");
+      searchParams.delete("annexCategoryId");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleSaveSuccess = async (success: boolean, message?: string, savedControlId?: number) => {
@@ -134,6 +143,26 @@ const ISO42001Annex = ({
       setRefreshTrigger((prev) => prev + 1);
     }
   };
+
+  useEffect(() => {
+    if (annexId && annexCategoryId && annexes.length > 0) {
+      const annex = annexes.find((a) => a.id === parseInt(annexId));
+      async function fetchAnnexCategory() {
+        try {
+          const response = await getEntityById({
+            routeUrl: `/iso-42001/annexCategory/byId/${annexCategoryId}?projectFrameworkId=${projectFrameworkId}`,
+          });
+          setSelectedAnnex({...response.data, id: response.data.annex_id});
+          if (annex && annexCategoryId) {
+            handleControlClick("A", annex, {...response.data, id: response.data.annex_id}, parseInt(annexCategoryId));
+          }
+        } catch (error) {
+          console.error("Error fetching annex category:", error);
+        }
+      }
+      fetchAnnexCategory();
+    }
+  }, [annexId, annexCategoryId, annexes]);
 
   return (
     <Stack className="iso-42001-annex">

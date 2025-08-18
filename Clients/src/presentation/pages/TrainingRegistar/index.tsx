@@ -6,6 +6,7 @@ import React, {
   Suspense,
 } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import CustomizableButton from "../../vw-v2-components/Buttons";
@@ -24,6 +25,8 @@ import NewTraining from "../../../presentation/components/Modals/NewTraining"; /
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -52,6 +55,8 @@ const Training: React.FC = () => {
     title?: string;
     body: string;
   } | null>(null);
+
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Function to simulate fetching training data
   const fetchTrainingData = useCallback(async () => {
@@ -186,6 +191,13 @@ const Training: React.FC = () => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={trainingHelpContent}
+        pageTitle="Training Registry"
+      />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Fade
@@ -256,12 +268,12 @@ const Training: React.FC = () => {
           selectedTraining
             ? {
                 training_name: selectedTraining.training_name,
-                duration: selectedTraining.duration,
+                duration: String(selectedTraining.duration || ""),
                 provider: selectedTraining.provider,
                 department: selectedTraining.department,
                 status: selectedTraining.status,
                 numberOfPeople: selectedTraining.people,
-                description:selectedTraining.description
+                description: selectedTraining.description,
               }
             : undefined
         }

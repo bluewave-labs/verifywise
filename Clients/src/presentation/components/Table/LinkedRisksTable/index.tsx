@@ -17,13 +17,23 @@ import {
 
 interface LinkedRisksTableProps {
   projectRisksGroup: ProjectRisk[];
-  filteredRisksGroup: ProjectRisk[]
+  filteredRisksGroup: ProjectRisk[],
+  currentRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+  deletedRisks: number[];
+  setDeletedRisks: (deletedRisks: number[]) => void;
 }
 
 
 const LinkedRisksTable: React.FC<LinkedRisksTableProps> = ({
   projectRisksGroup,
-  filteredRisksGroup
+  filteredRisksGroup,
+  currentRisks,
+  checkedRows,
+  setCheckedRows,
+  deletedRisks,
+  setDeletedRisks,
 }) => { 
   const [currentPage, setCurrentPage] = useState(0);
   const setCurrentPagingation = (page: number) => {
@@ -46,6 +56,11 @@ const LinkedRisksTable: React.FC<LinkedRisksTableProps> = ({
                 rows={filteredRisksGroup} 
                 setCurrentPagingation={setCurrentPagingation}
                 page={currentPage}
+                currentRisks={currentRisks}
+                checkedRows={checkedRows}
+                setCheckedRows={setCheckedRows}
+                deletedRisks={deletedRisks}
+                setDeletedRisks={setDeletedRisks}
               />
             : <>
               <TableRow>

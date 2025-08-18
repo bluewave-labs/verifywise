@@ -63,7 +63,7 @@ const ResourceTableRow: React.FC<{
           isVisible={resource.visible}
           warningTitle={WARNING_MESSAGES.deleteTitle}
           warningMessage={WARNING_MESSAGES.deleteMessage}
-          type="Resource"
+          type="resource"
         />
       </TableCell>
     </TableRow>
@@ -364,6 +364,14 @@ const [formData, setFormData] = useState<FormData | null>(null);
       
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
+          <CustomizableButton
+            sx={styles.addButton}
+            variant="contained"
+            onClick={handleOpenAddModal}
+            isDisabled={!formData?.info?.resources_visible}
+            text="Add new resource"
+            icon={<AddIcon />}
+          />
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
             <Toggle 
@@ -378,7 +386,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
             component={Paper} 
             sx={{
               ...styles.tableContainer,
-              ...(formData?.info?.resources_visible ? {} : { opacity: 0.5, pointerEvents: 'none' })
+              ...(formData?.info?.resources_visible ? {} : { opacity: 0.9, pointerEvents: 'none' })
             }}
           >
             <Table>
@@ -416,17 +424,6 @@ const [formData, setFormData] = useState<FormData | null>(null);
           </TableContainer>
           {!formData?.info?.resources_visible && <Box sx={styles.overlay} />}
         </Box>
-        
-        <Stack>
-          <CustomizableButton
-            sx={styles.addButton}
-            variant="contained"
-            onClick={handleOpenAddModal}
-            isDisabled={!formData?.info?.resources_visible}
-            text="Add new resource"
-            icon={<AddIcon />}
-          />
-        </Stack>
 
         {/* Add Resource Modal */}
         <Dialog 

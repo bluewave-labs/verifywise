@@ -36,8 +36,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
-import { deleteEntityById } from "../../../../application/repository/entity.repository";
-import { updateEntityById } from "../../../../application/repository/entity.repository";
+import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -87,9 +86,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const handleUpdateRole = async (memberId: string, newRole: string) => {
     try {
-      const response = await updateEntityById({
-        routeUrl: `/users/${memberId}`,
-        body: { roleId: newRole },
+       const response = await updateUserById({
+        userId: parseInt(memberId),
+        userData: { roleId: newRole },
       });
 
       if (response.status === 202) {
@@ -129,8 +128,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
     const memberId = Number(memberToDelete);
 
-    const response = await deleteEntityById({
-      routeUrl: `/users/${memberId}`,
+      const response = await deleteUserById({
+      userId: memberId,
     });
     if (response.status === 202) {
       handleAlert({
@@ -212,7 +211,8 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
   const handleInvitation = (
     email: string,
-    status: number | string
+    status: number | string,
+    link: string | undefined = undefined
   ) => {
     console.log("Invitation to ", email, "is ", status);
     
@@ -222,6 +222,13 @@ const TeamManagement: React.FC = (): JSX.Element => {
         body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
         setAlert
       });
+    } else if (status === 206) {
+      handleAlert({
+        variant: "info",
+        body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
+        setAlert,
+        alertTimeout: 20000
+      })
     } else {
       handleAlert({
         variant: "error",
@@ -363,7 +370,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={singleTheme.tableStyles.primary.body.cell}
                             >
-                              {member.name}
+                              {[member.name, member.surname].filter(Boolean).join(' ')}
                             </TableCell>
                             <TableCell
                               sx={{

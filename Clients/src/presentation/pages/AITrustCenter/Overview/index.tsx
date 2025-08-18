@@ -285,7 +285,6 @@ const AITrustCenterOverview: React.FC = () => {
           title="Company description and values"
           checked={formData.info?.company_description_visible || false}
           onToggle={(checked) => handleFieldChange('info', 'company_description_visible', checked)}
-          label={formData.info?.company_description_visible ? "Enabled and visible" : "Disabled"}
         />
         <Box display="flex" gap={8} mt={2}>
           <ToggleCard

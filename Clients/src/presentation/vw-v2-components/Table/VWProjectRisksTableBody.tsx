@@ -4,9 +4,10 @@ import {
   TableRow,
   useTheme,
   Chip,
+  Dialog,
 } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
-import { useContext } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { getMitigationStatusColor } from "../../constants/statusColors";
@@ -14,7 +15,38 @@ import RiskChip from "../../components/RiskLevel/RiskChip";
 import IconButton from "../../components/IconButton";
 import { formatDate } from "../../tools/isoDateToString";
 import allowedRoles from "../../../application/constants/permissions";
+import { useSearchParams } from "react-router-dom";
+import CustomizableButton from "../Buttons";
+import { ProjectRiskMitigation } from "../../components/ProjectRiskMitigation/ProjectRiskMitigation";
 
+function getDummyEvent() {
+  const realEvent = new Event('click', { bubbles: true, cancelable: true });
+
+  let defaultPrevented = false;
+  let propagationStopped = false;
+
+  const syntheticEvent = {
+    ...realEvent,
+    nativeEvent: realEvent,
+    persist: () => {},
+    preventDefault: () => {
+      defaultPrevented = true;
+      realEvent.preventDefault();
+    },
+    stopPropagation: () => {
+      propagationStopped = true;
+      realEvent.stopPropagation();
+    },
+    isDefaultPrevented: () => defaultPrevented,
+    isPropagationStopped: () => propagationStopped,
+    target: document.createElement('div'),
+    currentTarget: document.createElement('div'),
+    type: 'click',
+    timeStamp: Date.now(),
+  } as unknown as React.SyntheticEvent;
+
+  return syntheticEvent;
+}
 
 const VWProjectRisksTableBody = ({
   rows,
@@ -42,6 +74,29 @@ const VWProjectRisksTableBody = ({
     setInputValues(row);
     setAnchor(event?.currentTarget);
   };
+  const [showMitigations, setShowMitigations] = useState(false);
+  const [showMitigationProjectRisk, setShowMitigationProjectRisk] = useState<ProjectRisk | null>(null);
+
+  const [searchParams] = useSearchParams();
+  const riskId = searchParams.get("riskId");
+
+  useEffect(() => {
+    if (riskId) {
+      const risk = rows.find((r: ProjectRisk) => r.id === parseInt(riskId));
+      if (risk) {
+        handleEditRisk(
+          risk,
+          getDummyEvent()
+        );
+      }
+    }
+  }, [])
+
+  const toggleMitigations = (risk: ProjectRisk, e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    setShowMitigations((prev) => !prev);
+    setShowMitigationProjectRisk(risk);
+  }
 
   const handleDeleteRisk = async (riskId: number) => {
     onDeleteRisk(riskId);
@@ -58,6 +113,7 @@ const VWProjectRisksTableBody = ({
   };
 
   return (
+    <>
     <TableBody>
       {rows &&
         rows
@@ -143,6 +199,23 @@ const VWProjectRisksTableBody = ({
                 {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
               </TableCell>
               <TableCell
+                sx={cellStyle}
+                style={{
+                  backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
+                }}
+              >
+                <CustomizableButton
+                  sx={{
+                    backgroundColor: "#13715B",
+                    color: "#fff",
+                    border: "1px solid #13715B",
+                  }}
+                  variant="contained"
+                  text="View controls"
+                  onClick={(e: React.MouseEvent<HTMLElement>) => toggleMitigations(row, e)}
+                />
+              </TableCell>
+              <TableCell
                 sx={{
                   ...singleTheme.tableStyles.primary.body.cell,
                   position: "sticky",
@@ -168,6 +241,42 @@ const VWProjectRisksTableBody = ({
             </TableRow>
           ))}
     </TableBody>
+    {showMitigations && (
+      <Dialog 
+        open={showMitigations} 
+        onClose={() => {setShowMitigations(false); setShowMitigationProjectRisk(null)}}
+        PaperProps={{
+          sx: {
+            width: '800px',
+            maxWidth: '800px',
+            minHeight: '300px'
+          },
+        }}
+      >
+        <Suspense fallback={"loading..."}>
+          <ProjectRiskMitigation
+            annexCategories={showMitigationProjectRisk?.annexCategories?.map((item) => ({
+              ...item,
+              type: "annexcategory",
+            })) || []}
+            subClauses={showMitigationProjectRisk?.subClauses?.map((item) => ({
+              ...item,
+              type: "subclause",
+            })) || []}
+            assessments={showMitigationProjectRisk?.assessments?.map((item) => ({
+              ...item,
+              type: "assessment",
+            })) || []}
+            controls={showMitigationProjectRisk?.controls?.map((item) => ({
+              ...item,
+              type: "control",
+            })) || []}
+            onClose={() => {setShowMitigations(false); setShowMitigationProjectRisk(null)}}
+          />
+        </Suspense>
+      </Dialog>
+    )}
+    </>
   );
 };
 

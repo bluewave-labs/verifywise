@@ -15,7 +15,6 @@ import {
   Box,
 } from "@mui/material";
 import { useCallback, useEffect, useState, useContext } from "react";
-import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
@@ -23,6 +22,8 @@ import NewControlPane from "../../../components/Modals/Controlpane/NewControlPan
 import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useSearchParams } from "react-router-dom";
+import { getControlByIdAndProject, getControlsByControlCategoryId } from "../../../../application/repository/control_eu_act.repository";
 
 interface Column {
   name: string;
@@ -62,6 +63,19 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const controlId = searchParams.get("controlId");
+
+  useEffect(() => {
+    if (controlId) {
+      const controlExists = controls.find(control => control.id === Number(controlId));
+      if (controlExists) {
+        (async () => {
+          await handleRowClick(Number(controlId));
+        })();
+      }
+    }
+  }, [controlId, controls])
 
   // Reset state when project changes
   useEffect(() => {
@@ -75,8 +89,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   }, [currentProjectId]);
 
   const handleRowClick = async (id: number) => {
-    const subControlsResponse = await getEntityById({
-      routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
+    const subControlsResponse = await getControlByIdAndProject({
+      controlId: id,
+      projectFrameworkId,
     });
     setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
@@ -86,6 +101,10 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedRow(null);
+    if (controlId) {
+      searchParams.delete("controlId");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleControlUpdate = () => {
@@ -129,8 +148,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
       setLoading(true);
       try {
-        const response = await getEntityById({
-          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
+        const response = await getControlsByControlCategoryId({
+          controlCategoryId,
+          projectFrameworkId,
         });
 
         const filteredControls = response.filter((control: Control) => {

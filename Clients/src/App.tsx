@@ -23,6 +23,31 @@ import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { useLocation } from "react-router-dom";
+
+// Component to conditionally apply theme based on route
+const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
+  const location = useLocation();
+  const isAITrustCentreRoute = location.pathname.includes('/aiTrustCentre');
+  
+  // For aiTrustCentre routes, don't apply theme (like /public route)
+  if (isAITrustCentreRoute) {
+    return (
+      <>
+        <CssBaseline />
+        {children}
+      </>
+    );
+  }
+  
+  // For other routes, apply theme normally
+  return (
+    <ThemeProvider theme={mode === "light" ? light : dark}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  );
+};
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
@@ -140,8 +165,7 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ThemeProvider theme={mode === "light" ? light : dark}>
-              <CssBaseline />
+            <ConditionalThemeWrapper mode={mode}>
               {alert && (
                 <Alert
                   variant={alert.variant}
@@ -154,7 +178,7 @@ function App() {
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>
-            </ThemeProvider>
+            </ConditionalThemeWrapper>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

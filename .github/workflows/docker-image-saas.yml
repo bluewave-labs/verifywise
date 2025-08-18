@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-push:
-    if: ${{ startsWith(github.event.release.tag_name, 'saas-') }}
+    if: ${{ endsWith(github.event.release.tag_name, '-saas') }}
     runs-on: ubuntu-latest
 
     env:
@@ -23,9 +23,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Extract Tag Name
-        id: get_tag
-        run: echo "TAG=${FULL_TAG#saas-}" >> $GITHUB_ENV
+      - name: Extract version tag
+        run: |
+          RAW_TAG="${GITHUB_REF##*/}"   # v1.1-saas
+          CLEAN_TAG="${RAW_TAG%-saas}"  # v1.1
+          echo "TAG=$CLEAN_TAG" >> $GITHUB_ENV
 
       - name: Debug GitHub Token Access
         run: |

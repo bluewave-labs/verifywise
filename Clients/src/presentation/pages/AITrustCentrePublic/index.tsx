@@ -26,7 +26,7 @@ const AITrustCentrePublic: React.FC = () => {
   const params = useParams();
 
   useEffect(() => {
-    const hash = 'a4ayc80OGd'; //params.hash || null;
+    const hash = params.hash || null;
     setHash(hash);
   }, [params]);
 

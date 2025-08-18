@@ -34,10 +34,12 @@ import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
+import { ReactComponent as Policies } from "../../assets/icons/policies.svg"
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
 import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
+import { ReactComponent as ModelInventory } from "../../assets/icons/list.svg";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -83,9 +85,19 @@ const menu = [
     path: "/training",
   },
   {
+    name: "Policy Manager",
+    icon: <Policies />,
+    path: "/policies",
+  },
+  {
     name: "AI Trust Center",
     icon: <AITrustCenter />,
     path: "/ai-trust-center",
+  },
+  {
+    name: "Model Inventory",
+    icon: <ModelInventory />,
+    path: "/model-inventory",
   },
 ];
 

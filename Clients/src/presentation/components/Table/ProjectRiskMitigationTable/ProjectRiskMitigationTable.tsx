@@ -31,7 +31,7 @@ export const ProjectRiskMitigationTable: React.FC<ProjectRiskMitigationTableProp
     <TableContainer>
       <Table sx={{
         ...singleTheme.tableStyles.primary.frame,
-        ...tableWrapper
+        ...tableWrapper,
       }}>
         <TableHeader columns={TITLE_OF_COLUMNS} />
         {

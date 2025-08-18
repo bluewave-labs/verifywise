@@ -5,7 +5,6 @@ import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
-import { createNewUser } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import {
   validatePassword,
@@ -26,6 +25,7 @@ import {
   setAuthToken,
 } from "../../../../application/redux/auth/authSlice";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { createNewUser } from "../../../../application/repository/user.repository";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -133,9 +133,8 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
       ? { ...values, organization: organizationValues }
       : values;
 
-    await createNewUser({
-      routeUrl: "/users/register",
-      body: requestBody,
+   await createNewUser({
+      userData: requestBody,
     })
       .then((response) => {
         setValues(initialState);

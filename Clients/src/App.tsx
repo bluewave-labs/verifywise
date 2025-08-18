@@ -11,7 +11,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store";
 import useProjectStatus from "./application/hooks/useProjectStatus";
-import { extractUserToken } from "./application/tools/extractToken";
+import { useAuth } from "./application/hooks/useAuth";
 import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
@@ -26,10 +26,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
-  const token = useSelector((state: AppState) => state.auth?.authToken);
-  const userToken = token ? extractUserToken(token) : null;
-  const userRoleName = userToken?.roleName || "";
-  const organizationId = userToken ? parseInt(userToken.organizationId) : null;
+  const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
 
@@ -54,12 +51,12 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
-  const userId = extractUserToken(token)?.id ?? 1;
+  const userIdForProject = userId ?? 1;
   const {
     projectStatus,
     loading: loadingProjectStatus,
     error: errorFetchingProjectStatus,
-  } = useProjectStatus({ userId });
+  } = useProjectStatus({ userId: userIdForProject });
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
   const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
@@ -119,7 +116,7 @@ function App() {
       errorFetchingProjectStatus,
       currentProjectId,
       setCurrentProjectId,
-      userId,
+      userIdForProject,
       projects,
       setProjects,
       componentsVisible,

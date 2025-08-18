@@ -15,7 +15,6 @@ import {
   Box,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";

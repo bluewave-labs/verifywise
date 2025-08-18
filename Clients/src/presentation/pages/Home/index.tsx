@@ -17,7 +17,7 @@ import Grid from "@mui/material/Grid2";
 import { styles } from "./styles";
 import { postAutoDrivers } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
-import {
+import useProjectStatus, {
   Assessments,
   Controls,
 } from "../../../application/hooks/useProjectStatus";
@@ -29,6 +29,7 @@ import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { getAllProjects } from "../../../application/repository/project.repository";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -112,9 +113,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     () => setIsNewProjectCreate(false)
   );
   
-  const authToken = useSelector((state: AppState) => state.auth.authToken);
-  const userToken = extractUserToken(authToken);
-  const userId = userToken?.id ? parseInt(userToken.id) : null;
+  const { userId } = useAuth();
   const { projectStatus, loading: loadingProjectStatus, error: errorFetchingProjectStatus } =
     useProjectStatus({ userId });
 

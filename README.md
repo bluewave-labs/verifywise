@@ -78,6 +78,7 @@ VerifyWise is designed for:
 - More frameworks (eg. 27001 or AI regulatory frameworks)
 - Mappings between frameworks
 - Bias & fairness check of LLM models
+- Google OAuth2 support for authentication
 - Automated reports
 - Integration with 3rd party platforms
 - Slack notifications

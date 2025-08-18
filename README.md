@@ -52,7 +52,7 @@ VerifyWise is designed for:
 ![VerifyWise platform](https://github.com/user-attachments/assets/2d05cd1f-f67b-45d2-aca4-1fdcde287a44)
 
 - Option to host the application on-premises or in a private cloud
-- Open source with a copyleft license (AGPLv3)
+- Open source with a copyleft license (AGPLv3). Dual licensing is also available for enterprises
 - Faster audits using AI-generated answers for compliance and assessment questions
 - Full access to the source code for transparency, security audits, and customization
 - Docker deployment (also deployable on render.com and similar platforms)
@@ -64,17 +64,24 @@ VerifyWise is designed for:
   - AI project risks
   - Bias & fairness check of ML systems
   - Evidence center
-  - Reports
-  - AI literacy training
+  - AI trust center
+  - AI literacy training registery
+  - Integration with MIT AI risk repository
+  - Model inventory that keeps a list of models used
+  - Policy manager to create and manage internal company AI policies
+  - Risk and control mappings for EU AI Act & ISO 42001
+  - Detailed eports
+  - Event logs (audits) for enterprise organizations
  
 ## Roadmap 
 
-- More frameworks
+- More frameworks (eg. 27001 or AI regulatory frameworks)
 - Mappings between frameworks
-- AI trust center
-- Integration with MIT AI risk repository
+- Bias & fairness check of LLM models
+- Google OAuth2 support for authentication
 - Automated reports
-- Risk and control mappings
+- Integration with 3rd party platforms
+- Slack notifications
 
 ## Installation
 

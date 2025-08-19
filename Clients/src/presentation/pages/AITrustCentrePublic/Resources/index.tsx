@@ -11,23 +11,18 @@ import {
   Box
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { useSelector } from 'react-redux';
-import { extractUserToken } from '../../../../application/tools/extractToken';
 import { downloadResource } from '../../../../application/tools/downloadResource';
 import { aiTrustCenterTableCell } from '../style';
 
-const Resources = ({ data, loading, error }: { data: any; loading: boolean; error: string | null }) => {
-  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
-  const userToken = extractUserToken(authToken);
-  const tenantHash = userToken?.tenantId;
+const Resources = ({ data, loading, error, hash }: { data: any; loading: boolean; error: string | null; hash: string | null }) => {
 
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
   if (!data || !data.resources || data.resources.length === 0) return <Typography>No resources available.</Typography>;
 
   const handleDownload = async (id: string) => {
-    if (tenantHash) {
-      await downloadResource(id, tenantHash);
+    if (hash) {
+      await downloadResource(id, hash);
     }
   };
 

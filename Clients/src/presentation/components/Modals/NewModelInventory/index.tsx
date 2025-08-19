@@ -535,7 +535,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       disableTouchRipple
                     />
                   }
-                  label="Security assessment"
+                  label="Security assessment is complete for this model"
                   sx={{
                     "& .MuiFormControlLabel-label": {
                       fontSize: 13,

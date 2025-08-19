@@ -25,7 +25,7 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 ## Screenshot
 
-![SCR-20250619-jrmy-2-scaled](https://github.com/user-attachments/assets/1fc614e4-76f3-45a4-b2e4-8cb5a29dfd38)
+<img width="1319" height="740" alt="image" src="https://github.com/user-attachments/assets/576cf117-02a2-47e9-950f-e5b50c3b4005" />
 
 
 ## Who is it for?

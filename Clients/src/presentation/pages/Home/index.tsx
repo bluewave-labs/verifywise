@@ -10,7 +10,6 @@ import React, {
   useCallback,
   useMemo,
   FC,
-  useContext,
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
@@ -20,18 +19,18 @@ import {
   postAutoDrivers,
 } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
-import {
+import useProjectStatus, {
   Assessments,
   Controls,
 } from "../../../application/hooks/useProjectStatus";
 import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import CreateDemoData from "../../components/CreateDemoData";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -114,8 +113,10 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     newProjectData,
     () => setIsNewProjectCreate(false)
   );
-  const { projectStatus, loadingProjectStatus, errorFetchingProjectStatus } =
-    useContext(VerifyWiseContext);
+  
+  const { userId } = useAuth();
+  const { projectStatus, loading: loadingProjectStatus, error: errorFetchingProjectStatus } =
+    useProjectStatus({ userId });
 
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [openDemoDataModal, setOpenDemoDataModal] = useState(false);

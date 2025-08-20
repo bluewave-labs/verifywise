@@ -6,7 +6,6 @@ import {
   Suspense,
   Dispatch,
   SetStateAction,
-  useContext,
 } from "react";
 import {
   Divider,
@@ -25,7 +24,6 @@ import {
   approvalStatusItems,
 } from "../projectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
 
 // Lazy load components
@@ -39,6 +37,7 @@ interface MitigationSectionProps {
   mitigationValues: MitigationFormValues;
   setMitigationValues: Dispatch<SetStateAction<MitigationFormValues>>;
   migitateErrors: MitigationFormErrors;
+  userRoleName: string;
 }
 /**
  * MitigationSection component is a form used to add or edit mitigation details for a risk.
@@ -91,9 +90,9 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   mitigationValues,
   setMitigationValues,
   migitateErrors,
+  userRoleName
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext);
   const isEditingDisabled =
     !allowedRoles.projectRisks.edit.includes(userRoleName);
 

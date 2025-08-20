@@ -7,17 +7,16 @@ export type ControlStatus =
 
 export interface IISO27001AnnexControl {
   id?: number;
-  control_no: number;
-  title: string;
-  requirement_summary: string;
-  key_questions: string[];
-  evidence_examples: string[];
   implementation_description: string;
-  status: ControlStatus;
-  owner?: number;
-  reviewer?: number;
-  approver?: number;
-  due_date?: Date;
-  cross_mappings?: object[];
-  iso27001annex_category_id: number;
+  evidence_links: Object[];
+  status: string;
+  owner: number;
+  reviewer: number;
+  approver: number;
+  due_date: Date;
+  auditor_feedback: string;
+  annexcontrol_meta_id: number;
+  projects_frameworks_id: number;
+  created_at: Date;
+  is_demo: boolean;
 }

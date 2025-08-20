@@ -1,0 +1,20 @@
+.vw-multi-select .vw-multi-select-label {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  font-size: 13px;
+  color: #344054;
+}
+
+.vw-multi-select-label .required {
+  color: #344054;
+  margin-left: 2px;
+}
+
+.vw-multi-select .select-component > .MuiSelect-select {
+  padding: 0 10px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}

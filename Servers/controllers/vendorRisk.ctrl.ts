@@ -158,7 +158,7 @@ export async function createVendorRisk(
         functionName: 'createVendorRisk',
         fileName: 'vendorRisk.ctrl.ts'
       });
-      return res.status(201).json(STATUS_CODE[201](createdVendorRisk));
+        
     }
 
     await logSuccess({

@@ -18,10 +18,6 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
 import { Suspense, useContext, useEffect, useState, lazy, useCallback } from "react";
-import {
-  createNewUser,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import useUsers from "../../../../application/hooks/useUsers";

@@ -29,9 +29,6 @@ import DatePicker from "../../Inputs/Datepicker";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
 import { Suspense, useContext, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import {
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";

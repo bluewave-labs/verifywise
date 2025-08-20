@@ -15,7 +15,6 @@ import TablePaginationActions from "../TablePagination";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import singleTheme from "../../themes/v1SingleTheme";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
-import { getAllEntities } from "../../../application/repository/entity.repository";
 import { getAllVendors } from "../../../application/repository/vendor.repository";
 
 const DEFAULT_ROWS_PER_PAGE = 5;

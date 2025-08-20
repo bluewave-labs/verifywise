@@ -1,5 +1,3 @@
-import { ENV_VARs } from "../../../env.vars";
-
 export const downloadResource = async (resourceId: string, tenantHash: string): Promise<void> => {
   try {
     if (!tenantHash) {
@@ -7,7 +5,7 @@ export const downloadResource = async (resourceId: string, tenantHash: string): 
       return;
     }
 
-    const url = `${ENV_VARs.URL}/api/aiTrustCentre/${tenantHash}/resources/${resourceId}`;
+    const url = `http://localhost:3000/api/aiTrustCentre/${tenantHash}/resources/${resourceId}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {

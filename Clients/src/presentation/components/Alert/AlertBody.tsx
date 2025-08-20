@@ -10,15 +10,11 @@ interface AlertBodyProps {
 
 const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
   const [copied, setCopied] = useState(false);
-
-  // Ensure body is a string and handle non-string values
-  const bodyString = typeof body === "string" ? body : String(body || "");
-  const linkMatch = bodyString.match(/https?:\/\/[^\s]+/);
+  const linkMatch = body.match(/https?:\/\/[^\s]+/);
   const link = linkMatch ? linkMatch[0] : null;
 
   // Limit link to 35 characters
-  const limitedLink =
-    link && link.length > 25 ? link.substring(0, 25) + "..." : link;
+  const limitedLink = link && link.length > 25 ? link.substring(0, 25) + "..." : link;
 
   const handleCopy = async () => {
     if (link) {
@@ -32,11 +28,8 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
     <Typography sx={{ fontWeight: 400, color: textColor }}>
       {link ? (
         <>
-          {bodyString.split(link)[0]}
-          <Box
-            component="span"
-            sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}
-          >
+          {body.split(link)[0]}
+          <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
             {limitedLink}
             <IconButton
               size="small"
@@ -60,17 +53,15 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                     Copied!
                   </Typography>
                 ) : (
-                  <ContentCopyIcon
-                    sx={{ fontSize: "13px", color: textColor }}
-                  />
+                  <ContentCopyIcon sx={{ fontSize: "13px", color: textColor }} />
                 )}
               </Box>
             </IconButton>
           </Box>
-          {bodyString.split(link)[1]}
+          {body.split(link)[1]}
         </>
       ) : (
-        bodyString
+        body
       )}
     </Typography>
   );

@@ -8,14 +8,8 @@ const GenerateReportPopup = lazy(
 const ReportStatus = lazy(() => import("./ReportStatus"));
 import { styles } from "./styles";
 
-interface GenerateReportProps {
-  onReportGenerated?: () => void;
-}
-
-const GenerateReport: React.FC<GenerateReportProps> = ({
-  onReportGenerated,
-}) => {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+const GenerateReport = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);  
   const { projects } = useContext(VerifyWiseContext);
   const isDisabled = projects.length > 0 ? false : true;
 
@@ -39,10 +33,7 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
       </Stack>
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <Suspense fallback={"loading..."}>
-          <GenerateReportPopup
-            onClose={() => setIsModalOpen(false)}
-            onReportGenerated={onReportGenerated}
-          />
+          <GenerateReportPopup onClose={() => setIsModalOpen(false)} />
         </Suspense>
       </Dialog>
     </>

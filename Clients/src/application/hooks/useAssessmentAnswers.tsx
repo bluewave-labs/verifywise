@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { getAssessmentAnswers } from "../repository/assesment.repository";
+import { getAllEntities } from "../repository/entity.repository";
 
 interface AssessmentProps {
   assessmentId: string | null | undefined;
@@ -116,8 +116,8 @@ const useAssessmentAnswers = ({ assessmentId }: AssessmentProps) => {
       setError(null);
 
       try {
-         const response = await getAssessmentAnswers({
-          assessmentId: assessmentId!,
+        const response = await getAllEntities({
+          routeUrl: `/assessments/getAnswers/${assessmentId}`,
         });
         if (response?.data?.message?.topics?.length > 0) {
           const topics = convertResponseAttributes(response);

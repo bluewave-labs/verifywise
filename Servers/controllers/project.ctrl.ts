@@ -24,7 +24,6 @@ import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
-import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -156,14 +155,6 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           transaction
         );
         frameworks["iso42001"] = iso42001;
-      } else if (framework === 3) {
-        const iso27001 = await createISO27001FrameworkQuery(
-          createdProject.id!,
-          newProject.enable_ai_data_insertion,
-          req.tenantId!,
-          transaction
-        );
-        frameworks["iso27001"] = iso27001;
       }
     }
 

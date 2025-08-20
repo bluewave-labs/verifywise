@@ -1,20 +1,23 @@
 import React from "react";
 import { Box, Stack, Typography, Link, CircularProgress } from "@mui/material";
+import { extractUserToken } from "../../../../../application/tools/extractToken";
+import { useSelector } from "react-redux";
 import axios from "axios";
-import { ENV_VARs } from "../../../../../../env.vars";
 
 interface AITrustCentreHeaderProps {
   data: any;
-  hash: string | null;
 }
-const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data, hash}) => {
+const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data}: {data: any}) => {
   const [logo, setLogo] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
+  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
+  const userToken = extractUserToken(authToken);
+  const tenantId = userToken?.tenantId;
 
   React.useEffect(() => {
-    if (!hash) return;
+    if (!tenantId) return;
     setLoading(true);
-    axios.get(`${ENV_VARs.URL}/api/aiTrustCentre/${hash}/logo`)
+    axios.get(`http://localhost:3000/api/aiTrustCentre/${tenantId}/logo`)
       .then((response) => {
         // Extract the buffer and type
         const logoData = response?.data?.data?.logo;
@@ -33,7 +36,7 @@ const AITrustCentreHeader: React.FC <AITrustCentreHeaderProps>= ({data, hash}) =
       .finally(() => {
         setLoading(false);
       });
-  }, [hash]);
+  }, [tenantId]);
   if (!data) return null;
 
   return (

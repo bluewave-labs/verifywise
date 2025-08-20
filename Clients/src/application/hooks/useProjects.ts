@@ -1,6 +1,7 @@
-import { Project } from '../../domain/types/Project';
-import { useCallback, useEffect, useState } from 'react';
-import { getAllProjects } from '../repository/project.repository';
+import { useEffect, useState } from "react";
+import { useCallback } from "react";
+import { getAllEntities } from "../repository/entity.repository";
+import { Project } from "../../domain/types/Project";
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -8,7 +9,7 @@ export const useProjects = () => {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const response = await getAllProjects();
+      const response = await getAllEntities({ routeUrl: "/projects" });
       setProjects(response.data);
     } catch (error) {
       // Handle error

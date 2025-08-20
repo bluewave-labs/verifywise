@@ -20,6 +20,7 @@ import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
+import { useProjects } from "../../../../application/hooks/useProjects";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
@@ -27,9 +28,6 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/Drawer/HelperDrawer";
 import dashboardHelpContent from "../../../../presentation/helpers/dashboard-help.html?raw";
-import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
-import { useDashboard } from "../../../../application/hooks/useDashboard";
-import { Project } from "../../../../domain/types/Project";
 
 const Home = () => {
   const {
@@ -47,14 +45,7 @@ const Home = () => {
   const [showToastNotification, setShowToastNotification] =
     useState<boolean>(false);
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const { dashboard, fetchDashboard } = useDashboard();
-
-  useEffect(() => {
-    if (dashboard) {
-      setProjects(dashboard.projects_list);
-    }
-  }, [dashboard]);
+  const { projects, fetchProjects } = useProjects();
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
@@ -78,11 +69,11 @@ const Home = () => {
     const fetchProgressData = async () => {
       await refreshUsers();
 
-      await fetchDashboard();
+      await fetchProjects();
     };
 
     fetchProgressData();
-  }, [setDashboardValues, fetchDashboard, refreshProjectsFlag]);
+  }, [setDashboardValues, fetchProjects, refreshProjectsFlag]);
 
   const handleProjectFormModalClose = () => {
     setIsProjectFormModalOpen(false);
@@ -106,7 +97,7 @@ const Home = () => {
           setAlertState(undefined);
         }, 100);
 
-        await fetchDashboard();
+        await fetchProjects();
         setShowToastNotification(false);
         window.location.reload();
       } else {
@@ -200,37 +191,6 @@ const Home = () => {
             </div>
           </Stack>
         </Stack>
-        <Stack sx={vwhomeBody}>
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "20px",
-            }}
-          >
-            <HeaderCard title="Projects" count={dashboard?.projects || 0} />
-            <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
-            <HeaderCard title="Models" count={dashboard?.models || 0} />
-            <HeaderCard title="Reports" count={dashboard?.reports || 0} />
-          </Box>
-        </Stack>
-        {/* <Stack sx={vwhomeBody}>
-          <Box
-            sx={{
-              width: "50%",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "20px",
-            }}
-          >
-            <TaskRadar overdue={dashboard?.task_radar.overdue || 0} due={dashboard?.task_radar.due || 0} upcoming={dashboard?.task_radar.upcoming || 0} />
-          </Box>
-        </Stack> */}
         <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
           {projects?.length === 0 || !projects ? (
             <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />

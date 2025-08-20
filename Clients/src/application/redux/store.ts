@@ -8,7 +8,7 @@ import fileReducer from "./file/fileSlice";
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "ui"], // Persist both auth and ui state
+  whitelist: ["auth"], // Only persist the auth state
 };
 
 const rootReducer = combineReducers({
@@ -16,6 +16,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   files: fileReducer, //file slice
 });
+
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

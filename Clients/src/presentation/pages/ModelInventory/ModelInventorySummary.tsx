@@ -1,12 +1,6 @@
 import React from "react";
 import { Stack, Box, Typography, useTheme } from "@mui/material";
 import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
-import { 
-  summaryContainerStyle, 
-  summaryCardBoxStyle, 
-  summaryCardNumberStyle, 
-  summaryCardLabelStyle 
-} from "./style";
 
 interface ModelInventorySummaryProps {
   summary: Summary;
@@ -47,21 +41,46 @@ const ModelInventorySummary: React.FC<ModelInventorySummaryProps> = ({
   return (
     <Stack
       direction="row"
-      sx={summaryContainerStyle}
+      gap={2}
+      sx={{
+        mb: 3,
+        flexWrap: "wrap",
+      }}
     >
       {summaryCards.map((card) => (
         <Box
           key={card.title}
-          sx={summaryCardBoxStyle(theme)}
+          sx={{
+            flex: 1,
+            minWidth: "200px",
+            backgroundColor: "white",
+            border: `1px solid ${theme.palette.border.light}`,
+            borderRadius: theme.shape.borderRadius,
+            padding: theme.spacing(3),
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 1,
+          }}
         >
           <Typography
             variant="h4"
-            sx={summaryCardNumberStyle(card.color)}
+            sx={{
+              fontWeight: 700,
+              color: card.color,
+              fontSize: "2rem",
+            }}
           >
             {card.count}
           </Typography>
           <Typography
-            sx={summaryCardLabelStyle(theme)}
+            sx={{
+              fontSize: "13px",
+              fontWeight: 600,
+              color: theme.palette.text.secondary,
+              textTransform: "uppercase",
+            }}
           >
             {card.title}
           </Typography>

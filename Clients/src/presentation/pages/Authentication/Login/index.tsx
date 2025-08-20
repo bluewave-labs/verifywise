@@ -5,6 +5,7 @@ import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
+import { loginUser } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/redux/auth/authSlice";
@@ -13,7 +14,6 @@ import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
-import { loginUser } from "../../../../application/repository/user.repository";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
 
@@ -63,6 +63,7 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
 
     await loginUser({
+      routeUrl: "/users/login",
       body: values,
     })
       .then((response) => {

@@ -15,6 +15,7 @@ import {
   Box,
 } from "@mui/material";
 import { useCallback, useEffect, useState, useContext } from "react";
+import { getEntityById } from "../../../../application/repository/entity.repository";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
@@ -23,7 +24,6 @@ import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { useSearchParams } from "react-router-dom";
-import { getControlByIdAndProject, getControlsByControlCategoryId } from "../../../../application/repository/control_eu_act.repository";
 
 interface Column {
   name: string;
@@ -89,9 +89,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   }, [currentProjectId]);
 
   const handleRowClick = async (id: number) => {
-    const subControlsResponse = await getControlByIdAndProject({
-      controlId: id,
-      projectFrameworkId,
+    const subControlsResponse = await getEntityById({
+      routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
     });
     setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
@@ -148,9 +147,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
       setLoading(true);
       try {
-        const response = await getControlsByControlCategoryId({
-          controlCategoryId,
-          projectFrameworkId,
+        const response = await getEntityById({
+          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
         });
 
         const filteredControls = response.filter((control: Control) => {

@@ -1,6 +1,8 @@
 import { Box, Paper, Typography, Stack, Button } from "@mui/material";
+import { useSelector } from 'react-redux';
 import CustomTextField from "../Components/CustomTextField/CustomTextField";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { extractUserToken } from "../../../../application/tools/extractToken";
 import { downloadResource } from "../../../../application/tools/downloadResource";
 
 const Overview = ({
@@ -8,18 +10,19 @@ const Overview = ({
   loading,
   error,
   onShowAllResources,
-  hash
 }: {
   data: any;
   loading: boolean;
   error: string | null;
   onShowAllResources: () => void;
-  hash: string | null;
 }) => {
+  const authToken = useSelector((state: { auth: { authToken: string } }) => state.auth.authToken);
+  const userToken = extractUserToken(authToken);
+  const tenantHash = userToken?.tenantId;
 
   const handleDownload = async (id: string) => {
-    if (hash) {
-      await downloadResource(id, hash);
+    if (tenantHash) {
+      await downloadResource(id, tenantHash);
     }
   };
 

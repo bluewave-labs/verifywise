@@ -28,23 +28,6 @@ import {
 } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
-import {
-  statusBadgeStyle,
-  securityAssessmentBadgeStyle,
-  capabilitiesChipContainerStyle,
-  capabilityChipStyle,
-  capabilityChipExtraStyle,
-  tableRowHoverStyle,
-  tableRowDeletingStyle,
-  loadingContainerStyle,
-  emptyStateContainerStyle,
-  emptyStateTextStyle,
-  tableFooterRowStyle,
-  showingTextCellStyle,
-  paginationMenuProps,
-  paginationSelectStyle,
-  paginationStyle,
-} from "./style";
 
 // Constants for table
 const TABLE_COLUMNS = [
@@ -72,14 +55,53 @@ const DEFAULT_ROWS_PER_PAGE = 5;
 const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
   status,
 }) => {
-  return <span style={statusBadgeStyle(status)}>{status}</span>;
+  const statusStyles = {
+    [ModelInventoryStatus.APPROVED]: { bg: "#c8e6c9", color: "#388e3c" },
+    [ModelInventoryStatus.PENDING]: { bg: "#fff9c4", color: "#fbc02d" },
+    [ModelInventoryStatus.RESTRICTED]: { bg: "#ffccbc", color: "#e64a19" },
+    [ModelInventoryStatus.BLOCKED]: { bg: "#ffcdd2", color: "#d32f2f" },
+  };
+
+  const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
+
+  return (
+    <span
+      style={{
+        backgroundColor: style.bg,
+        color: style.color,
+        padding: "4px 8px",
+        borderRadius: 8,
+        fontWeight: 600,
+        fontSize: "0.75rem",
+        textTransform: "uppercase",
+        display: "inline-block",
+      }}
+    >
+      {status}
+    </span>
+  );
 };
 
 const SecurityAssessmentBadge: React.FC<{ assessment: boolean }> = ({
   assessment,
 }) => {
+  const style = assessment
+    ? { bg: "#c8e6c9", color: "#388e3c" }
+    : { bg: "#ffcdd2", color: "#d32f2f" };
+
   return (
-    <span style={securityAssessmentBadgeStyle(assessment)}>
+    <span
+      style={{
+        backgroundColor: style.bg,
+        color: style.color,
+        padding: "4px 8px",
+        borderRadius: 8,
+        fontWeight: 600,
+        fontSize: "0.75rem",
+        textTransform: "uppercase",
+        display: "inline-block",
+      }}
+    >
       {assessment ? "Yes" : "No"}
     </span>
   );
@@ -89,20 +111,30 @@ const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({
   capabilities,
 }) => {
   return (
-    <Stack direction="row" flexWrap="wrap" sx={capabilitiesChipContainerStyle}>
+    <Stack direction="row" gap={1} flexWrap="wrap">
       {capabilities.slice(0, 3).map((capability, index) => (
         <Chip
           key={index}
           label={capability}
           size="small"
-          sx={capabilityChipStyle}
+          sx={{
+            fontSize: "0.7rem",
+            height: "20px",
+            backgroundColor: "#f5f5f5",
+            color: "#666",
+          }}
         />
       ))}
       {capabilities.length > 3 && (
         <Chip
           label={`+${capabilities.length - 3}`}
           size="small"
-          sx={capabilityChipExtraStyle}
+          sx={{
+            fontSize: "0.7rem",
+            height: "20px",
+            backgroundColor: "#e0e0e0",
+            color: "#666",
+          }}
         />
       )}
     </Stack>
@@ -180,8 +212,6 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
           {TABLE_COLUMNS.map((column) => (
             <TableCell
-              component={"td"}
-              className="model-inventory-table-header-cel"
               key={column.id}
               sx={{
                 ...singleTheme.tableStyles.primary.header.cell,
@@ -194,7 +224,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }),
               }}
             >
-              <div style={{ fontWeight: 400 }}>{column.label}</div>
+              {column.label}
             </TableCell>
           ))}
         </TableRow>
@@ -214,9 +244,11 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 key={modelInventory.id}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  ...tableRowHoverStyle,
-                  ...(deletingId === modelInventory.id?.toString() &&
-                    tableRowDeletingStyle),
+                  "&:hover": { backgroundColor: "#FBFBFB", cursor: "pointer" },
+                  ...(deletingId === modelInventory.id?.toString() && {
+                    opacity: 0.6,
+                    backgroundColor: "#f5f5f5",
+                  }),
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -259,9 +291,6 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                     zIndex: 10,
                     minWidth: "50px",
                   }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
                 >
                   {isDeletingAllowed && (
                     <CustomIconButton
@@ -275,7 +304,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                       onMouseEvent={() => {}}
                       warningTitle="Delete this model?"
                       warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
-                      type=""
+                      type="ModelInventory"
                     />
                   )}
                 </TableCell>
@@ -311,7 +340,12 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <Stack
         alignItems="center"
         justifyContent="center"
-        sx={loadingContainerStyle(theme)}
+        sx={{
+          border: "1px solid #EEEEEE",
+          borderRadius: "4px",
+          padding: theme.spacing(15, 5),
+          minHeight: 200,
+        }}
       >
         <Typography>Loading...</Typography>
       </Stack>
@@ -323,10 +357,17 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
       <Stack
         alignItems="center"
         justifyContent="center"
-        sx={emptyStateContainerStyle(theme)}
+        sx={{
+          border: "1px solid #EEEEEE",
+          borderRadius: "4px",
+          padding: theme.spacing(15, 5),
+          paddingBottom: theme.spacing(20),
+          gap: theme.spacing(10),
+          minHeight: 200,
+        }}
       >
         <img src={Placeholder} alt="Placeholder" />
-        <Typography sx={emptyStateTextStyle}>
+        <Typography sx={{ fontSize: "13px", color: "#475467" }}>
           There is currently no data in this table.
         </Typography>
       </Stack>
@@ -340,8 +381,21 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
         {tableBody}
         {paginated && (
           <TableFooter>
-            <TableRow sx={tableFooterRowStyle(theme)}>
-              <TableCell sx={showingTextCellStyle(theme)}>
+            <TableRow
+              sx={{
+                "& .MuiTableCell-root.MuiTableCell-footer": {
+                  paddingX: theme.spacing(8),
+                  paddingY: theme.spacing(4),
+                },
+              }}
+            >
+              <TableCell
+                sx={{
+                  paddingX: theme.spacing(2),
+                  fontSize: 12,
+                  opacity: 0.7,
+                }}
+              >
                 Showing {getRange} of {data?.length} model(s)
               </TableCell>
               <TablePagination
@@ -363,13 +417,52 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }
                 slotProps={{
                   select: {
-                    MenuProps: paginationMenuProps(theme),
+                    MenuProps: {
+                      keepMounted: true,
+                      PaperProps: {
+                        className: "pagination-dropdown",
+                        sx: {
+                          mt: 0,
+                          mb: theme.spacing(2),
+                        },
+                      },
+                      transformOrigin: {
+                        vertical: "bottom",
+                        horizontal: "left",
+                      },
+                      anchorOrigin: {
+                        vertical: "top",
+                        horizontal: "left",
+                      },
+                      sx: { mt: theme.spacing(-2) },
+                    },
                     inputProps: { id: "pagination-dropdown" },
                     IconComponent: SelectorVertical,
-                    sx: paginationSelectStyle(theme),
+                    sx: {
+                      ml: theme.spacing(4),
+                      mr: theme.spacing(12),
+                      minWidth: theme.spacing(20),
+                      textAlign: "left",
+                      "&.Mui-focused > div": {
+                        backgroundColor: theme.palette.background.main,
+                      },
+                    },
                   },
                 }}
-                sx={paginationStyle(theme)}
+                sx={{
+                  mt: theme.spacing(6),
+                  color: theme.palette.text.secondary,
+                  "& .MuiSelect-icon": {
+                    width: "24px",
+                    height: "fit-content",
+                  },
+                  "& .MuiSelect-select": {
+                    width: theme.spacing(10),
+                    borderRadius: theme.shape.borderRadius,
+                    border: `1px solid ${theme.palette.border.light}`,
+                    padding: theme.spacing(4),
+                  },
+                }}
               />
             </TableRow>
           </TableFooter>

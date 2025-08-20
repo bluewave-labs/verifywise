@@ -1,14 +1,9 @@
-import React, {
-  FC,
-  useState,
-  useMemo,
-  useCallback,
-  useEffect,
-  Suspense,
-} from "react";
+import React, { FC, useState, useMemo, useCallback, useEffect } from "react";
 import {
   useTheme,
-  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
   Stack,
   Box,
   Switch,
@@ -17,7 +12,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { lazy } from "react";
+import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
@@ -115,7 +110,18 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   useEffect(() => {
     if (initialData && users.length > 0) {
       // If we have initialData and users are loaded, set the values
-      setValues(initialData);
+      if (initialData.approver) {
+        // Check if the approver ID exists in the loaded users
+        const approverExists = users.some(
+          (user) => user.id.toString() === initialData.approver
+        );
+        if (approverExists) {
+          setValues(initialData);
+        }
+      } else {
+        // If no approver, just set the values
+        setValues(initialData);
+      }
     } else if (initialData && !isEdit) {
       // If we have initialData but no users yet, set values temporarily
       setValues(initialData);
@@ -157,7 +163,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const userOptions = useMemo(() => {
     return users.map((user) => ({
       _id: user.id,
-      name: `${user.name} ${user.surname}`,
+      name: user.name,
+      surname: user.surname,
       email: user.email,
     }));
   }, [users]);
@@ -267,7 +274,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       paddingBottom: "3.8px !important",
     },
     "& ::placeholder": {
-      fontSize: 13,
+      fontSize: "13px",
     },
   };
 
@@ -290,8 +297,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       sx: {
         "& .MuiAutocomplete-listbox": {
           "& .MuiAutocomplete-option": {
-            fontSize: 13,
-            fontWeight: 400,
+            fontSize: "13px",
             color: "#1c2130",
             paddingLeft: "9px",
             paddingRight: "9px",
@@ -301,8 +307,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           },
         },
         "& .MuiAutocomplete-noOptions": {
-          fontSize: 13,
-          fontWeight: 400,
+          fontSize: "13px",
           paddingLeft: "9px",
           paddingRight: "9px",
         },
@@ -311,42 +316,45 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal open={isOpen} onClose={handleClose} sx={{ overflowY: "scroll" }}>
-      <Stack
-        gap={theme.spacing(2)}
-        color={theme.palette.text.secondary}
-        sx={{
-          backgroundColor: "#D9D9D9",
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "fit-content",
-          maxHeight: "80vh",
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: theme.palette.background.main,
-          border: 1,
-          borderColor: theme.palette.border,
+    <Dialog
+      open={isOpen}
+      onClose={handleClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
           borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          p: theme.spacing(15),
-          "&:focus": {
-            outline: "none",
-          },
-        }}
-      >
-        <form onSubmit={handleSubmit}>
+          padding: theme.spacing(4),
+          boxShadow:
+            "0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08)",
+        },
+      }}
+    >
+      <form onSubmit={handleSubmit}>
+        <Stack
+          spacing={2}
+          sx={{
+            padding: theme.spacing(4),
+          }}
+        >
           <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            marginBottom={theme.spacing(5)}
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
-            <Typography fontSize={16} fontWeight={600}>
-              {isEdit ? "Edit Model" : "Add a new model"}
-            </Typography>
+            <DialogTitle
+              sx={{
+                fontSize: 16,
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                padding: 0,
+              }}
+            >
+              {isEdit ? "Edit Model" : "New Model"}
+            </DialogTitle>
             <Box
               component="span"
               role="button"
@@ -356,6 +364,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 handleClose();
               }}
               sx={{
+                gap: theme.spacing(2),
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -368,99 +377,136 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
               <CloseIcon />
             </Box>
           </Stack>
-
-          <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
-          >
-            <Stack gap={theme.spacing(8)}>
-              {/* First Row: Provider/Model, Version, Approver */}
-              <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                gap={theme.spacing(8)}
-              >
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="provider-model"
-                    label="Provider/model"
-                    width={220}
-                    value={values.provider_model}
-                    onChange={handleOnTextFieldChange("provider_model")}
-                    error={errors.provider_model}
-                    isRequired
-                    sx={fieldStyle}
-                    placeholder="eg. OpenAI GPT-4"
-                  />
-                </Suspense>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="version"
-                    label="Version (if applicable)"
-                    width={220}
-                    value={values.version}
-                    onChange={handleOnTextFieldChange("version")}
-                    error={errors.version}
-                    sx={fieldStyle}
-                    placeholder="e.g., 4.0, 1.5"
-                  />
-                </Suspense>
-                <SelectComponent
-                  id="approver"
-                  label="Approver"
-                  value={values.approver}
-                  error={errors.approver}
-                  isRequired
-                  sx={{ width: 220 }}
-                  items={userOptions}
-                  onChange={handleOnSelectChange("approver")}
-                  placeholder="Select approver"
-                  disabled={isLoadingUsers}
-                />
+          <DialogContent sx={{ p: 0 }}>
+            <Stack sx={{ gap: "16px" }}>
+              <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
+                <Box sx={{ width: "60%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="provider-model"
+                      label="Provider/Model"
+                      value={values.provider_model}
+                      onChange={handleOnTextFieldChange("provider_model")}
+                      error={errors.provider_model}
+                      isRequired
+                      sx={fieldStyle}
+                      placeholder="e.g., OpenAI GPT-4, Google Gemini"
+                    />
+                  </Suspense>
+                </Box>
+                <Box sx={{ width: "40%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Field
+                      id="version"
+                      label="Version"
+                      value={values.version}
+                      onChange={handleOnTextFieldChange("version")}
+                      error={errors.version}
+                      sx={fieldStyle}
+                      placeholder="e.g., 4.0, 1.5"
+                    />
+                  </Suspense>
+                </Box>
               </Stack>
-
-              {/* Second Row: Status, Status Date */}
-              <Stack
-                direction={"row"}
-                justifyContent={"flex-start"}
-                gap={theme.spacing(8)}
-              >
-                <SelectComponent
-                  items={statusOptions}
-                  value={values.status}
-                  error={errors.status}
-                  sx={{ width: 220 }}
-                  id="status"
-                  label="Status"
-                  isRequired
-                  onChange={handleOnSelectChange("status")}
-                  placeholder="Select status"
-                />
-                <Suspense fallback={<div>Loading...</div>}>
-                  <DatePicker
-                    label="Status date"
-                    date={
-                      values.status_date
-                        ? dayjs(values.status_date)
-                        : dayjs(new Date())
+              <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    {isLoadingUsers ? (
+                      <div
+                        style={{
+                          padding: "16px",
+                          textAlign: "center",
+                          color: theme.palette.text.secondary,
+                          fontSize: "13px",
+                        }}
+                      >
+                        Loading users...
+                      </div>
+                    ) : (
+                      <SelectComponent
+                        id="approver"
+                        label="Approver"
+                        value={values.approver}
+                        error={errors.approver}
+                        isRequired
+                        sx={{ width: "100%" }}
+                        items={userOptions}
+                        onChange={handleOnSelectChange("approver")}
+                        placeholder="Select approver"
+                        disabled={isLoadingUsers}
+                      />
+                    )}
+                  </Suspense>
+                </Box>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <SelectComponent
+                      items={statusOptions}
+                      value={values.status}
+                      error={errors.status}
+                      sx={{ width: "100%" }}
+                      id="status"
+                      label="Status"
+                      isRequired
+                      onChange={handleOnSelectChange("status")}
+                      placeholder="Select status"
+                    />
+                  </Suspense>
+                </Box>
+              </Stack>
+              <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
+                <Box sx={{ width: "50%" }}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <DatePicker
+                      label="Status Date"
+                      date={
+                        values.status_date
+                          ? dayjs(values.status_date)
+                          : dayjs(new Date())
+                      }
+                      handleDateChange={handleDateChange}
+                      sx={{
+                        width: "100%",
+                        backgroundColor: theme.palette.background.main,
+                      }}
+                      isRequired
+                      error={errors.status_date}
+                    />
+                  </Suspense>
+                </Box>
+                <Box
+                  sx={{
+                    width: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={values.security_assessment}
+                        onChange={handleSecurityAssessmentChange}
+                        color="primary"
+                      />
                     }
-                    handleDateChange={handleDateChange}
+                    label="Security Assessment"
                     sx={{
-                      width: 220,
-                      backgroundColor: theme.palette.background.main,
+                      "& .MuiFormControlLabel-label": {
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        color: theme.palette.text.secondary,
+                      },
                     }}
-                    isRequired
-                    error={errors.status_date}
                   />
-                </Suspense>
+                </Box>
               </Stack>
-
-              {/* Capabilities Section */}
-              <Stack>
+              <Box sx={{ width: "100%" }}>
                 <Typography
                   sx={{
-                    fontSize: 13,
-                    fontWeight: 400,
-                    mb: theme.spacing(2),
+                    fontSize: theme.typography.fontSize,
+                    fontWeight: 500,
+                    mb: 2,
                     color: theme.palette.text.secondary,
                   }}
                 >
@@ -481,7 +527,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   }
                   renderOption={(props, option) => (
                     <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                      <Typography sx={{ fontSize: "13px" }}>
                         {option}
                       </Typography>
                     </Box>
@@ -505,70 +551,37 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 {errors.capabilities && (
                   <Typography
                     variant="caption"
-                    sx={{
-                      mt: 1,
-                      color: "#f04438",
-                      fontWeight: 300,
-                      fontSize: 11,
-                    }}
+                    sx={{ mt: 1, color: "#f04438", fontWeight: 300 }}
                   >
                     {errors.capabilities}
                   </Typography>
                 )}
-              </Stack>
-
-              {/* Security Assessment Section */}
-              <Stack>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={values.security_assessment}
-                      onChange={handleSecurityAssessmentChange}
-                      color="success"
-                      sx={{
-                        "&.Mui-checked": {
-                          color: "#13715B",
-                        },
-                      }}
-                      disableRipple
-                      disableFocusRipple
-                      disableTouchRipple
-                    />
-                  }
-                  label="Security assessment is complete for this model"
-                  sx={{
-                    "& .MuiFormControlLabel-label": {
-                      fontSize: 13,
-                      fontWeight: 400,
-                      color: theme.palette.text.primary,
-                    },
-                  }}
-                />
-              </Stack>
+              </Box>
             </Stack>
-          </Box>
-
+          </DialogContent>
           <Stack
             sx={{
-              alignItems: "flex-end",
-              marginTop: "auto",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
             }}
           >
             <CustomizableButton
               variant="contained"
-              text={isEdit ? "Update Model" : "Save"}
+              text={isEdit ? "Update Model" : "Create Model"}
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
                 gap: 2,
+                mt: "16px",
               }}
               onClick={handleSubmit}
               icon={<SaveIcon />}
             />
           </Stack>
-        </form>
-      </Stack>
-    </Modal>
+        </Stack>
+      </form>
+    </Dialog>
   );
 };
 

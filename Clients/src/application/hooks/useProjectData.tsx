@@ -2,6 +2,7 @@ import {  useEffect, useState } from "react";
 import { Project } from "../../domain/types/Project";
 import { User } from "../../domain/types/User";
 import { getProjectById } from "../repository/project.repository";
+import useUsers from "./useUsers";
 
 interface UseProjectDataParams {
   projectId: string;

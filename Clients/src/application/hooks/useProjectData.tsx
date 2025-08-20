@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from "react";
-import { VerifyWiseContext } from "../contexts/VerifyWise.context";
+import {  useEffect, useState } from "react";
 import { Project } from "../../domain/types/Project";
 import { User } from "../../domain/types/User";
 import { getProjectById } from "../repository/project.repository";
+import useUsers from "./useUsers";
 
 interface UseProjectDataParams {
   projectId: string;
@@ -26,8 +26,7 @@ const useProjectData = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [projectRisks, setProjectRisks] = useState<any>(null); // Add state for projectRisks
-  const { dashboardValues, users } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
+  const { users } = useUsers();
 
   useEffect(() => {
     if (!projectId) {
@@ -78,7 +77,7 @@ const useProjectData = ({
         }
       });
     return () => controller.abort();
-  }, [projectId, selectedProjectId, users, refreshKey]);
+  }, [projectId, users, refreshKey]);
 
   return { project, projectOwner, error, isLoading, projectRisks, setProject }; // Return setProject
 };

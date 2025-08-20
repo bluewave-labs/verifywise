@@ -22,7 +22,6 @@ import { AlertProps } from "./domain/interfaces/iAlert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
@@ -155,11 +154,6 @@ function App() {
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>
-
-      {/* React Query DevTools - Only in development */}
-      {import.meta.env.DEV && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
     </CookiesProvider>
   );
 }

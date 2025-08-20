@@ -1,28 +1,20 @@
-import React, { useState, useContext, lazy, Suspense, useEffect } from "react";
-import { Stack, Box, Typography } from "@mui/material";
-const ReportTable = lazy(() => import("../../../components/Table/ReportTable"));
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { TITLE_OF_COLUMNS } from "./constants";
-import useGeneratedReports, {
-  GeneratedReports,
-} from "../../../../application/hooks/useGeneratedReports";
-import { styles, reportTablePlaceholder } from "./styles";
-import { deleteEntityById } from "../../../../application/repository/entity.repository";
-import { handleAlert } from "../../../../application/tools/alertUtils";
-import Alert from "../../../components/Alert";
-import ProjectFilterDropdown from "../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
-import { useProjects } from "../../../../application/hooks/useProjects";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import { useState, useContext, lazy, Suspense, useEffect } from 'react'
+import { Stack, Box, Typography } from '@mui/material';
+const ReportTable = lazy(() => import('../../../components/Table/ReportTable'));
+import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
+import { TITLE_OF_COLUMNS } from './constants';
+import useGeneratedReports, { GeneratedReports } from '../../../../application/hooks/useGeneratedReports';
+import {styles, reportTablePlaceholder} from './styles';
+import { deleteEntityById } from '../../../../application/repository/entity.repository';
+import { handleAlert } from '../../../../application/tools/alertUtils';
+import Alert from '../../../components/Alert';
+import ProjectFilterDropdown from '../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown';
+import { useProjects } from '../../../../application/hooks/useProjects';
+import CustomizableSkeleton from '../../../vw-v2-components/Skeletons';
 
-interface ReportsProps {
-  refreshKey?: number;
-}
-
-const Reports: React.FC<ReportsProps> = ({
-  refreshKey: externalRefreshKey = 0,
-}) => {
+const Reports = () => {
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
+  const { selectedProjectId} = dashboardValues;
   const projectId = selectedProjectId;
   const [currentPage, setCurrentPage] = useState(0);
   const [alert, setAlert] = useState<{
@@ -30,37 +22,20 @@ const Reports: React.FC<ReportsProps> = ({
     title?: string;
     body: string;
   } | null>(null);
-  const [internalRefreshKey, setInternalRefreshKey] = useState(0);
-  const [selectedProject, setSelectedProject] = useState<
-    string | number | null
-  >("all");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Use external refresh key when provided, otherwise use internal one
-  const effectiveRefreshKey = externalRefreshKey || internalRefreshKey;
-
-  // Handle external refresh with smooth transition
-  useEffect(() => {
-    if (externalRefreshKey > 0) {
-      setIsRefreshing(true);
-      // Brief delay to show the refresh effect
-      const timer = setTimeout(() => {
-        setIsRefreshing(false);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [externalRefreshKey]);
-
-  const { projects, loading: loadingProjects } = useProjects();
-
-  const { generatedReports, loadingReports } = useGeneratedReports({
-    projectId,
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedProject, setSelectedProject] = useState<string | number | null>("all");
+  
+  const {
     projects,
-    refreshKey: effectiveRefreshKey,
-  });
+    loading: loadingProjects,
+  } = useProjects();
 
-  const [filteredReports, setFilteredReports] =
-    useState<GeneratedReports[]>(generatedReports);
+  const {
+    generatedReports,
+    loadingReports
+  } = useGeneratedReports({ projectId, projects, refreshKey });
+
+  const [filteredReports, setFilteredReports] = useState<GeneratedReports[]>(generatedReports);
 
   const handleToast = (type: any, message: string) => {
     handleAlert({
@@ -80,7 +55,7 @@ const Reports: React.FC<ReportsProps> = ({
       });
       if (response.status === 200) {
         handleToast("success", "Report deleted successfully.");
-        setInternalRefreshKey((prevKey: number) => prevKey + 1);
+        setRefreshKey((prevKey) => prevKey + 1);
         setFilteredReports((prevReports) =>
           prevReports.filter((report) => report.id !== id)
         );
@@ -93,29 +68,23 @@ const Reports: React.FC<ReportsProps> = ({
       console.error("Error sending request", error);
       handleToast("error", "Report delete fails.");
     }
-  };
+  }
 
   const setCurrentPagingation = (page: number) => {
-    setCurrentPage(page);
-  };
+    setCurrentPage(page)
+  }
 
   useEffect(() => {
-    const filterReports =
-      selectedProject === "all"
-        ? generatedReports
-        : generatedReports.filter(
-            (report) => String(report?.project_id) === String(selectedProject)
-          );
+    const filterReports = selectedProject === 'all' 
+      ? generatedReports 
+      : generatedReports.filter(
+      (report) => String(report?.project_id) === String(selectedProject)
+    );
     setFilteredReports(filterReports);
   }, [selectedProject, generatedReports]);
 
   return (
-    <Stack
-      sx={{
-        ...styles.tableContainer,
-        opacity: isRefreshing ? 0.7 : 1,
-      }}
-    >
+    <Stack sx={styles.tableContainer}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Box>
@@ -145,9 +114,9 @@ const Reports: React.FC<ReportsProps> = ({
               id: project.id.toString(),
               name: project.project_title,
             }))}
-            selectedProject={selectedProject}
+            selectedProject={selectedProject}            
             onChange={setSelectedProject}
-            sx={{ marginBottom: "20px" }}
+            sx={{marginBottom: '20px'}}
           />
           <Suspense fallback={<div>Loading...</div>}>
             <ReportTable
@@ -161,7 +130,7 @@ const Reports: React.FC<ReportsProps> = ({
         </>
       )}
     </Stack>
-  );
-};
+  )
+}
 
-export default Reports;
+export default Reports

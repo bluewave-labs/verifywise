@@ -9,10 +9,12 @@ export const styles = {
     color: "#344054",
     fontSize: 13,
   },
-  reportButtonContainer: {
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    mb: 2,
+  tabDivider: {
+    borderBottom: 1, 
+    borderColor: "divider"
   },
-};
+  tabList: {
+    minHeight: "20px",
+    "& .MuiTabs-flexContainer": { columnGap: "34px" }
+  }
+}

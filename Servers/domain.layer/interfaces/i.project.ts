@@ -14,7 +14,6 @@ export interface IProjectAttributes {
   last_updated_by: number;
   created_at?: Date;
   framework?: IProjectFramework[];
-  is_organizational?: boolean;
 
   // Statistical fields
   doneSubcontrols?: number;

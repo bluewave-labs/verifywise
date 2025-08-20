@@ -19,7 +19,6 @@ import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 
 const VWProjectView = () => {
   const { userRoleName } = useContext(VerifyWiseContext);
@@ -67,7 +66,6 @@ const VWProjectView = () => {
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
-      <PageBreadcrumbs />
       {toast.visible && <CustomizableToast title={toast.message} />}
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         {project ? (
@@ -156,11 +154,7 @@ const VWProjectView = () => {
                 project={project}
                 triggerRefresh={handleRefresh}
                 initialFrameworkId={
-                  framework === "iso-42001"
-                    ? 2
-                    : framework === "eu-ai-act"
-                    ? 1
-                    : project.framework[0].framework_id
+                  framework === "iso-42001" ? 2 : framework === "eu-ai-act" ? 1 : project.framework[0].framework_id
                 }
               />
             ) : (

@@ -1,5 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Framework } from "../../domain/types/Framework";
 import { getAllFrameworks } from "../repository/entity.repository";
 
@@ -18,62 +17,94 @@ const useFrameworks = ({
 }: {
   listOfFrameworks: any[];
 }): UseFrameworksResult => {
-  const queryClient = useQueryClient();
+  const [allFrameworks, setAllFrameworks] = useState<Framework[]>([]);
+  const [filteredFrameworks, setFilteredFrameworks] = useState<Framework[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [projectFrameworksMap, setProjectFrameworksMap] = useState<Map<number, number>>(new Map());
 
-  // Fetch all frameworks using TanStack Query
-  const {
-    data: allFrameworks = [],
-    isLoading: loading,
-    error: queryError,
-    refetch: refetchAllFrameworks
-  } = useQuery({
-    queryKey: ['frameworks', 'all'],
-    queryFn: async () => {
+  // Fetch all frameworks only once on mount
+  useEffect(() => {
+    const fetchAllFrameworks = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllFrameworks({ routeUrl: "/frameworks" });
+        if (response?.data) {
+          setAllFrameworks(response.data);
+          setError(null);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to fetch frameworks";
+        setError(errorMessage);
+        console.error("Error fetching all frameworks:", errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllFrameworks();
+  }, []); // Empty dependency array means this runs once on mount
+
+  // Update filtered frameworks whenever listOfFrameworks or allFrameworks changes
+  useEffect(() => {
+    const _projectFrameworksMap = new Map<number, number>();
+    if (allFrameworks.length > 0) {
+      const frameworkIds = listOfFrameworks.map((f: any) => {
+        _projectFrameworksMap.set(Number(f.framework_id), Number(f.project_framework_id));
+        return Number(f.framework_id)
+      });
+      const filtered = allFrameworks.filter((fw: Framework) =>
+        frameworkIds.includes(Number(fw.id))
+      );
+      setProjectFrameworksMap(_projectFrameworksMap);
+      setFilteredFrameworks(filtered);
+    }
+  }, [listOfFrameworks, allFrameworks]);
+
+  const refreshAllFrameworks = useCallback(async () => {
+    try {
+      setLoading(true);
+      const _projectFrameworksMap = new Map<number, number>();
       const response = await getAllFrameworks({ routeUrl: "/frameworks" });
       if (response?.data) {
-        return response.data;
+        const frameworkIds = listOfFrameworks.map((f: any) => {
+          _projectFrameworksMap.set(Number(f.framework_id), Number(f.project_framework_id));
+          return Number(f.framework_id)
+        }
+        );
+
+        const filteredFrameworks = response.data.filter((fw: Framework) =>
+          frameworkIds.includes(Number(fw.id))
+        );
+        setProjectFrameworksMap(_projectFrameworksMap);
+        setFilteredFrameworks(filteredFrameworks);
+        setAllFrameworks(response.data);
+        setError(null);
       } else {
         throw new Error("Invalid response format");
       }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes
-  });
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch frameworks";
+      setError(errorMessage);
+      console.error("Error fetching all frameworks:", errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Memoized computation of filtered frameworks and project frameworks map
-  const { filteredFrameworks, projectFrameworksMap } = useMemo(() => {
-    const _projectFrameworksMap = new Map<number, number>();
-    let _filteredFrameworks: Framework[] = [];
-
-    if (allFrameworks.length > 0 && listOfFrameworks.length > 0) {
-      const frameworkIds = listOfFrameworks.map((f: any) => {
-        _projectFrameworksMap.set(Number(f.framework_id), Number(f.project_framework_id));
-        return Number(f.framework_id);
-      });
-
-      _filteredFrameworks = allFrameworks.filter((fw: Framework) =>
+  const refreshFilteredFrameworks = useCallback(async () => {
+    if (allFrameworks.length > 0) {
+      const frameworkIds = listOfFrameworks.map((f: any) => Number(f.framework_id));
+      const filtered = allFrameworks.filter((fw: Framework) =>
         frameworkIds.includes(Number(fw.id))
       );
+      setFilteredFrameworks(filtered);
     }
-
-    return {
-      filteredFrameworks: _filteredFrameworks,
-      projectFrameworksMap: _projectFrameworksMap
-    };
-  }, [allFrameworks, listOfFrameworks]);
-
-  // Refresh all frameworks
-  const refreshAllFrameworks = useCallback(async () => {
-    await refetchAllFrameworks();
-  }, [refetchAllFrameworks]);
-
-  // Refresh filtered frameworks (invalidate and refetch)
-  const refreshFilteredFrameworks = useCallback(async () => {
-    queryClient.invalidateQueries({ queryKey: ['frameworks', 'all'] });
-  }, [queryClient]);
-
-  // Convert error to string
-  const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to fetch frameworks') : null;
+  }, [listOfFrameworks, allFrameworks]);
 
   return {
     allFrameworks,

@@ -22,10 +22,7 @@ export const uploadFile = async (
     | "Management system clauses group"
     | "Reference controls group"
     | "Clauses and annexes report"
-    | "AI trust center group"
-    | "Main clauses group"
-    | "Annex controls group"
-    | "ISO 27001 report",
+    | "AI trust center group",
   tenant: string,
   transaction: Transaction | null = null
 ) => {

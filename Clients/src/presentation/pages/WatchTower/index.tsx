@@ -1,5 +1,4 @@
 import { Stack, Typography, useTheme, Box } from "@mui/material";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -37,7 +36,6 @@ const WatchTower = () => {
 
   return (
     <div className="watch-tower-page">
-      <PageBreadcrumbs />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
         <Stack>
           <Typography

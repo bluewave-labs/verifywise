@@ -22,7 +22,6 @@ import NewControlPane from "../../../components/Modals/Controlpane/NewControlPan
 import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
 import { useSearchParams } from "react-router-dom";
-import { getControlByIdAndProject, getControlsByControlCategoryId } from "../../../../application/repository/control_eu_act.repository";
 import useUsers from "../../../../application/hooks/useUsers";
 
 interface Column {
@@ -89,9 +88,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
   }, [currentProjectId]);
 
   const handleRowClick = async (id: number) => {
-    const subControlsResponse = await getControlByIdAndProject({
-      controlId: id,
-      projectFrameworkId,
+    const subControlsResponse = await getEntityById({
+      routeUrl: `eu-ai-act/controlById?controlId=${id}&projectFrameworkId=${projectFrameworkId}`,
     });
     setSelectedControl(subControlsResponse.data);
     setSelectedRow(id);
@@ -148,9 +146,8 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
       setLoading(true);
       try {
-        const response = await getControlsByControlCategoryId({
-          controlCategoryId,
-          projectFrameworkId,
+        const response = await getEntityById({
+          routeUrl: `/eu-ai-act/controls/byControlCategoryId/${controlCategoryId}?projectFrameworkId=${projectFrameworkId}`,
         });
 
         const filteredControls = response.filter((control: Control) => {

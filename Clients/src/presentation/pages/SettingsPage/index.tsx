@@ -1,6 +1,5 @@
 import React, { useContext, useState } from "react";
 import { Tabs, Tab, Stack } from "@mui/material";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
@@ -11,8 +10,7 @@ import allowedRoles from "../../../application/constants/permissions";
 
 export default function ProfilePage() {
   const { userRoleName } = useContext(VerifyWiseContext);
-  const isTeamManagementDisabled =
-    !allowedRoles.projects.editTeamMembers.includes(userRoleName);
+  const isTeamManagementDisabled = !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const [activeTab, setActiveTab] = useState(0);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -21,7 +19,6 @@ export default function ProfilePage() {
 
   return (
     <Stack className="vwhome">
-      <PageBreadcrumbs />
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -30,12 +27,7 @@ export default function ProfilePage() {
       >
         <Tab label="Profile" disableRipple sx={settingTabStyle} />
         <Tab label="Password" disableRipple sx={settingTabStyle} />
-        <Tab
-          label="Team"
-          disableRipple
-          sx={settingTabStyle}
-          disabled={isTeamManagementDisabled}
-        />
+        <Tab label="Team" disableRipple sx={settingTabStyle} disabled={isTeamManagementDisabled} />
         <Tab label="Organization" disableRipple sx={settingTabStyle} />
       </Tabs>
 

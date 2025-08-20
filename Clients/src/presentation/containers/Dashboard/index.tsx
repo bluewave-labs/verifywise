@@ -3,8 +3,11 @@ import "./index.css";
 import Sidebar from "../../components/Sidebar";
 import { Outlet, useLocation } from "react-router";
 import { useContext, useEffect, FC } from "react";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
-import { getAllProjects } from "../../../application/repository/project.repository";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import {
+  getEntityById,
+} from "../../../application/repository/entity.repository";
+import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 
 interface DashboardProps {
   reloadTrigger: boolean;
@@ -20,7 +23,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await getAllProjects();
+        const response = await getEntityById({ routeUrl: "/projects" });
         if (!response?.data) return;
         setProjects(response.data);
         setDashboardValues((prevValues: any) => ({

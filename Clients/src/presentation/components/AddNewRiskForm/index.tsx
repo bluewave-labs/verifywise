@@ -152,9 +152,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           aiLifecyclePhase.find(
             (item) => item.name === inputValues.ai_lifecycle_phase
           )?._id ?? 1,
-        riskCategory: inputValues.risk_category.map(
-          (category: string) =>
-            riskCategoryItems.find((item) => item.name === category)?._id ?? 1
+        riskCategory: inputValues.risk_category.map((category: string) =>
+          riskCategoryItems.find((item) => item.name === category)?._id ?? 1
         ),
         potentialImpact: inputValues.impact ?? "",
         assessmentMapping: inputValues.assessment_mapping,
@@ -270,7 +269,10 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       newErrors.aiLifecyclePhase = aiLifecyclePhase.message;
     }
     riskValues.riskCategory.forEach((category) => {
-      const riskCategory = selectValidation("Risk category", category);
+      const riskCategory = selectValidation(
+        "Risk category",
+        category
+      );
       if (!riskCategory.accepted) {
         newErrors.riskCategory = [riskCategory.message];
       }
@@ -411,9 +413,8 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             (item) => item._id === riskValues.aiLifecyclePhase
           )?.name || "",
         risk_description: riskValues.riskDescription,
-        risk_category: riskValues.riskCategory.map(
-          (category) =>
-            riskCategoryItems.find((item) => item._id === category)?.name
+        risk_category: riskValues.riskCategory.map((category) =>
+          riskCategoryItems.find((item) => item._id === category)?.name
         ),
         impact: riskValues.potentialImpact,
         assessment_mapping: riskValues.assessmentMapping,
@@ -445,11 +446,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         risk_severity:
           riskSeverityItems.find(
             (item) => item._id === mitigationValues.riskSeverity
-          )?.name === "Catastrophic"
-            ? "Critical"
-            : riskSeverityItems.find(
-                (item) => item._id === mitigationValues.riskSeverity
-              )?.name || "",
+          )?.name || "",
         final_risk_level: mitigation_risklevel.level,
         risk_approval: mitigationValues.approver,
         approval_status:
@@ -465,19 +462,17 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             ? await apiServices.put("/projectRisks/" + inputValues.id, formData)
             : await apiServices.post("/projectRisks", formData);
 
-        if (response && response.status === 201) {
+        if (response.status === 201) {
           // risk create success
           closePopup();
           onSuccess();
-        } else if (response && response.status === 200) {
+        } else if (response.status === 200) {
           // risk update success
           closePopup();
           onSuccess();
         } else {
-          console.error((response?.data as ApiResponse)?.error);
-          onError(
-            (response?.data as ApiResponse)?.message || "Unknown error occurred"
-          );
+          console.error((response.data as ApiResponse)?.error);
+          onError((response.data as ApiResponse)?.message);
         }
       } catch (error) {
         console.error("Error sending request", error);

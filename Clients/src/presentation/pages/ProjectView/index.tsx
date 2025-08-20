@@ -1,5 +1,4 @@
 import { Box, Button, Stack, Tab, Typography, useTheme } from "@mui/material";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import React, { useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -12,7 +11,7 @@ import useProjectRisks from "../../../application/hooks/useProjectRisks";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../application/hooks/useProjectData";
-import { getProjectById } from "../../../application/repository/project.repository";
+import { getEntityById } from "../../../application/repository/entity.repository";
 
 const ProjectView = () => {
   const [searchParams] = useSearchParams();
@@ -57,8 +56,8 @@ const ProjectView = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const project = await getProjectById({
-          id: projectId,
+        const project = await getEntityById({
+          routeUrl: `/projects/${projectId}`,
         });
         setProject(project);
       } catch (error) {
@@ -88,7 +87,6 @@ const ProjectView = () => {
 
   return (
     <Stack>
-      <PageBreadcrumbs />
       {noProject ? (
         //no project found template
         <Box

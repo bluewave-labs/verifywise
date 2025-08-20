@@ -15,6 +15,4 @@ export interface IISO27001Clause {
   cross_mappings: object[];
   framework_id: number;
   project_id: number;
-  created_at?: Date;
-  updated_at?: Date;
 }

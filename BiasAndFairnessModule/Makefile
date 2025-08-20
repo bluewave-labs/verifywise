@@ -39,6 +39,7 @@ test:
 	pytest tests --ignore=tests/base_test_metrics.py
 
 check: format lint
+
 # Testing
 test:
 	. venv/bin/activate && python run_tests.py

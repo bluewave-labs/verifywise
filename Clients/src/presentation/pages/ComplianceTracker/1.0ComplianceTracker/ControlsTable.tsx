@@ -23,6 +23,7 @@ import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
 import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../../application/hooks/useUsers";
+import { getEntityById } from "../../../../application/repository/entity.repository";
 
 interface Column {
   name: string;

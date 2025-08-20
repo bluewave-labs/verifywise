@@ -16,6 +16,9 @@ export async function getSubscriptionById(id: number): Promise<SubscriptionModel
     mapToModel: true,
     model: SubscriptionModel,
   });
+  if (!subscription || subscription.length === 0) {
+    throw new Error(`Subscription with id ${id} not found`);
+  }
   return subscription[0];
 }
 

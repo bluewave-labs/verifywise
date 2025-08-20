@@ -8,6 +8,11 @@ async function getTiersFeatures(req: Request, res: Response) {
     logger.debug('🔍 Fetching tiers features');
     const tierId = parseInt(req.params.id);
 
+    if (!Number.isInteger(tierId) || tierId < 1 || tierId > 4) {
+        logStructured("error", `Invalid tier id: ${req.params.id}`, "getTiersFeatures", "tiers.ctrl.ts");
+        return res.status(400).json(STATUS_CODE[400]({ message: 'Invalid tier id' }));
+    }
+
     try {
         const tiersFeatures = await getTiersFeaturesQuery(tierId);
 

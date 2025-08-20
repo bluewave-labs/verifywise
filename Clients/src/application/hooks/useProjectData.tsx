@@ -1,8 +1,7 @@
 import {  useEffect, useState } from "react";
-import { getEntityById } from "../repository/entity.repository";
 import { Project } from "../../domain/types/Project";
 import { User } from "../../domain/types/User";
-import useUsers from "./useUsers";
+import { getProjectById } from "../repository/project.repository";
 
 interface UseProjectDataParams {
   projectId: string;
@@ -38,10 +37,10 @@ const useProjectData = ({
     const controller = new AbortController();
     setIsLoading(true);
 
-    getEntityById({
-      routeUrl: `/projects/${projectId}`,
-      signal: controller.signal,
-    })
+    getProjectById({
+        id: projectId,
+        signal: controller.signal,
+      })
       .then(({ data }) => {
         const ownerUser = users.find((user: User) => user.id === data.owner);
 

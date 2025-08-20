@@ -12,12 +12,10 @@ import React, {
   FC,
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Grid from "@mui/material/Grid2";
 import { styles } from "./styles";
-import {
-  getAllEntities,
-  postAutoDrivers,
-} from "../../../application/repository/entity.repository";
+import { postAutoDrivers } from "../../../application/repository/entity.repository";
 import { ProjectCardProps } from "../../components/ProjectCard";
 import useProjectStatus, {
   Assessments,
@@ -31,6 +29,7 @@ import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { getAllProjects } from "../../../application/repository/project.repository";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -54,7 +53,7 @@ const useProjects = (
   const fetchProjects = ({ controller }: { controller: AbortController }) => {
     if (controller) {
       setIsLoading(true);
-      getAllEntities({ routeUrl: "/projects" })
+      getAllProjects()
         .then(({ data }) => {
           setProjects(data);
           setError(null);
@@ -309,6 +308,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
 
   return (
     <Box>
+      <PageBreadcrumbs />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Box sx={{ paddingTop: theme.spacing(2) }}>

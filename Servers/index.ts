@@ -34,6 +34,7 @@ import dashboardRoutes from "./routes/dashboard.route"
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
+import taskRoutes from "./routes/task.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
@@ -115,6 +116,7 @@ try {
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/dashboard", dashboardRoutes);
+  app.use("/api/tasks", taskRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes)
 

@@ -4576,8 +4576,158 @@ paths:
                 error:
                   type: object
 
+  /tasks:
+    get:
+      summary: Get all tasks with filters, sorting, and pagination
+      tags: [tasks]
+      security:
+        - JWTAuth: []
+      responses:
+        "200":
+          description: List of tasks with pagination metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: ok
+                  data:
+                    type: object
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+          
+    post:
+      summary: Create a new task
+      tags: [tasks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                due_date:
+                  type: string
+                  format: date-time
+                priority:
+                  type: string
+                  enum: [Low, Medium, High]
+                categories:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Task created successfully
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
 
-                
+  /tasks/{id}:
+    get:
+      summary: Get a task by ID
+      tags: [tasks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task details
+        "401":
+          description: Unauthorized
+        "404":
+          description: Task not found
+        "500":
+          description: Internal server error
+          
+    put:
+      summary: Update a task
+      tags: [tasks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                due_date:
+                  type: string
+                  format: date-time
+                priority:
+                  type: string
+                  enum: [Low, Medium, High]
+                status:
+                  type: string
+                  enum: [Open, "In Progress", Completed, Overdue]
+                categories:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Task updated successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Task not found
+        "500":
+          description: Internal server error
+          
+    delete:
+      summary: Delete a task (soft delete)
+      tags: [tasks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Task not found
+        "500":
+          description: Internal server error
 
 components:
   securitySchemes:

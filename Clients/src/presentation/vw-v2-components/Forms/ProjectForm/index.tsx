@@ -320,6 +320,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
               key={option.value}
               value={option.value}
               control={<Radio />}
+              disabled={option.value === FrameworkTypeEnum.OrganizationWide}
               label={
                 <Stack sx={{ gap: 1 }}>
                   <Typography

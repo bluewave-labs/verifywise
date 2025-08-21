@@ -23,7 +23,6 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   deleteEntityById,
-  getAllEntities,
   getEntityById,
 } from "../../../application/repository/entity.repository";
 import { tabPanelStyle, tabStyle } from "./style";

@@ -71,11 +71,11 @@ const menu: MenuItem[] = [
     path: "/",
     children: [
       {
-        name: "Overview",
+        name: "Project oriented view",
         path: "/overview",
       },
       {
-        name: "Framework",
+        name: "Organizational view",
         path: "/framework",
       },
     ],

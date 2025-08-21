@@ -21,10 +21,6 @@ import {
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import {
-  deleteEntityById,
-  getEntityById,
-} from "../../../application/repository/entity.repository";
 import { tabPanelStyle, tabStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
@@ -54,6 +50,10 @@ import {
   getVendorById,
   getVendorsByProjectId,
 } from "../../../application/repository/vendor.repository";
+import {
+  deleteVendorRisk,
+  getVendorRiskById,
+} from "../../../application/repository/vendorRisk.repository";
 
 interface ExistingRisk {
   id?: number;
@@ -261,13 +261,11 @@ const Vendors = () => {
       setTimeout(() => setAlert(null), 3000);
       return;
     }
-    const signal = createAbortController();
     setIsSubmitting(true);
 
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/vendorRisks/${riskId}`,
-        signal,
+      const response = await deleteVendorRisk({
+        id: Number(riskId),
       });
 
       if (response.status === 202) {
@@ -322,8 +320,8 @@ const Vendors = () => {
       return;
     }
     try {
-      const response = await getEntityById({
-        routeUrl: `/vendorRisks/${riskId}`,
+      const response = await getVendorRiskById({
+        id: Number(riskId),
       });
       setSelectedRisk(response.data);
       setIsRiskModalOpen(true);

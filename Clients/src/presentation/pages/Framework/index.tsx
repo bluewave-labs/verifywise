@@ -5,6 +5,38 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import useFrameworks from "../../../application/hooks/useFrameworks";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
+import { Tab } from "@mui/material";
+import ISO27001Clause from "./ISO27001/Clause";
+import ISO27001Annex from "./ISO27001/Annex";
+
+// Tab styles following ProjectFrameworks pattern
+const tabStyle = {
+  textTransform: "none",
+  fontWeight: 400,
+  alignItems: "center",
+  justifyContent: "flex-end",
+  padding: "16px 0 7px",
+  minHeight: "20px",
+  minWidth: "auto",
+  "&.Mui-selected": {
+    color: "#13715B",
+  },
+};
+
+const tabPanelStyle = {
+  padding: 0,
+  pt: 10,
+};
+
+const tabListStyle = {
+  minHeight: "20px",
+  "& .MuiTabs-flexContainer": {
+    columnGap: "34px",
+  },
+};
 
 const Framework = () => {
   const { changeComponentVisibility } = useContext(VerifyWiseContext);
@@ -23,6 +55,7 @@ const Framework = () => {
   );
 
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
+  const [iso27001TabValue, setIso27001TabValue] = useState("clause");
 
   useEffect(() => {
     if (allVisible) {
@@ -52,6 +85,13 @@ const Framework = () => {
     setSelectedFramework(index);
   };
 
+  const handleIso27001TabChange = (
+    _: React.SyntheticEvent,
+    newValue: string
+  ) => {
+    setIso27001TabValue(newValue);
+  };
+
   const renderFrameworkContent = () => {
     if (loading) {
       return (
@@ -76,6 +116,47 @@ const Framework = () => {
     const framework = filteredFrameworks[selectedFramework];
     if (!framework) return null;
 
+    // Check if the selected framework is ISO 27001
+    const isISO27001 = framework.name.toLowerCase().includes("iso 27001");
+
+    if (isISO27001) {
+      return (
+        <Box sx={{ mt: 6 }}>
+          <TabContext value={iso27001TabValue}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+              <TabList
+                onChange={handleIso27001TabChange}
+                TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+                sx={tabListStyle}
+              >
+                <Tab
+                  label="Clauses"
+                  value="clause"
+                  sx={tabStyle}
+                  disableRipple
+                />
+                <Tab
+                  label="Annexes"
+                  value="annex"
+                  sx={tabStyle}
+                  disableRipple
+                />
+              </TabList>
+            </Box>
+
+            <TabPanel value="clause" sx={tabPanelStyle}>
+              <ISO27001Clause />
+            </TabPanel>
+
+            <TabPanel value="annex" sx={tabPanelStyle}>
+              <ISO27001Annex />
+            </TabPanel>
+          </TabContext>
+        </Box>
+      );
+    }
+
+    // Default content for other frameworks
     return (
       <Box
         sx={{

@@ -132,9 +132,9 @@ async function createNewUserWrapper(
     name,
     surname,
     email,
-    password,
     roleId,
-    organizationId
+    organizationId,
+    password
   );
 
   // Validate user data before saving
@@ -172,7 +172,7 @@ async function createNewUser(req: Request, res: Response) {
     }
 
     // const user = await createNewUserWrapper(req.body, transaction);
-    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId, organizationId);
+    const userModel = await UserModel.createNewUser(name, surname, email, roleId, organizationId, password);
     await userModel.validateUserData();
 
     const isEmailUnique = await UserModel.validateEmailUniqueness(email);
@@ -241,7 +241,7 @@ async function createNewUserWithGoogle(req: Request, res: Response) {
       return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
     }
 
-    const { email, given_name, family_name } = payload;
+    const { email, given_name, family_name, sub } = payload;
 
     const existingUser = await getUserByEmailQuery(email!);
     if (existingUser) {
@@ -254,7 +254,7 @@ async function createNewUserWithGoogle(req: Request, res: Response) {
     }
 
     // const user = await createNewUserWrapper(req.body, transaction);
-    const userModel = await UserModel.createNewUser(given_name!, family_name!, email!, "", roleId, organizationId);
+    const userModel = await UserModel.createNewUser(given_name!, family_name!, email!, roleId, organizationId, null, sub);
     await userModel.validateUserData();
 
     const isEmailUnique = await UserModel.validateEmailUniqueness(email!);
@@ -326,7 +326,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       try {
         passwordIsMatched = await user.comparePassword(password);
       } catch (modelError) {
-        passwordIsMatched = await bcrypt.compare(password, userData.password_hash);
+        passwordIsMatched = await bcrypt.compare(password, userData.password_hash!);
       }
 
       if (passwordIsMatched) {
@@ -410,6 +410,12 @@ async function loginUserWithGoogle(req: Request, res: Response): Promise<any> {
         Object.assign(user, userData);
       }
       user.updateLastLogin();
+
+      if (!userData.google_id) {
+        await updateUserByIdQuery(userData.id!, {
+          google_id: payload.sub
+        })
+      }
 
       const token = generateToken({
         id: user.id,
@@ -510,14 +516,14 @@ async function resetPassword(req: Request, res: Response) {
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
-    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, _user.organization_id!);
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.role_id, _user.organization_id!, _user.password_hash);
 
     if (user) {
       await user.updatePassword(newPassword);
 
       const updatedUser = (await resetPasswordQuery(
         email,
-        user.password_hash,
+        user.password_hash!,
         transaction
       )) as UserModel;
 
@@ -788,7 +794,7 @@ async function ChangePassword(req: Request, res: Response) {
 
     const updatedUser = (await resetPasswordQuery(
       user.email,
-      user.password_hash,
+      user.password_hash!,
       transaction
     )) as UserModel;
 

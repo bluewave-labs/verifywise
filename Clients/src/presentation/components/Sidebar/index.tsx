@@ -191,7 +191,7 @@ const Sidebar = () => {
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
-    Dashboard: false,
+    Dashboard: true,
     Account: false,
   });
 

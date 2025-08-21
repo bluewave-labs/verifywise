@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getAllUsers } from '../repository/entity.repository';
 import { User } from '../../domain/types/User';
+import { getAllUsers } from '../repository/user.repository';
 interface ApiUser {
   id: number;
   name: string;
@@ -20,7 +20,7 @@ const useUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await getAllUsers({ routeUrl: '/users' });
+      const response = await getAllUsers();
 
       // Convert role_id to roleId
       const formattedUsers: User[] = (response as ApiResponse).data.map((user: ApiUser): User => ({

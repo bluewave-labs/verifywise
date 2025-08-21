@@ -321,7 +321,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 800,
+          width: "fit-content",
           maxHeight: "80vh",
           display: "flex",
           flexDirection: "column",
@@ -421,7 +421,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
               {/* Second Row: Status, Status Date */}
               <Stack
                 direction={"row"}
-                justifyContent={"space-between"}
+                justifyContent={"flex-start"}
                 gap={theme.spacing(8)}
               >
                 <SelectComponent
@@ -524,15 +524,23 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     <Switch
                       checked={values.security_assessment}
                       onChange={handleSecurityAssessmentChange}
-                      color="primary"
+                      color="success"
+                      sx={{
+                        "&.Mui-checked": {
+                          color: "#13715B",
+                        },
+                      }}
+                      disableRipple
+                      disableFocusRipple
+                      disableTouchRipple
                     />
                   }
-                  label="Security assessment"
+                  label="Security assessment is complete for this model"
                   sx={{
                     "& .MuiFormControlLabel-label": {
                       fontSize: 13,
                       fontWeight: 400,
-                      color: theme.palette.text.secondary,
+                      color: theme.palette.text.primary,
                     },
                   }}
                 />

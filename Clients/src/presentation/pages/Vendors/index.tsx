@@ -7,6 +7,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import {
@@ -45,9 +46,15 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
-import  HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
-import { deleteVendor, getAllVendors, getVendorById, getVendorsByProjectId } from "../../../application/repository/vendor.repository";
+import { getAllProjects } from "../../../application/repository/project.repository";
+import {
+  deleteVendor,
+  getAllVendors,
+  getVendorById,
+  getVendorsByProjectId,
+} from "../../../application/repository/vendor.repository";
 
 interface ExistingRisk {
   id?: number;
@@ -142,7 +149,7 @@ const Vendors = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await getAllEntities({ routeUrl: "/projects" });
+        const response = await getAllProjects();
         if (response?.data && response.data.length > 0) {
           setProjects(response.data);
           setSelectedProjectId("all"); // Always default to 'all' after fetching
@@ -160,12 +167,13 @@ const Vendors = () => {
     setIsVendorsLoading(true);
     if (!selectedProjectId) return;
     try {
-   const response = selectedProjectId === "all"
-        ? await getAllVendors({ signal })
-        : await getVendorsByProjectId({ 
-            projectId: parseInt(selectedProjectId), 
-            signal 
-          });
+      const response =
+        selectedProjectId === "all"
+          ? await getAllVendors({ signal })
+          : await getVendorsByProjectId({
+              projectId: parseInt(selectedProjectId),
+              signal,
+            });
       if (response?.data) {
         setVendors(response.data);
       }
@@ -196,7 +204,7 @@ const Vendors = () => {
     setIsSubmitting(true);
 
     try {
-       const response = await deleteVendor({
+      const response = await deleteVendor({
         id: Number(vendorId),
       });
 
@@ -334,7 +342,7 @@ const Vendors = () => {
   };
   const handleEditVendor = async (id: number) => {
     try {
-     const response = await getVendorById({
+      const response = await getVendorById({
         id: Number(id),
       });
       setSelectedVendor(response.data);
@@ -418,6 +426,7 @@ const Vendors = () => {
 
   return (
     <div className="vendors-page">
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

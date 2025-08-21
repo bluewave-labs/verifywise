@@ -57,6 +57,11 @@ module.exports = {
       unique: true,
       name: "unique_task_user_assignment"
     });
+    
+    // Composite index for filtering tasks by assignee (user_id first for user-centric queries)
+    await queryInterface.addIndex("task_assignees", ["user_id", "task_id"], {
+      name: "idx_task_assignees_user_task"
+    });
   },
 
   async down(queryInterface, Sequelize) {

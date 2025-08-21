@@ -50,15 +50,26 @@ module.exports = {
       },
     });
 
-    // Add indexes for efficient querying
-    await queryInterface.addIndex("tasks", ["creator_id"]);
-    await queryInterface.addIndex("tasks", ["due_date"]);
+    // Add indexes for efficient querying based on filtering and sorting patterns
+    
+    // Single column indexes for primary filters
     await queryInterface.addIndex("tasks", ["status"]);
-    await queryInterface.addIndex("tasks", ["priority"]);
+    await queryInterface.addIndex("tasks", ["due_date"]);
     await queryInterface.addIndex("tasks", ["created_at"]);
+    
+    // Composite indexes for common query patterns
+    // Filter by status + sort by due date (most common: overdue tasks, tasks by due date)
+    await queryInterface.addIndex("tasks", ["status", "due_date"], {
+      name: "idx_tasks_status_due_date"
+    });
+    
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("tasks");
+    
+    // Clean up ENUM types to prevent schema pollution
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_tasks_priority";');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_tasks_status";');
   },
 };

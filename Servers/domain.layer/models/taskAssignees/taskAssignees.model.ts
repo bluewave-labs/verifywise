@@ -7,7 +7,7 @@ import {
 } from "sequelize-typescript";
 import { UserModel } from "../user/user.model";
 import { TasksModel } from "../tasks/tasks.model";
-import { ITaskAssignee } from "../../interfaces/i.taskAssignee";
+import { ITaskAssignee, ITaskAssigneeSafeJSON, ITaskAssigneeJSON } from "../../interfaces/i.taskAssignee";
 import { numberValidation } from "../../validations/number.valid";
 import {
   ValidationException,
@@ -86,12 +86,11 @@ export class TaskAssigneesModel
     }
 
     // Create and return the task assignee model instance
-    const taskAssignee = new TaskAssigneesModel();
-    taskAssignee.task_id = taskId;
-    taskAssignee.user_id = userId;
-    taskAssignee.assigned_at = assigned_at;
-
-    return taskAssignee;
+    return new TaskAssigneesModel({
+      task_id: taskId,
+      user_id: userId,
+      assigned_at: assigned_at
+    });
   }
 
   /**
@@ -143,7 +142,7 @@ export class TaskAssigneesModel
   /**
    * Get task assignee data without sensitive information
    */
-  toSafeJSON(): any {
+  toSafeJSON(): ITaskAssigneeSafeJSON {
     return {
       taskId: this.task_id,
       userId: this.user_id,
@@ -154,7 +153,7 @@ export class TaskAssigneesModel
   /**
    * Convert task assignee model to JSON representation
    */
-  toJSON(): any {
+  toJSON(): ITaskAssigneeJSON {
     return {
       task_id: this.task_id,
       user_id: this.user_id,
@@ -162,12 +161,6 @@ export class TaskAssigneesModel
     };
   }
 
-  /**
-   * Create TaskAssigneesModel instance from JSON data
-   */
-  static fromJSON(json: any): TaskAssigneesModel {
-    return new TaskAssigneesModel(json);
-  }
 
   /**
    * Static method to find task assignee by task and user IDs with validation
@@ -462,7 +455,9 @@ export class TaskAssigneesModel
 
   constructor(init?: Partial<ITaskAssignee>) {
     super();
-    Object.assign(this, init);
+    if (init) {
+      Object.assign(this, init);
+    }
   }
 }
 

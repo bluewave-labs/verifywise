@@ -19,9 +19,17 @@ module.exports = {
       onUpdate: "CASCADE",
       onDelete: "CASCADE",
     });
+    
+    // Add composite index for creator_id + status for efficient filtering by creator and status
+    await queryInterface.addIndex("tasks", ["creator_id", "status"], {
+      name: "idx_tasks_creator_status"
+    });
   },
 
   async down(queryInterface, Sequelize) {
+    // Remove the composite index
+    await queryInterface.removeIndex("tasks", "idx_tasks_creator_status");
+    
     // Revert the column constraint
     await queryInterface.changeColumn("tasks", "creator_id", {
       type: Sequelize.INTEGER,

@@ -13,3 +13,20 @@ export interface ITask {
   created_at?: Date;
   updated_at?: Date;
 }
+
+export interface ITaskSafeJSON {
+  id?: number;
+  title: string;
+  description?: string;
+  creator_id: number;
+  due_date?: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  categories?: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ITaskJSON extends ITaskSafeJSON {
+  isOverdue: boolean;
+}

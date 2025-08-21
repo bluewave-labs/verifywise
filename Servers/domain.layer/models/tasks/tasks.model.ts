@@ -8,7 +8,7 @@ import {
 import { UserModel } from "../user/user.model";
 import { TaskPriority } from "../../enums/task-priority.enum";
 import { TaskStatus } from "../../enums/task-status.enum";
-import { ITask } from "../../interfaces/i.task";
+import { ITask, ITaskSafeJSON, ITaskJSON } from "../../interfaces/i.task";
 
 
 @Table({
@@ -81,16 +81,8 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   })
   updated_at?: Date;
 
-  static async createNewTask(task: ITask): Promise<TasksModel> {
-    const taskModel = new TasksModel();
-    taskModel.title = task.title;
-    taskModel.description = task.description;
-    taskModel.creator_id = task.creator_id;
-    taskModel.due_date = task.due_date;
-    taskModel.priority = task.priority;
-    taskModel.status = task.status;
-    taskModel.categories = task.categories;
-    return taskModel;
+  static createNewTask(task: ITask): TasksModel {
+    return new TasksModel(task);
   }
 
   async updateTask(updateData: {
@@ -138,7 +130,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   /**
    * Get task data 
    */
-  toSafeJSON(): any {
+  toSafeJSON(): ITaskSafeJSON {
     return {
       id: this.id,
       title: this.title,
@@ -156,7 +148,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   /**
    * Convert task model to JSON representation
    */
-  toJSON(): any {
+  toJSON(): ITaskJSON {
     return {
       id: this.id,
       title: this.title,
@@ -172,15 +164,10 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     };
   }
 
-  /**
-   * Create TasksModel instance from JSON data
-   */
-  static fromJSON(json: any): TasksModel {
-    return new TasksModel(json);
-  }
-
   constructor(init?: Partial<ITask>) {
     super();
-    Object.assign(this, init);
+    if (init) {
+      Object.assign(this, init);
+    }
   }
 }

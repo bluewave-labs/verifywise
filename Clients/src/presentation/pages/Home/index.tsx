@@ -28,8 +28,8 @@ import CustomizableButton from "../../vw-v2-components/Buttons";
 import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { getAllProjects } from "../../../application/repository/project.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { getAllProjects } from "../../../application/repository/project.repository";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));

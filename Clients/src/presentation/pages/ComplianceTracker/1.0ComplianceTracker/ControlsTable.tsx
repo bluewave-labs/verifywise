@@ -22,8 +22,8 @@ import NewControlPane from "../../../components/Modals/Controlpane/NewControlPan
 import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
 import { useSearchParams } from "react-router-dom";
-import { getControlByIdAndProject, getControlsByControlCategoryId } from "../../../../application/repository/control_eu_act.repository";
 import useUsers from "../../../../application/hooks/useUsers";
+import { getControlByIdAndProject, getControlsByControlCategoryId } from "../../../../application/repository/control_eu_act.repository";
 
 interface Column {
   name: string;

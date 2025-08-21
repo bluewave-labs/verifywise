@@ -254,15 +254,28 @@ def run_comprehensive_fairness_evaluation():
         }
     }
     
-    # Save results
-    print(f"\n💾 Saving comprehensive results...")
-    output_path = Path('artifacts/comprehensive_fairness_evaluation.json')
+    # Process and save clean results using enhanced processor
+    print(f"\n💾 Processing and saving clean results...")
+    
+    # Import the enhanced processor
+    from src.eval_engine.enhanced_results_processor import EnhancedResultsProcessor
+    
+    # Process the results
+    processor = EnhancedResultsProcessor()
+    processed_results = processor.process_comprehensive_results(comprehensive_results)
+    
+    # Save clean results
+    output_path = Path('artifacts/clean_results.json')
     output_path.parent.mkdir(exist_ok=True)
     
     with open(output_path, 'w') as f:
-        json.dump(comprehensive_results, f, indent=2, default=str)
+        json.dump(processed_results, f, indent=2, default=str)
     
-    print(f"✅ Results saved to {output_path}")
+    print(f"✅ Clean results saved to {output_path}")
+    
+    # Generate and display quality report
+    report = processor.generate_user_friendly_report()
+    print(f"\n{report}")
     
     # Print summary
     print(f"\n📊 Evaluation Summary:")
@@ -270,6 +283,14 @@ def run_comprehensive_fairness_evaluation():
     print(f"   Successful: {comprehensive_results['metric_summary']['successful_metrics']}")
     print(f"   Failed: {comprehensive_results['metric_summary']['failed_metrics']}")
     print(f"   Success rate: {comprehensive_results['metric_summary']['success_rate']}")
+    
+    # Print data quality summary
+    data_quality = processed_results['data_quality']
+    print(f"\n🔍 Data Quality Summary:")
+    print(f"   Data quality score: {data_quality['data_quality_score']:.1%}")
+    print(f"   Valid metrics: {len(processed_results['fairness_metrics'])}")
+    print(f"   Flagged metrics: {len(data_quality['flagged_metrics'])}")
+    print(f"   Excluded metrics: {len(data_quality['excluded_metrics'])}")
     
     # Show priority-based results
     print(f"\n🎯 Priority-Based Results:")

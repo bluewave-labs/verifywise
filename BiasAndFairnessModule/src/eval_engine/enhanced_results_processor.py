@@ -9,7 +9,7 @@ import json
 import numpy as np
 from typing import Dict, Any, List
 from pathlib import Path
-from results_validator import MetricResultValidator
+from .results_validator import MetricResultValidator
 
 
 class EnhancedResultsProcessor:
@@ -34,17 +34,29 @@ class EnhancedResultsProcessor:
         validation_results = self.validator.validate_comprehensive_results(results)
         self.validation_summary = validation_results
         
-        # Create processed results structure
+        # Create processed results structure - simplified and focused
         processed_results = {
-            'metadata': results.get('metadata', {}),
+            'metadata': {
+                'evaluation_type': results.get('metadata', {}).get('evaluation_type', ''),
+                'dataset': results.get('metadata', {}).get('dataset', ''),
+                'model': results.get('metadata', {}).get('model', ''),
+                'model_task': results.get('metadata', {}).get('model_task', ''),
+                'evaluation_timestamp': results.get('metadata', {}).get('evaluation_timestamp', ''),
+                'total_samples': results.get('metadata', {}).get('total_samples', 0),
+                'protected_attributes': results.get('metadata', {}).get('protected_attributes', []),
+                'metrics_configuration': {
+                    'user_selected_metrics': results.get('metadata', {}).get('metrics_configuration', {}).get('user_selected_metrics', []),
+                    'fairness_compass_recommended_metrics': results.get('metadata', {}).get('metrics_configuration', {}).get('fairness_compass_recommended_metrics', []),
+                    'all_available_metrics': results.get('metadata', {}).get('metrics_configuration', {}).get('all_available_metrics', [])
+                }
+            },
             'performance': results.get('performance', {}),
-            'data_statistics': results.get('data_statistics', {}),
             'fairness_metrics': {},
             'data_quality': {
-                'validation_summary': validation_results,
                 'excluded_metrics': {},
                 'flagged_metrics': {},
-                'data_quality_score': self._calculate_data_quality_score(validation_results)
+                'data_quality_score': self._calculate_data_quality_score(validation_results),
+                'insights': []
             }
         }
         
@@ -157,11 +169,6 @@ class EnhancedResultsProcessor:
         
         # Prepare output data
         output_data = self.processed_results.copy()
-        
-        if not include_raw:
-            # Remove detailed validation data for cleaner output
-            if 'validation_summary' in output_data['data_quality']:
-                del output_data['data_quality']['validation_summary']
         
         # Ensure output directory exists
         output_file = Path(output_path)

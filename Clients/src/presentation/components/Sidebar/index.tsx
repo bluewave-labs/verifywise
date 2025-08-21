@@ -34,6 +34,7 @@ import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
+import { ReactComponent as Policies } from "../../assets/icons/policies.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
@@ -52,7 +53,18 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
 
-const menu = [
+interface MenuItem {
+  name: string;
+  icon: React.ReactNode;
+  path: string;
+  children?: Array<{
+    name: string;
+    path: string;
+  }>;
+  highlightPaths?: string[];
+}
+
+const menu: MenuItem[] = [
   {
     name: "Dashboard",
     icon: <Dashboard />,
@@ -67,6 +79,7 @@ const menu = [
         path: "/framework",
       },
     ],
+    highlightPaths: ["/project-view"],
   },
   {
     name: "Vendors",
@@ -94,6 +107,11 @@ const menu = [
     path: "/training",
   },
   {
+    name: "Policy Manager",
+    icon: <Policies />,
+    path: "/policies",
+  },
+  {
     name: "AI Trust Center",
     icon: <AITrustCenter />,
     path: "/ai-trust-center",
@@ -105,7 +123,7 @@ const menu = [
   },
 ];
 
-const other = [
+const other: MenuItem[] = [
   {
     name: "Event Tracker",
     icon: <WatchTower />,
@@ -546,6 +564,9 @@ const Sidebar = () => {
                 }
                 className={
                   location.pathname === item.path ||
+                  item.highlightPaths?.some((p: string) =>
+                    location.pathname.startsWith(p)
+                  ) ||
                   customMenuHandler() === item.path
                     ? "selected-path"
                     : "unselected"
@@ -558,8 +579,11 @@ const Sidebar = () => {
                   px: theme.spacing(4),
                   backgroundColor:
                     location.pathname === item.path ||
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
                     customMenuHandler() === item.path
-                      ? "#F9F9F9"
+                      ? "#F9F9F9" // highlight background
                       : "transparent",
 
                   "&:hover": {

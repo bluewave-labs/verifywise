@@ -43,8 +43,8 @@ const AITrustCenter: React.FC = () => {
         return;
       }
       // Open the public page in a new tab
-      const publicUrl = `${window.location.origin}/public`;
-      window.open(publicUrl, "_blank", "noopener,noreferrer");
+      const publicUrl = `${window.location.origin}/aiTrustCentre/${tenantHash}`;
+      window.open(publicUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error("Error opening preview:", error);
     }
@@ -62,8 +62,7 @@ const AITrustCenter: React.FC = () => {
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         <Typography sx={aiTrustCenterHeaderTitle}>AI trust center</Typography>
         <Typography sx={aiTrustCenterHeaderDesc}>
-          Manage and monitor AI governance, compliance, and trust-related
-          activities
+          AI Trust Center centralizes your AI policies, certifications, and subprocessors to demonstrate responsible, transparent, and compliant AI practices.
         </Typography>
       </Stack>
       <Stack className="vw-project-view-body">

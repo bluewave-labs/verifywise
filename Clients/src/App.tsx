@@ -11,7 +11,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./application/redux/store";
 import useProjectStatus from "./application/hooks/useProjectStatus";
-import { extractUserToken } from "./application/tools/extractToken";
+import { useAuth } from "./application/hooks/useAuth";
 import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
@@ -23,13 +23,35 @@ import { setShowAlertCallback } from "./infrastructure/api/customAxios";
 import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { useLocation } from "react-router-dom";
+
+// Component to conditionally apply theme based on route
+const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
+  const location = useLocation();
+  const isAITrustCentreRoute = location.pathname.includes('/aiTrustCentre');
+  
+  // For aiTrustCentre routes, don't apply theme (like /public route)
+  if (isAITrustCentreRoute) {
+    return (
+      <>
+        <CssBaseline />
+        {children}
+      </>
+    );
+  }
+  
+  // For other routes, apply theme normally
+  return (
+    <ThemeProvider theme={mode === "light" ? light : dark}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  );
+};
 
 function App() {
   const mode = useSelector((state: AppState) => state.ui?.mode || "light");
-  const token = useSelector((state: AppState) => state.auth?.authToken);
-  const userToken = token ? extractUserToken(token) : null;
-  const userRoleName = userToken?.roleName || "";
-  const organizationId = userToken ? parseInt(userToken.organizationId) : null;
+  const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
 
@@ -54,12 +76,12 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 
-  const userId = extractUserToken(token)?.id ?? 1;
+  const userIdForProject = userId ?? 1;
   const {
     projectStatus,
     loading: loadingProjectStatus,
     error: errorFetchingProjectStatus,
-  } = useProjectStatus({ userId });
+  } = useProjectStatus({ userId: userIdForProject });
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
   const [componentsVisible, setComponentsVisible] = useState<ComponentVisible>({
@@ -119,7 +141,7 @@ function App() {
       errorFetchingProjectStatus,
       currentProjectId,
       setCurrentProjectId,
-      userId,
+      userIdForProject,
       projects,
       setProjects,
       componentsVisible,
@@ -140,8 +162,7 @@ function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <VerifyWiseContext.Provider value={contextValues}>
-            <ThemeProvider theme={mode === "light" ? light : dark}>
-              <CssBaseline />
+            <ConditionalThemeWrapper mode={mode}>
               {alert && (
                 <Alert
                   variant={alert.variant}
@@ -154,7 +175,7 @@ function App() {
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>
-            </ThemeProvider>
+            </ConditionalThemeWrapper>
           </VerifyWiseContext.Provider>
         </PersistGate>
       </Provider>

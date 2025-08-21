@@ -28,10 +28,13 @@ import isoRoutes from "./routes/iso42001.route";
 import trainingRoutes from "./routes/trainingRegistar.route";
 import biasAndFairnessRoutes from "./routes/biasAndFairnessRoutes.route";
 import aiTrustCentreRoutes from "./routes/aiTrustCentre.route";
+import policyRoutes from "./routes/policy.route"
 import loggerRoutes from "./routes/logger.route";
 import dashboardRoutes from "./routes/dashboard.route"
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
+import tiersRoutes from "./routes/tiers.route";
+import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
@@ -114,7 +117,10 @@ try {
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/dashboard", dashboardRoutes);
+  app.use("/api/tiers", tiersRoutes);
+  app.use("/api/subscriptions", subscriptionRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+  app.use("/api/policies", policyRoutes)
 
   app.use("/api", (req, res) => {
     res.json("Welcome to  VerifyWise root directory.");

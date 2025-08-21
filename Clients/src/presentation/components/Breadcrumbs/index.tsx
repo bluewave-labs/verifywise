@@ -192,6 +192,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
             color: isDisabled ? theme.palette.text.tertiary : "#13715B", // Use the green color from the theme
           },
           transition: "color 0.2s ease",
+          marginY:1
         }}
       >
         {truncateText(item.label)}
@@ -232,7 +233,6 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
       sx={{
         py: 1,
         px: 0,
-        mb: 1, // Add bottom spacing
         ...sx,
       }}
     >

@@ -34,6 +34,7 @@ import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon
 import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
 import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
 import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
+import { ReactComponent as Policies } from "../../assets/icons/policies.svg"
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
@@ -57,6 +58,7 @@ const menu = [
     name: "Dashboard",
     icon: <Dashboard />,
     path: "/",
+    highlightPaths: ["/project-view"],
   },
   {
     name: "Vendors",
@@ -82,6 +84,11 @@ const menu = [
     name: "Training Registry",
     icon: <TrainingRegister />,
     path: "/training",
+  },
+  {
+    name: "Policy Manager",
+    icon: <Policies />,
+    path: "/policies",
   },
   {
     name: "AI Trust Center",
@@ -319,10 +326,11 @@ const Sidebar = () => {
                     ?.disableRipple
                 }
                 className={
-                  location.pathname === item.path ||
-                  customMenuHandler() === item.path
-                    ? "selected-path"
-                    : "unselected"
+                    location.pathname === item.path ||
+                    (item.highlightPaths?.some(p => location.pathname.startsWith(p))) ||
+                    customMenuHandler() === item.path
+                        ? "selected-path"
+                        : "unselected"
                 }
                 onClick={() => navigate(`${item.path}`)}
                 sx={{
@@ -332,8 +340,9 @@ const Sidebar = () => {
                   px: theme.spacing(4),
                   backgroundColor:
                     location.pathname === item.path ||
+                    item.highlightPaths?.some(p => location.pathname.startsWith(p)) ||
                     customMenuHandler() === item.path
-                      ? "#F9F9F9"
+                      ? "#F9F9F9" // highlight background
                       : "transparent",
 
                   "&:hover": {

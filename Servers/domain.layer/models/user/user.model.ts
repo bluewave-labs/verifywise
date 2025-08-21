@@ -211,9 +211,9 @@ export class UserModel extends Model<UserModel> {
       );
     }
 
-    if (this.surname.trim().length < 2) {
+    if (this.surname.trim().length < 1) {
       throw new ValidationException(
-        "Surname must be at least 2 characters long",
+        "Surname must be at least 1 character long",
         "surname",
         this.surname
       );

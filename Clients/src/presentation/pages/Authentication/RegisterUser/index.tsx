@@ -19,6 +19,11 @@ import CustomizableToast from "../../../vw-v2-components/Toast";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSearchParams } from "react-router-dom";
 import { handleAlert } from "../../../../application/tools/alertUtils";
+import { ENV_VARs } from "../../../../../env.vars";
+import { decodeGoogleToken, GoogleAuthResponse, initializeGoogleSignIn, signInWithGooglePopupAlternative } from "../../../../application/tools/googleAuth";
+import { useDispatch } from "react-redux";
+import { createNewUserWithGoogle, loginWithGoogle } from "../../../../application/repository/user.repository";
+import { setAuthToken, setExpiration } from "../../../../application/redux/auth/authSlice";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 export interface AlertType {
@@ -39,6 +44,7 @@ const initialState: FormValues = {
 const RegisterUser: React.FC = () => {
   const navigate = useNavigate();
   const { registerUser } = useRegisterUser();
+  const dispatch = useDispatch();
   // Extract user token
   const [searchParams] = useSearchParams();
   const userToken = searchParams.get("token");
@@ -54,6 +60,20 @@ const RegisterUser: React.FC = () => {
 
   //disabled overlay modal state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Initialize Google Sign-In when component mounts
+    useEffect(() => {
+      const initGoogle = async () => {
+        try {
+          await initializeGoogleSignIn();
+        } catch (error) {
+          console.error("Failed to initialize Google Sign-In:", error);
+        }
+      };
+      
+      if (ENV_VARs.GOOGLE_CLIENT_ID) {
+        initGoogle();
+      }
+    }, []);
 
   // Handle input field changes
   const handleChange =
@@ -63,6 +83,109 @@ const RegisterUser: React.FC = () => {
       setErrors({ ...errors, [prop]: "" });
     };
 
+    const handleGoogleSignIn = async () => {
+        if (!ENV_VARs.GOOGLE_CLIENT_ID) {
+          setAlert({
+            variant: "error",
+            body: "Google Sign-In is not configured. Please contact your administrator.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+          return;
+        }
+    
+        setIsSubmitting(true);
+    
+        try {
+          // Try the alternative popup method with cancellation handling
+          signInWithGooglePopupAlternative(
+            async (response: GoogleAuthResponse) => {
+              try {
+                
+                // Decode the Google token to get user info
+                const googleUser = decodeGoogleToken(response.credential);
+                
+                logEngine({
+                  type: "info",
+                  message: `Google Sign-In attempt for user: ${googleUser.email}`,
+                });
+    
+                // Send the Google token to your backend for verification and login
+                const loginResponse = await createNewUserWithGoogle({
+                  googleToken: response.credential,
+                  userData: {
+                    roleId: Number(values.roleId) || 1,
+                    organizationId: Number(values.organizationId)
+                  }
+                });
+    
+                if (loginResponse.status === 201) {
+                  const token = loginResponse.data.data.token;
+    
+                  // Always remember Google sign-in for 30 days
+                  const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+                  dispatch(setAuthToken(token));
+                  dispatch(setExpiration(expirationDate));
+    
+                  logEngine({
+                    type: "info",
+                    message: "Google Sign-In successful.",
+                  });
+    
+                  setTimeout(() => {
+                    setIsSubmitting(false);
+                    navigate("/");
+                  }, 2000);
+                } else {
+                  logEngine({
+                    type: "error",
+                    message: "Google Sign-In failed with unexpected response.",
+                  });
+    
+                  setIsSubmitting(false);
+                  setAlert({
+                    variant: "error",
+                    body: "Google Sign-In failed. Please try again.",
+                  });
+                  setTimeout(() => setAlert(null), 3000);
+                }
+              } catch (error: any) {
+                console.error("Google Sign-In error:", error);
+    
+                logEngine({
+                  type: "error",
+                  message: `Google Sign-In error: ${error.message}`,
+                });
+    
+                setIsSubmitting(false);
+                setAlert({
+                  variant: "error",
+                  body: error.message || "Google Sign-In failed. Please try again.",
+                });
+                setTimeout(() => setAlert(null), 3000);
+              }
+            },
+            // Cancellation callback - this will run if user closes popup without signing in
+            () => {
+              console.log("Google Sign-In was cancelled by user");
+              setIsSubmitting(false);
+              // Optionally show a message
+              logEngine({
+                type: "info",
+                message: "Google Sign-In was cancelled by user.",
+              });
+            }
+          );
+        } catch (error: any) {
+          console.error("Failed to initiate Google Sign-In:", error);
+          
+          setIsSubmitting(false);
+          setAlert({
+            variant: "error",
+            body: "Failed to initiate Google Sign-In. Please try again.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+        }
+      };
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -313,6 +436,22 @@ const RegisterUser: React.FC = () => {
               disabled={!isInvitationValid}
             >
               Get started
+            </Button>
+            <Button
+              type="button"
+              disableRipple
+              variant="contained"
+              sx={{
+                ...singleTheme.buttons.primary.contained,
+                backgroundColor: "#4285f4",
+                "&:hover": {
+                  backgroundColor: "#3367d6",
+                },
+              }}
+              onClick={handleGoogleSignIn}
+              disabled={isSubmitting || !ENV_VARs.GOOGLE_CLIENT_ID}
+            >
+              {!ENV_VARs.GOOGLE_CLIENT_ID ? "Google Sign-In Not Configured" : "Google Sign in"}
             </Button>
           </Stack>
         </Stack>

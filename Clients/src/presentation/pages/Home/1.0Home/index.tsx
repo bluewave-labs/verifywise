@@ -28,7 +28,6 @@ import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/Drawer/HelperDrawer";
 import dashboardHelpContent from "../../../../presentation/helpers/dashboard-help.html?raw";
 import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
-import TaskRadar from "../../../components/Cards/TaskRadarCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 
@@ -218,7 +217,7 @@ const Home = () => {
             <HeaderCard title="Reports" count={dashboard?.reports || 0} />
           </Box>
         </Stack>
-        <Stack sx={vwhomeBody}>
+        {/* <Stack sx={vwhomeBody}>
           <Box
             sx={{
               width: "50%",
@@ -231,7 +230,7 @@ const Home = () => {
           >
             <TaskRadar overdue={dashboard?.task_radar.overdue || 0} due={dashboard?.task_radar.due || 0} upcoming={dashboard?.task_radar.upcoming || 0} />
           </Box>
-        </Stack>
+        </Stack> */}
         <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
           {projects?.length === 0 || !projects ? (
             <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />

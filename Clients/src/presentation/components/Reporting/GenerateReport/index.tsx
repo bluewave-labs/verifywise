@@ -1,16 +1,17 @@
-import React, { useState, lazy, Suspense, useContext, useRef } from 'react'
-import { IconButton, Box, Stack } from '@mui/material';
+import React, { useState, lazy, Suspense, useContext, useRef } from "react";
+import { IconButton, Box, Stack } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import {styles} from './styles';
-const GenerateReportFrom = lazy(() => import('./GenerateReportFrom'));
-const DownloadReportForm = lazy(() => import('./DownloadReportFrom'));
-import { handleAutoDownload } from '../../../../application/tools/fileDownload';
-import { VerifyWiseContext } from '../../../../application/contexts/VerifyWise.context';
-import { handleAlert } from '../../../../application/tools/alertUtils';
-import Alert from '../../Alert';
+import { styles } from "./styles";
+const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
+const DownloadReportForm = lazy(() => import("./DownloadReportFrom"));
+import { handleAutoDownload } from "../../../../application/tools/fileDownload";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import Alert from "../../Alert";
 
 interface GenerateReportProps {
   onClose: () => void;
+  onReportGenerated?: () => void;
 }
 
 interface InputProps {
@@ -22,10 +23,11 @@ interface InputProps {
 }
 
 const GenerateReportPopup: React.FC<GenerateReportProps> = ({
-  onClose
+  onClose,
+  onReportGenerated,
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);
-  const [responseStatusCode, setResponseStatusCode] = useState<number>(200);  
+  const [responseStatusCode, setResponseStatusCode] = useState<number>(200);
   const { dashboardValues, users } = useContext(VerifyWiseContext);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -46,9 +48,11 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }, 3000);
   };
 
-  const handleGenerateReport = async (input: InputProps) => {       
-    const currentProject = dashboardValues.projects.find((project: { id: number | null; }) => project.id === input.project);
-    
+  const handleGenerateReport = async (input: InputProps) => {
+    const currentProject = dashboardValues.projects.find(
+      (project: { id: number | null }) => project.id === input.project
+    );
+
     if (!currentProject) {
       handleToast("error", "Project not found");
       return;
@@ -57,20 +61,20 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     const owner = users.find(
       (user: any) => user.id === parseInt(currentProject.owner)
     );
-    const currentProjectOwner = owner ? `${owner.name} ${owner.surname}`: "";          
+    const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
     let reportTypeLabel = input.report_type;
-    switch(input.report_type){
+    switch (input.report_type) {
       case "Annexes report":
-        reportTypeLabel = "Annexes report"
-        break;      
+        reportTypeLabel = "Annexes report";
+        break;
       case "Clauses report":
-        reportTypeLabel = "Clauses report"
-        break; 
+        reportTypeLabel = "Clauses report";
+        break;
       case "Clauses and annexes report":
-        reportTypeLabel = "Clauses and annexes report"
-        break;     
+        reportTypeLabel = "Clauses and annexes report";
+        break;
       case "All reports combined in one file":
-        reportTypeLabel = "All reports"
+        reportTypeLabel = "All reports";
         break;
       default:
         break;
@@ -83,14 +87,16 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       reportType: reportTypeLabel,
       reportName: input.report_name,
       frameworkId: input.framework,
-      projectFrameworkId: input.projectFrameworkId
-    }
+      projectFrameworkId: input.projectFrameworkId,
+    };
     const reportDownloadResponse = await handleAutoDownload(body);
     setResponseStatusCode(reportDownloadResponse);
-    if(reportDownloadResponse === 200){
-      handleToast(
-        "success", 
-        "Report successfully downloaded.");
+    if (reportDownloadResponse === 200) {
+      handleToast("success", "Report successfully downloaded.");
+      // Call the callback to trigger refresh of reports list
+      if (onReportGenerated) {
+        onReportGenerated();
+      }
     } else if (reportDownloadResponse === 403) {
       handleToast(
         "warning",
@@ -102,7 +108,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         "Unexpected error occurs while downloading the report."
       );
     }
-  }
+  };
 
   const handleOnCloseModal = () => {
     if (clearTimerRef.current) {
@@ -110,7 +116,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       clearTimerRef.current = null;
     }
     onClose();
-  }
+  };
 
   return (
     <Stack>
@@ -127,30 +133,29 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
           </Box>
         </Suspense>
       )}
-    
-      <Box 
+
+      <Box
         sx={{
-          ...styles.formContainer, 
-          ...(isReportRequest && styles.contentCenter)
+          ...styles.formContainer,
+          ...(isReportRequest && styles.contentCenter),
         }}
         component="form"
       >
         <IconButton onClick={handleOnCloseModal} sx={styles.iconButton}>
           <CloseIcon sx={styles.closeButton} />
         </IconButton>
-        {isReportRequest ? 
+        {isReportRequest ? (
           <Suspense fallback={<div>Loading...</div>}>
             <DownloadReportForm statusCode={responseStatusCode} />
-          </Suspense> : 
-          <Suspense fallback={<div>Loading...</div>}>
-            <GenerateReportFrom 
-              onGenerate={handleGenerateReport}
-            />
           </Suspense>
-        }
+        ) : (
+          <Suspense fallback={<div>Loading...</div>}>
+            <GenerateReportFrom onGenerate={handleGenerateReport} />
+          </Suspense>
+        )}
       </Box>
     </Stack>
-  )
-}
+  );
+};
 
-export default GenerateReportPopup
+export default GenerateReportPopup;

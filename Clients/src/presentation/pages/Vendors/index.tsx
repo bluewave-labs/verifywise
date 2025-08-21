@@ -7,6 +7,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import {
@@ -20,11 +21,6 @@ import {
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import {
-  deleteEntityById,
-  getAllEntities,
-  getEntityById,
-} from "../../../application/repository/entity.repository";
 import { tabPanelStyle, tabStyle } from "./style";
 import { logEngine } from "../../../application/tools/log.engine";
 import Alert from "../../components/Alert";
@@ -45,9 +41,19 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
-import  HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
-import { deleteVendorRisk, getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
+import { getAllProjects } from "../../../application/repository/project.repository";
+import {
+  deleteVendor,
+  getAllVendors,
+  getVendorById,
+  getVendorsByProjectId,
+} from "../../../application/repository/vendor.repository";
+import {
+  deleteVendorRisk,
+  getVendorRiskById,
+} from "../../../application/repository/vendorRisk.repository";
 
 interface ExistingRisk {
   id?: number;
@@ -142,7 +148,7 @@ const Vendors = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await getAllEntities({ routeUrl: "/projects" });
+        const response = await getAllProjects();
         if (response?.data && response.data.length > 0) {
           setProjects(response.data);
           setSelectedProjectId("all"); // Always default to 'all' after fetching
@@ -160,14 +166,13 @@ const Vendors = () => {
     setIsVendorsLoading(true);
     if (!selectedProjectId) return;
     try {
-      const routeUrl =
+      const response =
         selectedProjectId === "all"
-          ? "/vendors"
-          : `/vendors/project-id/${selectedProjectId}`;
-      const response = await getAllEntities({
-        routeUrl,
-        signal,
-      });
+          ? await getAllVendors({ signal })
+          : await getVendorsByProjectId({
+              projectId: parseInt(selectedProjectId),
+              signal,
+            });
       if (response?.data) {
         setVendors(response.data);
       }
@@ -198,8 +203,8 @@ const Vendors = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await deleteEntityById({
-        routeUrl: `/vendors/${vendorId}`,
+      const response = await deleteVendor({
+        id: Number(vendorId),
       });
 
       if (response.status === 202) {
@@ -259,7 +264,7 @@ const Vendors = () => {
     setIsSubmitting(true);
 
     try {
-       const response = await deleteVendorRisk({
+      const response = await deleteVendorRisk({
         id: Number(riskId),
       });
 
@@ -315,7 +320,7 @@ const Vendors = () => {
       return;
     }
     try {
-     const response = await getVendorRiskById({
+      const response = await getVendorRiskById({
         id: Number(riskId),
       });
       setSelectedRisk(response.data);
@@ -334,8 +339,8 @@ const Vendors = () => {
   };
   const handleEditVendor = async (id: number) => {
     try {
-      const response = await getEntityById({
-        routeUrl: `/vendors/${id}`,
+      const response = await getVendorById({
+        id: Number(id),
       });
       setSelectedVendor(response.data);
       setIsOpen(true);
@@ -418,6 +423,7 @@ const Vendors = () => {
 
   return (
     <div className="vendors-page">
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

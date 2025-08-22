@@ -154,7 +154,7 @@ const VWISO27001ClauseDrawerDialog = ({
         setIsLoading(true);
         try {
           const response = await ISO27001GetSubClauseById({
-            routeUrl: `/iso-27001/subClause/byId/${subClause.id}`,
+            routeUrl: `/iso-27001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
           });
           console.log("response.data : ==> ", response.data);
           setFetchedSubClause(response.data);

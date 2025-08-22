@@ -15,3 +15,17 @@ export async function GetClausesByProjectFrameworkId({
   });
   return response.data;
 }
+
+export async function GetClauseStructByFrameworkID({
+  routeUrl,
+  signal,
+  authToken = getAuthToken(),
+  responseType = "json",
+}: GetRequestParams): Promise<any> {
+  const response = await apiServices.get(routeUrl, {
+    headers: { Authorization: `Bearer ${authToken}` },
+    signal,
+    responseType,
+  });
+  return response;
+}

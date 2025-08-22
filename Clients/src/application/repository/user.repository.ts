@@ -1,4 +1,5 @@
 
+import CustomAxios from "../../infrastructure/api/customAxios";
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { getAuthToken } from "../redux/auth/getAuthToken";
 
@@ -65,14 +66,17 @@ export async function updatePassword({
   newPassword: string;
   authToken?: string;
 }): Promise<any> {
-  const response = await apiServices.patch(
+  const response = await CustomAxios.patch(
     `/users/chng-pass/${userId}`,
     { id: userId, currentPassword, newPassword },
     {
       headers: { Authorization: `Bearer ${authToken}` },
     }
   );
-  return response;
+  return {
+    status: response.status,
+    data: response.data,
+  };
 }
 
 export async function deleteUserById({

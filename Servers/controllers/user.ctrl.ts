@@ -790,7 +790,10 @@ async function ChangePassword(req: Request, res: Response) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    await user.updatePassword(newPassword, currentPassword);
+    await user.updatePassword(
+      newPassword,
+      (user.google_id && !user.password_hash) ? null : currentPassword
+    );
 
     const updatedUser = (await resetPasswordQuery(
       user.email,

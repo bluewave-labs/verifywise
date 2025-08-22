@@ -414,7 +414,8 @@ export class UserModel extends Model<UserModel> {
    * Get user data without sensitive information
    */
   toSafeJSON(): any {
-    const { password_hash, ...safeUser } = this.get({ plain: true });
+    const { password_hash, google_id, ...safeUser } = this.get({ plain: true });
+    (safeUser as any).pwd_set = !!this.password_hash;
     return safeUser;
   }
 

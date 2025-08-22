@@ -145,7 +145,7 @@ const Framework = () => {
             </Box>
 
             <TabPanel value="clause" sx={tabPanelStyle}>
-              <ISO27001Clause />
+              <ISO27001Clause FrameworkId={framework.id} />
             </TabPanel>
 
             <TabPanel value="annex" sx={tabPanelStyle}>

@@ -1,4 +1,5 @@
 
+import CustomAxios from "../../infrastructure/api/customAxios";
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { getAuthToken } from "../redux/auth/getAuthToken";
 
@@ -12,7 +13,7 @@ export async function getUserById({
   const response = await apiServices.get(`/users/${userId}`, {
     headers: { Authorization: `Bearer ${authToken}` },
   });
-  return  response.data;
+  return response.data;
 }
 
 export async function getAllUsers({
@@ -65,14 +66,17 @@ export async function updatePassword({
   newPassword: string;
   authToken?: string;
 }): Promise<any> {
-  const response = await apiServices.patch(
+  const response = await CustomAxios.patch(
     `/users/chng-pass/${userId}`,
     { id: userId, currentPassword, newPassword },
     {
       headers: { Authorization: `Bearer ${authToken}` },
     }
   );
-  return response;
+  return {
+    status: response.status,
+    data: response.data,
+  };
 }
 
 export async function deleteUserById({
@@ -98,7 +102,7 @@ export async function checkUserExists({
     const response = await apiServices.get(`/users/check/exists`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-     return response.data;
+    return response.data;
   } catch (error) {
     console.error("Error checking if user exists:", error);
     throw error;
@@ -106,20 +110,49 @@ export async function checkUserExists({
 }
 
 export async function loginUser({
-    body,
-    authToken = getAuthToken(),
-  }: {
-    body: any;
-    authToken?: string;
-  }): Promise<any> {
-    try {
-      const response = await apiServices.post(`/users/login`, body, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      return response;
-    } catch (error) {
-      console.error("Error logging in user:", error);
-      throw error;
-    }
+  body,
+}: {
+  body: any;
+}): Promise<any> {
+  try {
+    const response = await apiServices.post(`/users/login`, body);
+    return response;
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    throw error;
   }
+}
+
+export async function createNewUserWithGoogle({
+  googleToken,
+  userData,
+  authToken = getAuthToken(),
+}: {
+  googleToken: string;
+  userData: any;
+  authToken?: string;
+}): Promise<any> {
+  const response = await apiServices.post(`/users/register-google`, {
+    token: googleToken, userData
+  }, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response;
+}
+
+export async function loginWithGoogle({
+  googleToken,
+}: {
+  googleToken: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.post(`/users/login-google`, {
+      token: googleToken
+    });
+    return response;
+  } catch (error) {
+    console.error("Error logging in with Google:", error);
+    throw error;
+  }
+}
 

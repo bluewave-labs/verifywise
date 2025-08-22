@@ -62,9 +62,7 @@ const PolicyDashboard: React.FC = () => {
       <Stack>
         <Typography sx={vwhomeHeading}>Policy Manager</Typography>
         <Typography sx={singleTheme.textStyles.pageDescription}>
-          This table includes a list of external entities that provides
-          AI-related products, services, or components. You can create and
-          manage all vendors here.
+          Policy Manager lets you create and update company AI policies in one place to stay compliant and consistent.
         </Typography>
       </Stack>
 

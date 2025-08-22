@@ -62,8 +62,7 @@ const AITrustCenter: React.FC = () => {
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         <Typography sx={aiTrustCenterHeaderTitle}>AI trust center</Typography>
         <Typography sx={aiTrustCenterHeaderDesc}>
-          Manage and monitor AI governance, compliance, and trust-related
-          activities
+          AI Trust Center centralizes your AI policies, certifications, and subprocessors to demonstrate responsible, transparent, and compliant AI practices.
         </Typography>
       </Stack>
       <Stack className="vw-project-view-body">

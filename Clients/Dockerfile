@@ -13,24 +13,20 @@ RUN npm install
 # Step 5: Copy the rest of the application files
 COPY . .
 
-# Step 6: Accept env variables for Vite
-ARG VITE_GOOGLE_CLIENT_ID
-ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
-
-# Step 7: Build the application
+# Step 6: Build the application
 RUN npm run build
 
-# Step 8: Use a lightweight web server for production
+# Step 7: Use a lightweight web server for production
 FROM nginx:1.25-alpine
 
-# Step 9: Copy the build output to NGINX's default public directory
+# Step 8: Copy the build output to NGINX's default public directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Step 10: Copy the custom NGINX configuration
+# Step 9: Copy the custom NGINX configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Step 11: Expose port 80
+# Step 10: Expose port 80
 EXPOSE 80
 
-# Step 12: Start NGINX server
+# Step 11: Start NGINX server
 CMD ["nginx", "-g", "daemon off;"]

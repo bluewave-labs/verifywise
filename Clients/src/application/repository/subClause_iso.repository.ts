@@ -42,3 +42,17 @@ export async function UpdateSubClauseById({
     throw error;
   }
 }
+
+export async function ISO27001GetSubClauseByClauseId({
+  routeUrl, // Example: /api/iso27001/subClauses/byClauseId/1
+  signal,
+  authToken = getAuthToken(),
+  responseType = "json",
+}: GetRequestParams): Promise<any> {
+  const response = await apiServices.get(routeUrl, {
+    headers: { Authorization: `Bearer ${authToken}` },
+    signal,
+    responseType,
+  });
+  return response.data;
+}

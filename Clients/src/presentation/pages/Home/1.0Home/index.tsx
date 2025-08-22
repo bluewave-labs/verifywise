@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box } from "@mui/material";
+import { Stack, Typography, Modal, Box, IconButton, InputBase } from "@mui/material";
 import {
   vwhomeBody,
   vwhomeBodyControls,
@@ -30,6 +30,8 @@ import dashboardHelpContent from "../../../../presentation/helpers/dashboard-hel
 import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
+import SearchIcon from "@mui/icons-material/Search";
+
 
 const Home = () => {
   const {
@@ -49,6 +51,10 @@ const Home = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showSearch, setShowSearch] = useState<boolean>(false);
+
 
   useEffect(() => {
     if (dashboard) {
@@ -231,60 +237,137 @@ const Home = () => {
             <TaskRadar overdue={dashboard?.task_radar.overdue || 0} due={dashboard?.task_radar.due || 0} upcoming={dashboard?.task_radar.upcoming || 0} />
           </Box>
         </Stack> */}
-        <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
-          {projects?.length === 0 || !projects ? (
-            <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />
-          ) : projects?.length <= 3 ? (
-            <>
+
               <Box
-                sx={{
-                  width: projects.length === 1 ? "50%" : "100%",
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: projects.length < 4 ? "" : "wrap",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "20px",
-                }}
+                  sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      border: "1px solid #eaecf0",  
+                      borderRadius: "4px",
+                      padding: "4px 6px",
+                      backgroundColor: "#fff",
+                      width: showSearch ? "300px" : "40px",
+                      transition: "width 0.3s ease",
+                      mb: 9,
+                  }}
               >
-                {projects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
-                ))}
+      
+                  <IconButton
+                        onClick={() => setShowSearch((prev) => !prev)}>
+                        <SearchIcon  />
+                  </IconButton>
+
+                  {showSearch && (
+                      <InputBase
+                          placeholder="Search projects..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          sx={{
+                              flex: 1,
+                              fontSize: "14px",
+                          }}
+                      />
+                  )}
               </Box>
-            </>
-          ) : (
-            <>
-              <Box sx={vwhomeBodyProjectsGrid}>
-                {projects &&
-                  projects.map((project) => (
-                    <Box key={project.id} sx={{ gridColumn: "span 1" }}>
-                      <ProjectCard key={project.id} project={project} />
-                    </Box>
-                  ))}
+
+              <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
+                  {(() => {
+                      // Filter projects based on search term
+                      const filteredProjects = projects.filter((project) =>
+                          project.project_title
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase())
+                      );
+
+                      console.log("Filtered Projects", filteredProjects);
+
+                      if (!projects || projects.length === 0) {
+                          return (
+                              <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />
+                          );
+                      }
+
+                      if (filteredProjects.length === 0) {
+                          return (
+                              <Typography
+                                  variant="body1"
+                                  sx={{
+                                      color: "#666",
+                                      textAlign: "center",
+                                      mt: 3,
+                                  }}
+                              >
+                                  No projects found
+                              </Typography>
+                          );
+                      }
+
+                      // Render for <= 3 projects
+                      if (filteredProjects.length <= 3) {
+                          return (
+                              <Box
+                                  sx={{
+                                      width:
+                                          filteredProjects.length === 1
+                                              ? "50%"
+                                              : "100%",
+                                      display: "flex",
+                                      flexDirection: "row",
+                                      flexWrap:
+                                          filteredProjects.length < 4
+                                              ? ""
+                                              : "wrap",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      gap: "20px",
+                                  }}
+                              >
+                                  {filteredProjects.map((project) => (
+                                      <ProjectCard
+                                          key={project.id}
+                                          project={project}
+                                      />
+                                  ))}
+                              </Box>
+                          );
+                      }
+
+                      // Render grid for > 3 projects
+                      return (
+                          <Box sx={vwhomeBodyProjectsGrid}>
+                              {filteredProjects.map((project) => (
+                                  <Box
+                                      key={project.id}
+                                      sx={{ gridColumn: "span 1" }}
+                                  >
+                                      <ProjectCard project={project} />
+                                  </Box>
+                              ))}
+                          </Box>
+                      );
+                  })()}
+              </Stack>
+          </Stack>
+          
+          <Modal
+              open={isProjectFormModalOpen}
+              onClose={handleProjectFormModalClose}
+              aria-labelledby="modal-title"
+              aria-describedby="modal-description"
+          >
+              <Box sx={vwhomeCreateModalFrame}>
+                  <ProjectForm onClose={handleProjectFormModalClose} />
               </Box>
-            </>
-          )}
-        </Stack>
+          </Modal>
+          <PageTour
+              steps={HomeSteps}
+              run={runHomeTour}
+              onFinish={() => {
+                  setRunHomeTour(false);
+              }}
+              tourKey="home-tour"
+          />
       </Stack>
-      <Modal
-        open={isProjectFormModalOpen}
-        onClose={handleProjectFormModalClose}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box sx={vwhomeCreateModalFrame}>
-          <ProjectForm onClose={handleProjectFormModalClose} />
-        </Box>
-      </Modal>
-      <PageTour
-        steps={HomeSteps}
-        run={runHomeTour}
-        onFinish={() => {
-          setRunHomeTour(false);
-        }}
-        tourKey="home-tour"
-      />
-    </Stack>
   );
 };
 

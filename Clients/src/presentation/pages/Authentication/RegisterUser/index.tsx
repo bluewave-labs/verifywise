@@ -22,7 +22,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { ENV_VARs } from "../../../../../env.vars";
 import { decodeGoogleToken, GoogleAuthResponse, initializeGoogleSignIn, signInWithGooglePopupAlternative } from "../../../../application/tools/googleAuth";
 import { useDispatch } from "react-redux";
-import { createNewUserWithGoogle, loginWithGoogle } from "../../../../application/repository/user.repository";
+import { createNewUserWithGoogle } from "../../../../application/repository/user.repository";
 import { setAuthToken, setExpiration } from "../../../../application/redux/auth/authSlice";
 const Alert = lazy(() => import("../../../components/Alert"));
 

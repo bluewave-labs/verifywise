@@ -15,6 +15,7 @@ import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repos
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import VWISO27001ClauseDrawerDialog from "../../../../components/Drawer/ISO27001ClauseDrawerDialog";
 
 const ISO27001Clause = ({
   FrameworkId,
@@ -24,6 +25,10 @@ const ISO27001Clause = ({
   statusFilter?: string;
 }) => {
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
+  const [selectedClause, setSelectedClause] = useState<any>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -92,6 +97,28 @@ const ISO27001Clause = ({
       setExpanded(isExpanded ? panel : false);
     };
 
+  const handleSubClauseClick = useCallback(
+    (clause: any, subClause: any, index: number) => {
+      console.log("handleSubClauseClick called with:", {
+        clause,
+        subClause,
+        index,
+      });
+      setSelectedClause(clause);
+      setSelectedSubClause(subClause);
+      setSelectedIndex(index);
+      setDrawerOpen(true);
+      console.log("drawerOpen set to true");
+    },
+    []
+  );
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setSelectedSubClause(null);
+    setSelectedClause(null);
+  };
+
   const handleSaveSuccess = async (
     success: boolean,
     message?: string,
@@ -134,7 +161,10 @@ const ISO27001Clause = ({
           filteredSubClauses.map((subClause: any, index: number) => (
             <Stack
               key={subClause.id}
-              onClick={() => {}}
+              onClick={() => {
+                console.log("Subclause clicked:", subClause);
+                handleSubClauseClick(clause, subClause, index);
+              }}
               sx={styles.subClauseRow(
                 filteredSubClauses.length - 1 === index,
                 flashingRowId === subClause.id
@@ -198,6 +228,27 @@ const ISO27001Clause = ({
             </Accordion>
           </Stack>
         ))}
+      {drawerOpen && (
+        <>
+          {console.log("Rendering drawer with:", {
+            drawerOpen,
+            selectedSubClause,
+            selectedClause,
+          })}
+          <VWISO27001ClauseDrawerDialog
+            open={drawerOpen}
+            onClose={handleDrawerClose}
+            subClause={selectedSubClause}
+            clause={selectedClause}
+            projectFrameworkId={Number(FrameworkId)}
+            project_id={0}
+            onSaveSuccess={(success, message) =>
+              handleSaveSuccess(success, message, selectedSubClause?.id)
+            }
+            index={selectedIndex}
+          />
+        </>
+      )}
     </Stack>
   );
 };

@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useCallback, useContext } from "react";
+import { FC, useState, useMemo, useCallback } from "react";
 import {
   Button,
   SelectChangeEvent,
@@ -30,7 +30,7 @@ import {
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
 import allowedRoles from "../../../application/constants/permissions";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
 
 const initialState: CreateProjectFormValues = {
@@ -63,7 +63,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   onNewProject,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const [values, setValues] = useState<CreateProjectFormValues>(initialState);
   const [errors, setErrors] = useState<CreateProjectFormErrors>({});
   const { users } = useUsers();

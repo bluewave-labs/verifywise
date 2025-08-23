@@ -3,4 +3,5 @@ export interface IISO27001ClauseStruct {
   arrangement: number;
   title: string;
   framework_id: number;
+  organization_id: number;
 }

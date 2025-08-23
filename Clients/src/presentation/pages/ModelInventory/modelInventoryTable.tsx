@@ -409,18 +409,4 @@ const demoData = [
   { id: "9", model: "Tii Falcon", version: "40B", approver: "Laura White", capabilities: ["Text", "Code"], security_assessment: true, status: "Approved", status_date: "2024-04-22" },
 ];
 
-// If you want to always show the demo data, use this:
-//const [data, setData] = useState(demoData);
-
-// Or, if you want to use demo data only if no real data is loaded:
-const tableData = demoData && data.length > 0 ? data : demoData;
-
-// Then in your table rendering:
-<InventoryTable
-  data={tableData}
-  isLoading={isLoading}
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-/>
-
 export default InventoryTable;

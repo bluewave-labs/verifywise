@@ -92,6 +92,9 @@ The VerifyWise application has two components: a frontend built with React.js an
 Prerequisites: 
 - npm and Docker
 - A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
+- Available ports: 5173 (frontend), 8080 (backend), 5432 (database)
+
+#### Step 1: Clone and install dependencies
 
 First, clone the repository to your local machine and go to verifywise directory. Then, navigate to the Clients directory and install the dependencies:
 
@@ -99,14 +102,8 @@ First, clone the repository to your local machine and go to verifywise directory
 git clone https://github.com/bluewave-labs/verifywise.git
 cd verifywise
 cd Clients
-npm i
-```
-
-Navigate back to the `/Servers` directory under root to install the dependencies:
-
-```
-cd ..
-cd Servers
+npm install
+cd ../Servers
 npm install
 ```
 
@@ -152,6 +149,8 @@ npm run dev
 ```
 
 **Note:** Make sure to replace {env variable password} with the actual password from your environment variables.
+
+**Note:** Since no users exist by default, you'll see the admin registration page first. Register your admin account here. After registration, you'll be redirected to login, and will be able to use your new credentials.
 
 ### Installation using Docker (production)
 
@@ -207,6 +206,9 @@ If you want to re-run install.sh for some reason (e.g want to change a configura
 docker-compose --env-file .env.prod down
 ./install.sh
 ```
+
+**Note:** Since no users exist by default, you'll see the admin registration page first. Register your admin account here. After registration, you'll be redirected to login, and will be able to use your new credentials.
+
 
 ### Installing SSL
 

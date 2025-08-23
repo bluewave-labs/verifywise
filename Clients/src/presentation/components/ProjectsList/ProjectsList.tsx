@@ -74,10 +74,13 @@ const ProjectList = ({ projects }: ProjectListProps) => {
   };
 
   return (
-    <Box sx={{ width: "100%", mt: 3 }}>
+    <Box sx={{ width: "100%" }}>
       {/* Search Box */}
       <Box sx={searchBoxStyle(isSearchBarVisible)}>
         <IconButton
+        disableRipple
+        disableFocusRipple
+        sx={{ "&:hover": { backgroundColor: "transparent" } }}
           aria-label="Toggle project search"
           aria-expanded={isSearchBarVisible}
           onClick={() => setIsSearchBarVisible((prev) => !prev)}

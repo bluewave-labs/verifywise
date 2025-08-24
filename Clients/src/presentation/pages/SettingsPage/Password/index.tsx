@@ -28,7 +28,7 @@ const PasswordForm: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {try {
       const response = await getUserById({ userId: id });
-      setPwdSet(response.pwd_set || true);
+      setPwdSet(response.data.pwd_set ?? true);
     } catch (error) {
       console.log(error);
     }}

@@ -35,6 +35,8 @@ import { getTenantHash } from "../tools/getTenantHash";
 import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { OAuth2Client } from "google-auth-library";
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');
@@ -45,16 +47,16 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
       req.organizationId!
     )) as UserModel[];
 
-    if (users && users.length > 0) {   
+    if (users && users.length > 0) {
       return res
         .status(200)
         .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
-    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts'); 
+    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts');
     return res.status(204).json(STATUS_CODE[204](users));
   } catch (error) {
-    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');  
+    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');
     logger.error('❌ Error in getAllUsers:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -71,14 +73,14 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');   
+      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     logger.error('❌ Error in getUserByEmail:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -93,14 +95,14 @@ async function getUserById(req: Request, res: Response) {
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
-      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');      
+      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     logger.error('❌ Error in getUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -130,9 +132,9 @@ async function createNewUserWrapper(
     name,
     surname,
     email,
-    password,
     roleId,
-    organizationId
+    organizationId,
+    password
   );
 
   // Validate user data before saving
@@ -170,7 +172,7 @@ async function createNewUser(req: Request, res: Response) {
     }
 
     // const user = await createNewUserWrapper(req.body, transaction);
-    const userModel = await UserModel.createNewUser(name, surname, email, password, roleId, organizationId);
+    const userModel = await UserModel.createNewUser(name, surname, email, roleId, organizationId, password);
     await userModel.validateUserData();
 
     const isEmailUnique = await UserModel.validateEmailUniqueness(email);
@@ -220,6 +222,88 @@ async function createNewUser(req: Request, res: Response) {
   }
 }
 
+async function createNewUserWithGoogle(req: Request, res: Response) {
+  const transaction = await sequelize.transaction();
+  const { token, userData: { roleId, organizationId } } = req.body;
+
+  // logStructured('processing', `starting user creation for ${email}`, 'createNewUserWithGoogle', 'user.ctrl.ts');
+  // logger.debug(`🛠️ Creating user: ${email}`);
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      logger.error(`❌ Google login failed`);
+      return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
+    }
+
+    const { email, given_name, family_name, sub } = payload;
+
+    const existingUser = await getUserByEmailQuery(email!);
+    if (existingUser) {
+      logStructured('error', `user already exists: ${email}`, 'createNewUserWithGoogle', 'user.ctrl.ts');
+      await logEvent('Error', `Attempted to create duplicate user: ${email}`);
+      await transaction.rollback();
+      return res
+        .status(409)
+        .json(STATUS_CODE[409]('User with this email already exists'));
+    }
+
+    // const user = await createNewUserWrapper(req.body, transaction);
+    const userModel = await UserModel.createNewUser(given_name!, family_name!, email!, roleId, organizationId, null, sub);
+    await userModel.validateUserData();
+
+    const isEmailUnique = await UserModel.validateEmailUniqueness(email!);
+    if (!isEmailUnique) {
+      logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Email not unique during creation: ${email}`);
+      await transaction.rollback();
+      return res.status(409).json(STATUS_CODE[409]('Email already exists'));
+    }
+
+    const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
+
+    if (user) {
+      await transaction.commit();
+      logStructured('successful', `user created: ${email}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Create', `User created: ${email}`);
+      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+    }
+
+    logStructured('error', `failed to create user: ${email}`, 'createNewUser', 'user.ctrl.ts');
+    await logEvent('Error', `User creation failed: ${email}`);
+    await transaction.rollback();
+    return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof ConflictException) {
+      return res.status(409).json(STATUS_CODE[409](error.message));
+    }
+
+    if (error instanceof ValidationException) {
+      logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Validation error during user creation: ${error.message}`);
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      logStructured('error', `business logic error: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
+      await logEvent('Error', `Business logic error during user creation: ${error.message}`);
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
+    logStructured('error', `unexpected error`, 'createNewUser', 'user.ctrl.ts');
+    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`);
+    logger.error('❌ Error in createNewUser:', error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
 async function loginUser(req: Request, res: Response): Promise<any> {
   const { email, password } = req.body;
 
@@ -242,7 +326,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       try {
         passwordIsMatched = await user.comparePassword(password);
       } catch (modelError) {
-        passwordIsMatched = await bcrypt.compare(password, userData.password_hash);
+        passwordIsMatched = await bcrypt.compare(password, userData.password_hash!);
       }
 
       if (passwordIsMatched) {
@@ -273,7 +357,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         });
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
-       
+
 
         return res.status(202).json(
           STATUS_CODE[202]({
@@ -281,16 +365,96 @@ async function loginUser(req: Request, res: Response): Promise<any> {
           })
         );
       } else {
-        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');      
+        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
         return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
       }
     }
 
-    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');  
+    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
-    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');   
+    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
     logger.error('❌ Error in loginUser:', error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function loginUserWithGoogle(req: Request, res: Response): Promise<any> {
+  const { token } = req.body;
+
+  logStructured('processing', `attempting Google login`, 'loginWithGoogle', 'user.ctrl.ts');
+  logger.debug(`🔐 Google login attempt`);
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      logger.error(`❌ Google login failed`);
+      return res.status(401).json(STATUS_CODE[401]('Invalid Google token'));
+    }
+
+    const { email } = payload;
+
+    const userData = await getUserByEmailQuery(email!);
+
+    if (userData) {
+      let user: UserModel;
+      if (userData instanceof UserModel) {
+        user = userData;
+      } else {
+        user = new UserModel();
+        Object.assign(user, userData);
+      }
+      user.updateLastLogin();
+
+      if (!userData.google_id) {
+        await updateUserByIdQuery(userData.id!, {
+          google_id: payload.sub
+        })
+      }
+
+      const token = generateToken({
+        id: user.id,
+        email: email,
+        roleName: (userData as any).role_name,
+        tenantId: getTenantHash((userData as any).organization_id.toString()),
+        organizationId: (userData as any).organization_id,
+      });
+
+      const refreshToken = generateRefreshToken({
+        id: user.id,
+        email: email,
+        roleName: (userData as any).role_name,
+        tenantId: getTenantHash((userData as any).organization_id.toString()),
+        organizationId: (userData as any).organization_id,
+      });
+
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        path: '/api/users',
+        expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      });
+
+      logStructured('successful', `login successful for ${email}`, 'loginWithGoogle', 'user.ctrl.ts');
+
+      return res.status(202).json(
+        STATUS_CODE[202]({
+          token,
+        })
+      );
+    }
+
+    logStructured('error', `user not found: ${email}`, 'loginWithGoogle', 'user.ctrl.ts');
+    return res.status(404).json(STATUS_CODE[404]({}));
+  } catch (error) {
+    logStructured('error', `unexpected error during login`, 'loginWithGoogle', 'user.ctrl.ts');
+    logger.error('❌ Error in loginWithGoogle:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -303,19 +467,19 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');     
+      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');
       return res.status(400).json(STATUS_CODE[400]('Refresh token is required'));
     }
 
     const decoded = getRefreshTokenPayload(refreshToken);
 
     if (!decoded) {
-      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');    
+      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');
       return res.status(401).json(STATUS_CODE[401]('Invalid refresh token'));
     }
 
     if (decoded.expire < Date.now()) {
-      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');     
+      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');
       return res.status(406).json(STATUS_CODE[406]({ message: 'Token expired' }));
     }
 
@@ -327,7 +491,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       organizationId: decoded.organizationId,
     });
 
-    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');   
+    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');
 
     return res.status(200).json(
       STATUS_CODE[200]({
@@ -335,7 +499,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       })
     );
   } catch (error) {
-    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');  
+    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');
     logger.error('❌ Error in refreshAccessToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -352,14 +516,14 @@ async function resetPassword(req: Request, res: Response) {
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
-    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, _user.organization_id!);
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.role_id, _user.organization_id!, _user.password_hash);
 
     if (user) {
       await user.updatePassword(newPassword);
 
       const updatedUser = (await resetPasswordQuery(
         email,
-        user.password_hash,
+        user.password_hash!,
         transaction
       )) as UserModel;
 
@@ -592,7 +756,7 @@ async function calculateProgress(
       });
     }
 
-    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
 
     return res.status(200).json({
       assessmentsMetadata,
@@ -603,7 +767,7 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
     logger.error('❌ Error in calculateProgress:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
@@ -626,11 +790,14 @@ async function ChangePassword(req: Request, res: Response) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    await user.updatePassword(newPassword, currentPassword);
+    await user.updatePassword(
+      newPassword,
+      (user.google_id && !user.password_hash) ? null : currentPassword
+    );
 
     const updatedUser = (await resetPasswordQuery(
       user.email,
-      user.password_hash,
+      user.password_hash!,
       transaction
     )) as UserModel;
 
@@ -734,7 +901,9 @@ export {
   getUserById,
   createNewUserWrapper,
   createNewUser,
+  createNewUserWithGoogle,
   loginUser,
+  loginUserWithGoogle,
   resetPassword,
   updateUserById,
   deleteUserById,

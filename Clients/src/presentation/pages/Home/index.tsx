@@ -152,6 +152,12 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     }
   }, []);
 
+  // Later in the component's render/return block:
+  <CustomizableButton
+    text="Create Demo Data"
+    isDisabled={isCreatingDemoData}
+    onClick={handleOpenOrCloseDemoDataModal}
+  />;
 
   const newProjectChecker = useCallback(
     (data: { isNewProject: boolean; project: any }) => {
@@ -426,16 +432,6 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             </Suspense>
           </Stack>
         </>
-      ) : isLoading || !projects ? (
-        <CustomizableSkeleton
-          variant="rectangular"
-          minWidth="200"
-          width={"100%"}
-          height={"100%"}
-          maxWidth="1400"
-          minHeight="200"
-          maxHeight="100vh"
-        />
       ) : (
         NoProjectsMessage
       )}

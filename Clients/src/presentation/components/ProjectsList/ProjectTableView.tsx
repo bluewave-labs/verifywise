@@ -48,13 +48,25 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
   const getRiskColor = (risk: string) => {
     switch (risk) {
       case "high risk":
-        return { backgroundColor: "#FEF3F2", color: "#B42318" };
+        return { 
+          backgroundColor: theme.palette.status.error.bg, 
+          color: theme.palette.status.error.text 
+        };
       case "limited risk":
-        return { backgroundColor: "#FFFBEB", color: "#B54708" };
+        return { 
+          backgroundColor: theme.palette.status.warning.bg, 
+          color: theme.palette.status.warning.text 
+        };
       case "minimal risk":
-        return { backgroundColor: "#ECFDF3", color: "#027A48" };
+        return { 
+          backgroundColor: theme.palette.status.success.bg, 
+          color: theme.palette.status.success.text 
+        };
       default:
-        return { backgroundColor: "#F2F4F7", color: "#475467" };
+        return { 
+          backgroundColor: theme.palette.unresolved.bg, 
+          color: theme.palette.text.tertiary 
+        };
     }
   };
 
@@ -144,11 +156,25 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
             <TableRow
               key={project.id}
               onClick={() => handleRowClick(project.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  if (event.key === ' ') {
+                    event.preventDefault();
+                  }
+                  handleRowClick(project.id);
+                }
+              }}
+              tabIndex={0}
+              role="button"
               sx={{
                 ...singleTheme.tableStyles.primary.body.row,
                 cursor: "pointer",
                 "&:last-child td, &:last-child th": {
                   border: 0,
+                },
+                "&:focus": {
+                  outline: `2px solid ${theme.palette.primary.main}`,
+                  outlineOffset: -2,
                 },
               }}
             >

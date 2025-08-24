@@ -1,5 +1,6 @@
 import React from "react";
-import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { ToggleButton, ToggleButtonGroup, useTheme } from "@mui/material";
+import { SxProps, Theme } from "@mui/material/styles";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 
@@ -25,7 +26,7 @@ interface ViewToggleProps {
   /**
    * Additional styling
    */
-  sx?: object;
+  sx?: SxProps<Theme>;
 }
 
 /**
@@ -46,8 +47,9 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
   onViewChange,
   disabled = false,
   size = "small",
-  sx = {},
+  sx,
 }) => {
+  const theme = useTheme();
   const handleViewChange = (
     _event: React.MouseEvent<HTMLElement>,
     newView: ViewMode | null
@@ -64,28 +66,30 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
       onChange={handleViewChange}
       size={size}
       disabled={disabled}
-      sx={{
-        "& .MuiToggleButton-root": {
-          border: "1px solid #D0D5DD",
-          color: "#475467",
-          padding: "6px 12px",
-          "&.Mui-selected": {
-            backgroundColor: "#13715B",
-            color: "#FFFFFF",
-            "&:hover": {
+      sx={[
+        {
+          "& .MuiToggleButton-root": {
+            border: `1px solid ${theme.palette.border.dark}`,
+            color: theme.palette.text.tertiary,
+            padding: "6px 12px",
+            "&.Mui-selected": {
               backgroundColor: "#13715B",
+              color: theme.palette.background.main,
+              "&:hover": {
+                backgroundColor: "#13715B",
+              },
+            },
+            "&:hover": {
+              backgroundColor: theme.palette.background.accent,
+            },
+            "&.Mui-disabled": {
+              color: theme.palette.border.dark,
+              backgroundColor: theme.palette.background.accent,
             },
           },
-          "&:hover": {
-            backgroundColor: "#F9FAFB",
-          },
-          "&.Mui-disabled": {
-            color: "#D0D5DD",
-            backgroundColor: "#F9FAFB",
-          },
         },
-        ...sx,
-      }}
+        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+      ]}
     >
       <ToggleButton value="card" aria-label="card view" disableRipple>
         <ViewModuleIcon sx={{ fontSize: "16px" }} />

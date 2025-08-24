@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
 import {
-  Box,
   Table,
   TableBody,
   TableCell,
@@ -59,7 +58,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
     }
   };
 
-  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+  const handleChangePage = useCallback((_event: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
 
@@ -89,7 +88,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
     return (
       <TableContainer>
         <Table sx={singleTheme.tableStyles.primary.frame}>
-          <TableHead sx={singleTheme.tableStyles.primary.header.backgroundColors}>
+          <TableHead sx={{...singleTheme.tableStyles.primary.header.backgroundColors}}>
             <TableRow sx={singleTheme.tableStyles.primary.header.row}>
               {columns.map((column) => (
                 <TableCell
@@ -127,7 +126,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
   return (
     <TableContainer>
       <Table sx={singleTheme.tableStyles.primary.frame}>
-        <TableHead sx={singleTheme.tableStyles.primary.header.backgroundColors}>
+        <TableHead sx={{...singleTheme.tableStyles.primary.header.backgroundColors}}>
           <TableRow sx={singleTheme.tableStyles.primary.header.row}>
             {columns.map((column) => (
               <TableCell

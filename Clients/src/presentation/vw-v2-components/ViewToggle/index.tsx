@@ -49,7 +49,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
   sx = {},
 }) => {
   const handleViewChange = (
-    event: React.MouseEvent<HTMLElement>,
+    _event: React.MouseEvent<HTMLElement>,
     newView: ViewMode | null
   ) => {
     if (newView !== null) {

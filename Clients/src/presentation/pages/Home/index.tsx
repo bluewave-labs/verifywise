@@ -152,12 +152,6 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     }
   }, []);
 
-  // Later in the component's render/return block:
-  <CustomizableButton
-    text="Create Demo Data"
-    isDisabled={isCreatingDemoData}
-    onClick={handleOpenOrCloseDemoDataModal}
-  />;
 
   const newProjectChecker = useCallback(
     (data: { isNewProject: boolean; project: any }) => {

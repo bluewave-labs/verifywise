@@ -8,7 +8,10 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ProjectCard from "../Cards/ProjectCard";
+import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
+import ViewToggle from "../../vw-v2-components/ViewToggle";
+import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
 
 import { Project } from "../../../domain/types/Project";
 import {
@@ -26,6 +29,7 @@ interface ProjectListProps {
 const ProjectList = ({ projects }: ProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [viewMode, setViewMode] = usePersistedViewMode("projects-view-mode", "card");
 
   // Filter projects with memoization
   const filteredProjects = useMemo(() => {
@@ -37,17 +41,25 @@ const ProjectList = ({ projects }: ProjectListProps) => {
   // Extracted render logic
   const renderProjects = () => {
     if (!projects || projects.length === 0) {
-      return (
+      return viewMode === "table" ? (
+        <ProjectTableView projects={[]} />
+      ) : (
         <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />
       );
     }
 
     if (filteredProjects.length === 0) {
-      return (
+      return viewMode === "table" ? (
+        <ProjectTableView projects={[]} />
+      ) : (
         <Typography variant="body1" sx={noProjectsTextStyle}>
           No projects found. Try another search term or create a new project.
         </Typography>
       );
+    }
+
+    if (viewMode === "table") {
+      return <ProjectTableView projects={filteredProjects} />;
     }
 
     if (filteredProjects.length <= 3) {
@@ -75,27 +87,43 @@ const ProjectList = ({ projects }: ProjectListProps) => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Search Box */}
-      <Box sx={searchBoxStyle(isSearchBarVisible)}>
-        <IconButton
-        disableRipple
-        disableFocusRipple
-        sx={{ "&:hover": { backgroundColor: "transparent" } }}
-          aria-label="Toggle project search"
-          aria-expanded={isSearchBarVisible}
-          onClick={() => setIsSearchBarVisible((prev) => !prev)}
-        >
-          <SearchIcon />
-        </IconButton>
+      {/* Controls Row */}
+      <Box sx={{ 
+        display: "flex", 
+        justifyContent: "space-between", 
+        alignItems: "center",
+        mb: 2 
+      }}>
+        {/* Search Box */}
+        <Box sx={searchBoxStyle(isSearchBarVisible)}>
+          <IconButton
+          disableRipple
+          disableFocusRipple
+          sx={{ "&:hover": { backgroundColor: "transparent" } }}
+            aria-label="Toggle project search"
+            aria-expanded={isSearchBarVisible}
+            onClick={() => setIsSearchBarVisible((prev) => !prev)}
+          >
+            <SearchIcon />
+          </IconButton>
 
-        {isSearchBarVisible && (
-          <InputBase
-            autoFocus
-            placeholder="Search projects..."
-            inputProps={{ "aria-label": "Search projects" }}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={inputStyle(isSearchBarVisible)}
+          {isSearchBarVisible && (
+            <InputBase
+              autoFocus
+              placeholder="Search projects..."
+              inputProps={{ "aria-label": "Search projects" }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={inputStyle(isSearchBarVisible)}
+            />
+          )}
+        </Box>
+
+        {/* View Toggle */}
+        {projects && projects.length > 0 && (
+          <ViewToggle
+            viewMode={viewMode}
+            onViewChange={setViewMode}
           />
         )}
       </Box>

@@ -323,7 +323,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
         </Suspense>
       )}
 
-      {!isLoading && projects && projects.length > 0 ? (
+      {projects && projects.length > 0 ? (
         <>
           {(["compliance"] as const).map(
             (
@@ -432,7 +432,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             </Suspense>
           </Stack>
         </>
-      ) : isLoading ? (
+      ) : isLoading || !projects ? (
         <CustomizableSkeleton
           variant="rectangular"
           minWidth="200"

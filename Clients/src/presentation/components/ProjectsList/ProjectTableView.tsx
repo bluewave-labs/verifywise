@@ -100,7 +100,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
     return (
       <TableContainer>
         <Table sx={singleTheme.tableStyles.primary.frame}>
-          <TableHead sx={{...singleTheme.tableStyles.primary.header.backgroundColors}}>
+          <TableHead sx={{ backgroundColor: singleTheme.tableStyles.primary.header.backgroundColors }}>
             <TableRow sx={singleTheme.tableStyles.primary.header.row}>
               {columns.map((column) => (
                 <TableCell

@@ -301,7 +301,7 @@ const VWISO27001ClauseDrawerDialog = ({
   };
 
   const displayData = fetchedSubClause || subClause;
-
+  console.log("displayData ---->>>", displayData);
   if (isLoading) {
     return (
       <Drawer

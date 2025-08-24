@@ -123,7 +123,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     setOpenDemoDataModal((prev) => !prev);
   }, []);
 
-  const [isCreatingDemoData, setIsCreatingDemoData] = useState(false);
+  const [_isCreatingDemoData, setIsCreatingDemoData] = useState(false);
 
   const createDemoData = useCallback(async () => {
     setIsCreatingDemoData(true);

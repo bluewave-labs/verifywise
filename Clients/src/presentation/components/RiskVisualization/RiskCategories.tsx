@@ -66,22 +66,16 @@ const RiskCategories: React.FC<RiskCategoriesProps> = ({
     return "#B8D39C"; // Very Low - Very Light Green
   };
 
-  const getRiskLevelFromString = (level: string): number => {
-    switch (level?.toLowerCase()) {
-      case 'very high risk':
-        return 20;
-      case 'high risk':
-        return 15;
-      case 'medium risk':
-        return 10;
-      case 'low risk':
-        return 5;
-      case 'very low risk':
-      case 'no risk':
-        return 1;
-      default:
-        return 0;
-    }
+  const getRiskLevelFromString = (level: string | number): number => {
+    if (typeof level === "number") return level;
+    const levelStr = level.trim().toLowerCase();
+    if (levelStr.includes("very high") || levelStr === "5") return 5;
+    if (levelStr.includes("high") || levelStr === "4") return 4;
+    if (levelStr.includes("medium") || levelStr === "3") return 3;
+    if (levelStr.includes("very low") || levelStr === "1") return 1;
+    if (levelStr.includes("low") || levelStr === "2") return 2;
+    const n = parseInt(levelStr, 10);
+    return Number.isFinite(n) ? n : 0;
   };
 
   // Helper function to get user name by ID

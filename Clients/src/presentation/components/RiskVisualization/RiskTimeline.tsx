@@ -28,23 +28,16 @@ const RiskTimeline: React.FC<RiskTimelineProps> = ({
   onRiskSelect,
 }) => {
 
-  const getRiskLevelFromString = (level: string): number => {
-    if (!level) return 0;
-    switch (level.toLowerCase()) {
-      case 'very high risk':
-        return 20;
-      case 'high risk':
-        return 15;
-      case 'medium risk':
-        return 10;
-      case 'low risk':
-        return 5;
-      case 'very low risk':
-      case 'no risk':
-        return 1;
-      default:
-        return 0;
-    }
+  const getRiskLevelFromString = (level: string | number): number => {
+    if (typeof level === "number") return level;
+    const levelStr = level.trim().toLowerCase();
+    if (levelStr.includes("very high") || levelStr === "5") return 5;
+    if (levelStr.includes("high") || levelStr === "4") return 4;
+    if (levelStr.includes("medium") || levelStr === "3") return 3;
+    if (levelStr.includes("very low") || levelStr === "1") return 1;
+    if (levelStr.includes("low") || levelStr === "2") return 2;
+    const n = parseInt(levelStr, 10);
+    return Number.isFinite(n) ? n : 0;
   };
 
   const getRiskLevelColor = (riskLevel: number): string => {

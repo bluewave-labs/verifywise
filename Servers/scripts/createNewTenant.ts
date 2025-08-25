@@ -625,17 +625,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       );`, { transaction });
 
     // Create task ENUM types if they don't exist
-    await sequelize.query(`DO $$ BEGIN
-      CREATE TYPE enum_tasks_priority AS ENUM ('Low', 'Medium', 'High');
-    EXCEPTION
-      WHEN duplicate_object THEN null;
-    END $$;`, { transaction });
+    await sequelize.query(`CREATE TYPE IF NOT EXISTS enum_tasks_priority AS ENUM ('Low', 'Medium', 'High');`, { transaction });
     
-    await sequelize.query(`DO $$ BEGIN
-      CREATE TYPE enum_tasks_status AS ENUM ('Open', 'In Progress', 'Completed', 'Overdue', 'Deleted');
-    EXCEPTION
-      WHEN duplicate_object THEN null;
-    END $$;`, { transaction });
+    await sequelize.query(`CREATE TYPE IF NOT EXISTS enum_tasks_status AS ENUM ('Open', 'In Progress', 'Completed', 'Overdue', 'Deleted');`, { transaction });
 
     // Create tasks table
     await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".tasks

@@ -1,21 +1,17 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box } from "@mui/material";
+import { Stack, Typography, Modal, Box} from "@mui/material";
 import {
   vwhomeBody,
   vwhomeBodyControls,
-  vwhomeBodyProjects,
-  vwhomeBodyProjectsGrid,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
-import ProjectCard from "../../../components/Cards/ProjectCard";
 
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import NoProject from "../../../components/NoProject/NoProject";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
@@ -30,6 +26,8 @@ import dashboardHelpContent from "../../../../presentation/helpers/dashboard-hel
 import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
+import ProjectList from "../../../components/ProjectsList/ProjectsList";
+
 
 const Home = () => {
   const {
@@ -49,6 +47,7 @@ const Home = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
+
 
   useEffect(() => {
     if (dashboard) {
@@ -217,74 +216,37 @@ const Home = () => {
             <HeaderCard title="Reports" count={dashboard?.reports || 0} />
           </Box>
         </Stack>
-        {/* <Stack sx={vwhomeBody}>
-          <Box
-            sx={{
-              width: "50%",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "20px",
-            }}
+
+
+         {/* TODO: Add TaskRadar visualization when backend data is ready */}
+
+
+            
+
+         <ProjectList projects={projects} />
+
+
+          </Stack>
+          
+          <Modal
+              open={isProjectFormModalOpen}
+              onClose={handleProjectFormModalClose}
+              aria-labelledby="modal-title"
+              aria-describedby="modal-description"
           >
-            <TaskRadar overdue={dashboard?.task_radar.overdue || 0} due={dashboard?.task_radar.due || 0} upcoming={dashboard?.task_radar.upcoming || 0} />
-          </Box>
-        </Stack> */}
-        <Stack className="vwhome-body-projects" sx={vwhomeBodyProjects}>
-          {projects?.length === 0 || !projects ? (
-            <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />
-          ) : projects?.length <= 3 ? (
-            <>
-              <Box
-                sx={{
-                  width: projects.length === 1 ? "50%" : "100%",
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: projects.length < 4 ? "" : "wrap",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "20px",
-                }}
-              >
-                {projects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
-                ))}
+              <Box sx={vwhomeCreateModalFrame}>
+                  <ProjectForm onClose={handleProjectFormModalClose} />
               </Box>
-            </>
-          ) : (
-            <>
-              <Box sx={vwhomeBodyProjectsGrid}>
-                {projects &&
-                  projects.map((project) => (
-                    <Box key={project.id} sx={{ gridColumn: "span 1" }}>
-                      <ProjectCard key={project.id} project={project} />
-                    </Box>
-                  ))}
-              </Box>
-            </>
-          )}
-        </Stack>
+          </Modal>
+          <PageTour
+              steps={HomeSteps}
+              run={runHomeTour}
+              onFinish={() => {
+                  setRunHomeTour(false);
+              }}
+              tourKey="home-tour"
+          />
       </Stack>
-      <Modal
-        open={isProjectFormModalOpen}
-        onClose={handleProjectFormModalClose}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box sx={vwhomeCreateModalFrame}>
-          <ProjectForm onClose={handleProjectFormModalClose} />
-        </Box>
-      </Modal>
-      <PageTour
-        steps={HomeSteps}
-        run={runHomeTour}
-        onFinish={() => {
-          setRunHomeTour(false);
-        }}
-        tourKey="home-tour"
-      />
-    </Stack>
   );
 };
 

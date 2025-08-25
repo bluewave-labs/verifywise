@@ -4,47 +4,59 @@ import {
   InputLabel,
   Select as MuiSelect,
   MenuItem,
-  SelectChangeEvent,
 } from "@mui/material";
-
-interface SelectItem {
-  _id: string;
-  name: string;
-}
-
-interface SelectProps {
-  id: string;
-  label: string;
-  value: string;
-  items: SelectItem[];
-  onChange: (event: SelectChangeEvent) => void;
-  sx?: any;
-}
+import { SelectProps } from "../../../../domain/interfaces/iWidget";
 
 const Select: React.FC<SelectProps> = ({
   id,
   label,
+  placeholder,
   value,
   items,
   onChange,
   sx = {},
+  disabled = false,
+  error,
+  isRequired = false,
+  isHidden = false,
 }) => {
+  if (isHidden) return null;
+
   return (
-    <FormControl size="small" sx={{ minWidth: 140, ...sx }}>
-      <InputLabel id={`${id}-label`}>{label}</InputLabel>
+    <FormControl 
+      size="small" 
+      sx={{ minWidth: 140, ...sx }}
+      error={!!error}
+      required={isRequired}
+    >
+      <InputLabel id={`${id}-label`}>
+        {label}{isRequired && ' *'}
+      </InputLabel>
       <MuiSelect
         labelId={`${id}-label`}
         id={id}
         value={value}
         label={label}
         onChange={onChange}
+        disabled={disabled}
+        displayEmpty={!!placeholder}
       >
+        {placeholder && (
+          <MenuItem value="" disabled>
+            {placeholder}
+          </MenuItem>
+        )}
         {items.map((item) => (
           <MenuItem key={item._id} value={item._id}>
             {item.name}
           </MenuItem>
         ))}
       </MuiSelect>
+      {error && (
+        <div style={{ color: '#d32f2f', fontSize: '0.75rem', marginTop: '4px' }}>
+          {error}
+        </div>
+      )}
     </FormControl>
   );
 };

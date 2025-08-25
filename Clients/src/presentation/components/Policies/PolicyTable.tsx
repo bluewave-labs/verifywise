@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useContext } from "react";
+import React, { useState, useCallback } from "react";
 import { Policy } from "../../../domain/types/Policy";
 import CustomizablePolicyTable from "../Table/PolicyTable";
 import IconButton from "@mui/material/IconButton";
@@ -6,7 +6,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { TableRow, TableCell, Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography } from "@mui/material";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg" 
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import useUsers from "../../../application/hooks/useUsers";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 
 interface Props {
@@ -42,6 +42,8 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const { users } = useUsers();
+  
   // Helper function to get user name by ID
   const getUserNameById = (id: string | null | undefined | number) => {
     const user = users.find((u) => u.id === id);
@@ -55,9 +57,6 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
     setAnchorEl(event.currentTarget);
     setSelectedPolicy(policy);
   };
-
-    const { users } =
-    useContext(VerifyWiseContext);
 
   const handleMenuClose = () => {
     setAnchorEl(null);

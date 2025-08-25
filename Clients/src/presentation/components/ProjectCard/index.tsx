@@ -1,10 +1,9 @@
 import { Typography, Box, useTheme } from "@mui/material";
-import { FC, memo, useContext } from "react";
+import { FC, memo} from "react";
 import euimg from "../../assets/imgs/eu-ai-act.jpg";
 import ProgressBar from "./ProgressBar";
 import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import getProjectData from "../../../application/tools/getProjectData";
 import {
   Assessments,
@@ -12,6 +11,7 @@ import {
 } from "../../../application/hooks/useProjectStatus";
 import { formatDate } from "../../tools/isoDateToString";
 import { User } from "../../../domain/types/User";
+import useUsers from "../../../application/hooks/useUsers";
 
 export interface ProjectCardProps {
   id: number;
@@ -46,7 +46,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
 }) => {
   const theme = useTheme();
   const navigate = useNavigateSearch();
-  const { users } = useContext(VerifyWiseContext);
+  const { users } = useUsers();
   const ownerUser: User = users.find((user: User) => user.id.toString() === owner) ?? ({} as User);
 
   const {

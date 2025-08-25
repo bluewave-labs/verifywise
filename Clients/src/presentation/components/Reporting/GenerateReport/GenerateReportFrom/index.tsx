@@ -3,7 +3,6 @@ import React, {
   lazy,
   Suspense,
   useCallback,
-  useContext,
   useMemo,
 } from "react";
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
@@ -13,7 +12,7 @@ import { styles, fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const RadioGroup = lazy(() => import("../../../RadioGroup"));
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
-import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
+import { useProjects } from "../../../../../application/hooks/useProjects";
 
 /**
  * Set form values
@@ -62,8 +61,8 @@ interface ReportProps {
 }
 
 const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0].id});
+  const { projects } = useProjects();
+  const [values, setValues] = useState<FormValues>({...initialState, project: projects[0]?.id || 1});
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
 
@@ -85,16 +84,20 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   );
 
   const projectFrameworks = useMemo<FrameworkValues[]>(() => {
-    const selectedProject = dashboardValues.projects.find(
+    const selectedProject = projects.find(
       (project: { id: string | number }) => project.id === values.project
     );
 
     const frameworks = selectedProject?.framework;
 
     return Array.isArray(frameworks) && frameworks.length > 0
-      ? frameworks
+      ? frameworks.map((framework: any) => ({
+          project_framework_id: framework.project_framework_id || framework.id,
+          framework_id: framework.framework_id || framework.id,
+          name: framework.name || framework.framework_name || "Unknown Framework"
+        }))
       : [initialFrameworkValue];
-  }, [dashboardValues.projects, values.project]);
+  }, [projects, values.project]);
 
   const projectFrameworkId = useMemo(() => {
     return (
@@ -127,7 +130,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
               value={values.project}
               onChange={handleOnSelectChange("project")}
               items={
-                dashboardValues.projects?.map(
+                projects?.map(
                   (project: { id: any; project_title: any }) => ({
                     _id: project.id,
                     name: project.project_title,

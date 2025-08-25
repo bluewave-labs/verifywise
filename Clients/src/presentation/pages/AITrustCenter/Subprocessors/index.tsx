@@ -10,10 +10,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import { useTheme } from '@mui/material/styles';
 import Alert from '../../../components/Alert';
-import { useAITrustCentreOverview } from '../../../../application/hooks/useAITrustCentreOverview';
-import { useAITrustCentreSubprocessors } from '../../../../application/hooks/useAITrustCentreSubprocessors';
+import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from '../../../../application/hooks/useAITrustCentreOverviewQuery';
+import { 
+  useAITrustCentreSubprocessorsQuery,
+  useCreateAITrustCentreSubprocessorMutation,
+  useUpdateAITrustCentreSubprocessorMutation,
+  useDeleteAITrustCentreSubprocessorMutation
+} from '../../../../application/hooks/useAITrustCentreSubprocessorsQuery';
 import { handleAlert } from '../../../../application/tools/alertUtils';
-import { AITrustCentreOverviewData } from '../../../../application/hooks/useAITrustCentreOverview';
+import { AITrustCentreOverviewData } from '../../../../application/hooks/useAITrustCentreOverviewQuery';
 
 import {
   TABLE_COLUMNS,
@@ -92,8 +97,12 @@ const ModalField: React.FC<{
 );
 
 const AITrustCenterSubprocessors: React.FC = () => {
-  const { loading: overviewLoading, error: overviewError, updateOverview, fetchOverview } = useAITrustCentreOverview();
-  const { subprocessors, loading: subprocessorsLoading, error: subprocessorsError, createSubprocessor, deleteSubprocessor, updateSubprocessor } = useAITrustCentreSubprocessors();
+  const { data: overviewData, isLoading: overviewLoading, error: overviewError } = useAITrustCentreOverviewQuery();
+  const updateOverviewMutation = useAITrustCentreOverviewMutation();
+  const { data: subprocessors, isLoading: subprocessorsLoading, error: subprocessorsError } = useAITrustCentreSubprocessorsQuery();
+  const createSubprocessorMutation = useCreateAITrustCentreSubprocessorMutation();
+  const updateSubprocessorMutation = useUpdateAITrustCentreSubprocessorMutation();
+  const deleteSubprocessorMutation = useDeleteAITrustCentreSubprocessorMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
 
@@ -116,24 +125,12 @@ const AITrustCenterSubprocessors: React.FC = () => {
   const [deleteSubprocessorError, setDeleteSubprocessorError] = useState<string | null>(null);
   const [editSubprocessorError, setEditSubprocessorError] = useState<string | null>(null);
 
-  // Load overview data on component mount
+  // Update local form data when query data changes
   React.useEffect(() => {
-    const loadData = async () => {
-      try {
-        const response = await fetchOverview();
-        const overviewData = response?.data?.overview || response?.overview || response;
-        setFormData(overviewData);
-      } catch (error) {
-        console.error('Error fetching overview data:', error);
-        handleAlert({
-          variant: "error",
-          body: "Failed to load overview data. Please refresh the page.",
-          setAlert,
-        });
-      }
-    };
-    loadData();
-  }, [fetchOverview]);
+    if (overviewData) {
+      setFormData(overviewData);
+    }
+  }, [overviewData]);
 
   // Handle field change and auto-save
   const handleFieldChange = (section: string, field: string, value: boolean | string) => {
@@ -164,7 +161,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
         }
       } as Partial<AITrustCentreOverviewData>;
       
-      await updateOverview(dataToSave);
+      await updateOverviewMutation.mutateAsync(dataToSave);
       handleAlert({
         variant: "success",
         body: "Subprocessors saved successfully",
@@ -222,7 +219,12 @@ const AITrustCenterSubprocessors: React.FC = () => {
     }
 
     try {
-      await createSubprocessor(newSubprocessor.name, newSubprocessor.purpose, newSubprocessor.location, newSubprocessor.url);
+      await createSubprocessorMutation.mutateAsync({
+        name: newSubprocessor.name,
+        purpose: newSubprocessor.purpose,
+        location: newSubprocessor.location,
+        url: newSubprocessor.url
+      });
       handleAlert({
         variant: "success",
         body: "Subprocessor added successfully",
@@ -243,7 +245,13 @@ const AITrustCenterSubprocessors: React.FC = () => {
     }
 
     try {
-      await updateSubprocessor(editId, form.name, form.purpose, form.location, form.url);
+      await updateSubprocessorMutation.mutateAsync({
+        subprocessorId: editId,
+        name: form.name,
+        purpose: form.purpose,
+        location: form.location,
+        url: form.url
+      });
       handleAlert({
         variant: "success",
         body: "Subprocessor updated successfully",
@@ -272,7 +280,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
   const handleDelete = async (subprocessorId: number) => {
     if (!formData?.info?.subprocessor_visible) return;
     try {
-      await deleteSubprocessor(subprocessorId);
+      await deleteSubprocessorMutation.mutateAsync(subprocessorId);
       handleAlert({
         variant: "success",
         body: "Subprocessor deleted successfully",

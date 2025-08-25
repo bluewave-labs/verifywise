@@ -10,8 +10,13 @@ import { useStyles } from './styles';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import IconButtonComponent from '../../../components/IconButton';
 import Field from '../../../components/Inputs/Field';
-import { useAITrustCentreOverview } from '../../../../application/hooks/useAITrustCentreOverview';
-import { useAITrustCentreResources } from '../../../../application/hooks/useAITrustCentreResources';
+import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from '../../../../application/hooks/useAITrustCentreOverviewQuery';
+import { 
+  useAITrustCentreResourcesQuery,
+  useCreateAITrustCentreResourceMutation,
+  useUpdateAITrustCentreResourceMutation,
+  useDeleteAITrustCentreResourceMutation
+} from '../../../../application/hooks/useAITrustCentreResourcesQuery';
 import { handleDownload as downloadFile } from '../../../../application/tools/fileDownload';
 import { handleAlert } from '../../../../application/tools/alertUtils';
 import { TABLE_COLUMNS, WARNING_MESSAGES } from './constants';
@@ -81,8 +86,12 @@ interface FormData {
 }
 
 const TrustCenterResources: React.FC = () => {
-  const { loading: overviewLoading, error: overviewError, updateOverview, fetchOverview } = useAITrustCentreOverview();
-  const { resources, loading: resourcesLoading, error: resourcesError, createResource, deleteResource, updateResource } = useAITrustCentreResources();
+  const { data: overviewData, isLoading: overviewLoading, error: overviewError } = useAITrustCentreOverviewQuery();
+  const updateOverviewMutation = useAITrustCentreOverviewMutation();
+  const { data: resources, isLoading: resourcesLoading, error: resourcesError } = useAITrustCentreResourcesQuery();
+  const createResourceMutation = useCreateAITrustCentreResourceMutation();
+  const updateResourceMutation = useUpdateAITrustCentreResourceMutation();
+  const deleteResourceMutation = useDeleteAITrustCentreResourceMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
 
@@ -104,24 +113,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
   const [deleteResourceError, setDeleteResourceError] = useState<string | null>(null);
   const [editResourceError, setEditResourceError] = useState<string | null>(null);
 
-  // Load overview data on component mount
+  // Update local form data when query data changes
   React.useEffect(() => {
-    const loadData = async () => {
-      try {
-        const response = await fetchOverview();
-        const overviewData = response?.data?.overview || response?.overview || response;
-        setFormData(overviewData);
-      } catch (error) {
-        console.error('Error fetching overview data:', error);
-        handleAlert({
-          variant: "error",
-          body: "Failed to load overview data. Please refresh the page.",
-          setAlert,
-        });
-      }
-    };
-    loadData();
-  }, [fetchOverview]);
+    if (overviewData) {
+      setFormData(overviewData);
+    }
+  }, [overviewData]);
 
   // Handle field change and auto-save
   const handleFieldChange = (section: string, field: string, value: boolean | string) => {
@@ -152,7 +149,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
         }
       } as Partial<AITrustCentreOverviewData>;
       
-      await updateOverview(dataToSave);
+      await updateOverviewMutation.mutateAsync(dataToSave);
       handleAlert({
         variant: "success",
         body: "Resources saved successfully",
@@ -233,7 +230,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
     }
 
     try {
-      await createResource(newResource.file, newResource.name, newResource.description, true);
+      await createResourceMutation.mutateAsync({
+        file: newResource.file,
+        name: newResource.name,
+        description: newResource.description,
+        visible: true
+      });
       handleAlert({
         variant: "success",
         body: "Resource added successfully",
@@ -258,7 +260,14 @@ const [formData, setFormData] = useState<FormData | null>(null);
       const oldFileId = editResource.file ? editResource.file_id : undefined;
       
       // Use the unified update function - it handles both cases
-      await updateResource(editResource.id, editResource.name, editResource.description, editResource.visible, editResource.file || undefined, oldFileId);
+      await updateResourceMutation.mutateAsync({
+        resourceId: editResource.id,
+        name: editResource.name,
+        description: editResource.description,
+        visible: editResource.visible,
+        file: editResource.file || undefined,
+        oldFileId: oldFileId
+      });
       
       handleAlert({
         variant: "success",
@@ -287,7 +296,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   const handleDeleteResource = async (resourceId: number) => {
     if (!formData?.info?.resources_visible) return;
     try {
-      await deleteResource(resourceId);
+      await deleteResourceMutation.mutateAsync(resourceId);
       handleAlert({
         variant: "success",
         body: "Resource deleted successfully",
@@ -303,7 +312,14 @@ const [formData, setFormData] = useState<FormData | null>(null);
     const resource = resources.find(r => r.id === resourceId);
     if (resource) {
       try {
-        await updateResource(resourceId, resource.name, resource.description, !resource.visible, undefined, undefined);
+        await updateResourceMutation.mutateAsync({
+          resourceId: resourceId,
+          name: resource.name,
+          description: resource.description,
+          visible: !resource.visible,
+          file: undefined,
+          oldFileId: undefined
+        });
         setFlashingRowId(resourceId);
         setTimeout(() => setFlashingRowId(null), 2000);
       } catch (error: any) {

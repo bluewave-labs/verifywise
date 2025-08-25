@@ -15,6 +15,8 @@
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance. 
 
+VerifyWise also has additional products - [MaskWise](https://github.com/bluewave-labs/maskwise) which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems, and [FlagWise](https://github.com/bluewave-labs/flagwise), which monitors, detects, and analyzes security threats and Shadow AI in your LLM applications.
+
 ## Quick links
 
 - The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.

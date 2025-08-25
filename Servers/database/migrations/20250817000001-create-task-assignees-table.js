@@ -60,6 +60,8 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
+    await queryInterface.removeIndex("task_assignees", "unique_task_user_assignment");
+    await queryInterface.removeIndex("task_assignees", "idx_task_assignees_user_task");
     await queryInterface.dropTable("task_assignees");
   },
 };

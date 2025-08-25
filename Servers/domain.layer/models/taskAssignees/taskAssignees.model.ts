@@ -17,6 +17,8 @@ import {
 
 @Table({
   tableName: "task_assignees",
+  timestamps: true,
+  underscored: true,
 })
 export class TaskAssigneesModel
   extends Model<TaskAssigneesModel>

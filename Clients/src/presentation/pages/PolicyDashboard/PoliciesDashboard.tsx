@@ -12,12 +12,17 @@ import {
   getAllTags,
 } from "../../../application/repository/policy.repository";
 import { Policy } from "../../../domain/types/Policy";
-
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+// import { mainStackStyle } from "../ModelInventory/style";
+import placeholderImage from "../../assets/imgs/empty-state.svg";
+import { emptyStateContainerStyle, emptyStateTextStyle } from "../ModelInventory/style";
+import { useTheme } from "@mui/material";
 const PolicyDashboard: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const theme = useTheme()
 
   const fetchAll = async () => {
     const [pRes, tRes] = await Promise.all([getAllPolicies(), getAllTags()]);
@@ -59,11 +64,15 @@ const PolicyDashboard: React.FC = () => {
 
   return (
     <div>
-      <Stack>
-        <Typography sx={vwhomeHeading}>Policy Manager</Typography>
-        <Typography sx={singleTheme.textStyles.pageDescription}>
-          Policy Manager lets you create and update company AI policies in one place to stay compliant and consistent.
-        </Typography>
+      <Stack sx={{ gap: "15px" }}>
+        <PageBreadcrumbs />
+        <Stack>
+          <Typography sx={vwhomeHeading}>Policy Manager</Typography>
+          <Typography sx={singleTheme.textStyles.pageDescription}>
+            Policy Manager lets you create and update company AI policies in one
+            place to stay compliant and consistent.
+          </Typography>
+        </Stack>
       </Stack>
 
       <Stack
@@ -79,7 +88,7 @@ const PolicyDashboard: React.FC = () => {
           sx={{
             backgroundColor: "#13715B",
             border: "1px solid #13715B",
-            gap: 2,
+            gap: 3,
           }}
           icon={<AddCircleOutlineIcon />}
           onClick={() => {
@@ -88,12 +97,24 @@ const PolicyDashboard: React.FC = () => {
         />
       </Stack>
 
-      <PolicyTable
-        data={policies}
-        onOpen={handleOpen}
-        onDelete={handleDelete} // Pass the handleDelete function here
-      />
-
+      {policies.length === 0 ? (
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        sx={emptyStateContainerStyle(theme)}
+      >
+        <img src={placeholderImage} alt="Placeholder" />
+        <Typography sx={emptyStateTextStyle}>
+          There is currently no data in this table.
+        </Typography>
+      </Stack>
+      ) : (
+        <PolicyTable
+          data={policies}
+          onOpen={handleOpen}
+          onDelete={handleDelete}
+        />
+      )}
       {showModal && tags.length > 0 && (
         <PolicyDetailModal
           policy={selectedPolicy}

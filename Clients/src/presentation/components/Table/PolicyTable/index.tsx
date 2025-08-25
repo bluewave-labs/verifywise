@@ -39,7 +39,6 @@ const CustomizablePolicyTable = ({
   data,
   paginated = false,
   onRowClick,
-  label,
   setSelectedRow,
   setAnchorEl,
   renderRow,
@@ -47,9 +46,8 @@ const CustomizablePolicyTable = ({
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-  const { setInputValues, dashboardValues, setDashboardValues } =
+  const { setInputValues } =
     useContext(VerifyWiseContext);
-  const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   useEffect(() => setPage(0), [data.rows.length]);
 

@@ -17,7 +17,7 @@ import { Box, Modal, Stack, Typography, useTheme, Divider } from "@mui/material"
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
-import { Suspense, useContext, useEffect, useState, lazy, useCallback } from "react";
+import { Suspense, useEffect, useState, lazy, useCallback } from "react";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -27,10 +27,10 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
 import { SelectChangeEvent } from "@mui/material";
 import { createVendorRisk, updateVendorRisk } from "../../../../application/repository/vendorRisk.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
 interface ExistingRisk {
@@ -112,7 +112,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   vendors,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
   const VENDOR_OPTIONS =
     vendors?.length > 0

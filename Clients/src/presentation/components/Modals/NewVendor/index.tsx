@@ -27,11 +27,13 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
-import { Suspense, useContext, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useAuth } from "../../../../application/hooks/useAuth";
+import { useProjects } from "../../../../application/hooks/useProjects";
+import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
@@ -119,9 +121,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const [projectOptions, setProjectOptions] = useState<
     { _id: number; name: string }[]
   >([]);
-  const { dashboardValues, users, userRoleName } =
-    useContext(VerifyWiseContext);
-  const { projects } = dashboardValues;
+  const { userRoleName } = useAuth();
+  const { users } = useUsers();
+  const { projects } = useProjects();
 
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 

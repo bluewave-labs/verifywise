@@ -22,7 +22,7 @@ import {
   SelectChangeEvent,
   Box,
 } from "@mui/material";
-import React, { useState, useMemo, useEffect, useContext } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
@@ -31,7 +31,7 @@ import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -67,7 +67,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
 }) => {
   const theme = useTheme();
   const { roles } = useRoles();
-  const { organizationId } = useContext(VerifyWiseContext);
+  const { organizationId } = useAuth();
 
   const roleItems = useMemo(
     () =>

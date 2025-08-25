@@ -9,8 +9,8 @@ dataset:
     - "race"
   target_column: "income"
   sampling:
-    enabled: true
-    n_samples: 50 # Increased for more meaningful evaluation
+    enabled: false
+    n_samples: 500 # Number of samples to use for quick experiments
     random_seed: 42
 
 # Post-processing Configuration

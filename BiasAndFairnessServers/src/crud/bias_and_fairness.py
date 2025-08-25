@@ -100,8 +100,8 @@ async def insert_bias_fairness_evaluation(
     result = await db.execute(
         text(f'''
             INSERT INTO "{tenant}".bias_fairness_evaluations 
-            (eval_id, model_name, dataset_name, model_task, label_behavior, config_data, tenant) 
-            VALUES (:eval_id, :model_name, :dataset_name, :model_task, :label_behavior, :config_data, :tenant) 
+            (eval_id, model_name, dataset_name, model_task, label_behavior, config_data) 
+            VALUES (:eval_id, :model_name, :dataset_name, :model_task, :label_behavior, :config_data) 
             RETURNING id
         '''),
         {
@@ -110,8 +110,7 @@ async def insert_bias_fairness_evaluation(
             "dataset_name": dataset_name,
             "model_task": model_task,
             "label_behavior": label_behavior,
-            "config_data": config_data,
-            "tenant": tenant
+            "config_data": config_data
         }
     )
     row = result.fetchone()
@@ -134,10 +133,8 @@ async def get_all_bias_fairness_evaluations(db: AsyncSession, tenant: str):
                 created_at,
                 updated_at
             FROM "{tenant}".bias_fairness_evaluations 
-            WHERE tenant = :tenant 
             ORDER BY created_at DESC
-        '''),
-        {"tenant": tenant}
+        ''')
     )
     rows = result.mappings().all()
     return rows
@@ -159,9 +156,9 @@ async def get_bias_fairness_evaluation_by_id(eval_id: str, db: AsyncSession, ten
                 created_at,
                 updated_at
             FROM "{tenant}".bias_fairness_evaluations 
-            WHERE eval_id = :eval_id AND tenant = :tenant
+            WHERE eval_id = :eval_id
         '''),
-        {"eval_id": eval_id, "tenant": tenant}
+        {"eval_id": eval_id}
     )
     row = result.mappings().first()
     return row
@@ -179,20 +176,20 @@ async def update_bias_fairness_evaluation_status(
             text(f'''
                 UPDATE "{tenant}".bias_fairness_evaluations 
                 SET status = :status, results = :results, updated_at = CURRENT_TIMESTAMP
-                WHERE eval_id = :eval_id AND tenant = :tenant
+                WHERE eval_id = :eval_id
                 RETURNING id
             '''),
-            {"eval_id": eval_id, "status": status, "results": results, "tenant": tenant}
+            {"eval_id": eval_id, "status": status, "results": results}
         )
     else:
         result = await db.execute(
             text(f'''
                 UPDATE "{tenant}".bias_fairness_evaluations 
                 SET status = :status, updated_at = CURRENT_TIMESTAMP
-                WHERE eval_id = :eval_id AND tenant = :tenant
+                WHERE eval_id = :eval_id
                 RETURNING id
             '''),
-            {"eval_id": eval_id, "status": status, "tenant": tenant}
+            {"eval_id": eval_id, "status": status}
         )
     row = result.fetchone()
     return row
@@ -202,10 +199,10 @@ async def delete_bias_fairness_evaluation(eval_id: str, db: AsyncSession, tenant
     result = await db.execute(
         text(f'''
             DELETE FROM "{tenant}".bias_fairness_evaluations 
-            WHERE eval_id = :eval_id AND tenant = :tenant
+            WHERE eval_id = :eval_id
             RETURNING id
         '''),
-        {"eval_id": eval_id, "tenant": tenant}
+        {"eval_id": eval_id}
     )
     row = result.fetchone()
     return row

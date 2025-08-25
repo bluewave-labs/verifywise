@@ -1,52 +1,95 @@
-import React from "react";
-import { Box, Button, Stack } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Tab, Tabs, Paper } from "@mui/material";
 
-interface Tab {
-  id: number;
-  label: string;
-  content: string;
+export interface TabBarProps {
+  tabs: string[];
+  value?: number;
+  onChange?: (event: React.SyntheticEvent, newValue: number) => void;
+  variant?: "standard" | "scrollable" | "fullWidth";
+  indicatorColor?: string;
+  textColor?: string;
+  selectedTextColor?: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  sx?: object;
 }
 
-interface TabBarProps {
-  tabs: Tab[];
-  activeTab: number;
-  onTabChange: (tabId: number) => void;
+function a11yProps(index: number) {
+  return {
+    id: `tab-${index}`,
+    'aria-controls': `tabpanel-${index}`,
+  };
 }
 
-const TabBar: React.FC<TabBarProps> = ({ tabs, activeTab, onTabChange }) => {
+const TabBar: React.FC<TabBarProps> = ({
+  tabs,
+  value: controlledValue,
+  onChange,
+  variant = "standard",
+  indicatorColor = "#13715B",
+  textColor = "#6B7280",
+  selectedTextColor = "#13715B",
+  backgroundColor = "#FCFCFD",
+  borderColor = "#E5E7EB",
+  sx = {},
+}) => {
+  const [internalValue, setInternalValue] = useState(0);
+  const value = controlledValue !== undefined ? controlledValue : internalValue;
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    if (onChange) {
+      onChange(event, newValue);
+    } else {
+      setInternalValue(newValue);
+    }
+  };
+
   return (
-    <Box sx={{ 
-      borderBottom: "1px solid #E5E7EB",
-      backgroundColor: "#FCFCFD"
-    }}>
-      <Stack direction="row" spacing={0}>
-        {tabs.map((tab) => (
-          <Button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            sx={{
-              px: 3,
-              py: 1.5,
-              fontSize: 14,
-              fontWeight: activeTab === tab.id ? 600 : 500,
-              color: activeTab === tab.id ? "#13715B" : "#6B7280",
-              backgroundColor: "transparent",
-              borderRadius: 0,
-              borderBottom: activeTab === tab.id ? "2px solid #13715B" : "2px solid transparent",
-              textTransform: "none",
-              minWidth: "auto",
-              "&:hover": {
-                backgroundColor: "#F9FAFB",
-                color: activeTab === tab.id ? "#13715B" : "#374151",
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        backgroundColor,
+        border: `1px solid ${borderColor}`,
+        borderRadius: 2,
+        boxShadow: 'none',
+        ...sx
+      }}
+    >
+      <Box sx={{ borderBottom: `1px solid ${borderColor}` }}>
+        <Tabs 
+          value={value} 
+          onChange={handleChange} 
+          variant={variant}
+          TabIndicatorProps={{ 
+            style: { backgroundColor: indicatorColor } 
+          }}
+          sx={{
+            px: 2,
+            '& .MuiTab-root': {
+              color: textColor,
+              fontWeight: 500,
+              textTransform: 'none',
+              minWidth: 120,
+              '&.Mui-selected': {
+                color: selectedTextColor,
+                fontWeight: 600,
               },
-              transition: "all 0.2s ease",
-            }}
-          >
-            {tab.label}
-          </Button>
-        ))}
-      </Stack>
-    </Box>
+              '& .MuiTouchRipple-root': {
+                display: 'none',
+              }
+            }
+          }}
+        >
+          {tabs.map((tab, index) => (
+            <Tab 
+              key={index}
+              label={tab} 
+              {...a11yProps(index)} 
+            />
+          ))}
+        </Tabs>
+      </Box>
+    </Paper>
   );
 };
 

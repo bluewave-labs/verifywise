@@ -1,124 +1,366 @@
-import React from "react";
-import { Stack, Typography, Box, Chip } from "@mui/material";
+import React, { useMemo } from "react";
+import {
+  Box,
+  Typography,
+  Tooltip,
+  Stack,
+  Paper,
+  useTheme,
+} from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 
 interface RiskHeatMapProps {
   risks: ProjectRisk[];
+  onRiskSelect?: (risk: ProjectRisk) => void;
+  selectedRisk?: ProjectRisk | null;
 }
 
-const RiskHeatMap: React.FC<RiskHeatMapProps> = ({ risks }) => {
-  const getRiskLevelFromString = (level: string): number => {
-    if (typeof level === "number") return level;
-    const levelStr = level.toLowerCase();
-    if (levelStr.includes("very high") || levelStr === "5") return 5;
-    if (levelStr.includes("high") || levelStr === "4") return 4;
-    if (levelStr.includes("medium") || levelStr === "3") return 3;
-    if (levelStr.includes("low") || levelStr === "2") return 2;
-    if (levelStr.includes("very low") || levelStr === "1") return 1;
-    return parseInt(level) || 0;
+interface HeatMapCell {
+  likelihood: number;
+  severity: number;
+  risks: ProjectRisk[];
+  riskLevel: number;
+  color: string;
+}
+
+const RiskHeatMap: React.FC<RiskHeatMapProps> = ({
+  risks,
+  onRiskSelect,
+  selectedRisk,
+}) => {
+  const theme = useTheme();
+
+  const getRiskLevelColor = (riskLevel: number, alpha: number = 0.8): string => {
+    if (riskLevel >= 16) return `rgba(198, 54, 34, ${alpha})`; // Very High - Dark Red
+    if (riskLevel >= 12) return `rgba(214, 139, 97, ${alpha})`; // High - Orange Red
+    if (riskLevel >= 8) return `rgba(214, 185, 113, ${alpha})`; // Medium - Orange
+    if (riskLevel >= 4) return `rgba(82, 171, 67, ${alpha})`; // Low - Light Green
+    return `rgba(184, 211, 156, ${alpha})`; // Very Low - Very Light Green
   };
 
-  const getRiskLevelColor = (level: number): string => {
-    switch (level) {
-      case 5: return "#C63622";
-      case 4: return "#D68B61";
-      case 3: return "#D6B971";
-      case 2: return "#52AB43";
-      case 1: return "#B8D39C";
-      default: return "#E5E7EB";
+  // Helper functions to convert string values to numeric
+  const getLikelihoodNumeric = (likelihood: string): number => {
+    switch (likelihood?.toLowerCase()) {
+      case 'rare': return 1;
+      case 'unlikely': return 2;
+      case 'possible': return 3;
+      case 'likely': return 4;
+      case 'almost certain': return 5;
+      default: return 1;
     }
   };
 
-  const getRiskLevelLabel = (level: number): string => {
-    switch (level) {
-      case 5: return "Very High";
-      case 4: return "High";
-      case 3: return "Medium";
-      case 2: return "Low";
-      case 1: return "Very Low";
-      default: return "Unknown";
+  const getSeverityNumeric = (severity: string): number => {
+    switch (severity?.toLowerCase()) {
+      case 'negligible': return 1;
+      case 'minor': return 2;
+      case 'moderate': return 3;
+      case 'major': return 4;
+      case 'critical': 
+      case 'catastrophic': return 5;
+      default: return 1;
     }
   };
 
-  const riskLevelCounts = risks.reduce((acc, risk) => {
-    const level = getRiskLevelFromString(risk.current_risk_level?.toString() || "0");
-    acc[level] = (acc[level] || 0) + 1;
-    return acc;
-  }, {} as Record<number, number>);
+  const heatMapData = useMemo(() => {
 
-  const maxCount = Math.max(...Object.values(riskLevelCounts), 1);
+    const grid: HeatMapCell[][] = [];
+    
+    for (let severity = 5; severity >= 1; severity--) {
+      const row: HeatMapCell[] = [];
+      for (let likelihood = 1; likelihood <= 5; likelihood++) {
+        const cellRisks = risks.filter((risk) => {
+          const riskLikelihood = getLikelihoodNumeric(risk.likelihood);
+          const riskSeverity = getSeverityNumeric(risk.risk_severity);
+          return riskLikelihood === likelihood && riskSeverity === severity;
+        });
+        
+        const riskLevel = likelihood * severity;
+        
+        if (cellRisks.length > 0) {
+          console.log(`Found ${cellRisks.length} risks for likelihood ${likelihood}, severity ${severity}:`, cellRisks);
+        }
+        
+        row.push({
+          likelihood,
+          severity,
+          risks: cellRisks,
+          riskLevel,
+          color: getRiskLevelColor(riskLevel, cellRisks.length > 0 ? 0.8 : 0.1),
+        });
+      }
+      grid.push(row);
+    }
+    
+    return grid;
+  }, [risks]);
+
+  const getSeverityLabel = (severity: number): string => {
+    const labels = ["", "Very Low", "Low", "Medium", "High", "Very High"];
+    return labels[severity];
+  };
+
+  const getLikelihoodLabel = (likelihood: number): string => {
+    const labels = ["", "Very Low", "Low", "Medium", "High", "Very High"];
+    return labels[likelihood];
+  };
+
+  const renderCell = (cell: HeatMapCell) => {
+    const isSelected = selectedRisk && cell.risks.some(r => r.id === selectedRisk.id);
+    
+    return (
+      <Tooltip
+        key={`${cell.likelihood}-${cell.severity}`}
+        title={
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              {getLikelihoodLabel(cell.likelihood)} Likelihood × {getSeverityLabel(cell.severity)} Severity
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              Risk Level: {cell.riskLevel}
+            </Typography>
+            <Typography variant="body2">
+              {cell.risks.length} risk{cell.risks.length !== 1 ? 's' : ''}
+            </Typography>
+            {cell.risks.length > 0 && (
+              <Box sx={{ mt: 1 }}>
+                {cell.risks.slice(0, 3).map((risk, idx) => (
+                  <Typography key={idx} variant="caption" display="block">
+                    • {risk.risk_name || risk.riskName || `Risk ${risk.id}`}
+                  </Typography>
+                ))}
+                {cell.risks.length > 3 && (
+                  <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
+                    +{cell.risks.length - 3} more...
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </Box>
+        }
+        arrow
+        placement="top"
+      >
+        <Box
+          sx={{
+            width: { xs: 60, sm: 80 },
+            height: { xs: 45, sm: 60 },
+            backgroundColor: cell.color,
+            border: `2px solid ${isSelected ? '#13715B' : 'transparent'}`,
+            borderRadius: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: cell.risks.length > 0 ? 'pointer' : 'default',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': cell.risks.length > 0 ? {
+              transform: 'scale(1.05)',
+              boxShadow: theme.shadows[4],
+              borderColor: '#13715B',
+            } : {},
+          }}
+          onClick={() => {
+            if (cell.risks.length > 0 && onRiskSelect) {
+              onRiskSelect(cell.risks[0]);
+            }
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 700,
+              color: cell.risks.length > 0 ? '#1A1919' : '#9CA3AF',
+              fontSize: 18,
+            }}
+          >
+            {cell.risks.length}
+          </Typography>
+          {cell.risks.length > 0 && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#4B5563',
+                fontSize: 10,
+                lineHeight: 1,
+              }}
+            >
+              L{cell.riskLevel}
+            </Typography>
+          )}
+        </Box>
+      </Tooltip>
+    );
+  };
 
   return (
-    <Stack spacing={3}>
-      <Typography variant="h6" sx={{ fontWeight: 600, color: "#1A1919" }}>
-        Risk Distribution Heat Map
-      </Typography>
-      
-      <Stack spacing={2}>
-        {[5, 4, 3, 2, 1].map((level) => {
-          const count = riskLevelCounts[level] || 0;
-          const intensity = count / maxCount;
-          const backgroundColor = getRiskLevelColor(level);
-          
-          return (
-            <Stack key={level} direction="row" alignItems="center" spacing={2}>
-              <Box sx={{ minWidth: 80 }}>
-                <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
-                  {getRiskLevelLabel(level)}
+    <Box sx={{ p: 3, backgroundColor: 'transparent', display: 'flex', alignItems: 'center', minHeight: '500px' }}>
+      <Stack direction="row" spacing={4} alignItems="center" sx={{ width: '100%' }}>
+        {/* Main Heat Map */}
+        <Box sx={{ 
+          flex: 1,
+          display: 'flex', 
+          justifyContent: 'center',
+          overflow: 'auto',
+          minWidth: { xs: '100%', sm: 'auto' }
+        }}>
+          <Stack spacing={2}>
+            {/* Y-axis label */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              gap: { xs: 1, sm: 2 },
+              minWidth: 'fit-content',
+            }}>
+              <Box sx={{ 
+                writingMode: 'vertical-rl',
+                textOrientation: 'mixed',
+                minWidth: 80,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#4B5563' }}>
+                  SEVERITY
                 </Typography>
               </Box>
               
-              <Box
-                sx={{
-                  flex: 1,
-                  height: 32,
-                  borderRadius: 1,
-                  backgroundColor: "#F9FAFB",
-                  position: "relative",
-                  border: "1px solid #E5E7EB",
-                }}
-              >
-                <Box
-                  sx={{
-                    height: "100%",
-                    width: `${intensity * 100}%`,
-                    backgroundColor,
-                    borderRadius: 1,
-                    opacity: 0.8,
-                    transition: "width 0.3s ease",
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "50%",
-                    right: 8,
-                    transform: "translateY(-50%)",
-                  }}
-                >
-                  <Chip
-                    label={count}
-                    size="small"
-                    sx={{
-                      backgroundColor: "rgba(255, 255, 255, 0.9)",
-                      color: "#374151",
-                      fontSize: 12,
-                      fontWeight: 600,
-                    }}
-                  />
-                </Box>
+              <Stack spacing={1}>
+                {heatMapData.map((row, rowIndex) => (
+                  <Stack key={rowIndex} direction="row" spacing={1} alignItems="center">
+                    {/* Severity labels */}
+                    <Box sx={{ minWidth: 80, textAlign: 'right', pr: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 500 }}>
+                        {getSeverityLabel(row[0].severity)}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Heat map cells */}
+                    <Stack direction="row" spacing={1}>
+                      {row.map((cell) => renderCell(cell))}
+                    </Stack>
+                  </Stack>
+                ))}
+                
+                {/* X-axis labels */}
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box sx={{ minWidth: 80 }} />
+                  <Stack direction="row" spacing={1}>
+                    {[1, 2, 3, 4, 5].map((likelihood) => (
+                      <Box key={likelihood} sx={{ width: { xs: 60, sm: 80 }, textAlign: 'center' }}>
+                        <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 500 }}>
+                          {getLikelihoodLabel(likelihood)}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Stack>
+              </Stack>
+            </Box>
+
+            {/* X-axis label */}
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box sx={{ minWidth: 80 }} />
+              <Box sx={{ 
+                width: { xs: 5 * 60 + 4 * 8, sm: 5 * 80 + 4 * 8 }, // 5 cells + 4 gaps
+                textAlign: 'center', 
+                pt: '40px', // Add 40px top padding 
+                pl: '130px' // Add 130px left padding to shift right
+              }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#4B5563' }}>
+                  LIKELIHOOD
+                </Typography>
               </Box>
             </Stack>
-          );
-        })}
+          </Stack>
+        </Box>
+
+        {/* Legend Sidebar */}
+        <Box sx={{ 
+          display: { xs: 'none', lg: 'block' },
+          minWidth: 200,
+          p: 3,
+          backgroundColor: '#F9FAFB',
+          borderRadius: 2,
+          border: '1px solid #E5E7EB',
+        }}>
+          <Typography variant="subtitle2" sx={{ color: '#374151', fontWeight: 600, mb: 2 }}>
+            Risk Levels
+          </Typography>
+          <Stack spacing={2}>
+            {[
+              { level: '1-3', color: getRiskLevelColor(2), label: 'Very Low' },
+              { level: '4-7', color: getRiskLevelColor(6), label: 'Low' },
+              { level: '8-11', color: getRiskLevelColor(10), label: 'Medium' },
+              { level: '12-15', color: getRiskLevelColor(14), label: 'High' },
+              { level: '16-25', color: getRiskLevelColor(20), label: 'Very High' },
+            ].map((item, idx) => (
+              <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    backgroundColor: item.color,
+                    borderRadius: 0.5,
+                    border: '1px solid #E5E7EB',
+                  }}
+                />
+                <Stack>
+                  <Typography variant="caption" sx={{ color: '#374151', fontWeight: 500 }}>
+                    {item.label}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#6B7280', fontSize: '0.7rem' }}>
+                    Level {item.level}
+                  </Typography>
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+
+        {/* Mobile Legend (below on small screens) */}
+        <Box sx={{ 
+          display: { xs: 'block', lg: 'none' },
+          position: 'absolute',
+          bottom: 16,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#FFFFFF',
+          p: 2,
+          borderRadius: 2,
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 500 }}>
+              Risk Level:
+            </Typography>
+            {[
+              { level: '1-3', color: getRiskLevelColor(2), label: 'Very Low' },
+              { level: '4-7', color: getRiskLevelColor(6), label: 'Low' },
+              { level: '8-11', color: getRiskLevelColor(10), label: 'Medium' },
+              { level: '12-15', color: getRiskLevelColor(14), label: 'High' },
+              { level: '16-25', color: getRiskLevelColor(20), label: 'Very High' },
+            ].map((item, idx) => (
+              <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    backgroundColor: item.color,
+                    borderRadius: 0.5,
+                    border: '1px solid #E5E7EB',
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#4B5563', fontSize: '0.7rem' }}>
+                  {item.label}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
       </Stack>
-      
-      <Box sx={{ mt: 2, p: 2, backgroundColor: "#F9FAFB", borderRadius: 1 }}>
-        <Typography sx={{ fontSize: 12, color: "#6B7280", textAlign: "center" }}>
-          Total Risks: {risks.length} | Highest Risk Level: {getRiskLevelLabel(Math.max(...Object.keys(riskLevelCounts).map(Number), 0))}
-        </Typography>
-      </Box>
-    </Stack>
+    </Box>
   );
 };
 

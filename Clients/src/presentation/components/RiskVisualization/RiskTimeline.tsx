@@ -1,166 +1,317 @@
-import React from "react";
-import { Stack, Typography, Box, Chip } from "@mui/material";
+import React, { useMemo } from "react";
+import {
+  Box,
+  Typography,
+  Stack,
+  Chip,
+  useTheme,
+} from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 
 interface RiskTimelineProps {
   risks: ProjectRisk[];
+  selectedRisk?: ProjectRisk | null;
+  onRiskSelect?: (risk: ProjectRisk) => void;
 }
 
-const RiskTimeline: React.FC<RiskTimelineProps> = ({ risks }) => {
+interface TimelineEvent {
+  id: string;
+  date: Date;
+  type: 'created' | 'resolved' | 'escalated' | 'mitigated';
+  risk: ProjectRisk;
+  title: string;
+  description: string;
+  riskLevel: number;
+}
+
+const RiskTimeline: React.FC<RiskTimelineProps> = ({
+  risks,
+  selectedRisk,
+  onRiskSelect,
+}) => {
+  const theme = useTheme();
+
   const getRiskLevelFromString = (level: string): number => {
-    if (typeof level === "number") return level;
-    const levelStr = level.toLowerCase();
-    if (levelStr.includes("very high") || levelStr === "5") return 5;
-    if (levelStr.includes("high") || levelStr === "4") return 4;
-    if (levelStr.includes("medium") || levelStr === "3") return 3;
-    if (levelStr.includes("low") || levelStr === "2") return 2;
-    if (levelStr.includes("very low") || levelStr === "1") return 1;
-    return parseInt(level) || 0;
-  };
-
-  const getRiskLevelColor = (level: number): string => {
-    switch (level) {
-      case 5: return "#C63622";
-      case 4: return "#D68B61";
-      case 3: return "#D6B971";
-      case 2: return "#52AB43";
-      case 1: return "#B8D39C";
-      default: return "#E5E7EB";
+    if (!level) return 0;
+    switch (level.toLowerCase()) {
+      case 'very high risk':
+        return 20;
+      case 'high risk':
+        return 15;
+      case 'medium risk':
+        return 10;
+      case 'low risk':
+        return 5;
+      case 'very low risk':
+      case 'no risk':
+        return 1;
+      default:
+        return 0;
     }
   };
 
-  const getRiskLevelLabel = (level: number): string => {
-    switch (level) {
-      case 5: return "Very High";
-      case 4: return "High";
-      case 3: return "Medium";
-      case 2: return "Low";
-      case 1: return "Very Low";
-      default: return "Unknown";
-    }
+  const getRiskLevelColor = (riskLevel: number): string => {
+    if (riskLevel >= 16) return "#C63622"; // Very High - Dark Red
+    if (riskLevel >= 12) return "#D68B61"; // High - Orange Red
+    if (riskLevel >= 8) return "#D6B971"; // Medium - Orange
+    if (riskLevel >= 4) return "#52AB43"; // Low - Light Green
+    return "#B8D39C"; // Very Low - Very Light Green
   };
 
-  const formatDate = (date: Date | string): string => {
-    try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
-      return dateObj.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric'
+  const getRiskLevelLabel = (riskLevel: number): string => {
+    if (riskLevel >= 16) return "Very High";
+    if (riskLevel >= 12) return "High";
+    if (riskLevel >= 8) return "Medium";
+    if (riskLevel >= 4) return "Low";
+    return "Very Low";
+  };
+
+  const timelineEvents = useMemo(() => {
+    const events: TimelineEvent[] = [];
+
+    risks.forEach(risk => {
+      // Add creation event
+      const createdDate = risk.date_of_assessment ? new Date(risk.date_of_assessment) : new Date();
+      const riskLevelValue = getRiskLevelFromString(risk.current_risk_level || risk.risk_level_autocalculated);
+      
+      events.push({
+        id: `${risk.id}-created`,
+        date: createdDate,
+        type: 'created',
+        risk,
+        title: `Risk Identified: ${risk.risk_name}`,
+        description: `New ${getRiskLevelLabel(riskLevelValue).toLowerCase()} risk identified`,
+        riskLevel: riskLevelValue,
       });
-    } catch {
-      return "Unknown";
+
+      // Add mitigation events based on mitigation status
+      if (risk.mitigation_status === 'Completed' && risk.deadline) {
+        const completedDate = new Date(risk.deadline);
+        events.push({
+          id: `${risk.id}-mitigated`,
+          date: completedDate,
+          type: 'mitigated',
+          risk,
+          title: `Risk Mitigated: ${risk.risk_name}`,
+          description: `Mitigation completed: ${risk.mitigation_plan || 'Mitigation action'}`,
+          riskLevel: riskLevelValue,
+        });
+      }
+    });
+
+    // Sort events by date (most recent first)
+    return events.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [risks]);
+
+  const getEventIcon = (type: string) => {
+    switch (type) {
+      case 'created':
+        return '🆕';
+      case 'resolved':
+        return '✅';
+      case 'escalated':
+        return '⬆️';
+      case 'mitigated':
+        return '🛡️';
+      default:
+        return '📋';
     }
   };
 
-  const sortedRisks = [...risks].sort((a, b) => {
-    const dateA = new Date(a.date_of_assessment || 0);
-    const dateB = new Date(b.date_of_assessment || 0);
-    return dateB.getTime() - dateA.getTime();
-  });
-
-  const groupedByMonth = sortedRisks.reduce((acc, risk) => {
-    const date = new Date(risk.date_of_assessment || 0);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    
-    if (!acc[monthKey]) {
-      acc[monthKey] = {
-        label: monthLabel,
-        risks: []
-      };
+  const getEventTypeLabel = (type: string) => {
+    switch (type) {
+      case 'created':
+        return 'Created';
+      case 'resolved':
+        return 'Resolved';
+      case 'escalated':
+        return 'Escalated';
+      case 'mitigated':
+        return 'Mitigated';
+      default:
+        return 'Event';
     }
-    
-    acc[monthKey].risks.push(risk);
-    return acc;
-  }, {} as Record<string, { label: string; risks: ProjectRisk[] }>);
+  };
 
-  if (risks.length === 0) {
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  // Group events by month for better organization
+  const groupedEvents = useMemo(() => {
+    const groups: { [key: string]: TimelineEvent[] } = {};
+    
+    timelineEvents.forEach(event => {
+      const monthKey = event.date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+      });
+      
+      if (!groups[monthKey]) {
+        groups[monthKey] = [];
+      }
+      groups[monthKey].push(event);
+    });
+    
+    return groups;
+  }, [timelineEvents]);
+
+  if (timelineEvents.length === 0) {
     return (
-      <Stack spacing={3}>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: "#1A1919" }}>
-          Risk Timeline Analysis
+      <Box sx={{ 
+        p: 4, 
+        textAlign: 'center',
+        backgroundColor: '#F9FAFB',
+        borderRadius: 2,
+        border: '1px solid #E5E7EB'
+      }}>
+        <Typography variant="h6" sx={{ color: '#6B7280', mb: 1 }}>
+          No Timeline Data Available
         </Typography>
-        <Box sx={{ textAlign: "center", py: 4, color: "#6B7280" }}>
-          <Typography>No risks available for timeline analysis</Typography>
-        </Box>
-      </Stack>
+        <Typography variant="body2" sx={{ color: '#9CA3AF' }}>
+          Risk timeline data will appear here as risks are created and resolved.
+        </Typography>
+      </Box>
     );
   }
 
   return (
-    <Stack spacing={3}>
-      <Typography variant="h6" sx={{ fontWeight: 600, color: "#1A1919" }}>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827', mb: 3 }}>
         Risk Timeline Analysis
       </Typography>
       
-      <Stack spacing={3}>
-        {Object.entries(groupedByMonth)
-          .sort(([a], [b]) => b.localeCompare(a))
-          .map(([monthKey, { label, risks: monthRisks }]) => (
-          <Box key={monthKey}>
-            <Typography 
-              sx={{ 
-                fontSize: 16, 
-                fontWeight: 600, 
-                color: "#374151",
-                mb: 2,
-                borderBottom: "2px solid #E5E7EB",
-                pb: 1
-              }}
-            >
-              {label} ({monthRisks.length} risk{monthRisks.length !== 1 ? 's' : ''})
-            </Typography>
-            
-            <Stack spacing={2} sx={{ pl: 2 }}>
-              {monthRisks.map((risk, index) => {
-                const riskLevel = getRiskLevelFromString(risk.current_risk_level?.toString() || "0");
-                const riskColor = getRiskLevelColor(riskLevel);
-                
-                return (
-                  <Box
-                    key={`${risk.id}-${index}`}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      p: 2,
-                      backgroundColor: "#FCFCFD",
-                      borderRadius: 1,
-                      borderLeft: `4px solid ${riskColor}`,
-                      "&:hover": {
-                        backgroundColor: "#F9FAFB",
+      <Box sx={{ position: 'relative' }}>
+        {/* Timeline line */}
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 24,
+            top: 0,
+            bottom: 0,
+            width: 2,
+            backgroundColor: '#E5E7EB',
+          }}
+        />
+
+        <Stack spacing={0}>
+          {Object.entries(groupedEvents).map(([monthKey, events]) => (
+            <Box key={monthKey}>
+              {/* Month Header */}
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#374151',
+                    backgroundColor: '#F3F4F6',
+                    px: 2,
+                    py: 1,
+                    borderRadius: 1,
+                    display: 'inline-block',
+                  }}
+                >
+                  {monthKey}
+                </Typography>
+              </Box>
+
+              {/* Events for this month */}
+              {events.map((event, index) => (
+                <Box
+                  key={event.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 2,
+                    mb: 3,
+                    cursor: onRiskSelect ? 'pointer' : 'default',
+                    '&:hover': onRiskSelect ? {
+                      '& .timeline-card': {
+                        backgroundColor: '#F9FAFB',
+                        transform: 'translateX(4px)',
                       },
+                    } : {},
+                  }}
+                  onClick={() => onRiskSelect?.(event.risk)}
+                >
+                  {/* Timeline dot */}
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: '50%',
+                      backgroundColor: getRiskLevelColor(event.riskLevel),
+                      border: '3px solid #FFFFFF',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                  />
+
+                  {/* Event card */}
+                  <Box
+                    className="timeline-card"
+                    sx={{
+                      flex: 1,
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #E5E7EB',
+                      borderRadius: 2,
+                      p: 3,
+                      transition: 'all 0.2s ease-in-out',
+                      borderLeft: `4px solid ${getRiskLevelColor(event.riskLevel)}`,
                     }}
                   >
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 500, fontSize: 14, color: "#1F2937" }}>
-                        {risk.risk_name || "Unnamed Risk"}
-                      </Typography>
-                      <Typography sx={{ fontSize: 12, color: "#6B7280", mt: 0.5 }}>
-                        Owner: {risk.risk_owner || "Unassigned"} • 
-                        Assessed: {formatDate(risk.date_of_assessment || "")}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                        {formatTime(event.date)}
                       </Typography>
                     </Box>
+
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#111827', mb: 1 }}>
+                      {event.title}
+                    </Typography>
                     
-                    <Chip
-                      label={getRiskLevelLabel(riskLevel)}
-                      size="small"
-                      sx={{
-                        backgroundColor: riskColor,
-                        color: "white",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    />
+                    <Typography variant="body2" sx={{ color: '#4B5563', mb: 2 }}>
+                      {event.description}
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Chip
+                        label={getRiskLevelLabel(event.riskLevel)}
+                        size="small"
+                        sx={{
+                          backgroundColor: `${getRiskLevelColor(event.riskLevel)}20`,
+                          color: getRiskLevelColor(event.riskLevel),
+                          fontWeight: 500,
+                          fontSize: 11,
+                          border: `1px solid ${getRiskLevelColor(event.riskLevel)}40`,
+                        }}
+                      />
+                      {event.risk.risk_owner && (
+                        <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                          Owner: {event.risk.risk_owner}
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
-                );
-              })}
-            </Stack>
-          </Box>
-        ))}
-      </Stack>
-    </Stack>
+                </Box>
+              ))}
+            </Box>
+          ))}
+        </Stack>
+      </Box>
+    </Box>
   );
 };
 

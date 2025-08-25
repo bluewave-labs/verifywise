@@ -51,6 +51,7 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       title,
       description,
       creator_id: userId,
+      organization_id: req.organizationId,
       due_date: due_date ? new Date(due_date) : undefined,
       priority: priority || TaskPriority.MEDIUM,
       status: status || TaskStatus.OPEN,
@@ -126,12 +127,13 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       due_date_end,
       category,
       assignee,
+      organization_id,
       sort_by = 'created_at',
       sort_order = 'DESC',
       page = '1',
       page_size = '25'
     } = req.query;
-    console.log({ status, due_date_start, due_date_end, category, assignee, sort_by, sort_order, page, page_size }, "-------------task query-------------");
+    console.log({ status, due_date_start, due_date_end, category, assignee, organization_id, sort_by, sort_order, page, page_size }, "-------------task query-------------");
 
     // Parse filters
     const filters: any = {};
@@ -140,6 +142,9 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     if (due_date_end) filters.due_date_end = due_date_end as string;
     if (category) filters.category = Array.isArray(category) ? category : [category];
     if (assignee) filters.assignee = Array.isArray(assignee) ? assignee.map(Number) : [Number(assignee)];
+    if (organization_id) {
+      filters.organization_id = Number(organization_id);
+    }
 
     // Parse sorting
     const sort = {

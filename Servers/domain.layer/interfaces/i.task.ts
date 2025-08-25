@@ -6,6 +6,7 @@ export interface ITask {
   title: string;
   description?: string;
   creator_id: number;
+  organization_id?: number;
   due_date?: Date;
   priority: TaskPriority;
   status: TaskStatus;
@@ -19,6 +20,7 @@ export interface ITaskSafeJSON {
   title: string;
   description?: string;
   creator_id: number;
+  organization_id: number;
   due_date?: string;
   priority: TaskPriority;
   status: TaskStatus;

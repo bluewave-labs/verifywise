@@ -19,6 +19,7 @@ interface TaskFilters {
   due_date_end?: string;
   category?: string[];
   assignee?: number[];
+  organization_id?: number;
 }
 
 interface TaskSortOptions {
@@ -34,15 +35,16 @@ export const createNewTaskQuery = async (
 ): Promise<TasksModel> => {
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".tasks (
-        title, description, creator_id, due_date, priority, status, categories
+        title, description, creator_id, organization_id, due_date, priority, status, categories
       ) VALUES (
-        :title, :description, :creator_id, :due_date, :priority, :status, :categories
+        :title, :description, :creator_id, :organization_id, :due_date, :priority, :status, :categories
       ) RETURNING *`,
     {
       replacements: {
         title: task.title,
         description: task.description || null,
         creator_id: task.creator_id,
+        organization_id: task.organization_id,
         due_date: task.due_date || null,
         priority: task.priority || TaskPriority.MEDIUM,
         status: task.status || TaskStatus.OPEN,
@@ -133,6 +135,11 @@ export const getTasksQuery = async (
     filters.assignee.forEach((assignee, i) => {
       replacements[`assignee${i}`] = assignee;
     });
+  }
+
+  if (filters.organization_id) {
+    whereConditions.push(`t.organization_id = :organization_id`);
+    replacements.organization_id = filters.organization_id;
   }
 
   // Add WHERE conditions

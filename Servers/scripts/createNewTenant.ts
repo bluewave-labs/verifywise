@@ -644,6 +644,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       title character varying(255) NOT NULL,
       description text,
       creator_id integer NOT NULL,
+      organization_id integer NOT NULL,
       due_date timestamp with time zone,
       priority enum_tasks_priority NOT NULL DEFAULT 'Medium',
       status enum_tasks_status NOT NULL DEFAULT 'Open',
@@ -653,6 +654,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       CONSTRAINT tasks_pkey PRIMARY KEY (id),
       CONSTRAINT tasks_creator_id_fkey FOREIGN KEY (creator_id)
         REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+      CONSTRAINT tasks_organization_id_fkey FOREIGN KEY (organization_id)
+        REFERENCES public.organizations (id) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE CASCADE
     );`, { transaction });
 
@@ -662,7 +666,8 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_due_date_idx" ON "${tenantHash}".tasks (due_date);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_status_idx" ON "${tenantHash}".tasks (status);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_priority_idx" ON "${tenantHash}".tasks (priority);`,
-      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_created_at_idx" ON "${tenantHash}".tasks (created_at);`
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_created_at_idx" ON "${tenantHash}".tasks (created_at);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_organization_id_idx" ON "${tenantHash}".tasks (organization_id);`,
     ].map(query => sequelize.query(query, { transaction })));
 
     // Create task_assignees table

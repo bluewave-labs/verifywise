@@ -43,6 +43,12 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   creator_id!: number;
 
   @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  organization_id!: number;
+
+  @Column({
     type: DataType.DATE,
     allowNull: true,
   })
@@ -88,7 +94,6 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   async updateTask(updateData: {
     title?: string;
     description?: string;
-    creator_id?: number;
     due_date?: Date;
     priority?: TaskPriority;
     status?: TaskStatus;
@@ -100,9 +105,6 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     }
     if (updateData.description !== undefined) {
       this.description = updateData.description;
-    }
-    if (updateData.creator_id !== undefined) {
-      this.creator_id = updateData.creator_id;
     }
     if (updateData.due_date !== undefined) {
       this.due_date = updateData.due_date;
@@ -136,6 +138,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       title: this.title,
       description: this.description,
       creator_id: this.creator_id,
+      organization_id: this.organization_id!,
       due_date: this.due_date?.toISOString(),
       priority: this.priority,
       status: this.status,
@@ -154,6 +157,7 @@ export class TasksModel extends Model<TasksModel> implements ITask {
       title: this.title,
       description: this.description,
       creator_id: this.creator_id,
+      organization_id: this.organization_id!,
       due_date: this.due_date?.toISOString(),
       priority: this.priority,
       status: this.status,

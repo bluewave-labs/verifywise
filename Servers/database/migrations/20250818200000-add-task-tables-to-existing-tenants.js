@@ -26,6 +26,7 @@ module.exports = {
           title character varying(255) NOT NULL,
           description text,
           creator_id integer NOT NULL,
+          organization_id integer,
           due_date timestamp with time zone,
           priority enum_tasks_priority NOT NULL DEFAULT 'Medium',
           status enum_tasks_status NOT NULL DEFAULT 'Open',
@@ -35,9 +36,13 @@ module.exports = {
           CONSTRAINT tasks_pkey PRIMARY KEY (id),
           CONSTRAINT tasks_creator_id_fkey FOREIGN KEY (creator_id)
             REFERENCES public.users (id) MATCH SIMPLE
+            ON UPDATE CASCADE ON DELETE CASCADE,
+          CONSTRAINT tasks_organization_id_fkey FOREIGN KEY (organization_id)
+            REFERENCES public.organizations (id) MATCH SIMPLE
             ON UPDATE CASCADE ON DELETE CASCADE
         );`,
         (tenantHash) => `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_creator_id_idx" ON "${tenantHash}".tasks (creator_id);`,
+        (tenantHash) => `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_organization_id_idx" ON "${tenantHash}".tasks (organization_id);`,
         (tenantHash) => `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_due_date_idx" ON "${tenantHash}".tasks (due_date);`,
         (tenantHash) => `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_status_idx" ON "${tenantHash}".tasks (status);`,
         (tenantHash) => `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_priority_idx" ON "${tenantHash}".tasks (priority);`,

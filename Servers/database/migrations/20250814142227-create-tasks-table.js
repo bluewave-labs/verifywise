@@ -19,6 +19,26 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      creator_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
+      organization_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'organizations',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
       due_date: {
         type: Sequelize.DATE,
         allowNull: true,
@@ -56,6 +76,8 @@ module.exports = {
     await queryInterface.addIndex("tasks", ["status"]);
     await queryInterface.addIndex("tasks", ["due_date"]);
     await queryInterface.addIndex("tasks", ["created_at"]);
+    await queryInterface.addIndex("tasks", ["creator_id"]);
+    await queryInterface.addIndex("tasks", ["organization_id"]);
     
     // Composite indexes for common query patterns
     // Filter by status + sort by due date (most common: overdue tasks, tasks by due date)

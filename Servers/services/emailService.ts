@@ -1,11 +1,11 @@
 import { Resend } from "resend";
 import { compileMjmlToHtml } from "../tools/mjmlCompiler";
 
-const resend = new Resend(process.env.RESEND_API_KEY || 'abc');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function to send an email
 export const sendEmail = async (
-  to: string,
+  to: string,gi
   subject: string,
   template: string,
   data: Record<string, string>

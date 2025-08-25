@@ -46,7 +46,7 @@ const TabFilterBar = ({
         {showApplicabilityFilter && (
           <Select
             id="applicability-filter"
-            placeholder="All"
+            placeholder="Status: All"
             value={applicabilityFilter ?? "all"}
             onChange={(e) => onApplicabilityChange?.(e.target.value as string)}
             items={[

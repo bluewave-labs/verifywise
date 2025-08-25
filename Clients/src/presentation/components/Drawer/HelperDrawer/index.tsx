@@ -92,6 +92,8 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             <Typography fontSize={15} fontWeight={700}>
               {pageTitle}
             </Typography>
+            <InfoOutlinedIcon />
+
             <IconButton onClick={onClose} size="small" disableRipple>
               <CloseIcon />
             </IconButton>

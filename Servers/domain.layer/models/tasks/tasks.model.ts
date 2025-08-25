@@ -9,11 +9,15 @@ import { UserModel } from "../user/user.model";
 import { TaskPriority } from "../../enums/task-priority.enum";
 import { TaskStatus } from "../../enums/task-status.enum";
 import { ITask, ITaskSafeJSON, ITaskJSON } from "../../interfaces/i.task";
+import { stringValidation, enumValidation } from "../../validations/string.valid";
+import { numberValidation } from "../../validations/number.valid";
+import {ValidationException} from "../../exceptions/custom.exception";
 
 
 @Table({
   tableName: "tasks",
   timestamps: true,
+  underscored: true, // This makes Sequelize use snake_case for timestamp fields
 })
 export class TasksModel extends Model<TasksModel> implements ITask {
   @Column({
@@ -26,6 +30,15 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    validate: {
+      notEmpty: {
+        msg: "Title cannot be empty"
+      },
+      len: {
+        args: [1, 255],
+        msg: "Title must be between 1 and 255 characters"
+      }
+    }
   })
   title!: string;
 
@@ -58,6 +71,12 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     type: DataType.ENUM(...Object.values(TaskPriority)),
     allowNull: false,
     defaultValue: TaskPriority.MEDIUM,
+    validate: {
+      isIn: {
+        args: [Object.values(TaskPriority)],
+        msg: "Priority must be Low, Medium, or High"
+      }
+    }
   })
   priority!: TaskPriority;
 
@@ -65,6 +84,12 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     type: DataType.ENUM(...Object.values(TaskStatus)),
     allowNull: false,
     defaultValue: TaskStatus.OPEN,
+    validate: {
+      isIn: {
+        args: [Object.values(TaskStatus)],
+        msg: "Status must be Open, In Progress, Completed, Overdue, or Deleted"
+      }
+    }
   })
   status!: TaskStatus;
 
@@ -87,8 +112,10 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   })
   updated_at?: Date;
 
-  static createNewTask(task: ITask): TasksModel {
-    return new TasksModel(task);
+  static async createNewTask(task: ITask): Promise<TasksModel> {
+    const taskModel = new TasksModel(task);
+    await taskModel.validateTaskData();
+    return taskModel;
   }
 
   async updateTask(updateData: {
@@ -117,6 +144,113 @@ export class TasksModel extends Model<TasksModel> implements ITask {
     }
     if (updateData.categories !== undefined) {
       this.categories = updateData.categories;
+    }
+
+    // Validate updated data before persisting
+    await this.validateTaskData();
+
+    // Persist changes to database
+    await this.save();
+  }
+
+  /**
+   * Validate task data with comprehensive checks
+   */
+  async validateTaskData(): Promise<void> {
+    // Validate title
+    if (!stringValidation(this.title, 1, 255)) {
+      throw new ValidationException(
+        "Title must be between 1 and 255 characters",
+        "title",
+        this.title
+      );
+    }
+
+    // Validate description length (optional field)
+    if (this.description !== undefined && this.description !== null) {
+      if (!stringValidation(this.description, 0, 5000, true)) {
+        throw new ValidationException(
+          "Description cannot exceed 5000 characters",
+          "description",
+          this.description
+        );
+      }
+    }
+
+    // Validate creator_id
+    if (!numberValidation(this.creator_id, 1)) {
+      throw new ValidationException(
+        "Valid creator_id is required (must be >= 1)",
+        "creator_id",
+        this.creator_id
+      );
+    }
+
+    // Validate organization_id (optional field)
+    if (this.organization_id !== undefined && this.organization_id !== null) {
+      if (!numberValidation(this.organization_id, 1)) {
+        throw new ValidationException(
+          "Valid organization_id is required (must be >= 1)",
+          "organization_id",
+          this.organization_id
+        );
+      }
+    }
+
+    // Validate priority
+    if (!enumValidation(this.priority, Object.values(TaskPriority))) {
+      throw new ValidationException(
+        "Invalid priority value",
+        "priority",
+        this.priority
+      );
+    }
+
+    // Validate status
+    if (!enumValidation(this.status, Object.values(TaskStatus))) {
+      throw new ValidationException(
+        "Invalid status value",
+        "status",
+        this.status
+      );
+    }
+
+    // Validate due_date (must be in the future for new tasks)
+    if (this.due_date && this.due_date <= new Date() && this.status === TaskStatus.OPEN) {
+      throw new ValidationException(
+        "Due date must be in the future for new tasks",
+        "due_date",
+        this.due_date
+      );
+    }
+
+    // Validate categories array
+    if (this.categories) {
+      if (!Array.isArray(this.categories)) {
+        throw new ValidationException(
+          "Categories must be an array",
+          "categories",
+          this.categories
+        );
+      }
+
+      for (const category of this.categories) {
+        if (!stringValidation(category, 1, 50)) {
+          throw new ValidationException(
+            "Each category must be between 1 and 50 characters",
+            "categories",
+            category
+          );
+        }
+      }
+
+      if (this.categories.length > 10) {
+        throw new ValidationException(
+          "Maximum 10 categories allowed",
+          "categories",
+          this.categories
+        );
+      }
     }
   }
 

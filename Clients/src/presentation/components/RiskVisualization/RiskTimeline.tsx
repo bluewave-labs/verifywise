@@ -40,10 +40,10 @@ const RiskTimeline: React.FC<RiskTimelineProps> = ({ risks }) => {
     }
   };
 
-  const formatDate = (dateString: string): string => {
+  const formatDate = (date: Date | string): string => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return dateObj.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric',
         year: 'numeric'
@@ -54,13 +54,13 @@ const RiskTimeline: React.FC<RiskTimelineProps> = ({ risks }) => {
   };
 
   const sortedRisks = [...risks].sort((a, b) => {
-    const dateA = new Date(a.created_at || 0);
-    const dateB = new Date(b.created_at || 0);
+    const dateA = new Date(a.date_of_assessment || 0);
+    const dateB = new Date(b.date_of_assessment || 0);
     return dateB.getTime() - dateA.getTime();
   });
 
   const groupedByMonth = sortedRisks.reduce((acc, risk) => {
-    const date = new Date(risk.created_at || 0);
+    const date = new Date(risk.date_of_assessment || 0);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     
@@ -139,7 +139,7 @@ const RiskTimeline: React.FC<RiskTimelineProps> = ({ risks }) => {
                       </Typography>
                       <Typography sx={{ fontSize: 12, color: "#6B7280", mt: 0.5 }}>
                         Owner: {risk.risk_owner || "Unassigned"} • 
-                        Created: {formatDate(risk.created_at || "")}
+                        Assessed: {formatDate(risk.date_of_assessment || "")}
                       </Typography>
                     </Box>
                     

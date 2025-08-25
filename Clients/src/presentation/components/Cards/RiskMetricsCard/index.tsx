@@ -31,8 +31,8 @@ const RiskMetricsCard: React.FC<RiskMetricsCardProps> = ({ risks }) => {
     ).length;
     
     const recentRisks = risks.filter(r => {
-      if (!r.created_at) return false;
-      const riskDate = new Date(r.created_at);
+      if (!r.date_of_assessment) return false;
+      const riskDate = new Date(r.date_of_assessment);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       return riskDate >= thirtyDaysAgo;

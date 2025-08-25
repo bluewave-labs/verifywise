@@ -20,10 +20,6 @@ import allowedRoles from "../../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
-import RiskMetricsCard from "../../../../components/Cards/RiskMetricsCard";
-import RiskVisualizationTabs from "../../../../components/RiskVisualization/RiskVisualizationTabs";
-import RiskFilters from "../../../../components/RiskVisualization/RiskFilters";
-import { EnhancedRiskSummary, RiskMetrics } from "../../../../../domain/interfaces/iRiskSummary";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -91,12 +87,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     riskLevel: number;
     reviewNotes: string;
   } | null>(null);
-  
-  // New state for enhanced risk visualization
-  const [selectedRisk, setSelectedRisk] = useState<ProjectRisk | null>(null);
-  const [riskFilters, setRiskFilters] = useState<any>(null);
-  const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
 
   const fetchProjectRisks = useCallback(async () => {
     try {
@@ -105,7 +95,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       });
       setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
-      setFilteredRisks(response.data); // Initialize filtered risks
     } catch (error) {
       console.error("Error fetching project risks:", error);
       handleToast(
@@ -255,114 +244,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setCurrentPage(page);
   };
 
-  const getEnhancedRiskSummary = (): EnhancedRiskSummary => {
-    if (!projectRisksSummary) {
-      return {
-        veryHighRisks: 0,
-        highRisks: 0,
-        mediumRisks: 0,
-        lowRisks: 0,
-        veryLowRisks: 0,
-      };
-    }
-
-    const mockTrends = {
-      veryHighTrend: { direction: 'stable' as const, change: 0, period: 'week' as const },
-      highTrend: { direction: 'up' as const, change: 2, period: 'week' as const },
-      mediumTrend: { direction: 'down' as const, change: 1, period: 'week' as const },
-      lowTrend: { direction: 'stable' as const, change: 0, period: 'week' as const },
-      veryLowTrend: { direction: 'up' as const, change: 1, period: 'week' as const },
-    };
-
-    return {
-      ...projectRisksSummary,
-      trends: mockTrends,
-      velocity: {
-        newRisksThisWeek: 2,
-        resolvedRisksThisWeek: 3,
-        overdueRisks: getOverdueRisksCount(),
-      },
-    };
-  };
-
-  const handleRiskLevelFilter = (level: string) => {
-    const filteredRisks = projectRisks.filter(risk => {
-      const riskLevel = risk.riskLevel;
-      switch (level) {
-        case 'veryHigh':
-          return riskLevel >= 16;
-        case 'high':
-          return riskLevel >= 12 && riskLevel < 16;
-        case 'medium':
-          return riskLevel >= 8 && riskLevel < 12;
-        case 'low':
-          return riskLevel >= 4 && riskLevel < 8;
-        case 'veryLow':
-          return riskLevel < 4;
-        default:
-          return true;
-      }
-    });
-    
-    setRiskFilters({ level, risks: filteredRisks });
-    handleToast("info", `Filtered to show ${filteredRisks.length} ${level.replace(/([A-Z])/g, ' $1').toLowerCase()} risks`);
-  };
-
-  const getRiskMetrics = (): RiskMetrics => {
-    const totalRisks = projectRisks.length;
-    const resolvedRisks = projectRisks.filter(risk => 
-      risk.mitigations?.some(m => m.status === 'completed')
-    ).length;
-    
-    const newRisksThisWeek = 2;
-    const resolvedThisWeek = 3;
-    const riskVelocity = newRisksThisWeek - resolvedThisWeek;
-    
-    const mitigationProgress = totalRisks > 0 ? Math.round((resolvedRisks / totalRisks) * 100) : 0;
-    
-    const totalFinancialImpact = projectRisks.reduce((sum, risk) => {
-      return sum + (risk.potentialImpact?.match(/\$(\d+(?:,\d+)*)/)?.[1]?.replace(/,/g, '') || 0);
-    }, 0);
-    
-    return {
-      riskVelocity,
-      mitigationProgress,
-      overdueCount: getOverdueRisksCount(),
-      totalFinancialImpact: typeof totalFinancialImpact === 'string' ? 0 : totalFinancialImpact,
-    };
-  };
-
-  const getOverdueRisksCount = (): number => {
-    const now = new Date();
-    return projectRisks.filter(risk => {
-      if (!risk.mitigations || risk.mitigations.length === 0) return false;
-      
-      return risk.mitigations.some(mitigation => {
-        if (!mitigation.deadline || mitigation.status === 'completed') return false;
-        const deadline = new Date(mitigation.deadline);
-        return deadline < now;
-      });
-    }).length;
-  };
-
-  const handleVisualizationFilter = (filters: any) => {
-    setRiskFilters(filters);
-    if (filters.selectedRisk) {
-      setSelectedRisk(filters.selectedRisk);
-    }
-  };
-
-  const handleRiskSelect = (risk: ProjectRisk) => {
-    setSelectedRisk(risk);
-    // Removed detail panel opening - just keep risk selected for visualization highlighting
-  };
-
-
-  const handleRiskFilterChange = (filtered: ProjectRisk[], filters: any) => {
-    setFilteredRisks(filtered);
-    setActiveFilters(filters);
-  };
-
   return (
     <Stack className="vw-project-risks" key={refreshKey}>
       {alert && (
@@ -380,33 +261,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
-        <RisksCard 
-          risksSummary={getEnhancedRiskSummary()} 
-          onRiskLevelClick={handleRiskLevelFilter}
-        />
-        <RiskMetricsCard 
-          metrics={getRiskMetrics()}
-          velocity={{
-            newRisksThisWeek: 2,
-            resolvedRisksThisWeek: 3,
-            overdueRisks: getOverdueRisksCount()
-          }}
-        />
+        <RisksCard risksSummary={projectRisksSummary} />
       </Stack>
-      
-      {/* Risk Filters */}
-      <RiskFilters
-        risks={projectRisks}
-        onFilterChange={handleRiskFilterChange}
-      />
-      
-      {/* Risk Visualization Section */}
-      <RiskVisualizationTabs
-        risks={filteredRisks}
-        selectedRisk={selectedRisk}
-        onRiskSelect={handleRiskSelect}
-        onFilterChange={handleVisualizationFilter}
-      />
       <br />
       <Stack
         className="vw-project-risks-row"
@@ -500,7 +356,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         ) : (
           <VWProjectRisksTable
             columns={TITLE_OF_COLUMNS}
-            rows={filteredRisks}
+            rows={projectRisks}
             setPage={setCurrentPagingation}
             page={currentPage}
             setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}

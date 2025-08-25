@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useContext, useEffect, useState } from "react";
-import { Box, Stack, Typography, Grid } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
@@ -93,7 +93,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   // New state for enhanced risk visualization
   const [selectedRisk, setSelectedRisk] = useState<ProjectRisk | null>(null);
   const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+  const [, setActiveFilters] = useState<any>(null);
 
   const fetchProjectRisks = useCallback(async () => {
     try {

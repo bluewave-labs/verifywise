@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { Box, Stack, Typography } from "@mui/material";
-import TimelineIcon from "@mui/icons-material/Timeline";
-import CategoryIcon from "@mui/icons-material/Category";
+import { Box } from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import RiskHeatMap from "./RiskHeatMap";
 import RiskCategories from "./RiskCategories";
@@ -38,18 +36,16 @@ interface RiskVisualizationTabsProps {
   risks: ProjectRisk[];
   selectedRisk?: ProjectRisk | null;
   onRiskSelect?: (risk: ProjectRisk) => void;
-  onFilterChange?: (filters: any) => void;
 }
 
 const RiskVisualizationTabs: React.FC<RiskVisualizationTabsProps> = ({
   risks,
   selectedRisk,
   onRiskSelect,
-  onFilterChange,
 }) => {
   const [value, setValue] = useState(0);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 

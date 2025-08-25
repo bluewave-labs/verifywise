@@ -1,4 +1,4 @@
-import { Stack, Typography, Box, Grid } from "@mui/material";
+import { Typography, Box, Grid } from "@mui/material";
 import SpeedIcon from "@mui/icons-material/Speed";
 import { RiskMetrics } from "../../../../domain/interfaces/iRiskSummary";
 

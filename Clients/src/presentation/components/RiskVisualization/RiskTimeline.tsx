@@ -4,7 +4,6 @@ import {
   Typography,
   Stack,
   Chip,
-  useTheme,
 } from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 
@@ -26,10 +25,8 @@ interface TimelineEvent {
 
 const RiskTimeline: React.FC<RiskTimelineProps> = ({
   risks,
-  selectedRisk,
   onRiskSelect,
 }) => {
-  const theme = useTheme();
 
   const getRiskLevelFromString = (level: string): number => {
     if (!level) return 0;
@@ -103,43 +100,8 @@ const RiskTimeline: React.FC<RiskTimelineProps> = ({
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [risks]);
 
-  const getEventIcon = (type: string) => {
-    switch (type) {
-      case 'created':
-        return '🆕';
-      case 'resolved':
-        return '✅';
-      case 'escalated':
-        return '⬆️';
-      case 'mitigated':
-        return '🛡️';
-      default:
-        return '📋';
-    }
-  };
 
-  const getEventTypeLabel = (type: string) => {
-    switch (type) {
-      case 'created':
-        return 'Created';
-      case 'resolved':
-        return 'Resolved';
-      case 'escalated':
-        return 'Escalated';
-      case 'mitigated':
-        return 'Mitigated';
-      default:
-        return 'Event';
-    }
-  };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
 
   const formatTime = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -227,7 +189,7 @@ const RiskTimeline: React.FC<RiskTimelineProps> = ({
               </Box>
 
               {/* Events for this month */}
-              {events.map((event, index) => (
+              {events.map((event) => (
                 <Box
                   key={event.id}
                   sx={{

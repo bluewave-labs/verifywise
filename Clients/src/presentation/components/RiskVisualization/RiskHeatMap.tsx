@@ -4,7 +4,6 @@ import {
   Typography,
   Tooltip,
   Stack,
-  Paper,
   useTheme,
 } from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
@@ -126,7 +125,7 @@ const RiskHeatMap: React.FC<RiskHeatMapProps> = ({
               <Box sx={{ mt: 1 }}>
                 {cell.risks.slice(0, 3).map((risk, idx) => (
                   <Typography key={idx} variant="caption" display="block">
-                    • {risk.risk_name || risk.riskName || `Risk ${risk.id}`}
+                    • {risk.risk_name || `Risk ${risk.id}`}
                   </Typography>
                 ))}
                 {cell.risks.length > 3 && (

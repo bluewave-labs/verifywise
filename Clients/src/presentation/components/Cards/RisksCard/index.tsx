@@ -16,10 +16,9 @@ import { risksSummary, EnhancedRiskSummary, RiskTrend } from "../../../../domain
 
 interface RisksCardProps {
   risksSummary: risksSummary | EnhancedRiskSummary;
-  onRiskLevelClick?: (level: string) => void;
 }
 
-const RisksCard = ({ risksSummary, onRiskLevelClick }: RisksCardProps) => {
+const RisksCard = ({ risksSummary }: RisksCardProps) => {
   const getValidRiskValue = (value: number) => (isNaN(value) ? 0 : value);
 
   const renderTrendIndicator = (trend?: RiskTrend) => {
@@ -55,7 +54,7 @@ const RisksCard = ({ risksSummary, onRiskLevelClick }: RisksCardProps) => {
     );
   };
 
-  const getTrendTooltip = (trend?: RiskTrend, level: string) => {
+  const getTrendTooltip = (trend: RiskTrend | undefined, level: string) => {
     if (!trend) return "";
     const direction = trend.direction === 'up' ? 'increased' : 
                      trend.direction === 'down' ? 'decreased' : 'remained stable';

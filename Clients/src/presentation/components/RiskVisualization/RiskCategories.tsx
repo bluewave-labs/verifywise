@@ -12,7 +12,6 @@ import {
 import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  CategoryOutlined as CategoryIcon,
 } from "@mui/icons-material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { getAllUsers } from "../../../application/repository/user.repository";
@@ -148,9 +147,6 @@ const RiskCategories: React.FC<RiskCategoriesProps> = ({
     setExpandedCategory(expandedCategory === categoryName ? null : categoryName);
   };
 
-  const getTotalRisksForLevel = (category: CategoryGroup, level: keyof CategoryGroup['riskLevels']) => {
-    return category.riskLevels[level];
-  };
 
   const getMostCriticalLevel = (category: CategoryGroup) => {
     if (category.riskLevels.veryHigh > 0) return { level: 20, color: getRiskLevelColor(20) };

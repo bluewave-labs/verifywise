@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Function to send an email
 export const sendEmail = async (
-  to: string,gi
+  to: string,
   subject: string,
   template: string,
   data: Record<string, string>

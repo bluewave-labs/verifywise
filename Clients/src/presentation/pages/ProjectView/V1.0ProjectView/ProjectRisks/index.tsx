@@ -1,9 +1,11 @@
 import { Suspense, useCallback, useContext, useEffect, useState } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, Grid } from "@mui/material";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import RisksCard from "../../../../components/Cards/RisksCard";
+import RiskMetricsCard from "../../../../components/Cards/RiskMetricsCard";
+import RiskVisualizationTabs from "../../../../components/RiskVisualization/RiskVisualizationTabs";
 import { rowStyle } from "./style";
 import CustomizableButton from "../../../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -262,6 +264,17 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
         <RisksCard risksSummary={projectRisksSummary} />
+      </Stack>
+      <br />
+      
+      <Stack spacing={3}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <RiskMetricsCard risks={projectRisks} />
+          </Grid>
+        </Grid>
+        
+        <RiskVisualizationTabs risks={projectRisks} />
       </Stack>
       <br />
       <Stack

@@ -27,6 +27,8 @@ import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
+import { extractUserToken } from "../../../../application/tools/extractToken";
+import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 
 
 const Home = () => {
@@ -87,6 +89,17 @@ const Home = () => {
     setIsProjectFormModalOpen(false);
     setRefreshProjectsFlag((prev) => !prev);
   };
+
+  const userToken = extractUserToken(getAuthToken());
+  const organizationId = userToken?.organizationId;
+
+  useEffect(() => {
+    const fetchOrganizationTierId = async () => {
+      console.log("organizationId", organizationId);
+    }
+
+    fetchOrganizationTierId();
+  }, [organizationId]);
 
   const handleGenerateDemoDataClick = async () => {
     setShowToastNotification(true);

@@ -51,13 +51,13 @@ export class TasksModel extends Model<TasksModel> implements ITask {
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
+    allowNull: true,
   })
   creator_id!: number;
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
+    allowNull: true,
   })
   organization_id!: number;
 

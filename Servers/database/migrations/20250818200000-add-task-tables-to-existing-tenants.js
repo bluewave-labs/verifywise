@@ -193,7 +193,7 @@ async function createTaskTablesForTenant(queryInterface, tenantHash, transaction
       CONSTRAINT tasks_pkey PRIMARY KEY (id),
       CONSTRAINT tasks_creator_id_fkey FOREIGN KEY (creator_id)
         REFERENCES public.users (id) MATCH SIMPLE
-        ON UPDATE CASCADE ON DELETE CASCADE,
+        ON UPDATE CASCADE ON DELETE SET NULL,
       CONSTRAINT tasks_organization_id_fkey FOREIGN KEY (organization_id)
         REFERENCES public.organizations (id) MATCH SIMPLE
         ON UPDATE CASCADE ON DELETE SET NULL

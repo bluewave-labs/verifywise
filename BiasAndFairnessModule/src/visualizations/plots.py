@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, accuracy_score
 import pandas as pd
-from eval_engine.metrics import equalized_odds
+from eval_engine.metrics import equalized_odds, compute_group_metrics
 from sklearn.calibration import calibration_curve
+import seaborn as sns
 
 
 def plot_demographic_parity(
@@ -303,6 +304,63 @@ def create_fairness_vs_accuracy_plot(
     ax.set_xlabel("Accuracy")
     ax.set_ylabel("Equalized Odds Difference")
     ax.set_title("Fairness vs Accuracy Trade-off")
+    plt.tight_layout()
+    plt.show()
+
+    return fig, ax
+
+
+def plot_group_metrics_boxplots(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    sensitive_attr: np.ndarray,
+):
+    """
+    Boxplots of per-group fairness metrics (TPR, FPR, PPV, NPV) across groups.
+
+    Parameters
+    ----------
+    y_true : np.ndarray
+        Ground truth labels (0/1).
+    y_pred : np.ndarray
+        Predicted labels (0/1).
+    sensitive_attr : np.ndarray
+        Encoded sensitive attribute values.
+    """
+
+    y_true = np.asarray(y_true).ravel()
+    y_pred = np.asarray(y_pred).ravel()
+    sensitive_attr = np.asarray(sensitive_attr).ravel()
+
+    if not (y_true.shape[0] == y_pred.shape[0] == sensitive_attr.shape[0]):
+        raise ValueError("y_true, y_pred, and sensitive_attr must have the same length")
+
+    df_metrics = compute_group_metrics(y_true, y_pred, sensitive_attr)
+    if df_metrics.empty:
+        raise ValueError("No data available to plot group metrics boxplots")
+
+    df_melted = df_metrics.melt(id_vars="group", var_name="Metric", value_name="Value")
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.boxplot(data=df_melted, x="Metric", y="Value", ax=ax)
+    # Overlay per-group points for visibility and legend
+    sns.stripplot(
+        data=df_melted,
+        x="Metric",
+        y="Value",
+        hue="group",
+        dodge=True,
+        alpha=0.7,
+        linewidth=0,
+        ax=ax,
+    )
+
+    ax.set_title("Fairness Metrics Across Groups")
+    ax.set_xlabel("Metric")
+    ax.set_ylabel("Value")
+    ax.set_ylim(0, 1)
+    ax.grid(True, linestyle="--", alpha=0.4, axis="y")
+    ax.legend(title="Group", bbox_to_anchor=(1.02, 1), loc="upper left")
     plt.tight_layout()
     plt.show()
 

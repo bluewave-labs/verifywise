@@ -5,20 +5,22 @@ const { DataTypes } = require("sequelize");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Add new provider and model columns to model_inventories table
-    await queryInterface.addColumn("model_inventories", "provider", {
-      type: Sequelize.STRING,
-      allowNull: true, // Initially allow null for data migration
-    });
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      // Add new provider and model columns to model_inventories table
+      await queryInterface.addColumn("model_inventories", "provider", {
+        type: Sequelize.STRING,
+        allowNull: true, // Initially allow null for data migration
+      }, { transaction });
 
-    await queryInterface.addColumn("model_inventories", "model", {
-      type: Sequelize.STRING,
-      allowNull: true, // Initially allow null for data migration
-    });
+      await queryInterface.addColumn("model_inventories", "model", {
+        type: Sequelize.STRING,
+        allowNull: true, // Initially allow null for data migration
+      }, { transaction });
 
-    // Migrate existing data from provider_model to provider and model columns
-    // This will attempt to intelligently split the provider_model field
-    await queryInterface.sequelize.query(`
+      // Migrate existing data from provider_model to provider and model columns
+      // This will attempt to intelligently split the provider_model field
+      await queryInterface.sequelize.query(`
       UPDATE model_inventories 
       SET 
         provider = CASE
@@ -57,20 +59,34 @@ module.exports = {
           ELSE ''
         END
       WHERE provider IS NULL AND model IS NULL;
-    `);
+    `, { transaction });
 
-    // Add indexes for the new columns for better performance
-    await queryInterface.addIndex("model_inventories", ["provider"]);
-    await queryInterface.addIndex("model_inventories", ["model"]);
+      // Add indexes for the new columns for better performance
+      await queryInterface.addIndex("model_inventories", ["provider"], { transaction });
+      await queryInterface.addIndex("model_inventories", ["model"], { transaction });
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   },
 
   async down(queryInterface, Sequelize) {
-    // Remove indexes first
-    await queryInterface.removeIndex("model_inventories", ["provider"]);
-    await queryInterface.removeIndex("model_inventories", ["model"]);
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      // Remove indexes first
+      await queryInterface.removeIndex("model_inventories", ["provider"], { transaction });
+      await queryInterface.removeIndex("model_inventories", ["model"], { transaction });
 
-    // Remove the new columns
-    await queryInterface.removeColumn("model_inventories", "provider");
-    await queryInterface.removeColumn("model_inventories", "model");
+      // Remove the new columns
+      await queryInterface.removeColumn("model_inventories", "provider", { transaction });
+      await queryInterface.removeColumn("model_inventories", "model", { transaction });
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   },
 };

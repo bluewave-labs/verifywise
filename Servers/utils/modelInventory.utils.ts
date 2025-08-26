@@ -4,7 +4,7 @@ import { Transaction } from "sequelize";
 
 export const getAllModelInventoriesQuery = async (tenant: string) => {
   const modelInventories = await sequelize.query(
-    `SELECT * FROM model_inventories ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".model_inventories ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: ModelInventoryModel,
@@ -18,7 +18,7 @@ export const getModelInventoryByIdQuery = async (
   tenant: string
 ) => {
   const modelInventory = await sequelize.query(
-    `SELECT * FROM model_inventories WHERE id = :id`,
+    `SELECT * FROM "${tenant}".model_inventories WHERE id = :id`,
     {
       replacements: { id },
       mapToModel: true,
@@ -41,7 +41,7 @@ export const createNewModelInventoryQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, is_demo, created_at, updated_at)
+      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, is_demo, created_at, updated_at)
         VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {
@@ -84,7 +84,7 @@ export const updateModelInventoryByIdQuery = async (
   try {
     // First update the record
     await sequelize.query(
-      `UPDATE model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
+      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
       {
         replacements: {
           id,
@@ -108,7 +108,7 @@ export const updateModelInventoryByIdQuery = async (
 
     // Then fetch the updated record
     const result = await sequelize.query(
-      `SELECT * FROM model_inventories WHERE id = :id`,
+      `SELECT * FROM "${tenant}".model_inventories WHERE id = :id`,
       {
         replacements: { id },
         mapToModel: true,
@@ -131,7 +131,7 @@ export const deleteModelInventoryByIdQuery = async (
 ) => {
   try {
     const result = await sequelize.query(
-      `DELETE FROM model_inventories WHERE id = :id`,
+      `DELETE FROM "${tenant}".model_inventories WHERE id = :id`,
       {
         replacements: { id },
         transaction,

@@ -53,6 +53,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           top: theme.spacing(1),
           color: "#667085",
           backgroundColor: "transparent",
+          zIndex: 1200,
         }}
       >
         <InfoOutlinedIcon />

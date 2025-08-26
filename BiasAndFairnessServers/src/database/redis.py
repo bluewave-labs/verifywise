@@ -1,5 +1,5 @@
 import os
-import aioredis
+import redis.asyncio as aioredis
 import json
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -9,7 +9,7 @@ redis = None
 async def get_redis():
     global redis
     if not redis:
-        redis = await aioredis.from_url(REDIS_URL, decode_responses=True)
+        redis = aioredis.from_url(REDIS_URL, decode_responses=True)
     return redis
 
 async def close_redis():

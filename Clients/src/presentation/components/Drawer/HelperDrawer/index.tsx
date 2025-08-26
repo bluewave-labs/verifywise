@@ -4,11 +4,9 @@ import {
   IconButton,
   Stack,
   Typography,
-  useTheme,
   Divider,
   Box,
 } from "@mui/material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import { HelperDrawerProps } from "./drawertype";
 import DOMPurify from "dompurify";
@@ -19,7 +17,6 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   isOpen,
   onClose,
 }) => {
-  const theme = useTheme();
 
   const sanitizedContent = useMemo(
     () =>
@@ -41,40 +38,22 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   );
 
   return (
-    <>
-      <IconButton
-        disableRipple
-        onClick={() => (!isOpen ? onClose() : null)}
-        aria-label="Open help information"
-        size="large"
-        sx={{
-          position: "absolute",
-          right: theme.spacing(1),
-          top: theme.spacing(1),
-          color: "#667085",
-          backgroundColor: "transparent",
-          zIndex: 1200,
-        }}
-      >
-        <InfoOutlinedIcon />
-      </IconButton>
-
-      <Drawer
-        anchor="right"
-        open={isOpen}
-        onClose={onClose}
-        variant="temporary"
-        sx={{
+    <Drawer
+      anchor="right"
+      open={isOpen}
+      onClose={onClose}
+      variant="temporary"
+      sx={{
+        width: 600,
+        margin: 0,
+        "& .MuiDrawer-paper": {
           width: 600,
           margin: 0,
-          "& .MuiDrawer-paper": {
-            width: 600,
-            margin: 0,
-            borderRadius: 0,
-            overflowX: "hidden",
-          },
-        }}
-      >
+          borderRadius: 0,
+          overflowX: "hidden",
+        },
+      }}
+    >
         <Stack
           sx={{
             width: 600,
@@ -192,7 +171,6 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
           </Stack>
         </Stack>
       </Drawer>
-    </>
   );
 };
 

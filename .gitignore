@@ -13,3 +13,4 @@ venv/
 express.log
 fastapi.log
 react.log
+.idea/

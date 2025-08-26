@@ -15,6 +15,8 @@
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance. 
 
+VerifyWise also has additional products - [MaskWise](https://github.com/bluewave-labs/maskwise) which helps you detect, redact, mask, and anonymize sensitive data across text, images, and structured data in training datasets for LLM systems, and [FlagWise](https://github.com/bluewave-labs/flagwise), which monitors, detects, and analyzes security threats and Shadow AI in your LLM applications.
+
 ## Quick links
 
 - The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
@@ -25,7 +27,7 @@ We are democratizing AI best practices with an open-source solution that can be 
 
 ## Screenshot
 
-![SCR-20250619-jrmy-2-scaled](https://github.com/user-attachments/assets/1fc614e4-76f3-45a4-b2e4-8cb5a29dfd38)
+<img width="1319" height="740" alt="image" src="https://github.com/user-attachments/assets/576cf117-02a2-47e9-950f-e5b50c3b4005" />
 
 
 ## Who is it for?
@@ -92,6 +94,9 @@ The VerifyWise application has two components: a frontend built with React.js an
 Prerequisites: 
 - npm and Docker
 - A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
+- Available ports: 5173 (frontend), 8080 (backend), 5432 (database)
+
+#### Step 1: Clone and install dependencies
 
 First, clone the repository to your local machine and go to verifywise directory. Then, navigate to the Clients directory and install the dependencies:
 
@@ -99,14 +104,8 @@ First, clone the repository to your local machine and go to verifywise directory
 git clone https://github.com/bluewave-labs/verifywise.git
 cd verifywise
 cd Clients
-npm i
-```
-
-Navigate back to the `/Servers` directory under root to install the dependencies:
-
-```
-cd ..
-cd Servers
+npm install
+cd ../Servers
 npm install
 ```
 
@@ -152,6 +151,8 @@ npm run dev
 ```
 
 **Note:** Make sure to replace {env variable password} with the actual password from your environment variables.
+
+**Note:** Since no users exist by default, you'll see the admin registration page first. Register your admin account here. After registration, you'll be redirected to login, and will be able to use your new credentials.
 
 ### Installation using Docker (production)
 
@@ -207,6 +208,9 @@ If you want to re-run install.sh for some reason (e.g want to change a configura
 docker-compose --env-file .env.prod down
 ./install.sh
 ```
+
+**Note:** Since no users exist by default, you'll see the admin registration page first. Register your admin account here. After registration, you'll be redirected to login, and will be able to use your new credentials.
+
 
 ### Installing SSL
 

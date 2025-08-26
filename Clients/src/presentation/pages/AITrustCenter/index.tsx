@@ -22,6 +22,7 @@ import CustomizableButton from "../../vw-v2-components/Buttons";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import aiTrustCenterHelpContent from "../../../presentation/helpers/ai-trust-center-help.html?raw";
 
 const AITrustCenter: React.FC = () => {
@@ -60,10 +61,15 @@ const AITrustCenter: React.FC = () => {
         pageTitle="AI Trust Center"
       />
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
-        <Typography sx={aiTrustCenterHeaderTitle}>AI trust center</Typography>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Typography sx={aiTrustCenterHeaderTitle}>AI trust center</Typography>
+          <HelperIcon 
+            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            size="small"
+          />
+        </Stack>
         <Typography sx={aiTrustCenterHeaderDesc}>
-          Manage and monitor AI governance, compliance, and trust-related
-          activities
+          AI Trust Center centralizes your AI policies, certifications, and subprocessors to demonstrate responsible, transparent, and compliant AI practices.
         </Typography>
       </Stack>
       <Stack className="vw-project-view-body">

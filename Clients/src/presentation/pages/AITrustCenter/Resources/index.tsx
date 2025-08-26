@@ -286,7 +286,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   };
   
   const handleEditResource = (resourceId: number) => {
-    if (!formData?.info?.resources_visible) return;
+    if (!formData?.info?.resources_visible || !resources) return;
     const resource = resources.find(r => r.id === resourceId);
     if (resource) {
       handleOpenEditModal(resource);
@@ -294,7 +294,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   };
   
   const handleDeleteResource = async (resourceId: number) => {
-    if (!formData?.info?.resources_visible) return;
+    if (!formData?.info?.resources_visible || !resources) return;
     try {
       await deleteResourceMutation.mutateAsync(resourceId);
       handleAlert({
@@ -308,7 +308,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   };
   
   const handleMakeVisible = async (resourceId: number) => {
-    if (!formData?.info?.resources_visible) return;
+    if (!formData?.info?.resources_visible || !resources) return;
     const resource = resources.find(r => r.id === resourceId);
     if (resource) {
       try {
@@ -329,7 +329,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
   };
   
   const handleDownload = async (resourceId: number) => {
-    if (!formData?.info?.resources_visible) return;
+    if (!formData?.info?.resources_visible || !resources) return;
     
     try {
       // Find the resource to get its name for the download
@@ -363,11 +363,21 @@ const [formData, setFormData] = useState<FormData | null>(null);
 
   // Show error state
   if (overviewError || resourcesError) {
+    const errorMessage = overviewError?.message || resourcesError?.message || 'An error occurred';
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
         <Typography color="error">
-          {overviewError || resourcesError}
+          {errorMessage}
         </Typography>
+      </Box>
+    );
+  }
+
+  // Ensure resources is available before rendering
+  if (!resources) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Typography>No resources data available</Typography>
       </Box>
     );
   }
@@ -414,7 +424,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
                 </TableRow>
               </TableHead>
               <TableBody>
-                {resources.length > 0 ? (
+                {resources && resources.length > 0 ? (
                   resources.map((resource) => (
                     <ResourceTableRow
                       key={resource.id}

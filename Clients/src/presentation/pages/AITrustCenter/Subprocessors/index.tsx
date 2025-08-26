@@ -270,7 +270,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
   };
 
   const handleEdit = (subprocessorId: number) => {
-    if (!formData?.info?.subprocessor_visible) return;
+    if (!formData?.info?.subprocessor_visible || !subprocessors) return;
     const subprocessor = subprocessors.find(sp => sp.id === subprocessorId);
     if (subprocessor) {
       handleOpenEditModal(subprocessor);
@@ -278,7 +278,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
   };
 
   const handleDelete = async (subprocessorId: number) => {
-    if (!formData?.info?.subprocessor_visible) return;
+    if (!formData?.info?.subprocessor_visible || !subprocessors) return;
     try {
       await deleteSubprocessorMutation.mutateAsync(subprocessorId);
       handleAlert({
@@ -305,8 +305,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
         <Typography color="error">
-          {overviewError || subprocessorsError}
+          {overviewError?.message || subprocessorsError?.message || 'An error occurred'}
         </Typography>
+      </Box>
+    );
+  }
+
+  // Ensure subprocessors is available before rendering
+  if (!subprocessors) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <Typography>No subprocessors data available</Typography>
       </Box>
     );
   }
@@ -350,7 +359,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {subprocessors.length > 0 ? (
+                {subprocessors && subprocessors.length > 0 ? (
                   subprocessors.map((sp) => (
                     <SubprocessorTableRow
                       key={sp.id}

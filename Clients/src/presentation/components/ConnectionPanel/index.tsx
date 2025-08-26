@@ -10,7 +10,7 @@ import {
 import StatusPill from "../StatusPill";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { IntegrationStatus, IntegrationProvider } from "../IntegrationCard";
-import { useAuth } from "../../../application/hooks/useAuth";
+// import { useAuth } from "../../../application/hooks/useAuth";
 import { disconnectConfluence } from "../../../application/repository/integration.repository";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { getAuthToken } from "../../../application/redux/auth/getAuthToken";

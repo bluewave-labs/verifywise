@@ -6,7 +6,14 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import { useCallback, useContext, useMemo, useState, useEffect, Suspense } from "react";
+import {
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+  Suspense,
+} from "react";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import createUppy from "../../../application/tools/createUppy";
@@ -53,19 +60,21 @@ const QuestionFrame = ({
   const { userId, userRoleName } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<Question>({
     ...question,
-    risks: question.risks || []
+    risks: question.risks || [],
   });
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
 
   const authToken = useSelector((state: any) => state.auth.authToken);
   const [alert, setAlert] = useState<AlertProps | null>(null);
-  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
+    useState<boolean>(false);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
-  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
+    useState<boolean>(false);
 
   const isEditingDisabled = !(allowedRoles?.frameworks?.edit || []).includes(
-    userRoleName || ''
+    userRoleName || ""
   );
 
   const STATUS_OPTIONS = [
@@ -82,12 +91,15 @@ const QuestionFrame = ({
   }, []);
 
   const handleStatusChange = (field: string, statusValue: string | number) => {
-    if (field === "status" && statusValue === "Done"
-        && (selectedRisks.length > 0 || (values.risks?.length || 0) > 0 || (
-          (values.risks?.length || 0) > 0 && deletedRisks.length === (values.risks?.length || 0)
-        ))
-      ) {
-      setAuditedStatusModalOpen(true)
+    if (
+      field === "status" &&
+      statusValue === "Done" &&
+      (selectedRisks.length > 0 ||
+        (values.risks?.length || 0) > 0 ||
+        ((values.risks?.length || 0) > 0 &&
+          deletedRisks.length === (values.risks?.length || 0)))
+    ) {
+      setAuditedStatusModalOpen(true);
     }
     setValues((prevValues) => ({
       ...prevValues,
@@ -98,7 +110,7 @@ const QuestionFrame = ({
   useEffect(() => {
     setValues({
       ...question,
-      risks: question.risks || []
+      risks: question.risks || [],
     });
   }, [question, currentProjectId]);
 
@@ -107,9 +119,9 @@ const QuestionFrame = ({
       onChangeFiles: handleChangeEvidenceFiles,
       allowedMetaFields: ["question_id", "user_id", "project_id", "delete"],
       meta: {
-        question_id: question.question_id || '',
-        user_id: userId || '',
-        project_id: currentProjectId?.toString() || '',
+        question_id: question.question_id || "",
+        user_id: userId || "",
+        project_id: currentProjectId?.toString() || "",
         delete: "[]",
       },
       routeUrl: "api/files",
@@ -130,12 +142,16 @@ const QuestionFrame = ({
     try {
       const response = await updateEUAIActAnswerById({
         answerId: question.answer_id,
-        body: { ...values, risksDelete: deletedRisks, risksMitigated: selectedRisks },
+        body: {
+          ...values,
+          risksDelete: deletedRisks,
+          risksMitigated: selectedRisks,
+        },
       });
       if (response.status === 202) {
         setValues({
           ...response.data.data,
-          risks: response.data.data.risks || []
+          risks: response.data.data.risks || [],
         });
         setSelectedRisks([]);
         setDeletedRisks([]);
@@ -165,7 +181,7 @@ const QuestionFrame = ({
   const handleContentChange = (answer: string) => {
     // Remove <p> tags from the beginning and end of the answer
     const cleanedAnswer = answer?.replace(/^<p>|<\/p>$/g, "") || "";
-    setValues({ ...values, answer: cleanedAnswer || '' });
+    setValues({ ...values, answer: cleanedAnswer || "" });
   };
 
   const handleRemoveFile = async (fileId: string) => {
@@ -184,7 +200,7 @@ const QuestionFrame = ({
     }
     formData.append("delete", JSON.stringify([fileIdNumber]));
     formData.append("question_id", question.question_id?.toString() || "");
-    formData.append("user_id", String(userId || ''));
+    formData.append("user_id", String(userId || ""));
     if (currentProjectId) {
       formData.append("project_id", currentProjectId.toString());
     }
@@ -197,8 +213,9 @@ const QuestionFrame = ({
       });
 
       if (response.status === 201 && response.data) {
-        const newEvidenceFiles =
-          (values?.evidence_files || []).filter((file) => file?.id !== fileId);
+        const newEvidenceFiles = (values?.evidence_files || []).filter(
+          (file) => file?.id !== fileId
+        );
         setValues((prevValues) => ({
           ...prevValues,
           evidence_files: newEvidenceFiles,
@@ -227,7 +244,7 @@ const QuestionFrame = ({
   };
 
   return (
-            <Box key={question.question_id || 'default'} mt={10}>
+    <Box key={question.question_id || "default"} mt={10}>
       <Box
         sx={{
           display: "flex",
@@ -242,10 +259,10 @@ const QuestionFrame = ({
         }}
       >
         <Typography sx={{ fontSize: 13, color: "#344054" }}>
-          {question.question || ''}
+          {question.question || ""}
           {question.hint && (
             <Box component="span" ml={2}>
-              <Tooltip title={question.hint || ''} sx={{ fontSize: 13 }}>
+              <Tooltip title={question.hint || ""} sx={{ fontSize: 13 }}>
                 <InfoOutlinedIcon fontSize="inherit" />
               </Tooltip>
             </Box>
@@ -257,7 +274,7 @@ const QuestionFrame = ({
             isHidden={false}
             id=""
             onChange={(e) => handleStatusChange("status", e.target.value)}
-            value={values.status || 'notStarted'}
+            value={values.status || "notStarted"}
             getOptionValue={(item) => item.name}
             sx={{
               width: 175,
@@ -266,10 +283,12 @@ const QuestionFrame = ({
             disabled={isEditingDisabled}
           />
           <Chip
-            label={question.priority_level || 'low priority'}
+            label={question.priority_level || "low priority"}
             sx={{
               backgroundColor:
-                priorities[(question.priority_level || 'low priority') as PriorityLevel]?.color || '#666',
+                priorities[
+                  (question.priority_level || "low priority") as PriorityLevel
+                ]?.color || "#666",
               color: "#FFFFFF",
               borderRadius: "4px",
             }}
@@ -278,7 +297,7 @@ const QuestionFrame = ({
         </Stack>
       </Box>
       <RichTextEditor
-                  key={question.question_id || 'default'}
+        key={question.question_id || "default"}
         onContentChange={handleContentChange}
         headerSx={{
           borderRadius: 0,
@@ -292,7 +311,7 @@ const QuestionFrame = ({
             margin: 0,
           },
         }}
-        initialContent={question.answer || ''}
+        initialContent={question.answer || ""}
         isEditable={!isEditingDisabled}
       />
       <Stack
@@ -422,7 +441,7 @@ const QuestionFrame = ({
           </Stack>
         </Stack>
         <Typography sx={{ fontSize: 11, color: "#344054", fontWeight: "300" }}>
-          {(question.is_required === true) ? "required" : ""}
+          {question.is_required === true ? "required" : ""}
         </Typography>
       </Stack>
       <Dialog
@@ -436,32 +455,34 @@ const QuestionFrame = ({
           onRemoveFile={handleRemoveFile}
         />
       </Dialog>
-      <Dialog 
-        open={isLinkedRisksModalOpen} 
+      <Dialog
+        open={isLinkedRisksModalOpen}
         onClose={() => setIsLinkedRisksModalOpen(false)}
         PaperProps={{
           sx: {
-            width: '1500px',
-            maxWidth: '1500px',
+            width: "1500px",
+            maxWidth: "1500px",
           },
         }}
       >
         <Suspense fallback={"loading..."}>
           <LinkedRisksPopup
             onClose={() => setIsLinkedRisksModalOpen(false)}
-            currentRisks={(values.risks || []).concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+            currentRisks={(values.risks || [])
+              .concat(selectedRisks)
+              .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
           />
         </Suspense>
       </Dialog>
-      <Dialog 
-        open={auditedStatusModalOpen} 
+      <Dialog
+        open={auditedStatusModalOpen}
         onClose={() => setAuditedStatusModalOpen(false)}
         PaperProps={{
           sx: {
-            width: '800px',
-            maxWidth: '800px',
+            width: "800px",
+            maxWidth: "800px",
           },
         }}
       >

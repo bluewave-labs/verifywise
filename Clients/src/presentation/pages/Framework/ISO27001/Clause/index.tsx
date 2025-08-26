@@ -16,6 +16,9 @@ import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import VWISO27001ClauseDrawerDialog from "../../../../components/Drawer/ISO27001ClauseDrawerDialog";
+import StatsCard from "../../../../components/Cards/StatsCard";
+import { getEntityById } from "../../../../../application/repository/entity.repository";
+import { useSearchParams } from "react-router-dom";
 
 const ISO27001Clause = ({
   FrameworkId,
@@ -39,13 +42,30 @@ const ISO27001Clause = ({
   const [loadingSubClauses, setLoadingSubClauses] = useState<{
     [key: number]: boolean;
   }>({});
+  const [clauseProgress, setClauseProgress] = useState<{
+    totalSubclauses: number;
+    doneSubclauses: number;
+  }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clauseId = searchParams.get("clauseId");
+  const subClauseId = searchParams.get("subClauseId");
 
   const fetchClauses = useCallback(async () => {
-    const response = await Iso27001GetClauseStructByFrameworkID({
-      routeUrl: `/iso-27001/clauses/struct/byProjectId/${FrameworkId}`,
-    });
-    setClauses(response.data);
-    setSubClausesMap({});
+    try {
+      const clauseProgressResponse = await getEntityById({
+        routeUrl: `/iso-27001/clauses/progress/${FrameworkId}`,
+      });
+      setClauseProgress(clauseProgressResponse.data);
+
+      const response = await Iso27001GetClauseStructByFrameworkID({
+        routeUrl: `/iso-27001/clauses/struct/byProjectId/${FrameworkId}`,
+      });
+      setClauses(response.data);
+      setSubClausesMap({});
+    } catch (error) {
+      console.error("Error fetching clauses:", error);
+      setClauses([]);
+    }
   }, [FrameworkId]);
 
   useEffect(() => {
@@ -109,6 +129,11 @@ const ISO27001Clause = ({
     setDrawerOpen(false);
     setSelectedSubClause(null);
     setSelectedClause(null);
+    if (clauseId && subClauseId) {
+      searchParams.delete("clauseId");
+      searchParams.delete("subClauseId");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleSaveSuccess = async (
@@ -182,21 +207,46 @@ const ISO27001Clause = ({
     );
   }
 
+  useEffect(() => {
+    if (clauseId && subClauseId && clauses.length > 0) {
+      const clause = clauses.find((c) => c.id === parseInt(clauseId));
+      async function fetchSubClause() {
+        try {
+          const response = await getEntityById({
+            routeUrl: `/iso-27001/subClause/byId/${clauseId}?projectFrameworkId=${FrameworkId}`,
+          });
+          setSelectedSubClause({
+            ...response.data,
+            id: response.data.clause_id,
+          });
+          if (clause && clauseId) {
+            handleSubClauseClick(
+              clause,
+              { ...response.data, id: response.data.clause_id },
+              parseInt(clauseId)
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching subclause:", error);
+        }
+      }
+      fetchSubClause();
+    }
+  }, [clauseId, subClauseId, clauses]);
+
   return (
-    <Stack spacing={4}>
+    <Stack className="iso-27001-clauses">
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
-      <Typography
-        sx={{
-          color: "#1A1919",
-          fontWeight: 600,
-          mb: "6px",
-          fontSize: 16,
-          mt: 4,
-        }}
-      >
-        Management System Clauses
+      <StatsCard
+        completed={clauseProgress?.doneSubclauses ?? 0}
+        total={clauseProgress?.totalSubclauses ?? 0}
+        title="Clauses"
+        progressbarColor="#13715B"
+      />
+      <Typography sx={{ ...styles.title, mt: 4 }}>
+        {"Management System Clauses"}
       </Typography>
       {clauses &&
         clauses.map((clause: any) => (
@@ -220,20 +270,18 @@ const ISO27001Clause = ({
           </Stack>
         ))}
       {drawerOpen && (
-        <>
-          <VWISO27001ClauseDrawerDialog
-            open={drawerOpen}
-            onClose={handleDrawerClose}
-            subClause={selectedSubClause}
-            clause={selectedClause}
-            projectFrameworkId={Number(FrameworkId)}
-            project_id={0}
-            onSaveSuccess={(success, message) =>
-              handleSaveSuccess(success, message, selectedSubClause?.id)
-            }
-            index={selectedIndex}
-          />
-        </>
+        <VWISO27001ClauseDrawerDialog
+          open={drawerOpen}
+          onClose={handleDrawerClose}
+          subClause={selectedSubClause}
+          clause={selectedClause}
+          projectFrameworkId={Number(FrameworkId)}
+          project_id={0}
+          onSaveSuccess={(success, message) =>
+            handleSaveSuccess(success, message, selectedSubClause?.id)
+          }
+          index={selectedIndex}
+        />
       )}
     </Stack>
   );

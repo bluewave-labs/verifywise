@@ -49,11 +49,9 @@ const Framework = () => {
     listOfFrameworks: [], // Empty array to get all frameworks
   });
 
-  // Filter out EU AI Act frameworks and ISO42001 frameworks (temporarily disabled)
+  // Filter out EU AI Act frameworks
   const filteredFrameworks = allFrameworks.filter(
-    (framework) =>
-      !framework.name.toLowerCase().includes("eu ai act") &&
-      !framework.name.toLowerCase().includes("iso 42001")
+    (framework) => !framework.name.toLowerCase().includes("eu ai act")
   );
 
   const [selectedFramework, setSelectedFramework] = useState<number>(0);

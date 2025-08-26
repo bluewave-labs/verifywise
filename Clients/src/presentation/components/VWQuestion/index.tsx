@@ -322,16 +322,17 @@ const QuestionFrame = ({
           <Button
             variant="contained"
             sx={{
-              width: 155,
+              minWidth: 155,      // minimum width
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",
+              flexShrink: 0,        //  prevent shrinking in flex layouts
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}
             disabled={isEditingDisabled}
           >
-            Add/Remove evidence
+            Add, remove or download evidence
           </Button>
           <Typography
             sx={{

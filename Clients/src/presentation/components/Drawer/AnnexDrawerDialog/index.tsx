@@ -527,7 +527,7 @@ const VWISO42001AnnexDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                width: 155,
+                minWidth: 155,      // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -540,7 +540,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove evidence
+             Add, remove or download evidence 
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

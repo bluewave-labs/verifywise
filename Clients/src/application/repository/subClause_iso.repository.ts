@@ -69,8 +69,7 @@ export async function ISO27001GetSubClauseById({
       signal,
       responseType,
     });
-    console.log("response.data 2 : ==> ", response);
-    return response;
+    return response.data;
   } catch (error) {
     console.error("Error getting subclause by ID:", error);
     throw error;

@@ -65,7 +65,6 @@ export async function getEntityById({
       signal,
       responseType,
     });
-    console.log("response.data 1 : ==> ", response.data);
     return response.data;
   } catch (error) {
     console.error("Error getting entity by ID:", error);

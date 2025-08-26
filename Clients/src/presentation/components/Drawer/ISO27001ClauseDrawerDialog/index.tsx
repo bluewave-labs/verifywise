@@ -151,31 +151,36 @@ const VWISO27001ClauseDrawerDialog = ({
           const response = await ISO27001GetSubClauseById({
             routeUrl: `/iso-27001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          setFetchedSubClause(response.data.data);
+
+          // The response structure is { message: "OK", data: actualData }
+          const subClauseData = response.data;
+          setFetchedSubClause(subClauseData);
 
           // Initialize form data with fetched values
-          if (response.data) {
-            const statusId = statusIdMap.get(response.data.status) || "0";
-            setFormData({
+          if (subClauseData) {
+            const statusId = statusIdMap.get(subClauseData.status) || "0";
+            const initialFormData = {
               implementation_description:
-                response.data.implementation_description || "",
+                subClauseData.implementation_description || "",
               status: statusId,
-              owner: response.data.owner?.toString() || "",
-              reviewer: response.data.reviewer?.toString() || "",
-              approver: response.data.approver?.toString() || "",
-              auditor_feedback: response.data.auditor_feedback || "",
-              risks: response.data.risks || [],
-            });
+              owner: subClauseData.owner?.toString() || "",
+              reviewer: subClauseData.reviewer?.toString() || "",
+              approver: subClauseData.approver?.toString() || "",
+              auditor_feedback: subClauseData.auditor_feedback || "",
+              risks: subClauseData.risks || [],
+            };
+
+            setFormData(initialFormData);
 
             // Set the date if it exists in the fetched data
-            if (response.data.due_date) {
-              setDate(response.data.due_date);
+            if (subClauseData.due_date) {
+              setDate(subClauseData.due_date);
             }
           }
 
           // On subclause fetch, set evidence files if available
-          if (response.data?.evidence_links) {
-            setEvidenceFiles(response.data.evidence_links);
+          if (subClauseData?.evidence_links) {
+            setEvidenceFiles(subClauseData.evidence_links);
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
@@ -246,6 +251,7 @@ const VWISO27001ClauseDrawerDialog = ({
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
       formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
+
       uploadFiles.forEach((file) => {
         if (file.data instanceof Blob) {
           const fileToUpload =

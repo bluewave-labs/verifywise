@@ -767,10 +767,7 @@ export const updateSubClauseQuery = async (
       if (field === "evidence_links") {
         updateSubClause["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
-      } else if (
-        subClause[field as keyof IISO27001SubClause] != undefined &&
-        subClause[field as keyof IISO27001SubClause]
-      ) {
+      } else if (subClause[field as keyof IISO27001SubClause] != undefined) {
         updateSubClause[field as keyof IISO27001SubClause] =
           subClause[field as keyof IISO27001SubClause];
         acc.push(`${field} = :${field}`);

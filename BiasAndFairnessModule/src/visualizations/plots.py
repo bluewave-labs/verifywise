@@ -2,8 +2,9 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, accuracy_score
 import pandas as pd
+from eval_engine.metrics import equalized_odds
 
 
 def plot_demographic_parity(
@@ -189,4 +190,68 @@ def plot_groupwise_confusion_matrices(
     plt.show()
 
     return fig, axes
+
+
+def create_fairness_vs_accuracy_plot(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_scores: np.ndarray,
+    sensitive_attr: np.ndarray,
+    num_thresholds: int = 21,
+):
+    """
+    Plot Equalized Odds difference versus Accuracy across score thresholds.
+
+    Parameters
+    ----------
+    y_true : np.ndarray
+        Ground truth labels.
+    y_pred : np.ndarray
+        Predicted labels (unused in computation per-threshold; kept for signature consistency).
+    y_scores : np.ndarray
+        Predicted scores/probabilities used for thresholding.
+    sensitive_attr : np.ndarray
+        Encoded sensitive attribute values.
+    num_thresholds : int, optional
+        Number of thresholds to sweep in [0, 1]. Default is 21.
+    """
+
+    y_true = np.asarray(y_true).ravel()
+    y_scores = np.asarray(y_scores).ravel()
+    sensitive_attr = np.asarray(sensitive_attr).ravel()
+
+    if not (
+        y_true.shape[0] == y_scores.shape[0] == sensitive_attr.shape[0]
+    ):
+        raise ValueError(
+            "y_true, y_scores, and sensitive_attr must have the same length"
+        )
+
+    thresholds = np.linspace(0.0, 1.0, num_thresholds)
+    results = []
+    for thresh in thresholds:
+        y_pred_bin = (y_scores >= thresh).astype(int)
+        acc = accuracy_score(y_true, y_pred_bin)
+        eo = equalized_odds(y_true, y_pred_bin, sensitive_attr)
+        results.append({"threshold": float(thresh), "accuracy": float(acc), "eo_diff": float(eo)})
+
+    eod_df = pd.DataFrame(results)
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    scatter = ax.scatter(
+        eod_df["accuracy"],
+        eod_df["eo_diff"],
+        c=eod_df["threshold"],
+        cmap="viridis",
+        s=80,
+    )
+    cbar = fig.colorbar(scatter, ax=ax)
+    cbar.set_label("Threshold")
+    ax.set_xlabel("Accuracy")
+    ax.set_ylabel("Equalized Odds Difference")
+    ax.set_title("Fairness vs Accuracy Trade-off")
+    plt.tight_layout()
+    plt.show()
+
+    return fig, ax
 

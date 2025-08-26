@@ -6,17 +6,12 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      let created = new Set();
-      const model_inventories_approver_org_ids = await queryInterface.sequelize.query(`
-        SELECT mi.*, u.organization_id AS organization_id FROM
-          public.model_inventories AS mi INNER JOIN public.users AS u
-            ON mi.approver = u.id;
-      `, { transaction });
-
-      for (const row of model_inventories_approver_org_ids[0]) {
-        const tenantHash = getTenantHash(row.organization_id);
-        if (!created.has(tenantHash)) {
-          await queryInterface.sequelize.query(`
+      const organizations = await queryInterface.sequelize.query(
+        `SELECT id FROM organizations;`, { transaction }
+      )
+      for (let organization of organizations[0]) {
+        const tenantHash = getTenantHash(organization.id);
+        await queryInterface.sequelize.query(`
           CREATE TABLE "${tenantHash}".model_inventories (
             id SERIAL PRIMARY KEY,
             provider_model VARCHAR(255) NOT NULL,
@@ -35,8 +30,16 @@ module.exports = {
               REFERENCES public.users (id) MATCH SIMPLE
               ON UPDATE NO ACTION ON DELETE SET NULL
           );`, { transaction });
-          created.add(tenantHash);
-        }
+      }
+
+      const model_inventories_approver_org_ids = await queryInterface.sequelize.query(`
+        SELECT mi.*, u.organization_id AS organization_id FROM
+          public.model_inventories AS mi INNER JOIN public.users AS u
+            ON mi.approver = u.id;
+      `, { transaction });
+
+      for (const row of model_inventories_approver_org_ids[0]) {
+        const tenantHash = getTenantHash(row.organization_id);
         await queryInterface.sequelize.query(`
           INSERT INTO "${tenantHash}".model_inventories (
             provider_model,

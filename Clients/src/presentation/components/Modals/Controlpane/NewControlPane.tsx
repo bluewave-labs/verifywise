@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useContext, Suspense } from "react";
+import { useState, Suspense } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
@@ -21,7 +21,7 @@ import Alert from "../../Alert";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+
 import {
   AlertBox,
   styles,
@@ -32,6 +32,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import LinkedRisksPopup from "../../LinkedRisks";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 import { updateControl } from "../../../../application/repository/control_eu_act.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 const tabStyle = {
   textTransform: "none",
@@ -80,8 +81,7 @@ const NewControlPane = ({
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
-  const context = useContext(VerifyWiseContext);
-  const userRoleName = context?.userRoleName;
+  const { userRoleName, userId } = useAuth();
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
   const isAuditingDisabled =
@@ -305,7 +305,7 @@ const NewControlPane = ({
       });
 
       // Add user and project info
-      formData.append("user_id", context?.userId?.toString() || "");
+      formData.append("user_id", userId?.toString() || "");
       formData.append("project_id", projectId.toString());
 
       // Add delete array if needed (you might want to track deleted files)

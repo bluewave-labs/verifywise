@@ -60,7 +60,6 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = ({
   return (
     <Stack
       sx={{
-        mb: 3, // Increased bottom spacing
         mt: 1,
         ...sx,
       }}

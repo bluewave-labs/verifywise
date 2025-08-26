@@ -15,13 +15,12 @@ import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useContext, useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import {
   GetAnnexCategoriesById,
@@ -35,6 +34,8 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import Uppy from "@uppy/core";
 import allowedRoles from "../../../../application/constants/permissions";
+import useUsers from "../../../../application/hooks/useUsers";
+import { useAuth } from "../../../../application/hooks/useAuth";
 const AuditRiskPopup = lazy(
   () => import("../../RiskPopup/AuditRiskPopup")
 );
@@ -91,8 +92,8 @@ const VWISO42001AnnexDrawerDialog = ({
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
 
-  // Get context and project data
-  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
+  const { userId, userRoleName } = useAuth();
+  const { users } = useUsers();
   const { project } = useProjectData({ projectId: String(project_id) });
 
   const isEditingDisabled =
@@ -526,7 +527,7 @@ const VWISO42001AnnexDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                width: 155,
+                minWidth: 155,      // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -539,7 +540,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove evidence
+             Add, remove or download evidence 
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

@@ -16,10 +16,11 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, useContext, Suspense} from "react";
+import { useState, useEffect, Suspense} from "react";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useAuth } from "../../../../application/hooks/useAuth";
+import useUsers from "../../../../application/hooks/useUsers";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
@@ -96,8 +97,8 @@ const VWISO42001ClauseDrawerDialog = ({
     idStatusMap.set(id, status);
   }
 
-  // Get context and project data
-  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
+  const { userId, userRoleName } = useAuth();
+  const { users } = useUsers();
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });
@@ -488,7 +489,7 @@ const VWISO42001ClauseDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                width: 155,
+                minWidth: 155,      // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -501,7 +502,7 @@ const VWISO42001ClauseDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove evidence
+              Add, remove or download evidence
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

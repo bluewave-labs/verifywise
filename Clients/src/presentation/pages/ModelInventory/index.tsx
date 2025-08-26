@@ -31,6 +31,7 @@ import ModelInventorySummary from "./ModelInventorySummary";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
 import {
   mainStackStyle,
@@ -341,7 +342,13 @@ const ModelInventory: React.FC = () => {
 
       <Stack sx={mainStackStyle}>
         <Stack>
-          <Typography sx={vwhomeHeading}>Model Inventory</Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography sx={vwhomeHeading}>Model Inventory</Typography>
+            <HelperIcon 
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          </Stack>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             This registry lists all AI/LLM models used within your organization
             and their compliance status. You can view, add, and manage model
@@ -392,7 +399,9 @@ const ModelInventory: React.FC = () => {
         initialData={
           selectedModelInventory
             ? {
-                provider_model: selectedModelInventory.provider_model,
+                provider_model: selectedModelInventory.provider_model || "",
+                provider: selectedModelInventory.provider || "",
+                model: selectedModelInventory.model || "",
                 version: selectedModelInventory.version || "",
                 approver: selectedModelInventory.approver,
                 capabilities: selectedModelInventory.capabilities,

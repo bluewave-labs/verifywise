@@ -8,7 +8,6 @@ import {
   deleteTaskByIdQuery,
 } from "../utils/task.utils";
 import { sequelize } from "../database/db";
-import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
@@ -142,9 +141,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     if (due_date_end) filters.due_date_end = due_date_end as string;
     if (category) filters.category = Array.isArray(category) ? category : [category];
     if (assignee) filters.assignee = Array.isArray(assignee) ? assignee.map(Number) : [Number(assignee)];
-    if (organization_id) {
-      filters.organization_id = Number(organization_id);
-    }
+    filters.organization_id = Number(req.organizationId);
 
     // Parse sorting
     const sort = {
@@ -216,7 +213,7 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const task = await getTaskByIdQuery(taskId, { userId, role }, req.tenantId!);
+    const task = await getTaskByIdQuery(taskId, { userId, role }, req.tenantId!, req.organizationId!);
 
     if (task) {
       await logSuccess({
@@ -283,6 +280,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         task: updateData,
         userId,
         role,
+        userOrganizationId: req.organizationId!,
         transaction,
       },
       req.tenantId!
@@ -300,6 +298,28 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     return res.status(200).json(STATUS_CODE[200](updatedTask));
   } catch (error) {
     await transaction.rollback();
+
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Validation failed: ${error.message}`,
+        functionName: "updateTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Business logic error: ${error.message}`,
+        functionName: "updateTask",
+        fileName: "task.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
 
     await logFailure({
       eventType: "Update",
@@ -338,6 +358,7 @@ export async function deleteTask(req: Request, res: Response): Promise<any> {
         userId,
         role,
         transaction,
+        organizationId: req.organizationId!,
       },
       req.tenantId!
     );

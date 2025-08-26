@@ -6,6 +6,11 @@ import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
+import { 
+  NotFoundException, 
+  ForbiddenException, 
+  ValidationException
+} from "../domain.layer/exceptions/custom.exception";
 
 interface GetTasksOptions {
   userId: number;
@@ -19,7 +24,7 @@ interface TaskFilters {
   due_date_end?: string;
   category?: string[];
   assignee?: number[];
-  organization_id?: number;
+  organization_id?: number; 
 }
 
 interface TaskSortOptions {
@@ -27,12 +32,42 @@ interface TaskSortOptions {
   sort_order?: 'ASC' | 'DESC';
 }
 
+interface QueryReplacements {
+  [key: string]: any;
+}
+
+
+// Helper function for DRY visibility logic - adds JOIN and WHERE conditions for non-Admin users
+const addVisibilityLogic = (
+  baseQueryParts: string[],
+  whereConditions: string[],
+  replacements: QueryReplacements,
+  { userId, role }: GetTasksOptions,
+  tenant: string,
+  organizationId: number,
+  joinAlias: string = 'ta'
+): void => {
+  // SECURITY: Always filter by organization_id to prevent cross-organization access
+  whereConditions.push("t.organization_id = :organizationId");
+  replacements.organizationId = organizationId;
+  
+  if (role !== "Admin") {
+    baseQueryParts.push(
+      `LEFT JOIN "${tenant}".task_assignees ${joinAlias} ON ${joinAlias}.task_id = t.id AND ${joinAlias}.user_id = :userId`
+    );
+    whereConditions.push(`(t.creator_id = :userId OR ${joinAlias}.user_id IS NOT NULL)`);
+    replacements.userId = userId;
+  }
+};
+
 // Create a new task
 export const createNewTaskQuery = async (
   task: ITask,
   tenant: string,
   transaction: Transaction
 ): Promise<TasksModel> => {
+
+  
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".tasks (
         title, description, creator_id, organization_id, due_date, priority, status, categories
@@ -81,18 +116,12 @@ export const getTasksQuery = async (
         : "";
 
   const whereConditions: string[] = ["t.status != :deletedStatus"];
-  const replacements: any = {
+  const replacements: QueryReplacements = {
     deletedStatus: TaskStatus.DELETED,
   };
 
   // Enforce visibility rules: admins see all, others see tasks where they're creator or assignee
-  if (role !== "Admin") {
-    baseQueryParts.push(
-      `LEFT JOIN "${tenant}".task_assignees ta ON ta.task_id = t.id AND ta.user_id = :userId`
-    );
-    whereConditions.push("(t.creator_id = :userId OR ta.user_id IS NOT NULL)");
-    replacements.userId = userId;
-  }
+  addVisibilityLogic(baseQueryParts, whereConditions, replacements, { userId, role }, tenant, filters.organization_id!);
 
   // Apply filters
   if (filters.status && filters.status.length > 0) {
@@ -137,11 +166,7 @@ export const getTasksQuery = async (
     });
   }
 
-  if (filters.organization_id) {
-    whereConditions.push(`t.organization_id = :organization_id`);
-    replacements.organization_id = filters.organization_id;
-  }
-
+ 
   // Add WHERE conditions
   if (whereConditions.length > 0) {
     baseQueryParts.push("WHERE " + whereConditions.join(" AND "));
@@ -162,12 +187,20 @@ export const getTasksQuery = async (
     // Validate sort_by to prevent SQL injection
     const allowedSortFields = ['due_date', 'created_at'];
     if (!allowedSortFields.includes(sort_by)) {
-      throw new Error('Invalid sort field');
+      throw new ValidationException(
+        'Invalid sort field provided',
+        'sort_by',
+        sort_by
+      );
     }
     // Validate sort_order to prevent SQL injection
     const allowedSortOrders = ['ASC', 'DESC'];
     if (!allowedSortOrders.includes(sort_order)) {
-      throw new Error('Invalid sort order');
+      throw new ValidationException(
+        'Invalid sort order provided',
+        'sort_order', 
+        sort_order
+      );
     }
     const orderClause = `ORDER BY t.${sort_by} ${sort_order}`;
     if (sort_by !== 'created_at') {
@@ -203,23 +236,18 @@ export const getTasksQuery = async (
 export const getTaskByIdQuery = async (
   taskId: number,
   { userId, role }: GetTasksOptions,
-  tenant: string
+  tenant: string,
+  userOrganizationId: number
 ): Promise<TasksModel | null> => {
   const baseQueryParts: string[] = [`SELECT DISTINCT t.*`, `FROM "${tenant}".tasks t`];
   const whereConditions: string[] = ["t.id = :taskId", "t.status != :deletedStatus"];
-  const replacements: any = { 
+  const replacements: QueryReplacements = { 
     taskId,
     deletedStatus: TaskStatus.DELETED,
   };
 
   // Role-based visibility rules
-  if (role !== "Admin") {
-    baseQueryParts.push(
-      `LEFT JOIN "${tenant}".task_assignees ta ON ta.task_id = t.id AND ta.user_id = :userId`
-    );
-    whereConditions.push("(t.creator_id = :userId OR ta.user_id IS NOT NULL)");
-    replacements.userId = userId;
-  }
+  addVisibilityLogic(baseQueryParts, whereConditions, replacements, { userId, role }, tenant, userOrganizationId);
 
   baseQueryParts.push("WHERE " + whereConditions.join(" AND "));
   const finalQuery = baseQueryParts.join("\n");
@@ -241,21 +269,27 @@ export const updateTaskByIdQuery = async (
     task,
     userId,
     role,
+    userOrganizationId,
     transaction,
   }: {
     id: number;
     task: Partial<ITask>;
     userId: number;
     role: string;
+    userOrganizationId: number;
     transaction: Transaction;
   },
   tenant: string
 ): Promise<TasksModel> => {
   // First, get the task to check permissions
-  const existingTask = await getTaskByIdQuery(id, { userId, role }, tenant);
+  const existingTask = await getTaskByIdQuery(id, { userId, role }, tenant, userOrganizationId);
   
   if (!existingTask) {
-    throw new Error("Task not found");
+    throw new NotFoundException(
+      "Task not found or access denied",
+      "task",
+      id
+    );
   }
 
   // Permission checks for specific fields
@@ -272,17 +306,25 @@ export const updateTaskByIdQuery = async (
   );
   const isAssignee = assigneeCheck.length > 0;
 
-  // Restrict who can update certain fields - only admin can edit due_date and priority
-  if ((task.due_date !== undefined || task.priority !== undefined) && !isAdmin) {
-    throw new Error("Only admin can update due_date and priority");
+  // Restrict who can update certain fields - only admin and creator can edit due_date and priority
+  if ((task.due_date !== undefined || task.priority !== undefined) && !isAdmin && !isCreator) {
+    throw new ForbiddenException(
+      "Only admin and creator can update due_date and priority",
+      "task",
+      "update_schedule_priority"
+    );
   }
 
   // Anyone involved (creator, assignee, admin) can update status
   if (task.status !== undefined && !isCreator && !isAssignee && !isAdmin) {
-    throw new Error("Only task creator, assignee, or admin can update status");
+    throw new ForbiddenException(
+      "Only task creator, assignee, or admin can update status",
+      "task",
+      "update_status"
+    );
   }
 
-  const updateTask: Partial<Record<keyof ITask, any>> = {};
+  const updateTask: QueryReplacements = {};
   const setClause = [
     "title",
     "description", 
@@ -301,6 +343,14 @@ export const updateTaskByIdQuery = async (
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");
+
+  if (!setClause) {
+    throw new ValidationException(
+      "No valid fields provided for update",
+      "task",
+      "update_fields"
+    );
+  }
 
   const query = `UPDATE "${tenant}".tasks SET ${setClause} WHERE id = :id RETURNING *;`;
 
@@ -324,16 +374,18 @@ export const deleteTaskByIdQuery = async (
     userId,
     role,
     transaction,
+    organizationId
   }: {
     id: number;
     userId: number;
     role: string;
     transaction: Transaction;
+    organizationId: number;
   },
   tenant: string
 ): Promise<boolean> => {
-  const task = await getTaskByIdQuery(id, { userId, role }, tenant);
-  
+  const task = await getTaskByIdQuery(id, { userId, role }, tenant, organizationId);
+
   if (!task) {
     return false;
   }
@@ -343,7 +395,11 @@ export const deleteTaskByIdQuery = async (
   const isAdmin = role === "Admin";
 
   if (!isCreator && !isAdmin) {
-    throw new Error("Only task creator or admin can delete tasks");
+    throw new ForbiddenException(
+      "Only task creator or admin can delete tasks",
+      "task",
+      "delete"
+    );
   }
 
   // Soft delete by setting status to DELETED

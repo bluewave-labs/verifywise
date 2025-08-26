@@ -29,6 +29,9 @@ import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
+import { GetMyOrganization } from "../../../../application/repository/organization.repository";
+import { getTierFeatures } from "../../../../application/repository/tiers.repository";
+import { Tier } from "../../../../domain/types/Tiers";
 
 
 const Home = () => {
@@ -49,6 +52,8 @@ const Home = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
+  const [organizationTierId, setOrganizationTierId] = useState<number | null>(null);
+  const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
 
 
   useEffect(() => {
@@ -95,11 +100,33 @@ const Home = () => {
 
   useEffect(() => {
     const fetchOrganizationTierId = async () => {
-      console.log("organizationId", organizationId);
+      const organization = await GetMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+      });
+      const org = organization.data.data;
+      setOrganizationTierId(org.subscription_id);
     }
 
     fetchOrganizationTierId();
   }, [organizationId]);
+
+  useEffect(() => {
+    const fetchTierFeatures = async () => {
+      const features = await getTierFeatures({
+        tierId: organizationTierId || 1,
+        routeUrl: "/tiers",
+      });
+      setTierFeatures(features.data);
+    }
+    fetchTierFeatures();
+  }, [organizationTierId]);
+
+  const isDisabledLogic = () => {
+    if (dashboard?.projects && tierFeatures?.projects) {
+      return dashboard.projects >= tierFeatures.projects || !allowedRoles.projects.create.includes(userRoleName);
+    }
+    return !allowedRoles.projects.create.includes(userRoleName);
+  }
 
   const handleGenerateDemoDataClick = async () => {
     setShowToastNotification(true);
@@ -205,9 +232,7 @@ const Home = () => {
                 }}
                 icon={<AddCircleOutlineIcon />}
                 onClick={() => setIsProjectFormModalOpen(true)}
-                isDisabled={
-                  !allowedRoles.projects.create.includes(userRoleName)
-                }
+                isDisabled={isDisabledLogic()}
               />
             </div>
           </Stack>

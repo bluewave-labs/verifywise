@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from fairlearn.metrics import (MetricFrame, demographic_parity_difference,
                                equalized_odds_difference, false_positive_rate,
-                               true_positive_rate)
+                               true_positive_rate, selection_rate as fairlearn_selection_rate)
 from sklearn.metrics import (brier_score_loss, precision_score, recall_score, 
                             f1_score, accuracy_score)
 
@@ -241,6 +241,46 @@ def calibration(
         metrics=brier_score_loss,
         y_true=y_true_array,
         y_pred=y_prob_array,
+        sensitive_features=sensitive_features_array,
+    )
+    return metric_frame
+
+
+@register_metric("selection_rate")
+def selection_rate(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> MetricFrame:
+    """
+    Calculate per-group Selection Rate metric.
+
+    Args:
+        y_true: Ground truth labels (accepted for signature consistency)
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+
+    Returns:
+        MetricFrame: Fairlearn MetricFrame with per-group selection rates
+    """
+    # Flatten and validate inputs
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+
+    if y_pred_array.shape[0] != sensitive_features_array.shape[0]:
+        raise ValueError(
+            "Length mismatch: y_pred and protected_attributes must have the same number of samples"
+        )
+
+    # y_true is accepted by Fairlearn's API for signature consistency, but not used
+    if y_true_array.shape[0] not in (0, y_pred_array.shape[0]):
+        raise ValueError(
+            "Length mismatch: y_true must have the same number of samples as y_pred (or be empty)"
+        )
+
+    metric_frame = MetricFrame(
+        metrics=fairlearn_selection_rate,
+        y_true=y_true_array,
+        y_pred=y_pred_array,
         sensitive_features=sensitive_features_array,
     )
     return metric_frame

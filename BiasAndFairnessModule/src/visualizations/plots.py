@@ -310,6 +310,69 @@ def create_fairness_vs_accuracy_plot(
     return fig, ax
 
 
+def plot_fairness_radar(
+    metrics_dict: dict,
+    title: str = "Fairness Metrics Radar Chart",
+):
+    """
+    Plot a radar chart comparing fairness metrics across groups.
+
+    Parameters
+    ----------
+    metrics_dict : dict
+        Mapping of group -> {metric_name: value, ...}.
+        Example structure:
+            {
+                "Male": {"Demographic Parity": 0.9, "Equalized Odds": 0.85, ...},
+                "Female": {"Demographic Parity": 0.7, "Equalized Odds": 0.65, ...}
+            }
+    title : str, optional
+        Title of the plot.
+    """
+
+    if not metrics_dict:
+        raise ValueError("metrics_dict must not be empty")
+
+    groups = list(metrics_dict.keys())
+    first_group_metrics = next(iter(metrics_dict.values()))
+    if not first_group_metrics:
+        raise ValueError("metrics_dict values must contain at least one metric")
+
+    metric_names = list(first_group_metrics.keys())
+    num_metrics = len(metric_names)
+
+    # Compute angles for radar axes
+    angles = np.linspace(0.0, 2.0 * np.pi, num_metrics, endpoint=False).tolist()
+    angles += angles[:1]  # complete the loop
+
+    # Initialize the radar chart
+    fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
+
+    for group in groups:
+        group_values_map = metrics_dict[group]
+        # Ensure ordering matches metric_names; missing values become NaN
+        values = [float(group_values_map.get(m, np.nan)) for m in metric_names]
+        values += values[:1]  # complete the loop
+        ax.plot(angles, values, label=group, linewidth=2)
+        ax.fill(angles, values, alpha=0.25)
+
+    # Set metric labels
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(metric_names)
+
+    # Optional: set range 0-1 for fairness metrics
+    ax.set_ylim(0, 1)
+
+    # Add legend and title
+    ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
+    ax.set_title(title, fontsize=14, pad=20)
+
+    plt.tight_layout()
+    plt.show()
+
+    return fig, ax
+
+
 def plot_group_metrics_boxplots(
     y_true: np.ndarray,
     y_pred: np.ndarray,

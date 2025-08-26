@@ -392,7 +392,9 @@ const ModelInventory: React.FC = () => {
         initialData={
           selectedModelInventory
             ? {
-                provider_model: selectedModelInventory.provider_model,
+                provider_model: selectedModelInventory.provider_model || "",
+                provider: selectedModelInventory.provider || "",
+                model: selectedModelInventory.model || "",
                 version: selectedModelInventory.version || "",
                 approver: selectedModelInventory.approver,
                 capabilities: selectedModelInventory.capabilities,

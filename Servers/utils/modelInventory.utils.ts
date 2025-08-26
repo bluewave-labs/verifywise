@@ -41,11 +41,13 @@ export const createNewModelInventoryQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO model_inventories (provider_model, version, approver, capabilities, security_assessment, status, status_date, is_demo, created_at, updated_at)
-        VALUES (:provider_model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :is_demo, :created_at, :updated_at) RETURNING *`,
+      `INSERT INTO model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, is_demo, created_at, updated_at)
+        VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {
-          provider_model: modelInventory.provider_model,
+          provider_model: modelInventory.provider_model || '',
+          provider: modelInventory.provider,
+          model: modelInventory.model,
           version: modelInventory.version,
           approver: modelInventory.approver,
           capabilities: Array.isArray(modelInventory.capabilities)
@@ -82,11 +84,13 @@ export const updateModelInventoryByIdQuery = async (
   try {
     // First update the record
     await sequelize.query(
-      `UPDATE model_inventories SET provider_model = :provider_model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
+      `UPDATE model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
       {
         replacements: {
           id,
-          provider_model: modelInventory.provider_model,
+          provider_model: modelInventory.provider_model || '',
+          provider: modelInventory.provider,
+          model: modelInventory.model,
           version: modelInventory.version,
           approver: modelInventory.approver,
           capabilities: Array.isArray(modelInventory.capabilities)

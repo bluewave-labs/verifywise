@@ -16,10 +16,11 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, useContext, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useAuth } from "../../../../application/hooks/useAuth";
+import useUsers from "../../../../application/hooks/useUsers";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
@@ -63,14 +64,6 @@ const VWISO27001ClauseDrawerDialog = ({
   onSaveSuccess,
   index,
 }: VWISO27001ClauseDrawerDialogProps) => {
-  console.log("VWISO27001ClauseDrawerDialog rendered with props:", {
-    open,
-    subClause,
-    clause,
-    projectFrameworkId,
-    project_id,
-    index,
-  });
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -104,8 +97,8 @@ const VWISO27001ClauseDrawerDialog = ({
     idStatusMap.set(id, status);
   }
 
-  // Get context and project data
-  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
+  const { userId, userRoleName } = useAuth();
+  const { users } = useUsers();
   const { project } = useProjectData({
     projectId: String(project_id) || "0",
   });
@@ -132,9 +125,18 @@ const VWISO27001ClauseDrawerDialog = ({
       const members = users.filter(
         (user: User) =>
           typeof user.id === "number" &&
-          project.members.some((memberId) => Number(memberId) === user.id)
+          project.members.some((memberId) => {
+            // Handle both string and number types for memberId
+            const memberIdNum =
+              typeof memberId === "string" ? Number(memberId) : memberId;
+            return memberIdNum === user.id;
+          })
       );
-      setProjectMembers(members);
+      // If no project members found, use all users as fallback
+      setProjectMembers(members.length > 0 ? members : users);
+    } else if (users?.length > 0) {
+      // If no project data but users are available, use all users
+      setProjectMembers(users);
     }
   }, [project, users]);
 
@@ -142,21 +144,13 @@ const VWISO27001ClauseDrawerDialog = ({
   const [uppy] = useState(() => new Uppy());
 
   useEffect(() => {
-    console.log("useEffect triggered with:", {
-      open,
-      subClauseId: subClause?.id,
-      projectFrameworkId,
-    });
     const fetchSubClause = async () => {
-      console.log("subClause ===> ", subClause);
       if (open && subClause?.id) {
-        console.log("Fetching subclause with ID:", subClause.id);
         setIsLoading(true);
         try {
           const response = await ISO27001GetSubClauseById({
             routeUrl: `/iso-27001/subClause/byId/${subClause.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("response.data : ==> ", response.data.data);
           setFetchedSubClause(response.data.data);
 
           // Initialize form data with fetched values
@@ -301,7 +295,6 @@ const VWISO27001ClauseDrawerDialog = ({
   };
 
   const displayData = fetchedSubClause || subClause;
-  console.log("displayData ---->>>", displayData);
   if (isLoading) {
     return (
       <Drawer
@@ -742,13 +735,14 @@ const VWISO27001ClauseDrawerDialog = ({
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
               _id: user.id.toString(),
-              name: `${user.name}`,
+              name: user.name,
               email: user.email,
               surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select owner"}
             disabled={isEditingDisabled}
+            getOptionValue={(item) => item._id}
           />
 
           <Select
@@ -758,13 +752,14 @@ const VWISO27001ClauseDrawerDialog = ({
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
               _id: user.id.toString(),
-              name: `${user.name}`,
+              name: user.name,
               email: user.email,
               surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select reviewer"}
             disabled={isEditingDisabled}
+            getOptionValue={(item) => item._id}
           />
 
           <Select
@@ -774,13 +769,14 @@ const VWISO27001ClauseDrawerDialog = ({
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
               _id: user.id.toString(),
-              name: `${user.name}`,
+              name: user.name,
               email: user.email,
               surname: user.surname,
             }))}
             sx={inputStyles}
             placeholder={"Select approver"}
             disabled={isEditingDisabled}
+            getOptionValue={(item) => item._id}
           />
 
           <DatePicker

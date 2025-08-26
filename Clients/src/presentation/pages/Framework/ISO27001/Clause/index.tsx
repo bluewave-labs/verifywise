@@ -45,7 +45,6 @@ const ISO27001Clause = ({
       routeUrl: `/iso-27001/clauses/struct/byProjectId/${FrameworkId}`,
     });
     setClauses(response.data);
-    console.log("clauses : ==> ", clauses);
     setSubClausesMap({});
   }, [FrameworkId]);
 
@@ -60,7 +59,6 @@ const ISO27001Clause = ({
         const response = await ISO27001GetSubClauseByClauseId({
           routeUrl: `/iso-27001/subClauses/byClauseId/${clauseId}`,
         });
-        console.log("subClauses : ==> ", response);
         const detailedSubClauses = response.data;
 
         const mergedSubClauses = detailedSubClauses.map((detailed: any) => {
@@ -99,16 +97,10 @@ const ISO27001Clause = ({
 
   const handleSubClauseClick = useCallback(
     (clause: any, subClause: any, index: number) => {
-      console.log("handleSubClauseClick called with:", {
-        clause,
-        subClause,
-        index,
-      });
       setSelectedClause(clause);
       setSelectedSubClause(subClause);
       setSelectedIndex(index);
       setDrawerOpen(true);
-      console.log("drawerOpen set to true");
     },
     []
   );
@@ -162,7 +154,6 @@ const ISO27001Clause = ({
             <Stack
               key={subClause.id}
               onClick={() => {
-                console.log("Subclause clicked:", subClause);
                 handleSubClauseClick(clause, subClause, index);
               }}
               sx={styles.subClauseRow(
@@ -230,11 +221,6 @@ const ISO27001Clause = ({
         ))}
       {drawerOpen && (
         <>
-          {console.log("Rendering drawer with:", {
-            drawerOpen,
-            selectedSubClause,
-            selectedClause,
-          })}
           <VWISO27001ClauseDrawerDialog
             open={drawerOpen}
             onClose={handleDrawerClose}

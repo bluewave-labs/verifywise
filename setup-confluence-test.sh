@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Confluence Test Environment Setup Script
+#
+# This script automates the setup of a local Confluence instance for testing
+# the Confluence integration features in VerifyWise. It uses Docker Compose
+# to spin up Confluence server and PostgreSQL database containers.
+#
+# Prerequisites:
+#   - Docker installed and running
+#   - docker-compose.confluence.yml file present
+#
+# What this script does:
+#   1. Validates Docker is running
+#   2. Creates necessary directories
+#   3. Starts Confluence and PostgreSQL containers
+#   4. Provides setup instructions for Confluence configuration
+#
+# Usage: ./setup-confluence-test.sh
+
 echo "🏠 Setting up Confluence Test Environment"
 echo "======================================="
 

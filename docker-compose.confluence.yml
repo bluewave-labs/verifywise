@@ -1,3 +1,16 @@
+# Docker Compose configuration for Confluence Integration Testing
+# 
+# This file sets up a local Confluence test environment to support development
+# and testing of the Confluence integration features in VerifyWise.
+#
+# Usage:
+#   docker-compose -f docker-compose.confluence.yml up -d    # Start services
+#   docker-compose -f docker-compose.confluence.yml down    # Stop services
+#   docker-compose -f docker-compose.confluence.yml down -v # Stop and remove volumes
+#
+# Access Confluence at: http://localhost:8090
+# Database available at: localhost:5432
+
 version: '3.8'
 
 services:

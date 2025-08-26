@@ -8,6 +8,7 @@ from eval_engine.metrics import (
     equalized_odds,
     compute_group_metrics,
     conditional_statistical_parity,
+    selection_rate,
 )
 from sklearn.calibration import calibration_curve
 import seaborn as sns
@@ -17,60 +18,39 @@ def plot_demographic_parity(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     sensitive_features: np.ndarray,
-    mf: Any,
     attribute_name: str = "Group",
 ):
     """
-    Plot Demographic Parity (selection rates by group) with overall rate and DP difference.
+    Plot Demographic Parity (selection rates by group) using the selection_rate metric.
 
     Parameters
     ----------
     y_true : np.ndarray
-        Ground-truth labels (numpy array). Not used directly; provided for signature consistency.
+        Ground-truth labels (numpy array). Accepted for signature consistency.
     y_pred : np.ndarray
-        Predicted labels (numpy array). Not used directly; provided for signature consistency.
+        Predicted labels (numpy array).
     sensitive_features : np.ndarray
-        Sensitive feature values (numpy array). Not used directly; the grouping comes from `mf`.
-    mf : fairlearn.metrics.MetricFrame
-        A MetricFrame configured with a selection rate metric. `mf.by_group` is expected
-        to be a pandas Series (or single-column DataFrame) of selection rates per group.
+        Sensitive feature values (numpy array).
     attribute_name : str, optional
         Display name for the sensitive attribute on the x-axis.
     """
 
-    # Extract per-group selection rates from MetricFrame, handling Series/DataFrame cases
+    # Compute MetricFrame for selection rates by group
+    mf = selection_rate(y_true=y_true, y_pred=y_pred, protected_attributes=sensitive_features)
+
     group_rates = mf.by_group
-    if isinstance(group_rates, pd.DataFrame):
-        if "selection_rate" in group_rates.columns:
-            group_rates = group_rates["selection_rate"]
-        elif group_rates.shape[1] == 1:
-            group_rates = group_rates.iloc[:, 0]
-        else:
-            # Fallback: pick the first column if multiple are present
-            first_col = group_rates.columns[0]
-            group_rates = group_rates[first_col]
-
     overall_rate = mf.overall
-    # If overall is a DataFrame/Series (e.g., multiple metrics), try to coerce to scalar
-    if isinstance(overall_rate, (pd.Series, pd.DataFrame)):
-        if isinstance(overall_rate, pd.DataFrame):
-            if "selection_rate" in overall_rate.columns:
-                overall_rate = float(overall_rate["selection_rate"].iloc[0])
-            else:
-                overall_rate = float(overall_rate.iloc[0, 0])
-        else:
-            overall_rate = float(overall_rate.iloc[0])
-
     dpd = mf.difference()
-    if isinstance(dpd, (pd.Series, pd.DataFrame)):
-        # Coerce to scalar if needed
-        try:
-            dpd = float(dpd.item())
-        except Exception:
-            if isinstance(dpd, pd.DataFrame):
-                dpd = float(dpd.iloc[0, 0])
-            else:
-                dpd = float(dpd.iloc[0])
+
+    # Coerce potential non-scalars to float for printing/plotting
+    try:
+        overall_rate = float(overall_rate)
+    except Exception:
+        pass
+    try:
+        dpd = float(dpd)
+    except Exception:
+        pass
 
     print(f"Selection rate by {attribute_name}:\n{group_rates}")
     try:

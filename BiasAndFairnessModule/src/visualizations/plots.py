@@ -4,7 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, accuracy_score
 import pandas as pd
-from eval_engine.metrics import equalized_odds, compute_group_metrics
+from eval_engine.metrics import (
+    equalized_odds,
+    compute_group_metrics,
+    conditional_statistical_parity,
+)
 from sklearn.calibration import calibration_curve
 import seaborn as sns
 
@@ -367,6 +371,78 @@ def plot_fairness_radar(
     ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
     ax.set_title(title, fontsize=14, pad=20)
 
+    plt.tight_layout()
+    plt.show()
+
+    return fig, ax
+
+
+def plot_conditional_statistical_parity(
+    y_pred: np.ndarray,
+    protected_attributes: np.ndarray,
+    legitimate_attributes: np.ndarray,
+):
+    """
+    Plot a heatmap of Conditional Statistical Parity (selection rates by group within strata).
+
+    Parameters
+    ----------
+    y_pred : np.ndarray
+        Predicted labels or scores binarized upstream as needed for selection rate.
+    protected_attributes : np.ndarray
+        Encoded sensitive attribute values.
+    legitimate_attributes : np.ndarray
+        Legitimate attributes to condition on (define strata).
+    """
+
+    y_pred = np.asarray(y_pred).ravel()
+    protected_attributes = np.asarray(protected_attributes).ravel()
+    legitimate_attributes = np.asarray(legitimate_attributes).ravel()
+
+    if not (
+        y_pred.shape[0] == protected_attributes.shape[0] == legitimate_attributes.shape[0]
+    ):
+        raise ValueError(
+            "y_pred, protected_attributes, and legitimate_attributes must have the same length"
+        )
+
+    results = conditional_statistical_parity(
+        y_pred=y_pred,
+        protected_attributes=protected_attributes,
+        legitimate_attributes=legitimate_attributes,
+    )
+
+    if not results:
+        raise ValueError("No conditional statistical parity results to plot")
+
+    # Convert results into DataFrame for heatmap: rows=groups, cols=strata
+    data: dict = {}
+    for res in results:
+        stratum = str(res.get("stratum", ""))
+        group_rates = res.get("group_selection_rates", {})
+        for group, rate in group_rates.items():
+            group_key = str(group)
+            if group_key not in data:
+                data[group_key] = {}
+            data[group_key][stratum] = float(rate)
+
+    df = pd.DataFrame(data).T
+    # Sort for stable visualization
+    df = df.sort_index(axis=0)
+    df = df.reindex(sorted(df.columns), axis=1)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.heatmap(
+        df,
+        annot=True,
+        fmt=".2f",
+        cmap="YlGnBu",
+        cbar_kws={"label": "Selection Rate"},
+        ax=ax,
+    )
+    ax.set_xlabel("Stratum")
+    ax.set_ylabel("Group")
+    ax.set_title("Conditional Statistical Parity Heatmap")
     plt.tight_layout()
     plt.show()
 

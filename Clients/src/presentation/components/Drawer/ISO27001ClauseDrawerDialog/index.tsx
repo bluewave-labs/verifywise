@@ -21,7 +21,6 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
-import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import Alert from "../../Alert";
@@ -49,7 +48,6 @@ interface VWISO27001ClauseDrawerDialogProps {
   evidenceFiles?: FileData[];
   uploadFiles?: FileData[];
   projectFrameworkId: number;
-  project_id: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
   index: number;
 }
@@ -60,7 +58,6 @@ const VWISO27001ClauseDrawerDialog = ({
   subClause,
   clause,
   projectFrameworkId,
-  project_id,
   onSaveSuccess,
   index,
 }: VWISO27001ClauseDrawerDialogProps) => {
@@ -99,9 +96,6 @@ const VWISO27001ClauseDrawerDialog = ({
 
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
-  const { project } = useProjectData({
-    projectId: String(project_id) || "0",
-  });
 
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
@@ -121,24 +115,11 @@ const VWISO27001ClauseDrawerDialog = ({
 
   // Filter users to only show project members
   useEffect(() => {
-    if (project && users?.length > 0) {
-      const members = users.filter(
-        (user: User) =>
-          typeof user.id === "number" &&
-          project.members.some((memberId) => {
-            // Handle both string and number types for memberId
-            const memberIdNum =
-              typeof memberId === "string" ? Number(memberId) : memberId;
-            return memberIdNum === user.id;
-          })
-      );
-      // If no project members found, use all users as fallback
-      setProjectMembers(members.length > 0 ? members : users);
-    } else if (users?.length > 0) {
-      // If no project data but users are available, use all users
+    if (users?.length > 0) {
+      // Since we don't have project data, use all users
       setProjectMembers(users);
     }
-  }, [project, users]);
+  }, [users]);
 
   // Setup Uppy instance
   const [uppy] = useState(() => new Uppy());
@@ -247,7 +228,6 @@ const VWISO27001ClauseDrawerDialog = ({
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "");
-      formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
       formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));

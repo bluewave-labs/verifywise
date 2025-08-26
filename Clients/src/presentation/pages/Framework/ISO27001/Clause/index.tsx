@@ -276,7 +276,6 @@ const ISO27001Clause = ({
           subClause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(FrameworkId)}
-          project_id={0}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }

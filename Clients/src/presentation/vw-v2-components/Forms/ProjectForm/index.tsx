@@ -272,6 +272,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           // For organization-wide frameworks, set default values
           body.type_of_high_risk_role = null;
           body.ai_risk_classification = null;
+          body.is_organizational = true;
         }
 
         // Set frameworks for both types

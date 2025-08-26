@@ -32,7 +32,7 @@ const ConnectionPanel: React.FC<ConnectionPanelProps> = ({
   onStatusChange,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useAuth();
+  // const { userRoleName } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "error" | "info" | "warning";

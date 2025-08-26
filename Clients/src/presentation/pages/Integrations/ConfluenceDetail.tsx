@@ -9,7 +9,7 @@ import {
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import ConnectionPanel from "../../components/ConnectionPanel";
 import { getConfluenceIntegration } from "../../../application/repository/integration.repository";

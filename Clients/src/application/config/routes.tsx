@@ -29,6 +29,8 @@ import Training from "../../presentation/pages/TrainingRegistar";
 import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDashboard";
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
+import IntegrationsOverview from "../../presentation/pages/Integrations";
+import ConfluenceDetail from "../../presentation/pages/Integrations/ConfluenceDetail";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -60,6 +62,8 @@ export const createRoutes = (
     <Route path="/policies" element={<PolicyDashboard/>}/>
     <Route path="/event-tracker" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
+    <Route path="/integrations" element={<IntegrationsOverview />} />
+    <Route path="/integrations/confluence" element={<ConfluenceDetail />} />
   </Route>,
   <Route
     key="admin-reg"

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  confluence:
+    image: atlassian/confluence:latest
+    container_name: confluence-test
+    ports:
+      - "8090:8090"
+    environment:
+      - ATL_TOMCAT_MGMTPORT=8000
+      - ATL_TOMCAT_PORT=8090
+      - ATL_TOMCAT_CONTEXTPATH=
+      - CATALINA_CONNECTOR_PROXYNAME=
+      - CATALINA_CONNECTOR_PROXYPORT=
+      - CATALINA_CONNECTOR_SCHEME=http
+      - CATALINA_CONNECTOR_SECURE=false
+    volumes:
+      - confluence-data:/var/atlassian/application-data/confluence
+      - ./confluence-logs:/opt/atlassian/confluence/logs
+    restart: unless-stopped
+    networks:
+      - confluence-network
+
+  # Optional: PostgreSQL database for Confluence
+  confluence-db:
+    image: postgres:13
+    container_name: confluence-postgres
+    environment:
+      - POSTGRES_DB=confluence
+      - POSTGRES_USER=confluence
+      - POSTGRES_PASSWORD=confluence
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - confluence-network
+
+volumes:
+  confluence-data:
+  postgres-data:
+
+networks:
+  confluence-network:
+    driver: bridge

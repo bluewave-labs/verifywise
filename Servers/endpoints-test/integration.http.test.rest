@@ -1,0 +1,36 @@
+### Test Integration Endpoints
+
+@baseUrl = http://localhost:3000/api
+
+### Get all integrations (without auth - should return 401)
+GET {{baseUrl}}/integrations
+Content-Type: application/json
+
+### Get all integrations (with fake token - should return 401)
+GET {{baseUrl}}/integrations
+Content-Type: application/json
+Authorization: Bearer fake-token
+
+### Get Confluence integration details (without auth - should return 401) 
+GET {{baseUrl}}/integrations/confluence
+Content-Type: application/json
+
+### Connect Confluence (without auth - should return 401)
+POST {{baseUrl}}/integrations/confluence/connect
+Content-Type: application/json
+
+{
+  "site_url": "https://example.atlassian.net",
+  "connection_name": "My Confluence",
+  "oauth_token": "fake-token-for-demo",
+  "oauth_refresh_token": "fake-refresh-token",
+  "oauth_expires_at": "2025-12-31T23:59:59.000Z"
+}
+
+### Disconnect Confluence (without auth - should return 401)
+POST {{baseUrl}}/integrations/confluence/disconnect
+Content-Type: application/json
+
+### Test server health
+GET {{baseUrl}}/
+Content-Type: application/json

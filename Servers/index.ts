@@ -36,6 +36,7 @@ import modelInventoryRoutes from "./routes/modelInventory.route";
 import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
+import integrationRoutes from "./routes/integration.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
@@ -119,6 +120,7 @@ try {
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/tiers", tiersRoutes);
   app.use("/api/subscriptions", subscriptionRoutes);
+  app.use("/api/integrations", integrationRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes)
 

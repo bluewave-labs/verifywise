@@ -42,6 +42,10 @@ export const routeMapping: Record<string, string> = {
   // Model inventory
   "/model-inventory": "Model Inventory",
 
+  // Integrations
+  "/integrations": "Integrations",
+  "/integrations/confluence": "Confluence",
+
   // Authentication
   "/login": "Sign In",
   "/register": "Create Account",

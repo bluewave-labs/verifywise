@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import axios from "axios";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { createOrUpdateIntegrationConnectionQuery } from "../utils/integration.utils";
 import { sequelize } from "../database/db";
@@ -30,23 +29,26 @@ export async function connectConfluenceWithToken(req: Request, res: Response): P
     
     try {
       // Test API call to verify credentials
-      const testResponse = await axios.get(
-        `https://${confluence_domain}/wiki/rest/api/space`,
+      const testResponse = await fetch(
+        `https://${confluence_domain}/wiki/rest/api/space?limit=1`,
         {
+          method: 'GET',
           headers: {
             'Authorization': `Basic ${auth}`,
             'Accept': 'application/json',
-          },
-          params: {
-            limit: 1
           }
         }
       );
+
+      if (!testResponse.ok) {
+        throw new Error(`HTTP ${testResponse.status}: ${testResponse.statusText}`);
+      }
 
       // Get user info
-      const userResponse = await axios.get(
+      const userResponse = await fetch(
         `https://${confluence_domain}/wiki/rest/api/user/current`,
         {
+          method: 'GET',
           headers: {
             'Authorization': `Basic ${auth}`,
             'Accept': 'application/json',
@@ -54,19 +56,23 @@ export async function connectConfluenceWithToken(req: Request, res: Response): P
         }
       );
 
-      const userInfo = userResponse.data;
+      if (!userResponse.ok) {
+        throw new Error(`HTTP ${userResponse.status}: ${userResponse.statusText}`);
+      }
+
+      const userData = await userResponse.json();
 
       // Create/update integration connection
       const connectionData = {
         integration_type: 'confluence' as const,
-        connection_name: `${confluence_domain} (${userInfo.displayName || confluence_email})`,
+        connection_name: `${confluence_domain} (${userData.displayName || confluence_email})`,
         status: 'connected' as const,
         configuration: {
           site_url: `https://${confluence_domain}`,
           site_name: confluence_domain,
-          user_id: userInfo.accountId,
-          user_email: userInfo.email || confluence_email,
-          user_name: userInfo.displayName,
+          user_id: userData.accountId,
+          user_email: userData.email || confluence_email,
+          user_name: userData.displayName,
           auth_type: 'api_token',
         },
         settings: {

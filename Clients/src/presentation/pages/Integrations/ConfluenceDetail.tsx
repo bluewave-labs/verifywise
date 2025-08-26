@@ -43,7 +43,7 @@ const tabPanelStyle = {
 
 const ConfluenceDetail: React.FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [tabValue, setTabValue] = useState("about");
   const [confluenceData, setConfluenceData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);

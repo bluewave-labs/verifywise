@@ -5,7 +5,6 @@ import {
   Typography,
   useTheme,
   CircularProgress,
-  Divider,
 } from "@mui/material";
 import Field from "../Inputs/Field";
 import CustomizableButton from "../../vw-v2-components/Buttons";
@@ -62,8 +61,8 @@ const ConfluenceSettings: React.FC = () => {
         headers: { Authorization: `Bearer ${getAuthToken()}` },
       });
       
-      if (response.data?.data) {
-        setSettings({ ...settings, ...response.data.data });
+      if ((response as any).data?.data) {
+        setSettings({ ...settings, ...(response as any).data.data });
       }
     } catch (error: any) {
       // Keep default settings if none exist
@@ -160,7 +159,6 @@ const ConfluenceSettings: React.FC = () => {
               value={settings.confluence_domain || ""}
               onChange={(e) => handleFieldChange("confluence_domain", e.target.value)}
               placeholder="your-domain.atlassian.net"
-              helperText="Enter only the domain, e.g., verifywise.atlassian.net"
               disabled={false}
               sx={{ backgroundColor: "#FFFFFF" }}
             />

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Box,
   Stack,
   Typography,
   useTheme,
@@ -41,7 +40,7 @@ const ConnectionPanel: React.FC<ConnectionPanelProps> = ({
   } | null>(null);
 
   // Check for admin role (case-insensitive to handle variations) - temporarily allowing all for testing
-  const isAdmin = userRoleName?.toLowerCase() === "admin" || userRoleName === "Administrator" || true;
+  // const isAdmin = userRoleName?.toLowerCase() === "admin" || userRoleName === "Administrator" || true;
 
   const handleConnect = async () => {
     
@@ -53,7 +52,7 @@ const ConnectionPanel: React.FC<ConnectionPanelProps> = ({
           headers: { Authorization: `Bearer ${getAuthToken()}` },
         });
         
-        const settings = settingsResponse.data?.data;
+        const settings = (settingsResponse as any).data?.data;
         // Use API token if configured
         if (settings?.auth_type === 'api_token' && settings?.api_token && settings?.confluence_domain && settings?.confluence_email) {
           try {
@@ -65,10 +64,10 @@ const ConnectionPanel: React.FC<ConnectionPanelProps> = ({
               headers: { Authorization: `Bearer ${getAuthToken()}` },
             });
             
-            if (tokenResponse.data?.message === "OK" || tokenResponse.data?.data?.message) {
+            if ((tokenResponse as any).data?.message === "OK" || (tokenResponse as any).data?.data?.message) {
               setAlert({
                 variant: "success",
-                body: tokenResponse.data?.data?.message || "Successfully connected to Confluence using API token!",
+                body: (tokenResponse as any).data?.data?.message || "Successfully connected to Confluence using API token!",
               });
               // Add small delay to ensure database transaction is committed
               setTimeout(() => {

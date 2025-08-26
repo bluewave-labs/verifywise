@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, accuracy_score
 import pandas as pd
 from eval_engine.metrics import equalized_odds
+from sklearn.calibration import calibration_curve
 
 
 def plot_demographic_parity(
@@ -124,6 +125,58 @@ def plot_demographic_parity(
 
     return fig, ax
 
+
+def plot_calibration_by_group(
+    y_true: np.ndarray,
+    y_prob: np.ndarray,
+    protected_attr: np.ndarray,
+    n_bins: int = 10,
+):
+    """
+    Plot calibration curves per sensitive group.
+
+    Parameters
+    ----------
+    y_true : np.ndarray
+        Ground truth binary labels.
+    y_prob : np.ndarray
+        Predicted probabilities for the positive class.
+    protected_attr : np.ndarray
+        Encoded sensitive attribute values.
+    n_bins : int, optional
+        Number of bins for calibration_curve. Default is 10.
+    """
+
+    y_true = np.asarray(y_true).ravel()
+    y_prob = np.asarray(y_prob).ravel()
+    protected_attr = np.asarray(protected_attr).ravel()
+
+    if not (y_true.shape[0] == y_prob.shape[0] == protected_attr.shape[0]):
+        raise ValueError("y_true, y_prob, and protected_attr must have the same length")
+
+    groups = np.unique(protected_attr)
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    for group in groups:
+        mask = protected_attr == group
+        prob_true, prob_pred = calibration_curve(
+            y_true[mask], y_prob[mask], n_bins=n_bins, strategy="uniform"
+        )
+        ax.plot(prob_pred, prob_true, marker="o", label=f"{group}")
+
+    # Reference line (perfect calibration)
+    ax.plot([0, 1], [0, 1], "k--", label="Perfectly calibrated")
+
+    ax.set_xlabel("Mean predicted probability")
+    ax.set_ylabel("Fraction of positives")
+    ax.set_title("Calibration Plot by Subgroup")
+    ax.legend()
+    ax.grid(True, linestyle="--", alpha=0.6)
+    plt.tight_layout()
+    plt.show()
+
+    return fig, ax
 
 
 def plot_groupwise_confusion_matrices(

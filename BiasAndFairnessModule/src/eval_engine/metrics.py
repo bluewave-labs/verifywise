@@ -13,7 +13,7 @@ from fairlearn.metrics import (MetricFrame, demographic_parity_difference,
                                equalized_odds_difference, false_positive_rate,
                                true_positive_rate, selection_rate as fairlearn_selection_rate)
 from sklearn.metrics import (brier_score_loss, precision_score, recall_score, 
-                            f1_score, accuracy_score)
+                            f1_score, accuracy_score, confusion_matrix)
 
 from .metric_registry import register_metric
 
@@ -1160,6 +1160,66 @@ def regression_demographic_parity(
     return 0.0
 
 
+# Group-wise confusion-derived metrics (TPR, FPR, PPV, NPV)
+@register_metric("compute_group_metrics")
+def compute_group_metrics(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> pd.DataFrame:
+    """
+    Compute per-group TPR, FPR, PPV, and NPV.
+
+    Args:
+        y_true: Ground truth labels (0/1)
+        y_pred: Predicted labels (0/1)
+        protected_attributes: Protected group attributes
+
+    Returns:
+        pd.DataFrame: Rows per group with columns [group, TPR, FPR, PPV, NPV]
+    """
+    # Flatten and validate inputs
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+
+    if y_true_array.shape[0] == 0:
+        return pd.DataFrame(columns=["group", "TPR", "FPR", "PPV", "NPV"])
+
+    metrics_records: List[Dict[str, Any]] = []
+    eps = 1e-10
+
+    for group_value in np.unique(sensitive_features_array):
+        group_mask = sensitive_features_array == group_value
+        y_true_g = y_true_array[group_mask]
+        y_pred_g = y_pred_array[group_mask]
+
+        tn, fp, fn, tp = confusion_matrix(y_true_g, y_pred_g, labels=[0, 1]).ravel()
+
+        tpr = float(tp / (tp + fn + eps))
+        fpr = float(fp / (fp + tn + eps))
+        ppv = float(tp / (tp + fp + eps))
+        npv = float(tn / (tn + fn + eps))
+
+        metrics_records.append(
+            {
+                "group": group_value,
+                "TPR": tpr,
+                "FPR": fpr,
+                "PPV": ppv,
+                "NPV": npv,
+            }
+        )
+
+    return pd.DataFrame(metrics_records)
+
+
 # Utility function for Fairness Compass Engine compatibility
 # This function converts any metric result to a simple float value
 
@@ -1228,6 +1288,17 @@ def convert_metric_to_float(metric_result, metric_name: str = "unknown") -> floa
                     return 0.0
             except (ValueError, TypeError):
                 pass
+
+    # Handle pandas DataFrame results (e.g., from compute_group_metrics)
+    if isinstance(metric_result, pd.DataFrame):
+        if metric_result.empty:
+            return 0.0
+        # Compute disparity per numeric column and return the maximum disparity across columns
+        numeric_columns = [col for col in metric_result.columns if np.issubdtype(metric_result[col].dtype, np.number)]
+        if not numeric_columns:
+            return 0.0
+        disparities = [float(metric_result[col].max() - metric_result[col].min()) for col in numeric_columns]
+        return float(max(disparities)) if disparities else 0.0
     
     # Handle named tuples (like conditional_use_accuracy_equality)
     if hasattr(metric_result, '_fields'):  # NamedTuple

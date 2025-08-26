@@ -182,7 +182,7 @@ async function createTaskTablesForTenant(queryInterface, tenantHash, transaction
       id serial NOT NULL,
       title character varying(255) NOT NULL,
       description text,
-      creator_id integer NOT NULL,
+      creator_id integer,
       organization_id integer,
       due_date timestamp with time zone,
       priority enum_tasks_priority NOT NULL DEFAULT 'Medium',

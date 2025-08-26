@@ -212,25 +212,20 @@ export const getSubClauseByIdForProjectQuery = async (
   projectFrameworkId: number,
   tenant: string
 ) => {
-  // const _subClauseId = (await sequelize.query(
-  //   `SELECT id FROM "${tenant}".subclauses_iso27001 WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
-  //   {
-  //     replacements: {
-  //       id: subClauseId,
-  //       projects_frameworks_id: projectFrameworkId,
-  //     },
-  //   }
-  // )) as [{ id: number }[], number];
-  // const subClauses = await getSubClauseByIdQuery(_subClauseId[0][0].id, tenant);
-  const resultSubClause = await sequelize.query(
-    `SELECT id FROM "${tenant}".subclauses_iso27001 WHERE id = :id;`,
+  console.log("subClauseId : ==> ", subClauseId);
+  console.log("projectFrameworkId : ==> ", projectFrameworkId);
+  console.log("tenant : ==> ", tenant);
+  const _subClauseId = (await sequelize.query(
+    `SELECT id FROM "${tenant}".subclauses_iso27001 WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
     {
-      replacements: { id: subClauseId },
+      replacements: {
+        id: subClauseId,
+        projects_frameworks_id: projectFrameworkId,
+      },
     }
-  );
-  console.log("resultSubClause ---->>>", resultSubClause[0][0]);
-  // return subClauses;
-  return resultSubClause[0][0];
+  )) as [{ id: number }[], number];
+  const subClauses = await getSubClauseByIdQuery(_subClauseId[0][0].id, tenant);
+  return subClauses;
 };
 
 export const getSubClauseByIdQuery = async (

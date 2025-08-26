@@ -4,7 +4,6 @@ import {
   IconButton,
   Stack,
   Typography,
-  useTheme,
   Divider,
   Box,
 } from "@mui/material";
@@ -18,7 +17,6 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   isOpen,
   onClose,
 }) => {
-  const theme = useTheme();
 
   const sanitizedContent = useMemo(
     () =>

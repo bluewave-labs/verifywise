@@ -1,5 +1,5 @@
 import React from "react";
-import { IconButton, useTheme } from "@mui/material";
+import { IconButton } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 interface HelperIconProps {
@@ -8,8 +8,6 @@ interface HelperIconProps {
 }
 
 const HelperIcon: React.FC<HelperIconProps> = ({ onClick, size = "small" }) => {
-  const theme = useTheme();
-
   return (
     <IconButton
       disableRipple

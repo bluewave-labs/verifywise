@@ -17,6 +17,8 @@ from eval_engine.metrics import (
 )
 from sklearn.calibration import calibration_curve
 import seaborn as sns
+import plotly.graph_objects as go
+from matplotlib import colors as mcolors
 
 
 def plot_demographic_parity(
@@ -67,53 +69,82 @@ def plot_demographic_parity(
     except Exception:
         print(f"Demographic Parity Difference: {dpd}")
 
-    # --- Visualization ---
-    fig, ax = plt.subplots(figsize=(7, 5))
+    # --- Visualization (Plotly) ---
+    # Prepare x (group labels) and y (selection rates)
+    try:
+        x_labels = [str(idx) for idx in list(group_rates.index)]
+        y_values = [float(v) for v in list(group_rates.values)]
+    except Exception:
+        # Fallback if by_group is not a typical pandas Series
+        series_like = pd.Series(group_rates)
+        x_labels = [str(idx) for idx in list(series_like.index)]
+        y_values = [float(v) for v in list(series_like.values)]
 
-    # Use the new colormap API
-    num_groups = len(group_rates)
+    num_groups = len(y_values)
     cmap = plt.colormaps["tab10"]
-    colors = [cmap(i % cmap.N) for i in range(max(num_groups, 1))]
+    bar_colors = [mcolors.to_hex(cmap(i % cmap.N)) for i in range(max(num_groups, 1))]
 
-    # Bar plot with different colors for each group
-    group_rates.plot(
-        kind="bar",
-        ax=ax,
-        color=colors,
-        edgecolor="black",
+    fig = go.Figure()
+
+    # Bars for selection rate by group
+    fig.add_trace(
+        go.Bar(
+            x=x_labels,
+            y=y_values,
+            name="Selection Rate",
+            showlegend=False,
+            marker=dict(
+                color=bar_colors,
+                line=dict(color="black", width=1),
+            ),
+        )
     )
 
-    # Add horizontal line for overall selection rate
-    ax.axhline(y=float(overall_rate), color="green", linestyle="--", linewidth=1.5, label="Overall Rate")
-
-    # Title & labels
-    ax.set_title(f"Demographic Parity by {attribute_name}", fontsize=14)
-    ax.set_ylabel("Selection Rate (P(Ŷ=1))", fontsize=12)
-    ax.set_xlabel(attribute_name, fontsize=12)
-    ax.legend()
+    # Horizontal overall selection rate line as a scatter trace (to show in legend)
+    fig.add_trace(
+        go.Scatter(
+            x=x_labels,
+            y=[float(overall_rate)] * num_groups,
+            mode="lines",
+            name="Overall Rate",
+            line=dict(color="green", dash="dash", width=1.5),
+            hoverinfo="skip",
+        )
+    )
 
     # Compute a reasonable y-limit and annotate DP difference
     try:
-        max_rate = float(pd.Series(group_rates).max())
+        max_rate = float(pd.Series(y_values).max())
     except Exception:
         max_rate = 1.0
     y_top = max(max_rate, float(overall_rate)) + 0.02
-    ax.set_ylim(top=min(1.05, y_top + 0.03))
+    y_max = min(1.05, y_top + 0.03)
 
-    x_pos = (num_groups - 1) / 2.0 if num_groups > 0 else 0.0
-    ax.text(
-        x_pos,
-        y_top,
-        f"DP Difference = {float(dpd):.3f}",
-        ha="center",
-        fontsize=12,
-        color="red",
+    # Add annotation for DP Difference at the top center
+    mid_idx = (num_groups - 1) // 2 if num_groups > 0 else 0
+    mid_x = x_labels[mid_idx] if x_labels else 0
+    fig.add_annotation(
+        x=mid_x,
+        y=y_top,
+        text=f"DP Difference = {float(dpd):.3f}",
+        showarrow=False,
+        font=dict(size=12, color="red"),
+        xanchor="center",
     )
 
-    plt.tight_layout()
-    plt.show()
+    fig.update_layout(
+        width=700,
+        height=500,
+        title=f"Demographic Parity by {attribute_name}",
+        xaxis_title=attribute_name,
+        yaxis_title="Selection Rate (P(Ŷ=1))",
+        yaxis=dict(range=[0, y_max]),
+        margin=dict(l=40, r=40, t=60, b=40),
+    )
 
-    return fig, ax
+    fig.show()
+
+    return fig, None
 
 
 def plot_calibration_by_group(

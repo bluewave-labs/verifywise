@@ -2,52 +2,46 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  CircularProgress,
   Stack,
   Typography,
-  CircularProgress,
 } from "@mui/material";
+import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application/repository/clause_struct_iso.repository";
+import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
+import { useCallback, useEffect, useState } from "react";
+import { styles } from "./style";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useState, useEffect, useCallback } from "react";
-import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
-import { Project } from "../../../../domain/types/Project";
-import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
-import { GetSubClausesById } from "../../../../application/repository/subClause_iso.repository";
-import { ClauseStructISO } from "../../../../domain/types/ClauseStructISO";
-import { SubClauseISO } from "../../../../domain/types/SubClauseISO";
-import { SubClauseStructISO } from "../../../../domain/types/SubClauseStructISO";
-import Alert from "../../../components/Alert";
-import { AlertProps } from "../../../../domain/interfaces/iAlert";
-import { handleAlert } from "../../../../application/tools/alertUtils";
-import { styles } from "./styles";
-import { getEntityById } from "../../../../application/repository/entity.repository";
-import StatsCard from "../../../components/Cards/StatsCard";
+import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repository/subClause_iso.repository";
+import { handleAlert } from "../../../../../application/tools/alertUtils";
+import Alert from "../../../../components/Alert";
+import { AlertProps } from "../../../../../domain/interfaces/iAlert";
+import VWISO27001ClauseDrawerDialog from "../../../../components/Drawer/ISO27001ClauseDrawerDialog";
+import StatsCard from "../../../../components/Cards/StatsCard";
+import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";
 
-const ISO42001Clauses = ({
-  project,
-  projectFrameworkId,
+const ISO27001Clause = ({
+  FrameworkId,
   statusFilter,
 }: {
-  project: Project;
-  framework_id: number;
-  projectFrameworkId: number;
+  FrameworkId: number | string;
   statusFilter?: string;
 }) => {
-  const [expanded, setExpanded] = useState<number | false>(false);
+  const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
   const [selectedClause, setSelectedClause] = useState<any>(null);
-  const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
-  const [loadingSubClauses, setLoadingSubClauses] = useState<{
-    [key: number]: boolean;
-  }>({});
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [expanded, setExpanded] = useState<number | false>(false);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [subClausesMap, setSubClausesMap] = useState<{ [key: number]: any[] }>(
     {}
   );
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [alert, setAlert] = useState<AlertProps | null>(null);
-  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [loadingSubClauses, setLoadingSubClauses] = useState<{
+    [key: number]: boolean;
+  }>({});
   const [clauseProgress, setClauseProgress] = useState<{
     totalSubclauses: number;
     doneSubclauses: number;
@@ -59,20 +53,20 @@ const ISO42001Clauses = ({
   const fetchClauses = useCallback(async () => {
     try {
       const clauseProgressResponse = await getEntityById({
-        routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}`,
+        routeUrl: `/iso-27001/clauses/progress/${FrameworkId}`,
       });
       setClauseProgress(clauseProgressResponse.data);
 
-      const response = await GetClausesByProjectFrameworkId({
-        routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
+      const response = await Iso27001GetClauseStructByFrameworkID({
+        routeUrl: `/iso-27001/clauses/struct/byProjectId/${FrameworkId}`,
       });
-      setClauses(response);
+      setClauses(response.data);
       setSubClausesMap({});
     } catch (error) {
       console.error("Error fetching clauses:", error);
       setClauses([]);
     }
-  }, [projectFrameworkId]);
+  }, [FrameworkId]);
 
   useEffect(() => {
     fetchClauses();
@@ -82,10 +76,9 @@ const ISO42001Clauses = ({
     async (clauseId: number, clauseSubClausesWithStatus: any[]) => {
       setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: true }));
       try {
-        const response = await GetSubClausesById({
-          routeUrl: `/iso-42001/subClauses/byClauseId/${clauseId}`,
+        const response = await ISO27001GetSubClauseByClauseId({
+          routeUrl: `/iso-27001/subClauses/byClauseId/${clauseId}`,
         });
-
         const detailedSubClauses = response.data;
 
         const mergedSubClauses = detailedSubClauses.map((detailed: any) => {
@@ -97,7 +90,6 @@ const ISO42001Clauses = ({
             status: match?.status ?? "Not started",
           };
         });
-
         setSubClausesMap((prev) => ({ ...prev, [clauseId]: mergedSubClauses }));
       } catch (error) {
         console.error("Error fetching detailed subclauses:", error);
@@ -165,7 +157,7 @@ const ISO42001Clauses = ({
     }
   };
 
-  function dynamicSubClauses(clause: ClauseStructISO) {
+  function dynamicSubClauses(clause: any) {
     const subClauses = subClausesMap[clause.id ?? 0] || [];
     const isLoading = loadingSubClauses[clause.id ?? 0];
 
@@ -183,32 +175,29 @@ const ISO42001Clauses = ({
             <CircularProgress size={24} />
           </Stack>
         ) : filteredSubClauses.length > 0 ? (
-          filteredSubClauses.map(
-            (
-              subClause: Partial<SubClauseISO & SubClauseStructISO>,
-              index: number
-            ) => (
-              <Stack
-                key={subClause.id}
-                onClick={() => handleSubClauseClick(clause, subClause, index)}
-                sx={styles.subClauseRow(
-                  filteredSubClauses.length - 1 === index,
-                  flashingRowId === subClause.id
-                )}
-              >
-                <Typography fontSize={13}>
-                  {clause.clause_no + "." + (index + 1)}{" "}
-                  {subClause.title ?? "Untitled"}
-                </Typography>
-                <Stack sx={styles.statusBadge(subClause.status ?? "")}>
-                  {subClause.status
-                    ? subClause.status.charAt(0).toUpperCase() +
-                      subClause.status.slice(1).toLowerCase()
-                    : "Not started"}
-                </Stack>
+          filteredSubClauses.map((subClause: any, index: number) => (
+            <Stack
+              key={subClause.id}
+              onClick={() => {
+                handleSubClauseClick(clause, subClause, index);
+              }}
+              sx={styles.subClauseRow(
+                filteredSubClauses.length - 1 === index,
+                flashingRowId === subClause.id
+              )}
+            >
+              <Typography fontSize={13}>
+                {clause.arrangement + "." + (index + 1)}{" "}
+                {subClause.title ?? "Untitled"}
+              </Typography>
+              <Stack sx={styles.statusBadge(subClause.status ?? "")}>
+                {subClause.status
+                  ? subClause.status.charAt(0).toUpperCase() +
+                    subClause.status.slice(1).toLowerCase()
+                  : "Not started"}
               </Stack>
-            )
-          )
+            </Stack>
+          ))
         ) : (
           <Stack sx={styles.noSubClausesContainer}>
             No matching subclauses
@@ -224,7 +213,7 @@ const ISO42001Clauses = ({
       async function fetchSubClause() {
         try {
           const response = await getEntityById({
-            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
+            routeUrl: `/iso-27001/subClause/byId/${clauseId}?projectFrameworkId=${FrameworkId}`,
           });
           setSelectedSubClause({
             ...response.data,
@@ -246,7 +235,7 @@ const ISO42001Clauses = ({
   }, [clauseId, subClauseId, clauses]);
 
   return (
-    <Stack className="iso-42001-clauses">
+    <Stack className="iso-27001-clauses">
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
@@ -260,7 +249,7 @@ const ISO42001Clauses = ({
         {"Management System Clauses"}
       </Typography>
       {clauses &&
-        clauses.map((clause: ClauseStructISO) => (
+        clauses.map((clause: any) => (
           <Stack key={clause.id} sx={styles.container}>
             <Accordion
               key={clause.id}
@@ -273,7 +262,7 @@ const ISO42001Clauses = ({
                   sx={styles.expandIcon(expanded === clause.id)}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
-                  {clause.title}
+                  {clause.arrangement} {clause.title}
                 </Typography>
               </AccordionSummary>
               {dynamicSubClauses(clause)}
@@ -281,13 +270,12 @@ const ISO42001Clauses = ({
           </Stack>
         ))}
       {drawerOpen && (
-        <VWISO42001ClauseDrawerDialog
+        <VWISO27001ClauseDrawerDialog
           open={drawerOpen}
           onClose={handleDrawerClose}
           subClause={selectedSubClause}
           clause={selectedClause}
-          projectFrameworkId={projectFrameworkId}
-          project_id={project.id}
+          projectFrameworkId={Number(FrameworkId)}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }
@@ -298,4 +286,4 @@ const ISO42001Clauses = ({
   );
 };
 
-export default ISO42001Clauses;
+export default ISO27001Clause;

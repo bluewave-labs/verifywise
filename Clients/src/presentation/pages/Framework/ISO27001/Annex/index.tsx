@@ -19,7 +19,15 @@ import { AnnexCategoryStructISO } from "../../../../../domain/types/AnnexCategor
 import { GetAnnexCategoriesById } from "../../../../../application/repository/annexCategory_iso.repository";
 import Alert from "../../../../components/Alert";
 
-const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
+const ISO27001Annex = ({ 
+  FrameworkId, 
+  statusFilter, 
+  applicabilityFilter 
+}: { 
+  FrameworkId: string | number;
+  statusFilter?: string;
+  applicabilityFilter?: string;
+}) => {
   const [expanded, setExpanded] = useState<number | false>(false);
   const [annexesProgress, setAnnexesProgress] = useState<any>({});
   const [annexes, setAnnexes] = useState<any>();
@@ -149,31 +157,59 @@ const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
                     {annex.arrangement}.{annex.order_no} {annex.title}
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
-                    {annex.annexControls.map((control: any, index: number) => (
-                      <Stack
-                        key={control.id}
-                        onClick={() =>
-                          handleControlClick("A", annex, control, index)
-                        }
-                        sx={styles.controlRow(
-                          (annex.annexCategories?.length ?? 0) - 1 === index,
-                          flashingRowId === control.id
-                        )}
-                      >
-                        <Stack>
-                          <Typography sx={styles.controlTitle}>
-                            {annex.arrangement}.{annex.order_no}.
-                            {control.order_no} {control.title}
+                    {(() => {
+                      let filteredControls = annex.annexControls || [];
+                      
+                      // Apply status filter
+                      if (statusFilter && statusFilter !== "") {
+                        filteredControls = filteredControls.filter(
+                          (control: any) => 
+                            control.status?.toLowerCase() === statusFilter.toLowerCase()
+                        );
+                      }
+                      
+                      // Apply applicability filter
+                      if (applicabilityFilter && applicabilityFilter !== "all" && applicabilityFilter !== "") {
+                        const isApplicable = applicabilityFilter === "true";
+                        filteredControls = filteredControls.filter(
+                          (control: any) => Boolean(control.applicable) === isApplicable
+                        );
+                      }
+                      
+                      return filteredControls.length > 0 ? (
+                        filteredControls.map((control: any, index: number) => (
+                          <Stack
+                            key={control.id}
+                            onClick={() =>
+                              handleControlClick("A", annex, control, index)
+                            }
+                            sx={styles.controlRow(
+                              filteredControls.length - 1 === index,
+                              flashingRowId === control.id
+                            )}
+                          >
+                            <Stack>
+                              <Typography sx={styles.controlTitle}>
+                                {annex.arrangement}.{annex.order_no}.
+                                {control.order_no} {control.title}
+                              </Typography>
+                            </Stack>
+                            <Stack sx={styles.statusBadge(control.status || "")}>
+                              {control.status
+                                ? control.status.charAt(0).toUpperCase() +
+                                  control.status.slice(1).toLowerCase()
+                                : "Not started"}
+                            </Stack>
+                          </Stack>
+                        ))
+                      ) : (
+                        <Stack sx={{ p: 2, textAlign: 'center' }}>
+                          <Typography variant="body2" color="text.secondary">
+                            No matching controls
                           </Typography>
                         </Stack>
-                        <Stack sx={styles.statusBadge(control.status || "")}>
-                          {control.status
-                            ? control.status.charAt(0).toUpperCase() +
-                              control.status.slice(1).toLowerCase()
-                            : "Not started"}
-                        </Stack>
-                      </Stack>
-                    ))}
+                      );
+                    })()}
                   </AccordionDetails>
                 </Accordion>
               </Stack>

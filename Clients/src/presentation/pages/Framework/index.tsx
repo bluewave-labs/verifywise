@@ -11,6 +11,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import { Tab } from "@mui/material";
 import ISO27001Clause from "./ISO27001/Clause";
 import ISO27001Annex from "./ISO27001/Annex";
+import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -58,12 +59,34 @@ const Framework = () => {
 
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
+  
+  // Filter states following ProjectFrameworks pattern
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
+
+  // Status options following ProjectFrameworks pattern for ISO27001
+  const iso27001StatusOptions = [
+    { value: "not started", label: "Not Started" },
+    { value: "in progress", label: "In Progress" },
+    { value: "implemented", label: "Implemented" },
+    { value: "awaiting approval", label: "Awaiting Approval" },
+    { value: "awaiting review", label: "Awaiting Review" },
+    { value: "draft", label: "Draft" },
+    { value: "audited", label: "Audited" },
+    { value: "needs rework", label: "Needs Rework" },
+  ];
 
   useEffect(() => {
     if (allVisible) {
       changeComponentVisibility("projectFrameworks", true);
     }
   }, [allVisible, changeComponentVisibility]);
+
+  // Reset filters when tab changes (following ProjectFrameworks pattern)
+  useEffect(() => {
+    setStatusFilter("");
+    setApplicabilityFilter("");
+  }, [iso27001TabValue]);
 
   const getFrameworkIcon = (frameworkName: string) => {
     if (frameworkName.toLowerCase().includes("iso 42001")) {
@@ -145,13 +168,31 @@ const Framework = () => {
                 />
               </TabList>
             </Box>
+            
+            {/* Filter Bar following ProjectFrameworks pattern */}
+            <TabFilterBar
+              statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
+              applicabilityFilter={applicabilityFilter}
+              onApplicabilityChange={setApplicabilityFilter}
+              showStatusFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
+              showApplicabilityFilter={iso27001TabValue === "annex"}
+              statusOptions={iso27001StatusOptions}
+            />
 
             <TabPanel value="clause" sx={tabPanelStyle}>
-              <ISO27001Clause FrameworkId={framework.id} />
+              <ISO27001Clause 
+                FrameworkId={framework.id} 
+                statusFilter={statusFilter}
+              />
             </TabPanel>
 
             <TabPanel value="annex" sx={tabPanelStyle}>
-              <ISO27001Annex FrameworkId={framework.id.toString()} />
+              <ISO27001Annex 
+                FrameworkId={framework.id.toString()} 
+                statusFilter={statusFilter}
+                applicabilityFilter={applicabilityFilter}
+              />
             </TabPanel>
           </TabContext>
         </Box>

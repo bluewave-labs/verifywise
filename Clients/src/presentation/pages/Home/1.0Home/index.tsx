@@ -22,6 +22,7 @@ import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../../components/HelperIcon";
 import dashboardHelpContent from "../../../../presentation/helpers/dashboard-help.html?raw";
 import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
@@ -163,7 +164,13 @@ const Home = () => {
       )}
       <Stack className="vwhome-body">
         <Stack sx={vwhomeBody}>
-          <Typography sx={vwhomeHeading}>Projects overview</Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography sx={vwhomeHeading}>Projects overview</Typography>
+            <HelperIcon 
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          </Stack>
           <Stack sx={vwhomeBodyControls}>
             {projects.length === 0 && (
               <CustomizableButton

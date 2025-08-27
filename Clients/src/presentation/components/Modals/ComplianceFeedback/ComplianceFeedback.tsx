@@ -149,7 +149,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           sx={{
             mt: 2,
             borderRadius: 2,
-            width: 155,
+            minWidth: 155,      // minimum width
             height: 25,
             fontSize: 11,
             border: "1px solid #D0D5DD",
@@ -162,7 +162,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           onClick={() => setIsFileUploadOpen(true)}
           disabled={readOnly}
         >
-          Add/Remove evidence
+         Add, remove or download evidence
         </Button>
         <Stack direction="row" spacing={10}>
           <Typography

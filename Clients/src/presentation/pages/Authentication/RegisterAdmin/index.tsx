@@ -133,7 +133,7 @@ const RegisterAdmin: React.FC<{ multiTenant: boolean }> = ({
       ? { ...values, organization: organizationValues }
       : values;
 
-   await createNewUser({
+    await createNewUser({
       userData: requestBody,
     })
       .then((response) => {

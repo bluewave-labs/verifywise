@@ -35,3 +35,17 @@ export async function GetAnnexesByProjectFrameworkId({
     data: response.data,
   };
 }
+
+export async function GetAnnexControlISO27001ById({
+  routeUrl,
+  signal,
+  authToken = getAuthToken(),
+  responseType = "json",
+}: GetRequestParams): Promise<any> {
+  const response = await apiServices.get(routeUrl, {
+    headers: { Authorization: `Bearer ${authToken}` },
+    signal,
+    responseType,
+  });
+  return response.data;
+}

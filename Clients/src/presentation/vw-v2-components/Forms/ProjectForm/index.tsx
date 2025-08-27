@@ -64,6 +64,35 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
+
+  // Filter frameworks based on framework type
+  const filteredFrameworks = useMemo(() => {
+    if (!allFrameworks) return [];
+
+    if (values.framework_type === FrameworkTypeEnum.ProjectBased) {
+      // Only show EU AI Act for project-based frameworks
+      return allFrameworks
+        .filter((fw) => fw.name.toLowerCase().includes("eu ai act"))
+        .map((fw) => ({
+          _id: Number(fw.id),
+          name: fw.name,
+        }));
+    } else if (values.framework_type === FrameworkTypeEnum.OrganizationWide) {
+      // Only show ISO 42001 and ISO 27001 for organization-wide frameworks
+      return allFrameworks
+        .filter(
+          (fw) =>
+            fw.name.toLowerCase().includes("iso 42001") ||
+            fw.name.toLowerCase().includes("iso 27001")
+        )
+        .map((fw) => ({
+          _id: Number(fw.id),
+          name: fw.name,
+        }));
+    }
+
+    return [];
+  }, [allFrameworks, values.framework_type]);
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
@@ -144,6 +173,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
       setValues({
         ...values,
         framework_type: event.target.value as FrameworkTypeEnum,
+        monitored_regulations_and_standards: [], // Clear selected frameworks when type changes
       });
       setErrors({ ...errors, frameworkType: "" });
     },
@@ -203,11 +233,12 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
       if (!typeOfHighRiskRole.accepted) {
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
+    }
 
-      if (values.monitored_regulations_and_standards.length === 0) {
-        newErrors.frameworks = "At least one framework is required.";
-        setFrameworkRequired(true);
-      }
+    // Validate frameworks for both framework types
+    if (values.monitored_regulations_and_standards.length === 0) {
+      newErrors.frameworks = "At least one framework is required.";
+      setFrameworkRequired(true);
     }
 
     setErrors(newErrors);
@@ -237,17 +268,19 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           body.ai_risk_classification = riskClassificationItems.find(
             (item) => item._id === values.ai_risk_classification
           )?.name;
-          body.framework = values.monitored_regulations_and_standards.map(
-            (fw) => fw._id
-          );
         } else {
           // For organization-wide frameworks, set default values
           body.type_of_high_risk_role = null;
           body.ai_risk_classification = null;
-          body.framework = []; // ISO 27001 frameworks will be handled by backend
+          body.is_organizational = true;
         }
 
-         const res = await createProject({
+        // Set frameworks for both types
+        body.framework = values.monitored_regulations_and_standards.map(
+          (fw) => fw._id
+        );
+
+        const res = await createProject({
           body,
         });
 
@@ -320,7 +353,6 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
               key={option.value}
               value={option.value}
               control={<Radio />}
-              disabled={option.value === FrameworkTypeEnum.OrganizationWide}
               label={
                 <Stack sx={{ gap: 1 }}>
                   <Typography
@@ -497,90 +529,6 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
         </Stack>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
           <Suspense fallback={<div>Loading...</div>}>
-            <Stack>
-              <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  fontWeight: 500,
-                  mb: 2,
-                }}
-              >
-                Team members
-              </Typography>
-              <Autocomplete
-                multiple
-                id="users-input"
-                size="small"
-                value={values.members.map((user) => ({
-                  _id: Number(user._id),
-                  name: user.name,
-                  surname: user.surname,
-                  email: user.email,
-                }))}
-                options={
-                  users
-                    ?.filter(
-                      (user) =>
-                        !values.members.some(
-                          (selectedUser) =>
-                            String(selectedUser._id) === String(user.id)
-                        ) && values.owner !== user.id
-                    )
-                    .map((user) => ({
-                      _id: user.id,
-                      name: user.name,
-                      surname: user.surname,
-                      email: user.email,
-                    })) || []
-                }
-                noOptionsText={
-                  values.members.length === users.length
-                    ? "All members selected"
-                    : "No options"
-                }
-                onChange={handleOnMultiSelect("members")}
-                getOptionLabel={(user) => `${user.name} ${user.surname}`}
-                renderOption={(props, option) => {
-                  const { key, ...optionProps } = props;
-                  const userEmail =
-                    option.email.length > 30
-                      ? `${option.email.slice(0, 30)}...`
-                      : option.email;
-                  return (
-                    <Box key={key} component="li" {...optionProps}>
-                      <Typography sx={{ fontSize: "13px" }}>
-                        {option.name} {option.surname}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "11px",
-                          color: "rgb(157, 157, 157)",
-                          position: "absolute",
-                          right: "9px",
-                        }}
-                      >
-                        {userEmail}
-                      </Typography>
-                    </Box>
-                  );
-                }}
-                filterSelectedOptions
-                popupIcon={<KeyboardArrowDown />}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Select Users"
-                    error={!!errors.members}
-                    sx={teamMembersRenderInputStyle}
-                  />
-                )}
-                sx={{
-                  backgroundColor: theme.palette.background.main,
-                  ...teamMembersSxStyle,
-                }}
-                slotProps={teamMembersSlotProps}
-              />
-            </Stack>
             {values.framework_type === FrameworkTypeEnum.ProjectBased && (
               <Stack>
                 <Typography
@@ -590,69 +538,72 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                     mb: 2,
                   }}
                 >
-                  Monitored regulations and standards *
+                  Team members
                 </Typography>
                 <Autocomplete
                   multiple
-                  id="monitored-regulations-and-standards-input"
+                  id="users-input"
                   size="small"
-                  value={values.monitored_regulations_and_standards}
-                  options={allFrameworks.map((fw) => ({
-                    _id: Number(fw.id),
-                    name: fw.name,
+                  value={values.members.map((user) => ({
+                    _id: Number(user._id),
+                    name: user.name,
+                    surname: user.surname,
+                    email: user.email,
                   }))}
-                  onChange={handleOnMultiSelect(
-                    "monitored_regulations_and_standards"
-                  )}
-                  getOptionLabel={(item) => item.name}
+                  options={
+                    users
+                      ?.filter(
+                        (user) =>
+                          !values.members.some(
+                            (selectedUser) =>
+                              String(selectedUser._id) === String(user.id)
+                          ) && values.owner !== user.id
+                      )
+                      .map((user) => ({
+                        _id: user.id,
+                        name: user.name,
+                        surname: user.surname,
+                        email: user.email,
+                      })) || []
+                  }
                   noOptionsText={
-                    values.monitored_regulations_and_standards.length ===
-                    allFrameworks.length
-                      ? "All regulations selected"
+                    values.members.length === users.length
+                      ? "All members selected"
                       : "No options"
                   }
+                  onChange={handleOnMultiSelect("members")}
+                  getOptionLabel={(user) => `${user.name} ${user.surname}`}
                   renderOption={(props, option) => {
-                    const isComingSoon = option.name.includes("coming soon");
+                    const { key, ...optionProps } = props;
+                    const userEmail =
+                      option.email.length > 30
+                        ? `${option.email.slice(0, 30)}...`
+                        : option.email;
                     return (
-                      <Box
-                        component="li"
-                        {...props}
-                        sx={{
-                          opacity: isComingSoon ? 0.5 : 1,
-                          cursor: isComingSoon ? "not-allowed" : "pointer",
-                          "&:hover": {
-                            backgroundColor: isComingSoon
-                              ? "transparent"
-                              : undefined,
-                          },
-                        }}
-                      >
+                      <Box key={key} component="li" {...optionProps}>
+                        <Typography sx={{ fontSize: "13px" }}>
+                          {option.name} {option.surname}
+                        </Typography>
                         <Typography
                           sx={{
-                            fontSize: "13px",
-                            color: isComingSoon
-                              ? "text.secondary"
-                              : "text.primary",
+                            fontSize: "11px",
+                            color: "rgb(157, 157, 157)",
+                            position: "absolute",
+                            right: "9px",
                           }}
                         >
-                          {option.name}
+                          {userEmail}
                         </Typography>
                       </Box>
                     );
                   }}
-                  isOptionEqualToValue={(option, value) =>
-                    option._id === value._id
-                  }
-                  getOptionDisabled={(option) =>
-                    option.name.includes("coming soon")
-                  }
                   filterSelectedOptions
                   popupIcon={<KeyboardArrowDown />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      error={!!errors.frameworks}
-                      placeholder="Select regulations and standards"
+                      placeholder="Select Users"
+                      error={!!errors.members}
                       sx={teamMembersRenderInputStyle}
                     />
                   )}
@@ -662,16 +613,94 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                   }}
                   slotProps={teamMembersSlotProps}
                 />
-                {frameworkRequired && (
-                  <Typography
-                    variant="caption"
-                    sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
-                  >
-                    {errors.frameworks}
-                  </Typography>
-                )}
               </Stack>
             )}
+            <Stack>
+              <Typography
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 2,
+                }}
+              >
+                Monitored regulations and standards *
+              </Typography>
+              <Autocomplete
+                multiple
+                id="monitored-regulations-and-standards-input"
+                size="small"
+                value={values.monitored_regulations_and_standards}
+                options={filteredFrameworks}
+                onChange={handleOnMultiSelect(
+                  "monitored_regulations_and_standards"
+                )}
+                getOptionLabel={(item) => item.name}
+                noOptionsText={
+                  values.monitored_regulations_and_standards.length ===
+                  filteredFrameworks.length
+                    ? "All regulations selected"
+                    : "No options"
+                }
+                renderOption={(props, option) => {
+                  const isComingSoon = option.name.includes("coming soon");
+                  return (
+                    <Box
+                      component="li"
+                      {...props}
+                      sx={{
+                        opacity: isComingSoon ? 0.5 : 1,
+                        cursor: isComingSoon ? "not-allowed" : "pointer",
+                        "&:hover": {
+                          backgroundColor: isComingSoon
+                            ? "transparent"
+                            : undefined,
+                        },
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "13px",
+                          color: isComingSoon
+                            ? "text.secondary"
+                            : "text.primary",
+                        }}
+                      >
+                        {option.name}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                isOptionEqualToValue={(option, value) =>
+                  option._id === value._id
+                }
+                getOptionDisabled={(option) =>
+                  option.name.includes("coming soon")
+                }
+                filterSelectedOptions
+                popupIcon={<KeyboardArrowDown />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    error={!!errors.frameworks}
+                    placeholder="Select regulations and standards"
+                    sx={teamMembersRenderInputStyle}
+                  />
+                )}
+                sx={{
+                  backgroundColor: theme.palette.background.main,
+                  ...teamMembersSxStyle,
+                }}
+                slotProps={teamMembersSlotProps}
+              />
+              {frameworkRequired && (
+                <Typography
+                  variant="caption"
+                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                >
+                  {errors.frameworks}
+                </Typography>
+              )}
+            </Stack>
           </Suspense>
           <DatePicker
             label="Start date"

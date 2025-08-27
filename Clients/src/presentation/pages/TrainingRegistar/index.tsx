@@ -26,6 +26,7 @@ import { createTraining } from "../../../application/repository/trainingregistar
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 
 const Alert = React.lazy(
@@ -229,7 +230,13 @@ const Training: React.FC = () => {
 
       <Stack gap={4}>
         <Stack>
-          <Typography sx={vwhomeHeading}>AI training registry</Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography sx={vwhomeHeading}>AI training registry</Typography>
+            <HelperIcon 
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          </Stack>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             This registry lists all AI-related training programs available to
             your organization. You can view, add, and manage training details

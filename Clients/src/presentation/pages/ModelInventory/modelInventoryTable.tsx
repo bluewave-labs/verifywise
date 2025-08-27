@@ -48,7 +48,8 @@ import {
 
 // Constants for table
 const TABLE_COLUMNS = [
-  { id: "provider_model", label: "PROVIDER/MODEL" },
+  { id: "provider", label: "PROVIDER" },
+  { id: "model", label: "MODEL" },
   { id: "version", label: "VERSION" },
   { id: "approver", label: "APPROVER" },
   { id: "capabilities", label: "CAPABILITIES" },
@@ -224,7 +225,10 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.provider_model}
+                  {modelInventory.provider || "-"}
+                </TableCell>
+                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                  {modelInventory.model || "-"}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {modelInventory.version || "-"}

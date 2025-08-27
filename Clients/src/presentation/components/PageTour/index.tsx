@@ -60,8 +60,8 @@ const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) =>
       }}
       styles={{
         options: {
-          primaryColor: "#1570EF",
-          zIndex: 1500,
+          primaryColor: "#13715B",
+          zIndex: 1200,
           beaconSize: 30,
         },
         buttonNext: {

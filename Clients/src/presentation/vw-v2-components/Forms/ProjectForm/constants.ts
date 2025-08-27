@@ -81,11 +81,11 @@ export const frameworkOptions: FrameworkOption[] = [
   {
     value: FrameworkTypeEnum.ProjectBased,
     title: "Project-based frameworks",
-    description: "EU AI Act, ISO 42001 (specific to an AI system/project)",
+    description: "EU AI Act only (specific to an AI system/project)",
   },
   {
     value: FrameworkTypeEnum.OrganizationWide,
     title: "Organization-wide framework",
-    description: "ISO 27001 (company-wide project)",
+    description: "ISO 42001 and ISO 27001 (company-wide project)",
   },
 ];

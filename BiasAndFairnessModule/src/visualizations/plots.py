@@ -9,6 +9,11 @@ from eval_engine.metrics import (
     compute_group_metrics,
     conditional_statistical_parity,
     selection_rate,
+    equalized_odds_by_group,
+    predictive_parity,
+    calibration,
+    balance_positive_class,
+    balance_negative_class,
 )
 from sklearn.calibration import calibration_curve
 import seaborn as sns
@@ -295,7 +300,10 @@ def create_fairness_vs_accuracy_plot(
 
 
 def plot_fairness_radar(
-    metrics_dict: dict,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    protected_attributes: np.ndarray,
+    sensitive_mapping: dict,
     title: str = "Fairness Metrics Radar Chart",
 ):
     """
@@ -303,51 +311,87 @@ def plot_fairness_radar(
 
     Parameters
     ----------
-    metrics_dict : dict
-        Mapping of group -> {metric_name: value, ...}.
-        Example structure:
-            {
-                "Male": {"Demographic Parity": 0.9, "Equalized Odds": 0.85, ...},
-                "Female": {"Demographic Parity": 0.7, "Equalized Odds": 0.65, ...}
-            }
+    y_true : np.ndarray
+        Ground truth binary labels.
+    y_pred : np.ndarray
+        Predicted labels (0/1) or probabilities. If probabilities are provided,
+        a threshold of 0.5 is used to binarize where needed.
+    protected_attributes : np.ndarray
+        Encoded sensitive attribute values.
+    sensitive_mapping : dict
+        Mapping from encoded sensitive values to human-readable labels.
+        Example: {0: "Male", 1: "Female"}
     title : str, optional
         Title of the plot.
     """
 
-    if not metrics_dict:
-        raise ValueError("metrics_dict must not be empty")
+    y_true = np.asarray(y_true).ravel()
+    y_pred = np.asarray(y_pred).ravel()
+    protected_attributes = np.asarray(protected_attributes).ravel()
 
-    groups = list(metrics_dict.keys())
+    if not (
+        y_true.shape[0] == y_pred.shape[0] == protected_attributes.shape[0]
+    ):
+        raise ValueError(
+            "y_true, y_pred, and protected_attributes must have the same length"
+        )
+
+    # Determine if y_pred appears probabilistic or binary
+    unique_pred_values = np.unique(y_pred)
+    is_binary_pred = set(unique_pred_values.tolist()).issubset({0, 1})
+
+    # Define labels and probabilities for downstream metrics
+    y_pred_labels = y_pred.astype(int) if is_binary_pred else (y_pred >= 0.5).astype(int)
+    y_pred_probs = y_pred.astype(float)
+
+    # Compute per-group metrics
+    sr_mf = selection_rate(y_true=y_true, y_pred=y_pred_labels, protected_attributes=protected_attributes)
+    pp_mf = predictive_parity(y_true=y_true, y_pred=y_pred_labels, protected_attributes=protected_attributes)
+    cal_mf = calibration(y_true=y_true, y_pred_proba=y_pred_probs, protected_attributes=protected_attributes)
+    bp_mf = balance_positive_class(y_true=y_true, y_pred_proba=y_pred_probs, protected_attributes=protected_attributes)
+    bn_mf = balance_negative_class(y_true=y_true, y_pred_proba=y_pred_probs, protected_attributes=protected_attributes)
+    eog_df = equalized_odds_by_group(y_true=y_true, y_pred=y_pred_labels, protected_attributes=protected_attributes)
+
+    # Build metrics_dict in the required format, mapping group ids to names
+    groups = np.unique(protected_attributes)
+    metrics_dict: dict[str, dict[str, float]] = {}
+    for g in groups:
+        group_name = sensitive_mapping.get(g, str(g))
+        group_metrics: dict[str, float] = {
+            "Demographic Parity": float(sr_mf.by_group.loc[g]) if g in sr_mf.by_group.index else np.nan,
+            "Equalized Odds": float(eog_df.loc[g, "EO_gap"]) if (not eog_df.empty and g in eog_df.index) else np.nan,
+            "Predictive Parity": float(pp_mf.by_group.loc[g]) if g in pp_mf.by_group.index else np.nan,
+            "Calibration": float(cal_mf.by_group.loc[g]) if g in cal_mf.by_group.index else np.nan,
+            "Balance Positive": float(bp_mf.by_group.loc[g]) if g in bp_mf.by_group.index else np.nan,
+            "Balance Negative": float(bn_mf.by_group.loc[g]) if g in bn_mf.by_group.index else np.nan,
+        }
+        metrics_dict[group_name] = group_metrics
+
+    if not metrics_dict:
+        raise ValueError("No metrics could be computed for radar plot")
+
+    # Prepare radar plot
     first_group_metrics = next(iter(metrics_dict.values()))
     if not first_group_metrics:
-        raise ValueError("metrics_dict values must contain at least one metric")
+        raise ValueError("At least one metric is required to render the radar plot")
 
     metric_names = list(first_group_metrics.keys())
     num_metrics = len(metric_names)
 
-    # Compute angles for radar axes
     angles = np.linspace(0.0, 2.0 * np.pi, num_metrics, endpoint=False).tolist()
-    angles += angles[:1]  # complete the loop
+    angles += angles[:1]
 
-    # Initialize the radar chart
     fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
 
-    for group in groups:
-        group_values_map = metrics_dict[group]
-        # Ensure ordering matches metric_names; missing values become NaN
-        values = [float(group_values_map.get(m, np.nan)) for m in metric_names]
-        values += values[:1]  # complete the loop
+    for group in metrics_dict.keys():
+        values = [float(metrics_dict[group].get(m, np.nan)) for m in metric_names]
+        values += values[:1]
         ax.plot(angles, values, label=group, linewidth=2)
         ax.fill(angles, values, alpha=0.25)
 
-    # Set metric labels
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(metric_names)
-
-    # Optional: set range 0-1 for fairness metrics
     ax.set_ylim(0, 1)
-
-    # Add legend and title
     ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
     ax.set_title(title, fontsize=14, pad=20)
 

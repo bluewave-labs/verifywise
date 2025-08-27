@@ -55,6 +55,19 @@ const ISO42001Clauses = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const clauseId = searchParams.get("clauseId");
   const subClauseId = searchParams.get("subClauseId");
+  const [selectedStatus, setSelectedStatus] = useState<string>("0"); // default = Not started
+
+  const statusIdMap = new Map<string, string>([
+    ["0", "Not started"],
+    ["1", "Draft"],
+    ["2", "In progress"],
+    ["3", "Awaiting review"],
+    ["4", "Awaiting approval"],
+    ["5", "Implemented"],
+    ["6", "Audited"],
+    ["7", "Needs rework"],
+  ]);
+
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -282,6 +295,9 @@ const ISO42001Clauses = ({
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }
           index={selectedIndex}
+          status={selectedStatus}
+          onStatusChange={(newStatus) => setSelectedStatus(newStatus)}
+          statusIdMap={statusIdMap}
         />
       )}
     </Stack>

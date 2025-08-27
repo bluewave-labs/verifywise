@@ -54,6 +54,9 @@ interface VWISO42001ClauseDrawerDialogProps {
   project_id: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
   index: number;
+  status: string;
+  onStatusChange: (newStatus: string) => void;
+  statusIdMap: Map<string, string>;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -65,6 +68,9 @@ const VWISO42001ClauseDrawerDialog = ({
   project_id,
   onSaveSuccess,
   index,
+  status,
+  onStatusChange,
+  statusIdMap
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -81,16 +87,7 @@ const VWISO42001ClauseDrawerDialog = ({
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
-  const statusIdMap = new Map([
-    ["Not started", "0"],
-    ["Draft", "1"],
-    ["In progress", "2"],
-    ["Awaiting review", "3"],
-    ["Awaiting approval", "4"],
-    ["Implemented", "5"],
-    ["Audited", "6"],
-    ["Needs rework", "7"],
-  ]);
+
   // Create the reverse map
   const idStatusMap = new Map();
   for (const [status, id] of statusIdMap.entries()) {
@@ -190,15 +187,25 @@ const VWISO42001ClauseDrawerDialog = ({
   const handleSelectChange =
     (field: string) => (event: SelectChangeEvent<string | number>) => {
       const value = event.target.value.toString();
-      if (field === "status" && value === "6"
-        && (selectedRisks.length > 0 || formData.risks.length > 0 || (
-          formData.risks.length > 0 && deletedRisks.length === formData.risks.length
-        ))
+
+      if (
+        field === "status" &&
+        value === "6" &&
+        (selectedRisks.length > 0 ||
+          formData.risks.length > 0 ||
+          (formData.risks.length > 0 &&
+            deletedRisks.length === formData.risks.length))
       ) {
-        setAuditedStatusModalOpen(true)
+        setAuditedStatusModalOpen(true);
       }
-      handleFieldChange(field, value);
+
+      if (field === "status") {
+        onStatusChange(value); // ✅ push change up to Clause (File A)
+      } else {
+        handleFieldChange(field, value);
+      }
     };
+
 
   // Update handleSave to use evidenceFiles
   const handleSave = async () => {
@@ -700,7 +707,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={formData.status}
+            value={status} // ✅ comes from props now
             onChange={handleSelectChange("status")}
             items={[
               { _id: "0", name: "Not started" },
@@ -713,9 +720,10 @@ const VWISO42001ClauseDrawerDialog = ({
               { _id: "7", name: "Needs rework" },
             ]}
             sx={inputStyles}
-            placeholder={"Select status"}
+            placeholder="Select status"
             disabled={isEditingDisabled}
           />
+
 
           <Select
             id="Owner"

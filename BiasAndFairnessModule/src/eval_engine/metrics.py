@@ -5,7 +5,7 @@ This module implements various bias and fairness metrics for machine learning mo
 Each metric is registered using the metric_registry decorator for centralized access.
 """
 
-from typing import Any, Dict, List, NamedTuple, Union
+from typing import Any, Dict, List, NamedTuple, Union, Hashable
 
 import numpy as np
 import pandas as pd
@@ -423,7 +423,7 @@ def equalized_odds(
         sensitive_features=sensitive_features_array,
         agg="worst_case",
     )
-    return float(eod_value)
+    return eod_value
 
 
 @register_metric("equalized_opportunity")
@@ -1319,3 +1319,64 @@ def convert_metric_to_float(metric_result, metric_name: str = "unknown") -> floa
     
     # If we can't convert, raise an error
     raise ValueError(f"Cannot convert metric '{metric_name}' result of type {type(metric_result)} to float")
+
+
+@register_metric("equalized_odds_by_group")
+def equalized_odds_by_group(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    protected_attributes: np.ndarray,
+    pos_label: Hashable = 1,
+) -> pd.DataFrame:
+    """
+    Compute per-group Equalized Odds components and gaps.
+
+    Args:
+        y_true: Ground truth binary labels.
+        y_pred: Predicted binary labels (0/1). Threshold scores first if needed.
+        protected_attributes: Protected group labels for each sample.
+        pos_label: Positive class label used to compute TPR/FPR.
+
+    Returns:
+        pd.DataFrame: Per-group rows with columns [TPR, FPR, EO_gap]
+            where EO_gap = max(|TPR - overall_TPR|, |FPR - overall_FPR|).
+    """
+    # Flatten and validate inputs
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+
+    if y_true_array.shape[0] == 0:
+        return pd.DataFrame(columns=["TPR", "FPR", "EO_gap"])  # Empty, correct schema
+
+    # Compute per-group TPR and FPR with MetricFrame
+    mf = MetricFrame(
+        metrics={
+            "TPR": lambda yt, yp: true_positive_rate(yt, yp, pos_label=pos_label),
+            "FPR": lambda yt, yp: false_positive_rate(yt, yp, pos_label=pos_label),
+        },
+        y_true=y_true_array,
+        y_pred=y_pred_array,
+        sensitive_features=sensitive_features_array,
+    )
+
+    by_group = mf.by_group.copy()
+    by_group = by_group.sort_index()
+
+    ref_tpr = mf.overall["TPR"]
+    ref_fpr = mf.overall["FPR"]
+    eo_gap = np.maximum(
+        np.abs(by_group["TPR"] - ref_tpr),
+        np.abs(by_group["FPR"] - ref_fpr),
+    )
+
+    out = by_group.assign(EO_gap=eo_gap)
+    return out

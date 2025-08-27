@@ -474,50 +474,61 @@ def plot_conditional_statistical_parity(
 
 
 def plot_cumulative_parity_loss(
-    data: dict,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    protected_attributes: np.ndarray,
     title: str = "Stacked Parity Loss by Subgroup",
     x_label: str = "Cumulative Parity Loss",
     y_label: str = "Protected Subgroups",
 ):
     """
-    Plot a horizontal stacked bar chart of cumulative parity loss per subgroup.
+    Plot a horizontal stacked bar chart of selected fairness metrics per subgroup.
 
     Parameters
     ----------
-    data : dict
-        Mapping of group -> {metric_name: value, ...}.
-        Example:
-            {
-                "Male": {"TPR": 0.10, "PPV": 0.15, ...},
-                "Female": {"TPR": 0.08, "PPV": 0.18, ...}
-            }
-    title : str
+    y_true : np.ndarray
+        Ground truth labels (0/1).
+    y_pred : np.ndarray
+        Predicted labels (0/1).
+    protected_attributes : np.ndarray
+        Encoded sensitive attribute values.
+    title : str, optional
         Title of the plot.
-    x_label : str
+    x_label : str, optional
         Label for the x-axis.
-    y_label : str
+    y_label : str, optional
         Label for the y-axis.
     """
 
-    if not data:
-        raise ValueError("data must not be empty")
+    y_true = np.asarray(y_true).ravel()
+    y_pred = np.asarray(y_pred).ravel()
+    protected_attributes = np.asarray(protected_attributes).ravel()
 
-    groups = list(data.keys())
-    first_metrics = next(iter(data.values()))
-    if not first_metrics:
-        raise ValueError("Each group must contain at least one metric entry")
+    if not (
+        y_true.shape[0] == y_pred.shape[0] == protected_attributes.shape[0]
+    ):
+        raise ValueError("y_true, y_pred, and protected_attributes must have the same length")
 
-    metrics = list(first_metrics.keys())
+    # Compute group metrics and keep only the desired ones
+    df_metrics = compute_group_metrics(y_true=y_true, y_pred=y_pred, protected_attributes=protected_attributes)
+    if df_metrics.empty:
+        raise ValueError("No metrics available to plot")
 
-    # Convert dictionary to a 2D array [num_groups x num_metrics]
-    values = np.array([[float(data[group].get(metric, 0.0)) for metric in metrics] for group in groups])
+    desired_metrics = ["TPR", "PPV", "FPR", "ACC", "SPR"]
+    available_metrics = [m for m in desired_metrics if m in df_metrics.columns]
+    if not available_metrics:
+        raise ValueError("None of the required metrics (TPR, PPV, FPR, ACC, SPR) are available")
+
+    # Prepare data for plotting
+    groups = df_metrics["group"].tolist()
+    values = df_metrics[available_metrics].to_numpy(dtype=float)
 
     fig, ax = plt.subplots(figsize=(8, 5))
 
     # Horizontal stacked bar chart
     left = np.zeros(len(groups))
     cmap = plt.colormaps.get("tab20")
-    for i, metric in enumerate(metrics):
+    for i, metric in enumerate(available_metrics):
         color = cmap(i % cmap.N) if cmap is not None else None
         ax.barh(groups, values[:, i], left=left, label=metric, color=color, edgecolor="white")
         left += values[:, i]

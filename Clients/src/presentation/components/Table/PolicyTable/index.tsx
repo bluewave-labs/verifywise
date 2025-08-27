@@ -63,22 +63,6 @@ const CustomizablePolicyTable = ({
     []
   );
 
-  // const fetchVendors = useCallback(async () => {
-  //   try {
-  //     const response = await getAllEntities({ routeUrl: "/vendors" });
-  //     setDashboardValues((prev: any) => ({
-  //       ...prev,
-  //       vendors: response.data,
-  //     }));
-  //   } catch (error) {
-  //     console.error("Error fetching vendors:", error);
-  //   }
-  // }, [setDashboardValues]);
-
-  // useEffect(() => {
-  //   if (label !== "Project risk") fetchVendors();
-  // }, [label, fetchVendors]);
-
   const onRowClickHandler = (
     event: React.MouseEvent<HTMLTableRowElement>,
     rowData: any
@@ -88,17 +72,6 @@ const CustomizablePolicyTable = ({
     setAnchorEl(event.currentTarget);
     onRowClick?.(rowData.id);
   };
-
-  // const riskLevelChecker = (score: string) => {
-  //   const parsedScore = parseInt(score, 10);
-  //   if (!isNaN(parsedScore)) {
-  //     if (parsedScore <= 3) return RISK_LABELS.low.text;
-  //     if (parsedScore <= 6) return RISK_LABELS.medium.text;
-  //     if (parsedScore <= 9) return RISK_LABELS.high.text;
-  //     return RISK_LABELS.critical.text;
-  //   }
-  //   return score;
-  // };
 
   const tableHeader = (
     <TableHead
@@ -132,22 +105,14 @@ const CustomizablePolicyTable = ({
               key={row.id}
               onClick={(event) => onRowClickHandler(event, row)}
             >
-              {/* <TableCell sx={cellStyle}>
-            {row.risk_name?.length > 30 ? `${row.risk_name.slice(0, 30)}...` : row.risk_name}
-          </TableCell>
-          <TableCell sx={cellStyle}>
-            {row.impact?.length > 30 ? `${row.impact.slice(0, 30)}...` : row.impact}
-          </TableCell>
-          <TableCell sx={cellStyle}>
-            {dashboardValues.users.find((user: any) => user.id === parseInt(row.risk_owner))?.name || row.risk_owner}
-          </TableCell>
-          <TableCell sx={cellStyle}>
-            {riskLevelChecker(row.risk_level_autocalculated)}
-          </TableCell>
-          <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-          <TableCell sx={cellStyle}>{row.risk_level_autocalculated}</TableCell>
-          <TableCell sx={cellStyle}>{row.mitigation_status}</TableCell>
-          <TableCell sx={cellStyle}>{row.final_risk_level}</TableCell> */}
+              {data.cols.map((col) => (
+                <TableCell
+                  key={col.id}
+                  style={singleTheme.tableStyles.primary.body.cell}
+                >
+                  {row[col.id]}
+                </TableCell>
+              ))}
             </TableRow>
           )
         )}
@@ -169,7 +134,6 @@ const CustomizablePolicyTable = ({
             minHeight: 200,
           }}
         >
-          {/* <img src={Placeholder} alt="Placeholder" /> */}
           <Typography sx={{ fontSize: "13px", color: "#475467" }}>
             There is currently no data in this table.
           </Typography>

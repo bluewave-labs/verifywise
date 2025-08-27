@@ -37,6 +37,13 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
+import { GetMyOrganization } from "../../../../application/repository/organization.repository";
+import { extractUserToken } from "../../../../application/tools/extractToken";
+import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
+import { getTierFeatures } from "../../../../application/repository/tiers.repository";
+import { Tier } from "../../../../domain/types/Tiers";
+import { useEffect } from "react";
+
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -240,6 +247,39 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(false);
   };
 
+  const userToken = extractUserToken(getAuthToken());
+  const organizationId = userToken?.organizationId;
+  const [organizationTierId, setOrganizationTierId] = useState<number | null>(
+    null
+  );
+  const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
+
+  useEffect(() => {
+    const fetchOrganizationTierId = async () => {
+      const organization = await GetMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+      });
+      const org = organization.data.data;
+      setOrganizationTierId(org.subscription_id);
+    };
+
+    fetchOrganizationTierId();
+  }, [organizationId]);
+
+  useEffect(() => {
+    const fetchTierFeatures = async () => {
+      const features = await getTierFeatures({
+        tierId: organizationTierId || 1,
+        routeUrl: "/tiers",
+      });
+      setTierFeatures(features.data);
+    };
+    fetchTierFeatures();
+  }, [organizationTierId]);
+
+  const canAddTeamMembers =
+    tierFeatures?.seats && (tierFeatures?.seats > teamUsers.length);
+
   return (
     <Stack sx={{ mt: 3 }}>
       {alert && (
@@ -313,6 +353,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
               <CustomizableButton
                 variant="contained"
                 text="Invite team member"
+                isDisabled={!canAddTeamMembers}
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",

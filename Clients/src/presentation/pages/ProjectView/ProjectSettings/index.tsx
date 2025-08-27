@@ -43,7 +43,10 @@ import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../domain/types/User";
-import { deleteProject, updateProject } from "../../../../application/repository/project.repository";
+import {
+  deleteProject,
+  updateProject,
+} from "../../../../application/repository/project.repository";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -281,7 +284,7 @@ const ProjectSettings = React.memo(
                   newOwnerId = user;
                 }
                 if (user.id === values.owner) {
-                  oldOwner = user
+                  oldOwner = user;
                 }
               }
               setRemovedOwner(oldOwner);
@@ -302,8 +305,9 @@ const ProjectSettings = React.memo(
         ...prevValues,
         owner: pendingOwnerId.id,
         members: values.members.filter(
-          (member) => member !== pendingOwnerId.id)
-        }));
+          (member) => member !== pendingOwnerId.id
+        ),
+      }));
       setErrors((prevErrors) => ({ ...prevErrors, owner: "" }));
       setIsChangeOwnerModalOpen(false);
       setPendingOwnerId(null);
@@ -338,11 +342,13 @@ const ProjectSettings = React.memo(
                 values.monitoredRegulationsAndStandards.find(
                   (fw) => !newValue.some((nv) => nv._id === fw._id)
                 );
-              setRemovedFramework(prop === 'monitoredRegulationsAndStandards')
+              setRemovedFramework(prop === "monitoredRegulationsAndStandards");
               if (removedFramework) {
                 setIsFrameworkOperationInProgress(true);
                 setFrameworkToRemove(removedFramework);
-                setIsFrameworkRemoveModalOpen(values.monitoredRegulationsAndStandards.length > 1);
+                setIsFrameworkRemoveModalOpen(
+                  values.monitoredRegulationsAndStandards.length > 1
+                );
                 // Don't update values state yet
                 return;
               }
@@ -786,7 +792,19 @@ const ProjectSettings = React.memo(
                 title="Confirm owner change"
                 body={
                   <Typography fontSize={13}>
-                    You setting ownership from <strong>{removedOwner?.name} {removedOwner?.surname}</strong> to <strong>{pendingOwnerId?.name} {pendingOwnerId?.surname}</strong>. We will remove <strong>{pendingOwnerId?.name} {pendingOwnerId?.surname}</strong> from the members list.
+                    You setting ownership from{" "}
+                    <strong>
+                      {removedOwner?.name} {removedOwner?.surname}
+                    </strong>{" "}
+                    to{" "}
+                    <strong>
+                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                    </strong>
+                    . We will remove{" "}
+                    <strong>
+                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                    </strong>{" "}
+                    from the members list.
                   </Typography>
                 }
                 cancelText="Cancel"
@@ -935,14 +953,15 @@ const ProjectSettings = React.memo(
                     },
                   }}
                 />
-                {(removedFramework && values.monitoredRegulationsAndStandards.length === 1) && (
-                  <Typography
-                    variant="caption"
-                    sx={{ color: "warning.main", fontWeight: 300 }}
-                  >
-                    Framework cannot be empty.
-                  </Typography>
-                )}
+                {removedFramework &&
+                  values.monitoredRegulationsAndStandards.length === 1 && (
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "warning.main", fontWeight: 300 }}
+                    >
+                      Framework cannot be empty.
+                    </Typography>
+                  )}
               </Stack>
             )}
 
@@ -981,7 +1000,11 @@ const ProjectSettings = React.memo(
               )}
               options={
                 users
-                  ?.filter((user) => user.id !== values.owner && !values.members.includes(Number(user.id)))
+                  ?.filter(
+                    (user) =>
+                      user.id !== values.owner &&
+                      !values.members.includes(Number(user.id))
+                  )
                   .map((user) => ({
                     id: user.id,
                     name: user.name,

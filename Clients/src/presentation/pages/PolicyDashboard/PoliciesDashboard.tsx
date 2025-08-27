@@ -6,6 +6,8 @@ import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import {
   deletePolicy,
   getAllPolicies,
@@ -23,6 +25,7 @@ const PolicyDashboard: React.FC = () => {
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [showModal, setShowModal] = useState(false);
   const theme = useTheme()
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const fetchAll = async () => {
     const [pRes, tRes] = await Promise.all([getAllPolicies(), getAllTags()]);
@@ -66,9 +69,21 @@ const PolicyDashboard: React.FC = () => {
     <div>
       <Stack sx={{ gap: "15px" }}>
         <PageBreadcrumbs />
-        <Stack>
+        <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent="<h3>Policy Manager</h3><p>Policy Manager lets you create and update company AI policies in one place to stay compliant and consistent.</p><h3>Features</h3><ul><li>Create new AI policies</li><li>Edit existing policies</li><li>Organize policies with tags</li><li>Maintain compliance standards</li></ul>"
+        pageTitle="Policy Manager"
+      />
+      <Stack>
+          <Stack direction="row" alignItems="center" spacing={1}>
           <Typography sx={vwhomeHeading}>Policy Manager</Typography>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
+            <HelperIcon 
+            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            size="small"
+          />
+        </Stack>
+        <Typography sx={singleTheme.textStyles.pageDescription}>
             Policy Manager lets you create and update company AI policies in one
             place to stay compliant and consistent.
           </Typography>

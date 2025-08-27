@@ -567,22 +567,40 @@ def plot_conditional_statistical_parity(
     df = df.sort_index(axis=0)
     df = df.reindex(sorted(df.columns), axis=1)
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    sns.heatmap(
-        df,
-        annot=True,
-        fmt=".2f",
-        cmap="YlGnBu",
-        cbar_kws={"label": "Selection Rate"},
-        ax=ax,
-    )
-    ax.set_xlabel("Stratum")
-    ax.set_ylabel("Group")
-    ax.set_title("Conditional Statistical Parity Heatmap")
-    plt.tight_layout()
-    plt.show()
+    # Plotly heatmap with annotations
+    z_vals = df.values.astype(float)
+    x_labels = df.columns.astype(str).tolist()
+    y_labels = df.index.astype(str).tolist()
 
-    return fig, ax
+    text_vals = [[f"{v:.2f}" if pd.notna(v) else "" for v in row] for row in z_vals]
+
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z_vals,
+            x=x_labels,
+            y=y_labels,
+            colorscale="YlGnBu",
+            colorbar=dict(title="Selection Rate"),
+            text=text_vals,
+            texttemplate="%{text}",
+            hovertemplate="Group: %{y}<br>Stratum: %{x}<br>Selection Rate: %{z:.2f}<extra></extra>",
+            zauto=True,
+        )
+    )
+
+    fig.update_layout(
+        width=1200,
+        height=600,
+        title="Conditional Statistical Parity Heatmap",
+        xaxis_title="Stratum",
+        yaxis_title="Group",
+        margin=dict(l=40, r=40, t=60, b=40),
+    )
+    fig.update_yaxes(autorange="reversed")
+
+    fig.show()
+
+    return fig, None
 
 
 def plot_cumulative_parity_loss(

@@ -877,8 +877,6 @@ export const updateAnnexControlQuery = async (
   const updateAnnexControl: Partial<Record<keyof IISO27001AnnexControl, any>> =
     {};
   const setClause = [
-    "is_applicable",
-    "justification_for_exclusion",
     "implementation_description",
     "evidence_links",
     "status",

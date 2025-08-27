@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { FileData } from "../../../../domain/types/File";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import Checkbox from "../../Inputs/Checkbox";
 import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
@@ -103,8 +102,6 @@ const VWISO27001AnnexDrawerDialog = ({
   // Add state for all form fields
   const [formData, setFormData] = useState({
     guidance: "",
-    is_applicable: false,
-    justification_for_exclusion: "",
     implementation_description: "",
     status: "",
     owner: "",
@@ -198,9 +195,6 @@ const VWISO27001AnnexDrawerDialog = ({
           if (response.data) {
             setFormData({
               guidance: response.data.requirement_summary || "",
-              is_applicable: response.data.is_applicable ?? false,
-              justification_for_exclusion:
-                response.data.justification_for_exclusion || "",
               implementation_description:
                 response.data.implementation_description || "",
               status: response.data.status || "",
@@ -258,11 +252,6 @@ const VWISO27001AnnexDrawerDialog = ({
     setIsLoading(true);
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("is_applicable", formData.is_applicable.toString());
-      formDataToSend.append(
-        "justification_for_exclusion",
-        formData.justification_for_exclusion
-      );
       formDataToSend.append(
         "implementation_description",
         formData.implementation_description
@@ -417,77 +406,12 @@ const VWISO27001AnnexDrawerDialog = ({
               <strong>Guidance:</strong> {formData.guidance}
             </Typography>
           </Stack>
-          <Stack
-            className="vw-iso-27001-annex-drawer-dialog-applicability"
-            sx={{ gap: "15px" }}
-          >
-            <Typography fontSize={13}>Applicability:</Typography>
-            <Stack sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
-              <Checkbox
-                id={`${control?.id}-iso-27001-applicable`}
-                label="Applicable"
-                isChecked={formData.is_applicable}
-                value={"Applicable"}
-                onChange={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    is_applicable: true,
-                    justification_for_exclusion: "",
-                  }))
-                }
-                size="small"
-                isDisabled={isEditingDisabled}
-              />
-              <Checkbox
-                id={`${control?.id}-iso-27001-not-applicable`}
-                label="Not Applicable"
-                isChecked={!formData.is_applicable}
-                value={"Not Applicable"}
-                onChange={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    is_applicable: false,
-                  }))
-                }
-                size="small"
-                isDisabled={isEditingDisabled}
-              />
-            </Stack>
-          </Stack>
-          <Stack
-            sx={{
-              opacity: formData.is_applicable ? 0.5 : 1,
-              pointerEvents: formData.is_applicable ? "none" : "auto",
-            }}
-          >
-            <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
-              {"Justification for Exclusion (if Not Applicable)"}:
-            </Typography>
-            <Field
-              type="description"
-              value={formData.justification_for_exclusion}
-              onChange={(e) =>
-                handleFieldChange("justification_for_exclusion", e.target.value)
-              }
-              disabled={formData.is_applicable || isEditingDisabled}
-              sx={{
-                cursor: formData.is_applicable ? "not-allowed" : "text",
-                "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
-                  {
-                    height: "73px",
-                  },
-              }}
-              placeholder="Required if control is not applicable..."
-            />
-          </Stack>
         </Stack>
         <Divider />
         <Stack
           sx={{
             padding: "15px 20px",
             gap: "15px",
-            opacity: formData.is_applicable ? 1 : 0.5,
-            pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
         >
           <Stack>
@@ -500,9 +424,9 @@ const VWISO27001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("implementation_description", e.target.value)
               }
-              disabled={!formData.is_applicable || isEditingDisabled}
+              disabled={isEditingDisabled}
               sx={{
-                cursor: !formData.is_applicable ? "not-allowed" : "text",
+                cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",
@@ -721,8 +645,6 @@ const VWISO27001AnnexDrawerDialog = ({
         <Stack
           sx={{
             padding: "15px 20px",
-            opacity: formData.is_applicable ? 1 : 0.5,
-            pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
           gap={"20px"}
         >
@@ -735,7 +657,7 @@ const VWISO27001AnnexDrawerDialog = ({
               _id: status,
               name: status.charAt(0).toUpperCase() + status.slice(1),
             }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
+            disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select status"}
           />
@@ -751,7 +673,7 @@ const VWISO27001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
+            disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select owner"}
           />
@@ -767,7 +689,7 @@ const VWISO27001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
+            disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select reviewer"}
           />
@@ -783,7 +705,7 @@ const VWISO27001AnnexDrawerDialog = ({
               email: user.email,
               surname: user.surname,
             }))}
-            disabled={!formData.is_applicable || isEditingDisabled}
+            disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select approver"}
           />
@@ -792,7 +714,7 @@ const VWISO27001AnnexDrawerDialog = ({
             label="Due date:"
             sx={inputStyles}
             date={date}
-            disabled={!formData.is_applicable || isEditingDisabled}
+            disabled={isEditingDisabled}
             handleDateChange={(newDate) => {
               setDate(newDate);
             }}
@@ -807,9 +729,9 @@ const VWISO27001AnnexDrawerDialog = ({
               onChange={(e) =>
                 handleFieldChange("auditor_feedback", e.target.value)
               }
-              disabled={!formData.is_applicable || isAuditingDisabled}
+              disabled={isAuditingDisabled}
               sx={{
-                cursor: !formData.is_applicable ? "not-allowed" : "text",
+                cursor: "text",
                 "& .field field-decription field-input MuiInputBase-root MuiInputBase-input":
                   {
                     height: "73px",

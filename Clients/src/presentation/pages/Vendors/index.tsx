@@ -38,7 +38,7 @@ import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
-import { useVendors, useDeleteVendor } from "../../../application/hooks/useVendors";
+import { useVendors, useDeleteVendor, VendorDetails } from "../../../application/hooks/useVendors";
 import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
@@ -57,6 +57,9 @@ interface ExistingRisk {
   action_plan: string;
   vendor_id: string;
 }
+
+// Export VendorDetails interface for use in other components
+export type { VendorDetails };
 
 const Vendors = () => {
   const theme = useTheme();

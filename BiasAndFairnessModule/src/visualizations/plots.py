@@ -653,26 +653,38 @@ def plot_cumulative_parity_loss(
     groups = df_metrics["group"].tolist()
     values = df_metrics[available_metrics].to_numpy(dtype=float)
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    # Plotly horizontal stacked bar chart
+    fig = go.Figure()
 
-    # Horizontal stacked bar chart
-    left = np.zeros(len(groups))
     cmap = plt.colormaps.get("tab20")
     for i, metric in enumerate(available_metrics):
-        color = cmap(i % cmap.N) if cmap is not None else None
-        ax.barh(groups, values[:, i], left=left, label=metric, color=color, edgecolor="white")
-        left += values[:, i]
+        color_rgba = cmap(i % cmap.N) if cmap is not None else (0.1, 0.2, 0.5, 1.0)
+        color_hex = mcolors.to_hex(color_rgba)
+        fig.add_trace(
+            go.Bar(
+                x=values[:, i].tolist(),
+                y=groups,
+                name=metric,
+                orientation="h",
+                marker=dict(color=color_hex, line=dict(color="white", width=1)),
+            )
+        )
 
-    # Labels and style
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
-    ax.set_title(title)
-    ax.legend(title="Metrics", bbox_to_anchor=(1.05, 1), loc="upper left")
-    ax.grid(True, axis="x", linestyle="--", alpha=0.4)
-    plt.tight_layout()
-    plt.show()
+    fig.update_layout(
+        width=800,
+        height=500,
+        barmode="stack",
+        title=title,
+        xaxis_title=x_label,
+        yaxis_title=y_label,
+        legend=dict(title="Metrics", x=1.05, y=1, xanchor="left"),
+        margin=dict(l=80, r=120, t=60, b=40),
+    )
+    fig.update_xaxes(showgrid=True, gridcolor="rgba(0,0,0,0.4)", griddash="dash")
 
-    return fig, ax
+    fig.show()
+
+    return fig, None
 
 
 def plot_group_metrics_boxplots(

@@ -1,4 +1,10 @@
-import { Accordion, AccordionSummary, Stack, Typography } from "@mui/material";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
 import { useEffect, useState } from "react";
@@ -10,6 +16,12 @@ const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
   const [annexesProgress, setAnnexesProgress] = useState<any>({});
   const [annexes, setAnnexes] = useState<any>();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedControl, setSelectedControl] = useState<any>(null);
+  const [selectedAnnex, setSelectedAnnex] = useState<any>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -23,18 +35,31 @@ const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
           routeUrl: `/iso-27001/annexes/struct/byProjectId/${FrameworkId}`,
         });
         setAnnexes(response.data);
-        console.log("annexes >>> ", annexes);
       } catch (error) {
         console.error("Error fetching annexes:", error);
       }
     };
     fetchClauses();
+    console.log("annexes >>> ", annexes);
   }, []);
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
+
+  const handleControlClick = (
+    order: any,
+    annex: any,
+    control: any,
+    index: number
+  ) => {
+    setSelectedOrder(order);
+    setSelectedAnnex(annex);
+    setSelectedControl(control);
+    setSelectedIndex(index);
+    setDrawerOpen(true);
+  };
 
   return (
     <Stack className="iso-27001-annex">
@@ -60,6 +85,33 @@ const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
                 <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
                 {annex.arrangement}.{annex.order_no} {annex.title}
               </AccordionSummary>
+              <AccordionDetails sx={{ padding: 0 }}>
+                {annex.annexControls.map((control: any, index: number) => (
+                  <Stack
+                    key={control.id}
+                    onClick={() =>
+                      handleControlClick("A", annex, control, index)
+                    }
+                    sx={styles.controlRow(
+                      (annex.annexCategories?.length ?? 0) - 1 === index,
+                      flashingRowId === control.id
+                    )}
+                  >
+                    <Stack>
+                      <Typography sx={styles.controlTitle}>
+                        {annex.arrangement}.{annex.order_no}.{control.order_no}{" "}
+                        {control.title}
+                      </Typography>
+                    </Stack>
+                    <Stack sx={styles.statusBadge(control.status || "")}>
+                      {control.status
+                        ? control.status.charAt(0).toUpperCase() +
+                          control.status.slice(1).toLowerCase()
+                        : "Not started"}
+                    </Stack>
+                  </Stack>
+                ))}
+              </AccordionDetails>
             </Accordion>
           </Stack>
         ))}

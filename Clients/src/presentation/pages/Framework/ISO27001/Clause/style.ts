@@ -51,4 +51,25 @@ export const styles = {
     justifyContent: "center",
     color: "#666",
   } as SxProps<Theme>,
+
+  controlRow: (isLast: boolean, isFlashing: boolean) =>
+    ({
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "16px",
+      borderBottom: isLast ? "none" : "1px solid #eaecf0",
+      cursor: "pointer",
+      fontSize: 13,
+      animation: isFlashing ? `${flashAnimation} 2s ease-in-out` : "none",
+      "&:hover": {
+        backgroundColor: isFlashing ? "transparent" : "#f5f5f5",
+      },
+    } as SxProps<Theme>),
+
+  controlTitle: {
+    fontSize: 13,
+    fontWeight: 600,
+  } as SxProps<Theme>,
 };

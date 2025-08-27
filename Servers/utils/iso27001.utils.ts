@@ -897,8 +897,21 @@ export const updateAnnexControlQuery = async (
       } else if (
         annexControl[field as keyof IISO27001AnnexControl] != undefined
       ) {
-        updateAnnexControl[field as keyof IISO27001AnnexControl] =
-          annexControl[field as keyof IISO27001AnnexControl];
+        let value = annexControl[field as keyof IISO27001AnnexControl];
+
+        // Handle empty strings for integer fields
+        if (["owner", "reviewer", "approver"].includes(field)) {
+          if (value === "" || value === null || value === undefined) {
+            value = undefined;
+          } else {
+            value = parseInt(value as string);
+            if (isNaN(value)) {
+              value = undefined;
+            }
+          }
+        }
+
+        updateAnnexControl[field as keyof IISO27001AnnexControl] = value;
         acc.push(`${field} = :${field}`);
       }
       return acc;

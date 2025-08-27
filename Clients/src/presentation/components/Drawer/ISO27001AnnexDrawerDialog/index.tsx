@@ -246,9 +246,18 @@ const VWISO27001AnnexDrawerDialog = ({
         formData.implementation_description
       );
       formDataToSend.append("status", formData.status);
-      formDataToSend.append("owner", formData.owner);
-      formDataToSend.append("reviewer", formData.reviewer);
-      formDataToSend.append("approver", formData.approver);
+
+      // Only append user fields if they have valid values
+      if (formData.owner && formData.owner.trim() !== "") {
+        formDataToSend.append("owner", formData.owner);
+      }
+      if (formData.reviewer && formData.reviewer.trim() !== "") {
+        formDataToSend.append("reviewer", formData.reviewer);
+      }
+      if (formData.approver && formData.approver.trim() !== "") {
+        formDataToSend.append("approver", formData.approver);
+      }
+
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "");

@@ -563,14 +563,17 @@ export async function saveClauses(
 
     const projectId = projectIdResult[0][0].id;
 
-    let uploadedFiles = await uploadFiles(
-      req.files! as UploadedFile[],
-      parseInt(subClause.user_id),
-      projectId,
-      "Main clauses group",
-      req.tenantId!,
-      transaction
-    );
+    let uploadedFiles: FileType[] = [];
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      uploadedFiles = await uploadFiles(
+        req.files as UploadedFile[],
+        parseInt(subClause.user_id),
+        projectId,
+        "Main clauses group",
+        req.tenantId!,
+        transaction
+      );
+    }
 
     const updatedSubClause = await updateSubClauseQuery(
       subClauseId,
@@ -634,18 +637,43 @@ export async function saveAnnexes(
       risksMitigated: string;
     };
 
+    logger.debug(
+      `Processing annex control data: ${JSON.stringify(annexControl)}`
+    );
+    logger.debug(`Files to delete: ${annexControl.delete}`);
+    logger.debug(`Files in request: ${req.files ? req.files.length : 0}`);
+
     const filesToDelete = JSON.parse(annexControl.delete || "[]") as number[];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
-    let uploadedFiles = await uploadFiles(
-      req.files! as UploadedFile[],
-      parseInt(annexControl.user_id),
-      parseInt(annexControl.project_id),
-      "Annex controls group",
-      req.tenantId!,
-      transaction
-    );
+    // Get project_id from annex control
+    const projectIdResult = (await sequelize.query(
+      `SELECT pf.project_id as id FROM "${req.tenantId!}".annexcontrols_iso27001 ac JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id WHERE ac.id = :id;`,
+      {
+        replacements: { id: annexControlId },
+        transaction,
+      }
+    )) as [{ id: number }[], number];
 
+    if (projectIdResult[0].length === 0) {
+      throw new Error("Project ID not found for annex control");
+    }
+
+    const projectId = projectIdResult[0][0].id;
+
+    let uploadedFiles: FileType[] = [];
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      uploadedFiles = await uploadFiles(
+        req.files as UploadedFile[],
+        parseInt(annexControl.user_id),
+        projectId,
+        "Annex controls group",
+        req.tenantId!,
+        transaction
+      );
+    }
+
+    logger.debug(`Calling updateAnnexControlQuery with ID: ${annexControlId}`);
     const updatedAnnexControl = await updateAnnexControlQuery(
       annexControlId,
       annexControl,
@@ -654,14 +682,20 @@ export async function saveAnnexes(
       req.tenantId!,
       transaction
     );
+    logger.debug(`updateAnnexControlQuery completed successfully`);
 
     // Update the project's last updated date
-    await updateProjectUpdatedByIdQuery(
-      annexControlId,
-      "annexcontrols_iso27001",
-      req.tenantId!,
-      transaction
-    );
+    try {
+      await updateProjectUpdatedByIdQuery(
+        annexControlId,
+        "annexcontrols_iso27001",
+        req.tenantId!,
+        transaction
+      );
+    } catch (error) {
+      logger.error(`Error updating project last updated date: ${error}`);
+      // Continue with the transaction even if this fails
+    }
     await transaction.commit();
 
     await logSuccess({

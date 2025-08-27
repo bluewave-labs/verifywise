@@ -859,6 +859,10 @@ export const updateAnnexControlQuery = async (
     }
   );
 
+  if (!files[0]) {
+    throw new Error(`Annex control with ID ${id} not found`);
+  }
+
   let currentFiles = (
     files[0].evidence_links ? files[0].evidence_links : []
   ) as {
@@ -891,8 +895,7 @@ export const updateAnnexControlQuery = async (
         updateAnnexControl["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
       } else if (
-        annexControl[field as keyof IISO27001AnnexControl] != undefined &&
-        annexControl[field as keyof IISO27001AnnexControl]
+        annexControl[field as keyof IISO27001AnnexControl] != undefined
       ) {
         updateAnnexControl[field as keyof IISO27001AnnexControl] =
           annexControl[field as keyof IISO27001AnnexControl];

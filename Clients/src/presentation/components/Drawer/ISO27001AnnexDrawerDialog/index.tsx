@@ -20,7 +20,6 @@ import dayjs from "dayjs";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
-import useProjectData from "../../../../application/hooks/useProjectData";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
@@ -68,10 +67,6 @@ const VWISO27001AnnexDrawerDialog = ({
   project_id,
   onSaveSuccess,
 }: VWISO27001AnnexDrawerDialogProps) => {
-  console.log("control >>> ", control);
-  console.log("annex >>> ", annex);
-  console.log("projectFrameworkId >>> ", projectFrameworkId);
-  console.log("project_id >>> ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedAnnex, setFetchedAnnex] = useState<any>();
   const [isLoading, setIsLoading] = useState(false);
@@ -92,7 +87,6 @@ const VWISO27001AnnexDrawerDialog = ({
 
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
-  const { project } = useProjectData({ projectId: String(project_id) });
 
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
@@ -113,15 +107,11 @@ const VWISO27001AnnexDrawerDialog = ({
 
   // Filter users to only show project members
   useEffect(() => {
-    if (project && users?.length > 0) {
-      const members = users.filter(
-        (user: User) =>
-          typeof user.id === "number" &&
-          project.members.some((memberId) => Number(memberId) === user.id)
-      );
-      setProjectMembers(members);
+    if (users?.length > 0) {
+      // Since we don't have project data, use all users
+      setProjectMembers(users);
     }
-  }, [project, users]);
+  }, [users]);
 
   const setUploadFilesAnnexControls = (files: FileData[]) => {
     setUploadFiles(files);
@@ -188,7 +178,6 @@ const VWISO27001AnnexDrawerDialog = ({
           const response: any = await GetAnnexControlISO27001ById({
             routeUrl: `/iso-27001/annexControl/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          console.log("response >>> ", response.data);
           setFetchedAnnex(response.data);
 
           // Initialize form data with fetched values
@@ -289,24 +278,47 @@ const VWISO27001AnnexDrawerDialog = ({
         return;
       }
 
-      const response = await updateEntityById({
-        routeUrl: `/iso-27001/saveAnnexes/${fetchedAnnex.id}`,
-        body: formDataToSend,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (response.status === 200) {
-        handleAlert({
-          variant: "success",
-          body: "Annex control saved successfully",
-          setAlert,
+      try {
+        const response = await updateEntityById({
+          routeUrl: `/iso-27001/saveAnnexes/${fetchedAnnex.id}`,
+          body: formDataToSend,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         });
-        onSaveSuccess?.(true, "Annex control saved successfully");
-        onClose();
-      } else {
-        throw new Error("Failed to save annex control");
+
+        if (response && response.status === 200) {
+          handleAlert({
+            variant: "success",
+            body: "Annex control saved successfully",
+            setAlert,
+          });
+          onSaveSuccess?.(true, "Annex control saved successfully");
+          onClose();
+        } else {
+          throw new Error(
+            `Failed to save annex control. Status: ${
+              response?.status || "unknown"
+            }`
+          );
+        }
+      } catch (apiError) {
+        console.error("API call failed:", apiError);
+        // If it's an axios error, extract the error message
+        if (
+          apiError &&
+          typeof apiError === "object" &&
+          "response" in apiError
+        ) {
+          const axiosError = apiError as any;
+          const errorMessage =
+            axiosError.response?.data?.message ||
+            axiosError.response?.data ||
+            axiosError.message ||
+            "Failed to save annex control";
+          throw new Error(errorMessage);
+        }
+        throw apiError;
       }
     } catch (error) {
       console.error("Error saving annex control:", error);
@@ -665,49 +677,52 @@ const VWISO27001AnnexDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={formData.owner ? parseInt(formData.owner) : ""}
+            value={formData.owner || ""}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
-              _id: user.id,
-              name: `${user.name}`,
+              _id: user.id.toString(),
+              name: user.name,
               email: user.email,
               surname: user.surname,
             }))}
             disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select owner"}
+            getOptionValue={(item) => item._id}
           />
 
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={formData.reviewer ? parseInt(formData.reviewer) : ""}
+            value={formData.reviewer || ""}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
-              _id: user.id,
-              name: `${user.name}`,
+              _id: user.id.toString(),
+              name: user.name,
               email: user.email,
               surname: user.surname,
             }))}
             disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select reviewer"}
+            getOptionValue={(item) => item._id}
           />
 
           <Select
             id="Approver"
             label="Approver:"
-            value={formData.approver ? parseInt(formData.approver) : ""}
+            value={formData.approver || ""}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
-              _id: user.id,
-              name: `${user.name}`,
+              _id: user.id.toString(),
+              name: user.name,
               email: user.email,
               surname: user.surname,
             }))}
             disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select approver"}
+            getOptionValue={(item) => item._id}
           />
 
           <DatePicker

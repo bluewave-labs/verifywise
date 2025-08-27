@@ -478,27 +478,39 @@ def plot_fairness_radar(
     metric_names = list(first_group_metrics.keys())
     num_metrics = len(metric_names)
 
-    angles = np.linspace(0.0, 2.0 * np.pi, num_metrics, endpoint=False).tolist()
-    angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
+    # Plotly radar (scatterpolar)
+    fig = go.Figure()
 
     for group in metrics_dict.keys():
         values = [float(metrics_dict[group].get(m, np.nan)) for m in metric_names]
         values += values[:1]
-        ax.plot(angles, values, label=group, linewidth=2)
-        ax.fill(angles, values, alpha=0.25)
+        thetas = metric_names + [metric_names[0]]
+        fig.add_trace(
+            go.Scatterpolar(
+                r=values,
+                theta=thetas,
+                name=str(group),
+                fill="toself",
+                opacity=0.6,
+                line=dict(width=2),
+            )
+        )
 
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(metric_names)
-    ax.set_ylim(0, 1)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
-    ax.set_title(title, fontsize=14, pad=20)
+    fig.update_layout(
+        width=700,
+        height=700,
+        title=title,
+        polar=dict(
+            radialaxis=dict(range=[0, 1], showline=True, gridcolor="rgba(0,0,0,0.2)"),
+            angularaxis=dict(direction="clockwise"),
+        ),
+        legend=dict(x=1.05, y=1, xanchor="left"),
+        margin=dict(l=40, r=100, t=60, b=40),
+    )
 
-    plt.tight_layout()
-    plt.show()
+    fig.show()
 
-    return fig, ax
+    return fig, None
 
 
 def plot_conditional_statistical_parity(

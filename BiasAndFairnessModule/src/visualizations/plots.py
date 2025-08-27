@@ -178,27 +178,52 @@ def plot_calibration_by_group(
 
     groups = np.unique(protected_attr)
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    # Plotly figure
+    fig = go.Figure()
 
     for group in groups:
         mask = protected_attr == group
         prob_true, prob_pred = calibration_curve(
             y_true[mask], y_prob[mask], n_bins=n_bins, strategy="uniform"
         )
-        ax.plot(prob_pred, prob_true, marker="o", label=f"{group}")
+        fig.add_trace(
+            go.Scatter(
+                x=prob_pred,
+                y=prob_true,
+                mode="lines+markers",
+                name=f"{group}",
+                marker=dict(size=6),
+                line=dict(width=2),
+            )
+        )
 
     # Reference line (perfect calibration)
-    ax.plot([0, 1], [0, 1], "k--", label="Perfectly calibrated")
+    fig.add_trace(
+        go.Scatter(
+            x=[0, 1],
+            y=[0, 1],
+            mode="lines",
+            name="Perfectly calibrated",
+            line=dict(color="black", dash="dash"),
+            hoverinfo="skip",
+        )
+    )
 
-    ax.set_xlabel("Mean predicted probability")
-    ax.set_ylabel("Fraction of positives")
-    ax.set_title("Calibration Plot by Subgroup")
-    ax.legend()
-    ax.grid(True, linestyle="--", alpha=0.6)
-    plt.tight_layout()
-    plt.show()
+    fig.update_layout(
+        width=800,
+        height=600,
+        title="Calibration Plot by Subgroup",
+        xaxis_title="Mean predicted probability",
+        yaxis_title="Fraction of positives",
+        margin=dict(l=40, r=40, t=60, b=40),
+        legend=dict(title="Group"),
+    )
+    fig.update_xaxes(range=[0, 1], showgrid=True, gridcolor="rgba(0,0,0,0.2)")
+    fig.update_yaxes(range=[0, 1], showgrid=True, gridcolor="rgba(0,0,0,0.2)")
 
-    return fig, ax
+    fig.show()
+
+    return fig, None
 
 
 def plot_groupwise_confusion_matrices(

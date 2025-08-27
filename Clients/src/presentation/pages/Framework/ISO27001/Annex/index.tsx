@@ -1,31 +1,68 @@
-import { Stack, Typography } from "@mui/material";
+import { Accordion, AccordionSummary, Stack, Typography } from "@mui/material";
+import { getEntityById } from "../../../../../application/repository/entity.repository";
+import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
+import { useEffect, useState } from "react";
+import StatsCard from "../../../../components/Cards/StatsCard";
+import { styles } from "../Clause/style";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-const ISO27001Annex = () => {
+const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
+  const [expanded, setExpanded] = useState<number | false>(false);
+  const [annexesProgress, setAnnexesProgress] = useState<any>({});
+  const [annexes, setAnnexes] = useState<any>();
+
+  useEffect(() => {
+    const fetchClauses = async () => {
+      try {
+        const annexProgressResponse = await getEntityById({
+          routeUrl: `/iso-27001/annexes/progress/${FrameworkId}`,
+        });
+        setAnnexesProgress(annexProgressResponse.data);
+        console.log("annexesProgress >>> ", annexesProgress);
+        const response = await GetAnnexesByProjectFrameworkId({
+          routeUrl: `/iso-27001/annexes/struct/byProjectId/${FrameworkId}`,
+        });
+        setAnnexes(response.data);
+        console.log("annexes >>> ", annexes);
+      } catch (error) {
+        console.error("Error fetching annexes:", error);
+      }
+    };
+    fetchClauses();
+  }, []);
+
+  const handleAccordionChange =
+    (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpanded(isExpanded ? panel : false);
+    };
+
   return (
-    <Stack spacing={4}>
-      <Typography
-        variant="h5"
-        sx={{
-          color: "#1A1919",
-          fontWeight: 600,
-          mb: 2,
-        }}
-      >
-        ISO 27001 Annex A Controls
+    <Stack className="iso-27001-annex">
+      <StatsCard
+        completed={annexesProgress?.doneAnnexControls ?? 0}
+        total={annexesProgress?.totalAnnexControls ?? 0}
+        title="Annexes"
+        progressbarColor="#13715B"
+      />
+      <Typography sx={{ ...styles.title, mt: 4 }}>
+        Annex A : Reference Controls (Statement of Applicability)
       </Typography>
-
-      <Typography
-        variant="body1"
-        sx={{
-          color: "#666666",
-          lineHeight: 1.6,
-          mb: 4,
-        }}
-      >
-        Annex A of ISO 27001 contains 114 controls organized into 4 categories.
-        These controls help organizations implement appropriate information
-        security measures based on their risk assessment.
-      </Typography>
+      {annexes &&
+        annexes.map((annex: any) => (
+          <Stack key={annex.id} sx={styles.container}>
+            <Accordion
+              key={annex.id}
+              expanded={expanded === annex.id}
+              onChange={handleAccordionChange(annex.id ?? 0)}
+              sx={styles.accordion}
+            >
+              <AccordionSummary sx={styles.accordionSummary}>
+                <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
+                {annex.arrangement}.{annex.order_no} {annex.title}
+              </AccordionSummary>
+            </Accordion>
+          </Stack>
+        ))}
     </Stack>
   );
 };

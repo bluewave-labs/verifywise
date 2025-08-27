@@ -149,7 +149,7 @@ const Framework = () => {
             </TabPanel>
 
             <TabPanel value="annex" sx={tabPanelStyle}>
-              <ISO27001Annex />
+              <ISO27001Annex FrameworkId={framework.id.toString()} />
             </TabPanel>
           </TabContext>
         </Box>

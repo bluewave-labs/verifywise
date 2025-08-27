@@ -1166,7 +1166,7 @@ def compute_group_metrics(
     y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
 ) -> pd.DataFrame:
     """
-    Compute per-group TPR, FPR, PPV, and NPV.
+    Compute per-group TPR, FPR, PPV, NPV, ACC, and SPR.
 
     Args:
         y_true: Ground truth labels (0/1)
@@ -1174,7 +1174,7 @@ def compute_group_metrics(
         protected_attributes: Protected group attributes
 
     Returns:
-        pd.DataFrame: Rows per group with columns [group, TPR, FPR, PPV, NPV]
+        pd.DataFrame: Rows per group with columns [group, TPR, FPR, PPV, NPV, ACC, SPR]
     """
     # Flatten and validate inputs
     y_true_array = np.asarray(y_true).ravel()
@@ -1190,7 +1190,7 @@ def compute_group_metrics(
         )
 
     if y_true_array.shape[0] == 0:
-        return pd.DataFrame(columns=["group", "TPR", "FPR", "PPV", "NPV"])
+        return pd.DataFrame(columns=["group", "TPR", "FPR", "PPV", "NPV", "ACC", "SPR"])
 
     metrics_records: List[Dict[str, Any]] = []
     eps = 1e-10
@@ -1206,6 +1206,8 @@ def compute_group_metrics(
         fpr = float(fp / (fp + tn + eps))
         ppv = float(tp / (tp + fp + eps))
         npv = float(tn / (tn + fn + eps))
+        acc = float((tp + tn) / (tp + tn + fp + fn + eps))
+        spr = float((tp + fp) / (len(y_true_g) + eps))
 
         metrics_records.append(
             {
@@ -1214,6 +1216,8 @@ def compute_group_metrics(
                 "FPR": fpr,
                 "PPV": ppv,
                 "NPV": npv,
+                "ACC": acc,
+                "SPR": spr,
             }
         )
 

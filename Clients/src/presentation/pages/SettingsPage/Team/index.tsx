@@ -278,7 +278,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   }, [organizationTierId]);
 
   const canAddTeamMembers =
-    tierFeatures?.seats && (tierFeatures?.seats > teamUsers.length);
+    tierFeatures?.seats === 0 || (tierFeatures?.seats && tierFeatures?.seats > teamUsers.length);
 
   return (
     <Stack sx={{ mt: 3 }}>

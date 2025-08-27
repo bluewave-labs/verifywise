@@ -683,28 +683,51 @@ def plot_group_metrics_boxplots(
 
     df_melted = df_metrics.melt(id_vars="group", var_name="Metric", value_name="Value")
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.boxplot(data=df_melted, x="Metric", y="Value", ax=ax)
-    # Overlay per-group points for visibility and legend
-    sns.stripplot(
-        data=df_melted,
-        x="Metric",
-        y="Value",
-        hue="group",
-        dodge=True,
-        alpha=0.7,
-        linewidth=0,
-        ax=ax,
+    # Plotly: boxes per metric + overlaid scatter points per group
+    fig = go.Figure()
+
+    metrics = df_melted["Metric"].unique().tolist()
+    # Box traces (aggregate across groups per metric)
+    for metric in metrics:
+        vals = df_melted.loc[df_melted["Metric"] == metric, "Value"].astype(float).tolist()
+        fig.add_trace(
+            go.Box(
+                x=[metric] * len(vals),
+                y=vals,
+                name=metric,
+                boxpoints=False,
+                showlegend=False,
+            )
+        )
+
+    # Overlay per-group scatter points
+    groups = df_melted["group"].unique().tolist()
+    for grp in groups:
+        sub = df_melted[df_melted["group"] == grp]
+        fig.add_trace(
+            go.Scatter(
+                x=sub["Metric"],
+                y=sub["Value"],
+                mode="markers",
+                name=str(grp),
+                marker=dict(size=8, opacity=0.7),
+                hovertemplate="Group: %{text}<br>Metric: %{x}<br>Value: %{y:.3f}<extra></extra>",
+                text=[str(grp)] * len(sub),
+            )
+        )
+
+    fig.update_layout(
+        width=1000,
+        height=600,
+        title="Fairness Metrics Across Groups",
+        xaxis_title="Metric",
+        yaxis_title="Value",
+        margin=dict(l=40, r=40, t=60, b=40),
+        legend=dict(title="Group", x=1.02, y=1, xanchor="left"),
     )
+    fig.update_yaxes(range=[0, 1], showgrid=True, gridcolor="rgba(0,0,0,0.4)")
 
-    ax.set_title("Fairness Metrics Across Groups")
-    ax.set_xlabel("Metric")
-    ax.set_ylabel("Value")
-    ax.set_ylim(0, 1)
-    ax.grid(True, linestyle="--", alpha=0.4, axis="y")
-    ax.legend(title="Group", bbox_to_anchor=(1.02, 1), loc="upper left")
-    plt.tight_layout()
-    plt.show()
+    fig.show()
 
-    return fig, ax
+    return fig, None
 

@@ -19,6 +19,7 @@ from sklearn.calibration import calibration_curve
 import seaborn as sns
 import plotly.graph_objects as go
 from matplotlib import colors as mcolors
+from plotly.subplots import make_subplots
 
 
 def plot_demographic_parity(
@@ -247,23 +248,55 @@ def plot_groupwise_confusion_matrices(
     unique_groups = np.unique(sensitive_attr)
     n_groups = len(unique_groups)
 
-    fig, axes = plt.subplots(1, n_groups, figsize=(5 * n_groups, 4))
-    if n_groups == 1:
-        axes = [axes]
+    # Create Plotly subplots
+    subplot_titles = [f"Group: {sensitive_mapping.get(g, f'Group {g}')}" for g in unique_groups]
+    fig = make_subplots(rows=1, cols=n_groups, subplot_titles=subplot_titles, horizontal_spacing=0.08)
 
-    for ax, group in zip(axes, unique_groups):
+    for idx, group in enumerate(unique_groups):
         mask = sensitive_attr == group
-        cm = confusion_matrix(y_true[mask], y_pred[mask], labels=labels_for_cm, normalize=normalize)
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=display_labels)
-        disp.plot(ax=ax, colorbar=False, cmap="Blues")
+        cm = confusion_matrix(
+            y_true[mask],
+            y_pred[mask],
+            labels=labels_for_cm,
+            normalize=normalize,
+        )
 
-        group_name = sensitive_mapping.get(group, f"Group {group}")
-        ax.set_title(f"Group: {group_name}")
+        # Prepare text annotations
+        if normalize is None:
+            text_vals = [[f"{int(v)}" for v in row] for row in cm]
+        else:
+            text_vals = [[f"{v:.2f}" for v in row] for row in cm]
 
-    plt.tight_layout()
-    plt.show()
+        # Heatmap trace
+        fig.add_trace(
+            go.Heatmap(
+                z=cm,
+                x=[str(l) for l in display_labels],
+                y=[str(l) for l in display_labels],
+                colorscale="Blues",
+                showscale=False,
+                text=text_vals,
+                texttemplate="%{text}",
+                hovertemplate="True: %{y}<br>Pred: %{x}<br>Value: %{text}<extra></extra>",
+                zauto=True,
+            ),
+            row=1,
+            col=idx + 1,
+        )
 
-    return fig, axes
+        # Axis titles per subplot
+        fig.update_xaxes(title_text="Predicted label", row=1, col=idx + 1)
+        fig.update_yaxes(title_text="True label", autorange="reversed", row=1, col=idx + 1)
+
+    fig.update_layout(
+        width=max(400, 500 * n_groups),
+        height=400,
+        margin=dict(l=40, r=40, t=80, b=40),
+    )
+
+    fig.show()
+
+    return fig, None
 
 
 def create_fairness_vs_accuracy_plot(

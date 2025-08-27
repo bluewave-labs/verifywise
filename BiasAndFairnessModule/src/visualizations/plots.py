@@ -344,23 +344,34 @@ def create_fairness_vs_accuracy_plot(
 
     eod_df = pd.DataFrame(results)
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    scatter = ax.scatter(
-        eod_df["accuracy"],
-        eod_df["eo_diff"],
-        c=eod_df["threshold"],
-        cmap="viridis",
-        s=80,
+    # Plotly scatter with threshold-colored markers and colorbar
+    fig = go.Figure(
+        data=go.Scatter(
+            x=eod_df["accuracy"],
+            y=eod_df["eo_diff"],
+            mode="markers",
+            marker=dict(
+                size=10,
+                color=eod_df["threshold"],
+                colorscale="Viridis",
+                showscale=True,
+                colorbar=dict(title="Threshold"),
+            ),
+            hovertemplate="Accuracy: %{x:.3f}<br>EO Diff: %{y:.3f}<br>Threshold: %{marker.color:.2f}<extra></extra>",
+        )
     )
-    cbar = fig.colorbar(scatter, ax=ax)
-    cbar.set_label("Threshold")
-    ax.set_xlabel("Accuracy")
-    ax.set_ylabel("Equalized Odds Difference")
-    ax.set_title("Fairness vs Accuracy Trade-off")
-    plt.tight_layout()
-    plt.show()
+    fig.update_layout(
+        width=800,
+        height=600,
+        title="Fairness vs Accuracy Trade-off",
+        xaxis_title="Accuracy",
+        yaxis_title="Equalized Odds Difference",
+        margin=dict(l=40, r=40, t=60, b=40),
+    )
 
-    return fig, ax
+    fig.show()
+
+    return fig, None
 
 
 def plot_fairness_radar(

@@ -40,7 +40,6 @@ const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
           routeUrl: `/iso-27001/annexes/progress/${FrameworkId}`,
         });
         setAnnexesProgress(annexProgressResponse.data);
-        console.log("annexesProgress >>> ", annexesProgress);
         const response = await GetAnnexesByProjectFrameworkId({
           routeUrl: `/iso-27001/annexes/struct/byProjectId/${FrameworkId}`,
         });
@@ -50,7 +49,6 @@ const ISO27001Annex = ({ FrameworkId }: { FrameworkId: string | number }) => {
       }
     };
     fetchClauses();
-    console.log("annexes >>> ", annexes);
   }, [refreshTrigger]);
 
   const handleAccordionChange =

@@ -30,11 +30,9 @@ import Uppy from "@uppy/core";
 import allowedRoles from "../../../../application/constants/permissions";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import {
-  getEntityById,
-  updateEntityById,
-} from "../../../../application/repository/entity.repository";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
+import { GetAnnexControlISO27001ById } from "../../../../application/repository/annex_struct_iso.repository";
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 
@@ -71,8 +69,12 @@ const VWISO27001AnnexDrawerDialog = ({
   project_id,
   onSaveSuccess,
 }: VWISO27001AnnexDrawerDialogProps) => {
+  console.log("control >>> ", control);
+  console.log("annex >>> ", annex);
+  console.log("projectFrameworkId >>> ", projectFrameworkId);
+  console.log("project_id >>> ", project_id);
   const [date, setDate] = useState<Dayjs | null>(null);
-  const [fetchedAnnexControl, setFetchedAnnexControl] = useState<any>();
+  const [fetchedAnnex, setFetchedAnnex] = useState<any>();
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
@@ -183,17 +185,19 @@ const VWISO27001AnnexDrawerDialog = ({
 
   useEffect(() => {
     const fetchAnnexControl = async () => {
-      if (open && control?.id) {
+      if (open && annex?.id) {
         setIsLoading(true);
         try {
-          const response: any = await getEntityById({
+          const response: any = await GetAnnexControlISO27001ById({
             routeUrl: `/iso-27001/annexControl/byId/${control.id}?projectFrameworkId=${projectFrameworkId}`,
           });
-          setFetchedAnnexControl(response.data);
+          console.log("response >>> ", response.data);
+          setFetchedAnnex(response.data);
 
+          // Initialize form data with fetched values
           if (response.data) {
             setFormData({
-              guidance: response.data.guidance || "",
+              guidance: response.data.requirement_summary || "",
               is_applicable: response.data.is_applicable ?? false,
               justification_for_exclusion:
                 response.data.justification_for_exclusion || "",
@@ -206,11 +210,13 @@ const VWISO27001AnnexDrawerDialog = ({
               auditor_feedback: response.data.auditor_feedback || "",
               risks: response.data.risks || [],
             });
+            // Set the date if it exists in the fetched data
             if (response.data.due_date) {
               setDate(dayjs(response.data.due_date));
             }
           }
 
+          // On annex control fetch, set evidence files if available
           if (response.data.evidence_links) {
             setEvidenceFiles(response.data.evidence_links as FileData[]);
           }
@@ -222,7 +228,7 @@ const VWISO27001AnnexDrawerDialog = ({
       }
     };
     fetchAnnexControl();
-  }, [open, control?.id, projectFrameworkId]);
+  }, [open, annex?.id, projectFrameworkId]);
 
   const handleFieldChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -283,19 +289,19 @@ const VWISO27001AnnexDrawerDialog = ({
         }
       });
 
-      if (!fetchedAnnexControl) {
-        console.error("Fetched annex control is undefined");
+      if (!fetchedAnnex) {
+        console.error("Fetched annex is undefined");
         handleAlert({
           variant: "error",
-          body: "Error: Annex control data not found",
+          body: "Error: Annex data not found",
           setAlert,
         });
-        onSaveSuccess?.(false, "Error: Annex control data not found");
+        onSaveSuccess?.(false, "Error: Annex data not found");
         return;
       }
 
       const response = await updateEntityById({
-        routeUrl: `/iso-27001/saveAnnexes/${fetchedAnnexControl.id}`,
+        routeUrl: `/iso-27001/saveAnnexes/${fetchedAnnex.id}`,
         body: formDataToSend,
         headers: {
           "Content-Type": "multipart/form-data",

@@ -413,7 +413,7 @@ export const getAnnexControlByIdForProjectQuery = async (
   tenant: string
 ) => {
   const _annexControlId = (await sequelize.query(
-    `SELECT id FROM "${tenant}".annexcontrols_iso WHERE annexcontrol_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
+    `SELECT id FROM "${tenant}".annexcontrols_iso27001 WHERE annexcontrol_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: {
         id: annexControlId,

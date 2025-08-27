@@ -5,3 +5,6 @@ GET http://localhost:3000/api/iso-27001/clauses
 ### get all annexes
 
 GET http://localhost:3000/api/iso-27001/annexes
+
+### get a subclause by id
+GET http://localhost:3000/api/iso-27001/subClause/byId/1?projectFrameworkId=3

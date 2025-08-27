@@ -38,6 +38,7 @@ import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
 import { getAllProjects } from "../../../application/repository/project.repository";
 import {
@@ -454,7 +455,13 @@ const Vendors = () => {
               </Suspense>
             )}
             <Stack>
-              <Typography sx={vwhomeHeading}>Vendor list</Typography>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography sx={vwhomeHeading}>Vendor list</Typography>
+                <HelperIcon 
+                  onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+                  size="small"
+                />
+              </Stack>
               <Typography sx={singleTheme.textStyles.pageDescription}>
                 This table includes a list of external entities that provides
                 AI-related products, services, or components. You can create and

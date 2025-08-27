@@ -42,3 +42,36 @@ export async function UpdateSubClauseById({
     throw error;
   }
 }
+
+export async function ISO27001GetSubClauseByClauseId({
+  routeUrl, // Example: /api/iso27001/subClauses/byClauseId/1
+  signal,
+  authToken = getAuthToken(),
+  responseType = "json",
+}: GetRequestParams): Promise<any> {
+  const response = await apiServices.get(routeUrl, {
+    headers: { Authorization: `Bearer ${authToken}` },
+    signal,
+    responseType,
+  });
+  return response.data;
+}
+
+export async function ISO27001GetSubClauseById({
+  routeUrl,
+  signal,
+  authToken = getAuthToken(),
+  responseType = "json",
+}: GetRequestParams): Promise<any> {
+  try {
+    const response = await apiServices.get(routeUrl, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      signal,
+      responseType,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting subclause by ID:", error);
+    throw error;
+  }
+}

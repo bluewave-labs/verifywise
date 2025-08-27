@@ -50,6 +50,24 @@ aside .MuiList-root .MuiListItemText-root + svg {
   height: 18px;
 }
 
+/* Ensure nested menu items have consistent icon sizing */
+aside
+  .MuiCollapse-wrapperInner
+  .MuiList-root
+  .MuiListItemButton-root
+  .MuiListItemIcon-root
+  svg,
+aside
+  .MuiCollapse-wrapperInner
+  .MuiList-root
+  .MuiListItemButton-root
+  .MuiListItemIcon-root
+  .MuiBox-root
+  svg {
+  width: 18px;
+  height: 18px;
+}
+
 .sidebar-popup li.MuiButtonBase-root:has(.MuiBox-root) {
   padding-bottom: 0;
 }
@@ -59,8 +77,15 @@ aside .MuiList-root .MuiListItemText-root + svg {
   opacity: 0.9;
 }
 
-.empty-project{
-  width: 180px; 
+/* Ensure popup menu items have consistent icon sizing */
+.sidebar-popup .MuiMenuItem-root .MuiBox-root svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.9;
+}
+
+.empty-project {
+  width: 180px;
   border: 1px solid;
   border-radius: 2px;
   min-width: 125px;

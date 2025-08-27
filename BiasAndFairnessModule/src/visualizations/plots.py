@@ -563,6 +563,13 @@ def plot_group_metrics_boxplots(
     if df_metrics.empty:
         raise ValueError("No data available to plot group metrics boxplots")
 
+    # Only plot TPR, FPR, PPV, NPV even if more metrics are present
+    desired_cols = ["group", "TPR", "FPR", "PPV", "NPV"]
+    existing_cols = [c for c in desired_cols if c in df_metrics.columns]
+    if "group" not in existing_cols:
+        raise ValueError("Expected 'group' column missing from group metrics DataFrame")
+    df_metrics = df_metrics[existing_cols]
+
     df_melted = df_metrics.melt(id_vars="group", var_name="Metric", value_name="Value")
 
     fig, ax = plt.subplots(figsize=(10, 6))

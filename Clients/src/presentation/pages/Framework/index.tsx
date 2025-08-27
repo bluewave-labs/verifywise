@@ -1,4 +1,4 @@
-import { Stack, Typography, Box, Avatar } from "@mui/material";
+import { Stack, Typography, Box } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -39,6 +39,38 @@ const tabListStyle = {
   },
 };
 
+// Framework toggle styles following ProjectFrameworks pattern
+const frameworkTabsContainerStyle = {
+  display: "flex",
+  border: (theme: any) => `1px solid ${theme.palette.divider}`,
+  borderRadius: "4px",
+  overflow: "hidden",
+  height: 43,
+  bgcolor: "background.paper",
+  mb: 4,
+  width: "fit-content",
+};
+
+const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
+  cursor: "pointer",
+  px: 5,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "100%",
+  bgcolor: isActive ? "background.paper" : "action.hover",
+  color: "text.primary",
+  fontFamily: (theme: any) => theme.typography.fontFamily,
+  fontSize: "13px",
+  borderRight: (theme: any) =>
+    isLast ? "none" : `1px solid ${theme.palette.divider}`,
+  fontWeight: (theme: any) => theme.typography.body2.fontWeight,
+  transition: "background 0.2s",
+  userSelect: "none",
+  width: "fit-content",
+  minWidth: "120px",
+});
+
 const Framework = () => {
   const { changeComponentVisibility } = useContext(VerifyWiseContext);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -59,7 +91,7 @@ const Framework = () => {
 
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
-  
+
   // Filter states following ProjectFrameworks pattern
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [applicabilityFilter, setApplicabilityFilter] = useState<string>("all");
@@ -87,24 +119,6 @@ const Framework = () => {
     setStatusFilter("");
     setApplicabilityFilter("");
   }, [iso27001TabValue]);
-
-  const getFrameworkIcon = (frameworkName: string) => {
-    if (frameworkName.toLowerCase().includes("iso 42001")) {
-      return "📋";
-    } else if (frameworkName.toLowerCase().includes("iso 27001")) {
-      return "🔒";
-    }
-    return "📊";
-  };
-
-  const getFrameworkColor = (frameworkName: string) => {
-    if (frameworkName.toLowerCase().includes("iso 42001")) {
-      return "#2e7d32"; // Green
-    } else if (frameworkName.toLowerCase().includes("iso 27001")) {
-      return "#ed6c02"; // Orange
-    }
-    return "#666666"; // Default gray
-  };
 
   const handleFrameworkSelect = (index: number) => {
     setSelectedFramework(index);
@@ -168,28 +182,30 @@ const Framework = () => {
                 />
               </TabList>
             </Box>
-            
+
             {/* Filter Bar following ProjectFrameworks pattern */}
             <TabFilterBar
               statusFilter={statusFilter}
               onStatusChange={setStatusFilter}
               applicabilityFilter={applicabilityFilter}
               onApplicabilityChange={setApplicabilityFilter}
-              showStatusFilter={iso27001TabValue === "clause" || iso27001TabValue === "annex"}
+              showStatusFilter={
+                iso27001TabValue === "clause" || iso27001TabValue === "annex"
+              }
               showApplicabilityFilter={iso27001TabValue === "annex"}
               statusOptions={iso27001StatusOptions}
             />
 
             <TabPanel value="clause" sx={tabPanelStyle}>
-              <ISO27001Clause 
-                FrameworkId={framework.id} 
+              <ISO27001Clause
+                FrameworkId={framework.id}
                 statusFilter={statusFilter}
               />
             </TabPanel>
 
             <TabPanel value="annex" sx={tabPanelStyle}>
-              <ISO27001Annex 
-                FrameworkId={framework.id.toString()} 
+              <ISO27001Annex
+                FrameworkId={framework.id.toString()}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
               />
@@ -248,74 +264,18 @@ const Framework = () => {
       </Stack>
 
       <Stack className="frameworks-switch" sx={{ mt: 6 }}>
-        {/* Instagram-style circular buttons */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 6,
-            mb: 8,
-            flexWrap: "wrap",
-            py: 4,
-          }}
-        >
+        {/* Framework toggle following ProjectFrameworks pattern */}
+        <Box sx={frameworkTabsContainerStyle}>
           {filteredFrameworks.map((framework, index) => (
             <Box
               key={framework.id}
               onClick={() => handleFrameworkSelect(index)}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 1,
-                transition: "transform 0.2s ease-in-out",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                },
-              }}
+              sx={getFrameworkTabStyle(
+                selectedFramework === index,
+                index === filteredFrameworks.length - 1
+              )}
             >
-              <Avatar
-                sx={{
-                  width: 80,
-                  height: 80,
-                  backgroundColor:
-                    selectedFramework === index
-                      ? getFrameworkColor(framework.name)
-                      : "#F5F5F5",
-                  border:
-                    selectedFramework === index
-                      ? `3px solid ${getFrameworkColor(framework.name)}`
-                      : "3px solid #E0E0E0",
-                  fontSize: "2rem",
-                  fontWeight: "bold",
-                  transition: "all 0.3s ease-in-out",
-                  "&:hover": {
-                    borderColor: getFrameworkColor(framework.name),
-                    backgroundColor:
-                      selectedFramework === index
-                        ? getFrameworkColor(framework.name)
-                        : "#F0F0F0",
-                  },
-                }}
-              >
-                {getFrameworkIcon(framework.name)}
-              </Avatar>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: selectedFramework === index ? 600 : 400,
-                  color:
-                    selectedFramework === index
-                      ? getFrameworkColor(framework.name)
-                      : "#666666",
-                  textAlign: "center",
-                  maxWidth: 100,
-                  fontSize: "0.75rem",
-                }}
-              >
-                {framework.name}
-              </Typography>
+              {framework.name}
             </Box>
           ))}
         </Box>

@@ -44,11 +44,6 @@ import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../domain/types/User";
 import { deleteProject, updateProject } from "../../../../application/repository/project.repository";
-import { getTierFeatures } from "../../../../application/repository/tiers.repository";
-import { GetMyOrganization } from "../../../../application/repository/organization.repository";
-import { extractUserToken } from "../../../../application/tools/extractToken";
-import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { Tier } from "../../../../domain/types/Tiers";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -201,34 +196,6 @@ const ProjectSettings = React.memo(
     ]);
 
     const [removedFramework, setRemovedFramework] = useState<boolean>(false);
-
-    const userToken = extractUserToken(getAuthToken());
-    const organizationId = userToken?.organizationId;
-    const [organizationTierId, setOrganizationTierId] = useState<number | null>(null);
-    const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
-  
-    useEffect(() => {
-      const fetchOrganizationTierId = async () => {
-        const organization = await GetMyOrganization({
-          routeUrl: `/organizations/${organizationId}`,
-        });
-        const org = organization.data.data;
-        setOrganizationTierId(org.subscription_id);
-      }
-  
-      fetchOrganizationTierId();
-    }, [organizationId]);
-  
-    useEffect(() => {
-      const fetchTierFeatures = async () => {
-        const features = await getTierFeatures({
-          tierId: organizationTierId || 1,
-          routeUrl: "/tiers",
-        });
-        setTierFeatures(features.data);
-      }
-      fetchTierFeatures();
-    }, [organizationTierId]);
 
     useEffect(() => {
       if (project) {

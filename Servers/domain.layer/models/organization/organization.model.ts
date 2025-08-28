@@ -49,6 +49,11 @@ export class OrganizationModel
   })
   created_at?: Date;
 
+  @Column({
+    type: DataType.INTEGER,
+  })
+  subscription_id!: number;
+
   /**
    * Create a new organization with comprehensive validation
    */
@@ -293,7 +298,7 @@ export class OrganizationModel
       name: this.name,
       logo: this.logo,
       created_at: this.created_at?.toISOString(),
-      ageInDays: this.getAgeInDays(),
+      subscription_id: this.subscription_id,
     };
   }
 

@@ -68,9 +68,9 @@ const checkFrameworkExistsQuery = async (
     { replacements: { projectId, frameworkId }, transaction }
   )) as [[{ exists: boolean }], number];
   if (exists) {
-    return false; // Framework already added
+    return true; // Framework already added
   }
-  return true; // Framework can be added
+  return false; // Framework can be added
 }
 
 export const canAddFrameworkToProjectQuery = async (

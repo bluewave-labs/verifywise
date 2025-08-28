@@ -85,3 +85,127 @@ async def delete_metrics_by_id(id: int, db: AsyncSession, tenant: str):
         )
         return True
     return False
+
+async def insert_bias_fairness_evaluation(
+    eval_id: str,
+    model_name: str,
+    dataset_name: str,
+    model_task: str,
+    label_behavior: str,
+    config_data: dict,
+    tenant: str,
+    db: AsyncSession
+):
+    """Insert a new bias and fairness evaluation."""
+    result = await db.execute(
+        text(f'''
+            INSERT INTO "{tenant}".bias_fairness_evaluations 
+            (eval_id, model_name, dataset_name, model_task, label_behavior, config_data, tenant) 
+            VALUES (:eval_id, :model_name, :dataset_name, :model_task, :label_behavior, :config_data, :tenant) 
+            RETURNING id
+        '''),
+        {
+            "eval_id": eval_id,
+            "model_name": model_name,
+            "dataset_name": dataset_name,
+            "model_task": model_task,
+            "label_behavior": label_behavior,
+            "config_data": config_data,
+            "tenant": tenant
+        }
+    )
+    row = result.fetchone()
+    return row
+
+async def get_all_bias_fairness_evaluations(db: AsyncSession, tenant: str):
+    """Get all bias and fairness evaluations for a tenant."""
+    result = await db.execute(
+        text(f'''
+            SELECT 
+                id,
+                eval_id,
+                model_name,
+                dataset_name,
+                model_task,
+                label_behavior,
+                config_data,
+                status,
+                results,
+                created_at,
+                updated_at
+            FROM "{tenant}".bias_fairness_evaluations 
+            WHERE tenant = :tenant 
+            ORDER BY created_at DESC
+        '''),
+        {"tenant": tenant}
+    )
+    rows = result.mappings().all()
+    return rows
+
+async def get_bias_fairness_evaluation_by_id(eval_id: str, db: AsyncSession, tenant: str):
+    """Get a specific bias and fairness evaluation by eval_id."""
+    result = await db.execute(
+        text(f'''
+            SELECT 
+                id,
+                eval_id,
+                model_name,
+                dataset_name,
+                model_task,
+                label_behavior,
+                config_data,
+                status,
+                results,
+                created_at,
+                updated_at
+            FROM "{tenant}".bias_fairness_evaluations 
+            WHERE eval_id = :eval_id AND tenant = :tenant
+        '''),
+        {"eval_id": eval_id, "tenant": tenant}
+    )
+    row = result.mappings().first()
+    return row
+
+async def update_bias_fairness_evaluation_status(
+    eval_id: str, 
+    status: str, 
+    results: dict = None, 
+    db: AsyncSession = None, 
+    tenant: str = None
+):
+    """Update the status and results of a bias and fairness evaluation."""
+    if results:
+        result = await db.execute(
+            text(f'''
+                UPDATE "{tenant}".bias_fairness_evaluations 
+                SET status = :status, results = :results, updated_at = CURRENT_TIMESTAMP
+                WHERE eval_id = :eval_id AND tenant = :tenant
+                RETURNING id
+            '''),
+            {"eval_id": eval_id, "status": status, "results": results, "tenant": tenant}
+        )
+    else:
+        result = await db.execute(
+            text(f'''
+                UPDATE "{tenant}".bias_fairness_evaluations 
+                SET status = :status, updated_at = CURRENT_TIMESTAMP
+                WHERE eval_id = :eval_id AND tenant = :tenant
+                RETURNING id
+            '''),
+            {"eval_id": eval_id, "status": status, "tenant": tenant}
+        )
+    row = result.fetchone()
+    return row
+
+async def delete_bias_fairness_evaluation(eval_id: str, db: AsyncSession, tenant: str):
+    """Delete a bias and fairness evaluation."""
+    result = await db.execute(
+        text(f'''
+            DELETE FROM "{tenant}".bias_fairness_evaluations 
+            WHERE eval_id = :eval_id AND tenant = :tenant
+            RETURNING id
+        '''),
+        {"eval_id": eval_id, "tenant": tenant}
+    )
+    row = result.fetchone()
+    return row

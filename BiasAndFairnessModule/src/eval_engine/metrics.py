@@ -12,19 +12,20 @@ import pandas as pd
 from fairlearn.metrics import (MetricFrame, demographic_parity_difference,
                                equalized_odds_difference, false_positive_rate,
                                true_positive_rate)
-from sklearn.metrics import brier_score_loss, precision_score
+from sklearn.metrics import (brier_score_loss, precision_score, recall_score, 
+                            f1_score, accuracy_score)
 
 from .metric_registry import register_metric
 
 
 def _balance_for_positive_class_metric(y_t: np.ndarray, y_p: np.ndarray) -> float:
     mask = y_t == 1
-    return float(np.mean(y_p[mask])) if np.any(mask) else float("nan")
+    return float(np.mean(y_p[mask])) if np.any(mask) else -1.0  # Use -1.0 to indicate "no data"
 
 
 def _balance_for_negative_class_metric(y_t: np.ndarray, y_p: np.ndarray) -> float:
     mask = y_t == 0
-    return float(np.mean(y_p[mask])) if np.any(mask) else float("nan")
+    return float(np.mean(y_p[mask])) if np.any(mask) else -1.0  # Use -1.0 to indicate "no data"
 
 
 # Result type for conditional use accuracy equality
@@ -285,7 +286,7 @@ def conditional_use_accuracy_equality(
     def negative_predictive_value(y_t: np.ndarray, y_p: np.ndarray) -> float:
         predicted_negative_mask = y_p == 0
         if not np.any(predicted_negative_mask):
-            return float("nan")
+            return -1.0  # Use -1.0 to indicate "no data"
         true_negative_count = np.sum((y_t == 0) & predicted_negative_mask)
         predicted_negative_count = np.sum(predicted_negative_mask)
         return float(true_negative_count / predicted_negative_count)
@@ -385,8 +386,8 @@ def equalized_odds(
     return float(eod_value)
 
 
-@register_metric("equalized_opportunities")
-def equalized_opportunities(
+@register_metric("equalized_opportunity")
+def equalized_opportunity(
     y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
 ) -> MetricFrame:
     """
@@ -420,6 +421,24 @@ def equalized_opportunities(
         sensitive_features=sensitive_features_array,
     )
     return metric_frame
+
+
+@register_metric("equalized_opportunities")
+def equalized_opportunities(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> MetricFrame:
+    """
+    Calculate Equalized Opportunities metric (alias for equalized_opportunity).
+
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+
+    Returns:
+        MetricFrame: Fairlearn MetricFrame with per-group true positive rates
+    """
+    return equalized_opportunity(y_true, y_pred, protected_attributes)
 
 
 @register_metric("predictive_equality")
@@ -529,6 +548,576 @@ def balance_negative_class(
         sensitive_features=sensitive_features_array,
     )
     return metric_frame
+
+
+# Additional metrics for generation and continuous tasks
+@register_metric("toxicity_gap")
+def toxicity_gap(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Toxicity Gap metric for generation tasks.
+    
+    Args:
+        y_true: Ground truth labels or reference scores
+        y_pred: Predicted toxicity scores
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in toxicity scores between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate mean toxicity per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_means = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        group_means[group] = np.mean(y_pred_array[group_mask])
+    
+    # Return the maximum difference between groups
+    if len(group_means) >= 2:
+        return float(max(group_means.values()) - min(group_means.values()))
+    return 0.0
+
+
+@register_metric("sentiment_gap")
+def sentiment_gap(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Sentiment Gap metric for generation tasks.
+    
+    Args:
+        y_true: Ground truth labels or reference scores
+        y_pred: Predicted sentiment scores
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in sentiment scores between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate mean sentiment per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_means = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        group_means[group] = np.mean(y_pred_array[group_mask])
+    
+    # Return the maximum difference between groups
+    if len(group_means) >= 2:
+        return float(max(group_means.values()) - min(group_means.values()))
+    return 0.0
+
+
+@register_metric("stereotype_gap")
+def stereotype_gap(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Stereotype Gap metric for generation tasks.
+    
+    Args:
+        y_true: Ground truth labels or reference scores
+        y_pred: Predicted stereotype scores
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in stereotype scores between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate mean stereotype score per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_means = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        group_means[group] = np.mean(y_pred_array[group_mask])
+    
+    # Return the maximum difference between groups
+    if len(group_means) >= 2:
+        return float(max(group_means.values()) - min(group_means.values()))
+    return 0.0
+
+
+@register_metric("exposure_disparity")
+def exposure_disparity(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Exposure Disparity metric for generation tasks.
+    
+    Args:
+        y_true: Ground truth labels or reference scores
+        y_pred: Predicted exposure scores
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in exposure scores between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate mean exposure per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_means = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        group_means[group] = np.mean(y_pred_array[group_mask])
+    
+    # Return the maximum difference between groups
+    if len(group_means) >= 2:
+        return float(max(group_means.values()) - min(group_means.values()))
+    return 0.0
+
+
+@register_metric("representation_disparity")
+def representation_disparity(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Representation Disparity metric for generation tasks.
+    
+    Args:
+        y_true: Ground truth labels or reference scores
+        y_pred: Predicted representation scores
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in representation scores between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate mean representation per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_means = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        group_means[group] = np.mean(y_pred_array[group_mask])
+    
+    # Return the maximum difference between groups
+    if len(group_means) >= 2:
+        return float(max(group_means.values()) - min(group_means.values()))
+    return 0.0
+
+
+@register_metric("prompt_fairness")
+def prompt_fairness(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Prompt Fairness metric for generation tasks.
+    
+    Args:
+        y_true: Ground truth labels or reference scores
+        y_pred: Predicted fairness scores
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in fairness scores between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate mean fairness score per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_means = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        group_means[group] = np.mean(y_pred_array[group_mask])
+    
+    # Return the maximum difference between groups
+    if len(group_means) >= 2:
+        return float(max(group_means.values()) - min(group_means.values()))
+    return 0.0
+
+
+# Performance difference metrics
+@register_metric("accuracy_difference")
+def accuracy_difference(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Accuracy Difference metric.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in accuracy between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate accuracy per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_accuracies = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        if np.sum(group_mask) > 0:
+            group_accuracies[group] = accuracy_score(
+                y_true_array[group_mask], y_pred_array[group_mask]
+            )
+    
+    # Return the maximum difference between groups
+    if len(group_accuracies) >= 2:
+        return float(max(group_accuracies.values()) - min(group_accuracies.values()))
+    return 0.0
+
+
+@register_metric("precision_difference")
+def precision_difference(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Precision Difference metric.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in precision between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate precision per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_precisions = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        if np.sum(group_mask) > 0:
+            group_precisions[group] = precision_score(
+                y_true_array[group_mask], y_pred_array[group_mask], zero_division=0.0
+            )
+    
+    # Return the maximum difference between groups
+    if len(group_precisions) >= 2:
+        return float(max(group_precisions.values()) - min(group_precisions.values()))
+    return 0.0
+
+
+@register_metric("recall_difference")
+def recall_difference(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Recall Difference metric.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in recall between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate recall per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_recalls = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        if np.sum(group_mask) > 0:
+            group_recalls[group] = recall_score(
+                y_true_array[group_mask], y_pred_array[group_mask], zero_division=0.0
+            )
+    
+    # Return the maximum difference between groups
+    if len(group_recalls) >= 2:
+        return float(max(group_recalls.values()) - min(group_recalls.values()))
+    return 0.0
+
+
+@register_metric("f1_difference")
+def f1_difference(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate F1 Difference metric.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in F1 score between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate F1 score per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_f1s = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        if np.sum(group_mask) > 0:
+            group_f1s[group] = f1_score(
+                y_true_array[group_mask], y_pred_array[group_mask], zero_division=0.0
+            )
+    
+    # Return the maximum difference between groups
+    if len(group_f1s) >= 2:
+        return float(max(group_f1s.values()) - min(group_f1s.values()))
+    return 0.0
+
+
+# Multiclass classification metrics
+@register_metric("multiclass_demographic_parity")
+def multiclass_demographic_parity(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Multiclass Demographic Parity metric.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in selection rates between groups across all classes
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate selection rate per group per class
+    unique_groups = np.unique(sensitive_features_array)
+    unique_classes = np.unique(y_pred_array)
+    max_disparity = 0.0
+    
+    for class_label in unique_classes:
+        class_mask = y_pred_array == class_label
+        class_selection_rates = {}
+        
+        for group in unique_groups:
+            group_mask = sensitive_features_array == group
+            combined_mask = class_mask & group_mask
+            if np.sum(combined_mask) > 0:
+                class_selection_rates[group] = np.sum(combined_mask) / np.sum(group_mask)
+        
+        if len(class_selection_rates) >= 2:
+            class_disparity = max(class_selection_rates.values()) - min(class_selection_rates.values())
+            max_disparity = max(max_disparity, class_disparity)
+    
+    return float(max_disparity)
+
+
+@register_metric("multiclass_equalized_odds")
+def multiclass_equalized_odds(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Multiclass Equalized Odds metric.
+    
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in true positive rates between groups across all classes
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate true positive rate per group per class
+    unique_groups = np.unique(sensitive_features_array)
+    unique_classes = np.unique(y_true_array)
+    max_disparity = 0.0
+    
+    for class_label in unique_classes:
+        class_mask = y_true_array == class_label
+        class_tprs = {}
+        
+        for group in unique_groups:
+            group_mask = sensitive_features_array == group
+            combined_mask = class_mask & group_mask
+            if np.sum(combined_mask) > 0:
+                # True positives for this class in this group
+                tp = np.sum((y_pred_array == class_label) & combined_mask)
+                # Total positives for this class in this group
+                total_pos = np.sum(combined_mask)
+                class_tprs[group] = tp / total_pos if total_pos > 0 else 0.0
+        
+        if len(class_tprs) >= 2:
+            class_disparity = max(class_tprs.values()) - min(class_tprs.values())
+            max_disparity = max(max_disparity, class_disparity)
+    
+    return float(max_disparity)
+
+
+# Regression metrics
+@register_metric("regression_demographic_parity")
+def regression_demographic_parity(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> float:
+    """
+    Calculate Regression Demographic Parity metric.
+    
+    Args:
+        y_true: Ground truth continuous values
+        y_pred: Predicted continuous values
+        protected_attributes: Protected group attributes
+        
+    Returns:
+        float: Maximum difference in mean predicted values between groups
+    """
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+    
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+    
+    # Calculate mean predicted value per group
+    unique_groups = np.unique(sensitive_features_array)
+    group_means = {}
+    
+    for group in unique_groups:
+        group_mask = sensitive_features_array == group
+        if np.sum(group_mask) > 0:
+            group_means[group] = np.mean(y_pred_array[group_mask])
+    
+    # Return the maximum difference between groups
+    if len(group_means) >= 2:
+        return float(max(group_means.values()) - min(group_means.values()))
+    return 0.0
 
 
 # Utility function for Fairness Compass Engine compatibility

@@ -29,6 +29,10 @@ post_processing:
 
 # Model Configuration
 model:
+  # Model task type for Fairness Compass routing
+  model_task: "binary_classification" # Options: binary_classification, multiclass_classification, regression, generation, ranking
+  label_behavior: "binary" # Options: binary, categorical, continuous
+
   # Hugging Face model configuration
   huggingface:
     enabled: true

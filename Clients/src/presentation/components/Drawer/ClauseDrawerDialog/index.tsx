@@ -285,8 +285,6 @@ const VWISO42001ClauseDrawerDialog = ({
         setUploadFiles([]);
         onSaveSuccess?.(true, "Subclause saved successfully");
         onClose();
-      } else {
-        throw new Error("Failed to save subclause");
       }
     } catch (error) {
       console.error("Error saving subclause:", error);

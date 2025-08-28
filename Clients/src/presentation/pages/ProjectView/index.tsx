@@ -13,6 +13,18 @@ import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import { useSearchParams } from "react-router-dom";
 import useProjectData from "../../../application/hooks/useProjectData";
 import { getProjectById } from "../../../application/repository/project.repository";
+import {
+  tabStyle,
+  noProjectContainerStyle,
+  noProjectImageStyle,
+  noProjectDescriptionStyle,
+  newProjectButtonStyle,
+  projectTitleStyle,
+  projectDescriptionStyle,
+  tabContainerStyle,
+  tabListContainerStyle,
+  tabListStyle,
+} from "./styles";
 
 const ProjectView = () => {
   const [searchParams] = useSearchParams();
@@ -38,15 +50,6 @@ const ProjectView = () => {
   const [value, setValue] = React.useState("overview");
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-  };
-
-  const tabStyle = {
-    textTransform: "none",
-    fontWeight: 400,
-    alignItems: "flex-start",
-    justifyContent: "flex-end",
-    padding: "16px 0 7px",
-    minHeight: "20px",
   };
 
   const noProject =
@@ -91,45 +94,19 @@ const ProjectView = () => {
       <PageBreadcrumbs />
       {noProject ? (
         //no project found template
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            mt: "79px",
-            mx: "auto",
-            p: 10,
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: "4px",
-            width: { xs: "90%", sm: "90%", md: "1056px" },
-            maxWidth: "100%",
-            height: { xs: "100%", md: "418px" },
-            backgroundColor: "#FFFFFF",
-          }}
-        >
+        <Box sx={noProjectContainerStyle}>
           {/* empty state image */}
-          <Box sx={{ mb: 8 }}>
+          <Box sx={noProjectImageStyle}>
             <img
               src={emptyStateImg}
               alt="No project found"
-              style={{
-                maxWidth: "100%",
-                height: "auto",
-                objectFit: "contain",
-              }}
             />
           </Box>
 
           {/* Subtitle */}
           <Typography
             variant="body2"
-            sx={{
-              mb: 12,
-              color: theme.palette.text.secondary,
-              fontSize: "13px",
-            }}
+            sx={noProjectDescriptionStyle}
           >
             No projects found. Create a new project to start with.
           </Typography>
@@ -138,48 +115,27 @@ const ProjectView = () => {
             variant="contained"
             color="primary"
             onClick={() => {}}
-            sx={{
-              textTransform: "none",
-              borderRadius: "4px",
-              py: 1.5,
-              backgroundColor: "#4C7DE7",
-              fontSize: "13px",
-              padding: "10px 16px",
-              width: "119px",
-              height: "34px",
-            }}
+            sx={newProjectButtonStyle}
           >
             New Project
           </Button>
         </Box>
       ) : (
         <Stack>
-          <Typography
-            sx={{ color: "#1A1919", fontWeight: 600, mb: "6px", fontSize: 16 }}
-          >
+          <Typography sx={projectTitleStyle}>
             {project.project_title} project overview
           </Typography>
-          <Typography
-            sx={{
-              fontSize: theme.typography.fontSize,
-              color: theme.palette.text.secondary,
-            }}
-          >
+          <Typography sx={projectDescriptionStyle}>
             This project includes all the governance process status of the{" "}
             {project.project_title} project.
           </Typography>
-          <Stack
-            sx={{ minWidth: "968px", overflowX: "auto", whiteSpace: "nowrap" }}
-          >
+          <Stack sx={tabContainerStyle}>
             <TabContext value={value}>
-              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+              <Box sx={tabListContainerStyle}>
                 <TabList
                   onChange={handleChange}
                   aria-label="project view tabs"
-                  sx={{
-                    minHeight: "20px",
-                    "& .MuiTabs-flexContainer": { columnGap: "34px" },
-                  }}
+                  sx={tabListStyle}
                 >
                   <Tab
                     label="Overview"

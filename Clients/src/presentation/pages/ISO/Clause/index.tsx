@@ -247,7 +247,6 @@ const ISO42001Clauses = ({
                     <Select
                       sx={{
                         ...styles.statusBadge(subClause.status ?? "Not started"),
-                        ...styles.statusSelectFix,
                       }}
                       id={`status-${subClause.id}`}
                       value={

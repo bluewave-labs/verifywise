@@ -89,10 +89,11 @@ const VWISO42001ClauseDrawerDialog = ({
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
 
   // Create the reverse map
-  const idStatusMap = new Map();
-  for (const [status, id] of statusIdMap.entries()) {
-    idStatusMap.set(id, status);
+  const idStatusMap = new Map<string, string>();
+  for (const [id, statusName] of statusIdMap.entries()) {
+    idStatusMap.set(id, statusName); // key = id ("0".."7"), value = status name
   }
+
 
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
@@ -115,6 +116,14 @@ const VWISO42001ClauseDrawerDialog = ({
     auditor_feedback: "",
     risks: [] as number[],
   });
+
+  // Sync drawer formData.status with parent status prop
+  useEffect(() => {
+    if (status && status !== formData.status) {
+      setFormData((prev) => ({ ...prev, status }));
+    }
+  }, [status]);
+
 
   // Filter users to only show project members
   useEffect(() => {
@@ -200,7 +209,8 @@ const VWISO42001ClauseDrawerDialog = ({
       }
 
       if (field === "status") {
-        onStatusChange(value); // ✅ push change up to Clause (File A)
+        setFormData((prev) => ({ ...prev, status: value }));
+        onStatusChange(value);              // <-- notify parent
       } else {
         handleFieldChange(field, value);
       }
@@ -209,6 +219,12 @@ const VWISO42001ClauseDrawerDialog = ({
 
   // Update handleSave to use evidenceFiles
   const handleSave = async () => {
+
+    console.log("=== Saving Subclause ===");
+    console.log("formData.status (ID):", formData.status);
+    console.log("idStatusMap.get(formData.status):", idStatusMap.get(formData.status));
+    console.log("formData object:", formData);
+
     setIsLoading(true);
     try {
       if (!fetchedSubClause) {
@@ -229,7 +245,7 @@ const VWISO42001ClauseDrawerDialog = ({
       );
       formDataToSend.append(
         "status",
-        idStatusMap.get(formData.status) || "Not started"
+        idStatusMap.get((formData.status)) || "Not started"
       );
       formDataToSend.append("owner", formData.owner);
       formDataToSend.append("reviewer", formData.reviewer);
@@ -707,7 +723,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={status} // ✅ comes from props now
+            value={formData.status} // ✅ comes from props now
             onChange={handleSelectChange("status")}
             items={[
               { _id: "0", name: "Not started" },

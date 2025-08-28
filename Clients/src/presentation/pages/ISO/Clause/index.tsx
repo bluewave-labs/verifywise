@@ -22,12 +22,14 @@ import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
+import Select from "../../../components/Inputs/Select";
+import { updateEntityById } from "../../../../application/repository/entity.repository";
 
 const ISO42001Clauses = ({
-  project,
-  projectFrameworkId,
-  statusFilter,
-}: {
+                           project,
+                           projectFrameworkId,
+                           statusFilter,
+                         }: {
   project: Project;
   framework_id: number;
   projectFrameworkId: number;
@@ -57,6 +59,7 @@ const ISO42001Clauses = ({
   const subClauseId = searchParams.get("subClauseId");
   const [selectedStatus, setSelectedStatus] = useState<string>("0"); // default = Not started
 
+
   const statusIdMap = new Map<string, string>([
     ["0", "Not started"],
     ["1", "Draft"],
@@ -68,6 +71,22 @@ const ISO42001Clauses = ({
     ["7", "Needs rework"],
   ]);
 
+  /** Shared backend update function */
+  const updateSubClauseStatus = async (
+    subClauseId: number,
+    newStatusId: string
+  ) => {
+    const formDataToSend = new FormData();
+    formDataToSend.append("status", statusIdMap.get(newStatusId) || "Not started");
+    formDataToSend.append("project_id", project.id.toString());
+
+
+    return await updateEntityById({
+      routeUrl: `/iso-42001/saveClauses/${subClauseId}`,
+      body: formDataToSend,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  };
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -141,7 +160,14 @@ const ISO42001Clauses = ({
     setSelectedSubClause(subClause);
     setSelectedIndex(index);
     setDrawerOpen(true);
+
+    // Initialize drawer status from subClause
+    const subClauseStatusId = [...statusIdMap.entries()].find(
+      ([, label]) => label === subClause.status
+    )?.[0] || "0";
+    setSelectedStatus(subClauseStatusId);
   }, []);
+
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
@@ -170,7 +196,6 @@ const ISO42001Clauses = ({
     if (success && savedSubClauseId) {
       setFlashingRowId(savedSubClauseId);
       setTimeout(() => setFlashingRowId(null), 2000);
-
       setRefreshTrigger((prev) => prev + 1);
     }
   };
@@ -182,8 +207,8 @@ const ISO42001Clauses = ({
     const filteredSubClauses =
       statusFilter && statusFilter !== ""
         ? subClauses.filter(
-            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase()
-          )
+          (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase()
+        )
         : subClauses;
 
     return (
@@ -200,21 +225,69 @@ const ISO42001Clauses = ({
             ) => (
               <Stack
                 key={subClause.id}
-                onClick={() => handleSubClauseClick(clause, subClause, index)}
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
                 sx={styles.subClauseRow(
                   filteredSubClauses.length - 1 === index,
                   flashingRowId === subClause.id
                 )}
               >
-                <Typography fontSize={13}>
-                  {clause.clause_no + "." + (index + 1)}{" "}
-                  {subClause.title ?? "Untitled"}
-                </Typography>
-                <Stack sx={styles.statusBadge(subClause.status ?? "")}>
-                  {subClause.status
-                    ? subClause.status.charAt(0).toUpperCase() +
-                      subClause.status.slice(1).toLowerCase()
-                    : "Not started"}
+                {/* Left side clickable area */}
+                <Stack
+                  onClick={() => handleSubClauseClick(clause, subClause, index)}
+                  sx={{ flex: 1, cursor: "pointer" }}
+                >
+                  <Typography fontSize={13}>
+                    {clause.clause_no + "." + (index + 1)}{" "}
+                    {subClause.title ?? "Untitled"}
+                  </Typography>
+                </Stack>
+
+                {/* Inline status dropdown */}
+                <Stack sx={{
+                  ...styles.statusBadge(subClause.status ?? "Not started"),
+                }}>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Select
+                      id={`status-${subClause.id}`}
+                      value={
+                        [...statusIdMap.entries()].find(([_, label]) => label === subClause.status)?.[0] || "0"
+                      }
+                      onChange={async (e: any) => {
+                        const newStatusId = e.target.value;
+                        try {
+                          await updateSubClauseStatus(subClause.id!, newStatusId);
+
+                          // Update local subClause status in the list
+                          (subClause as any).status = statusIdMap.get(newStatusId) || "Not started";
+
+                          // If drawer is open for this subClause, update drawer state
+                          if (drawerOpen && selectedSubClause?.id === subClause.id) {
+                            setSelectedStatus(newStatusId);
+                            setSelectedSubClause({
+                              ...selectedSubClause,
+                              status: statusIdMap.get(newStatusId),
+                            });
+                          }
+
+                          setRefreshTrigger((prev) => prev + 1);
+                        } catch (err) {
+                          console.error("Failed to update status inline", err);
+                          handleAlert({
+                            variant: "error",
+                            body: "Failed to update subclause status",
+                            setAlert,
+                          });
+                        }
+                      }}
+                      items={[...statusIdMap.entries()].map(([id, label]) => ({
+                        _id: id,
+                        name: label,
+                      }))}
+                    />
+
+                  </div>
                 </Stack>
               </Stack>
             )
@@ -236,9 +309,13 @@ const ISO42001Clauses = ({
           const response = await getEntityById({
             routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
           });
-          setSelectedSubClause({...response.data, id: response.data.clause_id});
+          setSelectedSubClause({ ...response.data, id: response.data.clause_id });
           if (clause && clauseId) {
-            handleSubClauseClick(clause, {...response.data, id: response.data.clause_id}, parseInt(clauseId));
+            handleSubClauseClick(
+              clause,
+              { ...response.data, id: response.data.clause_id },
+              parseInt(clauseId)
+            );
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
@@ -247,6 +324,34 @@ const ISO42001Clauses = ({
       fetchSubClause();
     }
   }, [clauseId, subClauseId, clauses]);
+
+  useEffect(() => {
+    if (drawerOpen && selectedSubClause) {
+      const clauseSubClauses = subClausesMap[selectedSubClause.clause_id] || [];
+      const subClauseIndex = clauseSubClauses.findIndex(
+        (sc) => sc.id === selectedSubClause.id
+      );
+
+      if (subClauseIndex !== -1) {
+        // Update the main clause list
+        clauseSubClauses[subClauseIndex] = {
+          ...clauseSubClauses[subClauseIndex],
+          status: statusIdMap.get(selectedStatus) || "Not started",
+        };
+
+        setSubClausesMap((prev) => ({
+          ...prev,
+          [selectedSubClause.clause_id]: clauseSubClauses,
+        }));
+
+        // Ensure the drawer state is also consistent
+        setSelectedSubClause((prev:any) =>
+          prev ? { ...prev, status: statusIdMap.get(selectedStatus) } : prev
+        );
+      }
+    }
+  }, [selectedStatus]);
+
 
   return (
     <Stack className="iso-42001-clauses">

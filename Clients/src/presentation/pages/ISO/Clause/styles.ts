@@ -26,7 +26,6 @@ export const styles = {
 
   statusBadge: (status: string) => ({
     borderRadius: "4px",
-    padding: "5px",
     backgroundColor: getStatusColor(status),
     color: "#fff",
   }) as SxProps<Theme>,

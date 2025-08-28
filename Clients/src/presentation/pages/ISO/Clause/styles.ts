@@ -30,10 +30,7 @@ export const styles = {
     color: "#fff",
   }) as SxProps<Theme>,
 
-  statusSelectFix: {
-    "& .MuiSelect-select": {
-      lineHeight: "2 !important",
-    },
+  statusDropdownFix: {
     "& .MuiSvgIcon-root": {
       color: "white",
       "& path": {

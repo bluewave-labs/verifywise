@@ -71,7 +71,6 @@ const ISO42001Clauses = ({
     ["7", "Needs rework"],
   ]);
 
-  /** Shared backend update function */
   const updateSubClauseStatus = async (
     subClauseId: number,
     newStatusId: string
@@ -245,11 +244,11 @@ const ISO42001Clauses = ({
                 </Stack>
 
                 {/* Inline status dropdown */}
-                <Stack sx={{
-                  ...styles.statusBadge(subClause.status ?? "Not started"),
-                }}>
-                  <div onClick={(e) => e.stopPropagation()}>
+                <Stack>
                     <Select
+                      sx={{
+                        ...styles.statusBadge(subClause.status ?? "Not started"),
+                      }}
                       id={`status-${subClause.id}`}
                       value={
                         [...statusIdMap.entries()].find(([_, label]) => label === subClause.status)?.[0] || "0"
@@ -262,7 +261,7 @@ const ISO42001Clauses = ({
                           // Update local subClause status in the list
                           (subClause as any).status = statusIdMap.get(newStatusId) || "Not started";
 
-                          // If drawer is open for this subClause, update drawer state
+                          // If the drawer is open for this subClause, update the drawer state
                           if (drawerOpen && selectedSubClause?.id === subClause.id) {
                             setSelectedStatus(newStatusId);
                             setSelectedSubClause({
@@ -286,9 +285,8 @@ const ISO42001Clauses = ({
                         name: label,
                       }))}
                     />
-
-                  </div>
                 </Stack>
+
               </Stack>
             )
           )
@@ -310,6 +308,9 @@ const ISO42001Clauses = ({
             routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
           });
           setSelectedSubClause({ ...response.data, id: response.data.clause_id });
+          setSelectedStatus(
+            [...statusIdMap.entries()].find(([_, label]) => label === response.data.status)?.[0] || "0"
+          );
           if (clause && clauseId) {
             handleSubClauseClick(
               clause,
@@ -326,31 +327,34 @@ const ISO42001Clauses = ({
   }, [clauseId, subClauseId, clauses]);
 
   useEffect(() => {
-    if (drawerOpen && selectedSubClause) {
-      const clauseSubClauses = subClausesMap[selectedSubClause.clause_id] || [];
-      const subClauseIndex = clauseSubClauses.findIndex(
-        (sc) => sc.id === selectedSubClause.id
+    if (!drawerOpen || !selectedSubClause) return;
+
+    const clauseId = selectedSubClause.clause_id;
+    const clauseSubClauses = subClausesMap[clauseId] || [];
+
+    const newStatus = statusIdMap.get(selectedStatus) || "Not started";
+
+    const needsUpdate =
+      selectedSubClause.status !== newStatus ||
+      clauseSubClauses.some(
+        (sc) => sc.id === selectedSubClause.id && sc.status !== newStatus
       );
 
-      if (subClauseIndex !== -1) {
-        // Update the main clause list
-        clauseSubClauses[subClauseIndex] = {
-          ...clauseSubClauses[subClauseIndex],
-          status: statusIdMap.get(selectedStatus) || "Not started",
-        };
+    if (!needsUpdate) return;
 
-        setSubClausesMap((prev) => ({
-          ...prev,
-          [selectedSubClause.clause_id]: clauseSubClauses,
-        }));
+    const updatedSubClauses = clauseSubClauses.map((sc) =>
+      sc.id === selectedSubClause.id ? { ...sc, status: newStatus } : sc
+    );
 
-        // Ensure the drawer state is also consistent
-        setSelectedSubClause((prev:any) =>
-          prev ? { ...prev, status: statusIdMap.get(selectedStatus) } : prev
-        );
-      }
-    }
-  }, [selectedStatus]);
+    setSubClausesMap((prev) => ({
+      ...prev,
+      [clauseId]: updatedSubClauses,
+    }));
+
+    setSelectedSubClause((prev: any) =>
+      prev ? { ...prev, status: newStatus } : prev
+    );
+  }, [selectedStatus, drawerOpen, selectedSubClause, subClausesMap]);
 
 
   return (

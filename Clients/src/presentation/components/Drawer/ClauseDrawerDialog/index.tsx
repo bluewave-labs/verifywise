@@ -117,13 +117,6 @@ const VWISO42001ClauseDrawerDialog = ({
     risks: [] as number[],
   });
 
-  // Sync drawer formData.status with parent status prop
-  useEffect(() => {
-    if (status && status !== formData.status) {
-      setFormData((prev) => ({ ...prev, status }));
-    }
-  }, [status]);
-
 
   // Filter users to only show project members
   useEffect(() => {
@@ -721,7 +714,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={formData.status} // ✅ comes from props now
+            value={status}
             onChange={handleSelectChange("status")}
             items={[
               { _id: "0", name: "Not started" },

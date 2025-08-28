@@ -623,6 +623,43 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         FOREIGN KEY (annexcontrol_id) REFERENCES "${tenantHash}".annexcontrols_iso27001(id) ON DELETE CASCADE,
         FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
       );`, { transaction });
+
+    await sequelize.query(
+      `CREATE TABLE IF NOT EXISTS "${tenantHash}".policy_manager (
+        "id" SERIAL PRIMARY KEY,
+        "title" VARCHAR(255) NOT NULL,
+        "content_html" TEXT DEFAULT '',
+        "status" VARCHAR(50) DEFAULT 'Draft',
+        "tags" TEXT[] NOT NULL,
+        "next_review_date" TIMESTAMP NOT NULL,
+        "author_id" INTEGER NOT NULL NOT NULL,
+        "assigned_reviewer_ids" INTEGER[],
+        "last_updated_by" INTEGER NOT NULL,
+        "last_updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY ("author_id") REFERENCES public.users(id) ON DELETE CASCADE,
+        FOREIGN KEY ("last_updated_by") REFERENCES public.users(id) ON DELETE SET NULL
+      );`, { transaction });
+
+    await sequelize.query(`
+      CREATE TABLE "${tenantHash}".model_inventories (
+        id SERIAL PRIMARY KEY,
+        provider_model VARCHAR(255) NOT NULL,
+        version VARCHAR(255) NOT NULL,
+        approver INTEGER NOT NULL,
+        capabilities TEXT NOT NULL,
+        security_assessment BOOLEAN NOT NULL DEFAULT false,
+        status enum_model_inventories_status NOT NULL DEFAULT 'Pending'::enum_model_inventories_status,
+        status_date TIMESTAMP WITH TIME ZONE NOT NULL,
+        is_demo BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        provider VARCHAR(255) NOT NULL,
+        model VARCHAR(255) NOT NULL,
+        CONSTRAINT fk_model_inventories_approver FOREIGN KEY (approver)
+          REFERENCES public.users (id) MATCH SIMPLE
+          ON UPDATE NO ACTION ON DELETE SET NULL
+      );`, { transaction });
   }
   catch (error) {
     throw error;

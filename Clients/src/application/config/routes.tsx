@@ -31,6 +31,7 @@ import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import IntegrationsOverview from "../../presentation/pages/Integrations";
 import ConfluenceDetail from "../../presentation/pages/Integrations/ConfluenceDetail";
+import Framework from "../../presentation/pages/Framework";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -54,6 +55,8 @@ export const createRoutes = (
     <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
     <Route path="/" element={<VWHome />} />
+    <Route path="/overview" element={<VWHome />} />
+    <Route path="/framework" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />

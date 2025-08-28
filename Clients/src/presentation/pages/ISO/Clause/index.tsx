@@ -26,10 +26,10 @@ import Select from "../../../components/Inputs/Select";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
 
 const ISO42001Clauses = ({
-                           project,
-                           projectFrameworkId,
-                           statusFilter,
-                         }: {
+  project,
+  projectFrameworkId,
+  statusFilter,
+}: {
   project: Project;
   framework_id: number;
   projectFrameworkId: number;
@@ -167,7 +167,6 @@ const ISO42001Clauses = ({
     setSelectedStatus(subClauseStatusId);
   }, []);
 
-
   const handleDrawerClose = () => {
     setDrawerOpen(false);
     setSelectedSubClause(null);
@@ -206,8 +205,8 @@ const ISO42001Clauses = ({
     const filteredSubClauses =
       statusFilter && statusFilter !== ""
         ? subClauses.filter(
-          (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase()
-        )
+            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase()
+          )
         : subClauses;
 
     return (
@@ -287,7 +286,6 @@ const ISO42001Clauses = ({
                       }))}
                     />
                 </Stack>
-
               </Stack>
             )
           )

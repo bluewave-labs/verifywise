@@ -30,6 +30,18 @@ export const styles = {
     color: "#fff",
   }) as SxProps<Theme>,
 
+  statusSelectFix: {
+    "& .MuiSelect-select": {
+      lineHeight: "2 !important",
+    },
+    "& .MuiSvgIcon-root": {
+      color: "white",
+      "& path": {
+        fill: "white",
+      },
+    },
+  } as SxProps<Theme>,
+
   loadingContainer: {
     padding: "16px",
     display: "flex",

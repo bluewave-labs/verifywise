@@ -34,9 +34,9 @@ export async function insertMockData(
           "John",
           "Doe",
           `john.doe.${Date.now()}@example.com`,
-          "MyJH4rTm!@.45L0wm",
           1,
-          organization
+          organization,
+          "MyJH4rTm!@.45L0wm",
         ),
         transaction,
         true // is demo
@@ -46,9 +46,9 @@ export async function insertMockData(
           "Alice",
           "Smith",
           `alice.smith.${Date.now()}@example.com`,
-          "MyJH4rTm!@.45L0wm",
           2,
-          organization
+          organization,
+          "MyJH4rTm!@.45L0wm",
         ),
         transaction,
         true // is demo

@@ -181,25 +181,26 @@ export const createNewUserQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<UserModel> => {
-  const { name, surname, email, password_hash, role_id, organization_id } = user;
+  const { name, surname, email, password_hash, role_id, organization_id, google_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id)
-        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo, :organization_id) RETURNING *`,
+      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id, google_id)
+        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo, :organization_id, :google_id) RETURNING *`,
       {
         replacements: {
           name,
           surname,
           email,
-          password_hash,
+          password_hash: password_hash || null,
           role_id,
           created_at,
           last_login,
           is_demo,
-          organization_id
+          organization_id,
+          google_id: google_id || null
         },
         mapToModel: true,
         model: UserModel,
@@ -265,10 +266,10 @@ export const resetPasswordQuery = async (
 export const updateUserByIdQuery = async (
   id: number,
   user: Partial<UserModel>,
-  transaction: Transaction
+  transaction: Transaction | null = null
 ): Promise<UserModel> => {
   const updateUser: Partial<Record<keyof UserModel, any>> = {};
-  const setClause = ["name", "surname", "email", "role_id", "last_login"]
+  const setClause = ["name", "surname", "email", "role_id", "last_login", "google_id"]
     .filter((f) => {
       if (
         user[f as keyof UserModel] !== undefined &&
@@ -290,7 +291,7 @@ export const updateUserByIdQuery = async (
     mapToModel: true,
     model: UserModel,
     // type: QueryTypes.UPDATE,
-    transaction,
+    ...(transaction ? { transaction } : {}),
   });
 
   return result[0];

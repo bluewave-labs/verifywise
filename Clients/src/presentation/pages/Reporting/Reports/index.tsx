@@ -13,6 +13,7 @@ import Alert from "../../../components/Alert";
 import ProjectFilterDropdown from "../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import { Project } from "../../../../domain/types/Project";
 
 interface ReportsProps {
   refreshKey?: number;
@@ -51,7 +52,7 @@ const Reports: React.FC<ReportsProps> = ({
     }
   }, [externalRefreshKey]);
 
-  const { projects, loading: loadingProjects } = useProjects();
+  const { data: projects = [], isLoading: loadingProjects } = useProjects();
 
   const { generatedReports, loadingReports } = useGeneratedReports({
     projectId,
@@ -141,7 +142,7 @@ const Reports: React.FC<ReportsProps> = ({
       ) : (
         <>
           <ProjectFilterDropdown
-            projects={projects.map((project) => ({
+            projects={projects.map((project: Project) => ({
               id: project.id.toString(),
               name: project.project_title,
             }))}

@@ -9,9 +9,8 @@ import React, {
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
 import CustomizableButton from "../../../../vw-v2-components/Buttons";
 const Field = lazy(() => import("../../../Inputs/Field"));
-import { styles, fieldStyle } from "./styles";
+import { styles, fieldStyle,selectReportStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
-const RadioGroup = lazy(() => import("../../../RadioGroup"));
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
@@ -171,17 +170,24 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Typography sx={styles.semiTitleText}>Report Type *</Typography>
           <Suspense fallback={<div>Loading...</div>}>
-            <RadioGroup
-              values={
-                values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES
-              }
-              defaultValue="Project risks report"
-              onChange={(event) =>
-                setValues({ ...values, report_type: event.target.value })
-              }
+            <Select
+              id="report-type-input"
+              placeholder="Select report type"
+              value={values.report_type}
+              onChange={handleOnSelectChange("report_type")}
+              items={(values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES).map(
+                (type) => ({
+                  _id: type,   // unique key / value
+                  name: type,  // display name
+                })
+              )}
+              sx={selectReportStyle}
+              error={errors.report_type}
+              isRequired
             />
           </Suspense>
         </Stack>
+
         <Stack sx={{ paddingTop: theme.spacing(4) }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Field

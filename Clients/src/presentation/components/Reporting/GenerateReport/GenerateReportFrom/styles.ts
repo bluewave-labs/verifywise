@@ -35,3 +35,9 @@ export const fieldStyle = (theme: any) => ({
     padding: "0 14px",
   },
 });
+
+export const selectReportStyle = (theme:any) => ({
+  width: "350px",
+  backgroundColor: theme.palette.background.main,
+
+});

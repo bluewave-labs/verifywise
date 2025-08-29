@@ -157,16 +157,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       summary: On creating assessments and posting it
       tags: [assessments]
@@ -200,27 +191,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/Assessment"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /assessments/{id}:
     get:
       tags: [assessments]
@@ -247,27 +220,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Assessment"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [assessments]
       security:
@@ -307,27 +262,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Assessment"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [assessments]
       security:
@@ -354,27 +291,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   /assessments/getAnswers/{id}:
     get:
       tags: [assessments]
@@ -401,16 +320,7 @@ paths:
                   data:
                     $ref: "#/components/schemas/Assessment"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /controls:
     get:
@@ -444,16 +354,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [controls]
       security:
@@ -508,27 +409,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/Control"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /controls/{id}:
     get:
       tags: [controls]
@@ -555,27 +438,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Control"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [controls]
       security:
@@ -637,27 +502,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Control"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [controls]
       security:
@@ -684,27 +531,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /projects:
     get:
@@ -738,16 +567,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [projects]
       security:
@@ -815,27 +635,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/Project"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /projects/{id}:
     get:
       tags: [projects]
@@ -862,27 +664,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Project"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [projects]
       security:
@@ -961,27 +745,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Project"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [projects]
       security:
@@ -1008,27 +774,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   /projects/calculateProjectRisks/{id}:
     get:
       tags: [projects]
@@ -1075,16 +823,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   /projects/calculateVendorRisks/{id}:
     get:
       tags: [projects]
@@ -1131,16 +870,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /projectRisks:
     get:
@@ -1174,16 +904,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [projectRisks]
       security:
@@ -1297,27 +1018,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/ProjectRisk"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /projectRisks/{id}:
     get:
       tags: [projectRisks]
@@ -1344,27 +1047,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/ProjectRisk"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [projectRisks]
       security:
@@ -1485,27 +1170,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/ProjectRisk"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [projectRisks]
       security:
@@ -1532,27 +1199,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /projectScopes:
     get:
@@ -1586,16 +1235,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [projectScopes]
       security:
@@ -1652,27 +1292,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/ProjectScope"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /projectScopes/{id}:
     get:
       tags: [projectScopes]
@@ -1699,27 +1321,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/ProjectScope"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [projectScopes]
       security:
@@ -1783,27 +1387,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/ProjectScope"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [projectScopes]
       security:
@@ -1830,27 +1416,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /questions:
     get:
@@ -1884,16 +1452,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [questions]
       security:
@@ -1958,27 +1517,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/Question"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /questions/{id}:
     get:
       tags: [questions]
@@ -2005,27 +1546,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Question"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [questions]
       security:
@@ -2097,27 +1620,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Question"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [questions]
       security:
@@ -2144,27 +1649,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /subcontrols:
     get:
@@ -2198,16 +1685,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [subcontrols]
       security:
@@ -2277,27 +1755,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/SubControl"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /subcontrols/{id}:
     get:
       tags: [subcontrols]
@@ -2324,27 +1784,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/SubControl"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [subcontrols]
       security:
@@ -2421,27 +1863,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/SubControl"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [subcontrols]
       security:
@@ -2468,27 +1892,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /subtopics:
     get:
@@ -2522,16 +1928,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [subtopics]
       security:
@@ -2564,27 +1961,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/SubTopic"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /subtopics/{id}:
     get:
       tags: [subtopics]
@@ -2611,27 +1990,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/SubTopic"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [subtopics]
       security:
@@ -2671,27 +2032,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/SubTopic"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [subtopics]
       security:
@@ -2718,27 +2061,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /topics:
     get:
@@ -2772,16 +2097,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [topics]
       security:
@@ -2814,27 +2130,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/Topic"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /topics/{id}:
     get:
       tags: [topics]
@@ -2861,27 +2159,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Topic"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [topics]
       security:
@@ -2921,27 +2201,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Topic"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [topics]
       security:
@@ -2968,27 +2230,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /vendors:
     get:
@@ -3022,16 +2266,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [vendors]
       security:
@@ -3123,27 +2358,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/Vendor"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /vendors/{id}:
     get:
       tags: [vendors]
@@ -3170,27 +2387,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Vendor"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [vendors]
       security:
@@ -3297,27 +2496,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Vendor"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [vendors]
       security:
@@ -3344,27 +2525,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /vendorRisks:
     get:
@@ -3398,16 +2561,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [vendorRisks]
       security:
@@ -3460,27 +2614,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/VendorRisk"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /vendorRisks/{id}:
     get:
       tags: [vendorRisks]
@@ -3507,27 +2643,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/VendorRisk"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [vendorRisks]
       security:
@@ -3587,27 +2705,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/VendorRisk"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [vendorRisks]
       security:
@@ -3634,27 +2734,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /users:
     get:
@@ -3688,16 +2770,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   /users/{id}:
     get:
       tags: [users]
@@ -3724,27 +2797,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/User"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [users]
       security:
@@ -3798,27 +2853,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/User"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [users]
       security:
@@ -3845,27 +2882,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   /users/register:
     post:
       tags: [users]
@@ -3914,27 +2933,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/User"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /users/by-email/{email}:
     get:
       tags: [users]
@@ -3961,27 +2962,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/User"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   /users/login:
     post:
       summary: Authenticate user and receive JWT tokens
@@ -4157,16 +3140,7 @@ paths:
                 error:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   /users/{id}/calculate-progress:
     get:
       tags: [users]
@@ -4241,16 +3215,7 @@ paths:
                       format: float
                       example: 0
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
 
   /roles:
     get:
@@ -4284,16 +3249,7 @@ paths:
                 data:
                   type: object
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags: [roles]
       security:
@@ -4326,27 +3282,9 @@ paths:
                   type: object
                   $ref: "#/components/schemas/Role"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
         "503":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: service unavailable
-                error:
-                  type: object
+          $ref: "#/components/responses/ServiceUnavailable"
   /roles/{id}:
     get:
       tags: [roles]
@@ -4373,27 +3311,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Role"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags: [roles]
       security:
@@ -4433,27 +3353,9 @@ paths:
                   data:
                     $ref: "#/components/schemas/Role"
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [roles]
       security:
@@ -4480,27 +3382,9 @@ paths:
                     type: boolean
                     example: true
         "404":
-          description: no content to display
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: not found
-                data:
-                  type: object
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
   
   /training:
     get:
@@ -4689,16 +3573,7 @@ paths:
                     type: object
         
         "500":
-          description: internal server error
-          content:
-            application/json:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: internal server error
-                error:
-                  type: object
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags: [training]
       security:

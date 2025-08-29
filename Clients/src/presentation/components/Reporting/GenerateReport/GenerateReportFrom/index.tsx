@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useContext,
   useMemo,
+  useEffect
 } from "react";
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
 import CustomizableButton from "../../../../vw-v2-components/Buttons";
@@ -65,6 +66,22 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0].id});
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
+
+  useEffect(() => {
+    const availableTypes = values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
+
+    if (!availableTypes.includes(values.report_type)) {
+      setValues((prev) => ({
+        ...prev,
+        report_type: availableTypes[0], // reset to the first valid type
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        report_type: undefined, // clear any error
+      }));
+    }
+  }, [values.framework]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
@@ -134,7 +151,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
                 ) || []
               }
               sx={{
-                width: "350px",
+                width: "100%",
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.project}
@@ -158,7 +175,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
                 })) || []
               }
               sx={{
-                width: "350px",
+                width: "100%",
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.framework}
@@ -168,10 +185,10 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
         </Stack>
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
-          <Typography sx={styles.semiTitleText}>Report Type *</Typography>
           <Suspense fallback={<div>Loading...</div>}>
             <Select
               id="report-type-input"
+              label="Report Type"
               placeholder="Select report type"
               value={values.report_type}
               onChange={handleOnSelectChange("report_type")}
@@ -188,12 +205,12 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
           </Suspense>
         </Stack>
 
-        <Stack sx={{ paddingTop: theme.spacing(4) }}>
+        <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Field
               id="report-name"
               label="What should we call your report?"
-              width="350px"
+              width="100%"
               value={values.report_name}
               onChange={handleOnTextFieldChange("report_name")}
               error={errors.report_name}

@@ -34,6 +34,7 @@ import CustomizableToast from "../../vw-v2-components/Toast";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import biasFairnessHelpContent from "../../../presentation/helpers/bias-fairness-help.html?raw";
+import BiasAndFairnessModule from "./BiasAndFairnessModule";
 
 export type FairnessModel = {
   id: number | string; // Use number or string based on your backend response
@@ -266,13 +267,10 @@ export default function FairnessDashboard() {
           />
         </Stack>
         <Typography sx={styles.vwSubHeadingTitle}>
-          This table displays fairness evaluation results for your uploaded
-          models. To evaluate a new model, upload the model along with its
-          dataset, target column, and at least one sensitive feature. Only
-          classification models are supported at the moment. Make sure your
-          model includes preprocessing steps, such as an sklearn.Pipeline, and
-          that the dataset is already formatted to match the model’s input
-          requirements.
+          {tab === "uploads" 
+            ? "This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model's input requirements."
+            : "Advanced bias detection and fairness evaluation using the BiasAndFairnessModule. Configure your evaluation parameters to perform comprehensive fairness analysis with multiple metrics and bias detection methods."
+          }
         </Typography>
       </Box>
       {alert && (
@@ -299,6 +297,12 @@ export default function FairnessDashboard() {
             <Tab
               label="Fairness checks"
               value="uploads"
+              disableRipple
+              sx={{ textTransform: "none !important" }}
+            />
+            <Tab
+              label="Bias & Fairness Module"
+              value="biasModule"
               disableRipple
               sx={{ textTransform: "none !important" }}
             />
@@ -564,6 +568,10 @@ export default function FairnessDashboard() {
               </Stack>
             </DialogContent>
           </Dialog>
+        </TabPanel>
+        
+        <TabPanel value="biasModule" sx={tabPanelStyle}>
+          <BiasAndFairnessModule />
         </TabPanel>
       </TabContext>
       {showToastNotification && (

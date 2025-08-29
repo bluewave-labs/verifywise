@@ -9,8 +9,8 @@ dataset:
     - "race"
   target_column: "income"
   sampling:
-    enabled: true
-    n_samples: 50 # Increased for more meaningful evaluation
+    enabled: false
+    n_samples: 500 # Number of samples to use for quick experiments
     random_seed: 42
 
 # Post-processing Configuration
@@ -29,6 +29,10 @@ post_processing:
 
 # Model Configuration
 model:
+  # Model task type for Fairness Compass routing
+  model_task: "binary_classification" # Options: binary_classification, multiclass_classification, regression, generation, ranking
+  label_behavior: "binary" # Options: binary, categorical, continuous
+
   # Hugging Face model configuration
   huggingface:
     enabled: true

@@ -5,15 +5,15 @@ This module implements various bias and fairness metrics for machine learning mo
 Each metric is registered using the metric_registry decorator for centralized access.
 """
 
-from typing import Any, Dict, List, NamedTuple, Union
+from typing import Any, Dict, List, NamedTuple, Union, Hashable
 
 import numpy as np
 import pandas as pd
 from fairlearn.metrics import (MetricFrame, demographic_parity_difference,
                                equalized_odds_difference, false_positive_rate,
-                               true_positive_rate)
+                               true_positive_rate, selection_rate as fairlearn_selection_rate)
 from sklearn.metrics import (brier_score_loss, precision_score, recall_score, 
-                            f1_score, accuracy_score)
+                            f1_score, accuracy_score, confusion_matrix)
 
 from .metric_registry import register_metric
 
@@ -246,6 +246,46 @@ def calibration(
     return metric_frame
 
 
+@register_metric("selection_rate")
+def selection_rate(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> MetricFrame:
+    """
+    Calculate per-group Selection Rate metric.
+
+    Args:
+        y_true: Ground truth labels (accepted for signature consistency)
+        y_pred: Predicted labels
+        protected_attributes: Protected group attributes
+
+    Returns:
+        MetricFrame: Fairlearn MetricFrame with per-group selection rates
+    """
+    # Flatten and validate inputs
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+
+    if y_pred_array.shape[0] != sensitive_features_array.shape[0]:
+        raise ValueError(
+            "Length mismatch: y_pred and protected_attributes must have the same number of samples"
+        )
+
+    # y_true is accepted by Fairlearn's API for signature consistency, but not used
+    if y_true_array.shape[0] not in (0, y_pred_array.shape[0]):
+        raise ValueError(
+            "Length mismatch: y_true must have the same number of samples as y_pred (or be empty)"
+        )
+
+    metric_frame = MetricFrame(
+        metrics=fairlearn_selection_rate,
+        y_true=y_true_array,
+        y_pred=y_pred_array,
+        sensitive_features=sensitive_features_array,
+    )
+    return metric_frame
+
+
 @register_metric("conditional_use_accuracy_equality")
 def conditional_use_accuracy_equality(
     y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
@@ -383,7 +423,7 @@ def equalized_odds(
         sensitive_features=sensitive_features_array,
         agg="worst_case",
     )
-    return float(eod_value)
+    return eod_value
 
 
 @register_metric("equalized_opportunity")
@@ -1120,6 +1160,70 @@ def regression_demographic_parity(
     return 0.0
 
 
+# Group-wise confusion-derived metrics (TPR, FPR, PPV, NPV)
+@register_metric("compute_group_metrics")
+def compute_group_metrics(
+    y_true: np.ndarray, y_pred: np.ndarray, protected_attributes: np.ndarray
+) -> pd.DataFrame:
+    """
+    Compute per-group TPR, FPR, PPV, NPV, ACC, and SPR.
+
+    Args:
+        y_true: Ground truth labels (0/1)
+        y_pred: Predicted labels (0/1)
+        protected_attributes: Protected group attributes
+
+    Returns:
+        pd.DataFrame: Rows per group with columns [group, TPR, FPR, PPV, NPV, ACC, SPR]
+    """
+    # Flatten and validate inputs
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+
+    if y_true_array.shape[0] == 0:
+        return pd.DataFrame(columns=["group", "TPR", "FPR", "PPV", "NPV", "ACC", "SPR"])
+
+    metrics_records: List[Dict[str, Any]] = []
+    eps = 1e-10
+
+    for group_value in np.unique(sensitive_features_array):
+        group_mask = sensitive_features_array == group_value
+        y_true_g = y_true_array[group_mask]
+        y_pred_g = y_pred_array[group_mask]
+
+        tn, fp, fn, tp = confusion_matrix(y_true_g, y_pred_g, labels=[0, 1]).ravel()
+
+        tpr = float(tp / (tp + fn + eps))
+        fpr = float(fp / (fp + tn + eps))
+        ppv = float(tp / (tp + fp + eps))
+        npv = float(tn / (tn + fn + eps))
+        acc = float((tp + tn) / (tp + tn + fp + fn + eps))
+        spr = float((tp + fp) / (len(y_true_g) + eps))
+
+        metrics_records.append(
+            {
+                "group": group_value,
+                "TPR": tpr,
+                "FPR": fpr,
+                "PPV": ppv,
+                "NPV": npv,
+                "ACC": acc,
+                "SPR": spr,
+            }
+        )
+
+    return pd.DataFrame(metrics_records)
+
+
 # Utility function for Fairness Compass Engine compatibility
 # This function converts any metric result to a simple float value
 
@@ -1188,6 +1292,17 @@ def convert_metric_to_float(metric_result, metric_name: str = "unknown") -> floa
                     return 0.0
             except (ValueError, TypeError):
                 pass
+
+    # Handle pandas DataFrame results (e.g., from compute_group_metrics)
+    if isinstance(metric_result, pd.DataFrame):
+        if metric_result.empty:
+            return 0.0
+        # Compute disparity per numeric column and return the maximum disparity across columns
+        numeric_columns = [col for col in metric_result.columns if np.issubdtype(metric_result[col].dtype, np.number)]
+        if not numeric_columns:
+            return 0.0
+        disparities = [float(metric_result[col].max() - metric_result[col].min()) for col in numeric_columns]
+        return float(max(disparities)) if disparities else 0.0
     
     # Handle named tuples (like conditional_use_accuracy_equality)
     if hasattr(metric_result, '_fields'):  # NamedTuple
@@ -1208,3 +1323,64 @@ def convert_metric_to_float(metric_result, metric_name: str = "unknown") -> floa
     
     # If we can't convert, raise an error
     raise ValueError(f"Cannot convert metric '{metric_name}' result of type {type(metric_result)} to float")
+
+
+@register_metric("equalized_odds_by_group")
+def equalized_odds_by_group(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    protected_attributes: np.ndarray,
+    pos_label: Hashable = 1,
+) -> pd.DataFrame:
+    """
+    Compute per-group Equalized Odds components and gaps.
+
+    Args:
+        y_true: Ground truth binary labels.
+        y_pred: Predicted binary labels (0/1). Threshold scores first if needed.
+        protected_attributes: Protected group labels for each sample.
+        pos_label: Positive class label used to compute TPR/FPR.
+
+    Returns:
+        pd.DataFrame: Per-group rows with columns [TPR, FPR, EO_gap]
+            where EO_gap = max(|TPR - overall_TPR|, |FPR - overall_FPR|).
+    """
+    # Flatten and validate inputs
+    y_true_array = np.asarray(y_true).ravel()
+    y_pred_array = np.asarray(y_pred).ravel()
+    sensitive_features_array = np.asarray(protected_attributes).ravel()
+
+    if not (
+        y_true_array.shape[0] == y_pred_array.shape[0]
+        and y_pred_array.shape[0] == sensitive_features_array.shape[0]
+    ):
+        raise ValueError(
+            "Length mismatch: y_true, y_pred, and protected_attributes must have the same number of samples"
+        )
+
+    if y_true_array.shape[0] == 0:
+        return pd.DataFrame(columns=["TPR", "FPR", "EO_gap"])  # Empty, correct schema
+
+    # Compute per-group TPR and FPR with MetricFrame
+    mf = MetricFrame(
+        metrics={
+            "TPR": lambda yt, yp: true_positive_rate(yt, yp, pos_label=pos_label),
+            "FPR": lambda yt, yp: false_positive_rate(yt, yp, pos_label=pos_label),
+        },
+        y_true=y_true_array,
+        y_pred=y_pred_array,
+        sensitive_features=sensitive_features_array,
+    )
+
+    by_group = mf.by_group.copy()
+    by_group = by_group.sort_index()
+
+    ref_tpr = mf.overall["TPR"]
+    ref_fpr = mf.overall["FPR"]
+    eo_gap = np.maximum(
+        np.abs(by_group["TPR"] - ref_tpr),
+        np.abs(by_group["FPR"] - ref_fpr),
+    )
+
+    out = by_group.assign(EO_gap=eo_gap)
+    return out

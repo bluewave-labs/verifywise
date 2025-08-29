@@ -100,7 +100,7 @@ async def insert_bias_fairness_evaluation(
     result = await db.execute(
         text(f'''
             INSERT INTO "{tenant}".bias_fairness_evaluations 
-            (eval_id, model_name, dataset_name, model_task, label_behavior, config_data ) 
+            (eval_id, model_name, dataset_name, model_task, label_behavior, config_data) 
             VALUES (:eval_id, :model_name, :dataset_name, :model_task, :label_behavior, :config_data) 
             RETURNING id
         '''),
@@ -110,8 +110,7 @@ async def insert_bias_fairness_evaluation(
             "dataset_name": dataset_name,
             "model_task": model_task,
             "label_behavior": label_behavior,
-            "config_data": config_data,
-            
+            "config_data": config_data
         }
     )
     row = result.fetchone()

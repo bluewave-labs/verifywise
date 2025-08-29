@@ -40,7 +40,7 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import allowedRoles from "../../../../application/constants/permissions";
-import { createNewVendor, update } from "../../../../application/repository/vendor.repository";
+import { useCreateVendor, useUpdateVendor } from "../../../../application/hooks/useVendors";
 
 export interface VendorDetails {
   id?: number;
@@ -106,7 +106,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   value,
   onSuccess,
   existingVendor,
-  onChange = () => {},
+  onChange = () => { },
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState(initialState);
@@ -123,7 +123,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   >([]);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
-  const { projects } = useProjects();
+  const { data: projects } = useProjects();
+
+  // TanStack Query hooks
+  const createVendorMutation = useCreateVendor();
+  const updateVendorMutation = useUpdateVendor();
 
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 
@@ -135,9 +139,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const formattedProjects = useMemo(() => {
     return Array.isArray(projects)
       ? projects?.map((project: any) => ({
-          _id: project.id,
-          name: project.project_title,
-        }))
+        _id: project.id,
+        name: project.project_title,
+      }))
       : [];
   }, [projects]);
 
@@ -348,9 +352,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const createVendor = async (vendorDetails: object) => {
     setIsSubmitting(true);
     try {
-     const response = await createNewVendor({
-        body: vendorDetails,
-      });
+      const response = await createVendorMutation.mutateAsync(vendorDetails);
 
       if (response.status === 201) {
         setAlert({
@@ -379,9 +381,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
+        body: `An error occurred: ${(error as Error).message || "Please try again."
+          }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -402,9 +403,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   ) => {
     setIsSubmitting(true);
     try {
-      const response = await update({
+      const response = await updateVendorMutation.mutateAsync({
         id: vendorId,
-        body: updatedVendorDetails,
+        data: updatedVendorDetails,
       });
 
       if (response.status === 202) {
@@ -430,9 +431,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       });
       setAlert({
         variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
+        body: `An error occurred: ${(error as Error).message || "Please try again."
+          }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -472,8 +472,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Box>
         </Stack>
-        <Stack sx={{flex: 1 }}
-        mt={theme.spacing(1)}>
+        <Stack sx={{ flex: 1 }}
+          mt={theme.spacing(1)}>
           <Stack >
             <Typography
               sx={{
@@ -497,7 +497,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               options={projectOptions || []}
               noOptionsText={
                 values?.vendorDetails?.projectIds?.length ===
-                projectOptions?.length
+                  projectOptions?.length
                   ? "All projects are selected"
                   : "No options"
               }
@@ -605,7 +605,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               <Typography
                 color="error"
                 variant="caption"
-                sx={{ mt: 0.5, ml: 1 , color: "#f04438", opacity: 0.8}}
+                sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
               >
                 {errors.projectIds}
               </Typography>
@@ -618,15 +618,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             mt={theme.spacing(8)}
           >
             <Field // vendorContactPerson
-                label="Vendor contact person"
-                width={220}
-                value={values.vendorDetails.vendorContactPerson}
-                onChange={(e) =>
-                  handleOnChange("vendorContactPerson", e.target.value)
-                }
-                error={errors.vendorContactPerson}
-                isRequired
-                disabled={isEditingDisabled}
+              label="Vendor contact person"
+              width={220}
+              value={values.vendorDetails.vendorContactPerson}
+              onChange={(e) =>
+                handleOnChange("vendorContactPerson", e.target.value)
+              }
+              error={errors.vendorContactPerson}
+              isRequired
+              disabled={isEditingDisabled}
             />
             <Select // assignee (not in the server model!)
               items={formattedUsers}
@@ -645,7 +645,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Stack>
         </Stack>
-        
+
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
         <Field // vendorProvides

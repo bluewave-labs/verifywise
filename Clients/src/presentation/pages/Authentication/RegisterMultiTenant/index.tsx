@@ -186,13 +186,16 @@ const RegisterMultiTenant: React.FC = () => {
         users,
       });
       setIsSubmitting(false);
-      if ((response.data as { message: string, error: string })?.error === "User with this email already exists") {
+      if (
+        (response.data as { message: string; error: string })?.error ===
+        "User with this email already exists"
+      ) {
         setAlert({
           variant: "error",
           body: "User with this email already exists. Please use a different email.",
         });
         setTimeout(() => {
-          setAlert(null)
+          setAlert(null);
           navigate("/login");
         }, 3000);
       } else {

@@ -110,6 +110,8 @@ export async function getModelInventoryById(req: Request, res: Response) {
 export async function createNewModelInventory(req: Request, res: Response) {
   const {
     provider_model,
+    provider,
+    model,
     version,
     approver,
     capabilities,
@@ -133,6 +135,8 @@ export async function createNewModelInventory(req: Request, res: Response) {
     // Create new model inventory instance using the static method for validation
     const modelInventory = ModelInventoryModel.createNewModelInventory({
       provider_model,
+      provider,
+      model,
       version,
       approver,
       capabilities,
@@ -186,6 +190,8 @@ export async function updateModelInventoryById(req: Request, res: Response) {
   const id = req.params.id;
   const {
     provider_model,
+    provider,
+    model,
     version,
     approver,
     capabilities,
@@ -229,6 +235,8 @@ export async function updateModelInventoryById(req: Request, res: Response) {
       existingModelInventory,
       {
         provider_model,
+        provider,
+        model,
         version,
         approver,
         capabilities,

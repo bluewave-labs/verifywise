@@ -6,7 +6,7 @@ import Field from '../../../components/Inputs/Field';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import SaveIcon from '@mui/icons-material/Save';
 import DualButtonModal from '../../../vw-v2-components/Dialogs/DualButtonModal';
-import { useAITrustCentreOverview } from "../../../../application/hooks/useAITrustCentreOverview";
+import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 import { uploadAITrustCentreLogo, deleteAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
@@ -14,7 +14,8 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 
 const AITrustCenterSettings: React.FC = () => {
   const styles = useStyles();
-  const { loading, error, updateOverview, data: overviewData } = useAITrustCentreOverview();
+  const { data: overviewData, isLoading: loading, error } = useAITrustCentreOverviewQuery();
+  const updateOverviewMutation = useAITrustCentreOverviewMutation();
   const [saveSuccess, setSaveSuccess] = React.useState(false);
   const [logoRemoveSuccess, setLogoRemoveSuccess] = React.useState(false);
   const [logoUploadSuccess, setLogoUploadSuccess] = React.useState<string | null>(null);
@@ -301,10 +302,9 @@ const AITrustCenterSettings: React.FC = () => {
         terms_and_contact: formData.terms_and_contact,
         info: formData.info
       };
-
-      // Call the updateOverview function from the hook
-      await updateOverview(dataToSave);
-
+      // Call the updateOverview mutation
+      await updateOverviewMutation.mutateAsync(dataToSave);
+      
       // Update local state to reflect the saved data
       setOriginalData({ ...formData }); // Create a deep copy
       setHasUnsavedChanges(false);

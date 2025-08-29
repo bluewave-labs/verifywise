@@ -12,7 +12,9 @@ import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import evidencesHelpContent from "../../../presentation/helpers/evidences-help.html?raw";
+import { Project } from "../../../domain/types/Project";
 
 const COLUMN_NAMES = [
   "File",
@@ -53,7 +55,7 @@ const FileManager: React.FC = (): JSX.Element => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Fetch projects for the dropdown
-  const { projects, loading: loadingProjects } = useProjects();
+  const { data: projects = [], isLoading: loadingProjects } = useProjects();
 
   // State for selected project
   const [selectedProject, setSelectedProject] = useState<
@@ -104,7 +106,11 @@ const FileManager: React.FC = (): JSX.Element => {
         helpContent={evidencesHelpContent}
         pageTitle="Evidences & Documents"
       />
-      <FileManagerHeader theme={theme} ref={refs[0]} />
+      <FileManagerHeader 
+        theme={theme} 
+        ref={refs[0]} 
+        onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+      />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
         <>
@@ -117,7 +123,7 @@ const FileManager: React.FC = (): JSX.Element => {
       ) : (
         <>
           <ProjectFilterDropdown
-            projects={projects.map((project) => ({
+            projects={projects.map((project: Project) => ({
               id: project.id.toString(),
               name: project.project_title,
             }))}
@@ -137,14 +143,22 @@ const FileManager: React.FC = (): JSX.Element => {
  * Header component for the FileManager.
  * Uses React.forwardRef to handle the ref passed from the parent component.
  */
-const FileManagerHeader = forwardRef<HTMLDivElement, { theme: Theme }>(
-  ({ theme }, ref) => (
+const FileManagerHeader = forwardRef<HTMLDivElement, { theme: Theme; onHelperClick?: () => void }>(
+  ({ theme, onHelperClick }, ref) => (
     <Stack
       className="vwhome-header"
       ref={ref}
       data-joyride-id="file-manager-title"
     >
-      <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
+        {onHelperClick && (
+          <HelperIcon 
+            onClick={onHelperClick}
+            size="small"
+          />
+        )}
+      </Stack>
       <Typography
         sx={{
           color: theme.palette.text.secondary,

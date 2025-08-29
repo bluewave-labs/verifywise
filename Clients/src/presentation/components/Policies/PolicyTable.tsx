@@ -1,13 +1,10 @@
-import React, { useState, useCallback, useContext } from "react";
+import React, { useContext } from "react";
 import { Policy } from "../../../domain/types/Policy";
 import CustomizablePolicyTable from "../Table/PolicyTable";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import { TableRow, TableCell, Dialog, DialogActions, DialogContent, DialogTitle, Button, Typography } from "@mui/material";
-import { ReactComponent as Settings } from "../../assets/icons/setting.svg" 
+import { TableRow, TableCell } from "@mui/material";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import singleTheme from "../../themes/v1SingleTheme";
+import CustomIconButton from "../../components/IconButton";
 
 interface Props {
   data: Policy[];
@@ -24,61 +21,49 @@ const tableHeaders = [
   { id: "tags", name: "Tags" },
   { id: "next_review", name: "Next Review" },
   { id: "author", name: "Author" },
-  { id: "reviewers", name: "Reviewers" },
+  // { id: "reviewers", name: "Reviewers" },
   { id: "last_updated", name: "Last Updated" },
   { id: "updated_by", name: "Updated By" },
   { id: "actions", name: "Actions" },
 ];
 
-const statusColors: Record<string, string> = {
-  Draft: "#6c757d",
-  "In review": "#fd7e14",
-  Approved: "#28a745",
-  Published: "#007bff",
-  Archived: "#6c757d",
+const policyStatusBadgeStyle = (status: string) => {
+  const statusStyles: Record<string, { bg: string; color: string }> = {
+    Draft: { bg: "#e0e0e0", color: "#616161" },
+    "In review": { bg: "#fff3e0", color: "#fb8c00" },
+    Approved: { bg: "#c8e6c9", color: "#388e3c" },
+    Published: { bg: "#bbdefb", color: "#1976d2" },
+    Archived: { bg: "#eeeeee", color: "#757575" },
+  };
+
+  const style = statusStyles[status] || { bg: "#f5f5f5", color: "#9e9e9e" };
+
+  return {
+    backgroundColor: style.bg,
+    color: style.color,
+    padding: "4px 8px",
+    borderRadius: 8,
+    fontWeight: 500,
+    fontSize: "11px",
+    textTransform: "uppercase" as const,
+    display: "inline-block" as const,
+    letterSpacing: "0.5px",
+  };
 };
 
 const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error, onRefresh }) => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const cellStyle = singleTheme.tableStyles.primary.body.cell;
+
   // Helper function to get user name by ID
   const getUserNameById = (id: string | null | undefined | number) => {
     const user = users.find((u) => u.id === id);
-    return user ? user.name : "-";
-  };
-
-  const isMenuOpen = Boolean(anchorEl);
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, policy: Policy) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-    setSelectedPolicy(policy);
+    return user ? user.name + " " + user.surname : "-";
   };
 
     const { users } =
     useContext(VerifyWiseContext);
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedPolicy(null);
-  };
 
-  const handleDeleteConfirmation = useCallback(() => {
-    if (selectedPolicy) {
-      onDelete(selectedPolicy.id);
-    }
-    setOpenDeleteDialog(false);
-    handleMenuClose();
-    if (typeof onRefresh === 'function') {
-      onRefresh();
-    }
-  }, [selectedPolicy, onDelete, onRefresh]);
-
-  const handleDeleteCancel = () => {
-    setOpenDeleteDialog(false);
-    setSelectedPolicy(null)
-  };
 
   if (error) {
     return <div className="error-message">Error loading policies: {error.message}</div>;
@@ -102,7 +87,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
       <CustomizablePolicyTable
         table="policy-table"
         data={{ rows, cols: tableHeaders }}
-        bodyData={[]}
+        bodyData={[ ...data ]}
         paginated
         setSelectedRow={() => {}}
         setAnchorEl={() => {}}
@@ -112,108 +97,54 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
             key={policy.id}
             tabIndex={0}
             aria-label={`Policy: ${policy.title}`}
-            sx={{
-              cursor: "pointer",
-              height: 36,
-              "&:hover": {
-                backgroundColor: "#F8f8f8",
-              },
+            sx={{...singleTheme.tableStyles.primary.body.row}}
+            onClick={(_event) => {
+                  const target = _event.target as HTMLElement;
+    if (target.closest("button")) return;
+    onOpen(policy.id);
             }}
-            onClick={(_event) => onOpen(policy.id)}
           >
-            <TableCell sx={{ fontSize: 12 }}>{policy.title.length > 30 ? `${policy.title.slice(0, 30)}...` : policy.title}</TableCell>
-            <TableCell>
-              <span
-                style={{
-                  backgroundColor: statusColors[policy.status] || "#6c757d",
-                  color: "#fff",
-                  padding: "2px 6px",
-                  borderRadius: "4px",
-                  fontSize: 12,
-                }}
-              >
+            <TableCell sx={cellStyle}>{policy.title.length > 30 ? `${policy.title.slice(0, 30)}...` : policy.title}</TableCell>
+            <TableCell sx={cellStyle}>
+              <span style={policyStatusBadgeStyle(policy.status)}>
                 {policy.status}
               </span>
             </TableCell>
-            <TableCell sx={{ fontSize: 12 }}>{
+            <TableCell sx={cellStyle}>{
               policy.tags?.join(", ").length > 30 ? `${policy.tags?.join(", ").slice(0, 30)}...` : policy.tags?.join(", ") || "-"
             }</TableCell>
-            <TableCell sx={{ fontSize: 12 }}>
+            <TableCell sx={cellStyle}>
               {policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : "-"}
             </TableCell>
-            <TableCell sx={{ fontSize: 12 }}>{getUserNameById(policy.author_id)}</TableCell>
-            <TableCell sx={{ fontSize: 12 }}>
+            <TableCell sx={cellStyle}>{getUserNameById(policy.author_id)}</TableCell>
+            {/* <TableCell sx={cellStyle}>
               {
                 policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").length > 30 ? `${policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").slice(0, 30)}...` : policy.assigned_reviewer_ids?.map(getUserNameById).join(", ") || "-"
               }
-            </TableCell>
-            <TableCell sx={{ fontSize: 12 }}>
+            </TableCell> */}
+            <TableCell sx={cellStyle}>
               {policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : "-"}
             </TableCell>
-            <TableCell sx={{ fontSize: 12 }}>{getUserNameById(policy.last_updated_by)}</TableCell>
+            <TableCell sx={cellStyle}>{getUserNameById(policy.last_updated_by)}</TableCell>
             <TableCell>
-              <IconButton
-                aria-label="more"
-                disableRipple
-                onClick={(e) => handleMenuOpen(e, policy)}
-              >
-                <Settings />
-              </IconButton>
+  <CustomIconButton
+    id={Number(policy.id)}
+    onDelete={() => {
+      onDelete(policy.id);
+      onRefresh?.();
+    }}
+    onEdit={() => {
+      onOpen(policy.id);
+    }}
+    onMouseEvent={(e: React.SyntheticEvent) => e.stopPropagation()}
+    warningTitle="Delete this policy?"
+    warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."
+    type=""
+  />
             </TableCell>
           </TableRow>
         )}
       />
-
-      {/* Global Menu */}
-      <Menu anchorEl={anchorEl} open={isMenuOpen} onClose={handleMenuClose}>
-        <MenuItem
-          onClick={() => {
-            if (selectedPolicy) {
-              onOpen(selectedPolicy.id);
-            }
-            handleMenuClose();
-          }}
-        >
-          Edit
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setOpenDeleteDialog(true); // Show the confirmation dialog when Delete is clicked
-            setAnchorEl(null)
-          }}
-          style={{ color: "red" }}
-        >
-          Delete
-        </MenuItem>
-      </Menu>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={openDeleteDialog} onClose={handleDeleteCancel}>
-        <DialogTitle>Delete Policy</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">
-            Are you sure you want to delete this policy? This action is permanent.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} color="info" disableRipple>
-            Cancel
-          </Button>
-                          <CustomizableButton
-                    variant="contained"
-                    text="Delete"
-                    sx={{
-                      backgroundColor: "#DB504A",
-                      border: "1px solid #DB504A",
-                      gap: 2,
-                      
-                    }}
-                    onClick={() => {
-                      handleDeleteConfirmation()
-                    }}
-                  />
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

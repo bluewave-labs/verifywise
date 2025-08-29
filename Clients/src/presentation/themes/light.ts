@@ -30,7 +30,7 @@ const light = createTheme({
   typography: { fontFamily: fontFamilyDefault, fontSize: 13 },
   spacing: 2,
   palette: {
-    primary: { main: "#1570EF" },
+    primary: { main: "#13715B" },
     secondary: { main: "#F4F4F4", dark: "#e3e3e3", contrastText: "#475467" },
     text: text,
     background: background,

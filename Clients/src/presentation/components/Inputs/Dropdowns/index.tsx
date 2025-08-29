@@ -1,15 +1,15 @@
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Select from "../Select";
 import DatePicker from "../Datepicker";
 import Field from "../Field";
 import { formatDate } from "../../../tools/isoDateToString";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import { Dayjs } from "dayjs";
 import { DropDownsProps } from "../../../../domain/interfaces/iWidget";
 import { inputStyles } from "./style";
+import useUsers from "../../../../application/hooks/useUsers";
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
@@ -27,7 +27,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const [date, setDate] = useState<Dayjs | null>(null);
   const [implementationDetails, setImplementationDetails] = useState("");
   const theme = useTheme();
-  const { users } = useContext(VerifyWiseContext); 
+  const { users } = useUsers(); 
   const { project } = useProjectData({ projectId: String(projectId) || "0" });
 
   const [projectMembers, setProjectMembers] = useState<User[]>([]);

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, useContext, Suspense } from "react";
+import { useState, Suspense } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
@@ -21,7 +21,7 @@ import Alert from "../../Alert";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+
 import {
   AlertBox,
   styles,
@@ -32,6 +32,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import LinkedRisksPopup from "../../LinkedRisks";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 import { updateControl } from "../../../../application/repository/control_eu_act.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 const tabStyle = {
   textTransform: "none",
@@ -76,12 +77,13 @@ const NewControlPane = ({
       feedback: FileData[];
     };
   }>({});
-  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
+    useState<boolean>(false);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
-  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
-  const context = useContext(VerifyWiseContext);
-  const userRoleName = context?.userRoleName;
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
+    useState<boolean>(false);
+  const { userRoleName, userId } = useAuth();
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
   const isAuditingDisabled =
@@ -305,7 +307,7 @@ const NewControlPane = ({
       });
 
       // Add user and project info
-      formData.append("user_id", context?.userId?.toString() || "");
+      formData.append("user_id", userId?.toString() || "");
       formData.append("project_id", projectId.toString());
 
       // Add delete array if needed (you might want to track deleted files)
@@ -314,7 +316,7 @@ const NewControlPane = ({
       formData.append("risksDelete", JSON.stringify(deletedRisks));
       formData.append("risksMitigated", JSON.stringify(selectedRisks));
 
-    const response = await updateControl({
+      const response = await updateControl({
         controlId: state.id,
         body: formData,
         headers: {
@@ -457,9 +459,12 @@ const NewControlPane = ({
             }
             readOnly={isEditingDisabled}
             setAuditedStatusModalOpen={(open: boolean) => {
-              if (selectedRisks.length > 0 || state.risks.length > 0 || (
-                state.risks.length > 0 && deletedRisks.length === state.risks.length
-              )) {
+              if (
+                selectedRisks.length > 0 ||
+                state.risks.length > 0 ||
+                (state.risks.length > 0 &&
+                  deletedRisks.length === state.risks.length)
+              ) {
                 setAuditedStatusModalOpen(open);
               }
             }}
@@ -728,32 +733,34 @@ const NewControlPane = ({
           </Stack>
         </Stack>
       </Modal>
-      <Dialog 
-        open={isLinkedRisksModalOpen} 
+      <Dialog
+        open={isLinkedRisksModalOpen}
         onClose={() => setIsLinkedRisksModalOpen(false)}
         PaperProps={{
           sx: {
-            width: '1500px',
-            maxWidth: '1500px',
+            width: "1500px",
+            maxWidth: "1500px",
           },
         }}
       >
         <Suspense fallback={"loading..."}>
           <LinkedRisksPopup
             onClose={() => setIsLinkedRisksModalOpen(false)}
-            currentRisks={state.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+            currentRisks={state.risks
+              .concat(selectedRisks)
+              .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
           />
         </Suspense>
       </Dialog>
-      <Dialog 
-        open={auditedStatusModalOpen} 
+      <Dialog
+        open={auditedStatusModalOpen}
         onClose={() => setAuditedStatusModalOpen(false)}
         PaperProps={{
           sx: {
-            width: '800px',
-            maxWidth: '800px',
+            width: "800px",
+            maxWidth: "800px",
           },
         }}
       >

@@ -15,13 +15,12 @@ import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
 import Select from "../../Inputs/Select";
-import { useContext, useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import {
   GetAnnexCategoriesById,
@@ -35,12 +34,10 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import Uppy from "@uppy/core";
 import allowedRoles from "../../../../application/constants/permissions";
-const AuditRiskPopup = lazy(
-  () => import("../../RiskPopup/AuditRiskPopup")
-);
-const LinkedRisksPopup = lazy(
-  () => import("../../LinkedRisks")
-);
+import useUsers from "../../../../application/hooks/useUsers";
+import { useAuth } from "../../../../application/hooks/useAuth";
+const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
+const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 
 interface Control {
   id: number;
@@ -79,7 +76,8 @@ const VWISO42001AnnexDrawerDialog = ({
   const [fetchedAnnex, setFetchedAnnex] = useState<AnnexCategoryISO>();
   const [isLoading, setIsLoading] = useState(false);
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
-  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
+    useState<boolean>(false);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<FileData[]>([]);
   const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
@@ -89,10 +87,11 @@ const VWISO42001AnnexDrawerDialog = ({
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
-  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
+    useState<boolean>(false);
 
-  // Get context and project data
-  const { users, userId, userRoleName } = useContext(VerifyWiseContext);
+  const { userId, userRoleName } = useAuth();
+  const { users } = useUsers();
   const { project } = useProjectData({ projectId: String(project_id) });
 
   const isEditingDisabled =
@@ -111,7 +110,7 @@ const VWISO42001AnnexDrawerDialog = ({
     reviewer: "",
     approver: "",
     auditor_feedback: "",
-    risks: [] as number[]
+    risks: [] as number[],
   });
 
   // Filter users to only show project members
@@ -241,12 +240,15 @@ const VWISO42001AnnexDrawerDialog = ({
 
   const handleSelectChange = (field: string) => (event: any) => {
     const value = event.target.value.toString();
-    if (field === "status" && value === "Audited"
-        && (selectedRisks.length > 0 || formData.risks.length > 0 || (
-          formData.risks.length > 0 && deletedRisks.length === formData.risks.length
-        ))
-      ) {
-      setAuditedStatusModalOpen(true)
+    if (
+      field === "status" &&
+      value === "Audited" &&
+      (selectedRisks.length > 0 ||
+        formData.risks.length > 0 ||
+        (formData.risks.length > 0 &&
+          deletedRisks.length === formData.risks.length))
+    ) {
+      setAuditedStatusModalOpen(true);
     }
     handleFieldChange(field, value);
   };
@@ -526,7 +528,7 @@ const VWISO42001AnnexDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                width: 155,
+                minWidth: 155,      // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -539,7 +541,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove evidence
+             Add, remove or download evidence 
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography
@@ -682,13 +684,13 @@ const VWISO42001AnnexDrawerDialog = ({
             </Stack>
           </Stack>
 
-          <Dialog 
-            open={auditedStatusModalOpen} 
+          <Dialog
+            open={auditedStatusModalOpen}
             onClose={() => setAuditedStatusModalOpen(false)}
             PaperProps={{
               sx: {
-                width: '800px',
-                maxWidth: '800px',
+                width: "800px",
+                maxWidth: "800px",
               },
             }}
           >
@@ -704,26 +706,27 @@ const VWISO42001AnnexDrawerDialog = ({
             </Suspense>
           </Dialog>
 
-          <Dialog 
-            open={isLinkedRisksModalOpen} 
+          <Dialog
+            open={isLinkedRisksModalOpen}
             onClose={() => setIsLinkedRisksModalOpen(false)}
             PaperProps={{
               sx: {
-                width: '1500px',
-                maxWidth: '1500px',
+                width: "1500px",
+                maxWidth: "1500px",
               },
             }}
           >
             <Suspense fallback={"loading..."}>
               <LinkedRisksPopup
                 onClose={() => setIsLinkedRisksModalOpen(false)}
-                currentRisks={formData.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
+                currentRisks={formData.risks
+                  .concat(selectedRisks)
+                  .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
               />
             </Suspense>
           </Dialog>
-          
         </Stack>
         <Divider />
         <Stack

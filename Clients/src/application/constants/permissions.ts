@@ -22,7 +22,7 @@ const allowedRoles = {
     view: ["Admin", "Editor", "Auditor"],
     edit: ["Admin", "Editor"],
     manage: ["Admin", "Editor"],
-    audit: ["Auditor"],
+    audit: ["Admin", "Editor", "Auditor"],
   },
   organizations: {
     view: ["Admin", "Editor", "Auditor"],

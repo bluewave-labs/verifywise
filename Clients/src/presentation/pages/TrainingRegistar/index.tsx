@@ -26,6 +26,7 @@ import { createTraining } from "../../../application/repository/trainingregistar
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 
 const Alert = React.lazy(
@@ -115,7 +116,6 @@ const Training: React.FC = () => {
           const response = await getEntityById({
             routeUrl: `/training/training-id/${selectedTrainingId}`,
           });
-          console.log("Fetching training details:", response);
           if (response?.data) {
             setSelectedTraining(response.data);
           }
@@ -142,22 +142,35 @@ const Training: React.FC = () => {
     try {
       if (selectedTraining) {
         // Update existing training
-        console.log("Updating training with data:", formData);
-        await updateEntityById({
+        const response = await updateEntityById({
           routeUrl: `/training/${selectedTraining.id}`,
           body: formData,
         });
-        setAlert({
-          variant: "success",
-          body: "Training updated successfully!",
-        });
+        if (response.data) {
+          setAlert({
+            variant: "success",
+            body: "Training updated successfully!",
+          });
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to update training. Please try again.",
+          });
+        }
       } else {
         // Create new training
-        await createTraining("/training", formData);
-        setAlert({
-          variant: "success",
-          body: "New training added successfully!",
-        });
+        const response = await createTraining("/training", formData);
+        if (response.data) {
+          setAlert({
+            variant: "success",
+            body: "Training updated successfully!",
+          });
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to add training. Please try again.",
+          });
+        }
       }
       await fetchTrainingData();
       handleCloseModal();
@@ -173,7 +186,6 @@ const Training: React.FC = () => {
 
   const handleDeleteTraining = async (id: string) => {
     try {
-      console.log("Deleting training with ID:", id);
       await deleteEntityById({ routeUrl: `/training/${id}` });
       await fetchTrainingData();
       setAlert({
@@ -229,7 +241,13 @@ const Training: React.FC = () => {
 
       <Stack gap={4}>
         <Stack>
-          <Typography sx={vwhomeHeading}>AI training registry</Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography sx={vwhomeHeading}>AI training registry</Typography>
+            <HelperIcon 
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          </Stack>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             This registry lists all AI-related training programs available to
             your organization. You can view, add, and manage training details

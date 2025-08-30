@@ -18,11 +18,11 @@ import { AnnexStructISO } from "../../../../../domain/types/AnnexStructISO";
 import { GetAnnexCategoriesById } from "../../../../../application/repository/annexCategory_iso.repository";
 import Alert from "../../../../components/Alert";
 
-const ISO42001Annex = ({ 
-  FrameworkId, 
-  statusFilter, 
-  applicabilityFilter 
-}: { 
+const ISO42001Annex = ({
+  FrameworkId,
+  statusFilter,
+  applicabilityFilter,
+}: {
   FrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
@@ -67,9 +67,9 @@ const ISO42001Annex = ({
 
   const fetchControls = useCallback(async (annexId: number) => {
     try {
-      const response = await GetAnnexCategoriesById({
+      const response = (await GetAnnexCategoriesById({
         routeUrl: `/iso-42001/annexCategories/byAnnexId/${annexId}`,
-      }) as { data: any[] };
+      })) as { data: any[] };
 
       setControlsMap((prev) => ({ ...prev, [annexId]: response.data }));
     } catch (error) {
@@ -78,10 +78,7 @@ const ISO42001Annex = ({
     }
   }, []);
 
-  const handleControlClick = (
-    annex: any,
-    control: any
-  ) => {
+  const handleControlClick = (annex: any, control: any) => {
     setSelectedAnnex(annex);
     setSelectedControl(control);
     setDrawerOpen(true);
@@ -126,7 +123,8 @@ const ISO42001Annex = ({
       const applicabilityMatch =
         !applicabilityFilter ||
         applicabilityFilter === "" ||
-        control.applicability?.toLowerCase() === applicabilityFilter.toLowerCase();
+        control.applicability?.toLowerCase() ===
+          applicabilityFilter.toLowerCase();
 
       return statusMatch && applicabilityMatch;
     });
@@ -138,21 +136,20 @@ const ISO42001Annex = ({
             <Stack
               key={control.id}
               onClick={() => {
-                handleControlClick(
-                  annex,
-                  control
-                );
+                handleControlClick(annex, control);
               }}
-              sx={styles.subClauseRow(
-                filteredControls.length - 1 === index,
+              sx={styles.controlRow(
+                annex.annexCategories.length - 1 === index,
                 flashingRowId === control.id
               )}
             >
-              <Typography fontSize={13}>
-                {annex.arrangement + "." + control.arrangement}{" "}
-                {control.title ?? "Untitled"}
-              </Typography>
-              <Stack sx={styles.statusBadge(control.status ?? "")}>
+              <Stack>
+                <Typography sx={styles.controlTitle}>
+                  {"A"}.{annex.annex_no}.{index + 1} {control.title}
+                </Typography>
+                <Typography fontSize={13}>{control.description}</Typography>
+              </Stack>
+              <Stack sx={styles.statusBadge(control.status || "")}>
                 {control.status
                   ? control.status.charAt(0).toUpperCase() +
                     control.status.slice(1).toLowerCase()
@@ -193,9 +190,7 @@ const ISO42001Annex = ({
               onChange={handleAccordionChange(annex.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon
-                  sx={styles.expandIcon(expanded === annex.id)}
-                />
+                <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {annex.arrangement} {annex.title}
                 </Typography>

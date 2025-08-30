@@ -18,15 +18,20 @@ interface GetUserProjectsOptions {
   transaction?: Transaction;
 }
 
-export const getUserProjects = async ({
-  userId,
-  role,
-  transaction,
-}: GetUserProjectsOptions, tenant: string) => {
-  const baseQueryParts: string[] = [`SELECT DISTINCT p.*`, `FROM "${tenant}".projects p`];
+export const getUserProjects = async (
+  { userId, role, transaction }: GetUserProjectsOptions,
+  tenant: string
+) => {
+  const baseQueryParts: string[] = [
+    `SELECT DISTINCT p.*`,
+    `FROM "${tenant}".projects p`,
+  ];
 
   const whereConditions: string[] = [];
   const replacements: { [key: string]: any } = {};
+
+  // Filter out organizational projects from Dashboard
+  whereConditions.push("p.is_organizational = false");
 
   if (role !== "Admin") {
     baseQueryParts.push(
@@ -53,13 +58,16 @@ export const getUserProjects = async ({
   });
 };
 
-export const getAllProjectsQuery = async ({
-  userId,
-  role,
-}: {
-  userId: number;
-  role: IRoleAttributes["name"];
-}, tenant: string): Promise<IProjectAttributes[]> => {
+export const getAllProjectsQuery = async (
+  {
+    userId,
+    role,
+  }: {
+    userId: number;
+    role: IRoleAttributes["name"];
+  },
+  tenant: string
+): Promise<IProjectAttributes[]> => {
   if (!userId || !role) {
     throw new Error("User ID and role are required to fetch projects.");
   }
@@ -81,9 +89,9 @@ export const getAllProjectsQuery = async ({
         replacements: { project_id: project.id },
       }
     )) as [
-        { project_framework_id: number; framework_id: number; name: string }[],
-        number
-      ];
+      { project_framework_id: number; framework_id: number; name: string }[],
+      number,
+    ];
     (project.dataValues as any)["framework"] = [];
     for (let pf of projectFramework[0]) {
       (project.dataValues as any)["framework"].push(pf);
@@ -129,9 +137,9 @@ export const getProjectByIdQuery = async (
       replacements: { project_id: project.id },
     }
   )) as [
-      { project_framework_id: number; framework_id: number; name: string }[],
-      number
-    ];
+    { project_framework_id: number; framework_id: number; name: string }[],
+    number,
+  ];
   (project.dataValues as any)["framework"] = [];
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf);
@@ -203,22 +211,25 @@ export const createNewProjectQuery = async (
   transaction: Transaction,
   isDemo: boolean = false
 ): Promise<ProjectModel> => {
-
-  const allowedFrameworks: number[] = []
+  const allowedFrameworks: number[] = [];
   if (project.is_organizational === true) {
-    const result = await sequelize.query(
-      `SELECT id FROM public.frameworks WHERE is_organizational = true;`, { transaction }
-    ) as [{ id: number }[], number];
-    allowedFrameworks.push(...result[0].map(f => f.id));
+    const result = (await sequelize.query(
+      `SELECT id FROM public.frameworks WHERE is_organizational = true;`,
+      { transaction }
+    )) as [{ id: number }[], number];
+    allowedFrameworks.push(...result[0].map((f) => f.id));
   } else {
-    const result = await sequelize.query(
-      `SELECT id FROM public.frameworks WHERE is_organizational = false;`, { transaction }
-    ) as [{ id: number }[], number];
-    allowedFrameworks.push(...result[0].map(f => f.id));
+    const result = (await sequelize.query(
+      `SELECT id FROM public.frameworks WHERE is_organizational = false;`,
+      { transaction }
+    )) as [{ id: number }[], number];
+    allowedFrameworks.push(...result[0].map((f) => f.id));
   }
   for (let framework of frameworks) {
     if (!allowedFrameworks.includes(framework)) {
-      throw new Error(`Framework with ID ${framework} is not allowed for this project.`);
+      throw new Error(
+        `Framework with ID ${framework} is not allowed for this project.`
+      );
     }
   }
 
@@ -427,9 +438,9 @@ export const updateProjectByIdQuery = async (
   );
   return result.length
     ? {
-      ...result[0].dataValues,
-      members: updatedMembers.map((m) => m.user_id),
-    }
+        ...result[0].dataValues,
+        members: updatedMembers.map((m) => m.user_id),
+      }
     : null;
 };
 

@@ -168,7 +168,8 @@ paths:
                 error:
                   type: object
     post:
-      summary: On creating assessments and posting it
+      summary: Create a new compliance assessment
+      description: Creates a new assessment tracker for a specific project to monitor compliance progress against regulatory frameworks
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -223,6 +224,8 @@ paths:
                   type: object
   /assessments/{id}:
     get:
+      summary: Retrieve assessment by ID
+      description: Get detailed information about a specific assessment including its current status, progress, and associated project data
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -269,6 +272,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update assessment by ID
+      description: Update an existing assessment's details, status, or progress information
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -329,6 +334,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete assessment by ID
+      description: Remove an assessment from the system. This action cannot be undone
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -377,6 +384,8 @@ paths:
                   type: object
   /assessments/getAnswers/{id}:
     get:
+      summary: Get assessment answers by ID
+      description: Retrieve all answers and responses associated with a specific assessment, including completion status and detailed responses
       tags: [assessments]
       security:
         - JWTAuth: []
@@ -414,6 +423,8 @@ paths:
 
   /controls:
     get:
+      summary: List all compliance controls
+      description: Retrieve all available compliance controls from various frameworks (EU AI Act, ISO 42001, ISO 27001) with their requirements and implementation guidelines
       tags: [controls]
       security:
         - JWTAuth: []
@@ -531,6 +542,8 @@ paths:
                   type: object
   /controls/{id}:
     get:
+      summary: Get compliance control by ID
+      description: Retrieve detailed information about a specific compliance control including its requirements, implementation guidance, and associated framework
       tags: [controls]
       security:
         - JWTAuth: []
@@ -577,6 +590,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update compliance control
+      description: Update the details, status, or implementation information of a specific compliance control
       tags: [controls]
       security:
         - JWTAuth: []
@@ -659,6 +674,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete compliance control
+      description: Remove a compliance control from the system. This action cannot be undone and may affect related assessments
       tags: [controls]
       security:
         - JWTAuth: []
@@ -708,6 +725,8 @@ paths:
 
   /projects:
     get:
+      summary: List all compliance projects
+      description: Retrieve all compliance projects in the organization, including their status, associated frameworks, risk levels, and progress information
       tags: [projects]
       security:
         - JWTAuth: []
@@ -749,6 +768,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Create new compliance project
+      description: Create a new compliance project with specified frameworks, risk classification, and project details for AI system compliance management
       tags: [projects]
       security:
         - JWTAuth: []
@@ -838,6 +859,8 @@ paths:
                   type: object
   /projects/{id}:
     get:
+      summary: Get project by ID
+      description: Retrieve detailed information about a specific compliance project including frameworks, assessments, risks, and current compliance status
       tags: [projects]
       security:
         - JWTAuth: []
@@ -884,6 +907,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update project by ID
+      description: Update project details, frameworks, risk classification, or other project-specific information
       tags: [projects]
       security:
         - JWTAuth: []
@@ -983,6 +1008,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete project by ID
+      description: Remove a compliance project and all associated data including assessments, risks, and progress tracking
       tags: [projects]
       security:
         - JWTAuth: []
@@ -1031,6 +1058,8 @@ paths:
                   type: object
   /projects/calculateProjectRisks/{id}:
     get:
+      summary: Calculate project risks
+      description: Analyze and calculate comprehensive risk assessment for a specific project based on AI risk classification, compliance gaps, and framework requirements
       tags: [projects]
       security:
         - JWTAuth: []
@@ -1087,6 +1116,8 @@ paths:
                   type: object
   /projects/calculateVendorRisks/{id}:
     get:
+      summary: Calculate vendor risks for project
+      description: Assess vendor-related risks for a specific project, analyzing third-party dependencies, data processing risks, and vendor compliance status
       tags: [projects]
       security:
         - JWTAuth: []
@@ -1144,6 +1175,8 @@ paths:
 
   /projectRisks:
     get:
+      summary: List all project risks
+      description: Retrieve all identified risks across projects including AI-specific risks, compliance gaps, and mitigation status
       tags: [projectRisks]
       security:
         - JWTAuth: []
@@ -1185,6 +1218,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Create new project risk
+      description: Document a new risk for a project with severity assessment, impact analysis, and proposed mitigation strategies
       tags: [projectRisks]
       security:
         - JWTAuth: []
@@ -1320,6 +1355,8 @@ paths:
                   type: object
   /projectRisks/{id}:
     get:
+      summary: Get project risk by ID
+      description: Retrieve detailed information about a specific project risk including assessment details, mitigation plans, and current status
       tags: [projectRisks]
       security:
         - JWTAuth: []
@@ -1366,6 +1403,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update project risk
+      description: Update risk assessment, mitigation status, or other risk-related information for an existing project risk
       tags: [projectRisks]
       security:
         - JWTAuth: []
@@ -1507,6 +1546,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete project risk
+      description: Remove a project risk from the system. Use with caution as this affects risk tracking and compliance reporting
       tags: [projectRisks]
       security:
         - JWTAuth: []
@@ -1556,6 +1597,8 @@ paths:
 
   /projectScopes:
     get:
+      summary: List all project scopes
+      description: Retrieve project scope definitions including system boundaries, data processing activities, and compliance framework coverage
       tags: [projectScopes]
       security:
         - JWTAuth: []
@@ -1597,6 +1640,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Create project scope
+      description: Define the scope and boundaries for a compliance project, specifying which systems, processes, and data are included in compliance assessment
       tags: [projectScopes]
       security:
         - JWTAuth: []
@@ -1675,6 +1720,8 @@ paths:
                   type: object
   /projectScopes/{id}:
     get:
+      summary: Get project scope by ID
+      description: Retrieve detailed scope information for a specific project including system boundaries, included components, and exclusions
       tags: [projectScopes]
       security:
         - JWTAuth: []
@@ -1721,6 +1768,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update project scope
+      description: Modify project scope boundaries, included systems, or scope-related documentation
       tags: [projectScopes]
       security:
         - JWTAuth: []
@@ -1805,6 +1854,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete project scope
+      description: Remove project scope definition. This may impact compliance assessments and project boundaries
       tags: [projectScopes]
       security:
         - JWTAuth: []
@@ -1854,6 +1905,8 @@ paths:
 
   /questions:
     get:
+      summary: List all compliance questions
+      description: Retrieve all compliance questionnaire items used in assessments across different frameworks and control areas
       tags: [questions]
       security:
         - JWTAuth: []
@@ -1895,6 +1948,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Create new compliance question
+      description: Add a new question to the compliance questionnaire library for use in assessments and evaluations
       tags: [questions]
       security:
         - JWTAuth: []
@@ -1981,6 +2036,8 @@ paths:
                   type: object
   /questions/{id}:
     get:
+      summary: Get question by ID
+      description: Retrieve detailed information about a specific compliance question including its criteria and assessment guidelines
       tags: [questions]
       security:
         - JWTAuth: []
@@ -2027,6 +2084,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update compliance question
+      description: Modify question text, assessment criteria, or other attributes of an existing compliance question
       tags: [questions]
       security:
         - JWTAuth: []
@@ -2119,6 +2178,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete compliance question
+      description: Remove a question from the questionnaire library. This may affect existing assessments using this question
       tags: [questions]
       security:
         - JWTAuth: []
@@ -2168,6 +2229,8 @@ paths:
 
   /subcontrols:
     get:
+      summary: List all compliance subcontrols
+      description: Retrieve detailed subcontrol requirements from compliance frameworks including implementation guidelines and assessment criteria
       tags: [subcontrols]
       security:
         - JWTAuth: []
@@ -2209,6 +2272,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Create new subcontrol
+      description: Add a new subcontrol requirement to the compliance framework with detailed implementation and assessment guidelines
       tags: [subcontrols]
       security:
         - JWTAuth: []
@@ -2300,6 +2365,8 @@ paths:
                   type: object
   /subcontrols/{id}:
     get:
+      summary: Get subcontrol by ID
+      description: Retrieve detailed information about a specific subcontrol including requirements, implementation guidance, and compliance status
       tags: [subcontrols]
       security:
         - JWTAuth: []
@@ -2346,6 +2413,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update subcontrol
+      description: Update subcontrol requirements, implementation guidance, or compliance status for an existing subcontrol
       tags: [subcontrols]
       security:
         - JWTAuth: []
@@ -2443,6 +2512,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete subcontrol
+      description: Remove a subcontrol from the framework. This may affect related assessments and compliance tracking
       tags: [subcontrols]
       security:
         - JWTAuth: []
@@ -2492,6 +2563,8 @@ paths:
 
   /subtopics:
     get:
+      summary: List compliance subtopics
+      description: Retrieve all compliance subtopics that organize and categorize framework requirements for better navigation
       tags: [subtopics]
       security:
         - JWTAuth: []
@@ -2587,6 +2660,8 @@ paths:
                   type: object
   /subtopics/{id}:
     get:
+      summary: Get subtopic by ID
+      description: Retrieve detailed information about a specific compliance subtopic and its associated controls
       tags: [subtopics]
       security:
         - JWTAuth: []
@@ -2742,6 +2817,8 @@ paths:
 
   /topics:
     get:
+      summary: List compliance topics
+      description: Retrieve all high-level compliance topics that provide organizational structure for framework requirements
       tags: [topics]
       security:
         - JWTAuth: []
@@ -2837,6 +2914,8 @@ paths:
                   type: object
   /topics/{id}:
     get:
+      summary: Get topic by ID
+      description: Retrieve detailed information about a specific compliance topic including associated subtopics and controls
       tags: [topics]
       security:
         - JWTAuth: []
@@ -2992,6 +3071,8 @@ paths:
 
   /vendors:
     get:
+      summary: List all vendors
+      description: Retrieve all third-party vendors and service providers with their risk assessments, compliance status, and contractual information
       tags: [vendors]
       security:
         - JWTAuth: []
@@ -3033,6 +3114,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Add new vendor
+      description: Register a new third-party vendor or service provider with initial risk assessment and compliance requirements
       tags: [vendors]
       security:
         - JWTAuth: []
@@ -3146,6 +3229,8 @@ paths:
                   type: object
   /vendors/{id}:
     get:
+      summary: Get vendor by ID
+      description: Retrieve detailed information about a specific vendor including risk assessment, compliance status, and contract details
       tags: [vendors]
       security:
         - JWTAuth: []
@@ -3192,6 +3277,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update vendor information
+      description: Update vendor details, risk assessment, compliance status, or contractual information for an existing vendor
       tags: [vendors]
       security:
         - JWTAuth: []
@@ -3319,6 +3406,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Remove vendor
+      description: Remove a vendor from the system. This may affect related project risk assessments and vendor dependency tracking
       tags: [vendors]
       security:
         - JWTAuth: []
@@ -3368,6 +3457,8 @@ paths:
 
   /vendorRisks:
     get:
+      summary: List all vendor risks
+      description: Retrieve all identified vendor-related risks including data processing risks, compliance gaps, and third-party dependencies
       tags: [vendorRisks]
       security:
         - JWTAuth: []
@@ -3409,6 +3500,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Create vendor risk assessment
+      description: Document a new risk associated with a specific vendor including impact analysis, likelihood, and mitigation strategies
       tags: [vendorRisks]
       security:
         - JWTAuth: []
@@ -3483,6 +3576,8 @@ paths:
                   type: object
   /vendorRisks/{id}:
     get:
+      summary: Get vendor risk by ID
+      description: Retrieve detailed information about a specific vendor risk including assessment details, mitigation plans, and current status
       tags: [vendorRisks]
       security:
         - JWTAuth: []
@@ -3529,6 +3624,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update vendor risk
+      description: Update vendor risk assessment, mitigation status, or risk-related information for an existing vendor risk
       tags: [vendorRisks]
       security:
         - JWTAuth: []
@@ -3609,6 +3706,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Remove vendor risk
+      description: Delete a vendor risk from the system. This affects vendor risk tracking and compliance reporting
       tags: [vendorRisks]
       security:
         - JWTAuth: []
@@ -3658,6 +3757,8 @@ paths:
 
   /users:
     get:
+      summary: List all users
+      description: Retrieve all users in the organization including their roles, permissions, and account status for user management
       tags: [users]
       security:
         - JWTAuth: []
@@ -3700,6 +3801,8 @@ paths:
                   type: object
   /users/{id}:
     get:
+      summary: Get user by ID
+      description: Retrieve detailed information about a specific user including profile data, role assignments, and account settings
       tags: [users]
       security:
         - JWTAuth: []
@@ -3746,6 +3849,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update user by ID
+      description: Update user profile information, role assignments, or account settings for an existing user
       tags: [users]
       security:
         - JWTAuth: []
@@ -3820,6 +3925,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete user by ID
+      description: Remove a user account from the system. This action cannot be undone and will affect user access to all projects
       tags: [users]
       security:
         - JWTAuth: []
@@ -3868,6 +3975,8 @@ paths:
                   type: object
   /users/register:
     post:
+      summary: Register new user account
+      description: Create a new user account with email, password, and role assignment for accessing the compliance management system
       tags: [users]
       requestBody:
         description: body of the new user
@@ -3937,6 +4046,8 @@ paths:
                   type: object
   /users/by-email/{email}:
     get:
+      summary: Find user by email address
+      description: Retrieve user information using their email address, useful for user lookup and verification processes
       tags: [users]
       security:
         - JWTAuth: []
@@ -4106,6 +4217,8 @@ paths:
                     description: Error details for debugging
   /users/reset-password:
     post:
+      summary: Reset user password
+      description: Reset a user's password by providing email and new password. Typically used for password recovery workflows
       tags: [users]
       requestBody:
         description: email and password for the user
@@ -4169,6 +4282,8 @@ paths:
                   type: object
   /users/{id}/calculate-progress:
     get:
+      summary: Calculate user compliance progress
+      description: Analyze and calculate the compliance progress for projects assigned to a specific user, showing completion rates and pending tasks
       tags: [users]
       security:
         - JWTAuth: []
@@ -4254,6 +4369,8 @@ paths:
 
   /roles:
     get:
+      summary: List all user roles
+      description: Retrieve all available user roles and their associated permissions for access control and user management
       tags: [roles]
       security:
         - JWTAuth: []
@@ -4295,6 +4412,8 @@ paths:
                 error:
                   type: object
     post:
+      summary: Create new user role
+      description: Define a new user role with specific permissions and access levels for system administration
       tags: [roles]
       security:
         - JWTAuth: []
@@ -4349,6 +4468,8 @@ paths:
                   type: object
   /roles/{id}:
     get:
+      summary: Get role by ID
+      description: Retrieve detailed information about a specific user role including permissions and access restrictions
       tags: [roles]
       security:
         - JWTAuth: []
@@ -4395,6 +4516,8 @@ paths:
                 error:
                   type: object
     put:
+      summary: Update user role
+      description: Modify role permissions, access levels, or other role-specific settings for an existing user role
       tags: [roles]
       security:
         - JWTAuth: []
@@ -4455,6 +4578,8 @@ paths:
                 error:
                   type: object
     delete:
+      summary: Delete user role
+      description: Remove a user role from the system. This may affect users currently assigned to this role
       tags: [roles]
       security:
         - JWTAuth: []
@@ -4549,7 +4674,8 @@ paths:
                   type: object
     
     post:
-      summary: Creates new training registar
+      summary: Create new training module
+      description: Add a new training module to the system with content, objectives, and completion tracking
       tags: [training]
       security:
        - JWTAuth: []
@@ -4586,7 +4712,8 @@ paths:
 
   /training/training-id/{id}:
     get:
-      description: Get training module by id
+      summary: Get training module by ID
+      description: Retrieve detailed information about a specific training module including content, progress tracking, and completion status
       tags: [training]
       security:
         - JWTAuth: []
@@ -4637,6 +4764,8 @@ paths:
 
   /training/{id}:
     patch:
+      summary: Update training module
+      description: Update training module content, status, or tracking information for an existing training module
       tags: [training]
       security:
        - JWTAuth: []

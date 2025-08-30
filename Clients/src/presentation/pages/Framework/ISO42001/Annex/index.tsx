@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../../ISO27001/Clause/style";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -15,7 +15,6 @@ import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDraw
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import { AnnexStructISO } from "../../../../../domain/types/AnnexStructISO";
-import { GetAnnexCategoriesById } from "../../../../../application/repository/annexCategory_iso.repository";
 import Alert from "../../../../components/Alert";
 
 const ISO42001Annex = ({
@@ -29,14 +28,13 @@ const ISO42001Annex = ({
 }) => {
   const [expanded, setExpanded] = useState<number | false>(false);
   const [annexesProgress, setAnnexesProgress] = useState<any>({});
-  const [annexes, setAnnexes] = useState<AnnexStructISO[]>([]);
+  const [annexes, setAnnexes] = useState<any>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState<any>(null);
   const [selectedAnnex, setSelectedAnnex] = useState<any>(null);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [controlsMap, setControlsMap] = useState<{ [key: number]: any[] }>({});
 
   useEffect(() => {
     const fetchAnnexes = async () => {
@@ -54,29 +52,13 @@ const ISO42001Annex = ({
       }
     };
     fetchAnnexes();
-  }, [refreshTrigger]);
+  }, [FrameworkId, refreshTrigger]);
 
   const handleAccordionChange =
-    (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
+    (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
-
-      if (isExpanded && !controlsMap[panel]) {
-        await fetchControls(panel);
-      }
     };
 
-  const fetchControls = useCallback(async (annexId: number) => {
-    try {
-      const response = (await GetAnnexCategoriesById({
-        routeUrl: `/iso-42001/annexCategories/byAnnexId/${annexId}`,
-      })) as { data: any[] };
-
-      setControlsMap((prev) => ({ ...prev, [annexId]: response.data }));
-    } catch (error) {
-      console.error("Error fetching controls:", error);
-      setControlsMap((prev) => ({ ...prev, [annexId]: [] }));
-    }
-  }, []);
 
   const handleControlClick = (annex: any, control: any) => {
     setSelectedAnnex(annex);
@@ -112,9 +94,9 @@ const ISO42001Annex = ({
   };
 
   function dynamicControls(annex: any) {
-    const controls = controlsMap[annex.id ?? 0] || [];
+    const controls = annex.annexCategories || [];
 
-    const filteredControls = controls.filter((control) => {
+    const filteredControls = controls.filter((control: any) => {
       const statusMatch =
         !statusFilter ||
         statusFilter === "" ||
@@ -123,8 +105,9 @@ const ISO42001Annex = ({
       const applicabilityMatch =
         !applicabilityFilter ||
         applicabilityFilter === "" ||
-        control.applicability?.toLowerCase() ===
-          applicabilityFilter.toLowerCase();
+        control.is_applicable !== undefined
+          ? (applicabilityFilter === "true" ? control.is_applicable : !control.is_applicable)
+          : true;
 
       return statusMatch && applicabilityMatch;
     });
@@ -139,13 +122,13 @@ const ISO42001Annex = ({
                 handleControlClick(annex, control);
               }}
               sx={styles.controlRow(
-                annex.annexCategories.length - 1 === index,
+                filteredControls.length - 1 === index,
                 flashingRowId === control.id
               )}
             >
               <Stack>
                 <Typography sx={styles.controlTitle}>
-                  {"A"}.{annex.annex_no}.{index + 1} {control.title}
+                  {"A"}.{annex.annex_no}.{control.order_no} {control.title}
                 </Typography>
                 <Typography fontSize={13}>{control.description}</Typography>
               </Stack>

@@ -187,7 +187,7 @@ const ISO42001Clause = ({
               )}
             >
               <Typography fontSize={13}>
-                {clause.arrangement + "." + (index + 1)}{" "}
+                {clause.clause_no + "." + (index + 1)}{" "}
                 {subClause.title ?? "Untitled"}
               </Typography>
               <Stack sx={styles.statusBadge(subClause.status ?? "")}>

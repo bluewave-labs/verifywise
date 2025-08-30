@@ -14,7 +14,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
-import { AnnexStructISO } from "../../../../../domain/types/AnnexStructISO";
 import Alert from "../../../../components/Alert";
 
 const ISO42001Annex = ({
@@ -59,7 +58,6 @@ const ISO42001Annex = ({
       setExpanded(isExpanded ? panel : false);
     };
 
-
   const handleControlClick = (annex: any, control: any) => {
     setSelectedAnnex(annex);
     setSelectedControl(control);
@@ -96,21 +94,27 @@ const ISO42001Annex = ({
   function dynamicControls(annex: any) {
     const controls = annex.annexCategories || [];
 
-    const filteredControls = controls.filter((control: any) => {
-      const statusMatch =
-        !statusFilter ||
-        statusFilter === "" ||
-        control.status?.toLowerCase() === statusFilter.toLowerCase();
+    let filteredControls = controls;
 
-      const applicabilityMatch =
-        !applicabilityFilter ||
-        applicabilityFilter === "" ||
-        control.is_applicable !== undefined
-          ? (applicabilityFilter === "true" ? control.is_applicable : !control.is_applicable)
-          : true;
+    // Apply status filter
+    if (statusFilter && statusFilter !== "") {
+      filteredControls = filteredControls.filter(
+        (control: any) =>
+          control.status?.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
 
-      return statusMatch && applicabilityMatch;
-    });
+    // Apply applicability filter
+    if (
+      applicabilityFilter &&
+      applicabilityFilter !== "all" &&
+      applicabilityFilter !== ""
+    ) {
+      const isApplicable = applicabilityFilter === "true";
+      filteredControls = filteredControls.filter(
+        (control: any) => Boolean(control.is_applicable) === isApplicable
+      );
+    }
 
     return (
       <AccordionDetails sx={{ padding: 0 }}>

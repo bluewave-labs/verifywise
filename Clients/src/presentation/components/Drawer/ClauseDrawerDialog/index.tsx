@@ -140,7 +140,7 @@ const VWISO42001ClauseDrawerDialog = ({
 
           // Initialize form data with fetched values
           if (response.data) {
-            const statusId = statusIdMap.get(response.data.status) || "0";
+            const statusId = statusIdMap.get(response.data.status || "") || "0";
             setFormData({
               implementation_description:
                 response.data.implementation_description || "",
@@ -156,6 +156,11 @@ const VWISO42001ClauseDrawerDialog = ({
             if (response.data.due_date) {
               setDate(response.data.due_date);
             }
+
+            // Set risks in state
+            if (response.data.risks) {
+              setSelectedRisks(response.data.risks);
+            }
           }
 
           // On subclause fetch, set evidence files if available
@@ -164,6 +169,11 @@ const VWISO42001ClauseDrawerDialog = ({
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
+          handleAlert({
+            variant: "error",
+            body: "Error: Unable to load subclause data",
+            setAlert,
+          });
         } finally {
           setIsLoading(false);
         }

@@ -236,7 +236,7 @@ const VWISO42001ClauseDrawerDialog = ({
       formDataToSend.append("approver", formData.approver);
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
-      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append("user_id", userId?.toString() || "1");
       formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
@@ -496,7 +496,7 @@ const VWISO42001ClauseDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                minWidth: 155,      // minimum width
+                minWidth: 155, // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",

@@ -21,7 +21,6 @@ import dayjs from "dayjs";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
-import useProjectData from "../../../../application/hooks/useProjectData";
 import {
   GetAnnexCategoriesById,
   UpdateAnnexCategoryById,
@@ -92,7 +91,6 @@ const VWISO42001AnnexDrawerDialog = ({
 
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
-  const { project } = useProjectData({ projectId: String(project_id) });
 
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
@@ -115,15 +113,11 @@ const VWISO42001AnnexDrawerDialog = ({
 
   // Filter users to only show project members
   useEffect(() => {
-    if (project && users?.length > 0) {
-      const members = users.filter(
-        (user: User) =>
-          typeof user.id === "number" &&
-          project.members.some((memberId) => Number(memberId) === user.id)
-      );
-      setProjectMembers(members);
+    if (users?.length > 0) {
+      // Since we don't have project data, use all users
+      setProjectMembers(users);
     }
-  }, [project, users]);
+  }, [users]);
 
   const setUploadFilesAnnexCategories = (files: FileData[]) => {
     setUploadFiles(files);

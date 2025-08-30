@@ -26,10 +26,18 @@ export const styles = {
 
   statusBadge: (status: string) => ({
     borderRadius: "4px",
-    padding: "5px",
     backgroundColor: getStatusColor(status),
     color: "#fff",
   }) as SxProps<Theme>,
+
+  statusDropdownFix: {
+    "& .MuiSvgIcon-root": {
+      color: "white",
+      "& path": {
+        fill: "white",
+      },
+    },
+  } as SxProps<Theme>,
 
   loadingContainer: {
     padding: "16px",

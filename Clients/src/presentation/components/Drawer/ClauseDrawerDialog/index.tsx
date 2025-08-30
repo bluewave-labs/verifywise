@@ -54,6 +54,9 @@ interface VWISO42001ClauseDrawerDialogProps {
   project_id: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
   index: number;
+  status: string;
+  onStatusChange: (newStatus: string) => void;
+  statusIdMap: Map<string, string>;
 }
 
 const VWISO42001ClauseDrawerDialog = ({
@@ -65,6 +68,9 @@ const VWISO42001ClauseDrawerDialog = ({
   project_id,
   onSaveSuccess,
   index,
+  status,
+  onStatusChange,
+  statusIdMap
 }: VWISO42001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -83,20 +89,11 @@ const VWISO42001ClauseDrawerDialog = ({
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
   const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
     useState<boolean>(false);
-  const statusIdMap = new Map([
-    ["Not started", "0"],
-    ["Draft", "1"],
-    ["In progress", "2"],
-    ["Awaiting review", "3"],
-    ["Awaiting approval", "4"],
-    ["Implemented", "5"],
-    ["Audited", "6"],
-    ["Needs rework", "7"],
-  ]);
+
   // Create the reverse map
-  const idStatusMap = new Map();
-  for (const [status, id] of statusIdMap.entries()) {
-    idStatusMap.set(id, status);
+  const idStatusMap = new Map<string, string>();
+  for (const [id, statusName] of statusIdMap.entries()) {
+    idStatusMap.set(id, statusName); // key = id ("0".."7"), value = status name
   }
 
   const { userId, userRoleName } = useAuth();
@@ -202,8 +199,15 @@ const VWISO42001ClauseDrawerDialog = ({
       ) {
         setAuditedStatusModalOpen(true);
       }
-      handleFieldChange(field, value);
+
+      if (field === "status") {
+        setFormData((prev) => ({ ...prev, status: value }));
+        onStatusChange(value);              // <-- notify parent
+      } else {
+        handleFieldChange(field, value);
+      }
     };
+
 
   // Update handleSave to use evidenceFiles
   const handleSave = async () => {
@@ -494,7 +498,7 @@ const VWISO42001ClauseDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                minWidth: 155,      // minimum width
+                width: 155,
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -507,7 +511,7 @@ const VWISO42001ClauseDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add, remove or download evidence
+              Add/Remove evidence
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography
@@ -563,7 +567,8 @@ const VWISO42001ClauseDrawerDialog = ({
             </Stack>
           </Stack>
 
-          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
+          
+          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal} >
             <UppyUploadFile
               uppy={uppy}
               files={[...evidenceFiles, ...uploadFiles]}
@@ -575,7 +580,7 @@ const VWISO42001ClauseDrawerDialog = ({
           {alert && (
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
-
+          
           <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
@@ -705,7 +710,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Select
             id="status"
             label="Status:"
-            value={formData.status}
+            value={status}
             onChange={handleSelectChange("status")}
             items={[
               { _id: "0", name: "Not started" },

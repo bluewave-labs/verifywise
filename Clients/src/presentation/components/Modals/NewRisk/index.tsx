@@ -210,7 +210,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       "Risk description",
       values.risk_description,
       1,
-      64
+      256 // updated from 64
     );
     if (!risk_description.accepted) {
       newErrors.risk_description = risk_description.message;
@@ -219,7 +219,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       "Impact description",
       values.impact_description,
       1,
-      64
+      256 // updated from 64
     );
     if (!impact_description.accepted) {
       newErrors.impact_description = impact_description.message;
@@ -228,7 +228,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       "Action plan",
       values.action_plan,
       1,
-      64
+      256 // updated from 64
     );
     if (!action_plan.accepted) {
       newErrors.action_plan = action_plan.message;

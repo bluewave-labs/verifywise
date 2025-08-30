@@ -21,11 +21,6 @@ export const styles = {
     color: "#344054",
     fontSize: 13,
   },
-  semiTitleText: {
-    color: "#344054",
-    fontSize: 13,
-    fontWeight: "medium",
-  },
 };
 
 export const fieldStyle = (theme: any) => ({
@@ -34,4 +29,9 @@ export const fieldStyle = (theme: any) => ({
   "& input": {
     padding: "0 14px",
   },
+});
+
+export const selectReportStyle = (theme:any) => ({
+  width: "100%",
+  backgroundColor: theme.palette.background.main,
 });

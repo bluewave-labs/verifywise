@@ -227,7 +227,7 @@ const VWISO27001ClauseDrawerDialog = ({
       formDataToSend.append("approver", formData.approver);
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
-      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append("user_id", userId?.toString() || "1");
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
       formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));

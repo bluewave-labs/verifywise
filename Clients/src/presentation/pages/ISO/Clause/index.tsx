@@ -292,12 +292,12 @@ const ISO42001Clauses = ({
                                             try {
 
 
-                                                setSavingId(null);
+                                                setSavingId(subClause.id!);
                                                 await updateSubClauseStatus(subClause.id!, newStatusId);
                                                 const newLabel = statusIdMap.get(newStatusId) || "Not started";
                                                 // Update list immutably
                                                 setSubClausesMap((prev) => {
-                                                    const clauseIdLocal = subClause.clause_id;
+                                                    const clauseIdLocal = clause.id ?? subClause.clause_id;
                                                     if (!clauseIdLocal) return prev;
                                                     const list = prev[clauseIdLocal] || [];
                                                     const updated = list.map((sc) =>
@@ -321,7 +321,10 @@ const ISO42001Clauses = ({
                                                     body: "Failed to update subclause status",
                                                     setAlert,
                                                 });
+                                            } finally {
+                                                setSavingId(null);
                                             }
+
                                         }}
 
 
@@ -349,18 +352,16 @@ const ISO42001Clauses = ({
             async function fetchSubClause() {
                 try {
                     const response = await getEntityById({
-                        routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
+                        routeUrl: `/iso-42001/subClause/byId/${subClauseId}?projectFrameworkId=${projectFrameworkId}`,
                     });
-                    setSelectedSubClause({ ...response.data, id: response.data.clause_id });
+                    setSelectedSubClause(response.data );
                     setSelectedStatus(
                         [...statusIdMap.entries()].find(([_, label]) => label === response.data.status)?.[0] || "0"
                     );
-                    if (clause && clauseId) {
-                        handleSubClauseClick(
-                            clause,
-                            { ...response.data, id: response.data.clause_id },
-                            parseInt(clauseId)
-                        );
+                    if (clause) {
+                        const baseList = (subClausesMap[clause.id!] || clause.subClauses || []) as any[];
+                        const idx = Math.max(0, baseList.findIndex((sc: any) => sc.id === response.data.id));
+                        handleSubClauseClick(clause, response.data, idx);
                     }
                 } catch (error) {
                     console.error("Error fetching subclause:", error);

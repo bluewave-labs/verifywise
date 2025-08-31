@@ -498,7 +498,7 @@ const VWISO42001ClauseDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                width: 155,
+                minWidth: 155,
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",

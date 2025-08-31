@@ -115,10 +115,16 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
   const padding = size === 'small' ? "4px 8px" : "5px 10px";
   const minWidth = size === 'small' ? '100px' : '120px';
 
+  const handleClick = (event: React.MouseEvent) => {
+    // Prevent event bubbling to parent elements (e.g., drawer opening)
+    event.stopPropagation();
+  };
+
   return (
     <MuiSelect
       value={normalizedStatus}
       onChange={handleStatusChange}
+      onClick={handleClick}
       disabled={isDisabled || isUpdating}
       displayEmpty
       renderValue={renderValue}

@@ -19,6 +19,7 @@ import {
   Stack,
   CircularProgress,
   useTheme,
+  SelectChangeEvent,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { getStatusColor } from "../../pages/ISO/style";
@@ -62,8 +63,8 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
   const canEdit = allowedRoles.length === 0 || allowedRoles.includes(userRole);
   const isDisabled = disabled || !canEdit;
   
-  const handleStatusChange = async (event: React.ChangeEvent<{ value: unknown }>) => {
-    const newStatus = event.target.value as string;
+  const handleStatusChange = async (event: SelectChangeEvent<string>) => {
+    const newStatus = event.target.value;
     if (newStatus === normalizedStatus || isUpdating) return;
     
     setIsUpdating(true);

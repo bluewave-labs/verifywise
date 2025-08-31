@@ -774,8 +774,21 @@ export const updateSubClauseQuery = async (
         updateSubClause["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
       } else if (subClause[field as keyof SubClauseISO] != undefined) {
-        updateSubClause[field as keyof SubClauseISO] =
-          subClause[field as keyof SubClauseISO];
+        let value = subClause[field as keyof SubClauseISO];
+        
+        // Handle empty strings for integer fields
+        if (["owner", "reviewer", "approver"].includes(field)) {
+          if (value === "" || value === null || value === undefined) {
+            return acc; // Skip this field if it's empty
+          }
+          const numValue = parseInt(value as string);
+          if (isNaN(numValue)) {
+            return acc; // Skip this field if it's not a valid number
+          }
+          value = numValue;
+        }
+        
+        updateSubClause[field as keyof SubClauseISO] = value;
         acc.push(`${field} = :${field}`);
       }
       return acc;
@@ -901,8 +914,21 @@ export const updateAnnexCategoryQuery = async (
         annexCategory[field as keyof AnnexCategoryISO] != undefined &&
         annexCategory[field as keyof AnnexCategoryISO]
       ) {
-        updateAnnexCategory[field as keyof AnnexCategoryISO] =
-          annexCategory[field as keyof AnnexCategoryISO];
+        let value = annexCategory[field as keyof AnnexCategoryISO];
+        
+        // Handle empty strings for integer fields
+        if (["owner", "reviewer", "approver"].includes(field)) {
+          if (value === "" || value === null || value === undefined) {
+            return acc; // Skip this field if it's empty
+          }
+          const numValue = parseInt(value as string);
+          if (isNaN(numValue)) {
+            return acc; // Skip this field if it's not a valid number
+          }
+          value = numValue;
+        }
+        
+        updateAnnexCategory[field as keyof AnnexCategoryISO] = value;
         acc.push(`${field} = :${field}`);
       }
       return acc;

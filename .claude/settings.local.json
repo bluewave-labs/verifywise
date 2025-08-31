@@ -6,7 +6,8 @@
       "Bash(npm run lint)",
       "Bash(npx tsc:*)",
       "Bash(npm run lint:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

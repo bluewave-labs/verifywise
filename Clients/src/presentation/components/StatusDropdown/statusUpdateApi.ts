@@ -34,9 +34,9 @@ export async function updateISO27001ClauseStatus({
 }: StatusUpdateParams): Promise<boolean> {
   try {
     // Fetch current subclause data to preserve existing fields
-    let subClauseData = currentData;
+    let subClauseData: Record<string, unknown> = currentData || {};
     
-    if (!subClauseData) {
+    if (!currentData) {
       const response = await getEntityById({
         routeUrl: `/iso-27001/subClause/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
       });
@@ -46,12 +46,21 @@ export async function updateISO27001ClauseStatus({
     const formData = new FormData();
     
     // Include all required fields based on drawer implementation
-    formData.append("implementation_description", subClauseData.implementation_description || "");
+    formData.append("implementation_description", String(subClauseData.implementation_description || ""));
     formData.append("status", newStatus);
-    formData.append("owner", subClauseData.owner?.toString() || "");
-    formData.append("reviewer", subClauseData.reviewer?.toString() || "");
-    formData.append("approver", subClauseData.approver?.toString() || "");
-    formData.append("auditor_feedback", subClauseData.auditor_feedback || "");
+    
+    // Only append integer fields if they have valid values
+    if (subClauseData.owner && !isNaN(Number(subClauseData.owner))) {
+      formData.append("owner", subClauseData.owner.toString());
+    }
+    if (subClauseData.reviewer && !isNaN(Number(subClauseData.reviewer))) {
+      formData.append("reviewer", subClauseData.reviewer.toString());
+    }
+    if (subClauseData.approver && !isNaN(Number(subClauseData.approver))) {
+      formData.append("approver", subClauseData.approver.toString());
+    }
+    
+    formData.append("auditor_feedback", String(subClauseData.auditor_feedback || ""));
     formData.append("user_id", userId.toString());
     formData.append("project_id", "0");
     formData.append("delete", "[]");
@@ -59,7 +68,7 @@ export async function updateISO27001ClauseStatus({
     formData.append("risksDelete", "[]");
     
     if (subClauseData.due_date) {
-      formData.append("due_date", subClauseData.due_date);
+      formData.append("due_date", String(subClauseData.due_date));
     }
 
     const response = await updateEntityById({
@@ -93,22 +102,22 @@ export async function updateISO27001AnnexStatus({
     const formData = new FormData();
     
     // Include all required fields based on drawer implementation
-    formData.append("implementation_description", controlData.implementation_description || "");
+    formData.append("implementation_description", String(controlData.implementation_description || ""));
     formData.append("status", newStatus);
     
-    // Only append user fields if they have valid values
-    if (controlData.owner && controlData.owner.trim() !== "") {
-      formData.append("owner", controlData.owner);
+    // Only append integer fields if they have valid values
+    if (controlData.owner && !isNaN(Number(controlData.owner))) {
+      formData.append("owner", controlData.owner.toString());
     }
-    if (controlData.reviewer && controlData.reviewer.trim() !== "") {
-      formData.append("reviewer", controlData.reviewer);
+    if (controlData.reviewer && !isNaN(Number(controlData.reviewer))) {
+      formData.append("reviewer", controlData.reviewer.toString());
     }
-    if (controlData.approver && controlData.approver.trim() !== "") {
-      formData.append("approver", controlData.approver);
+    if (controlData.approver && !isNaN(Number(controlData.approver))) {
+      formData.append("approver", controlData.approver.toString());
     }
     
-    formData.append("auditor_feedback", controlData.auditor_feedback || "");
-    formData.append("applicable", controlData.applicable?.toString() || "true");
+    formData.append("auditor_feedback", String(controlData.auditor_feedback || ""));
+    formData.append("applicable", String(controlData.applicable?.toString() || "true"));
     formData.append("user_id", userId.toString());
     formData.append("project_id", "0");
     formData.append("delete", "[]");
@@ -116,7 +125,7 @@ export async function updateISO27001AnnexStatus({
     formData.append("risksDelete", "[]");
     
     if (controlData.due_date) {
-      formData.append("due_date", controlData.due_date);
+      formData.append("due_date", String(controlData.due_date));
     }
 
     const response = await updateEntityById({
@@ -146,9 +155,9 @@ export async function updateISO42001ClauseStatus({
 }: StatusUpdateParams): Promise<boolean> {
   try {
     // Fetch current subclause data to preserve existing fields
-    let subClauseData = currentData;
+    let subClauseData: Record<string, unknown> = currentData || {};
     
-    if (!subClauseData) {
+    if (!currentData) {
       const response = await getEntityById({
         routeUrl: `/iso-42001/subClause/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
       });
@@ -158,12 +167,21 @@ export async function updateISO42001ClauseStatus({
     const formData = new FormData();
     
     // Include all required fields based on drawer implementation
-    formData.append("implementation_description", subClauseData.implementation_description || "");
+    formData.append("implementation_description", String(subClauseData.implementation_description || ""));
     formData.append("status", newStatus);
-    formData.append("owner", subClauseData.owner?.toString() || "");
-    formData.append("reviewer", subClauseData.reviewer?.toString() || "");
-    formData.append("approver", subClauseData.approver?.toString() || "");
-    formData.append("auditor_feedback", subClauseData.auditor_feedback || "");
+    
+    // Only append integer fields if they have valid values
+    if (subClauseData.owner && !isNaN(Number(subClauseData.owner))) {
+      formData.append("owner", subClauseData.owner.toString());
+    }
+    if (subClauseData.reviewer && !isNaN(Number(subClauseData.reviewer))) {
+      formData.append("reviewer", subClauseData.reviewer.toString());
+    }
+    if (subClauseData.approver && !isNaN(Number(subClauseData.approver))) {
+      formData.append("approver", subClauseData.approver.toString());
+    }
+    
+    formData.append("auditor_feedback", String(subClauseData.auditor_feedback || ""));
     formData.append("user_id", userId.toString());
     formData.append("project_id", "0");
     formData.append("delete", "[]");
@@ -171,7 +189,7 @@ export async function updateISO42001ClauseStatus({
     formData.append("risksDelete", "[]");
     
     if (subClauseData.due_date) {
-      formData.append("due_date", subClauseData.due_date);
+      formData.append("due_date", String(subClauseData.due_date));
     }
 
     const response = await updateEntityById({
@@ -205,13 +223,22 @@ export async function updateISO42001AnnexStatus({
     const formData = new FormData();
     
     // Include all required fields based on drawer implementation
-    formData.append("implementation_description", controlData.implementation_description || "");
+    formData.append("implementation_description", String(controlData.implementation_description || ""));
     formData.append("status", newStatus);
-    formData.append("owner", controlData.owner?.toString() || "");
-    formData.append("reviewer", controlData.reviewer?.toString() || "");
-    formData.append("approver", controlData.approver?.toString() || "");
-    formData.append("auditor_feedback", controlData.auditor_feedback || "");
-    formData.append("is_applicable", controlData.is_applicable?.toString() || "true");
+    
+    // Only append integer fields if they have valid values
+    if (controlData.owner && !isNaN(Number(controlData.owner))) {
+      formData.append("owner", controlData.owner.toString());
+    }
+    if (controlData.reviewer && !isNaN(Number(controlData.reviewer))) {
+      formData.append("reviewer", controlData.reviewer.toString());
+    }
+    if (controlData.approver && !isNaN(Number(controlData.approver))) {
+      formData.append("approver", controlData.approver.toString());
+    }
+    
+    formData.append("auditor_feedback", String(controlData.auditor_feedback || ""));
+    formData.append("is_applicable", String(controlData.is_applicable?.toString() || "true"));
     formData.append("user_id", userId.toString());
     formData.append("project_id", "0");
     formData.append("delete", "[]");
@@ -219,7 +246,7 @@ export async function updateISO42001AnnexStatus({
     formData.append("risksDelete", "[]");
     
     if (controlData.due_date) {
-      formData.append("due_date", controlData.due_date);
+      formData.append("due_date", String(controlData.due_date));
     }
 
     const response = await UpdateAnnexCategoryById({

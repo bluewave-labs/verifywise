@@ -64,7 +64,7 @@ const AITrustCenterSettings: React.FC = () => {
         const authToken = getAuthToken();
         const tokenData = extractUserToken(authToken);
         const tenantId = tokenData?.tenantId;
-        
+
         if (tenantId) {
           setLogoLoading(true);
           try {
@@ -99,7 +99,7 @@ const AITrustCenterSettings: React.FC = () => {
           setOriginalData(overviewData);
         }
       };
-      
+
       processData();
     }
   }, [overviewData]);
@@ -114,7 +114,7 @@ const AITrustCenterSettings: React.FC = () => {
           logo_url: undefined
         } : undefined
       };
-      
+
       const originalDataWithoutLogo = {
         ...originalData,
         info: originalData.info ? {
@@ -122,7 +122,7 @@ const AITrustCenterSettings: React.FC = () => {
           logo_url: undefined
         } : undefined
       };
-      
+
       const hasChanges = JSON.stringify(formDataWithoutLogo) !== JSON.stringify(originalDataWithoutLogo);
       setHasUnsavedChanges(hasChanges);
     }
@@ -174,24 +174,24 @@ const AITrustCenterSettings: React.FC = () => {
       const previewUrl = URL.createObjectURL(file);
       setSelectedLogoPreview(previewUrl);
       setLogoError(null);
-      
+
       // Upload the file
       setLogoUploading(true);
-      
+
       try {
         const response = await uploadAITrustCentreLogo(file);
-        
+
         // Update the form data with the new logo URL if provided in response
         if (response?.data?.logo) {
           // Get tenant ID from JWT token
           const authToken = getAuthToken();
           const tokenData = extractUserToken(authToken);
           const tenantId = tokenData?.tenantId;
-          
+
           if (tenantId) {
             // Fetch the logo and convert to Blob URL
             const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
-            
+
             if (logoBlobUrl) {
               const updatedFormData = {
                 ...formData,
@@ -212,13 +212,13 @@ const AITrustCenterSettings: React.FC = () => {
         } else {
           console.log('No logo ID in response');
         }
-        
+
         // Clear the preview since we now have the uploaded URL
         if (selectedLogoPreview) {
           URL.revokeObjectURL(selectedLogoPreview);
         }
         setSelectedLogoPreview(null);
-        
+
         // Show success message from API response
         if (response?.data?.message) {
           setLogoUploadSuccess(response.data.message);
@@ -256,7 +256,7 @@ const AITrustCenterSettings: React.FC = () => {
     try {
       // Call the delete logo API
       await deleteAITrustCentreLogo();
-      
+
       // Clear the logo URL from form data
       const updatedFormData = {
         ...formData,
@@ -265,21 +265,21 @@ const AITrustCenterSettings: React.FC = () => {
           logo_url: null,
         },
       };
-      
+
       setFormData(updatedFormData);
       setOriginalData(updatedFormData);
-      
+
       // Clear any preview
       if (selectedLogoPreview) {
         URL.revokeObjectURL(selectedLogoPreview);
         setSelectedLogoPreview(null);
       }
-      
+
       // Also revoke the current logo URL if it's a Blob URL
       if (formData?.info?.logo_url && formData.info.logo_url.startsWith('blob:')) {
         URL.revokeObjectURL(formData.info.logo_url);
       }
-      
+
       setIsRemoveLogoModalOpen(false);
       setLogoRemoveSuccess(true);
     } catch (error) {
@@ -292,7 +292,7 @@ const AITrustCenterSettings: React.FC = () => {
 
   const handleSave = async () => {
     if (!formData) return;
-    
+
     try {
       console.log('Saving AI Trust Centre data from Settings', formData);
       const dataToSave = {
@@ -302,7 +302,6 @@ const AITrustCenterSettings: React.FC = () => {
         terms_and_contact: formData.terms_and_contact,
         info: formData.info
       };
-      
       // Call the updateOverview mutation
       await updateOverviewMutation.mutateAsync(dataToSave);
       
@@ -310,7 +309,7 @@ const AITrustCenterSettings: React.FC = () => {
       setOriginalData({ ...formData }); // Create a deep copy
       setHasUnsavedChanges(false);
       setSaveSuccess(true);
-      
+
       console.log('AI Trust Centre data saved successfully');
     } catch (error) {
       console.error('Save failed:', error);
@@ -376,118 +375,132 @@ const AITrustCenterSettings: React.FC = () => {
               This logo will be shown in the AI Trust Center page
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{
-              width: 120,
-              height: 60,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 2,
-              border: '2px dashed #ddd',
-              backgroundColor: '#fafafa',
-              position: 'relative',
-              overflow: 'hidden',
-              '&:hover': {
-                borderColor: '#999',
-                backgroundColor: '#f5f5f5'
-              }
-            }}>
-              {logoUploading || logoLoading ? (
-                <CircularProgress size={24} />
-              ) : selectedLogoPreview ? (
-                <Box
-                  component="img"
-                  src={selectedLogoPreview}
-                  alt="Selected Logo Preview"
-                  sx={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
-                    borderRadius: 1
-                  }}
-                />
-              ) : formData?.info?.logo_url ? (
-                <Box
-                  component="img"
-                  src={formData.info.logo_url}
-                  alt="Company Logo"
-                  sx={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
-                    borderRadius: 1
-                  }}
-                />
-              ) : (
-                <Box sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1
-                }}>
+          <Stack>
+            <Box gap={1} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{
+                width: 120,
+                height: 60,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 2,
+                border: '2px dashed #ddd',
+                backgroundColor: '#fafafa',
+                position: 'relative',
+                overflow: 'hidden',
+                '&:hover': {
+                  borderColor: '#999',
+                  backgroundColor: '#f5f5f5'
+                }
+              }}>
+                {logoUploading || logoLoading ? (
+                  <CircularProgress size={24} />
+                ) : selectedLogoPreview ? (
+                  <Box
+                    component="img"
+                    src={selectedLogoPreview}
+                    alt="Selected Logo Preview"
+                    sx={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      borderRadius: 1
+                    }}
+                  />
+                ) : formData?.info?.logo_url ? (
+                  <Box
+                    component="img"
+                    src={formData.info.logo_url}
+                    alt="Company Logo"
+                    sx={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      borderRadius: 1
+                    }}
+                  />
+                ) : (
                   <Box sx={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    backgroundColor: '#e0e0e0',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    gap: 1
                   }}>
-                    <Typography sx={{ fontSize: 12, color: '#666', fontWeight: 600 }}>
-                      L
+                    <Box sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      backgroundColor: '#e0e0e0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Typography sx={{ fontSize: 12, color: '#666', fontWeight: 600 }}>
+                        L
+                      </Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: 10, color: '#888', textAlign: 'center' }}>
+                      Logo
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 10, color: '#888', textAlign: 'center' }}>
-                    Logo
-                  </Typography>
-                </Box>
-              )}
+                )}
+              </Box>
+              <MUIButton
+                variant="outlined"
+                component="label"
+                sx={styles.replaceButton}
+                disabled={logoUploading || logoLoading}
+              >
+                {logoUploading ? (
+                  <>
+                    <CircularProgress size={16} sx={{ mr: 1 }} />
+                    Uploading...
+                  </>
+                ) : logoLoading ? (
+                  <>
+                    <CircularProgress size={16} sx={{ mr: 1 }} />
+                    Loading...
+                  </>
+                ) : (
+                  'Replace'
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  ref={fileInputRef}
+                  onChange={handleLogoChange}
+                />
+              </MUIButton>
+              <MUIButton
+                variant="outlined"
+                sx={styles.removeButton}
+                onClick={handleRemoveLogo}
+                disabled={logoRemoving || logoUploading || logoLoading}
+              >
+                {logoRemoving ? (
+                  <>
+                    <CircularProgress size={16} sx={{ mr: 1 }} />
+                    Removing...
+                  </>
+                ) : (
+                  'Remove'
+                )}
+              </MUIButton>
             </Box>
-            <MUIButton
-              variant="outlined"
-              component="label"
-              sx={styles.replaceButton}
-              disabled={logoUploading || logoLoading}
-            >
-              {logoUploading ? (
-                <>
-                  <CircularProgress size={16} sx={{ mr: 1 }} />
-                  Uploading...
-                </>
-              ) : logoLoading ? (
-                <>
-                  <CircularProgress size={16} sx={{ mr: 1 }} />
-                  Loading...
-                </>
-              ) : (
-                'Replace'
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                ref={fileInputRef}
-                onChange={handleLogoChange}
-              />
-            </MUIButton>
-            <MUIButton
-              variant="outlined"
-              sx={styles.removeButton}
-              onClick={handleRemoveLogo}
-              disabled={logoRemoving || logoUploading || logoLoading}
-            >
-              {logoRemoving ? (
-                <>
-                  <CircularProgress size={16} sx={{ mr: 1 }} />
-                  Removing...
-                </>
-              ) : (
-                'Remove'
-              )}
-            </MUIButton>
-          </Box>
+            <Stack direction="row" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  color: '#666',
+                  textAlign: 'left',
+                  lineHeight: 1.4
+                }}
+              >
+                Recommended: 240×120px • Max size: 5MB • Formats: PNG, JPG, GIF
+              </Typography>
+            </Stack>
+          </Stack>
 
           {/* Header Color Row */}
           <Box>
@@ -526,7 +539,7 @@ const AITrustCenterSettings: React.FC = () => {
               id="color-picker"
             />
             {/* Clickable color circle that triggers color picker */}
-            <Box 
+            <Box
               sx={{
                 ...styles.customColorCircle(formData?.info?.header_color),
                 cursor: 'pointer',
@@ -557,8 +570,8 @@ const AITrustCenterSettings: React.FC = () => {
 
       {/* Visibility Card */}
       <Box sx={styles.card}>
-        <Box sx={{mb:10}}>
-        <Typography sx={styles.sectionTitle}>Visibility</Typography>
+        <Box sx={{ mb: 10 }}>
+          <Typography sx={styles.sectionTitle}>Visibility</Typography>
         </Box>
         <Box sx={{ ...styles.toggleRow }}>
           <Stack direction="column" gap={1}>
@@ -586,7 +599,7 @@ const AITrustCenterSettings: React.FC = () => {
           text="Save"
         />
       </Stack>
-      
+
       {/* Success Snackbar */}
       <Snackbar
         open={saveSuccess}
@@ -594,10 +607,10 @@ const AITrustCenterSettings: React.FC = () => {
         onClose={handleSuccessClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleSuccessClose} 
-          severity="success" 
-          sx={{ 
+        <Alert
+          onClose={handleSuccessClose}
+          severity="success"
+          sx={{
             width: '100%',
             backgroundColor: '#ecfdf3',
             border: '1px solid #12715B',
@@ -618,10 +631,10 @@ const AITrustCenterSettings: React.FC = () => {
         onClose={handleLogoRemoveSuccessClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleLogoRemoveSuccessClose} 
-          severity="success" 
-          sx={{ 
+        <Alert
+          onClose={handleLogoRemoveSuccessClose}
+          severity="success"
+          sx={{
             width: '100%',
             backgroundColor: '#ecfdf3',
             border: '1px solid #12715B',
@@ -642,10 +655,10 @@ const AITrustCenterSettings: React.FC = () => {
         onClose={handleLogoUploadSuccessClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleLogoUploadSuccessClose} 
-          severity="success" 
-          sx={{ 
+        <Alert
+          onClose={handleLogoUploadSuccessClose}
+          severity="success"
+          sx={{
             width: '100%',
             backgroundColor: '#ecfdf3',
             border: '1px solid #12715B',
@@ -666,10 +679,10 @@ const AITrustCenterSettings: React.FC = () => {
         onClose={handleLogoErrorClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleLogoErrorClose} 
-          severity="error" 
-          sx={{ 
+        <Alert
+          onClose={handleLogoErrorClose}
+          severity="error"
+          sx={{
             width: '100%',
             backgroundColor: '#fef2f2',
             border: '1px solid #fecaca',

@@ -36,7 +36,7 @@ const Organization = () => {
   const { userRoleName, organizationId } = useContext(VerifyWiseContext);
   const isEditingDisabled = !allowedRoles.organizations.edit.includes(userRoleName);
   const isCreatingDisabled = !allowedRoles.organizations.create.includes(userRoleName);
-  
+
   // Organization states
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
@@ -44,7 +44,7 @@ const Organization = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [organizationExists, setOrganizationExists] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  
+
   // Logo states
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoLoading, setLogoLoading] = useState(false);
@@ -52,7 +52,7 @@ const Organization = () => {
   const [isRemoveLogoModalOpen, setIsRemoveLogoModalOpen] = useState(false);
   const [selectedLogoPreview, setSelectedLogoPreview] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  
+
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = useTheme();
@@ -111,7 +111,7 @@ const Organization = () => {
           const authToken = getAuthToken();
           const tokenData = extractUserToken(authToken);
           const tenantId = tokenData?.tenantId;
-          
+
           if (tenantId) {
             const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
             if (logoBlobUrl) {
@@ -162,15 +162,15 @@ const Organization = () => {
     const previewUrl = URL.createObjectURL(file);
     setSelectedLogoPreview(previewUrl);
     setLogoUploading(true);
-    
+
     try {
       const response = await uploadAITrustCentreLogo(file);
-      
+
       if (response?.data?.logo) {
         const authToken = getAuthToken();
         const tokenData = extractUserToken(authToken);
         const tenantId = tokenData?.tenantId;
-        
+
         if (tenantId) {
           const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
           if (logoBlobUrl) {
@@ -198,19 +198,19 @@ const Organization = () => {
   // Logo removal handlers
   const handleRemoveLogo = useCallback(() => setIsRemoveLogoModalOpen(true), []);
   const handleRemoveLogoCancel = useCallback(() => setIsRemoveLogoModalOpen(false), []);
-  
+
   const handleRemoveLogoConfirm = useCallback(async () => {
     setLogoRemoving(true);
     try {
       await deleteAITrustCentreLogo();
-      
+
       // Clear logo and previews
       if (logoUrl && logoUrl.startsWith('blob:')) {
         URL.revokeObjectURL(logoUrl);
       }
       setLogoUrl(null);
       clearLogoPreview();
-      
+
       setIsRemoveLogoModalOpen(false);
       showAlert("success", "Logo Removed", "Organization logo removed successfully");
     } catch (error) {
@@ -234,9 +234,9 @@ const Organization = () => {
         routeUrl: "/organizations",
         body: { name: organizationName },
       });
-      
+
       showAlert("success", "Organization Created", "The organization was created successfully.");
-      
+
       if (response && response.id) {
         setOrganizationName(response.name || "");
         setOrganizationExists(true);
@@ -262,9 +262,9 @@ const Organization = () => {
         routeUrl: `/organizations/${organizationId}`,
         body: { name: organizationName },
       });
-      
+
       showAlert("success", "Organization Updated", "The organization was updated successfully.");
-      
+
       if (response && response.id) {
         setOrganizationName(response.name || "");
         setHasChanges(false);
@@ -487,6 +487,18 @@ const Organization = () => {
                 />
               </MUIButton>
             </Box>
+            {/* Logo requirements info */}
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: '#666',
+                textAlign: 'center',
+                mt: 1,
+                lineHeight: 1.4
+              }}
+            >
+              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF
+            </Typography>
           </Stack>
         </Box>
         <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />

@@ -21,7 +21,6 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
-import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import Alert from "../../Alert";
@@ -98,9 +97,6 @@ const VWISO42001ClauseDrawerDialog = ({
 
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
-  const { project } = useProjectData({
-    projectId: String(project_id) || "0",
-  });
 
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
@@ -120,15 +116,11 @@ const VWISO42001ClauseDrawerDialog = ({
 
   // Filter users to only show project members
   useEffect(() => {
-    if (project && users?.length > 0) {
-      const members = users.filter(
-        (user: User) =>
-          typeof user.id === "number" &&
-          project.members.some((memberId) => Number(memberId) === user.id)
-      );
-      setProjectMembers(members);
+    if (users?.length > 0) {
+      // Since we don't have project data, use all users
+      setProjectMembers(users);
     }
-  }, [project, users]);
+  }, [users]);
 
   // Setup Uppy instance
   const [uppy] = useState(() => new Uppy());
@@ -145,7 +137,7 @@ const VWISO42001ClauseDrawerDialog = ({
 
           // Initialize form data with fetched values
           if (response.data) {
-            const statusId = statusIdMap.get(response.data.status) || "0";
+            const statusId = statusIdMap.get(response.data.status || "") || "0";
             setFormData({
               implementation_description:
                 response.data.implementation_description || "",
@@ -161,6 +153,11 @@ const VWISO42001ClauseDrawerDialog = ({
             if (response.data.due_date) {
               setDate(response.data.due_date);
             }
+
+            // Set risks in state
+            if (response.data.risks) {
+              setSelectedRisks(response.data.risks);
+            }
           }
 
           // On subclause fetch, set evidence files if available
@@ -169,6 +166,11 @@ const VWISO42001ClauseDrawerDialog = ({
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
+          handleAlert({
+            variant: "error",
+            body: "Error: Unable to load subclause data",
+            setAlert,
+          });
         } finally {
           setIsLoading(false);
         }
@@ -208,7 +210,6 @@ const VWISO42001ClauseDrawerDialog = ({
       }
     };
 
-
   // Update handleSave to use evidenceFiles
   const handleSave = async () => {
     setIsLoading(true);
@@ -238,7 +239,7 @@ const VWISO42001ClauseDrawerDialog = ({
       formDataToSend.append("approver", formData.approver);
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
-      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append("user_id", userId?.toString() || "1");
       formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
@@ -498,7 +499,7 @@ const VWISO42001ClauseDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                minWidth: 155,
+                minWidth: 155, // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -511,7 +512,7 @@ const VWISO42001ClauseDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-              Add/Remove evidence
+              Add, remove or download evidence
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography
@@ -567,8 +568,7 @@ const VWISO42001ClauseDrawerDialog = ({
             </Stack>
           </Stack>
 
-          
-          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal} >
+          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
             <UppyUploadFile
               uppy={uppy}
               files={[...evidenceFiles, ...uploadFiles]}
@@ -580,7 +580,7 @@ const VWISO42001ClauseDrawerDialog = ({
           {alert && (
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
-          
+
           <Stack direction="row" spacing={2}>
             <Button
               variant="contained"

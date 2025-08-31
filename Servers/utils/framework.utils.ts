@@ -80,12 +80,12 @@ export const canAddFrameworkToProjectQuery = async (
   transaction: Transaction
 ): Promise<boolean> => {
   const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
-  if (exists) {
+  if (!exists) {
     return false; // Framework already added
   }
 
   const [[{ is_framework_organizational }]] = (await sequelize.query(
-    `SELECT is_organizational AS is_framework_organizational FROM "${tenant}".frameworks WHERE id = :frameworkId;`,
+    `SELECT is_organizational AS is_framework_organizational FROM public.frameworks WHERE id = :frameworkId;`,
     { replacements: { frameworkId }, transaction }
   )) as [[{ is_framework_organizational: boolean }], number];
   const [[{ is_project_organizational }]] = (await sequelize.query(
@@ -151,7 +151,7 @@ export const deleteFrameworkFromProjectQuery = async (
   transaction: Transaction
 ): Promise<boolean> => {
   const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
-  if (!exists) {
+  if (exists) {
     return false; // Framework not found in the project
   }
 

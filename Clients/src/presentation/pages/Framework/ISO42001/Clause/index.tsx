@@ -19,6 +19,10 @@ import VWISO42001ClauseDrawerDialog from "../../../../components/Drawer/ClauseDr
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";
+import StatusDropdown from "../../../../components/StatusDropdown";
+import { updateISO42001ClauseStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
+import { useAuth } from "../../../../../application/hooks/useAuth";
+import allowedRoles from "../../../../../application/constants/permissions";
 
 const ISO42001Clause = ({
   FrameworkId,
@@ -27,6 +31,7 @@ const ISO42001Clause = ({
   FrameworkId: number | string;
   statusFilter?: string;
 }) => {
+  const { userId, userRoleName } = useAuth();
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubClause, setSelectedSubClause] = useState<any>(null);
@@ -157,6 +162,47 @@ const ISO42001Clause = ({
     }
   };
 
+  const handleStatusChange = async (subClause: any, newStatus: string): Promise<boolean> => {
+    try {
+      const success = await updateISO42001ClauseStatus({
+        id: subClause.id,
+        newStatus,
+        projectFrameworkId: Number(FrameworkId),
+        userId: userId || 1,
+        currentData: subClause,
+      });
+
+      if (success) {
+        handleAlert({
+          variant: "success",
+          body: "Status updated successfully",
+          setAlert,
+        });
+
+        setFlashingRowId(subClause.id);
+        setTimeout(() => setFlashingRowId(null), 2000);
+        
+        setRefreshTrigger((prev) => prev + 1);
+      } else {
+        handleAlert({
+          variant: "error",
+          body: "Failed to update status",
+          setAlert,
+        });
+      }
+
+      return success;
+    } catch (error) {
+      console.error("Error updating status:", error);
+      handleAlert({
+        variant: "error",
+        body: "Error updating status",
+        setAlert,
+      });
+      return false;
+    }
+  };
+
   function dynamicSubClauses(clause: any) {
     const subClauses = subClausesMap[clause.id ?? 0] || [];
     const isLoading = loadingSubClauses[clause.id ?? 0];
@@ -190,12 +236,13 @@ const ISO42001Clause = ({
                 {clause.clause_no + "." + (index + 1)}{" "}
                 {subClause.title ?? "Untitled"}
               </Typography>
-              <Stack sx={styles.statusBadge(subClause.status ?? "")}>
-                {subClause.status
-                  ? subClause.status.charAt(0).toUpperCase() +
-                    subClause.status.slice(1).toLowerCase()
-                  : "Not started"}
-              </Stack>
+              <StatusDropdown
+                currentStatus={subClause.status ?? "Not started"}
+                onStatusChange={(newStatus) => handleStatusChange(subClause, newStatus)}
+                size="small"
+                allowedRoles={allowedRoles.frameworks.edit}
+                userRole={userRoleName}
+              />
             </Stack>
           ))
         ) : (

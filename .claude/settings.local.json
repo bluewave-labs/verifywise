@@ -4,7 +4,9 @@
       "Bash(npm run build:*)",
       "Bash(mkdir:*)",
       "Bash(npm run lint)",
+      "Bash(npm run lint:*)",
       "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
       "Bash(git checkout:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
@@ -20,7 +22,8 @@
       "Bash(cat:*)",
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []

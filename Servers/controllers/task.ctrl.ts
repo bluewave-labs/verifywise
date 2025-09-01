@@ -132,7 +132,6 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       page = '1',
       page_size = '25'
     } = req.query;
-    console.log({ status, due_date_start, due_date_end, category, assignee, organization_id, sort_by, sort_order, page, page_size }, "-------------task query-------------");
 
     // Parse filters
     const filters: any = {};

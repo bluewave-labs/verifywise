@@ -24,6 +24,7 @@ import { decodeGoogleToken, GoogleAuthResponse, initializeGoogleSignIn, signInWi
 import { useDispatch } from "react-redux";
 import { createNewUserWithGoogle } from "../../../../application/repository/user.repository";
 import { setAuthToken, setExpiration } from "../../../../application/redux/auth/authSlice";
+import { ReactComponent as GoogleIcon } from "../../../assets/icons/google-icon.svg";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 export interface AlertType {
@@ -83,11 +84,11 @@ const RegisterUser: React.FC = () => {
       setErrors({ ...errors, [prop]: "" });
     };
 
-    const handleGoogleSignIn = async () => {
+    const handleGoogleSignUp = async () => {
         if (!ENV_VARs.GOOGLE_CLIENT_ID) {
           setAlert({
             variant: "error",
-            body: "Google Sign-In is not configured. Please contact your administrator.",
+            body: "Google Sign-Up is not configured. Please contact your administrator.",
           });
           setTimeout(() => setAlert(null), 3000);
           return;
@@ -106,7 +107,7 @@ const RegisterUser: React.FC = () => {
                 
                 logEngine({
                   type: "info",
-                  message: `Google Sign-In attempt for user: ${googleUser.email}`,
+                  message: `Google Sign-Up attempt for user: ${googleUser.email}`,
                 });
     
                 // Send the Google token to your backend for verification and login
@@ -440,18 +441,20 @@ const RegisterUser: React.FC = () => {
             <Button
               type="button"
               disableRipple
-              variant="contained"
-              sx={{
-                ...singleTheme.buttons.primary.contained,
-                backgroundColor: "#4285f4",
-                "&:hover": {
-                  backgroundColor: "#3367d6",
-                },
-              }}
-              onClick={handleGoogleSignIn}
+              variant="outlined"
+              sx={singleTheme.buttons.google.outlined}
+              onClick={handleGoogleSignUp}
               disabled={isSubmitting || !ENV_VARs.GOOGLE_CLIENT_ID}
             >
-              {!ENV_VARs.GOOGLE_CLIENT_ID ? "Google Sign-In Not Configured" : "Google Sign in"}
+              <GoogleIcon
+                style={{
+                  position: "absolute",
+                  left: theme.spacing(5),
+                  width: "20px",
+                  height: "20px",
+                }}
+              />
+              {!ENV_VARs.GOOGLE_CLIENT_ID ? "Google Sign-Up Not Configured" : "Google Sign Up"}
             </Button>
           </Stack>
         </Stack>

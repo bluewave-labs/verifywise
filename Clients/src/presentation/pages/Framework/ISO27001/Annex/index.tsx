@@ -18,6 +18,10 @@ import { AnnexCategoryISO } from "../../../../../domain/types/AnnexCategoryISO";
 import { AnnexCategoryStructISO } from "../../../../../domain/types/AnnexCategoryStructISO";
 import { GetAnnexCategoriesById } from "../../../../../application/repository/annexCategory_iso.repository";
 import Alert from "../../../../components/Alert";
+import StatusDropdown from "../../../../components/StatusDropdown";
+import { updateISO27001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
+import { useAuth } from "../../../../../application/hooks/useAuth";
+import allowedRoles from "../../../../../application/constants/permissions";
 
 const ISO27001Annex = ({ 
   FrameworkId, 
@@ -28,6 +32,7 @@ const ISO27001Annex = ({
   statusFilter?: string;
   applicabilityFilter?: string;
 }) => {
+  const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
   const [annexesProgress, setAnnexesProgress] = useState<any>({});
   const [annexes, setAnnexes] = useState<any>();
@@ -125,6 +130,50 @@ const ISO27001Annex = ({
     }
   };
 
+  const handleStatusChange = async (control: any, newStatus: string): Promise<boolean> => {
+    try {
+      const success = await updateISO27001AnnexStatus({
+        id: control.id,
+        newStatus,
+        projectFrameworkId: Number(FrameworkId),
+        userId: userId || 1,
+        currentData: control,
+      });
+
+      if (success) {
+        handleAlert({
+          variant: "success",
+          body: "Status updated successfully",
+          setAlert,
+        });
+
+        setFlashingRowId(control.id);
+        setTimeout(() => setFlashingRowId(null), 2000);
+        
+        if (expanded !== false) {
+          await fetchControls(expanded);
+        }
+        setRefreshTrigger((prev) => prev + 1);
+      } else {
+        handleAlert({
+          variant: "error",
+          body: "Failed to update status",
+          setAlert,
+        });
+      }
+
+      return success;
+    } catch (error) {
+      console.error("Error updating status:", error);
+      handleAlert({
+        variant: "error",
+        body: "Error updating status",
+        setAlert,
+      });
+      return false;
+    }
+  };
+
   return (
     <Stack className="iso-27001-annex">
       {alert && (
@@ -194,12 +243,13 @@ const ISO27001Annex = ({
                                 {control.order_no} {control.title}
                               </Typography>
                             </Stack>
-                            <Stack sx={styles.statusBadge(control.status || "")}>
-                              {control.status
-                                ? control.status.charAt(0).toUpperCase() +
-                                  control.status.slice(1).toLowerCase()
-                                : "Not started"}
-                            </Stack>
+                            <StatusDropdown
+                              currentStatus={control.status || "Not started"}
+                              onStatusChange={(newStatus) => handleStatusChange(control, newStatus)}
+                              size="small"
+                              allowedRoles={allowedRoles.frameworks.edit}
+                              userRole={userRoleName}
+                            />
                           </Stack>
                         ))
                       ) : (

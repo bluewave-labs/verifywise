@@ -15,6 +15,10 @@ import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDraw
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import Alert from "../../../../components/Alert";
+import StatusDropdown from "../../../../components/StatusDropdown";
+import { updateISO42001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
+import { useAuth } from "../../../../../application/hooks/useAuth";
+import allowedRoles from "../../../../../application/constants/permissions";
 
 const ISO42001Annex = ({
   FrameworkId,
@@ -25,6 +29,7 @@ const ISO42001Annex = ({
   statusFilter?: string;
   applicabilityFilter?: string;
 }) => {
+  const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
   const [annexesProgress, setAnnexesProgress] = useState<any>({});
   const [annexes, setAnnexes] = useState<any>([]);
@@ -91,6 +96,47 @@ const ISO42001Annex = ({
     }
   };
 
+  const handleStatusChange = async (control: any, newStatus: string): Promise<boolean> => {
+    try {
+      const success = await updateISO42001AnnexStatus({
+        id: control.id,
+        newStatus,
+        projectFrameworkId: Number(FrameworkId),
+        userId: userId || 1,
+        currentData: control,
+      });
+
+      if (success) {
+        handleAlert({
+          variant: "success",
+          body: "Status updated successfully",
+          setAlert,
+        });
+
+        setFlashingRowId(control.id);
+        setTimeout(() => setFlashingRowId(null), 2000);
+        
+        setRefreshTrigger((prev) => prev + 1);
+      } else {
+        handleAlert({
+          variant: "error",
+          body: "Failed to update status",
+          setAlert,
+        });
+      }
+
+      return success;
+    } catch (error) {
+      console.error("Error updating status:", error);
+      handleAlert({
+        variant: "error",
+        body: "Error updating status",
+        setAlert,
+      });
+      return false;
+    }
+  };
+
   function dynamicControls(annex: any) {
     const controls = annex.annexCategories || [];
 
@@ -136,12 +182,13 @@ const ISO42001Annex = ({
                 </Typography>
                 <Typography fontSize={13}>{control.description}</Typography>
               </Stack>
-              <Stack sx={styles.statusBadge(control.status || "")}>
-                {control.status
-                  ? control.status.charAt(0).toUpperCase() +
-                    control.status.slice(1).toLowerCase()
-                  : "Not started"}
-              </Stack>
+              <StatusDropdown
+                currentStatus={control.status || "Not started"}
+                onStatusChange={(newStatus) => handleStatusChange(control, newStatus)}
+                size="small"
+                allowedRoles={allowedRoles.frameworks.edit}
+                userRole={userRoleName}
+              />
             </Stack>
           ))
         ) : (

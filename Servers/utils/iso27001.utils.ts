@@ -768,8 +768,21 @@ export const updateSubClauseQuery = async (
         updateSubClause["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
       } else if (subClause[field as keyof IISO27001SubClause] != undefined) {
-        updateSubClause[field as keyof IISO27001SubClause] =
-          subClause[field as keyof IISO27001SubClause];
+        let value = subClause[field as keyof IISO27001SubClause];
+        
+        // Handle empty strings for integer fields
+        if (["owner", "reviewer", "approver"].includes(field)) {
+          if (value === "" || value === null || value === undefined) {
+            return acc; // Skip this field if it's empty
+          }
+          const numValue = parseInt(value as string);
+          if (isNaN(numValue)) {
+            return acc; // Skip this field if it's not a valid number
+          }
+          value = numValue;
+        }
+        
+        updateSubClause[field as keyof IISO27001SubClause] = value;
         acc.push(`${field} = :${field}`);
       }
       return acc;
@@ -902,13 +915,13 @@ export const updateAnnexControlQuery = async (
         // Handle empty strings for integer fields
         if (["owner", "reviewer", "approver"].includes(field)) {
           if (value === "" || value === null || value === undefined) {
-            value = undefined;
-          } else {
-            value = parseInt(value as string);
-            if (isNaN(value)) {
-              value = undefined;
-            }
+            return acc; // Skip this field if it's empty
           }
+          const numValue = parseInt(value as string);
+          if (isNaN(numValue)) {
+            return acc; // Skip this field if it's not a valid number
+          }
+          value = numValue;
         }
 
         updateAnnexControl[field as keyof IISO27001AnnexControl] = value;

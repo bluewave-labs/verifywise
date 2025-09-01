@@ -84,11 +84,11 @@ const RegisterUser: React.FC = () => {
       setErrors({ ...errors, [prop]: "" });
     };
 
-    const handleGoogleSignIn = async () => {
+    const handleGoogleSignUp = async () => {
         if (!ENV_VARs.GOOGLE_CLIENT_ID) {
           setAlert({
             variant: "error",
-            body: "Google Sign-In is not configured. Please contact your administrator.",
+            body: "Google Sign-Up is not configured. Please contact your administrator.",
           });
           setTimeout(() => setAlert(null), 3000);
           return;
@@ -107,7 +107,7 @@ const RegisterUser: React.FC = () => {
                 
                 logEngine({
                   type: "info",
-                  message: `Google Sign-In attempt for user: ${googleUser.email}`,
+                  message: `Google Sign-Up attempt for user: ${googleUser.email}`,
                 });
     
                 // Send the Google token to your backend for verification and login
@@ -443,7 +443,7 @@ const RegisterUser: React.FC = () => {
               disableRipple
               variant="outlined"
               sx={singleTheme.buttons.google.outlined}
-              onClick={handleGoogleSignIn}
+              onClick={handleGoogleSignUp}
               disabled={isSubmitting || !ENV_VARs.GOOGLE_CLIENT_ID}
             >
               <GoogleIcon
@@ -454,7 +454,7 @@ const RegisterUser: React.FC = () => {
                   height: "20px",
                 }}
               />
-              {!ENV_VARs.GOOGLE_CLIENT_ID ? "Google Sign-In Not Configured" : "Google Sign in"}
+              {!ENV_VARs.GOOGLE_CLIENT_ID ? "Google Sign-Up Not Configured" : "Google Sign Up"}
             </Button>
           </Stack>
         </Stack>

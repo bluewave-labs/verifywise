@@ -20,6 +20,7 @@ import {
   decodeGoogleToken,
   GoogleAuthResponse 
 } from "../../../../application/tools/googleAuth";
+import { ReactComponent as GoogleIcon } from "../../../assets/icons/google-icon.svg";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
 
@@ -398,19 +399,21 @@ const Login: React.FC = () => {
               Sign in
             </Button>
             <Button
-              type="button"
-              disableRipple
-              variant="contained"
-              sx={{
-                ...singleTheme.buttons.primary.contained,
-                backgroundColor: "#4285f4",
-                "&:hover": {
-                  backgroundColor: "#3367d6",
-                },
-              }}
+             type="button"
+             disableRipple
+             variant="outlined"
+             sx={singleTheme.buttons.google.outlined}
               onClick={handleGoogleSignIn}
               disabled={isSubmitting || !ENV_VARs.GOOGLE_CLIENT_ID}
             >
+              <GoogleIcon
+                style={{
+                  position: "absolute",
+                  left: theme.spacing(5),
+                  width: "20px",
+                  height: "20px",
+                }}
+              />
               {!ENV_VARs.GOOGLE_CLIENT_ID ? "Google Sign-In Not Configured" : "Google Sign in"}
             </Button>
             {isMultiTenant && (

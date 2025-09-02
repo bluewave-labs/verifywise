@@ -45,7 +45,7 @@ export class UserModel extends Model<UserModel> {
   @Column({
     type: DataType.STRING,
   })
-  password_hash!: string;
+  password_hash!: string | null;
 
   @ForeignKey(() => RoleModel)
   @Column({
@@ -77,13 +77,20 @@ export class UserModel extends Model<UserModel> {
   })
   organization_id?: number;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  google_id?: string;
+
   static async createNewUser(
     name: string,
     surname: string,
     email: string,
-    password: string,
     role_id: number,
-    organization_id: number
+    organization_id: number,
+    password: string | null = null,
+    google_id?: string
   ): Promise<UserModel> {
     // Validate email
     if (!emailValidation(email)) {
@@ -91,8 +98,8 @@ export class UserModel extends Model<UserModel> {
     }
 
     // Validate password
-    const passwordValidationResult = passwordValidation(password);
-    if (!passwordValidationResult.isValid) {
+    const passwordValidationResult = password ? passwordValidation(password) : null;
+    if (password && !passwordValidationResult!.isValid) {
       throw new ValidationException(
         "Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long",
         "password",
@@ -111,7 +118,7 @@ export class UserModel extends Model<UserModel> {
     }
 
     // Hash the password
-    const password_hash = await bcrypt.hash(password, 10);
+    const password_hash = password ? await bcrypt.hash(password, 10) : null;
 
     // Create and return the user model instance
     const user = new UserModel();
@@ -124,6 +131,7 @@ export class UserModel extends Model<UserModel> {
     user.last_login = new Date();
     user.is_demo = false;
     user.organization_id = organization_id;
+    user.google_id = google_id;
 
     return user;
   }
@@ -211,9 +219,9 @@ export class UserModel extends Model<UserModel> {
       );
     }
 
-    if (this.surname.trim().length < 2) {
+    if (this.surname.trim().length < 1) {
       throw new ValidationException(
-        "Surname must be at least 2 characters long",
+        "Surname must be at least 1 character long",
         "surname",
         this.surname
       );
@@ -248,6 +256,9 @@ export class UserModel extends Model<UserModel> {
    * Compare password with stored hash
    */
   async comparePassword(password: string): Promise<boolean> {
+    if (!this.password_hash) {
+      return false;
+    }
     return bcrypt.compare(password, this.password_hash);
   }
 
@@ -403,7 +414,8 @@ export class UserModel extends Model<UserModel> {
    * Get user data without sensitive information
    */
   toSafeJSON(): any {
-    const { password_hash, ...safeUser } = this.get({ plain: true });
+    const { password_hash, google_id, ...safeUser } = this.get({ plain: true });
+    (safeUser as any).pwd_set = !!this.password_hash;
     return safeUser;
   }
 

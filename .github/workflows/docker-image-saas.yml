@@ -54,6 +54,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:${{ env.TAG }}
             ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:latest
+          build-args: |
+            VITE_GOOGLE_CLIENT_ID=$(grep VITE_GOOGLE_CLIENT_ID ../.env.prod | cut -d '=' -f2)
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4

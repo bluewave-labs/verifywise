@@ -155,11 +155,32 @@ class ArtifactsConfig(BaseModel):
     )
 
 
+class PromptingConfig(BaseModel):
+    """Configuration for prompt formatting and inputs."""
+
+    formatter: str = Field(
+        default="tinyllama-chat",
+        description="Name of prompt formatter to use",
+    )
+    system_prompt: Optional[str] = Field(
+        default=None,
+        description="Override system prompt; None uses formatter default",
+    )
+    instruction: str = Field(
+        ..., description="Short, reusable task instruction"
+    )
+    assistant_preamble: Optional[str] = Field(
+        default=None,
+        description="Optional assistant preamble used by some formatters",
+    )
+
+
 class Config(BaseModel):
     """Main configuration class that includes all sub-configurations."""
 
     dataset: DatasetConfig
     model: ModelConfig
+    prompting: PromptingConfig
     metrics: MetricsConfig
     post_processing: PostProcessingConfig
     artifacts: ArtifactsConfig
@@ -235,6 +256,14 @@ class ConfigManager:
             ArtifactsConfig: The artifacts configuration containing output paths.
         """
         return self.config.artifacts
+
+    def get_prompting_config(self) -> PromptingConfig:
+        """Get the prompting configuration.
+
+        Returns:
+            PromptingConfig: The prompt input and formatter configuration.
+        """
+        return self.config.prompting
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

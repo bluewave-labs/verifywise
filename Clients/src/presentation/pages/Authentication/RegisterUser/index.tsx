@@ -1,4 +1,4 @@
-import { Button, Stack, Typography, useTheme, Box } from "@mui/material";
+import { Button, Stack, Typography, useTheme, Box, Divider } from "@mui/material";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
@@ -20,11 +20,11 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSearchParams } from "react-router-dom";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { ENV_VARs } from "../../../../../env.vars";
-import { decodeGoogleToken, GoogleAuthResponse, initializeGoogleSignIn, signInWithGooglePopupAlternative } from "../../../../application/tools/googleAuth";
+import { decodeGoogleToken, GoogleAuthResponse, initializeGoogleSignIn } from "../../../../application/tools/googleAuth";
 import { useDispatch } from "react-redux";
 import { createNewUserWithGoogle } from "../../../../application/repository/user.repository";
 import { setAuthToken, setExpiration } from "../../../../application/redux/auth/authSlice";
-import { ReactComponent as GoogleIcon } from "../../../assets/icons/google-icon.svg";
+import { GoogleSignIn } from "../../../components/GoogleSignIn";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 export interface AlertType {
@@ -84,109 +84,6 @@ const RegisterUser: React.FC = () => {
       setErrors({ ...errors, [prop]: "" });
     };
 
-    const handleGoogleSignUp = async () => {
-        if (!ENV_VARs.GOOGLE_CLIENT_ID) {
-          setAlert({
-            variant: "error",
-            body: "Google Sign-Up is not configured. Please contact your administrator.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-          return;
-        }
-    
-        setIsSubmitting(true);
-    
-        try {
-          // Try the alternative popup method with cancellation handling
-          signInWithGooglePopupAlternative(
-            async (response: GoogleAuthResponse) => {
-              try {
-                
-                // Decode the Google token to get user info
-                const googleUser = decodeGoogleToken(response.credential);
-                
-                logEngine({
-                  type: "info",
-                  message: `Google Sign-Up attempt for user: ${googleUser.email}`,
-                });
-    
-                // Send the Google token to your backend for verification and login
-                const loginResponse = await createNewUserWithGoogle({
-                  googleToken: response.credential,
-                  userData: {
-                    roleId: Number(values.roleId) || 1,
-                    organizationId: Number(values.organizationId)
-                  }
-                });
-    
-                if (loginResponse.status === 201) {
-                  const token = loginResponse.data.data.token;
-    
-                  // Always remember Google sign-in for 30 days
-                  const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
-                  dispatch(setAuthToken(token));
-                  dispatch(setExpiration(expirationDate));
-    
-                  logEngine({
-                    type: "info",
-                    message: "Google Sign-In successful.",
-                  });
-    
-                  setTimeout(() => {
-                    setIsSubmitting(false);
-                    navigate("/");
-                  }, 2000);
-                } else {
-                  logEngine({
-                    type: "error",
-                    message: "Google Sign-In failed with unexpected response.",
-                  });
-    
-                  setIsSubmitting(false);
-                  setAlert({
-                    variant: "error",
-                    body: "Google Sign-In failed. Please try again.",
-                  });
-                  setTimeout(() => setAlert(null), 3000);
-                }
-              } catch (error: any) {
-                console.error("Google Sign-In error:", error);
-    
-                logEngine({
-                  type: "error",
-                  message: `Google Sign-In error: ${error.message}`,
-                });
-    
-                setIsSubmitting(false);
-                setAlert({
-                  variant: "error",
-                  body: error.message || "Google Sign-In failed. Please try again.",
-                });
-                setTimeout(() => setAlert(null), 3000);
-              }
-            },
-            // Cancellation callback - this will run if user closes popup without signing in
-            () => {
-              console.log("Google Sign-In was cancelled by user");
-              setIsSubmitting(false);
-              // Optionally show a message
-              logEngine({
-                type: "info",
-                message: "Google Sign-In was cancelled by user.",
-              });
-            }
-          );
-        } catch (error: any) {
-          console.error("Failed to initiate Google Sign-In:", error);
-          
-          setIsSubmitting(false);
-          setAlert({
-            variant: "error",
-            body: "Failed to initiate Google Sign-In. Please try again.",
-          });
-          setTimeout(() => setAlert(null), 3000);
-        }
-      };
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -354,6 +251,96 @@ const RegisterUser: React.FC = () => {
           )}
 
           <Stack sx={{ gap: theme.spacing(7.5) }}>
+            <GoogleSignIn
+              isSubmitting={isSubmitting}
+              setIsSubmitting={setIsSubmitting}
+              text="Google Sign up"
+              callback={
+                async (response: GoogleAuthResponse) => {
+                  try {
+                    setIsSubmitting(true);                    
+                    // Decode the Google token to get user info
+                    const googleUser = decodeGoogleToken(response.credential);
+                    
+                    logEngine({
+                      type: "info",
+                      message: `Google Sign-Up attempt for user: ${googleUser.email}`,
+                    });
+        
+                    // Send the Google token to your backend for verification and login
+                    const loginResponse = await createNewUserWithGoogle({
+                      googleToken: response.credential,
+                      userData: {
+                        roleId: Number(values.roleId) || 1,
+                        organizationId: Number(values.organizationId)
+                      }
+                    });
+
+                    if (loginResponse.status === 201) {
+                      const token = loginResponse.data.data.token;
+
+                      // Always remember Google sign-in for 30 days
+                      const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+                      dispatch(setAuthToken(token));
+                      dispatch(setExpiration(expirationDate));
+
+                      logEngine({
+                        type: "info",
+                        message: "Google Sign-In successful.",
+                      });
+        
+                      setTimeout(() => {
+                        setIsSubmitting(false);
+                        navigate("/");
+                      }, 2000);
+                    } else {
+                      logEngine({
+                        type: "error",
+                        message: "Google Sign-In failed with unexpected response.",
+                      });
+        
+                      setIsSubmitting(false);
+                      setAlert({
+                        variant: "error",
+                        body: "Google Sign-In failed. Please try again.",
+                      });
+                      setTimeout(() => setAlert(null), 3000);
+                    }
+                  } catch (error: any) {
+        
+                    logEngine({
+                      type: "error",
+                      message: `Google Sign-In error: ${error.message}`,
+                    });
+        
+                    setIsSubmitting(false);
+                    setAlert({
+                      variant: "error",
+                      body: error.message || "Google Sign-In failed. Please try again.",
+                    });
+                    setTimeout(() => setAlert(null), 3000);
+                  }
+                }
+              }
+            />
+            <Stack sx={{ position: 'relative', my: 2 }}>
+              <Divider />
+              <Typography
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: '#fff',
+                  px: 2,
+                  fontSize: 14,
+                  color: theme.palette.text.secondary,
+                  fontWeight: 500,
+                }}
+              >
+                or
+              </Typography>
+            </Stack>
             <Field
               label="Name"
               isRequired
@@ -437,24 +424,6 @@ const RegisterUser: React.FC = () => {
               disabled={!isInvitationValid}
             >
               Get started
-            </Button>
-            <Button
-              type="button"
-              disableRipple
-              variant="outlined"
-              sx={singleTheme.buttons.google.outlined}
-              onClick={handleGoogleSignUp}
-              disabled={isSubmitting || !ENV_VARs.GOOGLE_CLIENT_ID}
-            >
-              <GoogleIcon
-                style={{
-                  position: "absolute",
-                  left: theme.spacing(5),
-                  width: "20px",
-                  height: "20px",
-                }}
-              />
-              {!ENV_VARs.GOOGLE_CLIENT_ID ? "Google Sign-Up Not Configured" : "Google Sign Up"}
             </Button>
           </Stack>
         </Stack>

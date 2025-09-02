@@ -61,17 +61,13 @@ export const initializeGoogleSignIn = async (): Promise<void> => {
     throw new Error('Google Client ID not configured');
   }
 
-  console.log('[Google Auth] Initializing with Client ID:', ENV_VARs.GOOGLE_CLIENT_ID);
-  console.log('[Google Auth] Current origin:', window.location.origin);
 
   try {
     window.google.accounts.id.initialize({
       client_id: ENV_VARs.GOOGLE_CLIENT_ID,
       callback: () => { }, // Will be set by individual components
     });
-    console.log('[Google Auth] Successfully initialized');
   } catch (error) {
-    console.error('[Google Auth] Initialization failed:', error);
     throw error;
   }
 };
@@ -113,7 +109,6 @@ export const triggerGoogleOneTap = (callback: (response: GoogleAuthResponse) => 
   window.google.accounts.id.prompt((notification: any) => {
     if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
       // Fallback to popup if One Tap is not available
-      console.log('One Tap not available, using popup');
     }
   });
 };
@@ -137,7 +132,6 @@ export const signInWithGooglePopup = (callback: (response: GoogleAuthResponse) =
     // Display the sign-in prompt immediately
     window.google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed()) {
-        console.log('One Tap could not be displayed');
         // Fallback: Try to render a button and click it programmatically
         const tempDiv = document.createElement('div');
         tempDiv.style.display = 'none';
@@ -156,18 +150,15 @@ export const signInWithGooglePopup = (callback: (response: GoogleAuthResponse) =
             button.click();
           }
         } catch (error) {
-          console.error('Failed to render Google button:', error);
         } finally {
           document.body.removeChild(tempDiv);
         }
       }
 
       if (notification.isSkippedMoment()) {
-        console.log('One Tap was skipped');
       }
     });
   }).catch((error) => {
-    console.error('Failed to load Google script:', error);
     throw error;
   });
 };
@@ -213,16 +204,12 @@ export const signInWithGooglePopupAlternative = (
   }, 60000);
 
   loadGoogleScript().then(() => {
-    console.log('[Google Auth] Script loaded, initializing popup...');
-    console.log('[Google Auth] Current origin:', window.location.origin);
-    console.log('[Google Auth] Using Client ID:', ENV_VARs.GOOGLE_CLIENT_ID);
 
     // Initialize Google Sign-In
     try {
       window.google.accounts.id.initialize({
         client_id: ENV_VARs.GOOGLE_CLIENT_ID,
         callback: (response: GoogleAuthResponse) => {
-          console.log('[Google Auth] Received response:', response);
           isCompleted = true;
           cleanup();
           // Call the original callback
@@ -231,9 +218,7 @@ export const signInWithGooglePopupAlternative = (
         auto_select: false,
         cancel_on_tap_outside: true,
       });
-      console.log('[Google Auth] Google ID initialized successfully');
     } catch (initError) {
-      console.error('[Google Auth] Failed to initialize Google ID:', initError);
       cleanup();
       if (onCancel) {
         onCancel();
@@ -249,9 +234,7 @@ export const signInWithGooglePopupAlternative = (
         type: 'standard',
         width: '100%',
       });
-      console.log('[Google Auth] Button rendered successfully');
     } catch (renderError) {
-      console.error('[Google Auth] Failed to render button:', renderError);
       cleanup();
       if (onCancel) {
         onCancel();
@@ -263,17 +246,12 @@ export const signInWithGooglePopupAlternative = (
     setTimeout(() => {
       const button = tempContainer.querySelector('div[role="button"]') as HTMLElement;
       if (button) {
-        console.log('[Google Auth] Clicking Google Sign-In button...');
         try {
           button.click();
         } catch (clickError) {
-          console.error('[Google Auth] Failed to click button:', clickError);
           // Fallback to prompt
-          console.log('[Google Auth] Falling back to prompt method...');
           window.google.accounts.id.prompt((notification: any) => {
-            console.log('[Google Auth] Prompt notification:', notification);
             if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-              console.log('[Google Auth] Prompt was not displayed or skipped');
               if (!isCompleted) {
                 isCompleted = true;
                 cleanup();
@@ -285,12 +263,9 @@ export const signInWithGooglePopupAlternative = (
           });
         }
       } else {
-        console.log('[Google Auth] Button not found, using prompt fallback...');
         // Fallback to prompt if button rendering fails
         window.google.accounts.id.prompt((notification: any) => {
-          console.log('[Google Auth] Prompt notification:', notification);
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            console.log('[Google Auth] Google Sign-In popup could not be displayed');
             if (!isCompleted) {
               isCompleted = true;
               cleanup();
@@ -304,7 +279,6 @@ export const signInWithGooglePopupAlternative = (
     }, 100);
   }).catch((error) => {
     cleanup();
-    console.error('Failed to load Google script:', error);
     if (onCancel) {
       onCancel();
     }

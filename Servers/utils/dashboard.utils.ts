@@ -28,8 +28,10 @@ export const getDashboardDataQuery = async (
   ) as [{ count: string }[], number];
   dashboard.trainings = parseInt(trainings[0][0].count);
 
+ //Models data fetching from model_inventories table
+
   const models = await sequelize.query(
-    `SELECT COUNT(*) FROM "${tenant}".model_files`
+    `SELECT COUNT(*) FROM "${tenant}".model_inventories`
   ) as [{ count: string }[], number];
   dashboard.models = parseInt(models[0][0].count);
 

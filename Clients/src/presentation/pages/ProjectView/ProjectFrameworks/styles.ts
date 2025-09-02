@@ -1,4 +1,5 @@
 import { SxProps, Theme } from "@mui/material";
+import { layoutStyles } from "../../../themes";
 
 export const containerStyle: SxProps<Theme> = {
   width: "100%",
@@ -6,56 +7,55 @@ export const containerStyle: SxProps<Theme> = {
 };
 
 export const headerContainerStyle: SxProps<Theme> = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
+  ...layoutStyles.flexBetween(),
   mb: 2,
 };
 
-export const frameworkTabsContainerStyle: SxProps<Theme> = {
+export const frameworkTabsContainerStyle: SxProps<Theme> = (theme) => ({
   display: "flex",
-  border: (theme) => `1px solid ${theme.palette.divider}`,
-  borderRadius: "4px",
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
   overflow: "hidden",
   height: 43,
-  bgcolor: "background.paper",
-};
+  backgroundColor: theme.palette.background.paper,
+});
 
-export const getFrameworkTabStyle = (
-  isActive: boolean,
-  isLast: boolean
-): SxProps<Theme> => ({
+export const getFrameworkTabStyle = (isActive: boolean, isLast: boolean): SxProps<Theme> => (theme) => ({
   cursor: "pointer",
   px: 5,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   height: "100%",
-  bgcolor: isActive ? "background.paper" : "action.hover",
-  color: "text.primary",
-  fontFamily: (theme) => theme.typography.fontFamily,
-  fontSize: "13px",
-  borderRight: (theme) =>
-    isLast ? "none" : `1px solid ${theme.palette.divider}`,
-  fontWeight: (theme) => theme.typography.body2.fontWeight,
+  backgroundColor: isActive ? theme.palette.background.paper : theme.palette.action.hover,
+  color: theme.palette.text.primary,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: theme.typography.fontSize,
+  borderRight: isLast ? "none" : `1px solid ${theme.palette.divider}`,
+  fontWeight: theme.typography.body2?.fontWeight,
   transition: "background 0.2s",
   userSelect: "none",
   width: "142px",
 });
 
-export const addButtonStyle: SxProps<Theme> = {
-  borderRadius: 2,
-  textTransform: "none",
-  fontWeight: 400,
-  backgroundColor: "#13715B",
-  border: "1px solid #13715B",
+export const addButtonStyle: SxProps<Theme> = (theme) => ({
+  backgroundColor: theme.palette.primary.main,
+  border: `1px solid ${theme.palette.primary.main}`,
   color: "#fff",
-  fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-  fontSize: 13,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: theme.typography.fontSize,
+  fontWeight: 400,
+  textTransform: "none",
+  borderRadius: theme.spacing(1),
+  boxShadow: "none",
   "&:hover": {
-    backgroundColor: "#10614d",
+    backgroundColor: theme.palette.primary.dark || "#10614d",
+    boxShadow: "none",
   },
-};
+  "&:focus": {
+    outline: "none",
+  },
+});
 
 export const tabListStyle: SxProps<Theme> = {
   minHeight: "20px",
@@ -64,84 +64,93 @@ export const tabListStyle: SxProps<Theme> = {
   },
 };
 
-export const modalContainerStyle: SxProps<Theme> = {
+export const modalContainerStyle: SxProps<Theme> = (theme) => ({
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  bgcolor: "#fff",
-  borderRadius: 3,
-  boxShadow: 6,
+  backgroundColor: theme.palette.background.main,
+  borderRadius: theme.spacing(1.5),
+  boxShadow: theme.boxShadow,
   maxWidth: 480,
   width: "100%",
-  mx: 2,
+  margin: theme.spacing(1),
   maxHeight: "90vh",
   overflow: "auto",
   animation: "scaleIn 0.2s",
-  padding: "20px",
-};
+  padding: theme.spacing(2.5),
+});
 
-export const modalHeaderStyle: SxProps<Theme> = {
+export const modalHeaderStyle: SxProps<Theme> = (theme) => ({
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  borderBottom: "1px solid #E5E7EB",
-  p: 2,
-};
+  borderBottom: `1px solid ${theme.palette.border?.light || "#E5E7EB"}`,
+  padding: theme.spacing(1),
+  marginBottom: theme.spacing(2),
+});
 
-export const modalCloseButtonStyle: SxProps<Theme> = {
-  color: "#6B7280",
-  "&:hover": { color: "#232B3A", background: "#e3f5e6" },
+export const modalCloseButtonStyle: SxProps<Theme> = (theme) => ({
+  color: theme.palette.text.tertiary,
+  "&:hover": { 
+    color: theme.palette.text.primary, 
+    backgroundColor: theme.palette.action?.hover || "#e3f5e6"
+  },
   p: 1,
-};
+});
 
-export const modalDescriptionStyle: SxProps<Theme> = {
-  color: "#6B7280",
-  mb: 3,
+export const modalDescriptionStyle: SxProps<Theme> = (theme) => ({
+  color: theme.palette.text.tertiary,
+  marginBottom: theme.spacing(3),
   fontSize: 14,
   textAlign: "left",
-};
+});
 
-export const frameworkCardStyle: SxProps<Theme> = {
-  border: "1.5px solid #13715B",
-  borderRadius: 2,
-  background: "#e3f5e6",
-  p: 2.5,
+export const frameworkCardStyle: SxProps<Theme> = (theme) => ({
+  border: `1.5px solid ${theme.palette.primary.main}`,
+  borderRadius: theme.spacing(1),
+  backgroundColor: theme.palette.primary.light || "#e3f5e6",
+  padding: theme.spacing(2.5),
   transition: "background 0.2s",
-};
+});
 
 export const frameworkCardTitleStyle: SxProps<Theme> = {
   fontWeight: 500,
-  color: "#232B3A",
+  color: "text.primary",
   fontSize: 16,
 };
 
 export const frameworkCardAddedStyle: SxProps<Theme> = {
   display: "flex",
   alignItems: "center",
-  color: "#13715B",
+  color: "primary.main",
   gap: 1,
   fontSize: 14,
 };
 
 export const frameworkCardDescriptionStyle: SxProps<Theme> = {
-  color: "#6B7280",
+  color: "text.tertiary",
   fontSize: 14,
   textAlign: "left",
 };
 
-export const modalDoneButtonStyle: SxProps<Theme> = {
+export const modalDoneButtonStyle: SxProps<Theme> = (theme) => ({
+  backgroundColor: theme.palette.primary.main,
+  border: `1px solid ${theme.palette.primary.main}`,
+  color: "#fff",
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  fontWeight: 500,
+  textTransform: "none",
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: "none",
   px: 4,
   py: 1,
-  fontWeight: 500,
-  borderRadius: 2,
-  boxShadow: "none",
-  fontSize: 15,
-  backgroundColor: "#13715B",
-  color: "#fff",
-  border: "1px solid #13715B",
-  fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
   "&:hover": {
-    backgroundColor: "#10614d",
+    backgroundColor: theme.palette.primary.dark || "#10614d",
+    boxShadow: "none",
   },
-};
+  "&:focus": {
+    outline: "none",
+  },
+});

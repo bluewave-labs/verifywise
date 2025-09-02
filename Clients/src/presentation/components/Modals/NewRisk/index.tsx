@@ -29,7 +29,7 @@ import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
 import { SelectChangeEvent } from "@mui/material";
-import { createVendorRisk, updateVendorRisk } from "../../../../application/repository/vendorRisk.repository";
+import { useCreateVendorRisk, useUpdateVendorRisk } from "../../../../application/hooks/useVendorRiskMutations";
 import { useAuth } from "../../../../application/hooks/useAuth";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
@@ -108,7 +108,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   setIsOpen,
   value,
   existingRisk,
-  onSuccess = () => {},
+  onSuccess = () => { },
   vendors,
 }) => {
   const theme = useTheme();
@@ -117,9 +117,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const VENDOR_OPTIONS =
     vendors?.length > 0
       ? vendors.map((vendor: any) => ({
-          _id: vendor.id,
-          name: vendor.vendor_name,
-        }))
+        _id: vendor.id,
+        name: vendor.vendor_name,
+      }))
       : [{ _id: "no-vendor", name: "No Vendor Exists" }];
 
   const [values, setValues] = useState(initialState);
@@ -136,6 +136,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
     _id: String(user.id),
     name: `${user.name} ${user.surname}`,
   }));
+
+  // TanStack Query hooks
+  const createVendorRiskMutation = useCreateVendorRisk();
+  const updateVendorRiskMutation = useUpdateVendorRisk();
   useEffect(() => {
     if (!isOpen) {
       setValues(initialState);
@@ -206,7 +210,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       "Risk description",
       values.risk_description,
       1,
-      64
+      256 // updated from 64
     );
     if (!risk_description.accepted) {
       newErrors.risk_description = risk_description.message;
@@ -215,7 +219,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       "Impact description",
       values.impact_description,
       1,
-      64
+      256 // updated from 64
     );
     if (!impact_description.accepted) {
       newErrors.impact_description = impact_description.message;
@@ -224,7 +228,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       "Action plan",
       values.action_plan,
       1,
-      64
+      256 // updated from 64
     );
     if (!action_plan.accepted) {
       newErrors.action_plan = action_plan.message;
@@ -303,9 +307,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const createRisk = async (riskDetails: object) => {
     setIsSubmitting(true);
     try {
-      const response = await createVendorRisk({
-        body: riskDetails,
-      });
+      const response = await createVendorRiskMutation.mutateAsync(riskDetails);
 
       if (response.status === 201) {
         setAlert({
@@ -332,9 +334,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
+        body: `An error occurred: ${(error as Error).message || "Please try again."
+          }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -353,9 +354,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const updateRisk = async (riskId: number, updatedRiskDetails: object) => {
     setIsSubmitting(true);
     try {
-      const response = await updateVendorRisk({
+      const response = await updateVendorRiskMutation.mutateAsync({
         id: riskId,
-        body: updatedRiskDetails,
+        data: updatedRiskDetails,
       });
 
       if (response.status === 202) {
@@ -383,9 +384,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
+        body: `An error occurred: ${(error as Error).message || "Please try again."
+          }`,
       });
 
       setTimeout(() => setAlert(null), 3000);

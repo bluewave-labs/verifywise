@@ -212,6 +212,9 @@ export const getSubClauseByIdForProjectQuery = async (
   projectFrameworkId: number,
   tenant: string
 ) => {
+  console.log("subClauseId : ==> ", subClauseId);
+  console.log("projectFrameworkId : ==> ", projectFrameworkId);
+  console.log("tenant : ==> ", tenant);
   const _subClauseId = (await sequelize.query(
     `SELECT id FROM "${tenant}".subclauses_iso27001 WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
     {
@@ -410,7 +413,7 @@ export const getAnnexControlByIdForProjectQuery = async (
   tenant: string
 ) => {
   const _annexControlId = (await sequelize.query(
-    `SELECT id FROM "${tenant}".annexcontrols_iso WHERE annexcontrol_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
+    `SELECT id FROM "${tenant}".annexcontrols_iso27001 WHERE annexcontrol_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
     {
       replacements: {
         id: annexControlId,
@@ -764,12 +767,22 @@ export const updateSubClauseQuery = async (
       if (field === "evidence_links") {
         updateSubClause["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
-      } else if (
-        subClause[field as keyof IISO27001SubClause] != undefined &&
-        subClause[field as keyof IISO27001SubClause]
-      ) {
-        updateSubClause[field as keyof IISO27001SubClause] =
-          subClause[field as keyof IISO27001SubClause];
+      } else if (subClause[field as keyof IISO27001SubClause] != undefined) {
+        let value = subClause[field as keyof IISO27001SubClause];
+        
+        // Handle empty strings for integer fields
+        if (["owner", "reviewer", "approver"].includes(field)) {
+          if (value === "" || value === null || value === undefined) {
+            return acc; // Skip this field if it's empty
+          }
+          const numValue = parseInt(value as string);
+          if (isNaN(numValue)) {
+            return acc; // Skip this field if it's not a valid number
+          }
+          value = numValue;
+        }
+        
+        updateSubClause[field as keyof IISO27001SubClause] = value;
         acc.push(`${field} = :${field}`);
       }
       return acc;
@@ -859,6 +872,10 @@ export const updateAnnexControlQuery = async (
     }
   );
 
+  if (!files[0]) {
+    throw new Error(`Annex control with ID ${id} not found`);
+  }
+
   let currentFiles = (
     files[0].evidence_links ? files[0].evidence_links : []
   ) as {
@@ -877,8 +894,6 @@ export const updateAnnexControlQuery = async (
   const updateAnnexControl: Partial<Record<keyof IISO27001AnnexControl, any>> =
     {};
   const setClause = [
-    "is_applicable",
-    "justification_for_exclusion",
     "implementation_description",
     "evidence_links",
     "status",
@@ -893,11 +908,23 @@ export const updateAnnexControlQuery = async (
         updateAnnexControl["evidence_links"] = JSON.stringify(currentFiles);
         acc.push(`${field} = :${field}`);
       } else if (
-        annexControl[field as keyof IISO27001AnnexControl] != undefined &&
-        annexControl[field as keyof IISO27001AnnexControl]
+        annexControl[field as keyof IISO27001AnnexControl] != undefined
       ) {
-        updateAnnexControl[field as keyof IISO27001AnnexControl] =
-          annexControl[field as keyof IISO27001AnnexControl];
+        let value = annexControl[field as keyof IISO27001AnnexControl];
+
+        // Handle empty strings for integer fields
+        if (["owner", "reviewer", "approver"].includes(field)) {
+          if (value === "" || value === null || value === undefined) {
+            return acc; // Skip this field if it's empty
+          }
+          const numValue = parseInt(value as string);
+          if (isNaN(numValue)) {
+            return acc; // Skip this field if it's not a valid number
+          }
+          value = numValue;
+        }
+
+        updateAnnexControl[field as keyof IISO27001AnnexControl] = value;
         acc.push(`${field} = :${field}`);
       }
       return acc;

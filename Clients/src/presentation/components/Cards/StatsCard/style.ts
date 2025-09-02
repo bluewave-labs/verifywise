@@ -1,20 +1,11 @@
-export const StatsCardFrame = {
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  width: "100%",
-  minWidth: "300px",
-  maxWidth: "100%",
-  gap: "40px",
-  backgroundColor: "white",
-  padding: "10px 25px",
-  border: "1px solid #EAECF0",
-  borderRadius: "4px",
-  boxShadow: "none",
-};
+import { Theme } from "@mui/material";
+import { cardStyles } from "../../../themes";
 
-export const StatsCardRate = {
-  color: "#2D3748",
+export const StatsCardFrame = (theme: Theme) => ({
+  ...cardStyles.stats(theme),
+});
+
+export const StatsCardRate = (theme: Theme) => ({
+  color: theme.palette.text.primary,
   fontSize: 26,
-};
+});

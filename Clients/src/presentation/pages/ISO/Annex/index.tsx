@@ -118,11 +118,17 @@ const ISO42001Annex = ({
     }
   };
 
-  const handleSaveSuccess = async (success: boolean, message?: string, savedControlId?: number) => {
+  const handleSaveSuccess = async (
+    success: boolean,
+    message?: string,
+    savedControlId?: number
+  ) => {
     // Show appropriate toast message
     handleAlert({
       variant: success ? "success" : "error",
-      body: message || (success ? "Changes saved successfully" : "Failed to save changes"),
+      body:
+        message ||
+        (success ? "Changes saved successfully" : "Failed to save changes"),
       setAlert,
     });
 
@@ -152,9 +158,14 @@ const ISO42001Annex = ({
           const response = await getEntityById({
             routeUrl: `/iso-42001/annexCategory/byId/${annexCategoryId}?projectFrameworkId=${projectFrameworkId}`,
           });
-          setSelectedAnnex({...response.data, id: response.data.annex_id});
+          setSelectedAnnex({ ...response.data, id: response.data.annex_id });
           if (annex && annexCategoryId) {
-            handleControlClick("A", annex, {...response.data, id: response.data.annex_id}, parseInt(annexCategoryId));
+            handleControlClick(
+              "A",
+              annex,
+              { ...response.data, id: response.data.annex_id },
+              parseInt(annexCategoryId)
+            );
           }
         } catch (error) {
           console.error("Error fetching annex category:", error);
@@ -166,7 +177,9 @@ const ISO42001Annex = ({
 
   return (
     <Stack className="iso-42001-annex">
-      {alert && <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />}
+      {alert && (
+        <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
+      )}
       {
         <>
           <StatsCard
@@ -188,55 +201,59 @@ const ISO42001Annex = ({
                   sx={styles.accordion}
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
-                    <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
+                    <ExpandMoreIcon
+                      sx={styles.expandIcon(expanded === annex.id)}
+                    />
                     {annex.title}
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
                     {annex.annexCategories
-  .map((control, index) => ({ control, index }))
-.filter(({ control }) => {
-  const statusMatches = statusFilter
-    ? control.status?.toLowerCase() === statusFilter.toLowerCase()
-    : true;
+                      .map((control, index) => ({ control, index }))
+                      .filter(({ control }) => {
+                        const statusMatches = statusFilter
+                          ? control.status?.toLowerCase() ===
+                            statusFilter.toLowerCase()
+                          : true;
 
-const applicabilityMatches =
-  applicabilityFilter?.toLowerCase() === "all"
-    ? true
-    : applicabilityFilter?.toLowerCase() === "true"
-    ? control.is_applicable === true
-    : applicabilityFilter?.toLowerCase() === "false"
-    ? control.is_applicable === false
-    : true;
+                        const applicabilityMatches =
+                          applicabilityFilter?.toLowerCase() === "all"
+                            ? true
+                            : applicabilityFilter?.toLowerCase() === "true"
+                            ? control.is_applicable === true
+                            : applicabilityFilter?.toLowerCase() === "false"
+                            ? control.is_applicable === false
+                            : true;
 
+                        return statusMatches && applicabilityMatches;
+                      })
 
-  return statusMatches && applicabilityMatches;
-})
-
-  .map(({ control, index }) => (
-    <Stack
-      key={control.id}
-      onClick={() => handleControlClick("A", annex, control, index)}
-      sx={styles.controlRow(
-        annex.annexCategories.length - 1 === index,
-        flashingRowId === control.id
-      )}
-    >
-      <Stack>
-        <Typography sx={styles.controlTitle}>
-          {"A"}.{annex.annex_no}.{index + 1} {control.title}
-        </Typography>
-        <Typography sx={styles.controlDescription}>
-          {control.description}
-        </Typography>
-      </Stack>
-      <Stack sx={styles.statusBadge(control.status || "")}>
-        {control.status
-          ? control.status.charAt(0).toUpperCase() + control.status.slice(1).toLowerCase()
-          : "Not started"}
-      </Stack>
-    </Stack>
-  ))}
-
+                      .map(({ control, index }) => (
+                        <Stack
+                          key={control.id}
+                          onClick={() =>
+                            handleControlClick("A", annex, control, index)
+                          }
+                          sx={styles.controlRow(
+                            annex.annexCategories.length - 1 === index,
+                            flashingRowId === control.id
+                          )}
+                        >
+                          <Stack>
+                            <Typography sx={styles.controlTitle}>
+                              {"A"}.{annex.annex_no}.{index + 1} {control.title}
+                            </Typography>
+                            <Typography sx={styles.controlDescription}>
+                              {control.description}
+                            </Typography>
+                          </Stack>
+                          <Stack sx={styles.statusBadge(control.status || "")}>
+                            {control.status
+                              ? control.status.charAt(0).toUpperCase() +
+                                control.status.slice(1).toLowerCase()
+                              : "Not started"}
+                          </Stack>
+                        </Stack>
+                      ))}
                   </AccordionDetails>
                 </Accordion>
               </Stack>
@@ -254,7 +271,9 @@ const applicabilityMatches =
           annex={selectedAnnex}
           projectFrameworkId={projectFrameworkId}
           project_id={project.id}
-          onSaveSuccess={(success, message) => handleSaveSuccess(success, message, selectedControl?.id)}
+          onSaveSuccess={(success, message) =>
+            handleSaveSuccess(success, message, selectedControl?.id)
+          }
         />
       )}
     </Stack>

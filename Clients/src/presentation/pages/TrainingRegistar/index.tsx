@@ -116,7 +116,6 @@ const Training: React.FC = () => {
           const response = await getEntityById({
             routeUrl: `/training/training-id/${selectedTrainingId}`,
           });
-          console.log("Fetching training details:", response);
           if (response?.data) {
             setSelectedTraining(response.data);
           }
@@ -143,22 +142,35 @@ const Training: React.FC = () => {
     try {
       if (selectedTraining) {
         // Update existing training
-        console.log("Updating training with data:", formData);
-        await updateEntityById({
+        const response = await updateEntityById({
           routeUrl: `/training/${selectedTraining.id}`,
           body: formData,
         });
-        setAlert({
-          variant: "success",
-          body: "Training updated successfully!",
-        });
+        if (response.data) {
+          setAlert({
+            variant: "success",
+            body: "Training updated successfully!",
+          });
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to update training. Please try again.",
+          });
+        }
       } else {
         // Create new training
-        await createTraining("/training", formData);
-        setAlert({
-          variant: "success",
-          body: "New training added successfully!",
-        });
+        const response = await createTraining("/training", formData);
+        if (response.data) {
+          setAlert({
+            variant: "success",
+            body: "Training updated successfully!",
+          });
+        } else {
+          setAlert({
+            variant: "error",
+            body: "Failed to add training. Please try again.",
+          });
+        }
       }
       await fetchTrainingData();
       handleCloseModal();
@@ -174,7 +186,6 @@ const Training: React.FC = () => {
 
   const handleDeleteTraining = async (id: string) => {
     try {
-      console.log("Deleting training with ID:", id);
       await deleteEntityById({ routeUrl: `/training/${id}` });
       await fetchTrainingData();
       setAlert({

@@ -94,17 +94,10 @@ info:
     - `403` Forbidden - Insufficient permissions
     - `404` Not Found - Resource doesn't exist
     - `409` Conflict - Resource already exists
-    - `429` Too Many Requests - Rate limit exceeded
     - `500` Internal Server Error - Server-side error
     - `503` Service Unavailable - Service temporarily down
 
-    ### 5. Rate Limiting
-    API requests are limited to 100 requests per minute per user. Rate limit headers are included in responses:
-    - `X-RateLimit-Limit`: Maximum requests allowed
-    - `X-RateLimit-Remaining`: Requests remaining
-    - `X-RateLimit-Reset`: Time when limit resets
-
-    ### 6. Multi-Tenancy
+    ### 5. Multi-Tenancy
     The API supports multi-tenant architecture. User's organization context is automatically determined from JWT token.
 
   version: 1.0.0
@@ -3172,19 +3165,6 @@ paths:
                   data:
                     type: string
                     example: "Account has been disabled"
-        "429":
-          description: Too many login attempts
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Too Many Requests"
-                  data:
-                    type: string
-                    example: "Too many login attempts. Please try again later"
         "500":
           description: Server error during authentication
           content:
@@ -3839,33 +3819,6 @@ components:
               data:
                 type: string
                 example: "Resource already exists"
-    
-    TooManyRequests:
-      description: Rate limit exceeded
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: "Too Many Requests"
-              data:
-                type: string
-                example: "Rate limit of 100 requests per minute exceeded"
-          headers:
-            X-RateLimit-Limit:
-              schema:
-                type: integer
-              description: Maximum requests allowed per time window
-            X-RateLimit-Remaining:
-              schema:
-                type: integer
-              description: Number of requests remaining
-            X-RateLimit-Reset:
-              schema:
-                type: integer
-              description: Time when rate limit resets (Unix timestamp)
     
     InternalServerError:
       description: Unexpected server error

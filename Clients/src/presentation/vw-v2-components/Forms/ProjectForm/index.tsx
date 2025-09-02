@@ -11,7 +11,7 @@ import {
   Radio,
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
-import { Suspense, useCallback, useContext, useMemo, useState } from "react";
+import { Suspense, useCallback, useContext, useMemo, useState, useEffect } from "react";
 import CustomizableButton from "../../Buttons";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -54,16 +54,26 @@ import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
 import { createProject } from "../../../../application/repository/project.repository";
 
-const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
+const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<FormValues>(initialState);
+  const [values, setValues] = useState<FormValues>({
+    ...initialState,
+    framework_type: defaultFrameworkType || null,
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { users } = useUsers();
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
+
+  // Auto-advance to step 2 if a default framework type is provided
+  useEffect(() => {
+    if (defaultFrameworkType) {
+      setCurrentStep(2);
+    }
+  }, [defaultFrameworkType]);
 
   // Filter frameworks based on framework type
   const filteredFrameworks = useMemo(() => {
@@ -333,7 +343,10 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
             Create new project
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            Please select the type of frameworks you need
+            {defaultFrameworkType ? 
+              `Creating a ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? 'organization-wide' : 'project-based'} project` :
+              "Please select the type of frameworks you need"
+            }
           </Typography>
         </Stack>
         <ClearIcon
@@ -343,48 +356,52 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
       </Stack>
 
       <Stack sx={{ gap: 4 }}>
-        <RadioGroup
-          value={values.framework_type || ""}
-          onChange={handleFrameworkTypeChange}
-          sx={radioGroupStyle}
-        >
-          {frameworkOptions.map((option) => (
-            <FormControlLabel
-              key={option.value}
-              value={option.value}
-              control={<Radio />}
-              label={
-                <Stack sx={{ gap: 1 }}>
-                  <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
-                  >
-                    {option.title}
-                  </Typography>
-                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
-                    {option.description}
-                  </Typography>
-                </Stack>
-              }
-              sx={{
-                ...radioOptionStyle,
-                "&.Mui-checked": {
-                  ...radioOptionStyle["&.selected"],
-                },
-                "& .MuiFormControlLabel-label": {
-                  width: "100%",
-                },
-              }}
-            />
-          ))}
-        </RadioGroup>
+        {!defaultFrameworkType && (
+          <>
+            <RadioGroup
+              value={values.framework_type || ""}
+              onChange={handleFrameworkTypeChange}
+              sx={radioGroupStyle}
+            >
+              {frameworkOptions.map((option) => (
+                <FormControlLabel
+                  key={option.value}
+                  value={option.value}
+                  control={<Radio />}
+                  label={
+                    <Stack sx={{ gap: 1 }}>
+                      <Typography
+                        sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
+                      >
+                        {option.title}
+                      </Typography>
+                      <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                        {option.description}
+                      </Typography>
+                    </Stack>
+                  }
+                  sx={{
+                    ...radioOptionStyle,
+                    "&.Mui-checked": {
+                      ...radioOptionStyle["&.selected"],
+                    },
+                    "& .MuiFormControlLabel-label": {
+                      width: "100%",
+                    },
+                  }}
+                />
+              ))}
+            </RadioGroup>
 
-        {errors.frameworkType && (
-          <Typography
-            variant="caption"
-            sx={{ color: "#f04438", fontWeight: 300 }}
-          >
-            {errors.frameworkType}
-          </Typography>
+            {errors.frameworkType && (
+              <Typography
+                variant="caption"
+                sx={{ color: "#f04438", fontWeight: 300 }}
+              >
+                {errors.frameworkType}
+              </Typography>
+            )}
+          </>
         )}
 
         <Stack

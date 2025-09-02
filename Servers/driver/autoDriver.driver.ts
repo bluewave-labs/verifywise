@@ -1,4 +1,4 @@
-import { getData, deleteDemoVendorsData } from "../utils/autoDriver.utils";
+import { getData, deleteDemoVendorsData, checkOrganizationalProjectExists } from "../utils/autoDriver.utils";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import {
@@ -85,28 +85,53 @@ export async function insertMockData(
         transaction,
         true // is demo
       );
-
-      const projectOrg = await createNewProjectQuery(
-        {
-          project_title: "Information Security & AI Governance Framework",
-          owner: owner,
-          start_date: new Date(Date.now()),
-          goal: "To establish comprehensive information security management and AI governance frameworks ensuring regulatory compliance and risk mitigation across organizational operations",
-          last_updated: new Date(Date.now()),
-          last_updated_by: users[0].id!,
-          is_organizational: true
-        },
-        users.reduce((acc: number[], user) => {
-          if (user.id !== owner) {
-            acc.push(user.id!);
-          }
-          return acc;
-        }, []),
-        [2, 3], // frameworks
+      // create eu framework
+      await createEUFrameworkQuery(
+        project.id!,
+        true,
         tenant,
         transaction,
-        true // is demo
+        true
       );
+
+      const organizationalProjectExists = await checkOrganizationalProjectExists(tenant, transaction);
+      if (!organizationalProjectExists) {
+        const projectOrg = await createNewProjectQuery(
+          {
+            project_title: "Information Security & AI Governance Framework",
+            owner: owner,
+            start_date: new Date(Date.now()),
+            goal: "To establish comprehensive information security management and AI governance frameworks ensuring regulatory compliance and risk mitigation across organizational operations",
+            last_updated: new Date(Date.now()),
+            last_updated_by: users[0].id!,
+            is_organizational: true
+          },
+          users.reduce((acc: number[], user) => {
+            if (user.id !== owner) {
+              acc.push(user.id!);
+            }
+            return acc;
+          }, []),
+          [2, 3], // frameworks
+          tenant,
+          transaction,
+          true // is demo
+        );
+        await createISOFrameworkQuery(
+          projectOrg.id!,
+          true,
+          tenant,
+          transaction,
+          true
+        );
+        await createISO27001FrameworkQuery(
+          projectOrg.id!,
+          true,
+          tenant,
+          transaction,
+          true
+        );
+      }
 
       // ---- no need of is demo
       // create project risks
@@ -185,29 +210,6 @@ export async function insertMockData(
         },
         tenant,
         transaction
-      );
-
-      // create eu framework
-      await createEUFrameworkQuery(
-        project.id!,
-        true,
-        tenant,
-        transaction,
-        true
-      );
-      await createISOFrameworkQuery(
-        projectOrg.id!,
-        true,
-        tenant,
-        transaction,
-        true
-      );
-      await createISO27001FrameworkQuery(
-        projectOrg.id!,
-        true,
-        tenant,
-        transaction,
-        true
       );
     } else {
       // project already exists, delete it and insert a new one

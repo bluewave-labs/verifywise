@@ -307,7 +307,7 @@ const NewControlPane = ({
       });
 
       // Add user and project info
-      formData.append("user_id", userId?.toString() || "");
+      formData.append("user_id", userId?.toString() || "1");
       formData.append("project_id", projectId.toString());
 
       // Add delete array if needed (you might want to track deleted files)

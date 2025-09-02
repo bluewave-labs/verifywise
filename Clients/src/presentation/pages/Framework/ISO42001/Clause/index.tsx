@@ -6,25 +6,25 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application/repository/clause_struct_iso.repository";
+import { GetClausesByProjectFrameworkId } from "../../../../../application/repository/clause_struct_iso.repository";
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
 import { useCallback, useEffect, useState } from "react";
-import { styles } from "./style";
+import { styles } from "../../ISO27001/Clause/style";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repository/subClause_iso.repository";
+import { GetSubClausesById } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
-import VWISO27001ClauseDrawerDialog from "../../../../components/Drawer/ISO27001ClauseDrawerDialog";
+import VWISO42001ClauseDrawerDialog from "../../../../components/Drawer/ClauseDrawerDialog";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";
 import StatusDropdown from "../../../../components/StatusDropdown";
-import { updateISO27001ClauseStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
+import { updateISO42001ClauseStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 
-const ISO27001Clause = ({
+const ISO42001Clause = ({
   FrameworkId,
   statusFilter,
 }: {
@@ -58,14 +58,14 @@ const ISO27001Clause = ({
   const fetchClauses = useCallback(async () => {
     try {
       const clauseProgressResponse = await getEntityById({
-        routeUrl: `/iso-27001/clauses/progress/${FrameworkId}`,
+        routeUrl: `/iso-42001/clauses/progress/${FrameworkId}`,
       });
       setClauseProgress(clauseProgressResponse.data);
 
-      const response = await Iso27001GetClauseStructByFrameworkID({
-        routeUrl: `/iso-27001/clauses/struct/byProjectId/${FrameworkId}`,
+      const response = await GetClausesByProjectFrameworkId({
+        routeUrl: `/iso-42001/clauses/struct/byProjectId/${FrameworkId}`,
       });
-      setClauses(response.data);
+      setClauses(response);
       setSubClausesMap({});
     } catch (error) {
       console.error("Error fetching clauses:", error);
@@ -81,8 +81,8 @@ const ISO27001Clause = ({
     async (clauseId: number, clauseSubClausesWithStatus: any[]) => {
       setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: true }));
       try {
-        const response = await ISO27001GetSubClauseByClauseId({
-          routeUrl: `/iso-27001/subClauses/byClauseId/${clauseId}`,
+        const response = await GetSubClausesById({
+          routeUrl: `/iso-42001/subClauses/byClauseId/${clauseId}`,
         });
         const detailedSubClauses = response.data;
 
@@ -164,7 +164,7 @@ const ISO27001Clause = ({
 
   const handleStatusChange = async (subClause: any, newStatus: string): Promise<boolean> => {
     try {
-      const success = await updateISO27001ClauseStatus({
+      const success = await updateISO42001ClauseStatus({
         id: subClause.id,
         newStatus,
         projectFrameworkId: Number(FrameworkId),
@@ -233,7 +233,7 @@ const ISO27001Clause = ({
               )}
             >
               <Typography fontSize={13}>
-                {clause.arrangement + "." + (index + 1)}{" "}
+                {clause.clause_no + "." + (index + 1)}{" "}
                 {subClause.title ?? "Untitled"}
               </Typography>
               <StatusDropdown
@@ -260,7 +260,7 @@ const ISO27001Clause = ({
       async function fetchSubClause() {
         try {
           const response = await getEntityById({
-            routeUrl: `/iso-27001/subClause/byId/${clauseId}?projectFrameworkId=${FrameworkId}`,
+            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${FrameworkId}`,
           });
           setSelectedSubClause({
             ...response.data,
@@ -282,7 +282,7 @@ const ISO27001Clause = ({
   }, [clauseId, subClauseId, clauses]);
 
   return (
-    <Stack className="iso-27001-clauses">
+    <Stack className="iso-42001-clauses">
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
@@ -317,12 +317,13 @@ const ISO27001Clause = ({
           </Stack>
         ))}
       {drawerOpen && (
-        <VWISO27001ClauseDrawerDialog
+        <VWISO42001ClauseDrawerDialog
           open={drawerOpen}
           onClose={handleDrawerClose}
           subClause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(FrameworkId)}
+          project_id={0}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }
@@ -333,4 +334,4 @@ const ISO27001Clause = ({
   );
 };
 
-export default ISO27001Clause;
+export default ISO42001Clause;

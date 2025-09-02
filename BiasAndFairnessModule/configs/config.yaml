@@ -43,6 +43,13 @@ model:
     top_p: 0.9
     system_prompt: "You are a strict classifier. You must answer with exactly one of these two strings: '>50K' or '<=50K'. No explanation. No formatting."
 
+# Prompting Configuration
+prompting:
+  formatter: "tinyllama-chat"         # or "openai-chat-json"
+  system_prompt: "You are a strict classifier. You must answer with exactly one of these two strings: '>50K' or '<=50K'. No explanation. No formatting." # falls back to formatter default if null
+  instruction: "Given the following demographic information about a person:"   # short, reusable task intent
+  assistant_preamble: "The predicted income is "         # only used by some formatters
+
 # Metrics Configuration
 metrics:
   # Fairness metrics for evaluation

@@ -79,8 +79,8 @@ export const canAddFrameworkToProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
-  if (!exists) {
+  const canBeAdded = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
+  if (canBeAdded === false) {
     return false; // Framework already added
   }
 

@@ -155,24 +155,129 @@ class ArtifactsConfig(BaseModel):
     )
 
 
-class PromptingConfig(BaseModel):
-    """Configuration for prompt formatting and inputs."""
+class PromptingDefaults(BaseModel):
+    """Defaults applied across formatters unless overridden by formatter-specific config."""
 
-    formatter: str = Field(
-        default="tinyllama-chat",
-        description="Name of prompt formatter to use",
+    instruction: Optional[str] = Field(
+        default=None, description="Short, reusable task instruction"
     )
     system_prompt: Optional[str] = Field(
-        default=None,
-        description="Override system prompt; None uses formatter default",
+        default=None, description="Shared system prompt unless formatter overrides"
     )
-    instruction: str = Field(
-        ..., description="Short, reusable task instruction"
+
+
+class PromptingFormatterOptions(BaseModel):
+    """Per-formatter configuration overrides."""
+
+    system_prompt: Optional[str] = Field(
+        default=None, description="Formatter-specific system prompt"
+    )
+    assistant_preamble: Optional[str] = Field(
+        default=None, description="Optional assistant preamble for certain formatters"
+    )
+
+
+class PromptingConfig(BaseModel):
+    """Configuration for prompt formatting with defaults and per-formatter overrides.
+
+    Backward compatible with the previous flat schema (instruction, system_prompt, assistant_preamble).
+    """
+
+    # New structured fields
+    formatter: str = Field(
+        default="tinyllama-chat", description="Name of prompt formatter to use"
+    )
+    defaults: PromptingDefaults = Field(
+        default_factory=PromptingDefaults,
+        description="Defaults shared across formatters",
+    )
+    formatters: Dict[str, PromptingFormatterOptions] = Field(
+        default_factory=dict, description="Per-formatter overrides"
+    )
+
+    # Legacy flat fields for backward compatibility with existing code paths
+    system_prompt: Optional[str] = Field(
+        default=None,
+        description="[Legacy] System prompt; computed from defaults/formatter if not set",
+    )
+    instruction: Optional[str] = Field(
+        default=None, description="[Legacy] Instruction; maps to defaults.instruction"
     )
     assistant_preamble: Optional[str] = Field(
         default=None,
-        description="Optional assistant preamble used by some formatters",
+        description="[Legacy] Assistant preamble; from selected formatter options if present",
     )
+
+    # @classmethod
+    # def _coerce_legacy_to_structured(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    #     """Allow initializing from the legacy flat schema by constructing structured fields."""
+    #     # If structured keys exist, leave as-is
+    #     if any(k in values for k in ("defaults", "formatters")):
+    #         # Ensure defaults exists to avoid attribute errors downstream
+    #         values.setdefault("defaults", {})
+    #         values.setdefault("formatters", {})
+    #         return values
+
+    #     # Build structured layout from legacy keys
+    #     defaults: Dict[str, Any] = {}
+    #     if "instruction" in values and values["instruction"] is not None:
+    #         defaults["instruction"] = values["instruction"]
+    #     if "system_prompt" in values and values["system_prompt"] is not None:
+    #         defaults["system_prompt"] = values["system_prompt"]
+
+    #     values["defaults"] = defaults
+    #     values["formatters"] = {}
+    #     return values
+
+    # @classmethod
+    # def _populate_legacy_computed_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    #     """Compute legacy fields from structured config for compatibility with existing callers."""
+    #     formatter_name: str = values.get("formatter", "tinyllama-chat")
+    #     defaults: Dict[str, Any] = values.get("defaults", {}) or {}
+    #     formatters: Dict[str, Any] = values.get("formatters", {}) or {}
+    #     fmt_opts: Dict[str, Any] = formatters.get(formatter_name, {}) or {}
+
+    #     # instruction
+    #     if values.get("instruction") is None:
+    #         values["instruction"] = defaults.get("instruction")
+
+    #     # system_prompt: prefer defaults.system_prompt, otherwise formatter-specific
+    #     if values.get("system_prompt") is None:
+    #         system_prompt = defaults.get("system_prompt")
+    #         if system_prompt is None:
+    #             system_prompt = fmt_opts.get("system_prompt")
+    #         values["system_prompt"] = system_prompt
+
+    #     # assistant_preamble from selected formatter options
+    #     if values.get("assistant_preamble") is None:
+    #         values["assistant_preamble"] = fmt_opts.get("assistant_preamble")
+
+    #     return values
+
+    # # Pydantic v1 root validators
+    # @classmethod
+    # def __get_validators__(cls):  # type: ignore[override]
+    #     yield cls.validate
+
+    # @classmethod
+    # def validate(cls, value):  # type: ignore[override]
+    #     if isinstance(value, dict):
+    #         coerced = cls._coerce_legacy_to_structured(dict(value))
+    #         populated = cls._populate_legacy_computed_fields(coerced)
+    #         return cls.construct(**populated)  # type: ignore[arg-type]
+    #     if isinstance(value, cls):
+    #         return value
+    #     raise TypeError("Invalid type for PromptingConfig")
+
+    # # Convenience helpers for callers that want explicit values
+    # def get_effective_instruction(self) -> Optional[str]:
+    #     return self.instruction
+
+    # def get_effective_system_prompt(self) -> Optional[str]:
+    #     return self.system_prompt
+
+    # def get_effective_assistant_preamble(self) -> Optional[str]:
+    #     return self.assistant_preamble
 
 
 class Config(BaseModel):

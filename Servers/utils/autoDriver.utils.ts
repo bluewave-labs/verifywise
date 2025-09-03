@@ -2,6 +2,14 @@ import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 
+export async function checkOrganizationalProjectExists(tenant: string, transaction: Transaction) {
+  const result = await sequelize.query(
+    `SELECT COUNT(*) as count FROM "${tenant}".projects WHERE is_organizational;`,
+    { transaction }
+  ) as [{ count: string }[], number];
+  return parseInt(result[0][0].count) || 0;
+}
+
 export async function getData(tableName: string, tenant: string, transaction: Transaction) {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".${tableName} WHERE is_demo;`,

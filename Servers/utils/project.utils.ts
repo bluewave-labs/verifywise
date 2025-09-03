@@ -30,8 +30,8 @@ export const getUserProjects = async (
   const whereConditions: string[] = [];
   const replacements: { [key: string]: any } = {};
 
-  // Filter out organizational projects from Dashboard
-  whereConditions.push("p.is_organizational = false");
+  // // Filter out organizational projects from Dashboard
+  // whereConditions.push("p.is_organizational = false");
 
   if (role !== "Admin") {
     baseQueryParts.push(

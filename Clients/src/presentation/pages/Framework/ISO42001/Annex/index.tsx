@@ -21,11 +21,11 @@ import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 
 const ISO42001Annex = ({
-  FrameworkId,
+  projectFrameworkId,
   statusFilter,
   applicabilityFilter,
 }: {
-  FrameworkId: string | number;
+  projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
 }) => {
@@ -44,11 +44,11 @@ const ISO42001Annex = ({
     const fetchAnnexes = async () => {
       try {
         const annexProgressResponse = await getEntityById({
-          routeUrl: `/iso-42001/annexes/progress/${FrameworkId}`,
+          routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId}`,
         });
         setAnnexesProgress(annexProgressResponse.data);
         const response = await GetAnnexesByProjectFrameworkId({
-          routeUrl: `/iso-42001/annexes/struct/byProjectId/${FrameworkId}`,
+          routeUrl: `/iso-42001/annexes/struct/byProjectId/${projectFrameworkId}`,
         });
         setAnnexes(response.data);
       } catch (error) {
@@ -56,7 +56,7 @@ const ISO42001Annex = ({
       }
     };
     fetchAnnexes();
-  }, [FrameworkId, refreshTrigger]);
+  }, [projectFrameworkId, refreshTrigger]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -101,7 +101,7 @@ const ISO42001Annex = ({
       const success = await updateISO42001AnnexStatus({
         id: control.id,
         newStatus,
-        projectFrameworkId: Number(FrameworkId),
+        projectFrameworkId: Number(projectFrameworkId),
         userId: userId || 1,
         currentData: control,
       });
@@ -240,7 +240,7 @@ const ISO42001Annex = ({
           onClose={handleDrawerClose}
           annex={selectedAnnex}
           control={selectedControl}
-          projectFrameworkId={Number(FrameworkId)}
+          projectFrameworkId={Number(projectFrameworkId)}
           project_id={0}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedControl?.id)

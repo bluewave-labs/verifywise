@@ -15,6 +15,7 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
 import { logEngine } from "../../../../application/tools/log.engine";
+import { FrameworkTypeEnum } from "../../../vw-v2-components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
@@ -52,7 +53,7 @@ const Home = () => {
 
   useEffect(() => {
     if (dashboard) {
-      setProjects(dashboard.projects_list);
+      setProjects(dashboard.projects_list.filter(p => !p.is_organizational));
     }
   }, [dashboard]);
 
@@ -242,7 +243,10 @@ const Home = () => {
               aria-describedby="modal-description"
           >
               <Box sx={vwhomeCreateModalFrame}>
-                  <ProjectForm onClose={handleProjectFormModalClose} />
+                  <ProjectForm 
+                    defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
+                    onClose={handleProjectFormModalClose} 
+                  />
               </Box>
           </Modal>
           <PageTour

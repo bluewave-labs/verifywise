@@ -7,7 +7,12 @@ export const useIsMultiTenant = () => {
   useEffect(() => {
     const fetchOrganizationCount = async () => {
       const response = await CustomAxios.get("/organizations/exists")
-      if (!response.data.data.exists || window.location.host === "app.verifywise.ai") {
+      if (
+        !response.data.data.exists || (
+          window.location.host === "app.verifywise.ai" ||
+          window.location.hostname === "test.verifywise.ai"
+        )
+      ) {
         setIsMultiTenant(true);
       }
     }

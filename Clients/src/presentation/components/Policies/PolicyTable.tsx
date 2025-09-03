@@ -1,10 +1,10 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Policy } from "../../../domain/types/Policy";
 import CustomizablePolicyTable from "../Table/PolicyTable";
 import { TableRow, TableCell } from "@mui/material";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
+import useUsers from "../../../application/hooks/useUsers";
 
 interface Props {
   data: Policy[];
@@ -60,8 +60,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
     return user ? user.name + " " + user.surname : "-";
   };
 
-    const { users } =
-    useContext(VerifyWiseContext);
+    const { users } = useUsers();
 
 
 

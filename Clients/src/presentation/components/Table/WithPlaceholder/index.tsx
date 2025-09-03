@@ -11,7 +11,7 @@ import {
   Typography,
   TableFooter,
 } from "@mui/material";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -22,7 +22,7 @@ import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorDetails } from "../../../pages/Vendors";
 import { User } from "../../../../domain/types/User";
 import allowedRoles from "../../../../application/constants/permissions";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 const titleOfTableColumns = [
   "name",
@@ -47,7 +47,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   onEdit,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(

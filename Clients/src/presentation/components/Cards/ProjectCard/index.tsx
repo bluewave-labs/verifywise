@@ -15,9 +15,8 @@ import {
 } from "./style";
 import { Project } from "../../../../domain/types/Project";
 import { formatDate } from "../../../tools/isoDateToString";
-import { useContext, useEffect, useState, useMemo, FC } from "react";
+import { useEffect, useState, useMemo, FC } from "react";
 import React from "react";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../domain/types/User";
 import useNavigateSearch from "../../../../application/hooks/useNavigateSearch";
 import {
@@ -25,6 +24,7 @@ import {
   ComplianceProgress,
 } from "../../../../application/interfaces/iprogress";
 import { fetchData } from "../../../../application/hooks/fetchDataHook";
+import useUsers from "../../../../application/hooks/useUsers";
 
 // Loading skeleton component
 const ProjectCardSkeleton: FC = () => (
@@ -155,7 +155,7 @@ const FrameworkButton = ({
 const ProjectCard: FC<ProjectCardProps> = React.memo(
   ({ project, isLoading = false }) => {
     const navigate = useNavigateSearch();
-    const { users } = useContext(VerifyWiseContext);
+    const { users } = useUsers();
 
     // Memoize framework IDs
     const projectFrameworkId = useMemo(

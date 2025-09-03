@@ -72,8 +72,8 @@ class HuggingFaceModelConfig(BaseModel):
         default=0.9, gt=0, le=1.0, description="Top-p sampling parameter"
     )
     prompt_formatter: str = Field(
-        default="You are a helpful AI assistant.",
-        description="System prompt to be prepended to all model inputs",
+        default="tinyllama-chat",
+        description="Name of prompt formatter to use for Hugging Face prompts",
     )
 
 

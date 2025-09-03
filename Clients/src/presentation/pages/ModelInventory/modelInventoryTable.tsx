@@ -18,8 +18,7 @@ import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { useContext } from "react";
+import { useAuth } from "../../../application/hooks/useAuth";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import {
@@ -119,7 +118,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   deletingId,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
   const [users, setUsers] = useState<User[]>([]);

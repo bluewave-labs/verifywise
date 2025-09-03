@@ -1,7 +1,6 @@
 import React, {
   useState,
   useEffect,
-  useContext,
   Suspense,
   useMemo,
 } from "react";
@@ -14,7 +13,6 @@ import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiS
 
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { logEngine } from "../../../application/tools/log.engine";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   getAllEntities,
   deleteEntityById,
@@ -22,7 +20,7 @@ import {
   updateEntityById,
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
-
+import { useAuth } from "../../../application/hooks/useAuth";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -67,8 +65,7 @@ const ModelInventory: React.FC = () => {
     (state: any) => state.ui?.modelInventory?.statusFilter || "all"
   );
 
-  // Context for user roles/permissions
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 

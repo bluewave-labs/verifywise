@@ -1,11 +1,16 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any, TYPE_CHECKING
 
 import torch
 from transformers import (AutoModelForCausalLM, AutoTokenizer,
                           GenerationConfig, PreTrainedModel,
                           PreTrainedTokenizer)
 
-from ..core.config import HuggingFaceModelConfig
+from ..core.config import HuggingFaceModelConfig, PromptingConfig
+from ..prompts.base import PromptInput
+from ..prompts.registry import get_formatter
+
+if TYPE_CHECKING:
+    from ..core.config import ConfigManager
 
 import joblib
 import os
@@ -23,33 +28,17 @@ class ModelLoader:
 
     def __init__(
         self,
-        model_id: str,
-        device: str = "cuda",
-        max_new_tokens: int = 512,
-        temperature: float = 0.7,
-        top_p: float = 0.9,
-        prompt_formatter: str = "You are a helpful AI assistant.",
+        hf_config: HuggingFaceModelConfig,
+        prompting_config: PromptingConfig,
     ):
-        """Initialize the model loader.
+        """Initialize the model loader with explicit configs.
 
         Args:
-            model_id (str): Hugging Face model ID
-            device (str, optional): Device to load model on. Defaults to "cuda".
-            max_new_tokens (int, optional): Maximum sequence length for generations. Defaults to 512.
-            temperature (float, optional): Sampling temperature. Defaults to 0.7.
-            top_p (float, optional): Top-p sampling parameter. Defaults to 0.9.
-            prompt_formatter (str, optional): System prompt to be prepended to all model inputs.
-                Defaults to "You are a helpful AI assistant."
+            hf_config (HuggingFaceModelConfig): Hugging Face model configuration
+            prompting_config (PromptingConfig): Prompt formatting configuration
         """
-        self.model_config = HuggingFaceModelConfig(
-            enabled=True,
-            model_id=model_id,
-            device=device,
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            prompt_formatter=prompt_formatter,
-        )
+        self.model_config = hf_config
+        self.prompting_config = prompting_config
 
         self.model: Optional[PreTrainedModel] = None
         self.tokenizer: Optional[PreTrainedTokenizer] = None
@@ -83,28 +72,42 @@ class ModelLoader:
             trust_remote_code=True,
         ).to(device)
 
-    def _format_prompt(self, prompt: str, system_prompt: Optional[str] = None) -> str:
-        """Format the prompt for TinyLlama chat model.
+    def _format_prompt(self, prompt: Union[str, Dict[str, Any]], system_prompt: Optional[str] = None) -> str:
+        """Format the prompt using the configured prompt formatter.
 
         Args:
-            prompt (str): The raw prompt
-            system_prompt (Optional[str]): The system prompt, defaults to None.
-                If None, uses the one from model_config.
+            prompt (Union[str, Dict[str, Any]]): Raw instruction string or features dict.
+            system_prompt (Optional[str]): Optional system prompt override.
 
         Returns:
-            str: Formatted prompt following TinyLlama chat format
+            str: Formatted prompt string as required by the model.
         """
-        if system_prompt is None:
-            system_prompt = self.model_config.prompt_formatter
-        return f"<|system|>{system_prompt}\n<|user|>{prompt}\n<|assistant|>The predicted income is "
+        formatter_name = self.prompting_config.formatter
+        formatter = get_formatter(formatter_name)
+
+        # Build PromptInput. If user passed a preformatted string, treat it as instruction
+        if isinstance(prompt, str):
+            features: Dict[str, Any] = {}
+            instruction = prompt
+        else:
+            features = prompt
+            instruction = self.prompting_config.instruction
+
+        p = PromptInput(
+            instruction=instruction,
+            features=features,
+            system_prompt=system_prompt or self.prompting_config.system_prompt,
+            assistant_preamble=self.prompting_config.assistant_preamble,
+        )
+        return formatter.format(p)
 
     def predict(
-        self, prompts: Union[str, List[str]], system_prompt: Optional[str] = None
+        self, prompts: Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]], system_prompt: Optional[str] = None
     ) -> List[str]:
         """Generate responses for the given prompts using model configuration parameters.
 
         Args:
-            prompts (Union[str, List[str]]): Input prompt(s) for prediction
+            prompts (Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]): Input prompt(s) for prediction
             system_prompt (Optional[str], optional): System prompt for the model.
                 If None, uses the one from model_config. Defaults to None.
 
@@ -118,7 +121,7 @@ class ModelLoader:
             raise RuntimeError("No model has been loaded. Check your configuration.")
 
         # Convert single prompt to list
-        if isinstance(prompts, str):
+        if isinstance(prompts, (str, dict)):
             prompts = [prompts]
 
         # Format prompts for chat
@@ -161,3 +164,36 @@ class ModelLoader:
             responses.append(assistant_response)
 
         return responses
+
+    @classmethod
+    def from_config_manager(cls, cfg_mgr: "ConfigManager") -> "ModelLoader":
+        """
+        Convenience constructor:
+        - pulls `model.huggingface` and `prompting` blocks from your YAML
+        """
+        # Convert to a plain dict for robust access
+        if hasattr(cfg_mgr, "config") and hasattr(cfg_mgr.config, "dict"):
+            cfg_dict = cfg_mgr.config.dict()
+        else:
+            cfg_dict = cfg_mgr.config  # type: ignore[assignment]
+
+        m = cfg_dict["model"]["huggingface"]
+        p = cfg_dict["prompting"]
+
+        hf_config = HuggingFaceModelConfig(
+            enabled=m.get("enabled", True),
+            model_id=m["model_id"],
+            device=m.get("device", "cuda"),
+            max_new_tokens=m.get("max_new_tokens", 512),
+            temperature=m.get("temperature", 0.7),
+            top_p=m.get("top_p", 0.9),
+            # keep this field but it’s no longer used for formatting:
+            prompt_formatter=m.get("prompt_formatter", p.get("formatter", "tinyllama-chat")),
+        )
+        prompting_config = PromptingConfig(
+            formatter=p.get("formatter", "tinyllama-chat"),
+            system_prompt=p.get("system_prompt"),
+            instruction=p.get("instruction"),
+            assistant_preamble=p.get("assistant_preamble"),
+        )
+        return cls(hf_config=hf_config, prompting_config=prompting_config)

@@ -10,7 +10,7 @@ export const useIsMultiTenant = () => {
       if (
         !response.data.data.exists || (
           window.location.host === "app.verifywise.ai" ||
-          window.location.host === "test.verifywise.ai"
+          window.location.hostname === "test.verifywise.ai"
         )
       ) {
         setIsMultiTenant(true);

@@ -61,7 +61,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }
     setIsReportRequest(true);
     const owner = users.find(
-      (user: any) => user.id === parseInt(currentProject.owner)
+      (user: any) => user.id === currentProject.owner
     );
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
     let reportTypeLabel = input.report_type;

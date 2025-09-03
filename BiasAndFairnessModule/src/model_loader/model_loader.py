@@ -187,13 +187,6 @@ class ModelLoader:
             max_new_tokens=m.get("max_new_tokens", 512),
             temperature=m.get("temperature", 0.7),
             top_p=m.get("top_p", 0.9),
-            # keep this field but it’s no longer used for formatting:
-            prompt_formatter=m.get("prompt_formatter", p.get("formatter", "tinyllama-chat")),
         )
-        prompting_config = PromptingConfig(
-            formatter=p.get("formatter", "tinyllama-chat"),
-            system_prompt=p.get("system_prompt"),
-            instruction=p.get("instruction"),
-            assistant_preamble=p.get("assistant_preamble"),
-        )
+        prompting_config = PromptingConfig(**p)
         return cls(hf_config=hf_config, prompting_config=prompting_config)

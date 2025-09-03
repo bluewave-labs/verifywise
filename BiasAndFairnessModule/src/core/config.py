@@ -71,10 +71,6 @@ class HuggingFaceModelConfig(BaseModel):
     top_p: float = Field(
         default=0.9, gt=0, le=1.0, description="Top-p sampling parameter"
     )
-    prompt_formatter: str = Field(
-        default="tinyllama-chat",
-        description="Name of prompt formatter to use for Hugging Face prompts",
-    )
 
 
 class ModelConfig(BaseModel):

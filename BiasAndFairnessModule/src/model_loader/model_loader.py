@@ -28,7 +28,7 @@ class ModelLoader:
         max_new_tokens: int = 512,
         temperature: float = 0.7,
         top_p: float = 0.9,
-        system_prompt: str = "You are a helpful AI assistant.",
+        prompt_formatter: str = "You are a helpful AI assistant.",
     ):
         """Initialize the model loader.
 
@@ -38,7 +38,7 @@ class ModelLoader:
             max_new_tokens (int, optional): Maximum sequence length for generations. Defaults to 512.
             temperature (float, optional): Sampling temperature. Defaults to 0.7.
             top_p (float, optional): Top-p sampling parameter. Defaults to 0.9.
-            system_prompt (str, optional): System prompt to be prepended to all model inputs.
+            prompt_formatter (str, optional): System prompt to be prepended to all model inputs.
                 Defaults to "You are a helpful AI assistant."
         """
         self.model_config = HuggingFaceModelConfig(
@@ -48,7 +48,7 @@ class ModelLoader:
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             top_p=top_p,
-            system_prompt=system_prompt,
+            prompt_formatter=prompt_formatter,
         )
 
         self.model: Optional[PreTrainedModel] = None
@@ -95,7 +95,7 @@ class ModelLoader:
             str: Formatted prompt following TinyLlama chat format
         """
         if system_prompt is None:
-            system_prompt = self.model_config.system_prompt
+            system_prompt = self.model_config.prompt_formatter
         return f"<|system|>{system_prompt}\n<|user|>{prompt}\n<|assistant|>The predicted income is "
 
     def predict(

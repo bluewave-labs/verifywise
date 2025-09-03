@@ -48,7 +48,7 @@ class ModelInferencePipeline:
                 max_new_tokens=model_config.huggingface.max_new_tokens,
                 temperature=model_config.huggingface.temperature,
                 top_p=model_config.huggingface.top_p,
-                system_prompt=model_config.huggingface.system_prompt,
+                prompt_formatter=model_config.huggingface.prompt_formatter,
             )
         except Exception as e:
             raise RuntimeError(f"Failed to load model: {str(e)}")

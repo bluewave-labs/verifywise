@@ -473,7 +473,7 @@ async function deleteUserById(req: Request, res: Response) {
         return res.status(403).json(STATUS_CODE[403]('Demo users cannot be deleted'));
       }
 
-      const deletedUser = await deleteUserByIdQuery(id, transaction);
+      const deletedUser = await deleteUserByIdQuery(id, req.tenantId!, transaction);
       await transaction.commit();
 
       logStructured('successful', `user deleted: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');

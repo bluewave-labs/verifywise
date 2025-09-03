@@ -212,9 +212,6 @@ export const getSubClauseByIdForProjectQuery = async (
   projectFrameworkId: number,
   tenant: string
 ) => {
-  console.log("subClauseId : ==> ", subClauseId);
-  console.log("projectFrameworkId : ==> ", projectFrameworkId);
-  console.log("tenant : ==> ", tenant);
   const _subClauseId = (await sequelize.query(
     `SELECT id FROM "${tenant}".subclauses_iso27001 WHERE subclause_meta_id = :id AND projects_frameworks_id = :projects_frameworks_id;`,
     {

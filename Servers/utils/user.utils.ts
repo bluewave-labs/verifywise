@@ -310,6 +310,7 @@ export const updateUserByIdQuery = async (
  */
 export const deleteUserByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const usersFK = [
@@ -319,16 +320,16 @@ export const deleteUserByIdQuery = async (
       fields: ["owner", "last_updated_by"],
     },
     { table: "vendors", model: VendorModel, fields: ["assignee", "reviewer"] },
-    {
-      table: "controls",
-      model: ControlModel,
-      fields: ["approver", "owner", "reviewer"],
-    },
-    {
-      table: "subcontrols",
-      model: SubcontrolModel,
-      fields: ["approver", "owner", "reviewer"],
-    },
+    // {
+    //   table: "controls",
+    //   model: ControlModel,
+    //   fields: ["approver", "owner", "reviewer"],
+    // },
+    // {
+    //   table: "subcontrols",
+    //   model: SubcontrolModel,
+    //   fields: ["approver", "owner", "reviewer"],
+    // },
     {
       table: "projectrisks",
       model: ProjectRiskModel,
@@ -341,8 +342,9 @@ export const deleteUserByIdQuery = async (
   for (let entry of usersFK) {
     await Promise.all(
       entry.fields.map(async (f) => {
+        console.log(entry.table);
         await sequelize.query(
-          `UPDATE ${entry.table} SET ${f} = :x WHERE ${f} = :id`,
+          `UPDATE "${tenant}".${entry.table} SET ${f} = :x WHERE ${f} = :id`,
           {
             replacements: { x: null, id },
             // type: QueryTypes.UPDATE
@@ -354,7 +356,7 @@ export const deleteUserByIdQuery = async (
   }
 
   await sequelize.query(
-    `DELETE FROM projects_members WHERE user_id = :user_id`,
+    `DELETE FROM "${tenant}".projects_members WHERE user_id = :user_id`,
     {
       replacements: { user_id: id },
       type: QueryTypes.DELETE,

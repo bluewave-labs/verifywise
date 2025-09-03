@@ -6,6 +6,7 @@ import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
+import Subscription from "./Subscription";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../application/constants/permissions";
 
@@ -37,6 +38,7 @@ export default function ProfilePage() {
           disabled={isTeamManagementDisabled}
         />
         <Tab label="Organization" disableRipple sx={settingTabStyle} />
+        <Tab label="Subscription" disableRipple sx={settingTabStyle} />
       </Tabs>
 
       {activeTab === 0 && <Profile />}
@@ -46,6 +48,7 @@ export default function ProfilePage() {
       {activeTab === 2 && <TeamManagement />}
 
       {activeTab === 3 && <Organization />}
+      {activeTab === 4 && <Subscription />}
     </Stack>
   );
 }

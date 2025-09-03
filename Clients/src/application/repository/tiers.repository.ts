@@ -29,3 +29,17 @@ export async function getTierFeatures({
   });
   return response.data;
 }
+
+export async function getAllTiers({
+  signal,
+  authToken = getAuthToken(),
+}: {
+  signal?: AbortSignal;
+  authToken?: string;
+} = {}): Promise<any> {
+  const response = await apiServices.get("/tiers", {
+    headers: { Authorization: `Bearer ${authToken}` },
+    signal,
+  });
+  return response?.data ?? [];
+}

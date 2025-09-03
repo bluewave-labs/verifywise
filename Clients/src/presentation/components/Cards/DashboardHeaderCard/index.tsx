@@ -40,7 +40,7 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
         padding: "8px 36px 14px 14px",
         cursor: isClickable ? "pointer" : "default",
         position: "relative",
-        overflow: "visible", // <-- important
+        overflow: "visible",
         transition: "all 0.2s ease",
         "&:hover": isClickable
           ? {
@@ -76,12 +76,13 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
         {count}
       </Typography>
 
-      {isClickable && isHovered && (
+      {isClickable && (
         <Box
           sx={{
             position: "absolute",
             top: 8,
             right: 8,
+            opacity: isHovered ? 1 : 0.3,
             transition: "opacity 0.2s ease",
           }}
         >

@@ -43,7 +43,7 @@ const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
   const eventTypeStyles = {
     Create: { bg: "#E6F4EA", color: "#138A5E" },
     Read: { bg: "#DCEFFF", color: "#1976D2" },
-    Update: { bg: "#FFF8E1", color: "#FBC02D" },
+    Update: { bg: "#FFF8E1", color: "#795000" },
     Delete: { bg: "#FFD6D6", color: "#D32F2F" },
     Error: { bg: "#FFE5D0", color: "#E64A19" },
   };

@@ -50,7 +50,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
         case "high risk":
           return { bg: "#ffcdd2", color: "#c62828" };       // light red bg, dark red text
         case "limited risk":
-          return { bg: "#fff3e0", color: "#fb8c00" };       // light orange bg, orange text
+          return { bg: "#fff3e0", color: "#b71c1c" };       // light orange bg, brown text
         case "minimal risk":
           return { bg: "#c8e6c9", color: "#388e3c" };       // light green bg, dark green text
         default:

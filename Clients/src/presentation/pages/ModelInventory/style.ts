@@ -69,7 +69,7 @@ export const summaryCardLabelStyle = (theme: Theme) => ({
 export const statusBadgeStyle = (status: ModelInventoryStatus) => {
   const statusStyles = {
     [ModelInventoryStatus.APPROVED]: { bg: "#E6F4EA", color: "#138A5E" },
-    [ModelInventoryStatus.PENDING]: { bg: "#FFF8E1", color: "#FBC02D" },
+    [ModelInventoryStatus.PENDING]: { bg: "#FFF8E1", color: "#795548" }, // Brown-ish
     [ModelInventoryStatus.RESTRICTED]: { bg: "#FFE5D0", color: "#E64A19" },
     [ModelInventoryStatus.BLOCKED]: { bg: "#FFD6D6", color: "#D32F2F" },
   };

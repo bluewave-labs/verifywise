@@ -2,6 +2,7 @@ from typing import Dict
 
 from .base import PromptFormatter
 from .tinyllama import TinyLlamaFormatter
+from .chat_openai import OpenAIChatJSONFormatter
 
 
 def _normalize(name: str) -> str:
@@ -12,6 +13,7 @@ def _normalize(name: str) -> str:
 
 FORMATTERS: Dict[str, PromptFormatter] = {
     _normalize("tinyllama-chat"): TinyLlamaFormatter(),
+    _normalize("openai-chat-json"): OpenAIChatJSONFormatter(),
 }
 
 

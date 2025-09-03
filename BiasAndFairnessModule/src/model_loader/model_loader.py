@@ -6,6 +6,7 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
                           PreTrainedTokenizer)
 
 from ..core.config import HuggingFaceModelConfig, PromptingConfig
+from ..core.prompt_config import resolve_prompt_config
 from ..prompts.base import PromptInput
 from ..prompts.registry import get_formatter
 
@@ -82,22 +83,18 @@ class ModelLoader:
         Returns:
             str: Formatted prompt string as required by the model.
         """
+        # Get formatter and its class defaults, then resolve effective prompting parameters
         formatter_name = self.prompting_config.formatter
         formatter = get_formatter(formatter_name)
-
-        # Build PromptInput. If user passed a preformatted string, treat it as instruction
-        if isinstance(prompt, str):
-            features: Dict[str, Any] = {}
-            instruction = prompt
-        else:
-            features = prompt
-            instruction = self.prompting_config.instruction
+        class_defaults = getattr(formatter, "DEFAULTS", {}) or {}
+        resolved = resolve_prompt_config(self.prompting_config, class_defaults)
+        params = resolved["params"]
 
         p = PromptInput(
-            instruction=instruction,
-            features=features,
-            system_prompt=system_prompt or self.prompting_config.system_prompt,
-            assistant_preamble=self.prompting_config.assistant_preamble,
+            instruction=params.get("instruction"),
+            features=prompt,
+            system_prompt=params.get("system_prompt"),
+            assistant_preamble=params.get("assistant_preamble"),
         )
         return formatter.format(p)
 

@@ -8,7 +8,7 @@ class TinyLlamaFormatter(PromptFormatter):
 
         if p.features:
             feat_lines = "\n".join(
-                [f"- {k.replace('_', '.')}: {v}" for k, v in p.features.items()]
+                [f"- {k}: {v}" for k, v in p.features.items()]
             )
             user_text = f"{p.instruction}\n\nFeatures:\n{feat_lines}"
         else:

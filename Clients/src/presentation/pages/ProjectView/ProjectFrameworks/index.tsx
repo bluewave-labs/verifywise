@@ -72,6 +72,12 @@ const ProjectFrameworks = ({
   const isManagingFrameworksDisabled =
     !allowedRoles.frameworks.manage.includes(userRoleName);
 
+  // Filter out organizational frameworks
+  const nonOrganizationalFrameworks = useMemo(
+    () => allFrameworks.filter((framework: Framework) => !framework.is_organizational),
+    [allFrameworks]
+  );
+
   useEffect(() => {
     changeComponentVisibility("projectFrameworks", allVisible);
     changeComponentVisibility(
@@ -220,7 +226,7 @@ const ProjectFrameworks = ({
       <AddFrameworkModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        frameworks={allFrameworks}
+        frameworks={nonOrganizationalFrameworks}
         project={project}
         onFrameworksChanged={(action, frameworkId?: number) => {
           if (triggerRefresh) {

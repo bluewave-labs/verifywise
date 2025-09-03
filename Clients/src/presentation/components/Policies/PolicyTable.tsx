@@ -42,7 +42,7 @@ const policyStatusBadgeStyle = (status: string) => {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: 8,
+    borderRadius: 12,
     fontWeight: 500,
     fontSize: "11px",
     textTransform: "uppercase" as const,

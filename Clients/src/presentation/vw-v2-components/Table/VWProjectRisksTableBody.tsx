@@ -2,7 +2,6 @@ import {
   TableBody,
   TableCell,
   TableRow,
-  useTheme,
   Chip,
   Dialog,
 } from "@mui/material";
@@ -72,7 +71,6 @@ const VWProjectRisksTableBody = ({
   const { users } = useUsers();
   const isDeletingAllowed = allowedRoles.projectRisks.delete.includes(userRoleName);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-  const theme = useTheme();
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);

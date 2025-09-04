@@ -70,7 +70,7 @@ export const getSeverityColorByText = (severity: string): string => {
 };
 
 // Reusable chip style object to avoid repetitive styling
-export const getRiskChipStyle = (theme: any) => ({
+export const getRiskChipStyle = () => ({
   color: 'white',
   fontWeight: 500,
   borderRadius: 12,

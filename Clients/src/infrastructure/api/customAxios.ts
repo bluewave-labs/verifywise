@@ -80,6 +80,11 @@ CustomAxios.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // Remove any authorization token from URL params or query string
+    if (config.params && config.params.headers && config.params.headers.Authorization) {
+      delete config.params.headers.Authorization;
+    }
+
     // Enable credentials for auth-related endpoints
     if (config.url?.includes('/users/login') || config.url?.includes('/users/refresh-token')) {
       config.withCredentials = true;

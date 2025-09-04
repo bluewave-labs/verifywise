@@ -1,17 +1,11 @@
-version: "3.9"
+version: '3.9'
 
 services:
   postgresdb:
     expose:
       - "$DB_PORT"
     volumes:
-      - db-prod:/var/lib/postgresql/data # Separate volume for prod database
-    labels:
-      - keep=true
-
-  redis:
-    labels:
-      - keep=true
+      - db-prod:/var/lib/postgresql/data  # Separate volume for prod database
 
   backend:
     env_file:

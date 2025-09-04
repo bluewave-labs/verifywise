@@ -30,7 +30,7 @@ const tableHeaders = [
 const policyStatusBadgeStyle = (status: string) => {
   const statusStyles: Record<string, { bg: string; color: string }> = {
     Draft: { bg: "#e0e0e0", color: "#616161" },
-    "In review": { bg: "#fff3e0", color: "#fb8c00" },
+    "In review": { bg: "#fff3e0", color: "#b71c1c" },
     Approved: { bg: "#c8e6c9", color: "#388e3c" },
     Published: { bg: "#bbdefb", color: "#1976d2" },
     Archived: { bg: "#eeeeee", color: "#757575" },
@@ -42,7 +42,7 @@ const policyStatusBadgeStyle = (status: string) => {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: 8,
+    borderRadius: 12,
     fontWeight: 500,
     fontSize: "11px",
     textTransform: "uppercase" as const,

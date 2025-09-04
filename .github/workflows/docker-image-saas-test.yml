@@ -1,0 +1,85 @@
+name: Build and Push Images to GitHub Container Registry
+
+on:
+  push:
+    branches:
+      - hp-sep-4-add-testing-workflow
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Debug GitHub Token Access
+        run: |
+          if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
+            echo "GITHUB_TOKEN is NOT available"
+            exit 1
+          else
+            echo "GITHUB_TOKEN is available"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Google Client ID Secret
+        run: |
+          if [ -z "${{ secrets.GOOGLE_CLIENT_ID }}" ]; then
+            echo "GOOGLE_CLIENT_ID secret is NOT available"
+            exit 1
+          fi
+
+      - name: Build and push Clients image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Clients
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:test
+          build-args: |
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+
+      - name: Build and push Servers image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Servers
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-backend-saas:test
+
+      - name: Build and push BiasAndFairnessServers image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./BiasAndFairnessServers
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:test
+
+      - name: Deploy to Testing
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.TEST_HOST }}
+          username: ${{ secrets.TEST_USER }}
+          key: ${{ secrets.TEST_SSH_KEY }}
+          script: |
+            cd /root/verifywise
+            docker-compose --env-file .env.prod down
+            docker image prune -f --filter "label!=keep"
+            ./install.sh

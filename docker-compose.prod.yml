@@ -5,7 +5,13 @@ services:
     expose:
       - "$DB_PORT"
     volumes:
-      - db-prod:/var/lib/postgresql/data  # Separate volume for prod database
+      - db-prod:/var/lib/postgresql/data # Separate volume for prod database
+    labels:
+      - keep=true
+
+  redis:
+    labels:
+      - keep=true
 
   backend:
     env_file:

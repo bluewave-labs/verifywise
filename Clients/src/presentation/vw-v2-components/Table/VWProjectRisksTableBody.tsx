@@ -178,7 +178,7 @@ const VWProjectRisksTableBody = ({
                       backgroundColor: getMitigationStatusColor(row.mitigation_status),
                       color: 'white',
                       fontWeight: 500,
-                      borderRadius: theme.shape.borderRadius,
+                      borderRadius: 12,
                       height: 24,
                     }}
                   />

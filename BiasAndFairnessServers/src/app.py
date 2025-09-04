@@ -24,7 +24,7 @@ def run_migrations():
 async def shutdown_redis():
     await close_redis()
 
-app = FastAPI(on_shutdown=[shutdown_redis])
+app = FastAPI()
 
 # enable CORS
 origins = [os.environ.get("BACKEND_URL") or "http://localhost:3000"]

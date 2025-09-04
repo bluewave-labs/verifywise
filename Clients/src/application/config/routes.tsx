@@ -60,6 +60,7 @@ export const createRoutes = (
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
     <Route path="/fairness-dashboard/bias-fairness-results/:id" element={<BiasAndFairnessResultsPage />} />
+    <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/policies" element={<PolicyDashboard/>}/>

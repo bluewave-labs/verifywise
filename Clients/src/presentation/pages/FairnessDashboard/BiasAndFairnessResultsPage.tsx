@@ -9,13 +9,40 @@ import {
   Grid,
   Card,
   CardContent,
+  Tabs,
+  Tab,
+  Chip,
+  Divider,
+  Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { BarChart } from "@mui/x-charts";
+import createPlotlyComponent from 'react-plotly.js/factory';
+import Plotly from 'plotly.js-basic-dist';
+const Plot = createPlotlyComponent(Plotly);
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import singleTheme from "../../themes/v1SingleTheme";
 
-const metricDescriptions = {
+type MetricEntry = { value: number; status?: string; confidence?: string; [k: string]: any };
+type DataQuality = {
+  data_quality_score?: number;
+  insights?: string[];
+  flagged_metrics?: Record<string, { value?: number; reason?: string; recommendation?: string }>;
+};
+type MetricsConfiguration = {
+  user_selected_metrics?: string[];
+  fairness_compass_recommended_metrics?: string[];
+  all_available_metrics?: string[];
+};
+type CleanResults = {
+  metadata?: { dataset?: string; model?: string; model_task?: string; evaluation_timestamp?: string; metrics_configuration?: MetricsConfiguration };
+  performance?: Record<string, number>;
+  fairness_metrics?: Record<string, MetricEntry>;
+  data_quality?: DataQuality;
+};
+type ResultsResponse = { results: CleanResults; status?: string; eval_id?: string; dataset_name?: string; model_name?: string; model_task?: string; created_at?: string };
+
+const metricDescriptions: { [metric: string]: string } = {
   demographic_parity: "Measures how equally outcomes are distributed across groups. Lower is fairer.",
   equalized_odds: "Difference in true positive and false positive rates between groups. Lower means less bias.",
   predictive_parity: "Measures consistency in positive predictive value across groups.",
@@ -43,10 +70,15 @@ const metricDescriptions = {
 
 export default function BiasAndFairnessResultsPage() {
   const { id } = useParams();
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<ResultsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const isDemo = !id;
+  const [tab, setTab] = useState(0);
+  // Applied selection affects charts; draft holds checkbox changes until user clicks Select
+  const [appliedSelection, setAppliedSelection] = useState<Record<string, boolean>>({});
+  const [explorerDraftSelection, setExplorerDraftSelection] = useState<Record<string, boolean>>({});
 
   const barColors = [
     "#E6194B", "#3CB44B", "#FFE119", "#4363D8", "#F58231",
@@ -56,21 +88,25 @@ export default function BiasAndFairnessResultsPage() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        // Fetch real data from the database
-        const data = await biasAndFairnessService.getBiasFairnessEvaluation(id as string);
-        setMetrics(data);
+        if (isDemo) {
+          // Load mock data shipped with the app (structure matches clean_results.json)
+          const resp = await fetch('/mock/clean_results.json');
+          const data = await resp.json();
+          setMetrics({ results: data, status: 'completed' });
+        } else {
+          const data = await biasAndFairnessService.getBiasFairnessEvaluation(id as string);
+          setMetrics(data);
+        }
       } catch (error) {
-        console.error("Failed to fetch metrics:", error);
-        setError("Failed to fetch metrics.");
+        console.error('Failed to fetch metrics:', error);
+        setError('Failed to fetch metrics.');
       } finally {
         setLoading(false);
       }
     };
-    
-    if (id) {
-      fetchMetrics();
-    }
-  }, [id]);
+
+    fetchMetrics();
+  }, [id, isDemo]);
 
   if (loading) {
     return (
@@ -103,9 +139,9 @@ export default function BiasAndFairnessResultsPage() {
     // Check if we have results from the evaluation
     if (metrics?.results?.fairness_metrics) {
       Object.entries(metrics.results.fairness_metrics).forEach(([key, value]) => {
-        if (key.endsWith(`_${attribute}`) && value && typeof value === 'object' && 'value' in value) {
+        if (key.endsWith(`_${attribute}`) && value && typeof value === 'object' && (value as { value?: number }).value !== undefined) {
           const metricName = key.replace(`_${attribute}`, '');
-          attributeMetrics[metricName] = (value as any).value;
+          attributeMetrics[metricName] = (value as { value: number }).value as number;
         }
       });
     }
@@ -113,8 +149,34 @@ export default function BiasAndFairnessResultsPage() {
     return attributeMetrics;
   };
 
-  const sexMetrics = getFairnessMetricsByAttribute('sex');
-  const raceMetrics = getFairnessMetricsByAttribute('race');
+  const sexMetricsAll = getFairnessMetricsByAttribute('sex');
+  const raceMetricsAll = getFairnessMetricsByAttribute('race');
+
+  // Apply explorer selection: if any metrics are selected, filter charts to those; else show all
+  const selectedMetricNames = Object.keys(appliedSelection).filter(k => appliedSelection[k]);
+  const filterBySelection = (data: Record<string, number>) => {
+    if (selectedMetricNames.length === 0) return data;
+    const filtered: Record<string, number> = {};
+    for (const [k, v] of Object.entries(data)) {
+      if (selectedMetricNames.includes(k)) filtered[k] = v;
+    }
+    return filtered;
+  };
+  const sexMetrics = filterBySelection(sexMetricsAll);
+  const raceMetrics = filterBySelection(raceMetricsAll);
+
+  // Determine if draft differs from applied
+  const hasDraftChanges = (() => {
+    const keys = new Set<string>([...Object.keys(appliedSelection), ...Object.keys(explorerDraftSelection)]);
+    for (const k of keys) {
+      if (!!appliedSelection[k] !== !!explorerDraftSelection[k]) return true;
+    }
+    return false;
+  })();
+
+  const handleApplySelection = () => {
+    setAppliedSelection({ ...explorerDraftSelection });
+  };
 
   // Get unique metric names for charting
   const getUniqueMetricNames = () => {
@@ -135,9 +197,20 @@ export default function BiasAndFairnessResultsPage() {
   const uniqueMetrics = getUniqueMetricNames();
 
   // Extract metadata from config_data
-  const performance = metrics?.results?.performance || {};
-  const fairness_metrics = metrics?.results?.fairness_metrics || {};
-  const data_quality = metrics?.results?.data_quality || {};
+  const performance: Record<string, number> = metrics?.results?.performance || {};
+  const fairness_metrics: Record<string, MetricEntry> = metrics?.results?.fairness_metrics || {};
+  const data_quality: DataQuality = metrics?.results?.data_quality || {};
+  const flagged = data_quality?.flagged_metrics || {};
+  const metricsCfg: MetricsConfiguration = metrics?.results?.metadata?.metrics_configuration || {};
+
+  const handleCopyJSON = () => {
+    try {
+      const json = JSON.stringify(metrics?.results || {}, null, 2);
+      navigator.clipboard.writeText(json);
+    } catch {
+      // no-op
+    }
+  };
 
   return (
     <Box p={4}>
@@ -161,7 +234,19 @@ export default function BiasAndFairnessResultsPage() {
         </Typography>
       </Box>
 
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} variant="scrollable" scrollButtons allowScrollButtonsMobile>
+        <Tab sx={{ textTransform: 'none' }} label="Overview" />
+        <Tab sx={{ textTransform: 'none' }} label="Plots & Graphs" />
+        <Tab sx={{ textTransform: 'none' }} label="Raw JSON" />
+        <Tab sx={{ textTransform: 'none' }} label="Metrics Explorer" />
+        <Tab sx={{ textTransform: 'none' }} label="Data & Subgroups" />
+        <Tab sx={{ textTransform: 'none' }} label="Mitigation" />
+        <Tab sx={{ textTransform: 'none' }} label="Runs & History" />
+        <Tab sx={{ textTransform: 'none' }} label="Settings / Config" />
+      </Tabs>
+
       {/* Metadata */}
+      {tab === 0 && (
       <Box mb={4}>
         <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
           <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
@@ -170,13 +255,13 @@ export default function BiasAndFairnessResultsPage() {
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <Typography variant="body2" sx={{ color: "#6B7280" }}>
-                <strong>Dataset:</strong> {metrics?.dataset_name || "N/A"}
+                <strong>Dataset:</strong> {metrics?.dataset_name || metrics?.results?.metadata?.dataset || "N/A"}
               </Typography>
               <Typography variant="body2" sx={{ color: "#6B7280" }}>
-                <strong>Model:</strong> {metrics?.model_name || "N/A"}
+                <strong>Model:</strong> {metrics?.model_name || metrics?.results?.metadata?.model || "N/A"}
               </Typography>
               <Typography variant="body2" sx={{ color: "#6B7280" }}>
-                <strong>Task:</strong> {metrics?.model_task?.replace('_', ' ') || "N/A"}
+                <strong>Task:</strong> {(metrics?.model_task || metrics?.results?.metadata?.model_task || "N/A").toString().replace('_', ' ')}
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -187,15 +272,16 @@ export default function BiasAndFairnessResultsPage() {
                 <strong>Status:</strong> {metrics?.status || "N/A"}
               </Typography>
               <Typography variant="body2" sx={{ color: "#6B7280" }}>
-                <strong>Created:</strong> {metrics?.created_at ? new Date(metrics.created_at).toLocaleString() : "N/A"}
+                <strong>Created:</strong> {metrics?.created_at ? new Date(metrics.created_at).toLocaleString() : (metrics?.results?.metadata?.evaluation_timestamp ? new Date(metrics.results.metadata.evaluation_timestamp).toLocaleString() : "N/A")}
               </Typography>
             </Grid>
           </Grid>
         </Paper>
       </Box>
+      )}
 
       {/* Performance Metrics */}
-      {Object.keys(performance).length > 0 && (
+      {tab === 0 && Object.keys(performance).length > 0 && (
         <Box mb={4}>
           <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
             <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
@@ -207,7 +293,7 @@ export default function BiasAndFairnessResultsPage() {
                   <Card sx={{ backgroundColor: "#f8fafc" }}>
                     <CardContent sx={{ p: 2, textAlign: "center" }}>
                       <Typography variant="h6" sx={{ color: "#13715B", fontWeight: 600 }}>
-                        {typeof value === 'number' ? (value * 100).toFixed(1) + '%' : value}
+                        {(value as number) !== undefined ? ((value as number) * 100).toFixed(1) + '%' : ''}
                       </Typography>
                       <Typography variant="body2" sx={{ color: "#6B7280", textTransform: "capitalize" }}>
                         {metric.replace('_', ' ')}
@@ -222,7 +308,7 @@ export default function BiasAndFairnessResultsPage() {
       )}
 
       {/* Fairness Metrics by Attribute */}
-      {Object.keys(fairness_metrics).length > 0 && (
+      {tab === 0 && Object.keys(fairness_metrics).length > 0 && (
         <Box mb={4}>
           <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
             Fairness Metrics by Protected Attribute
@@ -234,25 +320,24 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
                 Sex Attribute Fairness Metrics
               </Typography>
-              <BarChart
-                xAxis={[{
-                  scaleType: "band",
-                  data: Object.keys(sexMetrics),
-                  tickLabelStyle: {
-                    angle: 45,
-                    textAnchor: "start",
-                    fontSize: 10,
-                  },
-                }]}
-                series={[{
-                  data: Object.values(sexMetrics),
-                  label: "Sex Metrics",
-                  valueFormatter: (v) => (v != null ? v.toFixed(4) : "N/A"),
-                  color: barColors[0],
-                }]}
-                width={800}
-                height={300}
-              />
+              {Plot ? (
+                <Plot
+                  data={[{
+                    type: 'bar',
+                    x: Object.keys(sexMetrics),
+                    y: Object.values(sexMetrics),
+                    marker: { color: barColors[0] },
+                  }]}
+                  layout={{ width: 800, height: 300, margin: { t: 20, b: 80 }, xaxis: { tickangle: 45 } }}
+                />
+              ) : (
+                <BarChart
+                  xAxis={[{ scaleType: 'band', data: Object.keys(sexMetrics), tickLabelStyle: { angle: 45, textAnchor: 'start', fontSize: 10 } }]}
+                  series={[{ data: Object.values(sexMetrics), label: 'Sex Metrics', valueFormatter: (v) => (v != null ? v.toFixed(4) : 'N/A'), color: barColors[0] }]}
+                  width={800}
+                  height={300}
+                />
+              )}
             </Box>
           )}
 
@@ -262,32 +347,31 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
                 Race Attribute Fairness Metrics
               </Typography>
-              <BarChart
-                xAxis={[{
-                  scaleType: "band",
-                  data: Object.keys(raceMetrics),
-                  tickLabelStyle: {
-                    angle: 45,
-                    textAnchor: "start",
-                    fontSize: 10,
-                  },
-                }]}
-                series={[{
-                  data: Object.values(raceMetrics),
-                  label: "Race Metrics",
-                  valueFormatter: (v) => (v != null ? v.toFixed(4) : "N/A"),
-                  color: barColors[1],
-                }]}
-                width={800}
-                height={300}
-              />
+              {Plot ? (
+                <Plot
+                  data={[{
+                    type: 'bar',
+                    x: Object.keys(raceMetrics),
+                    y: Object.values(raceMetrics),
+                    marker: { color: barColors[1] },
+                  }]}
+                  layout={{ width: 800, height: 300, margin: { t: 20, b: 80 }, xaxis: { tickangle: 45 } }}
+                />
+              ) : (
+                <BarChart
+                  xAxis={[{ scaleType: 'band', data: Object.keys(raceMetrics), tickLabelStyle: { angle: 45, textAnchor: 'start', fontSize: 10 } }]}
+                  series={[{ data: Object.values(raceMetrics), label: 'Race Metrics', valueFormatter: (v) => (v != null ? v.toFixed(4) : 'N/A'), color: barColors[1] }]}
+                  width={800}
+                  height={300}
+                />
+              )}
             </Box>
           )}
         </Box>
       )}
 
       {/* Data Quality */}
-      {data_quality && Object.keys(data_quality).length > 0 && (
+      {tab === 0 && data_quality && Object.keys(data_quality).length > 0 && (
         <Box mb={4}>
           <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
             <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
@@ -303,6 +387,18 @@ export default function BiasAndFairnessResultsPage() {
                 </Typography>
               </>
             )}
+            {flagged && Object.keys(flagged).length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Flagged Metrics</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {Object.entries(flagged).map(([k, v]) => (
+                    <Chip key={k} color="warning" variant="outlined" label={`${k}: ${((v as { value?: number })?.value ?? '').toString().slice(0, 6)} - ${(
+                      v as { reason?: string }
+                    )?.reason || 'flagged'}`} />
+                  ))}
+                </Box>
+              </Box>
+            )}
             {data_quality.insights && (
               <Box>
                 {data_quality.insights.map((insight: string, index: number) => (
@@ -317,7 +413,7 @@ export default function BiasAndFairnessResultsPage() {
       )}
 
       {/* Metric Descriptions */}
-      {uniqueMetrics.length > 0 && (
+      {tab === 0 && uniqueMetrics.length > 0 && (
         <Box mb={4}>
           <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
             <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
@@ -339,6 +435,131 @@ export default function BiasAndFairnessResultsPage() {
             </Grid>
           </Paper>
         </Box>
+      )}
+
+      {tab === 1 && (
+        <Box>
+          {/* Reuse charts with larger canvas */}
+          {Object.keys(sexMetrics).length > 0 && (
+            <Box mb={4}>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Sex Attribute</Typography>
+              <Plot data={[{ type: 'bar', x: Object.keys(sexMetrics), y: Object.values(sexMetrics), marker: { color: barColors[0] } }]} layout={{ width: 900, height: 340, margin: { t: 24, b: 100 }, xaxis: { tickangle: 45 } }} />
+            </Box>
+          )}
+          {Object.keys(raceMetrics).length > 0 && (
+            <Box mb={4}>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Race Attribute</Typography>
+              <Plot data={[{ type: 'bar', x: Object.keys(raceMetrics), y: Object.values(raceMetrics), marker: { color: barColors[1] } }]} layout={{ width: 900, height: 340, margin: { t: 24, b: 100 }, xaxis: { tickangle: 45 } }} />
+            </Box>
+          )}
+        </Box>
+      )}
+
+      {/* Raw JSON */}
+      {tab === 2 && (
+        <Paper elevation={0} sx={{ p: 2, backgroundColor: 'white' }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Raw JSON</Typography>
+            <Button variant="outlined" size="small" onClick={handleCopyJSON}>Copy</Button>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>
+            {JSON.stringify(metrics?.results || {}, null, 2)}
+          </pre>
+        </Paper>
+      )}
+
+      {/* Metrics Explorer */}
+      {tab === 3 && (
+        <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Metrics Explorer</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>User-selected</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                {(metricsCfg.user_selected_metrics || []).map(m => (
+                  <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input type="checkbox" checked={!!explorerDraftSelection[m]} onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} />
+                    <span>{m}</span>
+                  </label>
+                ))}
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Compass Recommended</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                {(metricsCfg.fairness_compass_recommended_metrics || []).map(m => (
+                  <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input type="checkbox" checked={!!explorerDraftSelection[m]} onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} />
+                    <span>{m}</span>
+                  </label>
+                ))}
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>All Available</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxHeight: 260, overflowY: 'auto' }}>
+                {(metricsCfg.all_available_metrics || []).map(m => (
+                  <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input type="checkbox" checked={!!explorerDraftSelection[m]} onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} />
+                    <span>{m}</span>
+                  </label>
+                ))}
+              </Box>
+            </Grid>
+          </Grid>
+          <Divider sx={{ my: 2 }} />
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="body2" sx={{ color: '#6B7280' }}>Tip: select metrics to include/exclude them from charts on the Plots & Graphs tab.</Typography>
+            <Button variant="contained" onClick={handleApplySelection} disabled={!hasDraftChanges}>Select</Button>
+          </Box>
+        </Paper>
+      )}
+
+      {/* Data & Subgroups */}
+      {tab === 4 && (
+        <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Data & Subgroups</Typography>
+          <Typography variant="body2" sx={{ color: '#6B7280' }}>
+            Explore distributions of protected attributes and subgroup sample sizes. (Coming soon)
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Mitigation */}
+      {tab === 5 && (
+        <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Mitigation</Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Recommended Metrics</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+            {(metricsCfg.fairness_compass_recommended_metrics || []).map(m => (
+              <Chip key={m} label={m} />
+            ))}
+          </Box>
+          <Typography variant="body2" sx={{ color: '#6B7280' }}>
+            Guidance and mitigation suggestions will appear here based on metric outcomes. (Coming soon)
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Runs & History */}
+      {tab === 6 && (
+        <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Evaluation Runs & History</Typography>
+          <Typography variant="body2" sx={{ color: '#6B7280' }}>
+            View past runs, compare configurations, and export results. (Coming soon)
+          </Typography>
+        </Paper>
+      )}
+
+      {/* Settings / Config */}
+      {tab === 7 && (
+        <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Settings / Config</Typography>
+          <Typography variant="body2" sx={{ color: '#6B7280' }}>
+            Configure default thresholds, sampling, and integration settings. (Coming soon)
+          </Typography>
+        </Paper>
       )}
     </Box>
   );

@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Comprehensive Fairness Evaluation Runner
+Complete Fairness Evaluation Pipeline Runner
 
-This script runs the full fairness evaluation using all recommended metrics
-from the Fairness Compass system on real data.
+This script runs the complete pipeline from inference to evaluation:
+1. Data Loading and Model Inference
+2. Post-processing (encoding, attribute expansion)
+3. Comprehensive Fairness Evaluation
+4. Results Processing and Reporting
 """
 
 import sys
@@ -18,7 +21,10 @@ current_dir = Path(__file__).parent
 src_dir = current_dir / "src"
 sys.path.insert(0, str(src_dir))
 
-# Import directly from the eval_engine directory
+# Import all necessary components
+from src.core.config import ConfigManager
+from src.inference.inference import ModelInferencePipeline
+from src.eval_engine.postprocessing import PostProcessor
 from src.eval_engine.metrics import (
     demographic_parity, equalized_odds, equalized_opportunity, predictive_equality,
     predictive_parity, conditional_use_accuracy_equality, accuracy_difference,
@@ -29,313 +35,382 @@ from src.eval_engine.metrics import (
     calibration, conditional_statistical_parity, equal_selection_parity,
     convert_metric_to_float
 )
-from src.eval_engine.metric_registry import list_metrics
+from src.eval_engine.enhanced_results_processor import EnhancedResultsProcessor
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
-def run_comprehensive_fairness_evaluation():
-    """Run comprehensive fairness evaluation with all available metrics."""
+def run_complete_pipeline():
+    """Run the complete pipeline from inference to evaluation."""
     
-    print("🚀 Running Comprehensive Fairness Evaluation with All Metrics")
+    print("🚀 Running Complete Fairness Evaluation Pipeline")
     print("=" * 70)
     
-    # Load the real data
-    print("📊 Loading real evaluation data...")
+    # Initialize configuration
+    print("📋 Loading configuration...")
+    config_manager = ConfigManager()
+    config = config_manager.config
+    
+    # Step 1: Run Model Inference
+    print("\n📊 Step 1: Running Model Inference...")
     try:
-        df = pd.read_csv('artifacts/postprocessed_results.csv')
-        print(f"   ✅ Loaded {len(df)} samples from postprocessed_results.csv")
-        print(f"   Columns: {list(df.columns)}")
+        inference_pipeline = ModelInferencePipeline()
+        
+        # Run inference with config settings
+        inference_results = inference_pipeline.run_batch_inference(
+            batch_size=None,  # No batching for now
+            limit_samples=None,  # Use all samples
+            auto_save=True
+        )
+        
+        print(f"   ✅ Inference completed: {len(inference_results)} samples processed")
+        
     except Exception as e:
-        print(f"   ❌ Error loading data: {str(e)}")
+        print(f"   ❌ Inference failed: {str(e)}")
         return None
     
-    # Prepare data
-    y_true = df['answer'].values
-    y_pred = df['prediction'].values
-    sex_sensitive = df['sex'].values
-    race_sensitive = df['race'].values
+    # Step 1.5: Normalize predictions to strict tokens expected by the pipeline
+    try:
+        _normalize_predictions_to_tokens(config)
+    except Exception as e:
+        print(f"   ❌ Prediction normalization failed: {str(e)}")
+        return None
+
+    # Step 2: Run Post-processing
+    print("\n🔧 Step 2: Running Post-processing...")
+    try:
+        postprocessor = PostProcessor(config_manager)
+        postprocessed_data = postprocessor.run()
+        
+        print(f"   ✅ Post-processing completed: {len(postprocessed_data)} samples processed")
+        print(f"   📊 Columns: {list(postprocessed_data.columns)}")
+        
+    except Exception as e:
+        print(f"   ❌ Post-processing failed: {str(e)}")
+        return None
     
-    # Create probability scores (using predictions as proxy for now)
-    y_scores = y_pred.astype(float)
-    
-    print(f"\n📈 Data Overview:")
-    print(f"   Ground Truth Distribution: {np.bincount(y_true)}")
-    print(f"   Prediction Distribution: {np.bincount(y_pred)}")
-    print(f"   Sex Distribution: {np.bincount(sex_sensitive)} (0=Female, 1=Male)")
-    print(f"   Race Distribution: {np.bincount(race_sensitive)} (0=Black/Other, 1=White)")
-    
-    # Get metrics from different sources
-    print(f"\n📋 Metrics Configuration:")
-    
-    # User selected metrics from config.yaml (highest priority)
-    user_selected_metrics = [
-        'demographic_parity', 'equalized_odds', 'predictive_parity'
-    ]
-    print(f"   🎯 User Selected Metrics (config.yaml): {len(user_selected_metrics)} metrics")
-    print(f"      {user_selected_metrics}")
-    
-    # Fairness Compass recommended metrics (intelligent routing)
-    fairness_compass_recommended_metrics = [
-        'demographic_parity', 'equalized_odds', 'equalized_opportunity', 
-        'predictive_equality', 'predictive_parity', 'conditional_use_accuracy_equality',
-        'accuracy_difference', 'precision_difference', 'recall_difference', 'f1_difference'
-    ]
-    print(f"   🧭 Fairness Compass Recommended: {len(fairness_compass_recommended_metrics)} metrics")
-    print(f"      {fairness_compass_recommended_metrics}")
-    
-    # All available metrics in the system
-    all_available_metrics = [
-        'demographic_parity', 'equalized_odds', 'equalized_opportunity', 
-        'predictive_equality', 'predictive_parity', 'conditional_use_accuracy_equality',
-        'accuracy_difference', 'precision_difference', 'recall_difference', 'f1_difference',
-        'equal_selection_parity', 'conditional_statistical_parity', 'calibration',
-        'balance_positive_class', 'balance_negative_class', 'toxicity_gap',
-        'sentiment_gap', 'stereotype_gap', 'exposure_disparity', 'representation_disparity',
-        'prompt_fairness', 'multiclass_demographic_parity', 'multiclass_equalized_odds',
-        'regression_demographic_parity'
-    ]
-    print(f"   🔧 All Available Metrics: {len(all_available_metrics)} metrics")
-    print(f"      {all_available_metrics}")
-    
-    # Priority order: User selected > Fairness Compass recommended > All available
-    priority_metrics = user_selected_metrics + [m for m in fairness_compass_recommended_metrics if m not in user_selected_metrics]
-    print(f"\n🎯 Priority Order for Evaluation:")
-    print(f"   1. User Selected: {user_selected_metrics}")
-    print(f"   2. Fairness Compass Additional: {[m for m in fairness_compass_recommended_metrics if m not in user_selected_metrics]}")
-    print(f"   3. Other Available: {[m for m in all_available_metrics if m not in priority_metrics]}")
-    
-    # Run metrics in priority order
-    print(f"\n🔍 Running Fairness Metrics in Priority Order...")
-    all_results = {}
-    
-    # 1. HIGHEST PRIORITY: User selected metrics from config.yaml
-    print(f"\n🎯 1. User Selected Metrics (config.yaml) - HIGHEST PRIORITY:")
-    for metric_name in user_selected_metrics:
-        try:
-            metric_func = globals()[metric_name]
-            
-            # Run for sex
-            sex_result = metric_func(y_true, y_pred, sex_sensitive)
-            sex_value = convert_metric_to_float(sex_result, metric_name)
-            all_results[f"{metric_name}_sex"] = sex_value
-            
-            # Run for race
-            race_result = metric_func(y_true, y_pred, race_sensitive)
-            race_value = convert_metric_to_float(race_result, metric_name)
-            all_results[f"{metric_name}_race"] = race_value
-            
-            print(f"   ✅ {metric_name}: sex={sex_value:.4f}, race={race_value:.4f}")
-            
-        except Exception as e:
-            print(f"   ❌ {metric_name}: Error - {str(e)}")
-            all_results[f"{metric_name}_sex"] = None
-            all_results[f"{metric_name}_race"] = None
-    
-    # 2. SECOND PRIORITY: Additional Fairness Compass recommended metrics
-    print(f"\n🧭 2. Fairness Compass Additional Metrics:")
-    additional_compass_metrics = [m for m in fairness_compass_recommended_metrics if m not in user_selected_metrics]
-    for metric_name in additional_compass_metrics:
-        try:
-            metric_func = globals()[metric_name]
-            
-            # Run for sex
-            sex_result = metric_func(y_true, y_pred, sex_sensitive)
-            sex_value = convert_metric_to_float(sex_result, metric_name)
-            all_results[f"{metric_name}_sex"] = sex_value
-            
-            # Run for race
-            race_result = metric_func(y_true, y_pred, race_sensitive)
-            race_value = convert_metric_to_float(race_result, metric_name)
-            all_results[f"{metric_name}_race"] = race_value
-            
-            print(f"   ✅ {metric_name}: sex={sex_value:.4f}, race={race_value:.4f}")
-            
-        except Exception as e:
-            print(f"   ❌ {metric_name}: Error - {str(e)}")
-            all_results[f"{metric_name}_sex"] = None
-            all_results[f"{metric_name}_race"] = None
-    
-    # 3. THIRD PRIORITY: Other available metrics
-    print(f"\n🔧 3. Other Available Metrics:")
-    other_metrics = [m for m in all_available_metrics if m not in fairness_compass_recommended_metrics]
-    
-    for metric_name in other_metrics:
-        try:
-            metric_func = globals()[metric_name]
-            
-            # Run for sex
-            sex_result = metric_func(y_true, y_pred, sex_sensitive)
-            sex_value = convert_metric_to_float(sex_result, metric_name)
-            all_results[f"{metric_name}_sex"] = sex_value
-            
-            # Run for race
-            race_result = metric_func(y_true, y_pred, race_sensitive)
-            race_value = convert_metric_to_float(race_result, metric_name)
-            all_results[f"{metric_name}_race"] = race_value
-            
-            print(f"   ✅ {metric_name}: sex={sex_value:.4f}, race={race_value:.4f}")
-            
-        except Exception as e:
-            print(f"   ❌ {metric_name}: Error - {str(e)}")
-            all_results[f"{metric_name}_sex"] = None
-            all_results[f"{metric_name}_race"] = None
-    
-    # Calculate performance metrics
-    print(f"\n📊 Performance Metrics:")
-    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-    
-    performance_results = {
-        'accuracy': accuracy_score(y_true, y_pred),
-        'precision': precision_score(y_true, y_pred, zero_division=0),
-        'recall': recall_score(y_true, y_pred, zero_division=0),
-        'f1_score': f1_score(y_true, y_pred, zero_division=0)
-    }
-    
-    for metric, value in performance_results.items():
-        print(f"   {metric.capitalize()}: {value:.4f}")
-    
-    # Group-specific analysis
-    print(f"\n👥 Group-Specific Analysis:")
-    
-    # Sex-based analysis
-    print(f"\n   📊 By Sex:")
-    for sex in [0, 1]:
-        sex_mask = sex_sensitive == sex
-        sex_name = "Male" if sex == 1 else "Female"
-        if np.sum(sex_mask) > 0:
-            sex_accuracy = accuracy_score(y_true[sex_mask], y_pred[sex_mask])
-            sex_count = np.sum(sex_mask)
-            print(f"     {sex_name} (n={sex_count}): Accuracy = {sex_accuracy:.4f}")
-    
-    # Race-based analysis
-    print(f"\n   📊 By Race:")
-    for race in [0, 1]:
-        race_mask = race_sensitive == race
-        race_name = "White" if race == 1 else "Black/Other"
-        if np.sum(race_mask) > 0:
-            race_accuracy = accuracy_score(y_true[race_mask], y_pred[race_mask])
-            race_count = np.sum(race_mask)
-            print(f"     {race_name} (n={race_count}): Accuracy = {race_accuracy:.4f}")
-    
-    # Compile comprehensive results
-    comprehensive_results = {
-        'metadata': {
-            'evaluation_type': 'comprehensive_fairness_evaluation',
-            'dataset': 'adult-census-income',
-            'model': 'TinyLlama/TinyLlama-1.1B-Chat-v1.0',
-            'model_task': 'binary_classification',
-            'label_behavior': 'binary',
-            'evaluation_timestamp': pd.Timestamp.now().isoformat(),
-            'total_samples': len(df),
-            'protected_attributes': ['sex', 'race'],
-            'metrics_configuration': {
-                'user_selected_metrics': user_selected_metrics,
-                'fairness_compass_recommended_metrics': fairness_compass_recommended_metrics,
-                'all_available_metrics': all_available_metrics,
-                'priority_order': {
-                    'highest_priority': user_selected_metrics,
-                    'second_priority': [m for m in fairness_compass_recommended_metrics if m not in user_selected_metrics],
-                    'third_priority': [m for m in all_available_metrics if m not in fairness_compass_recommended_metrics]
-                }
-            }
-        },
-        'performance': performance_results,
-        'fairness_metrics': all_results,
-        'metric_summary': {
-            'total_metrics_tested': len(all_results),
-            'successful_metrics': len([v for v in all_results.values() if v is not None]),
-            'failed_metrics': len([v for v in all_results.values() if v is None]),
-            'success_rate': f"{len([v for v in all_results.values() if v is not None]) / len(all_results) * 100:.1f}%"
-        },
-        'data_statistics': {
-            'ground_truth_distribution': y_true.tolist(),
-            'prediction_distribution': y_pred.tolist(),
-            'sex_distribution': sex_sensitive.tolist(),
-            'race_distribution': race_sensitive.tolist()
+    # Step 3: Run Comprehensive Evaluation
+    print("\n🔍 Step 3: Running Comprehensive Evaluation...")
+    try:
+        # Prepare data for evaluation
+        df = postprocessed_data
+        y_true = df['answer'].values
+        y_pred = df['prediction'].values
+        sex_sensitive = df['sex'].values
+        race_sensitive = df['race'].values
+        
+        print(f"   📊 Data Overview:")
+        print(f"      Total samples: {len(df)}")
+        print(f"      Ground Truth Distribution: {np.bincount(y_true)}")
+        print(f"      Prediction Distribution: {np.bincount(y_pred)}")
+        print(f"      Sex Distribution: {np.bincount(sex_sensitive)} (0=Female, 1=Male)")
+        print(f"      Race Distribution: {np.bincount(race_sensitive)} (0=Black/Other, 1=White)")
+        
+        # Get metrics from config
+        user_selected_metrics = config.metrics.fairness.metrics if config.metrics.fairness.enabled else []
+        print(f"   📋 User Selected Metrics: {user_selected_metrics}")
+        
+        # Fairness Compass recommended metrics
+        fairness_compass_metrics = [
+            'equalized_opportunity', 'predictive_equality', 'conditional_use_accuracy_equality',
+            'accuracy_difference', 'precision_difference', 'recall_difference', 'f1_difference'
+        ]
+        
+        # All available metrics
+        all_available_metrics = [
+            'equal_selection_parity', 'conditional_statistical_parity', 'calibration',
+            'balance_positive_class', 'balance_negative_class', 'toxicity_gap',
+            'sentiment_gap', 'stereotype_gap', 'exposure_disparity', 'representation_disparity',
+            'prompt_fairness', 'multiclass_demographic_parity', 'multiclass_equalized_odds',
+            'regression_demographic_parity'
+        ]
+        
+        print(f"   📋 Metrics Configuration:")
+        print(f"      User Selected: {len(user_selected_metrics)} metrics")
+        print(f"      Fairness Compass: {len(fairness_compass_metrics)} metrics")
+        print(f"      All Available: {len(all_available_metrics)} metrics")
+        
+        # Run metrics in priority order
+        all_results = {}
+        
+        # 1. User selected metrics (highest priority)
+        if user_selected_metrics:
+            print(f"\n   🎯 Running User Selected Metrics:")
+            for metric_name in user_selected_metrics:
+                _run_metric(metric_name, y_true, y_pred, sex_sensitive, race_sensitive, all_results)
+        
+        # 2. Fairness Compass additional metrics
+        print(f"\n   🧭 Running Fairness Compass Additional Metrics:")
+        for metric_name in fairness_compass_metrics:
+            _run_metric(metric_name, y_true, y_pred, sex_sensitive, race_sensitive, all_results)
+        
+        # 3. All available metrics
+        print(f"\n   🔧 Running All Available Metrics:")
+        for metric_name in all_available_metrics:
+            _run_metric(metric_name, y_true, y_pred, sex_sensitive, race_sensitive, all_results)
+        
+        # Calculate performance metrics
+        performance_results = {
+            'accuracy': accuracy_score(y_true, y_pred),
+            'precision': precision_score(y_true, y_pred, zero_division=0),
+            'recall': recall_score(y_true, y_pred, zero_division=0),
+            'f1_score': f1_score(y_true, y_pred, zero_division=0)
         }
-    }
+        
+        print(f"\n   📊 Performance Metrics:")
+        for metric, value in performance_results.items():
+            print(f"      {metric.capitalize()}: {value:.4f}")
+        
+        # Compile comprehensive results
+        comprehensive_results = {
+            'metadata': {
+                'evaluation_type': 'complete_pipeline_evaluation',
+                'dataset': config.dataset.name,
+                'model': config.model.huggingface.model_id,
+                'model_task': config.model.model_task,
+                'label_behavior': config.model.label_behavior,
+                'evaluation_timestamp': pd.Timestamp.now().isoformat(),
+                'total_samples': len(df),
+                'protected_attributes': config.dataset.protected_attributes,
+                'pipeline_steps': ['inference', 'postprocessing', 'evaluation'],
+                'metrics_configuration': {
+                    'user_selected_metrics': user_selected_metrics,
+                    'fairness_compass_recommended_metrics': fairness_compass_metrics,
+                    'all_available_metrics': all_available_metrics,
+                },
+            },
+            'performance': performance_results,
+            'fairness_metrics': all_results,
+            'metric_summary': {
+                'total_metrics_tested': len(all_results),
+                'successful_metrics': len([v for v in all_results.values() if v is not None]),
+                'failed_metrics': len([v for v in all_results.values() if v is None]),
+                'success_rate': f"{len([v for v in all_results.values() if v is not None]) / len(all_results) * 100:.1f}%"
+            },
+            'data_statistics': {
+                'ground_truth_distribution': y_true.tolist(),
+                'prediction_distribution': y_pred.tolist(),
+                'sex_distribution': sex_sensitive.tolist(),
+                'race_distribution': race_sensitive.tolist()
+            }
+        }
+        
+        print(f"   ✅ Evaluation completed: {comprehensive_results['metric_summary']['successful_metrics']}/{comprehensive_results['metric_summary']['total_metrics_tested']} metrics successful")
+        
+    except Exception as e:
+        print(f"   ❌ Evaluation failed: {str(e)}")
+        return None
     
-    # Process and save clean results using enhanced processor
-    print(f"\n💾 Processing and saving clean results...")
+    # Step 4: Process and Save Results
+    print("\n💾 Step 4: Processing and Saving Results...")
+    try:
+        # Initialize results processor
+        results_processor = EnhancedResultsProcessor()
+        
+        # Process the results
+        clean_results = results_processor.process_comprehensive_results(comprehensive_results)
+        
+        # Save clean results
+        output_path = Path('artifacts/clean_results.json')
+        output_path.parent.mkdir(exist_ok=True)
+        
+        with open(output_path, 'w') as f:
+            json.dump(clean_results, f, indent=2, default=str)
+        
+        print(f"   ✅ Clean results saved to {output_path}")
+        
+        # Generate and display quality report
+        report = results_processor.generate_user_friendly_report()
+        print(f"\n📋 Evaluation Report:")
+        print(report)
+        
+        # Print summary
+        _print_pipeline_summary(comprehensive_results, clean_results)
+        
+        return clean_results
+        
+    except Exception as e:
+        print(f"   ❌ Results processing failed: {str(e)}")
+        return None
+
+
+def _run_metric(metric_name: str, y_true: np.ndarray, y_pred: np.ndarray, 
+               sex_sensitive: np.ndarray, race_sensitive: np.ndarray, 
+               all_results: dict):
+    """Run a single metric for both sex and race attributes."""
+    try:
+        metric_func = globals()[metric_name]
+        
+        # Run for sex
+        sex_result = metric_func(y_true, y_pred, sex_sensitive)
+        sex_value = convert_metric_to_float(sex_result, metric_name)
+        all_results[f"{metric_name}_sex"] = sex_value
+        
+        # Run for race
+        race_result = metric_func(y_true, y_pred, race_sensitive)
+        race_value = convert_metric_to_float(race_result, metric_name)
+        all_results[f"{metric_name}_race"] = race_value
+        
+        print(f"      ✅ {metric_name}: sex={sex_value:.4f}, race={race_value:.4f}")
+        
+    except Exception as e:
+        print(f"      ❌ {metric_name}: Error - {str(e)}")
+        all_results[f"{metric_name}_sex"] = None
+        all_results[f"{metric_name}_race"] = None
+
+
+def _normalize_predictions_to_tokens(config) -> None:
+    """Normalize free-form LLM predictions to strict tokens ('>50K' or '<=50K').
+
+    This function reads the inference results CSV specified in the config and ensures
+    the 'prediction' column contains only the two allowed binary string values
+    expected by the rest of the pipeline. The normalization strategy is:
+      1) If the explicit tokens '>50K' or '<=50K' appear anywhere, use them.
+      2) Otherwise, apply heuristic phrase checks ('greater than', 'above', 'at least' → >50K;
+         'less than or equal', 'or less', 'at most' → <=50K).
+      3) Otherwise, extract the first numeric quantity (including forms like 55K or 50,000)
+         and map >= 50k → >50K, else <=50K.
+
+    If no mapping can be determined, the original value is left unchanged.
+    """
+    results_path = Path(config.artifacts.inference_results_path)
+    if not results_path.exists():
+        # Some pipelines save to a slightly different name; try a common alternative
+        alt_path = Path('artifacts/inference_results.csv')
+        results_path = alt_path if alt_path.exists() else Path(config.artifacts.inference_results_path)
+
+    if not results_path.exists():
+        print(f"   ❌ Prediction normalization skipped: file not found at {results_path}")
+        return
+
+    import re
+
+    def extract_numeric_value(text: str) -> float:
+        """Extract a numeric value from text; understands '55K' and '50,000' forms.
+        Returns value in absolute dollars when possible, else NaN.
+        """
+        if not isinstance(text, str):
+            return float('nan')
+        # 55K / 55k style
+        m = re.search(r"(\d{1,3})(?:\.(\d+))?\s*[kK]", text)
+        if m:
+            whole = float(m.group(1) + ('.' + m.group(2) if m.group(2) else ''))
+            return whole * 1000.0
+        # 50,000 / 50000 style
+        m = re.search(r"\b(\d{1,3}(?:,\d{3})+|\d{5,})\b", text)
+        if m:
+            num = float(m.group(1).replace(',', ''))
+            return num
+        return float('nan')
+
+    def map_to_token(value: str) -> str:
+        if not isinstance(value, str):
+            return value
+        text = value
+        # Fast path: explicit tokens present
+        if '>50K' in text:
+            return '>50K'
+        if '<=50K' in text:
+            return '<=50K'
+        lower = text.lower()
+        # Phrase heuristics
+        greater_phrases = [
+            'greater than 50', 'above 50', 'more than 50', 'over 50', 'at least 50'
+        ]
+        less_phrases = [
+            'less than or equal', '50,000 or less', 'or less', 'at most 50'
+        ]
+        if any(p in lower for p in greater_phrases):
+            return '>50K'
+        if any(p in lower for p in less_phrases):
+            return '<=50K'
+        # Numeric heuristic
+        num = extract_numeric_value(text)
+        if num == num:  # not NaN
+            return '>50K' if num >= 50000 else '<=50K'
+        return value
+
+    df = pd.read_csv(results_path)
+    if 'prediction' not in df.columns:
+        print(f"   ❌ Prediction normalization skipped: 'prediction' column missing in {results_path}")
+        return
+
+    original = df['prediction'].copy()
+    df['prediction'] = df['prediction'].apply(map_to_token)
+
+    # Second pass: enforce strict tokens. If still not one of the two, fallback to '<=50K'.
+    valid_tokens = {'>50K', '<=50K'}
+    not_valid_mask = ~df['prediction'].isin(valid_tokens)
+    num_second_pass = int(not_valid_mask.sum())
+    if num_second_pass:
+        df.loc[not_valid_mask, 'prediction'] = '<=50K'
+
+    num_changed = int((df['prediction'] != original).sum())
+    num_total = int(len(df))
+    print(f"   🔧 Normalized predictions: {num_changed}/{num_total} updated; {num_second_pass} forced to '<=50K'")
+
+    # Save back to the same path for the post-processor to consume
+    df.to_csv(results_path, index=False)
+
+def _print_pipeline_summary(comprehensive_results: dict, clean_results: dict):
+    """Print a comprehensive pipeline summary."""
+    print(f"\n📊 Complete Pipeline Summary:")
+    print("=" * 50)
     
-    # Import the enhanced processor
-    from src.eval_engine.enhanced_results_processor import EnhancedResultsProcessor
+    # Pipeline steps
+    print(f"🔄 Pipeline Steps Completed:")
+    print(f"   1. Inference: ✅")
+    print(f"   2. Post-processing: ✅")
+    print(f"   3. Evaluation: ✅")
+    print(f"   4. Results Processing: ✅")
     
-    # Process the results
-    processor = EnhancedResultsProcessor()
-    processed_results = processor.process_comprehensive_results(comprehensive_results)
+    # Metrics summary
+    metric_summary = comprehensive_results['metric_summary']
+    print(f"\n📈 Metrics Summary:")
+    print(f"   Total metrics tested: {metric_summary['total_metrics_tested']}")
+    print(f"   Successful: {metric_summary['successful_metrics']}")
+    print(f"   Failed: {metric_summary['failed_metrics']}")
+    print(f"   Success rate: {metric_summary['success_rate']}")
     
-    # Save clean results
-    output_path = Path('artifacts/clean_results.json')
-    output_path.parent.mkdir(exist_ok=True)
+    # Data quality summary
+    if 'data_quality' in clean_results:
+        data_quality = clean_results['data_quality']
+        print(f"\n🔍 Data Quality Summary:")
+        print(f"   Data quality score: {data_quality['data_quality_score']:.1%}")
+        print(f"   Valid metrics: {len(clean_results['fairness_metrics'])}")
+        print(f"   Flagged metrics: {len(data_quality['flagged_metrics'])}")
+        print(f"   Excluded metrics: {len(data_quality['excluded_metrics'])}")
     
-    with open(output_path, 'w') as f:
-        json.dump(processed_results, f, indent=2, default=str)
-    
-    print(f"✅ Clean results saved to {output_path}")
-    
-    # Generate and display quality report
-    report = processor.generate_user_friendly_report()
-    print(f"\n{report}")
-    
-    # Print summary
-    print(f"\n📊 Evaluation Summary:")
-    print(f"   Total metrics tested: {comprehensive_results['metric_summary']['total_metrics_tested']}")
-    print(f"   Successful: {comprehensive_results['metric_summary']['successful_metrics']}")
-    print(f"   Failed: {comprehensive_results['metric_summary']['failed_metrics']}")
-    print(f"   Success rate: {comprehensive_results['metric_summary']['success_rate']}")
-    
-    # Print data quality summary
-    data_quality = processed_results['data_quality']
-    print(f"\n🔍 Data Quality Summary:")
-    print(f"   Data quality score: {data_quality['data_quality_score']:.1%}")
-    print(f"   Valid metrics: {len(processed_results['fairness_metrics'])}")
-    print(f"   Flagged metrics: {len(data_quality['flagged_metrics'])}")
-    print(f"   Excluded metrics: {len(data_quality['excluded_metrics'])}")
-    
-    # Show priority-based results
-    print(f"\n🎯 Priority-Based Results:")
-    
-    # User selected metrics (highest priority)
-    user_metrics = {k: v for k, v in all_results.items() if any(metric in k for metric in user_selected_metrics)}
-    user_success = len([v for v in user_metrics.values() if v is not None])
-    print(f"   1. User Selected Metrics: {user_success}/{len(user_metrics)} successful")
-    
-    # Fairness compass additional metrics
-    compass_additional = {k: v for k, v in all_results.items() if any(metric in k for metric in [m for m in fairness_compass_recommended_metrics if m not in user_selected_metrics])}
-    compass_success = len([v for v in compass_additional.values() if v is not None])
-    print(f"   2. Fairness Compass Additional: {compass_success}/{len(compass_additional)} successful")
-    
-    # Other available metrics
-    other_metrics = {k: v for k, v in all_results.items() if k not in user_metrics and k not in compass_additional}
-    other_success = len([v for v in other_metrics.values() if v is not None])
-    print(f"   3. Other Available Metrics: {other_success}/{len(other_metrics)} successful")
-    
+    # Key insights
     print(f"\n🎯 Key Fairness Insights:")
-    
-    # Find the highest fairness disparities
-    fairness_values = {k: v for k, v in all_results.items() if v is not None and 'sex' in k}
+    fairness_values = {k: v for k, v in comprehensive_results['fairness_metrics'].items() 
+                      if v is not None and 'sex' in k}
     if fairness_values:
         max_disparity_sex = max(fairness_values.values())
         max_metric_sex = max(fairness_values, key=fairness_values.get)
         print(f"   Highest sex-based disparity: {max_metric_sex} = {max_disparity_sex:.4f}")
     
-    fairness_values_race = {k: v for k, v in all_results.items() if v is not None and 'race' in k}
+    fairness_values_race = {k: v for k, v in comprehensive_results['fairness_metrics'].items() 
+                           if v is not None and 'race' in k}
     if fairness_values_race:
         max_disparity_race = max(fairness_values_race.values())
         max_metric_race = max(fairness_values_race, key=fairness_values_race.get)
         print(f"   Highest race-based disparity: {max_metric_race} = {max_disparity_race:.4f}")
     
-    print(f"\n✅ Comprehensive evaluation completed successfully!")
-    return comprehensive_results
+    print(f"\n✅ Complete pipeline evaluation finished successfully!")
+
+
+def run_comprehensive_fairness_evaluation():
+    """Legacy function for backward compatibility."""
+    return run_complete_pipeline()
 
 
 def main():
     """Main entry point."""
     try:
-        results = run_comprehensive_fairness_evaluation()
+        results = run_complete_pipeline()
         return results
     except Exception as e:
-        print(f"\n❌ Evaluation failed: {str(e)}")
+        print(f"\n❌ Pipeline execution failed: {str(e)}")
         import traceback
         traceback.print_exc()
         raise

@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import FairnessTable from "../../../presentation/components/Table/FairnessTable";
@@ -97,6 +98,8 @@ export default function BiasAndFairnessModule() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
+
+  const navigate = useNavigate();
 
   // Load evaluations from database
   useEffect(() => {
@@ -203,6 +206,7 @@ export default function BiasAndFairnessModule() {
     try {
       // Transform config to match API payload
       const apiPayload = {
+        debug_write_only: true,
         dataset: {
           name: config.dataset.name,
           source: config.dataset.source,
@@ -228,13 +232,14 @@ export default function BiasAndFairnessModule() {
           attribute_groups: config.postProcessing?.attributeGroups
         },
         sampling: {
-          enabled: true,
+          enabled: false,
           n_samples: 50,
           random_seed: 42
         }
       };
 
       // Start the evaluation with the new API
+      console.log("apiPayload", apiPayload);
       const response = await biasAndFairnessService.createConfigAndEvaluate(apiPayload);
       
       setSuccess("Evaluation started successfully!");
@@ -334,6 +339,14 @@ export default function BiasAndFairnessModule() {
           }}
         >
           New Evaluation
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate("/fairness-dashboard/bias-fairness-results-demo")}
+          sx={{ ml: 1 }}
+        >
+          Demo
         </Button>
       </Box>
 

@@ -25,8 +25,9 @@ interface BiasAndFairnessConfigPayload {
     label_behavior: string;
   };
   metrics: {
-    fairness: string[];
-    performance: string[];
+    // Accept either array or object shape
+    fairness: any;
+    performance: any;
   };
   post_processing?: {
     binary_mapping?: {
@@ -93,7 +94,7 @@ export const biasAndFairnessService = {
    * Creates config and runs bias and fairness evaluation
    */
   async createConfigAndEvaluate(payload: BiasAndFairnessConfigPayload): Promise<EvaluationResponse> {
-    const response = await CustomAxios.post("/bias_and_fairness/evaluate/config", payload, {
+    const response = await CustomAxios.post("/bias_and_fairness/evaluate/config", {}, {
       headers: {
         "Content-Type": "application/json",
       },

@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useContext, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
@@ -19,9 +19,9 @@ import { deleteEntityById } from "../../../../../application/repository/entity.r
 import CustomizableToast from "../../../../vw-v2-components/Toast";
 import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
-import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
+import { useAuth } from "../../../../../application/hooks/useAuth";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -49,7 +49,7 @@ const initialLoadingState: LoadingStatus = {
 };
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId =
     parseInt(searchParams.get("projectId") ?? "0") || project!.id;

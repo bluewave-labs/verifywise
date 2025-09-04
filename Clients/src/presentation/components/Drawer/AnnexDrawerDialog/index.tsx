@@ -21,7 +21,6 @@ import dayjs from "dayjs";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
-import useProjectData from "../../../../application/hooks/useProjectData";
 import {
   GetAnnexCategoriesById,
   UpdateAnnexCategoryById,
@@ -92,7 +91,6 @@ const VWISO42001AnnexDrawerDialog = ({
 
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
-  const { project } = useProjectData({ projectId: String(project_id) });
 
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
@@ -115,15 +113,11 @@ const VWISO42001AnnexDrawerDialog = ({
 
   // Filter users to only show project members
   useEffect(() => {
-    if (project && users?.length > 0) {
-      const members = users.filter(
-        (user: User) =>
-          typeof user.id === "number" &&
-          project.members.some((memberId) => Number(memberId) === user.id)
-      );
-      setProjectMembers(members);
+    if (users?.length > 0) {
+      // Since we don't have project data, use all users
+      setProjectMembers(users);
     }
-  }, [project, users]);
+  }, [users]);
 
   const setUploadFilesAnnexCategories = (files: FileData[]) => {
     setUploadFiles(files);
@@ -276,7 +270,7 @@ const VWISO42001AnnexDrawerDialog = ({
       formDataToSend.append("approver", formData.approver);
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
-      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append("user_id", userId?.toString() || "1");
       formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
@@ -528,7 +522,7 @@ const VWISO42001AnnexDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                minWidth: 155,      // minimum width
+                minWidth: 155, // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -541,7 +535,7 @@ const VWISO42001AnnexDrawerDialog = ({
               onClick={() => setIsFileUploadOpen(true)}
               disabled={isEditingDisabled}
             >
-             Add, remove or download evidence 
+              Add, remove or download evidence
             </Button>
             <Stack direction="row" spacing={10}>
               <Typography

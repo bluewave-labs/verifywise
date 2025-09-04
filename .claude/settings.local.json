@@ -1,7 +1,29 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(grep:*)",
+      "Bash(git pull:*)",
+      "Bash(node:*)",
+      "Bash(npm start)",
+      "Bash(npx swagger-jsdoc:*)",
+      "Bash(gh pr list:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []

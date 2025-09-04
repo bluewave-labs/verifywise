@@ -1,4 +1,4 @@
-import { getData, deleteDemoVendorsData } from "../utils/autoDriver.utils";
+import { getData, deleteDemoVendorsData, checkOrganizationalProjectExists } from "../utils/autoDriver.utils";
 import { createEUFrameworkQuery } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import {
@@ -18,6 +18,7 @@ import { HighRiskRole } from "../domain.layer/enums/high-risk-role.enum";
 import { AiRiskClassification } from "../domain.layer/enums/ai-risk-classification.enum";
 import { updateAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
 import { IVendor } from "../domain.layer/interfaces/i.vendor";
+import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
 // import { createAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
 
 export async function insertMockData(
@@ -79,11 +80,58 @@ export async function insertMockData(
           }
           return acc;
         }, []),
-        [1, 2], // frameworks
+        [1], // frameworks
         tenant,
         transaction,
         true // is demo
       );
+      // create eu framework
+      await createEUFrameworkQuery(
+        project.id!,
+        true,
+        tenant,
+        transaction,
+        true
+      );
+
+      const organizationalProjectExists = await checkOrganizationalProjectExists(tenant, transaction);
+      if (!organizationalProjectExists) {
+        const projectOrg = await createNewProjectQuery(
+          {
+            project_title: "Information Security & AI Governance Framework",
+            owner: owner,
+            start_date: new Date(Date.now()),
+            goal: "To establish comprehensive information security management and AI governance frameworks ensuring regulatory compliance and risk mitigation across organizational operations",
+            last_updated: new Date(Date.now()),
+            last_updated_by: users[0].id!,
+            is_organizational: true
+          },
+          users.reduce((acc: number[], user) => {
+            if (user.id !== owner) {
+              acc.push(user.id!);
+            }
+            return acc;
+          }, []),
+          [2, 3], // frameworks
+          tenant,
+          transaction,
+          true // is demo
+        );
+        await createISOFrameworkQuery(
+          projectOrg.id!,
+          true,
+          tenant,
+          transaction,
+          true
+        );
+        await createISO27001FrameworkQuery(
+          projectOrg.id!,
+          true,
+          tenant,
+          transaction,
+          true
+        );
+      }
 
       // ---- no need of is demo
       // create project risks
@@ -162,22 +210,6 @@ export async function insertMockData(
         },
         tenant,
         transaction
-      );
-
-      // create eu framework
-      await createEUFrameworkQuery(
-        project.id!,
-        true,
-        tenant,
-        transaction,
-        true
-      );
-      await createISOFrameworkQuery(
-        project.id!,
-        true,
-        tenant,
-        transaction,
-        true
       );
     } else {
       // project already exists, delete it and insert a new one

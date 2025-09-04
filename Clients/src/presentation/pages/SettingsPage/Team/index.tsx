@@ -37,6 +37,8 @@ import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
+import useUsers from "../../../../application/hooks/useUsers";
+import { useAuth } from "../../../../application/hooks/useAuth";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -75,8 +77,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, users, userId, refreshUsers } =
+  const { dashboardValues,refreshUsers } =
     useContext(VerifyWiseContext);
+  const { userId } = useAuth();
+  const { users } = useUsers();
 
   // Exclude the current user from the team users list
   const teamUsers = users;

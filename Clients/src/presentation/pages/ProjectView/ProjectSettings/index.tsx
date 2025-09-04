@@ -47,6 +47,7 @@ import {
   deleteProject,
   updateProject,
 } from "../../../../application/repository/project.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -122,7 +123,8 @@ const ProjectSettings = React.memo(
   }: {
     triggerRefresh?: (isUpdate: boolean) => void;
   }) => {
-    const { userRoleName, userId, setProjects } = useContext(VerifyWiseContext);
+    const { setProjects } = useContext(VerifyWiseContext);
+    const { userRoleName, userId } = useAuth();
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();

@@ -361,7 +361,7 @@ async def create_config_and_run_evaluation(background_tasks: BackgroundTasks, co
                 dataset_name=config_data.get("dataset", {}).get("name", "Unknown Dataset"),
                 model_task=config_data.get("model", {}).get("model_task", "binary_classification"),
                 label_behavior=config_data.get("model", {}).get("label_behavior", "binary"),
-                config_data=config,
+                config_data=json.dumps(config),
                 tenant=tenant,
                 db=db
             )

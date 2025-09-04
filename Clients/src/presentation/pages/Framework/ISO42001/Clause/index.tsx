@@ -25,10 +25,10 @@ import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 
 const ISO42001Clause = ({
-  FrameworkId,
+  projectFrameworkId,
   statusFilter,
 }: {
-  FrameworkId: number | string;
+  projectFrameworkId: number | string;
   statusFilter?: string;
 }) => {
   const { userId, userRoleName } = useAuth();
@@ -58,12 +58,12 @@ const ISO42001Clause = ({
   const fetchClauses = useCallback(async () => {
     try {
       const clauseProgressResponse = await getEntityById({
-        routeUrl: `/iso-42001/clauses/progress/${FrameworkId}`,
+        routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}`,
       });
       setClauseProgress(clauseProgressResponse.data);
 
       const response = await GetClausesByProjectFrameworkId({
-        routeUrl: `/iso-42001/clauses/struct/byProjectId/${FrameworkId}`,
+        routeUrl: `/iso-42001/clauses/struct/byProjectId/${projectFrameworkId}`,
       });
       setClauses(response);
       setSubClausesMap({});
@@ -71,7 +71,7 @@ const ISO42001Clause = ({
       console.error("Error fetching clauses:", error);
       setClauses([]);
     }
-  }, [FrameworkId]);
+  }, [projectFrameworkId]);
 
   useEffect(() => {
     fetchClauses();
@@ -167,7 +167,7 @@ const ISO42001Clause = ({
       const success = await updateISO42001ClauseStatus({
         id: subClause.id,
         newStatus,
-        projectFrameworkId: Number(FrameworkId),
+        projectFrameworkId: Number(projectFrameworkId),
         userId: userId || 1,
         currentData: subClause,
       });
@@ -260,7 +260,7 @@ const ISO42001Clause = ({
       async function fetchSubClause() {
         try {
           const response = await getEntityById({
-            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${FrameworkId}`,
+            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
           });
           setSelectedSubClause({
             ...response.data,
@@ -322,7 +322,7 @@ const ISO42001Clause = ({
           onClose={handleDrawerClose}
           subClause={selectedSubClause}
           clause={selectedClause}
-          projectFrameworkId={Number(FrameworkId)}
+          projectFrameworkId={Number(projectFrameworkId)}
           project_id={0}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)

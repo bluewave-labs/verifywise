@@ -69,6 +69,7 @@ export const initialState: FormValues = {
 export interface ProjectFormProps {
   onClose: () => void;
   sx?: SxProps<Theme> | undefined;
+  defaultFrameworkType?: FrameworkTypeEnum;
 }
 
 export interface FrameworkOption {

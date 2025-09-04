@@ -92,7 +92,7 @@ async def insert_bias_fairness_evaluation(
     dataset_name: str,
     model_task: str,
     label_behavior: str,
-    config_data: dict,
+    config_data: str,
     tenant: str,
     db: AsyncSession
 ):

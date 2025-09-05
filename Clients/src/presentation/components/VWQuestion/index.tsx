@@ -18,7 +18,6 @@ import createUppy from "../../../application/tools/createUppy";
 import Alert from "../Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
@@ -184,9 +183,6 @@ const QuestionFrame = ({
   };
 
   const handleRemoveFile = async (fileId: string) => {
-    const state = store.getState();
-    const authToken = state.auth.authToken;
-
     const formData = new FormData();
     const fileIdNumber = parseInt(fileId);
     if (isNaN(fileIdNumber)) {
@@ -206,7 +202,6 @@ const QuestionFrame = ({
     try {
       const response = await apiServices.post("/files", formData, {
         headers: {
-          Authorization: `Bearer ${authToken}`,
           "Content-Type": "multipart/form-data",
         },
       });

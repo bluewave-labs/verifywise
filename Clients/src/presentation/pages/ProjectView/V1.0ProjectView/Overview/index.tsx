@@ -10,11 +10,11 @@ import { Project } from "../../../../../domain/types/Project";
 import useProjectData from "../../../../../application/hooks/useProjectData";
 import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import { formatDate } from "../../../../tools/isoDateToString";
-import { useContext, useEffect, useState } from "react";
-import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
+import {  useEffect, useState } from "react";
 import { User } from "../../../../../domain/types/User";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
+import useUsers from "../../../../../application/hooks/useUsers";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId, setProjectFrameworkId] = useState<number | null>(
@@ -23,7 +23,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId2, setProjectFrameworkId2] = useState<number | null>(
     null
   );
-  const { users } = useContext(VerifyWiseContext);
+  const { users } = useUsers();
 
   // Update framework IDs when project changes
   useEffect(() => {

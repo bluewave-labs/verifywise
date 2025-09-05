@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { Tabs, Tab, Stack } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
@@ -6,11 +6,11 @@ import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../application/constants/permissions";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 export default function ProfilePage() {
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const [activeTab, setActiveTab] = useState(0);

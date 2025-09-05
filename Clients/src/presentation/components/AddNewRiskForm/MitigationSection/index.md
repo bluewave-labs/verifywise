@@ -4,47 +4,133 @@ The MitigationSection component is a crucial part of the AddNewRiskForm componen
 
 ## Features
 
-- Comprehensive form for capturing mitigation details, including mitigation status, mitigation plan, implementation strategy, recommendations, deadlines, and approval status.
-- Validation for each field to ensure all required information is provided and meets specific criteria.
-- Support for selecting mitigation status, current risk level, approver, and approval status from predefined options.
-- Integration with the RiskLevel component for calculating and displaying the risk level based on likelihood and severity scores.
-- Customizable styling options using MUI's styling system.
+- **Comprehensive Form Fields**: Captures mitigation status, current risk level, deadline, mitigation plan, implementation strategy, likelihood, risk severity, approver, approval status, assessment date, and recommendations
+- **Form Validation**: Built-in validation with error handling for all required fields
+- **Role-Based Permissions**: Supports editing restrictions based on user roles using the permissions system
+- **Risk Level Calculation**: Integration with the RiskLevel component for calculating residual risk based on likelihood and severity scores
+- **Lazy Loading**: Optimized performance with lazy-loaded components (Select, Field, DatePicker, RiskLevel, Alert)
+- **Responsive Design**: Flexible layout with proper spacing and responsive behavior
+- **Date Management**: Advanced date handling with dayjs for deadline and assessment date fields
+- **User Selection**: Dynamic user options for approver selection from the users hook
 
 ## Props
 
-- `closePopup`: A function to close the popup containing the MitigationSection component.
+- `mitigationValues`: `MitigationFormValues` - Current form values containing all mitigation data
+- `setMitigationValues`: `Dispatch<SetStateAction<MitigationFormValues>>` - State setter function for updating form values
+- `mitigationErrors`: `MitigationFormErrors` (optional) - Form validation errors object, defaults to empty object
+- `userRoleName`: `string` - Current user's role name for permission-based editing restrictions
 
 ## Usage
 
-To use the MitigationSection component, simply import it and pass the required props:
+To use the MitigationSection component, import it and pass the required props:
 
 ```jsx
 import MitigationSection from "./MitigationSection";
 
-const closePopupFunction = () => {
-  // Function to close the popup
-};
+const [mitigationValues, setMitigationValues] =
+  useState <
+  MitigationFormValues >
+  {
+    mitigationStatus: 0,
+    currentRiskLevel: 0,
+    deadline: "",
+    mitigationPlan: "",
+    implementationStrategy: "",
+    likelihood: 0,
+    riskSeverity: 0,
+    approver: 0,
+    approvalStatus: 0,
+    dateOfAssessment: "",
+    recommendations: "",
+  };
 
-return <MitigationSection closePopup={closePopupFunction} />;
+const [mitigationErrors, setMitigationErrors] =
+  useState < MitigationFormErrors > {};
+
+return (
+  <MitigationSection
+    mitigationValues={mitigationValues}
+    setMitigationValues={setMitigationValues}
+    mitigationErrors={mitigationErrors}
+    userRoleName="project_manager"
+  />
+);
 ```
 
-## Customization
+## Component Structure
 
-The component's styling can be customized by modifying the `styles.css` file or by using MUI's styling options.
+The component is organized into several logical sections:
+
+1. **Form Header**: Alert display for notifications
+2. **Main Form Fields**:
+   - Row 1: Mitigation status, current risk level, deadline
+   - Row 2: Mitigation plan and implementation strategy
+3. **Risk Level Calculation**: Interactive risk level calculator
+4. **Risk Approval**: Approver selection, approval status, and assessment date
+5. **Recommendations**: Optional recommendations field
+
+## Key Features
+
+### Form Validation
+
+- All required fields are validated with error display
+- Optional chaining (`?.`) used for safe error access
+- Default empty object for mitigationErrors prop
+
+### Permission System
+
+- Uses `allowedRoles.projectRisks.edit` to determine editing permissions
+- Disables form fields when user lacks appropriate role
+
+### Performance Optimizations
+
+- Lazy loading of all form components
+- Memoized styles and user options
+- Callback functions for event handlers to prevent unnecessary re-renders
+
+### Styling
+
+- Consistent field widths and spacing
+- Theme-aware styling using MUI's useTheme hook
+- Responsive layout with proper gap management
 
 ## Dependencies
 
-- `@mui/material/Stack`
-- `@mui/material/Divider`
-- `@mui/material/Typography`
-- `@mui/material/Button`
-- `@mui/material/SelectChangeEvent`
-- `react` for state management and event handling
-- `react` for lazy loading and suspense handling
-- `Field` and `Select` components from the Inputs module
-- `RiskLevel` component for risk level calculation and display
-- `Alert` component for displaying error messages
-- `checkStringValidation` and `selectValidation` functions from the application validations module
+### Core React
+
+- `react` - FC, useState, useCallback, useMemo, lazy, Suspense, Dispatch, SetStateAction
+
+### Material-UI
+
+- `@mui/material/Stack` - Layout component
+- `@mui/material/Divider` - Visual separator
+- `@mui/material/Typography` - Text display
+- `@mui/material/SelectChangeEvent` - Select event types
+- `@mui/material/useTheme` - Theme access
+
+### Date Management
+
+- `dayjs` - Date manipulation and formatting
+- `Dayjs` - TypeScript types for dayjs
+
+### Internal Components
+
+- `Select` - Custom select input component (lazy loaded)
+- `Field` - Custom text field component (lazy loaded)
+- `DatePicker` - Custom date picker component (lazy loaded)
+- `RiskLevel` - Risk level calculation component (lazy loaded)
+- `Alert` - Alert notification component (lazy loaded)
+
+### Hooks and Utilities
+
+- `useUsers` - Hook for fetching user data
+- `allowedRoles` - Permission constants
+- `alertState` - Alert state interface
+- Form value and error interfaces from parent component
+
+### Styling
+
+- `styles.module.css` - Component-specific styles
 
 ## License
 

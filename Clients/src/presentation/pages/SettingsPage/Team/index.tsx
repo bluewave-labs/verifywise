@@ -44,6 +44,8 @@ import { getTierFeatures } from "../../../../application/repository/tiers.reposi
 import { Tier } from "../../../../domain/types/Tiers";
 import { useEffect } from "react";
 
+import useUsers from "../../../../application/hooks/useUsers";
+import { useAuth } from "../../../../application/hooks/useAuth";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -82,8 +84,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, users, userId, refreshUsers } =
+  const { dashboardValues,refreshUsers } =
     useContext(VerifyWiseContext);
+  const { userId } = useAuth();
+  const { users } = useUsers();
 
   // Exclude the current user from the team users list
   const teamUsers = users;

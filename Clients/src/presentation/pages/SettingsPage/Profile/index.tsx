@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useCallback,
   ChangeEvent,
-  useContext,
 } from "react";
 import { Box, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
@@ -23,8 +22,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
 import useLogout from "../../../../application/hooks/useLogout";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { deleteUserById, getUserById, updateUserById } from "../../../../application/repository/user.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -40,7 +39,7 @@ const ProfileForm: React.FC = () => {
   const state = store.getState();
   const userData = extractUserToken(state.auth.authToken); // Extract user data from token
   const { id } = userData || {};
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const isAdmin = userRoleName === "Admin";
   // State management
   const [firstname, setFirstname] = useState<string>("");

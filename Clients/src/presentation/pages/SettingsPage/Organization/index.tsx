@@ -7,7 +7,6 @@ import {
   useCallback,
   ChangeEvent,
   useEffect,
-  useContext,
   useRef,
 } from "react";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
@@ -17,13 +16,13 @@ import {
   UpdateMyOrganization,
 } from "../../../../application/repository/organization.repository";
 import Alert from "../../../components/Alert";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import { uploadAITrustCentreLogo, deleteAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -33,7 +32,7 @@ interface AlertState {
 }
 
 const Organization = () => {
-  const { userRoleName, organizationId } = useContext(VerifyWiseContext);
+  const { userRoleName, organizationId } = useAuth();
   const isEditingDisabled = !allowedRoles.organizations.edit.includes(userRoleName);
   const isCreatingDisabled = !allowedRoles.organizations.create.includes(userRoleName);
 

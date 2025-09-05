@@ -7,7 +7,7 @@ import {
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { SyntheticEvent, useContext, useState, useEffect } from "react";
+import { SyntheticEvent, useState, useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
@@ -18,11 +18,11 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import allowedRoles from "../../../../application/constants/permissions";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 const VWProjectView = () => {
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
   const tabParam = searchParams.get("tab");

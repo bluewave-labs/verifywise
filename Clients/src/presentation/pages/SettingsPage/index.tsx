@@ -1,5 +1,6 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Tabs, Tab, Stack } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
@@ -15,10 +16,21 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const [activeTab, setActiveTab] = useState(0);
+  const [searchParams] = useSearchParams();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
+
+  // Handle payment redirect - navigate to subscription tab if session_id and tierId are present
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id');
+    const tierId = searchParams.get('tierId');
+    
+    if (sessionId && tierId) {
+      setActiveTab(4);
+    }
+  }, [searchParams]);
 
   return (
     <Stack className="vwhome">

@@ -48,7 +48,7 @@ export async function updateUserById({
   userData: any;
   authToken?: string;
 }): Promise<any> {
-  const response = await apiServices.put(`/users/${userId}`, userData, {
+  const response = await apiServices.patch(`/users/${userId}`, userData, {
     headers: { Authorization: `Bearer ${authToken}` },
   });
   return response;

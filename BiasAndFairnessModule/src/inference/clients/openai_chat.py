@@ -12,7 +12,7 @@ class OpenAIChatClient(LLMClient):
 
     def __init__(
         self,
-        base_url: str,
+        base_url: Optional[str],
         api_key: str,
         model_id: str,
         timeout: Optional[float] = None,
@@ -23,7 +23,10 @@ class OpenAIChatClient(LLMClient):
         self.timeout = timeout
 
         # Initialize a reusable client to benefit from HTTP connection pooling
-        self.client = OpenAI(base_url=self.base_url, api_key=self.api_key, timeout=self.timeout)
+        client_kwargs: Dict[str, Any] = {"api_key": self.api_key, "timeout": self.timeout}
+        if self.base_url:
+            client_kwargs["base_url"] = self.base_url
+        self.client = OpenAI(**client_kwargs)
 
     def generate(
         self,

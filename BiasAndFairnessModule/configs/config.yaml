@@ -8,8 +8,8 @@ dataset:
   - sex
   - race
   sampling:
-    enabled: true
-    n_samples: 50
+    enabled: false
+    n_samples: 500
     random_seed: 42
   source: scikit-learn/adult-census-income
   split: train
@@ -20,10 +20,12 @@ metrics:
     metrics:
     - demographic_parity
     - equalized_odds
+    - predictive_parity
   performance:
-    enabled: true
+    enabled: false
     metrics:
     - accuracy
+    - precision
 model:
   huggingface:
     device: cuda

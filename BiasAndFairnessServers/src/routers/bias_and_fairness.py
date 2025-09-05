@@ -55,19 +55,18 @@ async def delete_metrics(id: int, request: Request):
 @router.post("/evaluate/config")
 async def create_config_and_evaluate(
     request: Request,
-    #background_tasks: BackgroundTasks,
+    background_tasks: BackgroundTasks,
     config_data: dict = Body(...)
 ):
     """
     Create config.yaml file and run bias and fairness evaluation.
     """
     print(f"Creating config and running evaluation for tenant: {request.headers['x-tenant-id']}")
-    return {"message": "Config created and evaluation started"}
-    # return await create_config_and_run_evaluation_controller(
-    #     background_tasks=background_tasks,
-    #     config_data=config_data,
-    #     tenant=request.headers["x-tenant-id"]
-    # )
+    return await create_config_and_run_evaluation_controller(
+        background_tasks=background_tasks,
+        config_data=config_data,
+        tenant=request.headers["x-tenant-id"]
+    )
 # New endpoints for Bias and Fairness Module
 @router.post("/evaluate")
 async def evaluate_model(

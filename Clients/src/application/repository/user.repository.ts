@@ -31,7 +31,7 @@ export async function updateUserById({
   userId: number;
   userData: any;
 }): Promise<any> {
-  const response = await apiServices.put(`/users/${userId}`, userData);
+  const response = await apiServices.patch(`/users/${userId}`, userData);
   return response;
 }
 

@@ -77,10 +77,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues,refreshUsers } =
+  const { dashboardValues } =
     useContext(VerifyWiseContext);
   const { userId } = useAuth();
-  const { users } = useUsers();
+  const { users, refreshUsers } = useUsers();
 
   // Exclude the current user from the team users list
   const teamUsers = users;
@@ -88,11 +88,27 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
-  const handleUpdateRole = async (memberId: string, newRole: string) => {
+  const handleUpdateRole = useCallback(async (memberId: string, newRole: string) => {
     try {
-       const response = await updateUserById({
+      // Find the member to get their current data
+      const member = teamUsers.find(user => user.id.toString() === memberId);
+      if (!member) {
+        setAlert({
+          variant: "error",
+          body: "User not found.",
+        });
+        setTimeout(() => setAlert(null), 3000);
+        return;
+      }
+
+      const response = await updateUserById({
         userId: parseInt(memberId),
-        userData: { roleId: newRole },
+        userData: { 
+          name: member.name,
+          surname: member.surname,
+          email: member.email,
+          roleId: newRole 
+        },
       });
 
       if (response.status === 202) {
@@ -102,7 +118,10 @@ const TeamManagement: React.FC = (): JSX.Element => {
           setAlert,
         });
 
-        refreshUsers();
+        // Add a small delay to ensure the server has processed the update
+        setTimeout(() => {
+          refreshUsers();
+        }, 500);
       } else {
         setAlert({
           variant: "error",
@@ -120,7 +139,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
       setTimeout(() => setAlert(null), 3000);
     }
-  };
+  }, [teamUsers, refreshUsers]);
 
   const handleClose = () => {
     setOpen(false);
@@ -132,23 +151,35 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
     const memberId = Number(memberToDelete);
 
+    try {
       const response = await deleteUserById({
-      userId: memberId,
-    });
-    if (response.status === 202) {
-      handleAlert({
-        variant: "success",
-        body: "User deleted successfully",
-        setAlert,
+        userId: memberId,
       });
-      refreshUsers();
-    } else {
+      
+      if (response && response.status === 202) {
+        handleAlert({
+          variant: "success",
+          body: "User deleted successfully",
+          setAlert,
+        });
+        refreshUsers();
+      } else {
+        handleAlert({
+          variant: "error",
+          body: "User deletion failed",
+          setAlert,
+        });
+      }
+    } catch (error) {
       handleAlert({
         variant: "error",
-        body: "User deletion failed",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
         setAlert,
       });
     }
+    
     handleClose();
   };
 
@@ -158,7 +189,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
       const newRole = event.target.value;
       handleUpdateRole(memberId, newRole);
     },
-    []
+    [handleUpdateRole]
   );
 
   // Typography component for role display

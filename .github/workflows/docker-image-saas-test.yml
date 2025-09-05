@@ -1,17 +1,14 @@
 name: Build and Push Images to GitHub Container Registry
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - develop-saas
 
 jobs:
   build-and-push:
-    if: ${{ endsWith(github.event.release.tag_name, '-saas') }}
     runs-on: ubuntu-latest
     environment: Build
-
-    env:
-      FULL_TAG: ${{ github.event.release.tag_name }}
 
     permissions:
       contents: read
@@ -23,12 +20,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Extract version tag
-        run: |
-          RAW_TAG="${GITHUB_REF##*/}"   # v1.1-saas
-          CLEAN_TAG="${RAW_TAG%-saas}"  # v1.1
-          echo "TAG=$CLEAN_TAG" >> $GITHUB_ENV
 
       - name: Debug GitHub Token Access
         run: |
@@ -60,8 +51,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:${{ env.TAG }}
-            ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:latest
+            ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:test
           build-args: |
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
@@ -72,8 +62,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/verifywise-backend-saas:${{ env.TAG }}
-            ghcr.io/${{ github.repository_owner }}/verifywise-backend-saas:latest
+            ghcr.io/${{ github.repository_owner }}/verifywise-backend-saas:test
 
       - name: Build and push BiasAndFairnessServers image
         uses: docker/build-push-action@v4
@@ -82,15 +71,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:${{ env.TAG }}
-            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:latest
+            ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:test
 
-      - name: Deploy to Production
+      - name: Deploy to Testing
         uses: appleboy/ssh-action@v0.1.5
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          host: ${{ secrets.TEST_HOST }}
+          username: ${{ secrets.TEST_USER }}
+          key: ${{ secrets.TEST_SSH_KEY }}
           script: |
             cd /root/verifywise
             docker-compose --env-file .env.prod down

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { getAllTiers } from "../repository/tiers.repository";
+import { getTierFeatures } from "../repository/tiers.repository";
 import { GetMyOrganization } from "../repository/organization.repository";
 import { getSubscriptionById } from "../repository/subscription.repository";
 import { extractUserToken } from "../tools/extractToken";
 import { getAuthToken } from "../redux/auth/getAuthToken";
-
-type Tier = { id: number; name: string; price: number | null; features?: Record<string, string | number> };
+import { Tier } from "../../domain/types/Tiers";
 
 interface SubscriptionData {
   id: number;
@@ -24,18 +23,18 @@ interface SubscriptionResponse {
 }
 
 interface UseSubscriptionDataReturn {
-  tiers: Tier[];
+  tierFeatures: Tier | null;
   organizationTierId: number | null;
   loading: boolean;
   error: string | null;
 }
 
 /**
- * Custom hook that fetches subscription-related data including tiers and organization subscription info
- * @returns Object containing tiers data, organization tier ID, loading state, and error state
+ * Custom hook that fetches subscription-related data including tier features and organization subscription info
+ * @returns Object containing tier features data, organization tier ID, loading state, and error state
  */
 export const useSubscriptionData = (): UseSubscriptionDataReturn => {
-  const [tiers, setTiers] = useState<Tier[]>([]);
+  const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
   const [organizationTierId, setOrganizationTierId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,28 +85,32 @@ export const useSubscriptionData = (): UseSubscriptionDataReturn => {
     fetchOrganizationTierId();
   }, [organizationId]);
 
-  // Fetch tiers data
+  // Fetch tier features data
   useEffect(() => {
-    const fetchTiers = async () => {
+    const fetchTierFeatures = async () => {
+      if (!organizationTierId) return;
+      
       try {
         setError(null);
-        const tiersObject = await getAllTiers();
-        if (tiersObject) {
-          const tiersArray = Object.values(tiersObject);
-          const plans = (tiersArray[1] ?? []) as Tier[];
-          setTiers(plans);
-        }
+        setLoading(true);
+        const features = await getTierFeatures({
+          tierId: organizationTierId,
+          routeUrl: "/tiers"
+        });
+        setTierFeatures(features);
       } catch (err) {
-        console.error("Failed to fetch tiers:", err);
-        setError("Failed to load subscription tiers");
+        console.error("Failed to fetch tier features:", err);
+        setError("Failed to load tier features");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchTiers();
-  }, []);
+    fetchTierFeatures();
+  }, [organizationTierId]);
 
   return {
-    tiers,
+    tierFeatures,
     organizationTierId,
     loading,
     error,

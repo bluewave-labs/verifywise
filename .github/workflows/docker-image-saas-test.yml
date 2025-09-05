@@ -82,5 +82,5 @@ jobs:
           script: |
             cd /root/verifywise
             docker-compose --env-file .env.prod down
-            docker image prune -f --filter "label!=keep"
+            docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v -E "(redis|postgres)" | awk 'NR>1 {print $2}' | xargs -r docker rmi -f || true
             ./install.sh

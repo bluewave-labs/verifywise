@@ -271,19 +271,28 @@ const ProfileForm: React.FC = () => {
   const handleDeleteAccount = useCallback(async () => {
     setShowToast(true);
     try {
-      await deleteUserById({ userId: Number(id) });
+      const response = await deleteUserById({ userId: Number(id) });
 
-      // Clear storage
-      await localStorage.removeItem("userId");
-      await localStorage.removeItem("authToken");
+      if (response?.status === 202) {
+        // Clear storage only on success
+        await localStorage.removeItem("userId");
+        await localStorage.removeItem("authToken");
 
-      logout();
+        logout();
 
-      showAlert("success", "Success", "Account deleted successfully.");
+        showAlert("success", "Success", "Account deleted successfully.");
+      } else {
+        // Handle failure case
+        logEngine({
+          type: "error",
+          message: `Failed to delete account. Status: ${response?.status || 'undefined'}, Response: ${JSON.stringify(response)}`,
+        });
+        showAlert("error", "Error", "Failed to delete account. Please try again.");
+      }
     } catch (error) {
       logEngine({
         type: "error",
-        message: "An error occurred while deleting the account.",
+        message: `An error occurred while deleting the account: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
       showAlert("error", "Error", "Failed to delete account. Please try again.");
     } finally {

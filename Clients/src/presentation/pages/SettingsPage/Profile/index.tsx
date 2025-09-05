@@ -100,14 +100,21 @@ const ProfileForm: React.FC = () => {
     setLoading(true);
     try {
       const userData = await getUserById({ userId: id });
+      console.log("Raw getUserById result:", userData);
+      console.log("userData type:", typeof userData);
+      console.log("userData keys:", userData ? Object.keys(userData) : "userData is null/undefined");
 
-      setFirstname(userData.name || "");
-      setLastname(userData.surname || "");
-      setEmail(userData.email || "");
+      // Try both direct access and .data access to see which works
+      const actualUserData = userData?.data || userData;
+      console.log("actualUserData:", actualUserData);
 
-      updateInitialState(userData.name || "", userData.surname || "", userData.email || "");
+      setFirstname(actualUserData?.name || "");
+      setLastname(actualUserData?.surname || "");
+      setEmail(actualUserData?.email || "");
 
-      console.log(`user ${userData.name} ${userData.surname} fetched`);
+      updateInitialState(actualUserData?.name || "", actualUserData?.surname || "", actualUserData?.email || "");
+
+      console.log(`user ${actualUserData?.name} ${actualUserData?.surname} fetched`);
     } catch (error) {
       console.log(error);
       logEngine({

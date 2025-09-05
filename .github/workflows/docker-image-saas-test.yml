@@ -3,7 +3,7 @@ name: Build and Push Images to GitHub Container Registry
 on:
   push:
     branches:
-      - hp-sep-4-add-testing-workflow
+      - develop-saas
 
 jobs:
   build-and-push:

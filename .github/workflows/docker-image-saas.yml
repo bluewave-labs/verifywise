@@ -8,6 +8,7 @@ jobs:
   build-and-push:
     if: ${{ endsWith(github.event.release.tag_name, '-saas') }}
     runs-on: ubuntu-latest
+    environment: Build
 
     env:
       FULL_TAG: ${{ github.event.release.tag_name }}
@@ -83,3 +84,15 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:${{ env.TAG }}
             ghcr.io/${{ github.repository_owner }}/verifywise-bias-and-fairness-backend-saas:latest
+
+      - name: Deploy to Production
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /root/verifywise
+            docker-compose --env-file .env.prod down
+            docker images --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v -E "(redis|postgres)" | awk 'NR>1 {print $2}' | xargs -r docker rmi -f || true
+            ./install.sh

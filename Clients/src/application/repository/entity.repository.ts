@@ -3,7 +3,6 @@ import {
   RequestParams,
 } from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Creates a new user by sending a POST request to the specified route URL with the provided body.
@@ -15,11 +14,8 @@ import { getAuthToken } from "../redux/auth/getAuthToken";
 export async function createNewUser({
   routeUrl,
   body,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
-  const response = await apiServices.post(routeUrl, body, {
-    headers: { Authorization: `Bearer ${authToken}` },
-  });
+  const response = await apiServices.post(routeUrl, body);
   return response;
 }
 
@@ -33,12 +29,9 @@ export async function createNewUser({
 export async function loginUser({
   routeUrl,
   body,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.post(routeUrl, body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post(routeUrl, body);
     return response;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -56,12 +49,10 @@ export async function loginUser({
 export async function getEntityById({
   routeUrl,
   signal,
-  authToken = getAuthToken(),
   responseType = "json",
 }: GetRequestParams): Promise<any> {
   try {
     const response = await apiServices.get(routeUrl, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
       responseType,
     });
@@ -82,12 +73,11 @@ export async function getEntityById({
 export async function updateEntityById({
   routeUrl,
   body,
-  authToken = getAuthToken(),
   headers,
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.patch(routeUrl, body, {
-      headers: { Authorization: `Bearer ${authToken}`, ...headers },
+      headers: { ...headers },
     });
     return response;
   } catch (error) {
@@ -104,12 +94,9 @@ export async function updateEntityById({
  */
 export async function deleteEntityById({
   routeUrl,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.delete(routeUrl, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(routeUrl);
     return response;
   } catch (error) {
     console.error("Error deleting user by ID:", error);
@@ -126,12 +113,9 @@ export async function deleteEntityById({
  */
 export async function getAllEntities({
   routeUrl,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get(routeUrl);
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);
@@ -148,12 +132,9 @@ export async function getAllEntities({
  */
 export async function checkUserExists({
   routeUrl,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get(routeUrl);
     return response.data;
   } catch (error) {
     console.error("Error checking if user exists:", error);
@@ -167,13 +148,9 @@ export async function checkUserExists({
  * @returns {Promise<any>} A promise that resolves to the response data.
  * @throws Will throw an error if the request fails.
  */
-export async function postAutoDrivers(
-  authToken = getAuthToken()
-): Promise<any> {
+export async function postAutoDrivers(): Promise<any> {
   try {
-    const response = await apiServices.post("/autoDrivers", {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post("/autoDrivers");
 
     return response;
   } catch (error) {
@@ -185,11 +162,8 @@ export async function postAutoDrivers(
 export async function resetPassword({
   routeUrl,
   body,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
-  const response = await apiServices.post(routeUrl, body, {
-    headers: { Authorization: `Bearer ${authToken}` },
-  });
+  const response = await apiServices.post(routeUrl, body);
   return response;
 }
 
@@ -200,13 +174,9 @@ export async function resetPassword({
  * @returns {Promise<any>} A promise that resolves to the list of users.
  * @throws Will throw an error if the request fails.
  */
-export async function getAllUsers({
-  authToken = getAuthToken(),
-}: RequestParams): Promise<any> {
+export async function getAllUsers(): Promise<any> {
   try {
-    const response = await apiServices.get("/users", {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get("/users");
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);
@@ -225,13 +195,9 @@ export async function generateReport({
   routeUrl,
   body,
   signal,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.post(routeUrl, body, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
       signal,
       responseType: "blob",
     });
@@ -242,13 +208,9 @@ export async function generateReport({
   }
 }
 
-export async function getAllFrameworks({
-  authToken = getAuthToken(),
-}: RequestParams): Promise<any> {
+export async function getAllFrameworks(): Promise<any> {
   try {
-    const response = await apiServices.get("/frameworks", {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get("/frameworks");
     return response.data;
   } catch (error) {
     console.error("Error getting all frameworks:", error);
@@ -259,21 +221,14 @@ export async function getAllFrameworks({
 export const assignFrameworkToProject = async ({
   frameworkId,
   projectId,
-  authToken = getAuthToken(),
 }: {
   frameworkId: number;
   projectId: string;
-  authToken?: string;
 }) => {
   try {
     const response = await apiServices.post(
       `/frameworks/toProject?frameworkId=${frameworkId}&projectId=${projectId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      }
+      {}
     );
 
     return {

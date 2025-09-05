@@ -151,23 +151,35 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
     const memberId = Number(memberToDelete);
 
+    try {
       const response = await deleteUserById({
-      userId: memberId,
-    });
-    if (response.status === 202) {
-      handleAlert({
-        variant: "success",
-        body: "User deleted successfully",
-        setAlert,
+        userId: memberId,
       });
-      refreshUsers();
-    } else {
+      
+      if (response && response.status === 202) {
+        handleAlert({
+          variant: "success",
+          body: "User deleted successfully",
+          setAlert,
+        });
+        refreshUsers();
+      } else {
+        handleAlert({
+          variant: "error",
+          body: "User deletion failed",
+          setAlert,
+        });
+      }
+    } catch (error) {
       handleAlert({
         variant: "error",
-        body: "User deletion failed",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
         setAlert,
       });
     }
+    
     handleClose();
   };
 

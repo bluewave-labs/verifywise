@@ -94,7 +94,7 @@ export const biasAndFairnessService = {
    * Creates config and runs bias and fairness evaluation
    */
   async createConfigAndEvaluate(payload: BiasAndFairnessConfigPayload): Promise<EvaluationResponse> {
-    const response = await CustomAxios.post("/bias_and_fairness/evaluate/config", {}, {
+    const response = await CustomAxios.post("/bias_and_fairness/evaluate/config", payload, {
       headers: {
         "Content-Type": "application/json",
       },

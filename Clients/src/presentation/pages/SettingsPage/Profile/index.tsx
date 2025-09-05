@@ -99,8 +99,7 @@ const ProfileForm: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await getUserById({ userId: id });
-      const userData = response.data;
+      const userData = await getUserById({ userId: id });
 
       setFirstname(userData.name || "");
       setLastname(userData.surname || "");

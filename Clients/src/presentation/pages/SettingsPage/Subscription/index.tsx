@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Card, CardContent, CardActions, Button, Typography, Stack, CircularProgress, Box, SvgIcon } from "@mui/material";
+import { Grid, Card, CardContent, CardActions, Button, Typography, Stack, CircularProgress, Box, SvgIcon, Alert } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import { getAllTiers } from "../../../../application/repository/tiers.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { GetMyOrganization } from "../../../../application/repository/organization.repository";
+import { useSubscriptionManagement } from "../../../../application/hooks/useSubscriptionManagement";
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined'; 
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';               
 import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined'; 
@@ -12,8 +14,8 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const pricingUrlMap = {
-  Team: 'https://buy.stripe.com/6oU7sK74p75f6kyfB5a7C09',
-  // Team: 'https://buy.stripe.com/test_aFaeVe2Nl3Hp8EH4Hg7EQ00', // Testing
+  // Team: 'https://buy.stripe.com/6oU7sK74p75f6kyfB5a7C09',
+  Team: 'https://buy.stripe.com/test_aFaeVe2Nl3Hp8EH4Hg7EQ00', // Testing
   Business: 'https://buy.stripe.com/eVq00i4Wh61b6kybkPa7C0a',
   Enterprise: 'https://buy.stripe.com/cNidR8fAVfBL10e9cHa7C0b',
 };
@@ -25,15 +27,28 @@ const iconMap = {
   Enterprise: ApartmentOutlinedIcon,
 };
 
+type Tier = { id: number; name: string; price: number | null; features?: Record<string, string | number> };
+
 const Subscription: React.FC = () => {
-  const [tiers, setTiers] = useState<any[]>([]);
+  const [tiers, setTiers] = useState<Tier[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [searchParams] = useSearchParams();
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState<boolean>(false);
 
   const userToken = extractUserToken(getAuthToken());
   const organizationId = userToken?.organizationId;
   const [organizationTierId, setOrganizationTierId] = useState<number | null>(
     null
   );
+
+  const {
+    isProcessing,
+    error: subscriptionError,
+    success: subscriptionSuccess,
+    processSubscription,
+    clearError,
+    clearSuccess,
+  } = useSubscriptionManagement();
 
   useEffect(() => {
     const fetchOrganizationTierId = async () => {
@@ -51,13 +66,37 @@ const Subscription: React.FC = () => {
   }
 
   useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const tierId = searchParams.get("tierId");
+
+    if (sessionId && tierId && organizationId) {
+      setShowPaymentSuccess(true);
+
+      processSubscription(Number(organizationId), Number(tierId), sessionId)
+        .then((success) => {
+          if (success) {
+            console.log("Subscription processed successfully");
+          }
+        });
+
+      const timer = setTimeout(() => {
+        setShowPaymentSuccess(false);
+        clearSuccess();
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, organizationId, processSubscription, clearSuccess]);
+
+  useEffect(() => {
     const fetchTiers = async () => {
       try {
         setLoading(true);
         const tiersObject = await getAllTiers();
         if (tiersObject) {
             const tiersArray = Object.values(tiersObject);
-            setTiers(tiersArray);
+            const plans = (tiersArray[1] ?? []) as Tier[];
+            setTiers(plans);
         }
 
       } catch (error) {
@@ -70,8 +109,8 @@ const Subscription: React.FC = () => {
   }, []);
 
   const handleSubscribe = (tierId: number) => {
-    console.log("Subscribing to tier:", tierId);
-    window.open(`${pricingUrlMap[tiers[1].find((tier: any) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`, "_blank");
+    const url = `${pricingUrlMap[tiers.find((tier: Tier) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`;
+    window.location.href = url;
   };
 
   if (loading) {
@@ -84,13 +123,30 @@ const Subscription: React.FC = () => {
 
   return (
     <Stack spacing={4} sx={{ mt: 3 }}>
+    {showPaymentSuccess && subscriptionSuccess && (
+      <Alert severity="success" sx={{ mb: 2 }}>
+        Payment successful! Your subscription has been updated. Thank you for your purchase.
+      </Alert>
+    )}
+    
+    {subscriptionError && (
+      <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
+        Failed to process subscription: {subscriptionError}
+      </Alert>
+    )}
+    
+    {isProcessing && (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Processing your subscription...
+      </Alert>
+    )}
+    
     <Typography variant="h4" component="h1" align="center" fontWeight="bold">
       Choose Your Plan
     </Typography>
  
     <Grid container spacing={3} alignItems="stretch" justifyContent="center">
-      {tiers[1]?.map((tier: any) => {
-        console.log(tier.name);
+      {tiers?.map((tier: Tier) => {
         // Find the icon from our map, or use a default one
         const PlanIcon = iconMap[tier?.name?.split(' ')[0] as keyof typeof iconMap] || HelpOutlineIcon;
 

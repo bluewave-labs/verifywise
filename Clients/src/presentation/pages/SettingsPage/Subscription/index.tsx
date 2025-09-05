@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Grid, Card, CardContent, CardActions, Button, Typography, Stack, CircularProgress, Box, SvgIcon, Alert } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
-import { getAllTiers } from "../../../../application/repository/tiers.repository";
+import { useSubscriptionManagement } from "../../../../application/hooks/useSubscriptionManagement";
+import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { GetMyOrganization } from "../../../../application/repository/organization.repository";
-import { useSubscriptionManagement } from "../../../../application/hooks/useSubscriptionManagement";
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined'; 
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';               
 import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined'; 
@@ -30,16 +29,13 @@ const iconMap = {
 type Tier = { id: number; name: string; price: number | null; features?: Record<string, string | number> };
 
 const Subscription: React.FC = () => {
-  const [tiers, setTiers] = useState<Tier[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
   const [showPaymentSuccess, setShowPaymentSuccess] = useState<boolean>(false);
 
   const userToken = extractUserToken(getAuthToken());
   const organizationId = userToken?.organizationId;
-  const [organizationTierId, setOrganizationTierId] = useState<number | null>(
-    null
-  );
+  
+  const { tiers, organizationTierId, loading, error: dataError } = useSubscriptionData();
 
   const {
     isProcessing,
@@ -50,20 +46,6 @@ const Subscription: React.FC = () => {
     clearSuccess,
   } = useSubscriptionManagement();
 
-  useEffect(() => {
-    const fetchOrganizationTierId = async () => {
-      const organization = await GetMyOrganization({
-        routeUrl: `/organizations/${organizationId}`,
-      });
-      const org = organization.data.data;
-      setOrganizationTierId(org.subscription_id);
-    };
-    fetchOrganizationTierId();
-  }, [organizationId]);
-
-  if (!organizationTierId) {
-    setOrganizationTierId(1);
-  }
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
@@ -88,25 +70,6 @@ const Subscription: React.FC = () => {
     }
   }, [searchParams, organizationId, processSubscription, clearSuccess]);
 
-  useEffect(() => {
-    const fetchTiers = async () => {
-      try {
-        setLoading(true);
-        const tiersObject = await getAllTiers();
-        if (tiersObject) {
-            const tiersArray = Object.values(tiersObject);
-            const plans = (tiersArray[1] ?? []) as Tier[];
-            setTiers(plans);
-        }
-
-      } catch (error) {
-        console.error("Failed to fetch tiers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTiers();
-  }, []);
 
   const handleSubscribe = (tierId: number) => {
     const url = `${pricingUrlMap[tiers.find((tier: Tier) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`;
@@ -132,6 +95,12 @@ const Subscription: React.FC = () => {
     {subscriptionError && (
       <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
         Failed to process subscription: {subscriptionError}
+      </Alert>
+    )}
+    
+    {dataError && (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {dataError}
       </Alert>
     )}
     

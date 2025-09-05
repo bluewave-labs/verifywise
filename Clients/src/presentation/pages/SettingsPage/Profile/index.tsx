@@ -176,17 +176,27 @@ const ProfileForm: React.FC = () => {
 
       console.log("Update response:", response);
 
-      // Update the initial state to reflect the new saved values
-      // This prevents the form from thinking it's still modified
-      updateInitialState(firstname, lastname, email);
+      // Validate response before proceeding with success path
+      if (response && (response.status >= 200 && response.status < 300)) {
+        // Update the initial state to reflect the new saved values
+        // This prevents the form from thinking it's still modified
+        updateInitialState(firstname, lastname, email);
 
-      showAlert("success", "Success", "Profile updated successfully.");
+        showAlert("success", "Success", "Profile updated successfully.");
+      } else {
+        // Handle failure response
+        logEngine({
+          type: "error",
+          message: `Failed to update profile. Status: ${response?.status || 'undefined'}, Response: ${JSON.stringify(response)}`,
+        });
+        showAlert("error", "Error", "Failed to update profile. Please try again.");
+      }
 
     } catch (error) {
       console.error("Update error:", error);
       logEngine({
         type: "error",
-        message: "An error occurred while updating the profile.",
+        message: `An error occurred while updating the profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
       showAlert("error", "Error", "Failed to update profile. Please try again.");
     } finally {

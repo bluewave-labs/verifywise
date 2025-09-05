@@ -28,6 +28,19 @@ export async function getSubscription({
   }
 }
 
+export async function getSubscriptionById({
+  id,
+  authToken = getAuthToken(),
+}: {
+  id: number;
+  authToken?: string;
+}) {
+  const response = await apiServices.get(`/subscriptions/${id}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response.data;
+}
+
 export async function createSubscription({
   payload,
   authToken = getAuthToken(),

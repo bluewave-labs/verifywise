@@ -1,5 +1,5 @@
 import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction, Op, WhereOptions, OrderItem } from "sequelize";
 import { ITask } from "../domain.layer/interfaces/i.task";
@@ -64,7 +64,8 @@ const addVisibilityLogic = (
 export const createNewTaskQuery = async (
   task: ITask,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
+  assignees?: Array<{ user_id: number }>
 ): Promise<TasksModel> => {
 
   
@@ -90,7 +91,36 @@ export const createNewTaskQuery = async (
       transaction,
     }
   );
-  return result[0] as TasksModel;
+  
+  const createdTask = result[0] as TasksModel;
+  
+  // Handle assignees following the project members pattern
+  (createdTask.dataValues as any)["assignees"] = [];
+  
+  if (assignees && assignees.length > 0) {
+    for (let assignee of assignees) {
+      // Handle both formats: string/number directly, or object with user_id property
+      const userId = typeof assignee === 'string' || typeof assignee === 'number' 
+        ? Number(assignee) 
+        : Number(assignee.user_id);
+        
+      if (!isNaN(userId) && userId > 0) {
+        await sequelize.query(
+          `INSERT INTO "${tenant}".task_assignees (task_id, user_id) VALUES (:task_id, :user_id) RETURNING *`,
+          {
+            replacements: { 
+              task_id: createdTask.id, 
+              user_id: userId 
+            },
+            transaction,
+          }
+        );
+        (createdTask.dataValues as any)["assignees"].push(userId);
+      }
+    }
+  }
+  
+  return createdTask;
 };
 
 // GET /tasks: Fetch list with filters (status, due_date range, category, assignee) and sorts (due_date, priority, created_at). Apply pagination (25 items per page, server-side). Enforce visibility rules.
@@ -229,6 +259,19 @@ export const getTasksQuery = async (
     type: QueryTypes.SELECT,
   });
 
+  // Add assignees to each task following the project members pattern
+  for (const task of tasks) {
+    const assignees = await sequelize.query(
+      `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+      {
+        replacements: { task_id: task.id },
+        mapToModel: true,
+        model: TaskAssigneesModel,
+      }
+    );
+    (task.dataValues as any)["assignees"] = assignees.map((a: any) => a.user_id);
+  }
+
   return tasks as TasksModel[];
 };
 
@@ -259,7 +302,24 @@ export const getTaskByIdQuery = async (
     type: QueryTypes.SELECT,
   });
   
-  return tasks.length > 0 ? (tasks[0] as TasksModel) : null;
+  if (tasks.length > 0) {
+    const task = tasks[0] as TasksModel;
+    
+    // Add assignees following the project members pattern
+    const assignees = await sequelize.query(
+      `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+      {
+        replacements: { task_id: task.id },
+        mapToModel: true,
+        model: TaskAssigneesModel,
+      }
+    );
+    (task.dataValues as any)["assignees"] = assignees.map((a: any) => a.user_id);
+    
+    return task;
+  }
+  
+  return null;
 };
 
 // Update task with permission checks

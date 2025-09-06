@@ -33,10 +33,8 @@ const AITrustCenterSettings: React.FC = () => {
   // Function to fetch logo and convert Buffer to Blob URL
   const fetchLogoAsBlobUrl = async (tenantId: string): Promise<string | null> => {
     try {
-      const authToken = getAuthToken();
       const response = await apiServices.get(`/aiTrustCentre/${tenantId}/logo`, {
-        responseType: 'json',
-        headers: { Authorization: `Bearer ${authToken}` }
+        responseType: 'json'
       });
 
       const responseData = response.data as any;

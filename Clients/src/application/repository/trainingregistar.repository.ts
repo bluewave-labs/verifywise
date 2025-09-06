@@ -1,5 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 
 //Add training registry data to the database by sending a "POST" request to "/training"
 /**
@@ -12,12 +11,9 @@ import { getAuthToken } from "../redux/auth/getAuthToken";
 export async function createTraining(
   routeUrl: string,
   data: any,
-  authToken = getAuthToken()
 ): Promise<any> {
   try {
-    const response = await apiServices.post(routeUrl, data, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post(routeUrl, data);
     return response.data;
   } catch (error) {
     console.error("Error creating training:", error);

@@ -2,7 +2,6 @@ import {
   TableBody,
   TableCell,
   TableRow,
-  useTheme,
   Chip,
   Dialog,
 } from "@mui/material";
@@ -18,6 +17,8 @@ import allowedRoles from "../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
 import CustomizableButton from "../Buttons";
 import { ProjectRiskMitigation } from "../../components/ProjectRiskMitigation/ProjectRiskMitigation";
+import useUsers from "../../../application/hooks/useUsers";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 function getDummyEvent() {
   const realEvent = new Event('click', { bubbles: true, cancelable: true });
@@ -65,10 +66,11 @@ const VWProjectRisksTableBody = ({
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
 }) => {
-  const { setInputValues, users, userRoleName } = useContext(VerifyWiseContext);
+  const { setInputValues } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
+  const { users } = useUsers();
   const isDeletingAllowed = allowedRoles.projectRisks.delete.includes(userRoleName);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
-  const theme = useTheme();
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);
@@ -174,7 +176,7 @@ const VWProjectRisksTableBody = ({
                       backgroundColor: getMitigationStatusColor(row.mitigation_status),
                       color: 'white',
                       fontWeight: 500,
-                      borderRadius: theme.shape.borderRadius,
+                      borderRadius: 12,
                       height: 24,
                     }}
                   />

@@ -22,11 +22,14 @@ FROM nginx:1.25-alpine
 # Step 8: Copy the build output to NGINX's default public directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Step 9: Copy the custom NGINX configuration
+# Step 9: Copy the custom error page
+# COPY upgrade.html /usr/share/nginx/html/upgrade.html
+
+# Step 10: Copy the custom NGINX configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Step 10: Expose port 80
+# Step 11: Expose port 80
 EXPOSE 80
 
-# Step 11: Start NGINX server
+# Step 12: Start NGINX server
 CMD ["nginx", "-g", "daemon off;"]

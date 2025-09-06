@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useCallback,
   ChangeEvent,
-  useContext,
 } from "react";
 import { Box, Divider, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
@@ -14,17 +13,17 @@ import validator from "validator";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import Alert from "../../../components/Alert"; // Import Alert component
+import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
-import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast component
+import CustomizableToast from "../../../vw-v2-components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { deleteUserById, getUserById, updateUserById } from "../../../../application/repository/user.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -38,10 +37,11 @@ import { deleteUserById, getUserById, updateUserById } from "../../../../applica
  */
 const ProfileForm: React.FC = () => {
   const state = store.getState();
-  const userData = extractUserToken(state.auth.authToken); // Extract user data from token
+  const userData = extractUserToken(state.auth.authToken);
   const { id } = userData || {};
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const isAdmin = userRoleName === "Admin";
+
   // State management
   const [firstname, setFirstname] = useState<string>("");
   const [lastname, setLastname] = useState<string>("");
@@ -51,6 +51,7 @@ const ProfileForm: React.FC = () => {
   const [lastnameError, setLastnameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false); // Separate saving state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -68,129 +69,145 @@ const ProfileForm: React.FC = () => {
 
   const theme = useTheme();
   const initialStateRef = useRef({ firstname: "", lastname: "", email: "" });
+
   const isModified =
     firstname !== initialStateRef.current.firstname ||
     lastname !== initialStateRef.current.lastname ||
     email !== initialStateRef.current.email;
 
   const isSaveDisabled =
-    !!firstnameError || !!lastnameError || !!emailError || !isModified;
+    !!firstnameError || !!lastnameError || !!emailError || !isModified || saving;
 
   const logout = useLogout();
 
   /**
-   * Fetch user data on component mount.
-   *
-   * Retrieves the user data from the server and sets the state with the
-   * retrieved information.
+   * Update initial state reference when data changes
    */
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-       const response = await getUserById({ userId: id });
-        setFirstname(response.data.name || "");
-        setLastname(response.data.surname || "");
-        setEmail(response.data.email || "");
-
-        initialStateRef.current = {
-          firstname: response.data.name,
-          lastname: response.data.surname,
-          email: response.data.email,
-        };
-
-        console.log(
-          `user ${response.data.name} ${response.data.surname} fetched`
-        );
-        console.log(firstname);
-      } catch (error) {
-        console.log(error);
-        logEngine({
-          type: "error",
-          message: "Failed to fetch user data.",
-        });
-      } finally {
-        setLoading(false);
-      }
+  const updateInitialState = useCallback((name: string, surname: string, emailAddr: string) => {
+    initialStateRef.current = {
+      firstname: name,
+      lastname: surname,
+      email: emailAddr,
     };
+  }, []);
+
+  /**
+   * Fetch user data on component mount.
+   */
+  const fetchUserData = useCallback(async () => {
+    if (!id) return;
+
+    setLoading(true);
+    try {
+      const userData = await getUserById({ userId: id });
+
+      // Try both direct access and .data access to see which works
+      const actualUserData = userData?.data || userData;
+
+      setFirstname(actualUserData?.name || "");
+      setLastname(actualUserData?.surname || "");
+      setEmail(actualUserData?.email || "");
+
+      updateInitialState(actualUserData?.name || "", actualUserData?.surname || "", actualUserData?.email || "");
+
+    } catch (error) {
+      console.log(error);
+      logEngine({
+        type: "error",
+        message: "Failed to fetch user data.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [id, updateInitialState]);
+
+  useEffect(() => {
     fetchUserData();
-    console.log("fetchUserData");
+  }, [fetchUserData]);
+
+  /**
+   * Show alert with auto-hide functionality
+   */
+  const showAlert = useCallback((
+    variant: "success" | "info" | "warning" | "error",
+    title: string,
+    body: string
+  ) => {
+    setAlert({
+      variant,
+      title,
+      body,
+      isToast: true,
+      visible: true,
+    });
+
+    setTimeout(() => {
+      setAlert((prev) => ({ ...prev, visible: false }));
+    }, 3000);
   }, []);
 
   /**
    * Handle save button click with validation.
-   *
-   * Validates the input fields and updates the user profile information
-   * on the server if there are no validation errors.
    */
   const handleSave = useCallback(async () => {
-    setShowToast(true); // Show toast when request is sent
-    try {
-      if (firstnameError || lastnameError || emailError) {
-        logEngine({
-          type: "error",
-          message: "Validation errors occured while saving the profile.",
-        });
-        setAlert({
-          variant: "error",
-          title: "Error",
-          body: "Validation errors occurred while saving the profile.",
-          isToast: true,
-          visible: true,
-        });
-        setTimeout(() => {
-          setAlert((prev) => ({ ...prev, visible: false }));
-        }, 3000); // Alert will disappear after 3 seconds
-        return;
-      }
+    // Early validation check
+    if (firstnameError || lastnameError || emailError) {
+      logEngine({
+        type: "error",
+        message: "Validation errors occurred while saving the profile.",
+      });
+      showAlert("error", "Error", "Validation errors occurred while saving the profile.");
+      return;
+    }
 
+    setSaving(true);
+    setShowToast(true);
+
+    try {
       const updatedUser = {
         name: firstname,
         surname: lastname,
         email,
       };
-        const response = await updateUserById({
+
+      const response = await updateUserById({
         userId: id,
         userData: updatedUser,
       });
-      console.log(response);
-      setAlert({
-        variant: "success",
-        title: "Success",
-        body: "Profile updated successfully.",
-        isToast: true,
-        visible: true,
-      });
-      setTimeout(() => {
-        setAlert((prev) => ({ ...prev, visible: false }));
-      }, 3000); // Alert will disappear after 3 seconds
+
+      console.log("Update response:", response);
+
+      // Validate response before proceeding with success path
+      if (response && (response.status >= 200 && response.status < 300)) {
+        // Update the initial state to reflect the new saved values
+        // This prevents the form from thinking it's still modified
+        updateInitialState(firstname, lastname, email);
+
+        showAlert("success", "Success", "Profile updated successfully.");
+      } else {
+        // Handle failure response
+        logEngine({
+          type: "error",
+          message: `Failed to update profile. Status: ${response?.status || 'undefined'}, Response: ${JSON.stringify(response)}`,
+        });
+        showAlert("error", "Error", "Failed to update profile. Please try again.");
+      }
+
     } catch (error) {
+      console.error("Update error:", error);
       logEngine({
         type: "error",
-        message: "An error occured while updating the profile.",
+        message: `An error occurred while updating the profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
-      setAlert({
-        variant: "error",
-        title: "Error",
-        body: "Failed to update profile. Please try again.",
-        isToast: true,
-        visible: true,
-      });
-      setTimeout(() => {
-        setAlert((prev) => ({ ...prev, visible: false }));
-      }, 3000); // Alert will disappear after 3 seconds
+      showAlert("error", "Error", "Failed to update profile. Please try again.");
     } finally {
-      setShowToast(false); // Hide toast after response
-      setTimeout(() => {
-        setShowToast(false);
-      }, 1000);
+      setSaving(false);
+      setShowToast(false);
     }
-  }, [firstname, lastname, email, firstnameError, lastnameError, emailError]);
+  }, [firstname, lastname, email, firstnameError, lastnameError, emailError, id, updateInitialState, showAlert]);
 
   /**
    * Handle delete dialog open.
-   *
-   * Opens the delete account confirmation dialog.
    */
   const handleOpenDeleteDialog = useCallback((): void => {
     setIsDeleteModalOpen(true);
@@ -198,8 +215,6 @@ const ProfileForm: React.FC = () => {
 
   /**
    * Handle delete dialog close.
-   *
-   * Closes the delete account confirmation dialog.
    */
   const handleCloseDeleteDialog = useCallback((): void => {
     setIsDeleteModalOpen(false);
@@ -207,10 +222,6 @@ const ProfileForm: React.FC = () => {
 
   /**
    * Handle firstname input change with validation.
-   *
-   * Validates the first name input and updates the state.
-   *
-   * @param {ChangeEvent<HTMLInputElement>} e - The change event.
    */
   const handleFirstnameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -232,10 +243,6 @@ const ProfileForm: React.FC = () => {
 
   /**
    * Handle lastname input change with validation.
-   *
-   * Validates the last name input and updates the state.
-   *
-   * @param {ChangeEvent<HTMLInputElement>} e - The change event.
    */
   const handleLastnameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -257,10 +264,6 @@ const ProfileForm: React.FC = () => {
 
   /**
    * Handle email input change with validation.
-   *
-   * Validates the email input and updates the state.
-   *
-   * @param {ChangeEvent<HTMLInputElement>} e - The change event.
    */
   const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
@@ -275,49 +278,39 @@ const ProfileForm: React.FC = () => {
 
   /**
    * Handle delete confirmation.
-   *
-   * Proceeds with deleting the account.
    */
-
   const handleDeleteAccount = useCallback(async () => {
-    setShowToast(true); // Show toast when request is sent
+    setShowToast(true);
     try {
-      await deleteUserById({ userId: Number(id) });
-      //clear all storage
-      await localStorage.removeItem("userId");
-      await localStorage.removeItem("authToken");
+      const response = await deleteUserById({ userId: Number(id) });
 
-      // Use the logout hook instead of directly dispatching
-      logout();
+      if (response?.status === 202) {
+        // Clear storage only on success
+        await localStorage.removeItem("userId");
+        await localStorage.removeItem("authToken");
 
-      //success alert
-      setAlert({
-        variant: "success",
-        title: "Success",
-        body: "Account deleted successfully.",
-        isToast: true,
-        visible: true,
-      });
+        logout();
+
+        showAlert("success", "Success", "Account deleted successfully.");
+      } else {
+        // Handle failure case
+        logEngine({
+          type: "error",
+          message: `Failed to delete account. Status: ${response?.status || 'undefined'}, Response: ${JSON.stringify(response)}`,
+        });
+        showAlert("error", "Error", "Failed to delete account. Please try again.");
+      }
     } catch (error) {
       logEngine({
         type: "error",
-        message: "An error occured while deleting the account.",
+        message: `An error occurred while deleting the account: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
-      setAlert({
-        variant: "error",
-        title: "Error",
-        body: "Failed to delete account. Please try again.",
-        isToast: true,
-        visible: true,
-      });
+      showAlert("error", "Error", "Failed to delete account. Please try again.");
     } finally {
       setIsDeleteModalOpen(false);
-      setShowToast(false); // Hide toast after response
-      setTimeout(() => {
-        setShowToast(false);
-      }, 1000);
+      setShowToast(false);
     }
-  }, [email, firstname, lastname, logout]);
+  }, [id, logout, showAlert]);
 
   return (
     <Box
@@ -328,8 +321,8 @@ const ProfileForm: React.FC = () => {
         maxWidth: "600px",
       }}
     >
-      {showToast && <CustomizableToast />}{" "}
-      {/* Show CustomizableToast when showToast is true */}
+      {showToast && <CustomizableToast />}
+
       {loading && (
         <CustomizableSkeleton
           variant="rectangular"
@@ -340,6 +333,7 @@ const ProfileForm: React.FC = () => {
           sx={{ borderRadius: 2 }}
         />
       )}
+
       {alert.visible && (
         <Alert
           variant={alert.variant}
@@ -349,6 +343,7 @@ const ProfileForm: React.FC = () => {
           onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
         />
       )}
+
       {!loading && (
         <Box
           sx={{
@@ -367,37 +362,42 @@ const ProfileForm: React.FC = () => {
               value={firstname}
               onChange={handleFirstnameChange}
               sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
+              disabled={saving}
             />
             {firstnameError && (
               <Typography color="error" variant="caption">
                 {firstnameError}
               </Typography>
             )}
+
             <Field
               id="Last name"
               label="Surname"
               value={lastname}
               onChange={handleLastnameChange}
               sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
+              disabled={saving}
             />
             {lastnameError && (
               <Typography color="error" variant="caption">
                 {lastnameError}
               </Typography>
             )}
+
             <Field
               id="Email"
               label="Email"
               value={email}
               onChange={handleEmailChange}
               sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
-              disabled
+              disabled // Email is always disabled as mentioned in the original code
             />
             {emailError && (
               <Typography color="error" variant="caption">
                 {emailError}
               </Typography>
             )}
+
             <Typography
               variant="caption"
               sx={{
@@ -412,6 +412,7 @@ const ProfileForm: React.FC = () => {
           </Box>
         </Box>
       )}
+
       {!loading && (
         <Stack
           sx={{
@@ -423,7 +424,7 @@ const ProfileForm: React.FC = () => {
         >
           <CustomizableButton
             variant="contained"
-            text="Save"
+            text={saving ? "Saving..." : "Save"}
             sx={{
               backgroundColor: "#13715B",
               border: isSaveDisabled
@@ -437,7 +438,9 @@ const ProfileForm: React.FC = () => {
           />
         </Stack>
       )}
+
       <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
+
       {loading && (
         <CustomizableSkeleton
           variant="rectangular"
@@ -448,6 +451,7 @@ const ProfileForm: React.FC = () => {
           sx={{ borderRadius: 2 }}
         />
       )}
+
       {!loading && (
         <Box>
           <Stack>
@@ -489,6 +493,7 @@ const ProfileForm: React.FC = () => {
           </Stack>
         </Box>
       )}
+
       {isDeleteModalOpen && (
         <DualButtonModal
           title="Confirm Delete"

@@ -1,4 +1,4 @@
-import { Chip, useTheme } from "@mui/material";
+import { Chip } from "@mui/material";
 import { useMemo } from "react";
 import React from "react";
 import { getSeverityColorByText, getRiskChipStyle } from "./constants";
@@ -8,7 +8,6 @@ interface RiskChipProps {
 }
 
 const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
-  const theme = useTheme();
 
   if (!label) {
     return <span>-</span>;
@@ -25,7 +24,7 @@ const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
       label={label}
       size="small"
       sx={{
-        ...getRiskChipStyle(theme),
+        ...getRiskChipStyle(),
         backgroundColor,
       }}
     />

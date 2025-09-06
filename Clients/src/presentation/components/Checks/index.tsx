@@ -45,9 +45,6 @@ const Check = ({
       ) : (
         <Box
           lineHeight={0}
-          sx={{
-            "& svg > path": { fill: colors[variant] },
-          }}
         >
           <CheckGrey />
         </Box>

@@ -43,7 +43,7 @@ const icons: { [s: string]: JSX.Element } = {
  */
 const CloseButton: React.FC<CloseIconProps> = ({
   text,
-}: CloseIconProps): JSX.Element => <CloseIcon sx={closeIconStyles(text)} />;
+}: CloseIconProps): JSX.Element => <CloseIcon style={closeIconStyles(text)} />;
 
 /**
  * Alert component for displaying various types of messages.

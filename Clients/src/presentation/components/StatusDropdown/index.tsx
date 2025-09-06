@@ -15,11 +15,11 @@
 import React, { useState } from "react";
 import {
   MenuItem,
-  Select as MuiSelect,
   Stack,
   CircularProgress,
   useTheme,
   SelectChangeEvent,
+  Select,
 } from "@mui/material";
 import { ReactComponent as KeyboardArrowDownIcon } from "../../assets/icons/down-arrow.svg";
 import { getStatusColor } from "../../pages/ISO/style";
@@ -121,7 +121,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
   };
 
   return (
-    <MuiSelect
+    <Select
       value={normalizedStatus}
       onChange={handleStatusChange}
       onClick={handleClick}
@@ -176,6 +176,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
         "& .MuiSelect-icon": {
           color: "#fff",
           right: size === 'small' ? 4 : 6,
+          top: "auto !important"
         },
         "&:hover": {
           backgroundColor: statusColor,
@@ -210,7 +211,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
           {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
         </MenuItem>
       ))}
-    </MuiSelect>
+    </Select>
   );
 };
 

@@ -24,7 +24,7 @@ const HelperIcon: React.FC<HelperIconProps> = ({ onClick, size = "small" }) => {
       }}
     >
       <InfoOutlinedIcon 
-        sx={{
+        style={{
           fontSize: "18px", // Smaller icon size
           strokeWidth: "1px", // 1px stroke
         }}

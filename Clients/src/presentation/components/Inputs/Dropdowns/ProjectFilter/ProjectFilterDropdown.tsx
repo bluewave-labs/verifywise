@@ -26,9 +26,9 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
             ...inputStyles,
             ...dropdownStyles,
             ...sx,
-            "& svg path": {
-              fill: theme.palette.other.icon,
-            }
+            "& .MuiSelect-icon": {
+              top: "auto !important",
+            },
           }}
           MenuProps={{
             PaperProps: {

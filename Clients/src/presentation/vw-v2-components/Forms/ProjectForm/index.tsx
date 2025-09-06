@@ -13,7 +13,7 @@ import {
 import { Suspense, useCallback, useContext, useMemo, useState, useEffect } from "react";
 import CustomizableButton from "../../Buttons";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle.svg";
-import { ReactComponent as ClearIcon } from "../../../assets/icons/clear.svg";
+import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ReactComponent as ArrowBackIcon } from "../../../assets/icons/arrow-back.svg";
 import Field from "../../../components/Inputs/Field";
 import {
@@ -349,8 +349,8 @@ const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) =>
             }
           </Typography>
         </Stack>
-        <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+        <CloseIcon
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -471,8 +471,8 @@ const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) =>
               : "Set up ISO 27001 (Organization ISMS)"}
           </Typography>
         </Stack>
-        <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+        <CloseIcon
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>

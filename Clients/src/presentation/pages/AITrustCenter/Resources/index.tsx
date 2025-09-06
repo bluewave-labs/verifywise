@@ -52,9 +52,9 @@ const ResourceTableRow: React.FC<{
       </TableCell>
       <TableCell>
         {resource.visible ? (
-          <VisibilityIcon sx={styles.visibilityIcon} />
+          <VisibilityIcon style={{ color: theme.palette.success.main, fontSize: 20 }} />
         ) : (
-          <VisibilityOffIcon sx={styles.visibilityOffIcon} />
+          <VisibilityOffIcon style={{ color: theme.palette.error.main, fontSize: 20 }} />
         )}
       </TableCell>
       <TableCell>

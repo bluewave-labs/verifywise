@@ -27,8 +27,6 @@ type StylesType = {
   tableRow: (isFlashing: boolean) => SxProps<Theme>;
   resourceName: SxProps<Theme>;
   resourceType: SxProps<Theme>;
-  visibilityIcon: SxProps<Theme>;
-  visibilityOffIcon: SxProps<Theme>;
   emptyStateText: SxProps<Theme>;
   overlay: SxProps<Theme>;
   buttonContainer: SxProps<Theme>;
@@ -127,16 +125,6 @@ export const useStyles = (theme: Theme): StylesType => ({
   resourceType: {
     fontSize: theme.typography.body2.fontSize,
     color: theme.palette.text.secondary,
-  },
-
-  visibilityIcon: {
-    color: theme.palette.success.main,
-    fontSize: 20,
-  },
-
-  visibilityOffIcon: {
-    color: theme.palette.error.main,
-    fontSize: 20,
   },
 
   emptyStateText: {

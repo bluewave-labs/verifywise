@@ -144,7 +144,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         component="form"
       >
         <IconButton onClick={handleOnCloseModal} sx={styles.iconButton}>
-          <CloseIcon sx={styles.closeButton} />
+          <CloseIcon style={styles.closeButton} />
         </IconButton>
         {isReportRequest ? (
           <Suspense fallback={<div>Loading...</div>}>

@@ -12,7 +12,7 @@ import {
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/down-arrow.svg";
 import { ReactComponent as ExpandLessIcon } from "../../assets/icons/up-arrow.svg";
-import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
+import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
@@ -222,7 +222,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
         onClick={() => handleExpandedChange(!expanded)}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          <FilterIcon sx={{ color: "#13715B", fontSize: 20 }} />
+          <FilterIcon style={{ color: "#13715B", fontSize: 20 }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
             Filters
           </Typography>
@@ -249,7 +249,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
           {activeFilterCount > 0 && (
             <Button
               size="small"
-              startIcon={<ClearIcon />}
+              startIcon={<CloseIcon />}
               onClick={(e) => {
                 e.stopPropagation();
                 clearAllFilters();

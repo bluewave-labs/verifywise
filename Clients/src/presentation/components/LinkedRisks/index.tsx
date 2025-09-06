@@ -1,5 +1,5 @@
 import { Button, Stack, Typography } from '@mui/material';
-import { ReactComponent as ClearIcon } from '../../assets/icons/clear.svg';
+import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
 import React, { useState } from 'react'
 import Field from '../Inputs/Field';
 import useProjectRisks from '../../../application/hooks/useProjectRisks';
@@ -52,8 +52,8 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
       <Stack>
         <Stack sx={styles.headingSection}>
           <Typography sx={ styles.textTitle }>Link a risk from risk database</Typography>
-          <ClearIcon
-            sx={ styles.clearIconStyle }
+          <CloseIcon
+            style={ styles.clearIconStyle }
             onClick={onClose}
           />
         </Stack>

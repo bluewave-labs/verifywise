@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material"
-import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg"
+import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
 import { ProjectRiskMitigationTable } from "../Table/ProjectRiskMitigationTable/ProjectRiskMitigationTable";
 import { ProjectRiskMitigation as ProjectRiskMitigationType } from "../../../domain/types/ProjectRisk";
 
@@ -38,7 +38,7 @@ export const ProjectRiskMitigation: React.FC<ProjectRiskMitigationProps> = ({
           color: "#344054", 
           fontWeight: "bold",
         }}>Linked controls components</Typography>
-        <ClearIcon sx={{
+        <CloseIcon style={{
           color: "#98A2B3", 
           cursor: "pointer"
         }}

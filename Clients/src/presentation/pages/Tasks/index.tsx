@@ -26,6 +26,7 @@ const Tasks: React.FC = () => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
   
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
@@ -49,7 +50,7 @@ const Tasks: React.FC = () => {
     overdue: tasks.filter(task => task.status === TaskStatus.OVERDUE).length,
   }), [tasks]);
 
-  // Fetch tasks when component mounts or search query changes
+  // Fetch tasks when component mounts or any filter changes
   useEffect(() => {
     const fetchTasks = async () => {
       try {

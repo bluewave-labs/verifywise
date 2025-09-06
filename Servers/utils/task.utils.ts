@@ -20,6 +20,7 @@ interface GetTasksOptions {
 
 interface TaskFilters {
   status?: string[];
+  priority?: string[];
   due_date_start?: string;
   due_date_end?: string;
   category?: string[];
@@ -160,6 +161,14 @@ export const getTasksQuery = async (
     whereConditions.push(`t.status IN (${statusList})`);
     filters.status.forEach((status, i) => {
       replacements[`status${i}`] = status;
+    });
+  }
+
+  if (filters.priority && filters.priority.length > 0) {
+    const priorityList = filters.priority.map((p, i) => `:priority${i}`).join(', ');
+    whereConditions.push(`t.priority IN (${priorityList})`);
+    filters.priority.forEach((priority, i) => {
+      replacements[`priority${i}`] = priority;
     });
   }
 

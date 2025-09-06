@@ -1,6 +1,6 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { getAuthToken } from "../redux/auth/getAuthToken";
-import { ITask, TaskStatus } from "../../domain/interfaces/i.task";
+import { ITask, TaskStatus, TaskPriority } from "../../domain/interfaces/i.task";
 
 /**
  * Retrieves all tasks with optional filtering, sorting, and pagination
@@ -15,6 +15,7 @@ export async function getAllTasks({
   signal,
   authToken = getAuthToken(),
   status,
+  priority,
   category,
   assignee,
   due_date_start,
@@ -28,6 +29,7 @@ export async function getAllTasks({
   signal?: AbortSignal;
   authToken?: string;
   status?: TaskStatus[];
+  priority?: TaskPriority[];
   category?: string[];
   assignee?: number[];
   due_date_start?: string;
@@ -44,6 +46,9 @@ export async function getAllTasks({
     
     if (status?.length) {
       status.forEach(s => params.append('status', s));
+    }
+    if (priority?.length) {
+      priority.forEach(p => params.append('priority', p));
     }
     if (category?.length) {
       category.forEach(c => params.append('category', c));

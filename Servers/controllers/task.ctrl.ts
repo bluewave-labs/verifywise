@@ -134,6 +134,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     // Extract query parameters for filters, sorting, and pagination
     const {
       status,
+      priority,
       due_date_start,
       due_date_end,
       category,
@@ -149,6 +150,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     // Parse filters
     const filters: any = {};
     if (status) filters.status = Array.isArray(status) ? status : [status];
+    if (priority) filters.priority = Array.isArray(priority) ? priority : [priority];
     if (due_date_start) filters.due_date_start = due_date_start as string;
     if (due_date_end) filters.due_date_end = due_date_end as string;
     if (category) filters.category = Array.isArray(category) ? category : [category];

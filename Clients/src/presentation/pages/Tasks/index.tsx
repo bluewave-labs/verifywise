@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 import { 
   Box, Stack, Typography, TextField, InputAdornment, 
   Collapse, Paper, Checkbox, FormControlLabel, Chip, Divider,
-  Select as MuiSelect, MenuItem, ListItemText
+  Select as MuiSelect, MenuItem, ListItemText, SelectChangeEvent
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
@@ -26,11 +26,27 @@ const Tasks: React.FC = () => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-
+  const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
+  const [priorityFilters, setPriorityFilters] = useState<TaskPriority[]>([]);
+  const [assigneeFilters, setAssigneeFilters] = useState<number[]>([]);
+  const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
+  const [categoryInput, setCategoryInput] = useState("");
+  const [dueDateFrom, setDueDateFrom] = useState("");
+  const [dueDateTo, setDueDateTo] = useState("");
   
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
   const isCreatingDisabled = !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(() => {
+    return statusFilters.length > 0 || 
+           priorityFilters.length > 0 || 
+           assigneeFilters.length > 0 || 
+           categoryFilters.length > 0 || 
+           dueDateFrom !== "" || 
+           dueDateTo !== "";
+  }, [statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo]);
 
   // Debounce search query
   useEffect(() => {
@@ -56,7 +72,13 @@ const Tasks: React.FC = () => {
       try {
         setIsLoading(true);
         const response = await getAllTasks({
-          search: debouncedSearchQuery || undefined
+          search: debouncedSearchQuery || undefined,
+          status: statusFilters.length > 0 ? statusFilters : undefined,
+          priority: priorityFilters.length > 0 ? priorityFilters : undefined,
+          assignee: assigneeFilters.length > 0 ? assigneeFilters : undefined,
+          category: categoryFilters.length > 0 ? categoryFilters : undefined,
+          due_date_start: dueDateFrom || undefined,
+          due_date_end: dueDateTo || undefined
         });
         setTasks(response.data?.tasks || []);
       } catch (err: any) {
@@ -66,7 +88,7 @@ const Tasks: React.FC = () => {
       }
     };
     fetchTasks();
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -141,16 +163,35 @@ const Tasks: React.FC = () => {
           />
           
           <Stack direction="row" spacing={3} alignItems="center">
-            <CustomizableButton
-              variant="outlined"
-              icon={<FilterListIcon />}
-              text="Filters"
-              onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-              sx={{ 
-                backgroundColor: isFiltersOpen ? '#f5f5f5' : 'transparent',
-                minHeight: '36px'
-              }}
-            />
+            <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+              <CustomizableButton
+                variant="outlined"
+                icon={<FilterListIcon />}
+                text="Filters"
+                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                sx={{ 
+                  backgroundColor: isFiltersOpen ? '#f5f5f5' : 'transparent',
+                  minHeight: '36px'
+                }}
+              />
+              {hasActiveFilters && (
+                <Box sx={{
+                  backgroundColor: '#17b26a',
+                  color: 'white',
+                  px: 1.2,
+                  py: 0.3,
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  minWidth: '40px',
+                  textAlign: 'center',
+                  lineHeight: 1.2,
+                  ml: 0.5
+                }}>
+                  Active
+                </Box>
+              )}
+            </Box>
             
             <Select
               id="sort-select"
@@ -175,7 +216,21 @@ const Tasks: React.FC = () => {
               <FilterListIcon color="primary" />
               <Typography variant="subtitle1" fontWeight={600}>Filters</Typography>
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ cursor: 'pointer' }}>
+            <Stack 
+              direction="row" 
+              alignItems="center" 
+              spacing={1} 
+              sx={{ cursor: 'pointer' }}
+              onClick={() => {
+                setStatusFilters([]);
+                setPriorityFilters([]);
+                setAssigneeFilters([]);
+                setCategoryFilters([]);
+                setCategoryInput("");
+                setDueDateFrom("");
+                setDueDateTo("");
+              }}
+            >
               <Typography variant="body2" color="text.secondary">Clear All</Typography>
               <CloseIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
             </Stack>
@@ -190,7 +245,19 @@ const Tasks: React.FC = () => {
                   {Object.values(TaskStatus).map((status) => (
                     <FormControlLabel
                       key={status}
-                      control={<Checkbox size="small" />}
+                      control={
+                        <Checkbox
+                          checked={statusFilters.includes(status)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setStatusFilters([...statusFilters, status]);
+                            } else {
+                              setStatusFilters(statusFilters.filter(s => s !== status));
+                            }
+                          }}
+                          size="small"
+                        />
+                      }
                       label={status}
                       sx={{ 
                         '& .MuiFormControlLabel-label': { fontSize: 14 },
@@ -208,7 +275,19 @@ const Tasks: React.FC = () => {
                   {Object.values(TaskPriority).map((priority) => (
                     <FormControlLabel
                       key={priority}
-                      control={<Checkbox size="small" />}
+                      control={
+                        <Checkbox
+                          checked={priorityFilters.includes(priority)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setPriorityFilters([...priorityFilters, priority]);
+                            } else {
+                              setPriorityFilters(priorityFilters.filter(p => p !== priority));
+                            }
+                          }}
+                          size="small"
+                        />
+                      }
                       label={priority}
                       sx={{ 
                         '& .MuiFormControlLabel-label': { fontSize: 14 },
@@ -224,15 +303,24 @@ const Tasks: React.FC = () => {
                 <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Assignee</Typography>
                 <MuiSelect
                   multiple
-                  value={[]}
-                  renderValue={() => 'Select assignees...'}
+                  value={assigneeFilters.map(String)}
+                  onChange={(event: SelectChangeEvent<string[]>) => {
+                    const value = event.target.value;
+                    const numericValues = (typeof value === 'string' ? value.split(',') : value).map(Number);
+                    setAssigneeFilters(numericValues);
+                  }}
+                  renderValue={(selected) =>
+                    selected.length === 0 
+                      ? 'Select assignees...' 
+                      : `${selected.length} selected`
+                  }
                   size="small"
                   displayEmpty
                   sx={{ minWidth: 160, fontSize: 14 }}
                 >
                   {users.map((user) => (
                     <MenuItem key={user.id} value={String(user.id)}>
-                      <Checkbox size="small" />
+                      <Checkbox checked={assigneeFilters.includes(user.id)} size="small" />
                       <ListItemText 
                         primary={`${user.name} ${user.surname ?? ''}`} 
                         primaryTypographyProps={{ fontSize: 13 }}
@@ -248,8 +336,34 @@ const Tasks: React.FC = () => {
                 <TextField
                   placeholder="Enter category..."
                   size="small"
+                  value={categoryInput}
+                  onChange={(e) => setCategoryInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && categoryInput.trim()) {
+                      const category = categoryInput.trim();
+                      if (!categoryFilters.includes(category)) {
+                        setCategoryFilters([...categoryFilters, category]);
+                      }
+                      setCategoryInput('');
+                    }
+                  }}
                   sx={{ minWidth: 160, fontSize: 14 }}
                 />
+                {categoryFilters.length > 0 && (
+                  <Stack direction="row" flexWrap="wrap" spacing={0.5} mt={1}>
+                    {categoryFilters.map((category) => (
+                      <Chip
+                        key={category}
+                        label={category}
+                        size="small"
+                        onDelete={() => {
+                          setCategoryFilters(categoryFilters.filter(cat => cat !== category));
+                        }}
+                        sx={{ fontSize: 12, height: 24 }}
+                      />
+                    ))}
+                  </Stack>
+                )}
               </Box>
             </Stack>
             
@@ -262,6 +376,8 @@ const Tasks: React.FC = () => {
                 <TextField
                   placeholder="mm/dd/yyyy"
                   type="date"
+                  value={dueDateFrom}
+                  onChange={(e) => setDueDateFrom(e.target.value)}
                   size="small"
                   sx={{ width: 300 }}
                   InputLabelProps={{ shrink: true }}
@@ -269,6 +385,8 @@ const Tasks: React.FC = () => {
                 <TextField
                   placeholder="mm/dd/yyyy"
                   type="date"
+                  value={dueDateTo}
+                  onChange={(e) => setDueDateTo(e.target.value)}
                   size="small"
                   sx={{ width: 300 }}
                   InputLabelProps={{ shrink: true }}

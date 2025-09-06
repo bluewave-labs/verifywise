@@ -5,3 +5,8 @@
   align-items: center;
   line-height: 2;
 }
+
+.select-wrapper .select-component .MuiSelect-icon {
+    top: auto !important;       /* disable default calc positioning */
+}
+

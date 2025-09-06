@@ -17,11 +17,11 @@ import { serializeHtml } from "platejs";
 // Note: Using placeholder icons for formatting tools - these should be replaced with proper formatting icons
 import { ReactComponent as FormatBoldIcon } from "../../assets/icons/format-bold.svg";
 import { ReactComponent as FormatItalicIcon } from "../../assets/icons/format-italic.svg";
-import { ReactComponent as FormatUnderlinedIcon } from "../../assets/icons/edit.svg";
-import { ReactComponent as FormatQuoteIcon } from "../../assets/icons/edit.svg";
-import { ReactComponent as LooksOneIcon } from "../../assets/icons/edit.svg";
-import { ReactComponent as LooksTwoIcon } from "../../assets/icons/edit.svg";
-import { ReactComponent as Looks3Icon } from "../../assets/icons/edit.svg";
+import { ReactComponent as FormatUnderlinedIcon } from "../../assets/icons/format-underline.svg";
+import { ReactComponent as FormatQuoteIcon } from "../../assets/icons/format-quote.svg";
+import { ReactComponent as LooksOneIcon } from "../../assets/icons/heading-1.svg";
+import { ReactComponent as LooksTwoIcon } from "../../assets/icons/heading-2.svg";
+import { ReactComponent as Looks3Icon } from "../../assets/icons/heading-3.svg";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";

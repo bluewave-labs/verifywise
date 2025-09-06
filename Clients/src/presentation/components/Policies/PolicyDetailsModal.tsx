@@ -15,8 +15,8 @@ import {
 } from "@platejs/basic-nodes/react";
 import { serializeHtml } from "platejs";
 // Note: Using placeholder icons for formatting tools - these should be replaced with proper formatting icons
-import { ReactComponent as FormatBoldIcon } from "../../assets/icons/edit.svg";
-import { ReactComponent as FormatItalicIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as FormatBoldIcon } from "../../assets/icons/format-bold.svg";
+import { ReactComponent as FormatItalicIcon } from "../../assets/icons/format-italic.svg";
 import { ReactComponent as FormatUnderlinedIcon } from "../../assets/icons/edit.svg";
 import { ReactComponent as FormatQuoteIcon } from "../../assets/icons/edit.svg";
 import { ReactComponent as LooksOneIcon } from "../../assets/icons/edit.svg";

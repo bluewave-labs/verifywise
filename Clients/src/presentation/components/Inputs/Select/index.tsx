@@ -157,8 +157,8 @@ const Select: React.FC<SelectProps> = ({
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,
           },
-          "& svg path": {
-            fill: theme.palette.other.icon,
+          "& svg": {
+            color: theme.palette.other.icon,
           },
           ...sx,
         }}

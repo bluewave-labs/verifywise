@@ -216,6 +216,11 @@ const ProjectSettings = React.memo(
         listOfFrameworks: project?.framework || [],
       });
 
+    // Filter frameworks to only show non-organizational ones
+    const nonOrganizationalFrameworks = useMemo(
+      () => allFrameworks.filter((fw: Framework) => !fw.is_organizational),
+      [allFrameworks]
+    );
     useEffect(() => {
       setShowCustomizableSkeleton(true);
       if (project && monitoredFrameworks.length > 0) {
@@ -835,7 +840,7 @@ const ProjectSettings = React.memo(
                   id="monitored-regulations-and-standards-input"
                   size="small"
                   value={values.monitoredRegulationsAndStandards}
-                  options={allFrameworks.map((fw: Framework) => ({
+                  options={nonOrganizationalFrameworks.map((fw: Framework) => ({
                     _id: Number(fw.id),
                     name: fw.name,
                   }))}
@@ -847,7 +852,7 @@ const ProjectSettings = React.memo(
                   }
                   noOptionsText={
                     values.monitoredRegulationsAndStandards.length ===
-                    allFrameworks.length
+                    nonOrganizationalFrameworks.length
                       ? "All regulations selected"
                       : "No options"
                   }

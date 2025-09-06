@@ -24,10 +24,21 @@ const Tasks: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
   const isCreatingDisabled = !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Calculate summary from tasks data
   const summary: TaskSummary = useMemo(() => ({
@@ -38,12 +49,14 @@ const Tasks: React.FC = () => {
     overdue: tasks.filter(task => task.status === TaskStatus.OVERDUE).length,
   }), [tasks]);
 
-  // Fetch tasks on component mount
+  // Fetch tasks when component mounts or search query changes
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         setIsLoading(true);
-        const response = await getAllTasks({});
+        const response = await getAllTasks({
+          search: debouncedSearchQuery || undefined
+        });
         setTasks(response.data?.tasks || []);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch tasks');
@@ -52,7 +65,7 @@ const Tasks: React.FC = () => {
       }
     };
     fetchTasks();
-  }, []);
+  }, [debouncedSearchQuery]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -105,6 +118,8 @@ const Tasks: React.FC = () => {
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
           <TextField
             placeholder="Search tasks by title or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -281,7 +296,7 @@ const Tasks: React.FC = () => {
         {!isLoading && !error && (
           <Stack spacing={2}>
             <Typography variant="body2" color="text.secondary">
-              Showing {tasks.length} tasks
+              Showing {tasks.length} tasks{debouncedSearchQuery ? ` matching "${debouncedSearchQuery}"` : ''}
             </Typography>
             
             {tasks.length === 0 ? (

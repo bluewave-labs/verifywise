@@ -139,6 +139,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       category,
       assignee,
       organization_id,
+      search,
       sort_by = 'created_at',
       sort_order = 'DESC',
       page = '1',
@@ -152,6 +153,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     if (due_date_end) filters.due_date_end = due_date_end as string;
     if (category) filters.category = Array.isArray(category) ? category : [category];
     if (assignee) filters.assignee = Array.isArray(assignee) ? assignee.map(Number) : [Number(assignee)];
+    if (search) filters.search = search as string;
     filters.organization_id = Number(req.organizationId);
 
     // Parse sorting

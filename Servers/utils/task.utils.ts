@@ -24,7 +24,8 @@ interface TaskFilters {
   due_date_end?: string;
   category?: string[];
   assignee?: number[];
-  organization_id?: number; 
+  organization_id?: number;
+  search?: string;
 }
 
 interface TaskSortOptions {
@@ -194,6 +195,11 @@ export const getTasksQuery = async (
     filters.assignee.forEach((assignee, i) => {
       replacements[`assignee${i}`] = assignee;
     });
+  }
+
+  if (filters.search) {
+    whereConditions.push(`(t.title ILIKE :search OR t.description ILIKE :search)`);
+    replacements.search = `%${filters.search}%`;
   }
 
  

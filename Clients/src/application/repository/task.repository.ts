@@ -19,6 +19,7 @@ export async function getAllTasks({
   assignee,
   due_date_start,
   due_date_end,
+  search,
   sort_by = 'created_at',
   sort_order = 'DESC',
   page = '1',
@@ -31,6 +32,7 @@ export async function getAllTasks({
   assignee?: number[];
   due_date_start?: string;
   due_date_end?: string;
+  search?: string;
   sort_by?: 'due_date' | 'priority' | 'created_at';
   sort_order?: 'ASC' | 'DESC';
   page?: string;
@@ -51,6 +53,7 @@ export async function getAllTasks({
     }
     if (due_date_start) params.append('due_date_start', due_date_start);
     if (due_date_end) params.append('due_date_end', due_date_end);
+    if (search) params.append('search', search);
     
     params.append('sort_by', sort_by);
     params.append('sort_order', sort_order);

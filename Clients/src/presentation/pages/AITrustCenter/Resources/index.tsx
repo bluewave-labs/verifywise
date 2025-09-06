@@ -1,9 +1,9 @@
 import React, { useState, Suspense } from "react";
 import { Box, Typography, IconButton,  Dialog, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, DialogTitle, DialogContent, Stack } from "@mui/material";
 import Alert from "../../../components/Alert";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import AddIcon from '@mui/icons-material/Add';
+import { ReactComponent as VisibilityIcon } from '../../../assets/icons/eye.svg';
+import { ReactComponent as VisibilityOffIcon } from '../../../assets/icons/eye-off.svg';
+import { ReactComponent as AddIcon } from '../../../assets/icons/plus-circle.svg';
 import { ReactComponent as CloseIcon } from '../../../assets/icons/close.svg';
 import Toggle from '../../../components/Inputs/Toggle';
 import { useStyles } from './styles';

@@ -11,7 +11,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import "./index.css";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as KeyboardArrowDownIcon } from "../../../assets/icons/down-arrow.svg";
 
 interface CustomizableMultiSelectProps {
   label: string;

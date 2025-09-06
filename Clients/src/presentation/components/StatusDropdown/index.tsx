@@ -21,7 +21,7 @@ import {
   useTheme,
   SelectChangeEvent,
 } from "@mui/material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as KeyboardArrowDownIcon } from "../../assets/icons/down-arrow.svg";
 import { getStatusColor } from "../../pages/ISO/style";
 
 interface StatusDropdownProps {

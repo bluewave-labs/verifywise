@@ -13,7 +13,7 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import { ReactComponent as SaveOutlinedIcon } from "../../../assets/icons/save.svg";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
 import { updatePassword } from "../../../../application/repository/user.repository";

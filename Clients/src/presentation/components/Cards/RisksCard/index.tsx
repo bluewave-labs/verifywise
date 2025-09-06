@@ -1,7 +1,7 @@
 import { Stack, Typography, Tooltip, Box } from "@mui/material";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
-import TrendingFlatIcon from "@mui/icons-material/TrendingFlat";
+import { ReactComponent as TrendingUpIcon } from "../../../assets/icons/trending-up.svg";
+import { ReactComponent as TrendingDownIcon } from "../../../assets/icons/trending-down.svg";
+import { ReactComponent as TrendingFlatIcon } from "../../../assets/icons/trending-flat.svg";
 import {
   projectRisksCard,
   projectRisksTileCard,

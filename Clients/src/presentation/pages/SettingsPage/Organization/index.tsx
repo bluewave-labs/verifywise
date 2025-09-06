@@ -1,7 +1,7 @@
 import { Stack, useTheme, Box, Divider, CircularProgress, Typography, Button as MUIButton } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import { ReactComponent as SaveOutlinedIcon } from "../../../assets/icons/save.svg";
 import {
   useState,
   useCallback,

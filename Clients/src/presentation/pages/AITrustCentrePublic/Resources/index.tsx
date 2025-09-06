@@ -10,7 +10,7 @@ import {
   Typography,
   Box
 } from '@mui/material';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { ReactComponent as CheckCircleOutlineIcon } from '../../../assets/icons/check-circle.svg';
 import { downloadResource } from '../../../../application/tools/downloadResource';
 import { aiTrustCenterTableCell } from '../style';
 

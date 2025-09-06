@@ -7,7 +7,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import CheckIcon from "@mui/icons-material/Check";
+import { ReactComponent as CheckIcon } from "../../../assets/icons/check.svg";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";

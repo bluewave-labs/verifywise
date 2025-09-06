@@ -6,7 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as ExpandMoreIcon } from "../../../assets/icons/down-arrow.svg";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";

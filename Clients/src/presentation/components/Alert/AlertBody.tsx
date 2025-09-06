@@ -1,7 +1,7 @@
 // AlertBody.tsx
 import React, { useState } from "react";
 import { Box, IconButton, Typography } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { ReactComponent as ContentCopyIcon } from "../../assets/icons/copy.svg";
 
 interface AlertBodyProps {
   body: string;

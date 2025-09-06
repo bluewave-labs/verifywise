@@ -8,7 +8,7 @@ import {
   SxProps,
   Theme,
 } from "@mui/material";
-import { NavigateNext } from "@mui/icons-material";
+import { ReactComponent as NavigateNext } from "../../assets/icons/right-arrow.svg";
 import { useLocation, useNavigate } from "react-router-dom";
 
 /**

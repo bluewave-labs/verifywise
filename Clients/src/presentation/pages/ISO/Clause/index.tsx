@@ -6,7 +6,7 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as ExpandMoreIcon } from "../../../assets/icons/down-arrow.svg";
 import { useState, useEffect, useCallback } from "react";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 import { Project } from "../../../../domain/types/Project";

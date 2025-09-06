@@ -10,7 +10,7 @@ import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
 import { useCallback, useEffect, useState } from "react";
 import { styles } from "./style";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as ExpandMoreIcon } from "../../../../assets/icons/down-arrow.svg";
 import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";

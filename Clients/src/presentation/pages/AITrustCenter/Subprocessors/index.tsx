@@ -7,7 +7,7 @@ import Field from '../../../components/Inputs/Field';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import { Modal, IconButton } from '@mui/material';
 import { ReactComponent as CloseIcon } from '../../../assets/icons/close.svg';
-import AddIcon from '@mui/icons-material/Add';
+import { ReactComponent as AddIcon } from '../../../assets/icons/plus-circle.svg';
 import { useTheme } from '@mui/material/styles';
 import Alert from '../../../components/Alert';
 import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from '../../../../application/hooks/useAITrustCentreOverviewQuery';

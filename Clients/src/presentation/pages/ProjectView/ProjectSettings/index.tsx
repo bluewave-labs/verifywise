@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as KeyboardArrowDown } from "../../../assets/icons/down-arrow.svg";
 import React, {
   useState,
   useCallback,
@@ -35,7 +35,7 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as DeleteIcon } from "../../../assets/icons/trash-01.svg";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";

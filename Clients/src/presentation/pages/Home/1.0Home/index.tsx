@@ -8,7 +8,7 @@ import {
 } from "./style";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle.svg";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import { ReactComponent as CloudDownloadIcon } from "../../../assets/icons/cloudUpload.svg";
 
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";

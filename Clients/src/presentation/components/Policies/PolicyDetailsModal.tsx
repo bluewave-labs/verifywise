@@ -14,15 +14,14 @@ import {
   BlockquotePlugin,
 } from "@platejs/basic-nodes/react";
 import { serializeHtml } from "platejs";
-import {
-  FormatBold,
-  FormatItalic,
-  FormatUnderlined,
-  FormatQuote,
-  LooksOne,
-  LooksTwo,
-  Looks3,
-} from "@mui/icons-material";
+// Note: Using placeholder icons for formatting tools - these should be replaced with proper formatting icons
+import { ReactComponent as FormatBoldIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as FormatItalicIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as FormatUnderlinedIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as FormatQuoteIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as LooksOneIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as LooksTwoIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as Looks3Icon } from "../../assets/icons/edit.svg";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
@@ -308,7 +307,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "bold",
                     title: "Bold",
-                    icon: <FormatBold />,
+                    icon: <FormatBoldIcon />,
                     action: () => {
                       editor.tf.bold.toggle();
                       setToolbarState((prev) => ({
@@ -320,7 +319,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "italic",
                     title: "Italic",
-                    icon: <FormatItalic />,
+                    icon: <FormatItalicIcon />,
                     action: () => {
                       editor.tf.italic.toggle();
                       setToolbarState((prev) => ({
@@ -332,7 +331,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "underline",
                     title: "Underline",
-                    icon: <FormatUnderlined />,
+                    icon: <FormatUnderlinedIcon />,
                     action: () => {
                       editor.tf.underline.toggle();
                       setToolbarState((prev) => ({
@@ -344,7 +343,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "h1",
                     title: "Heading 1",
-                    icon: <LooksOne />,
+                    icon: <LooksOneIcon />,
                     action: () => {
                       editor.tf.h1.toggle();
                       setToolbarState((prev) => ({ ...prev, h1: !prev.h1 }));
@@ -353,7 +352,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "h2",
                     title: "Heading 2",
-                    icon: <LooksTwo />,
+                    icon: <LooksTwoIcon />,
                     action: () => {
                       editor.tf.h2.toggle();
                       setToolbarState((prev) => ({ ...prev, h2: !prev.h2 }));
@@ -362,7 +361,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "h3",
                     title: "Heading 3",
-                    icon: <Looks3 />,
+                    icon: <Looks3Icon />,
                     action: () => {
                       editor.tf.h3.toggle();
                       setToolbarState((prev) => ({ ...prev, h3: !prev.h3 }));
@@ -371,7 +370,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "blockquote",
                     title: "Blockquote",
-                    icon: <FormatQuote />,
+                    icon: <FormatQuoteIcon />,
                     action: () => {
                       editor.tf.blockquote.toggle();
                       setToolbarState((prev) => ({

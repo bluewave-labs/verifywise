@@ -1,6 +1,6 @@
 import { Box, Paper, Typography, Stack, Button } from "@mui/material";
 import CustomTextField from "../Components/CustomTextField/CustomTextField";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { ReactComponent as CheckCircleOutlineIcon } from "../../../assets/icons/check-circle.svg";
 import { downloadResource } from "../../../../application/tools/downloadResource";
 
 const Overview = ({

@@ -1,6 +1,6 @@
 import React from "react";
 import { IconButton } from "@mui/material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as InfoOutlinedIcon } from "../../assets/icons/info-circle.svg";
 
 interface HelperIconProps {
   onClick: () => void;

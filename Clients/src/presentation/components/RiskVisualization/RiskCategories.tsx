@@ -9,10 +9,8 @@ import {
   Button,
   Collapse,
 } from "@mui/material";
-import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-} from "@mui/icons-material";
+import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/down-arrow.svg";
+import { ReactComponent as ExpandLessIcon } from "../../assets/icons/up-arrow.svg";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { getAllUsers } from "../../../application/repository/user.repository";
 

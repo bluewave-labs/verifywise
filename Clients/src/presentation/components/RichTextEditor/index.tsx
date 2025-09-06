@@ -2,12 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Box, Tooltip, IconButton, Stack } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import {
-  FormatBold,
-  FormatItalic,
-  FormatListBulleted,
-  FormatListNumbered,
-} from "@mui/icons-material";
+import { ReactComponent as FormatBold } from "../../assets/icons/format-bold.svg";
+import { ReactComponent as FormatItalic } from "../../assets/icons/format-italic.svg";
+import { ReactComponent as FormatListBulleted } from "../../assets/icons/format-list-bulleted.svg";
+import { ReactComponent as FormatListNumbered } from "../../assets/icons/format-list-numbered.svg";
 import "./index.css";
 
 interface RichTextEditorProps {

@@ -2,7 +2,7 @@ import React from "react";
 import { Select, MenuItem, FormControl, useTheme } from "@mui/material";
 import { dropdownStyles, inputStyles } from "./style";
 import { ProjectFilterDropdownProps } from "../../../../../domain/interfaces/iDropdown";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as KeyboardArrowDownIcon } from "../../../../assets/icons/down-arrow.svg";
 
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   projects,

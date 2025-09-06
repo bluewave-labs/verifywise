@@ -18,7 +18,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { ReactComponent as DeleteOutlineIcon } from "../../assets/icons/trash-01.svg";
 
 const FileUploadComponent = ({
   onClose,

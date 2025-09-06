@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import { useState } from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as ExpandMoreIcon } from "../../../assets/icons/down-arrow.svg";
 import ControlsTable from "./ControlsTable";
 
 const Table_Columns = [

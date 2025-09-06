@@ -25,13 +25,13 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import { ReactComponent as GroupsOutlinedIcon } from "../../../assets/icons/team.svg";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import { ReactComponent as DeleteOutlineOutlinedIcon } from "../../../assets/icons/trash-01.svg";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import singleTheme from "../../../themes/v1SingleTheme";

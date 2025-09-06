@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { ReactComponent as ArrowBackIcon } from "../../assets/icons/arrow-back.svg";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as InfoOutlinedIcon } from "../../assets/icons/info-circle.svg";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import singleTheme from "../../themes/v1SingleTheme";

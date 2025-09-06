@@ -28,7 +28,7 @@ import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInven
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as KeyboardArrowDown } from "../../../assets/icons/down-arrow.svg";
 
 interface NewModelInventoryProps {
   isOpen: boolean;

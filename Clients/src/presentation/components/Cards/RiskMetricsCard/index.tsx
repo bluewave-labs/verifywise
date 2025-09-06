@@ -1,5 +1,5 @@
 import { Typography, Box, Grid } from "@mui/material";
-import SpeedIcon from "@mui/icons-material/Speed";
+import { ReactComponent as SpeedIcon } from "../../../assets/icons/speed.svg";
 import { RiskMetrics } from "../../../../domain/interfaces/iRiskSummary";
 
 interface RiskMetricsCardProps {

@@ -1,6 +1,6 @@
 import { Box, Chip, Stack, Tooltip, Typography, Dialog } from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as InfoOutlinedIcon } from "../../assets/icons/info-circle.svg";
 import {
   priorities,
   PriorityLevel,

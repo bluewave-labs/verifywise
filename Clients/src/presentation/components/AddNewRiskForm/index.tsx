@@ -11,7 +11,7 @@ import { useSearchParams } from "react-router-dom";
 import { Box, Stack, Tab, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import { ReactComponent as SaveIcon } from "../../assets/icons/save.svg";
-import UpdateIcon from "@mui/icons-material/Update";
+import { ReactComponent as UpdateIcon } from "../../assets/icons/refresh.svg";
 import dayjs from "dayjs";
 
 import { Likelihood, Severity } from "../RiskLevel/constants";

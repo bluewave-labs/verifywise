@@ -1,5 +1,5 @@
 import { Stack, Typography, Paper, Divider, useTheme } from "@mui/material";
-import { Assessment } from "@mui/icons-material";
+import { ReactComponent as Assessment } from "../assets/icons/chart.svg";
 import Breadcrumbs, { BreadcrumbItem } from "../components/Breadcrumbs";
 
 const Playground = () => {

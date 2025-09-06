@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Grid, Card, CardContent, CardActions, Button, Typography, Stack, CircularProgress, Box, SvgIcon, Alert } from "@mui/material";
+import React, { useEffect, useState, useCallback } from "react";
+import { Grid, Card, CardContent, CardActions, Button, Typography, Stack, CircularProgress, Box, SvgIcon, Alert, Tooltip } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import { useSubscriptionManagement } from "../../../../application/hooks/useSubscriptionManagement";
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
@@ -12,10 +12,10 @@ import ApartmentOutlinedIcon from '@mui/icons-material/ApartmentOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';  
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getAllTiers } from "../../../../application/repository/tiers.repository";
+import { useDashboard } from "../../../../application/hooks/useDashboard";
 
 const pricingUrlMap = {
-  // Team: 'https://buy.stripe.com/6oU7sK74p75f6kyfB5a7C09',
-  Team: 'https://buy.stripe.com/test_aFaeVe2Nl3Hp8EH4Hg7EQ00', // Testing
+  Team: 'https://buy.stripe.com/6oU7sK74p75f6kyfB5a7C09',
   Business: 'https://buy.stripe.com/eVq00i4Wh61b6kybkPa7C0a',
   Enterprise: 'https://buy.stripe.com/cNidR8fAVfBL10e9cHa7C0b',
 };
@@ -30,13 +30,18 @@ const iconMap = {
 type Tier = { id: number; name: string; price: number | null; features?: Record<string, string | number> };
 
 const Subscription: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [alertMessage, setAlertMessage] = useState<string>('');
   const [showPaymentSuccess, setShowPaymentSuccess] = useState<boolean>(false);
 
   const userToken = extractUserToken(getAuthToken());
   const organizationId = userToken?.organizationId;
 
   const [allTiers, setAllTiers] = useState<Tier[]>([]);
+
+  const clearSearchParams = useCallback(() => {
+    setSearchParams({});
+  }, [setSearchParams]);
 
   useEffect(() => {
     const fetchAllTiers = async () => {
@@ -45,10 +50,16 @@ const Subscription: React.FC = () => {
     };
     fetchAllTiers();
   }, []);
-
-  console.log(allTiers);
   
-  const { tierFeatures, organizationTierId, loading, error: dataError } = useSubscriptionData();
+  const { organizationTierId, loading, error: dataError, refetch: refetchSubscriptionData } = useSubscriptionData();
+  const { dashboard, fetchDashboard } = useDashboard();
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      await fetchDashboard();
+    };
+    fetchProjects();
+  }, [fetchDashboard]);
 
   const {
     isProcessing,
@@ -71,22 +82,30 @@ const Subscription: React.FC = () => {
         .then((success) => {
           if (success) {
             console.log("Subscription processed successfully");
+            // Refetch subscription data to get updated orgTierId
+            refetchSubscriptionData();
           }
         });
 
       const timer = setTimeout(() => {
         setShowPaymentSuccess(false);
         clearSuccess();
+        clearSearchParams();
       }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [searchParams, organizationId, processSubscription, clearSuccess]);
+  }, [searchParams, organizationId, processSubscription, clearSuccess, clearSearchParams, refetchSubscriptionData]);
 
 
   const handleSubscribe = (tierId: number) => {
-    const url = `${pricingUrlMap[allTiers.find((tier: Tier) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`;
-    window.location.href = url;
+    if (dashboard?.projects >= Number(allTiers?.find((tier: Tier) => tier.id === tierId)?.features?.projects)) {
+      setAlertMessage("You can't subscribe to this tier since the project exceeds the limit. Doing so will make you unable to use VerifyWise.");
+      return;
+    } else {
+      const url = `${pricingUrlMap[allTiers.find((tier: Tier) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`;
+      window.location.href = url;
+    }
   };
 
   if (loading) {
@@ -99,6 +118,12 @@ const Subscription: React.FC = () => {
 
   return (
     <Stack spacing={4} sx={{ mt: 3 }}>
+    {alertMessage && (
+      <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setAlertMessage('')}>
+        {alertMessage}
+      </Alert>
+    )}
+    
     {showPaymentSuccess && subscriptionSuccess && (
       <Alert severity="success" sx={{ mb: 2 }}>
         Payment successful! Your subscription has been updated. Thank you for your purchase.
@@ -181,21 +206,33 @@ const Subscription: React.FC = () => {
                 </Stack>
               </CardContent>
               <CardActions sx={{ p: 2, pt: 1 }}>
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                onClick={() => handleSubscribe(tier.id)}
-                disabled={organizationTierId === tier.id}
-                sx={{
-                  transition: 'transform 0.15s ease-in-out',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                  },
-                }}
+              <Tooltip 
+                title={
+                  organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)
+                    ? 'To cancel your subscription head over to stripe' 
+                    : ''
+                }
+                arrow
+                placement="bottom"
               >
-                {organizationTierId === tier.id ? 'Current Plan' : 'Subscribe'}
-              </Button>
+                <span style={{ width: '100%', display: 'block' }}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    onClick={() => handleSubscribe(tier.id)}
+                    disabled={organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)}
+                    sx={{
+                      transition: 'transform 0.15s ease-in-out',
+                      '&:hover': {
+                        transform: 'scale(1.02)',
+                      },
+                    }}
+                  >
+                    {organizationTierId === tier.id ? 'Current Plan' : (tier.id === 1 && organizationTierId !== 1) ? 'Not Available' : 'Subscribe'}
+                  </Button>
+                </span>
+              </Tooltip>
             </CardActions>
             </Card>
           </Grid>

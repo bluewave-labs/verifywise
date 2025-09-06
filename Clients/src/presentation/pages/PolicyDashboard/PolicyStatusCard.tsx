@@ -28,7 +28,7 @@ const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({ policies }) => {
   }));
 
   return (
-    <Box sx={{ width: "100%", mb: 4 }}>
+    <Box sx={{ width: "100%" }}>
       <Stack className="vw-policy-status" sx={projectRisksCard}>
         {statusCounts.map((level) => (
           <Tooltip

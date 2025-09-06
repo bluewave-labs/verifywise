@@ -1,8 +1,0 @@
-aif360>=0.6.1
-black>=25.1.0
-fairlearn>=0.12.0
-flake8>=7.3.0
-isort>=6.0.1
-mypy>=1.16.1
-pylint>=3.3.7
-types-pyyaml>=6.0.12.20250516

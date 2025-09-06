@@ -1,0 +1,309 @@
+{
+  "metadata": {
+    "evaluation_type": "complete_pipeline_evaluation",
+    "dataset": "adult-census-income",
+    "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "model_task": "binary_classification",
+    "evaluation_timestamp": "2025-09-03T13:24:01.392514",
+    "total_samples": 50,
+    "protected_attributes": [
+      "sex",
+      "race"
+    ],
+    "metrics_configuration": {
+      "user_selected_metrics": [
+        "demographic_parity",
+        "equalized_odds"
+      ],
+      "fairness_compass_recommended_metrics": [
+        "equalized_opportunity",
+        "predictive_equality",
+        "conditional_use_accuracy_equality",
+        "accuracy_difference",
+        "precision_difference",
+        "recall_difference",
+        "f1_difference"
+      ],
+      "all_available_metrics": [
+        "equal_selection_parity",
+        "conditional_statistical_parity",
+        "calibration",
+        "balance_positive_class",
+        "balance_negative_class",
+        "toxicity_gap",
+        "sentiment_gap",
+        "stereotype_gap",
+        "exposure_disparity",
+        "representation_disparity",
+        "prompt_fairness",
+        "multiclass_demographic_parity",
+        "multiclass_equalized_odds",
+        "regression_demographic_parity"
+      ]
+    }
+  },
+  "performance": {
+    "accuracy": 0.5,
+    "precision": 0.125,
+    "recall": 0.42857142857142855,
+    "f1_score": 0.1935483870967742
+  },
+  "fairness_metrics": {
+    "demographic_parity_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "demographic_parity_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "equalized_odds_sex": {
+      "value": 0.42857142857142855,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "equalized_odds_race": {
+      "value": 0.6,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "equalized_opportunity_sex": {
+      "value": 0.42857142857142855,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "equalized_opportunity_race": {
+      "value": 0.42857142857142855,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "predictive_equality_sex": {
+      "value": 0.021739130434782594,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "predictive_equality_race": {
+      "value": 0.6,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "conditional_use_accuracy_equality_sex": {
+      "value": 0.25,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "conditional_use_accuracy_equality_race": {
+      "value": 0.2222222222222222,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "accuracy_difference_sex": {
+      "value": 0.0,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "accuracy_difference_race": {
+      "value": 0.5952380952380952,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "precision_difference_sex": {
+      "value": 0.21428571428571427,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "precision_difference_race": {
+      "value": 0.125,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "recall_difference_sex": {
+      "value": 0.42857142857142855,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "recall_difference_race": {
+      "value": 0.42857142857142855,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "f1_difference_sex": {
+      "value": 0.2857142857142857,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "f1_difference_race": {
+      "value": 0.1935483870967742,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "equal_selection_parity_sex": {
+      "value": 4.0,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "equal_selection_parity_race": {
+      "value": 24.0,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "conditional_statistical_parity_sex": {
+      "value": 0.035714285714285726,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "conditional_statistical_parity_race": {
+      "value": 0.09722222222222221,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "calibration_sex": {
+      "value": 0.0,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "calibration_race": {
+      "value": 0.5952380952380952,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "balance_positive_class_sex": {
+      "value": 1.4285714285714286,
+      "status": "flagged",
+      "confidence": "low",
+      "warning": "Value 1.4285714285714286 outside expected range [0.0, 1.0]",
+      "recommendation": "Review manually - value may be unreliable"
+    },
+    "balance_positive_class_race": {
+      "value": 1.4285714285714286,
+      "status": "flagged",
+      "confidence": "low",
+      "warning": "Value 1.4285714285714286 outside expected range [0.0, 1.0]",
+      "recommendation": "Review manually - value may be unreliable"
+    },
+    "balance_negative_class_sex": {
+      "value": 0.021739130434782594,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "balance_negative_class_race": {
+      "value": 0.6,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "toxicity_gap_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "toxicity_gap_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "sentiment_gap_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "sentiment_gap_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "stereotype_gap_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "stereotype_gap_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "exposure_disparity_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "exposure_disparity_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "representation_disparity_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "representation_disparity_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "prompt_fairness_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "prompt_fairness_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "multiclass_demographic_parity_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "multiclass_demographic_parity_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "multiclass_equalized_odds_sex": {
+      "value": 0.021739130434782594,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "multiclass_equalized_odds_race": {
+      "value": 0.6,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "regression_demographic_parity_sex": {
+      "value": 0.033333333333333326,
+      "status": "valid",
+      "confidence": "high"
+    },
+    "regression_demographic_parity_race": {
+      "value": 0.5714285714285714,
+      "status": "valid",
+      "confidence": "high"
+    }
+  },
+  "data_quality": {
+    "excluded_metrics": {},
+    "flagged_metrics": {
+      "balance_positive_class_sex": {
+        "reason": "Value 1.8571428571428572 outside expected range [0.0, 1.0]",
+        "value": 1.8571428571428572,
+        "recommendation": "Review manually"
+      },
+      "balance_positive_class_race": {
+        "reason": "Value 1.8571428571428572 outside expected range [0.0, 1.0]",
+        "value": 1.8571428571428572,
+        "recommendation": "Review manually"
+      }
+    },
+    "data_quality_score": 0.978,
+    "insights": [
+      "Data Quality: 95.7% of metrics are reliable",
+      "FLAGGED: 2 metrics have values outside expected ranges",
+      "   These should be reviewed manually before reporting",
+      "STATUS: Overall data quality is excellent"
+    ]
+  }
+}

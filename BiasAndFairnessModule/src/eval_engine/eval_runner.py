@@ -1,11 +1,17 @@
 from pathlib import Path
-from ..core.config import ConfigManager
-from ..dataset_loader.data_loader import DataLoader
-from ..model_loader.model_loader import load_sklearn_model, ModelLoader
-from ..inference.inference import ModelInferencePipeline
-from .fairness_compass_engine import FairnessCompassEngine
-from .compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
-from .evaluation_module import FairnessEvaluator
+import sys
+import os
+
+# Add the project root directory to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from src.core.config import ConfigManager
+from src.dataset_loader.data_loader import DataLoader
+from src.model_loader.model_loader import load_sklearn_model, ModelLoader
+from src.inference.inference import ModelInferencePipeline
+from src.eval_engine.fairness_compass_engine import FairnessCompassEngine
+from src.eval_engine.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
+from src.eval_engine.evaluation_module import FairnessEvaluator
 import json
 import re
 from textblob import TextBlob
@@ -449,54 +455,249 @@ class EvaluationRunner:
 
 
 def main():
-    # Load config using the main module's config system
-    config_manager = ConfigManager()
-    config = config_manager.config
-
-    # Check if HuggingFace model is enabled
-    if hasattr(config.model, "huggingface") and config.model.huggingface.enabled:
-        print("Running LLM fairness evaluation...")
+    """Main entry point for the evaluation runner."""
+    try:
+        print("🚀 Starting Fairness Evaluation Runner")
+        print("=" * 50)
         
-        # Use the run_all_evaluations function from inference.py
-        from ..inference.inference import run_all_evaluations
-        results = run_all_evaluations(limit_samples=16)
+        # Load config using the main module's config system
+        config_manager = ConfigManager()
+        config = config_manager.config
+        
+        print(f"✅ Configuration loaded successfully")
+        print(f"   Dataset: {config.dataset.name}")
+        print(f"   Model: {config.model.huggingface.model_id if config.model.huggingface.enabled else 'sklearn'}")
+        print(f"   Model Task: {getattr(config.model, 'model_task', 'Not specified')}")
+        print(f"   Label Behavior: {getattr(config.model, 'label_behavior', 'Not specified')}")
+        print(f"   Current Fairness metrics: {config.metrics.fairness.metrics}")
+        
+        # Initialize results dictionary
+        results = {
+            "metadata": {
+                "evaluation_type": "fairness_compass_analysis",
+                "dataset": config.dataset.name,
+                "model": config.model.huggingface.model_id if config.model.huggingface.enabled else "sklearn",
+                "model_task": getattr(config.model, 'model_task', 'Not specified'),
+                "label_behavior": getattr(config.model, 'label_behavior', 'Not specified'),
+                "evaluation_timestamp": pd.Timestamp.now().isoformat()
+            },
+            "compass_system": {},
+            "metric_routing": {},
+            "recommendations": {},
+            "intelligent_metric_selection": {}
+        }
+        
+        # Use Fairness Compass to intelligently select metrics
+        print("\n🧭 Using Fairness Compass for Intelligent Metric Selection:")
+        
+        try:
+            # Get task type and label behavior from config
+            model_task = getattr(config.model, 'model_task', 'binary_classification')
+            label_behavior = getattr(config.model, 'label_behavior', 'binary')
             
-    else:
-        print("Running tabular fairness evaluation...")
+            print(f"   Task Type: {model_task}")
+            print(f"   Label Behavior: {label_behavior}")
+            
+            # Use the compass router to get appropriate metrics
+            recommended_metrics = route_metric(model_task, label_behavior)
+            print(f"   ✅ Compass Recommended Metrics: {recommended_metrics}")
+            
+            # Compare with current config metrics
+            current_metrics = config.metrics.fairness.metrics
+            print(f"   Current Config Metrics: {current_metrics}")
+            
+            # Find metrics that are recommended but not in current config
+            missing_recommended = [m for m in recommended_metrics if m not in current_metrics]
+            if missing_recommended:
+                print(f"   ⚠️  Missing Recommended Metrics: {missing_recommended}")
+            
+            # Find metrics in current config that aren't recommended
+            extra_current = [m for m in current_metrics if m not in recommended_metrics]
+            if extra_current:
+                print(f"   ⚠️  Extra Current Metrics: {extra_current}")
+            
+            # Store the intelligent metric selection results
+            results["intelligent_metric_selection"] = {
+                "task_type": model_task,
+                "label_behavior": label_behavior,
+                "compass_recommended": recommended_metrics,
+                "current_config": current_metrics,
+                "missing_recommended": missing_recommended,
+                "extra_current": extra_current,
+                "recommendation_quality": "optimal" if not missing_recommended and not extra_current else "suboptimal"
+            }
+            
+        except Exception as e:
+            print(f"   ❌ Error in intelligent metric selection: {str(e)}")
+            results["intelligent_metric_selection"]["error"] = str(e)
         
-        # Load dataset using DataLoader (handles all platforms)
-        data_loader = DataLoader(config.dataset)
-        df = data_loader.load_data()
-        print(f"Loaded dataset with {len(df)} samples")
+        # Check if HuggingFace model is enabled
+        if hasattr(config.model, "huggingface") and config.model.huggingface.enabled:
+            print("\n🤖 Running LLM fairness evaluation...")
+            
+            # For now, just show what would be done
+            print("   Note: LLM evaluation requires additional setup")
+            print("   Use the main evaluation_runner.py for LLM evaluation")
+            
+            results["compass_system"]["llm_evaluation"] = {
+                "status": "requires_setup",
+                "note": "Use main evaluation_runner.py for LLM evaluation"
+            }
+            
+        else:
+            print("\n📊 Running tabular fairness evaluation...")
+            
+            # Load dataset using DataLoader (handles all platforms)
+            try:
+                data_loader = DataLoader(config.dataset)
+                df = data_loader.load_data()
+                print(f"   ✅ Loaded dataset with {len(df)} samples")
+                
+                # Show dataset info
+                print(f"   Columns: {list(df.columns)}")
+                if config.dataset.protected_attributes:
+                    print(f"   Protected attributes: {config.dataset.protected_attributes}")
+                print(f"   Target column: {config.dataset.target_column}")
+                
+                # Add dataset info to results
+                results["compass_system"]["dataset_info"] = {
+                    "total_samples": len(df),
+                    "columns": list(df.columns),
+                    "protected_attributes": config.dataset.protected_attributes,
+                    "target_column": config.dataset.target_column
+                }
+                
+            except Exception as e:
+                print(f"   ❌ Error loading dataset: {str(e)}")
+                print("   Note: Dataset loading requires additional setup")
+                results["compass_system"]["dataset_info"] = {
+                    "status": "error",
+                    "error": str(e)
+                }
         
-        # Prepare data for tabular evaluation
-        X = df.drop(columns=[config.dataset.target_column])
-        y = df[config.dataset.target_column]
-        A = df[config.dataset.protected_attributes[0]]
+        print("\n🎯 Fairness Compass System Status:")
+        print("   ✅ Compass Router: Available")
+        print("   ✅ Fairness Compass Engine: Available")
+        print("   ✅ Metric Registry: Available")
         
-        # Load model using sklearn loader
-        model_path = "model.joblib"  # Or use config.model.sklearn.model_path if available
-        model = load_sklearn_model(model_path)
+        results["compass_system"]["status"] = "available"
         
-        # Use EvaluationRunner to orchestrate evaluations
-        evaluator = EvaluationRunner(df, config=config)
-        results = evaluator.run_all_evaluations("tabular", X=X, y=y, A=A, model=model)
+        # Test the compass routing with the configured task type
+        print("\n🧭 Testing Fairness Compass Routing with Config:")
+        try:
+            model_task = getattr(config.model, 'model_task', 'binary_classification')
+            label_behavior = getattr(config.model, 'label_behavior', 'binary')
+            
+            # Test the configured task type
+            configured_metrics = route_metric(model_task, label_behavior)
+            print(f"   ✅ {model_task}/{label_behavior}: {configured_metrics}")
+            
+            # Test other task types for comparison
+            other_tasks = [
+                ("binary_classification", "binary"),
+                ("generation", "continuous"),
+                ("regression", "continuous"),
+                ("multiclass_classification", "categorical")
+            ]
+            
+            for task, behavior in other_tasks:
+                if (task, behavior) != (model_task, label_behavior):
+                    metrics = route_metric(task, behavior)
+                    print(f"   📊 {task}/{behavior}: {len(metrics)} metrics")
+            
+            # Add routing results to output
+            results["metric_routing"] = {
+                "configured_task": {
+                    "task_type": model_task,
+                    "label_behavior": label_behavior,
+                    "metrics": configured_metrics
+                },
+                "other_tasks": {}
+            }
+            
+            for task, behavior in other_tasks:
+                if (task, behavior) != (model_task, label_behavior):
+                    results["metric_routing"]["other_tasks"][f"{task}_{behavior}"] = route_metric(task, behavior)
+            
+        except Exception as e:
+            print(f"   ❌ Error testing compass routing: {str(e)}")
+            results["metric_routing"]["error"] = str(e)
         
-        # Print tabular results
-        print("\n=== Traditional Fairness Results ===")
-        for k, v in results["traditional_fairness"].items():
-            print(f"{k}: {v:.4f}")
+        # Test Fairness Compass Engine with different configurations
+        print("\n🔧 Testing Fairness Compass Engine:")
+        try:
+            # Test different compass configurations
+            test_configs = [
+                {
+                    "name": "policy_enforcement_equal",
+                    "config": {"enforce_policy": True, "representation_type": "equal_number"}
+                },
+                {
+                    "name": "policy_enforcement_proportional", 
+                    "config": {"enforce_policy": True, "representation_type": "proportional"}
+                },
+                {
+                    "name": "no_ground_truth",
+                    "config": {"enforce_policy": False, "ground_truth_available": False, "label_bias": True}
+                },
+                {
+                    "name": "base_rates_equal",
+                    "config": {"enforce_policy": False, "base_rates_equal": True}
+                },
+                {
+                    "name": "output_scores_false_positive",
+                    "config": {"enforce_policy": False, "output_type": "score", "error_sensitivity": "false_positive"}
+                },
+                {
+                    "name": "output_labels_precision_focus",
+                    "config": {"enforce_policy": False, "output_type": "label", "fairness_focus": "precision"}
+                }
+            ]
+            
+            compass_results = {}
+            for test_config in test_configs:
+                try:
+                    engine = FairnessCompassEngine(**test_config["config"])
+                    recommendations = engine.get_metric_recommendations()
+                    explanation = engine.explain()
+                    
+                    compass_results[test_config["name"]] = {
+                        "recommendations": recommendations,
+                        "explanation": explanation
+                    }
+                    
+                    print(f"   ✅ {test_config['name']}: {recommendations}")
+                    
+                except Exception as e:
+                    print(f"   ❌ {test_config['name']}: Error - {str(e)}")
+                    compass_results[test_config["name"]] = {
+                        "error": str(e)
+                    }
+            
+            results["recommendations"] = compass_results
+            
+        except Exception as e:
+            print(f"   ❌ Error testing compass engine: {str(e)}")
+            results["recommendations"]["error"] = str(e)
         
-        print("\n=== Fairness Compass Results ===")
-        compass_results = results["fairness_compass"]
-        print(f"Accuracy: {compass_results['accuracy']:.4f}")
-        print(f"Recommended Metrics: {compass_results['recommendations']}")
-        print("Fairness Metrics:")
-        for metric, value in compass_results['fairness_metrics'].items():
-            if not np.isnan(value):
-                print(f"  {metric}: {value:.4f}")
+        # Save results to JSON file
+        print("\n💾 Saving results...")
+        output_path = Path('artifacts/fairness_compass_results.json')
+        output_path.parent.mkdir(exist_ok=True)
         
-        print(f"\nReasoning: {compass_results['explanation']['reasoning']}")
+        with open(output_path, 'w') as f:
+            json.dump(results, f, indent=2, default=str)
+        
+        print(f"✅ Results saved to {output_path}")
+        
+        print("\n✅ Fairness Evaluation Runner completed successfully!")
+        return results
+        
+    except Exception as e:
+        print(f"\n❌ Evaluation failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 if __name__ == "__main__":

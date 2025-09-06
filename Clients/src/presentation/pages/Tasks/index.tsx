@@ -92,7 +92,6 @@ const Tasks: React.FC = () => {
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
-      console.log('User does not have permission to create tasks');
       return;
     }
     setIsCreateTaskModalOpen(true);
@@ -105,7 +104,6 @@ const Tasks: React.FC = () => {
       if (response && response.data) {
         // Add the new task to the list
         setTasks(prev => [response.data, ...prev]);
-        console.log('Task created successfully:', response.data);
       }
     } catch (error) {
       console.error('Error creating task:', error);

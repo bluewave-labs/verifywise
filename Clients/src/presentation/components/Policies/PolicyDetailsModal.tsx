@@ -266,7 +266,7 @@ const PolicyDetailModal: React.FC<Props> = ({
             </Typography>
           </Stack>
           <CloseIcon
-            sx={{ color: "#98A2B3", cursor: "pointer" }}
+            style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={onClose}
           />
         </Stack>

@@ -25,7 +25,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     if (!trend || trend.direction === 'stable') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingFlatIcon sx={trendIconStable} />
+          <TrendingFlatIcon style={trendIconStable} />
           <span style={{ color: "#6B7280" }}>
             {trend?.change === 0 ? "0" : "—"}
           </span>
@@ -36,7 +36,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     if (trend.direction === 'up') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingUpIcon sx={trendIconUp} />
+          <TrendingUpIcon style={trendIconUp} />
           <span style={{ color: "#EF4444" }}>
             +{trend.change}
           </span>
@@ -46,7 +46,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
 
     return (
       <Typography sx={trendIndicator}>
-        <TrendingDownIcon sx={trendIconDown} />
+        <TrendingDownIcon style={trendIconDown} />
         <span style={{ color: "#10B981" }}>
           -{Math.abs(trend.change)}
         </span>

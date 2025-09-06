@@ -6,7 +6,7 @@ import { useStyles } from './styles';
 import Field from '../../../components/Inputs/Field';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import { Modal, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { ReactComponent as CloseIcon } from '../../../assets/icons/close.svg';
 import AddIcon from '@mui/icons-material/Add';
 import { useTheme } from '@mui/material/styles';
 import Alert from '../../../components/Alert';

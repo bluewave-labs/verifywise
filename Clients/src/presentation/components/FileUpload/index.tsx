@@ -18,7 +18,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 const FileUploadComponent = ({
   onClose,
@@ -160,7 +160,7 @@ const FileUploadComponent = ({
                       size="small"
                       sx={{ padding: "4px" }}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteOutlineIcon fontSize="small" />
                     </IconButton>
                   </ListItem>
                 ))}

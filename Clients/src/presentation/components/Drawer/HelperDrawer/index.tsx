@@ -7,7 +7,7 @@ import {
   Divider,
   Box,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { HelperDrawerProps } from "./drawertype";
 import DOMPurify from "dompurify";
 

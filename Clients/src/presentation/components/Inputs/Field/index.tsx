@@ -33,7 +33,8 @@ import {
 } from "@mui/material";
 import "./index.css";
 import { forwardRef, useState } from "react";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { ReactComponent as Visibility } from "../../../assets/icons/eye.svg";
+import { ReactComponent as VisibilityOff } from "../../../assets/icons/eye-off.svg";
 
 import { ForwardedRef } from "react";
 import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/iWidget";

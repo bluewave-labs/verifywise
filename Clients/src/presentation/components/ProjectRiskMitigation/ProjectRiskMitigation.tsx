@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material"
-import { ClearIcon } from "@mui/x-date-pickers/icons"
+import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg"
 import { ProjectRiskMitigationTable } from "../Table/ProjectRiskMitigationTable/ProjectRiskMitigationTable";
 import { ProjectRiskMitigation as ProjectRiskMitigationType } from "../../../domain/types/ProjectRisk";
 

@@ -1,8 +1,8 @@
 import { Stack, Typography, Box, Button, Modal } from "@mui/material";
 import { useContext, useEffect, useState, useMemo } from "react";
-import AddCircleOutlineIcon from "@mui/icons-material/Add";
-import SettingsIcon from "@mui/icons-material/Settings";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle.svg";
+import { ReactComponent as SettingsIcon } from "../../assets/icons/setting.svg";
+import { ReactComponent as DeleteIcon } from "../../assets/icons/trash-01.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -473,7 +473,7 @@ const Framework = () => {
             <Box sx={{ display: "flex", gap: 2 }}>
               <Button
                 variant="contained"
-                startIcon={<SettingsIcon />}
+                startIcon={<SettingsIcon style={{ color: "white", width: 24, height: 24 }} />}
                 onClick={() => setIsFrameworkModalOpen(true)}
                 disabled={!allowedRoles.frameworks.manage.includes(userRoleName)}
                 sx={{

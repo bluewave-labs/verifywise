@@ -4,7 +4,7 @@ import Alert from "../../../components/Alert";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
+import { ReactComponent as CloseIcon } from '../../../assets/icons/close.svg';
 import Toggle from '../../../components/Inputs/Toggle';
 import { useStyles } from './styles';
 import CustomizableButton from '../../../vw-v2-components/Buttons';

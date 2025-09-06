@@ -18,7 +18,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";

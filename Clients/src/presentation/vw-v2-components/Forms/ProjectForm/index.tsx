@@ -10,11 +10,11 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
 import { Suspense, useCallback, useContext, useMemo, useState, useEffect } from "react";
 import CustomizableButton from "../../Buttons";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle.svg";
+import { ReactComponent as ClearIcon } from "../../../assets/icons/clear.svg";
+import { ReactComponent as ArrowBackIcon } from "../../../assets/icons/arrow-back.svg";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,

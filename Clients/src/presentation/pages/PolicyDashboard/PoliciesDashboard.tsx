@@ -5,7 +5,7 @@ import { Stack, Typography } from "@mui/material";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomizableButton from "../../vw-v2-components/Buttons";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle.svg";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import {

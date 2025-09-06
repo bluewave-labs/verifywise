@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle.svg";
 
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct

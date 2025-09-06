@@ -12,7 +12,7 @@ import DatePicker from "../Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import { User } from "../../../domain/types/User";
 import useUsers from "../../../application/hooks/useUsers";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { ReactComponent as KeyboardArrowDown } from "../../assets/icons/down-arrow.svg";
 import { useCallback } from "react";
 import { FormErrors } from "./PolicyDetailsModal";
 

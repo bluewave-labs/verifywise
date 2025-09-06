@@ -17,8 +17,8 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
-import DeleteIcon from "@mui/icons-material/Delete";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
@@ -432,7 +432,7 @@ const ProfileForm: React.FC = () => {
                 : "1px solid #13715B",
               gap: 2,
             }}
-            icon={<SaveIcon />}
+            icon={<SaveOutlinedIcon />}
             onClick={handleSave}
             isDisabled={isSaveDisabled}
           />
@@ -483,7 +483,7 @@ const ProfileForm: React.FC = () => {
                   border: `1px solid ${isAdmin ? "#C2C2C2" : "#DB504A"}`,
                   gap: 2,
                 }}
-                icon={<DeleteIcon />}
+                icon={<DeleteOutlineIcon />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete account"

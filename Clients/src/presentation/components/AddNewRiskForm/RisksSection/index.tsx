@@ -16,7 +16,7 @@ import {
   Box,
   TextField,
 } from "@mui/material";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { ReactComponent as KeyboardArrowDown } from "../../../assets/icons/down-arrow.svg";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import Alert from "../../Alert";

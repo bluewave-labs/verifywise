@@ -18,7 +18,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";

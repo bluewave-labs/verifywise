@@ -11,10 +11,10 @@ import {
 } from "@mui/material";
 import {
   FilterList as FilterIcon,
-  Clear as ClearIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
 } from "@mui/icons-material";
+import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";

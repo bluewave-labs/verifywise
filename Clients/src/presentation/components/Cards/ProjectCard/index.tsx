@@ -1,5 +1,5 @@
 import { Stack, Typography, Tooltip, Button } from "@mui/material";
-import NorthEastIcon from "@mui/icons-material/NorthEast";
+import { ReactComponent as NorthEastIcon } from "../../../assets/icons/arrow-up-right.svg";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import {

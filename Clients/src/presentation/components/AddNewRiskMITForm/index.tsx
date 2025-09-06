@@ -15,7 +15,7 @@ import {
   TextField,
   IconButton,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import riskData from "../../assets/MITAIRISKDB.json";
 import { Likelihood, Severity } from "../RiskLevel/constants";

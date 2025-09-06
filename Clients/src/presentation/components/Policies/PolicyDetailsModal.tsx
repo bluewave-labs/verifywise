@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIcon } from "../../assets/icons/save.svg";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 
 import {
@@ -25,7 +25,7 @@ import {
 } from "@mui/icons-material";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import {
   createPolicy,

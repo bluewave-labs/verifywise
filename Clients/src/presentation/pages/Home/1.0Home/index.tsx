@@ -7,7 +7,7 @@ import {
   vwhomeHeading,
 } from "./style";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle.svg";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 
 import { postAutoDrivers } from "../../../../application/repository/entity.repository";

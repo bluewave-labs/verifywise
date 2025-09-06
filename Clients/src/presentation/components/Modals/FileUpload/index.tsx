@@ -4,7 +4,7 @@ import {
   StyledDialogContent,
 } from "../../FileUpload/FileUpload.styles";
 import { FileUploadProps } from "../../FileUpload/types";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { IconButton } from "@mui/material";
 import FileUploadComponent from "../../FileUpload";
 

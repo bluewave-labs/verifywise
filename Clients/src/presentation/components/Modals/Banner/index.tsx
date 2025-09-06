@@ -1,5 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { IBannerProps } from "../../../../domain/interfaces/iWidget";
 import {
   bannerBoxStyle,

@@ -4,7 +4,7 @@ import { useStyles } from './styles';
 import Toggle from '../../../components/Inputs/Toggle';
 import Field from '../../../components/Inputs/Field';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
-import SaveIcon from '@mui/icons-material/Save';
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import DualButtonModal from '../../../vw-v2-components/Dialogs/DualButtonModal';
 import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 import { uploadAITrustCentreLogo, deleteAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";

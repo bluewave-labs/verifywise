@@ -34,7 +34,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";

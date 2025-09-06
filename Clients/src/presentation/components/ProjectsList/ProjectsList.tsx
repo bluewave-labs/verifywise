@@ -6,7 +6,7 @@ import {
   InputBase,
   IconButton,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchOutlinedIcon } from "../../assets/icons/search.svg";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
@@ -104,7 +104,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
             aria-expanded={isSearchBarVisible}
             onClick={() => setIsSearchBarVisible((prev) => !prev)}
           >
-            <SearchIcon />
+            <SearchOutlinedIcon />
           </IconButton>
 
           {isSearchBarVisible && (

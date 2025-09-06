@@ -19,8 +19,8 @@ import {
   IconButton,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle.svg";
+import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
 import { styles } from "./styles";

@@ -1,7 +1,7 @@
 import { Stack, useTheme, Box, Divider, CircularProgress, Typography, Button as MUIButton } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import {
   useState,
   useCallback,
@@ -346,7 +346,7 @@ const Organization = () => {
                 isLoading ? (
                   <CircularProgress size={20} sx={{ color: "#13715B" }} />
                 ) : (
-                  <SaveIcon />
+                  <SaveOutlinedIcon />
                 )
               }
               onClick={organizationExists ? handleUpdate : handleCreate}

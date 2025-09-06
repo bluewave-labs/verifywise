@@ -6,7 +6,7 @@ import ToggleCard from '../../../components/Inputs/ToggleCard';
 import CustomizableButton from '../../../vw-v2-components/Buttons';
 import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from '../../../../application/hooks/useAITrustCentreOverviewQuery';
 import { handleAlert } from '../../../../application/tools/alertUtils';
-import SaveIcon from '@mui/icons-material/Save';
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import Field from '../../../components/Inputs/Field';
 
 import { 

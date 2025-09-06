@@ -10,7 +10,7 @@ import React, {
 import { useSearchParams } from "react-router-dom";
 import { Box, Stack, Tab, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIcon } from "../../assets/icons/save.svg";
 import UpdateIcon from "@mui/icons-material/Update";
 import dayjs from "dayjs";
 

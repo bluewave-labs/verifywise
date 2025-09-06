@@ -1,5 +1,5 @@
 import { Button, Stack, Typography } from '@mui/material';
-import { ClearIcon } from '@mui/x-date-pickers/icons';
+import { ReactComponent as ClearIcon } from '../../assets/icons/clear.svg';
 import React, { useState } from 'react'
 import Field from '../Inputs/Field';
 import useProjectRisks from '../../../application/hooks/useProjectRisks';

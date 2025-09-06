@@ -37,8 +37,8 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
+import { ReactComponent as KeyboardArrowDown } from "../../../assets/icons/down-arrow.svg";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useCreateVendor, useUpdateVendor } from "../../../../application/hooks/useVendors";
 

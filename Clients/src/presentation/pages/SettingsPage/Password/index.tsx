@@ -13,7 +13,7 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
 import { updatePassword } from "../../../../application/repository/user.repository";
@@ -285,7 +285,7 @@ const PasswordForm: React.FC = () => {
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIcon />}
+                icon={<SaveOutlinedIcon />}
                 onClick={() => setIsConfirmationModalOpen(true)}
                 isDisabled={isSaveDisabled}
               />

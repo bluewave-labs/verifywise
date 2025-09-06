@@ -21,7 +21,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";

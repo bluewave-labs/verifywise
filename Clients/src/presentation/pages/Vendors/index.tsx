@@ -26,7 +26,7 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle.svg";
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import CustomizableSkeleton from "../../vw-v2-components/Skeletons";

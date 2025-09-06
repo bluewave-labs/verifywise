@@ -25,7 +25,7 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import GroupsIcon from "@mui/icons-material/Groups";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
@@ -353,7 +353,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<GroupsIcon />}
+                icon={<GroupsOutlinedIcon />}
                 onClick={() => inviteTeamMember()}
               />
             </Box>

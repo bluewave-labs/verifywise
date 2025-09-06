@@ -8,7 +8,7 @@ import {
   CircularProgress,
   Tooltip,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ReactComponent as ArrowBackIcon } from "../../assets/icons/arrow-back.svg";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";

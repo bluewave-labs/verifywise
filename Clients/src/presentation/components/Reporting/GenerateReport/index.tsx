@@ -1,6 +1,6 @@
 import React, { useState, lazy, Suspense, useRef } from "react";
 import { IconButton, Box, Stack } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { styles } from "./styles";
 const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
 const DownloadReportForm = lazy(() => import("./DownloadReportFrom"));

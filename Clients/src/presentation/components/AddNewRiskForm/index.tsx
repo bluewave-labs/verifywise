@@ -8,7 +8,7 @@ import React, {
   useEffect,
 } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Box, Stack, Tab, useTheme } from "@mui/material";
+import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import SaveIcon from "@mui/icons-material/Save";
 import UpdateIcon from "@mui/icons-material/Update";
@@ -148,7 +148,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const projectId = searchParams.get("projectId");
 
   const { userRoleName } = useAuth();
-  const { users } = useUsers();
+  const { users, loading: usersLoading } = useUsers();
 
   // Get inputValues from context
   const { inputValues } = useContext(VerifyWiseContext) as {
@@ -161,7 +161,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
     !allowedRoles.projectRisks.create.includes(userRoleName);
 
   useEffect(() => {
-    if (popupStatus === "edit") {
+    if (popupStatus === "edit" && !usersLoading && users?.length) {
       // riskData
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
@@ -225,7 +225,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       setRiskValues(currentRiskData);
       setMitigationValues(currentMitigationData);
     }
-  }, [popupStatus, inputValues, users]);
+  }, [popupStatus, inputValues, users, usersLoading]);
 
   // Helper functions for validation
   const validateRiskFields = useCallback(
@@ -555,6 +555,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       }
     }
   };
+
+  // Show loading state while users are being fetched
+  if (usersLoading) {
+    return (
+      <Stack className="AddNewRiskForm" sx={{ p: 3, textAlign: "center" }}>
+        <Typography>Loading form data...</Typography>
+      </Stack>
+    );
+  }
 
   return (
     <Stack className="AddNewRiskForm">

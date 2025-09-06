@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getTierFeatures } from "../repository/tiers.repository";
 import { GetMyOrganization } from "../repository/organization.repository";
 import { getSubscriptionById } from "../repository/subscription.repository";
@@ -27,6 +27,7 @@ interface UseSubscriptionDataReturn {
   organizationTierId: number | null;
   loading: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 /**
@@ -38,6 +39,7 @@ export const useSubscriptionData = (): UseSubscriptionDataReturn => {
   const [organizationTierId, setOrganizationTierId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState<number>(0);
 
   const userToken = extractUserToken(getAuthToken());
   const organizationId = userToken?.organizationId;
@@ -83,7 +85,7 @@ export const useSubscriptionData = (): UseSubscriptionDataReturn => {
     };
 
     fetchOrganizationTierId();
-  }, [organizationId]);
+  }, [organizationId, refetchTrigger]);
 
   // Fetch tier features data
   useEffect(() => {
@@ -109,10 +111,15 @@ export const useSubscriptionData = (): UseSubscriptionDataReturn => {
     fetchTierFeatures();
   }, [organizationTierId]);
 
+  const refetch = useCallback(() => {
+    setRefetchTrigger(prev => prev + 1);
+  }, []);
+
   return {
     tierFeatures,
     organizationTierId,
     loading,
     error,
+    refetch,
   };
 };

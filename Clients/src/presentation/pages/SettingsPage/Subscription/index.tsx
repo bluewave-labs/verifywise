@@ -11,6 +11,7 @@ import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlin
 import ApartmentOutlinedIcon from '@mui/icons-material/ApartmentOutlined';          
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';  
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { getAllTiers } from "../../../../application/repository/tiers.repository";
 
 const pricingUrlMap = {
   // Team: 'https://buy.stripe.com/6oU7sK74p75f6kyfB5a7C09',
@@ -34,8 +35,20 @@ const Subscription: React.FC = () => {
 
   const userToken = extractUserToken(getAuthToken());
   const organizationId = userToken?.organizationId;
+
+  const [allTiers, setAllTiers] = useState<Tier[]>([]);
+
+  useEffect(() => {
+    const fetchAllTiers = async () => {
+      const allTiers = await getAllTiers({});
+      setAllTiers(allTiers);
+    };
+    fetchAllTiers();
+  }, []);
+
+  console.log(allTiers);
   
-  const { tiers, organizationTierId, loading, error: dataError } = useSubscriptionData();
+  const { tierFeatures, organizationTierId, loading, error: dataError } = useSubscriptionData();
 
   const {
     isProcessing,
@@ -72,7 +85,7 @@ const Subscription: React.FC = () => {
 
 
   const handleSubscribe = (tierId: number) => {
-    const url = `${pricingUrlMap[tiers.find((tier: Tier) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`;
+    const url = `${pricingUrlMap[allTiers.find((tier: Tier) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`;
     window.location.href = url;
   };
 
@@ -115,8 +128,8 @@ const Subscription: React.FC = () => {
     </Typography>
  
     <Grid container spacing={3} alignItems="stretch" justifyContent="center">
-      {tiers?.map((tier: Tier) => {
-        // Find the icon from our map, or use a default one
+      {allTiers?.map((tier: Tier) => {
+
         const PlanIcon = iconMap[tier?.name?.split(' ')[0] as keyof typeof iconMap] || HelpOutlineIcon;
 
         return (
@@ -133,7 +146,6 @@ const Subscription: React.FC = () => {
               }}
             >
               <CardContent sx={{ flexGrow: 1 }}>
-                {/* Icon and Plan Name */}
                 <Stack direction="row" alignItems="center" mb={10}>
                   <Box
                     sx={{
@@ -152,13 +164,11 @@ const Subscription: React.FC = () => {
                   </Typography>
                 </Stack>
 
-                {/* Price */}
                 <Typography variant="h4" fontWeight="bold" component="div" sx={{ mb: 10 }}>
                   {tier.price === null ? 'Contact Us' : `$${tier.price}`}
                   {tier.price !== null && <Typography component="span" variant="subtitle1" color="text.secondary">/mo</Typography>}
                 </Typography>
 
-                {/* Features List */}
                 <Stack spacing={5}>
                   {tier.features && Object.entries(tier.features).map(([key, value]) => (
                     <Stack direction="row" spacing={1.5} alignItems="center" key={key}>

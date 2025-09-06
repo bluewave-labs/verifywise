@@ -306,7 +306,10 @@ const ISO42001Clause = ({
             >
               <AccordionSummary sx={styles.accordionSummary}>
                 <ExpandMoreIcon
-                  sx={styles.expandIcon(expanded === clause.id)}
+                  style={{
+                    transform: expanded === clause.id ? "rotate(180deg)" : "rotate(270deg)",
+                    transition: "transform 0.5s ease-in",
+                  }}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.arrangement} {clause.title}

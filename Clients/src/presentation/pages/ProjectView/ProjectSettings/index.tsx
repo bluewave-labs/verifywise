@@ -1022,7 +1022,7 @@ const ProjectSettings = React.memo(
                     ? `${option.email.slice(0, 30)}...`
                     : option.email;
                 return (
-                  <Box key={key} component="li" {...optionProps}>
+                  <Box component="li" key={key} {...optionProps}>
                     <Typography sx={{ fontSize: "13px" }}>
                       {option.name} {option.surname}
                     </Typography>

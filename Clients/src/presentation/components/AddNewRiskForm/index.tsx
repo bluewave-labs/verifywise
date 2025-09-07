@@ -40,7 +40,7 @@ import useUsers from "../../../application/hooks/useUsers";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../application/constants/permissions";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../Button/CustomizableButton";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { tabStyle } from "./style";
 import "./styles.module.css";

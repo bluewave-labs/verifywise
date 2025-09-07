@@ -5,12 +5,12 @@ import React, {
   useCallback,
   useContext,
   useMemo,
-  useEffect
+  useEffect,
 } from "react";
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
-import CustomizableButton from "../../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../Button/CustomizableButton";
 const Field = lazy(() => import("../../../Inputs/Field"));
-import { styles, fieldStyle,selectReportStyle } from "./styles";
+import { styles, fieldStyle, selectReportStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
@@ -63,12 +63,16 @@ interface ReportProps {
 
 const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0].id});
+  const [values, setValues] = useState<FormValues>({
+    ...initialState,
+    project: dashboardValues.projects[0].id,
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
 
   useEffect(() => {
-    const availableTypes = values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
+    const availableTypes =
+      values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
 
     if (!availableTypes.includes(values.report_type)) {
       setValues((prev) => ({
@@ -123,12 +127,12 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     const newValues = {
       ...values,
       projectFrameworkId: projectFrameworkId,
-    }
+    };
     onGenerate(newValues);
   };
 
   return (
-    <Stack sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+    <Stack sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Stack>
         <Typography sx={styles.titleText}>Generate Report</Typography>
         <Typography sx={styles.baseText}>
@@ -192,12 +196,13 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
               placeholder="Select report type"
               value={values.report_type}
               onChange={handleOnSelectChange("report_type")}
-              items={(values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES).map(
-                (type) => ({
-                  _id: type,   // unique key / value
-                  name: type,  // display name
-                })
-              )}
+              items={(values.framework === 1
+                ? EUAI_REPORT_TYPES
+                : ISO_REPORT_TYPES
+              ).map((type) => ({
+                _id: type, // unique key / value
+                name: type, // display name
+              }))}
               sx={selectReportStyle}
               error={errors.report_type}
               isRequired

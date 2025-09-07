@@ -33,7 +33,7 @@ import React from "react";
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
 import { ButtonProps } from "@mui/material/Button";
-import singleTheme from "../../themes/v1SingleTheme";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 interface CustomizableButtonProps {
   variant?: "contained" | "outlined" | "text";

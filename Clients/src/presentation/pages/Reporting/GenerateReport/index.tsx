@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Stack, Dialog } from "@mui/material";
 const GenerateReportPopup = lazy(
   () => import("../../../components/Reporting/GenerateReport")
@@ -16,7 +16,7 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
   onReportGenerated,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const { data: projects  } = useProjects();
+  const { data: projects } = useProjects();
   const isDisabled = projects?.length && projects?.length > 0 ? false : true;
 
   return (

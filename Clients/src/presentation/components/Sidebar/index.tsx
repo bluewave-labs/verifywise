@@ -352,7 +352,9 @@ const Sidebar = () => {
                       modifiers: [
                         {
                           name: "offset",
-                          options: [0, -16],
+                          options: {
+                            offset: [0, -16],
+                          },
                         },
                       ],
                     },

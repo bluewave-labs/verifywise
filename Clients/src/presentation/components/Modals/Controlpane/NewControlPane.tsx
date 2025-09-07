@@ -20,7 +20,7 @@ import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import SaveIcon from "@mui/icons-material/Save";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 
 import {
   AlertBox,

@@ -309,7 +309,10 @@ const Sidebar = () => {
           dispatch(toggleSidebar());
         }}
       >
-        {collapsed ? <ArrowRight /> : <ArrowLeft />}
+        {collapsed ? <ArrowRight style={{
+          width: "24px",
+          height: "24px",
+        }}/> : <ArrowLeft />}
       </IconButton>
       {/* menu */}
       <List

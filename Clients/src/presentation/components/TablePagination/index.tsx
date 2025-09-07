@@ -83,7 +83,12 @@ const TablePaginationActions: React.FC<TablePaginationActionsProps> = ({
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="next page"
       >
-        <RightArrow />
+        <RightArrow
+          style={{
+            width: "18px",
+            height: "18px",
+          }}
+        />
       </Button>
       <Button
         variant="text"

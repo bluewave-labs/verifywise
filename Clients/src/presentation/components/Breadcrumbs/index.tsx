@@ -61,7 +61,12 @@ export interface BreadcrumbsProps {
  */
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   items,
-  separator = <NavigateNext fontSize="small" />,
+  separator =<NavigateNext
+    style={{
+      width: "18px",
+      height: "18px",
+    }}
+  />,
   maxItems = 8,
   sx,
   autoGenerate = false,

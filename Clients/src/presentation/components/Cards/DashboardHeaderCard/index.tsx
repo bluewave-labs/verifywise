@@ -86,7 +86,12 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
             transition: "opacity 0.2s ease",
           }}
         >
-          <RightArrow />
+          <RightArrow
+            style={{
+              width: "24px",
+              height: "24px",
+            }}
+          />
         </Box>
       )}
     </Stack>

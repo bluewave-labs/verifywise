@@ -26,6 +26,9 @@ FROM nginx:1.25-alpine
 # Step 9: Copy the build output to NGINX's default public directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Step 9: Copy the custom error page
+# COPY upgrade.html /usr/share/nginx/html/upgrade.html
+
 # Step 10: Copy the custom NGINX configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 

@@ -11,8 +11,15 @@ import {
   Radio,
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
-import { Suspense, useCallback, useContext, useMemo, useState, useEffect } from "react";
-import CustomizableButton from "../../Buttons";
+import {
+  Suspense,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Field from "../../../components/Inputs/Field";
@@ -54,7 +61,11 @@ import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
 import { createProject } from "../../../../application/repository/project.repository";
 
-const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) => {
+const ProjectForm = ({
+  sx,
+  onClose,
+  defaultFrameworkType,
+}: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>({
@@ -343,10 +354,13 @@ const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) =>
             Create new project
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {defaultFrameworkType ? 
-              `Creating a ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? 'organization-wide' : 'project-based'} project` :
-              "Please select the type of frameworks you need"
-            }
+            {defaultFrameworkType
+              ? `Creating a ${
+                  defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
+                    ? "organization-wide"
+                    : "project-based"
+                } project`
+              : "Please select the type of frameworks you need"}
           </Typography>
         </Stack>
         <ClearIcon

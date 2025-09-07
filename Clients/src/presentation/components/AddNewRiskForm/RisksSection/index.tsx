@@ -61,24 +61,24 @@ const getAutocompleteStyles = (theme: any) => ({
 
 // Constants
 const FORM_CONSTANTS = {
-  FIELD_WIDTH: '325px',
-  LARGE_FIELD_WIDTH: '670px',
+  FIELD_WIDTH: "325px",
+  LARGE_FIELD_WIDTH: "670px",
   MIN_HEIGHT: 500,
   MAX_HEIGHT: 500,
   CONTENT_MAX_HEIGHT: 600,
-  TEXT_AREA_MAX_HEIGHT: '120px',
+  TEXT_AREA_MAX_HEIGHT: "120px",
   SPACING: 8.5,
 } as const;
 
 const FORM_STYLES = {
-  fontSize: '13px',
-  borderRadius: '5px',
-  hoverBorderColor: '#777',
-  focusedBorderColor: '#888',
-  focusedBackground: '#f9fafb',
-  textColor: '#1c2130',
-  padding: '9px',
-  chipPadding: '3.8px',
+  fontSize: "13px",
+  borderRadius: "5px",
+  hoverBorderColor: "#777",
+  focusedBorderColor: "#888",
+  focusedBackground: "#f9fafb",
+  textColor: "#1c2130",
+  padding: "9px",
+  chipPadding: "3.8px",
 } as const;
 
 interface RiskSectionProps {
@@ -106,15 +106,16 @@ const RiskSection: FC<RiskSectionProps> = ({
   riskValues,
   setRiskValues,
   riskErrors,
-  userRoleName
+  userRoleName,
 }) => {
   const theme = useTheme();
-  const isEditingDisabled = !allowedRoles.projectRisks.edit.includes(userRoleName);
+  const isEditingDisabled =
+    !allowedRoles.projectRisks.edit.includes(userRoleName);
   const formRowStyles = createFormRowStyles(theme);
   const autocompleteStyles = getAutocompleteStyles(theme);
 
   const [alert, setAlert] = useState<alertState | null>(null);
-  const { users } = useUsers();
+  const { users, loading: usersLoading } = useUsers();
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -129,10 +130,13 @@ const RiskSection: FC<RiskSectionProps> = ({
 
   const handleOnMultiselectChange = useCallback(
     (prop: keyof RiskFormValues) =>
-      (_event: React.SyntheticEvent, newValue: { _id: number; name: string }[]) => {
+      (
+        _event: React.SyntheticEvent,
+        newValue: { _id: number; name: string }[]
+      ) => {
         setRiskValues((prevValues) => ({
           ...prevValues,
-          [prop]: newValue.map(item => item._id),
+          [prop]: newValue.map((item) => item._id),
         }));
       },
     [setRiskValues]
@@ -150,7 +154,12 @@ const RiskSection: FC<RiskSectionProps> = ({
   );
 
   return (
-    <Stack sx={{ minHeight: FORM_CONSTANTS.MIN_HEIGHT, maxHeight: FORM_CONSTANTS.MAX_HEIGHT }}>
+    <Stack
+      sx={{
+        minHeight: FORM_CONSTANTS.MIN_HEIGHT,
+        maxHeight: FORM_CONSTANTS.MAX_HEIGHT,
+      }}
+    >
       {alert && (
         <Alert
           variant={alert.variant}
@@ -173,8 +182,7 @@ const RiskSection: FC<RiskSectionProps> = ({
         <Stack sx={{ width: "100%", mb: 10 }}>
           <Stack sx={{ gap: 8.5 }}>
             {/* Row 1 */}
-            <Stack sx={formRowStyles}
-            >
+            <Stack sx={formRowStyles}>
               <Field
                 id="risk-name-input"
                 label="Risk name"
@@ -193,7 +201,11 @@ const RiskSection: FC<RiskSectionProps> = ({
                 label="Action owner"
                 placeholder="Select owner"
                 value={
-                  riskValues.actionOwner === 0 ? "" : riskValues.actionOwner
+                  usersLoading || !users?.length
+                    ? ""
+                    : riskValues.actionOwner === 0
+                    ? ""
+                    : riskValues.actionOwner
                 }
                 onChange={handleOnSelectChange("actionOwner")}
                 items={
@@ -207,7 +219,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 sx={{
                   width: FORM_CONSTANTS.FIELD_WIDTH,
                 }}
-                disabled={isEditingDisabled}
+                disabled={isEditingDisabled || usersLoading}
               />
               <Select
                 id="ai-lifecycle-phase-input"
@@ -230,8 +242,7 @@ const RiskSection: FC<RiskSectionProps> = ({
             </Stack>
 
             {/* Row 2 */}
-            <Stack sx={formRowStyles}
-            >
+            <Stack sx={formRowStyles}>
               <Stack>
                 <Stack>
                   <Field
@@ -249,7 +260,9 @@ const RiskSection: FC<RiskSectionProps> = ({
                     disabled={isEditingDisabled}
                   />
                 </Stack>
-                <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}>
+                <Typography
+                  sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+                >
                   Risk categories *
                 </Typography>
                 <Autocomplete
@@ -257,8 +270,8 @@ const RiskSection: FC<RiskSectionProps> = ({
                   readOnly={isEditingDisabled}
                   id="risk-categories-input"
                   size="small"
-                  value={riskCategoryItems.filter(
-                    (category) => riskValues.riskCategory.includes(category._id)
+                  value={riskCategoryItems.filter((category) =>
+                    riskValues.riskCategory.includes(category._id)
                   )}
                   options={riskCategoryItems}
                   getOptionLabel={(category) => `${category.name}`}
@@ -324,12 +337,12 @@ const RiskSection: FC<RiskSectionProps> = ({
                   }}
                 />
                 {riskErrors.riskCategory && (
-                  <Typography 
-                    sx={{ 
-                      color: theme.palette.error.main, 
-                      fontSize: '12px', 
+                  <Typography
+                    sx={{
+                      color: theme.palette.error.main,
+                      fontSize: "12px",
                       mt: 0.5,
-                      ml: 1.75 
+                      ml: 1.75,
                     }}
                   >
                     {riskErrors.riskCategory}

@@ -1,29 +1,43 @@
 import React, { useState, Suspense } from "react";
-import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Stack, CircularProgress } from "@mui/material";
-import Toggle from '../../../components/Inputs/Toggle';
-import IconButtonComponent from '../../../components/IconButton';
-import { useStyles } from './styles';
-import Field from '../../../components/Inputs/Field';
-import CustomizableButton from '../../../vw-v2-components/Buttons';
-import { Modal, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
-import { useTheme } from '@mui/material/styles';
-import Alert from '../../../components/Alert';
-import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from '../../../../application/hooks/useAITrustCentreOverviewQuery';
-import { 
+import {
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Stack,
+  CircularProgress,
+  SxProps,
+  Theme,
+} from "@mui/material";
+import Toggle from "../../../components/Inputs/Toggle";
+import IconButtonComponent from "../../../components/IconButton";
+import { useStyles } from "./styles";
+import Field from "../../../components/Inputs/Field";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { Modal, IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
+import { useTheme } from "@mui/material/styles";
+import Alert from "../../../components/Alert";
+import {
+  useAITrustCentreOverviewQuery,
+  useAITrustCentreOverviewMutation,
+} from "../../../../application/hooks/useAITrustCentreOverviewQuery";
+import {
   useAITrustCentreSubprocessorsQuery,
   useCreateAITrustCentreSubprocessorMutation,
   useUpdateAITrustCentreSubprocessorMutation,
-  useDeleteAITrustCentreSubprocessorMutation
-} from '../../../../application/hooks/useAITrustCentreSubprocessorsQuery';
-import { handleAlert } from '../../../../application/tools/alertUtils';
-import { AITrustCentreOverviewData } from '../../../../application/hooks/useAITrustCentreOverviewQuery';
+  useDeleteAITrustCentreSubprocessorMutation,
+} from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 
-import {
-  TABLE_COLUMNS,
-  WARNING_MESSAGES
-} from './constants';
+import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 
 interface Subprocessor {
   id: number;
@@ -48,7 +62,7 @@ const SubprocessorTableRow: React.FC<{
 }> = ({ subprocessor, onDelete, onEdit, isFlashing }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
-  
+
   return (
     <TableRow sx={styles.tableRow(isFlashing)}>
       <TableCell>
@@ -58,13 +72,17 @@ const SubprocessorTableRow: React.FC<{
         <Typography sx={styles.tableDataCell}>{subprocessor.url}</Typography>
       </TableCell>
       <TableCell>
-        <Typography sx={styles.tableDataCell}>{subprocessor.purpose}</Typography>
+        <Typography sx={styles.tableDataCell}>
+          {subprocessor.purpose}
+        </Typography>
       </TableCell>
       <TableCell>
-        <Typography sx={styles.tableDataCell}>{subprocessor.location}</Typography>
+        <Typography sx={styles.tableDataCell}>
+          {subprocessor.location}
+        </Typography>
       </TableCell>
       <TableCell>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButtonComponent
             id={subprocessor.id}
             onDelete={() => onDelete(subprocessor.id)}
@@ -90,19 +108,30 @@ const ModalField: React.FC<{
   <Field
     label={label}
     value={value}
-    onChange={e => enabled && onChange(e.target.value)}
-    sx={{ width: '100%' }}
+    onChange={(e) => enabled && onChange(e.target.value)}
+    sx={{ width: "100%" }}
     disabled={!enabled}
   />
 );
 
 const AITrustCenterSubprocessors: React.FC = () => {
-  const { data: overviewData, isLoading: overviewLoading, error: overviewError } = useAITrustCentreOverviewQuery();
+  const {
+    data: overviewData,
+    isLoading: overviewLoading,
+    error: overviewError,
+  } = useAITrustCentreOverviewQuery();
   const updateOverviewMutation = useAITrustCentreOverviewMutation();
-  const { data: subprocessors, isLoading: subprocessorsLoading, error: subprocessorsError } = useAITrustCentreSubprocessorsQuery();
-  const createSubprocessorMutation = useCreateAITrustCentreSubprocessorMutation();
-  const updateSubprocessorMutation = useUpdateAITrustCentreSubprocessorMutation();
-  const deleteSubprocessorMutation = useDeleteAITrustCentreSubprocessorMutation();
+  const {
+    data: subprocessors,
+    isLoading: subprocessorsLoading,
+    error: subprocessorsError,
+  } = useAITrustCentreSubprocessorsQuery();
+  const createSubprocessorMutation =
+    useCreateAITrustCentreSubprocessorMutation();
+  const updateSubprocessorMutation =
+    useUpdateAITrustCentreSubprocessorMutation();
+  const deleteSubprocessorMutation =
+    useDeleteAITrustCentreSubprocessorMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
 
@@ -111,19 +140,35 @@ const AITrustCenterSubprocessors: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: '', purpose: '', url: '', location: '' });
-  const [newSubprocessor, setNewSubprocessor] = useState({ name: '', purpose: '', url: '', location: '' });
+  const [form, setForm] = useState({
+    name: "",
+    purpose: "",
+    url: "",
+    location: "",
+  });
+  const [newSubprocessor, setNewSubprocessor] = useState({
+    name: "",
+    purpose: "",
+    url: "",
+    location: "",
+  });
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
-  
+
   // Success/Error states
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
     body: string;
   } | null>(null);
-  const [addSubprocessorError, setAddSubprocessorError] = useState<string | null>(null);
-  const [deleteSubprocessorError, setDeleteSubprocessorError] = useState<string | null>(null);
-  const [editSubprocessorError, setEditSubprocessorError] = useState<string | null>(null);
+  const [addSubprocessorError, setAddSubprocessorError] = useState<
+    string | null
+  >(null);
+  const [deleteSubprocessorError, setDeleteSubprocessorError] = useState<
+    string | null
+  >(null);
+  const [editSubprocessorError, setEditSubprocessorError] = useState<
+    string | null
+  >(null);
 
   // Update local form data when query data changes
   React.useEffect(() => {
@@ -133,7 +178,11 @@ const AITrustCenterSubprocessors: React.FC = () => {
   }, [overviewData]);
 
   // Handle field change and auto-save
-  const handleFieldChange = (section: string, field: string, value: boolean | string) => {
+  const handleFieldChange = (
+    section: string,
+    field: string,
+    value: boolean | string
+  ) => {
     setFormData((prev: FormData | null) => {
       if (!prev) return prev;
       const updatedData = {
@@ -153,14 +202,14 @@ const AITrustCenterSubprocessors: React.FC = () => {
     try {
       const dataToUse = data || formData;
       if (!dataToUse) return;
-      
+
       // Only send the info section with the subprocessor_visible field
       const dataToSave = {
         info: {
-          subprocessor_visible: dataToUse.info?.subprocessor_visible ?? false
-        }
+          subprocessor_visible: dataToUse.info?.subprocessor_visible ?? false,
+        },
       } as Partial<AITrustCentreOverviewData>;
-      
+
       await updateOverviewMutation.mutateAsync(dataToSave);
       handleAlert({
         variant: "success",
@@ -168,7 +217,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
         setAlert,
       });
     } catch (error) {
-      console.error('Save failed:', error);
+      console.error("Save failed:", error);
     }
   };
 
@@ -176,19 +225,24 @@ const AITrustCenterSubprocessors: React.FC = () => {
   const handleOpenAddModal = () => {
     if (!formData?.info?.subprocessor_visible) return;
     setAddModalOpen(true);
-    setNewSubprocessor({ name: '', purpose: '', url: '', location: '' });
+    setNewSubprocessor({ name: "", purpose: "", url: "", location: "" });
     setAddSubprocessorError(null);
   };
 
   const handleCloseAddModal = () => {
     setAddModalOpen(false);
-    setNewSubprocessor({ name: '', purpose: '', url: '', location: '' });
+    setNewSubprocessor({ name: "", purpose: "", url: "", location: "" });
     setAddSubprocessorError(null);
   };
 
   const handleOpenEditModal = (subprocessor: Subprocessor) => {
     if (!formData?.info?.subprocessor_visible) return;
-    setForm({ name: subprocessor.name, purpose: subprocessor.purpose, url: subprocessor.url, location: subprocessor.location });
+    setForm({
+      name: subprocessor.name,
+      purpose: subprocessor.purpose,
+      url: subprocessor.url,
+      location: subprocessor.location,
+    });
     setEditId(subprocessor.id);
     setEditModalOpen(true);
     setEditSubprocessorError(null);
@@ -197,7 +251,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
   const handleCloseEditModal = () => {
     setEditModalOpen(false);
     setEditId(null);
-    setForm({ name: '', purpose: '', url: '', location: '' });
+    setForm({ name: "", purpose: "", url: "", location: "" });
     setEditSubprocessorError(null);
   };
 
@@ -213,8 +267,14 @@ const AITrustCenterSubprocessors: React.FC = () => {
 
   // Subprocessor operations
   const handleAddSubprocessor = async () => {
-    if (!formData?.info?.subprocessor_visible || !newSubprocessor.name || !newSubprocessor.purpose || !newSubprocessor.url || !newSubprocessor.location) {
-      setAddSubprocessorError('Please fill in all fields');
+    if (
+      !formData?.info?.subprocessor_visible ||
+      !newSubprocessor.name ||
+      !newSubprocessor.purpose ||
+      !newSubprocessor.url ||
+      !newSubprocessor.location
+    ) {
+      setAddSubprocessorError("Please fill in all fields");
       return;
     }
 
@@ -223,7 +283,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
         name: newSubprocessor.name,
         purpose: newSubprocessor.purpose,
         location: newSubprocessor.location,
-        url: newSubprocessor.url
+        url: newSubprocessor.url,
       });
       handleAlert({
         variant: "success",
@@ -231,16 +291,23 @@ const AITrustCenterSubprocessors: React.FC = () => {
         setAlert,
       });
       setAddModalOpen(false);
-      setNewSubprocessor({ name: '', purpose: '', url: '', location: '' });
+      setNewSubprocessor({ name: "", purpose: "", url: "", location: "" });
       setAddSubprocessorError(null);
     } catch (error: any) {
-      setAddSubprocessorError(error.message || 'Failed to create subprocessor');
+      setAddSubprocessorError(error.message || "Failed to create subprocessor");
     }
   };
 
   const handleEditSave = async () => {
-    if (!formData?.info?.subprocessor_visible || !editId || !form.name || !form.purpose || !form.url || !form.location) {
-      setEditSubprocessorError('Please fill in all fields');
+    if (
+      !formData?.info?.subprocessor_visible ||
+      !editId ||
+      !form.name ||
+      !form.purpose ||
+      !form.url ||
+      !form.location
+    ) {
+      setEditSubprocessorError("Please fill in all fields");
       return;
     }
 
@@ -250,7 +317,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
         name: form.name,
         purpose: form.purpose,
         location: form.location,
-        url: form.url
+        url: form.url,
       });
       handleAlert({
         variant: "success",
@@ -259,19 +326,21 @@ const AITrustCenterSubprocessors: React.FC = () => {
       });
       setEditModalOpen(false);
       setEditId(null);
-      setForm({ name: '', purpose: '', url: '', location: '' });
+      setForm({ name: "", purpose: "", url: "", location: "" });
       setEditSubprocessorError(null);
-      
+
       setFlashingRowId(editId);
       setTimeout(() => setFlashingRowId(null), 2000);
     } catch (error: any) {
-      setEditSubprocessorError(error.message || 'Failed to update subprocessor');
+      setEditSubprocessorError(
+        error.message || "Failed to update subprocessor"
+      );
     }
   };
 
   const handleEdit = (subprocessorId: number) => {
     if (!formData?.info?.subprocessor_visible || !subprocessors) return;
-    const subprocessor = subprocessors.find(sp => sp.id === subprocessorId);
+    const subprocessor = subprocessors.find((sp) => sp.id === subprocessorId);
     if (subprocessor) {
       handleOpenEditModal(subprocessor);
     }
@@ -287,14 +356,21 @@ const AITrustCenterSubprocessors: React.FC = () => {
         setAlert,
       });
     } catch (error: any) {
-      setDeleteSubprocessorError(error.message || 'Failed to delete subprocessor');
+      setDeleteSubprocessorError(
+        error.message || "Failed to delete subprocessor"
+      );
     }
   };
 
   // Show loading state
   if (overviewLoading || subprocessorsLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -303,9 +379,16 @@ const AITrustCenterSubprocessors: React.FC = () => {
   // Show error state
   if (overviewError || subprocessorsError) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <Typography color="error">
-          {overviewError?.message || subprocessorsError?.message || 'An error occurred'}
+          {overviewError?.message ||
+            subprocessorsError?.message ||
+            "An error occurred"}
         </Typography>
       </Box>
     );
@@ -314,7 +397,12 @@ const AITrustCenterSubprocessors: React.FC = () => {
   // Ensure subprocessors is available before rendering
   if (!subprocessors) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <Typography>No subprocessors data available</Typography>
       </Box>
     );
@@ -323,7 +411,11 @@ const AITrustCenterSubprocessors: React.FC = () => {
   return (
     <Box>
       <Typography sx={styles.description}>
-        The subprocessor section is an important part of your AI Trust Center. It provides transparency about third-party vendors that process or store data on behalf of your organization. Subprocessors are integral to various operations, from AI model hosting and data storage to compliance monitoring and analytics.
+        The subprocessor section is an important part of your AI Trust Center.
+        It provides transparency about third-party vendors that process or store
+        data on behalf of your organization. Subprocessors are integral to
+        various operations, from AI model hosting and data storage to compliance
+        monitoring and analytics.
       </Typography>
       <Box sx={styles.container}>
         <Box sx={styles.subprocessorsHeader}>
@@ -337,24 +429,35 @@ const AITrustCenterSubprocessors: React.FC = () => {
               icon={<AddIcon />}
             />
             <Box sx={styles.toggleRow}>
-              <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-              <Toggle 
-                checked={formData?.info?.subprocessor_visible ?? false} 
-                onChange={(_, checked) => handleFieldChange('info', 'subprocessor_visible', checked)} 
+              <Typography sx={styles.toggleLabel}>
+                Enabled and visible
+              </Typography>
+              <Toggle
+                checked={formData?.info?.subprocessor_visible ?? false}
+                onChange={(_, checked) =>
+                  handleFieldChange("info", "subprocessor_visible", checked)
+                }
               />
             </Box>
           </Box>
         </Box>
         <Box sx={styles.tableWrapper}>
-          <TableContainer component={Paper} sx={{ 
-            ...styles.tableContainer,
-            ...(formData?.info?.subprocessor_visible ? {} : { opacity: 0.9, pointerEvents: 'none' })
-          }}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              ...styles.tableContainer,
+              ...(formData?.info?.subprocessor_visible
+                ? {}
+                : { opacity: 0.9, pointerEvents: "none" }),
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow>
                   {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={styles.tableCell}>{col.label}</TableCell>
+                    <TableCell key={col.id} sx={styles.tableCell}>
+                      {col.label}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -373,7 +476,8 @@ const AITrustCenterSubprocessors: React.FC = () => {
                   <TableRow>
                     <TableCell colSpan={5} align="center">
                       <Typography sx={styles.emptyStateText}>
-                        No subprocessors found. Add your first subprocessor to get started.
+                        No subprocessors found. Add your first subprocessor to
+                        get started.
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -397,35 +501,45 @@ const AITrustCenterSubprocessors: React.FC = () => {
               <ModalField
                 label="Company name"
                 value={form.name}
-                onChange={(value) => handleFormChange('name', value)}
+                onChange={(value) => handleFormChange("name", value)}
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <ModalField
                 label="Purpose"
                 value={form.purpose}
-                onChange={(value) => handleFormChange('purpose', value)}
+                onChange={(value) => handleFormChange("purpose", value)}
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <ModalField
                 label="URL"
                 value={form.url}
-                onChange={(value) => handleFormChange('url', value)}
+                onChange={(value) => handleFormChange("url", value)}
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <ModalField
                 label="Location"
                 value={form.location}
-                onChange={(value) => handleFormChange('location', value)}
+                onChange={(value) => handleFormChange("location", value)}
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <CustomizableButton
-                sx={{
-                  ...styles.modalButton,
-                  ...(formData?.info?.subprocessor_visible ? {} : styles.modalButtonDisabled)
-                }}
+                sx={
+                  {
+                    ...styles.modalButton,
+                    ...(formData?.info?.subprocessor_visible
+                      ? {}
+                      : styles.modalButtonDisabled),
+                  } as SxProps<Theme>
+                }
                 variant="contained"
                 onClick={handleEditSave}
-                isDisabled={!formData?.info?.subprocessor_visible || !form.name || !form.purpose || !form.url || !form.location}
+                isDisabled={
+                  !formData?.info?.subprocessor_visible ||
+                  !form.name ||
+                  !form.purpose ||
+                  !form.url ||
+                  !form.location
+                }
                 text="Edit subprocessor"
               />
             </Stack>
@@ -436,7 +550,9 @@ const AITrustCenterSubprocessors: React.FC = () => {
         <Modal open={addModalOpen} onClose={handleCloseAddModal}>
           <Box sx={styles.modal}>
             <Box sx={styles.modalHeader}>
-              <Typography sx={styles.modalTitle}>Add new subprocessor</Typography>
+              <Typography sx={styles.modalTitle}>
+                Add new subprocessor
+              </Typography>
               <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
                 <CloseIcon />
               </IconButton>
@@ -445,35 +561,49 @@ const AITrustCenterSubprocessors: React.FC = () => {
               <ModalField
                 label="Company name"
                 value={newSubprocessor.name}
-                onChange={(value) => handleNewSubprocessorChange('name', value)}
+                onChange={(value) => handleNewSubprocessorChange("name", value)}
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <ModalField
                 label="Purpose"
                 value={newSubprocessor.purpose}
-                onChange={(value) => handleNewSubprocessorChange('purpose', value)}
+                onChange={(value) =>
+                  handleNewSubprocessorChange("purpose", value)
+                }
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <ModalField
                 label="URL"
                 value={newSubprocessor.url}
-                onChange={(value) => handleNewSubprocessorChange('url', value)}
+                onChange={(value) => handleNewSubprocessorChange("url", value)}
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <ModalField
                 label="Location"
                 value={newSubprocessor.location}
-                onChange={(value) => handleNewSubprocessorChange('location', value)}
+                onChange={(value) =>
+                  handleNewSubprocessorChange("location", value)
+                }
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <CustomizableButton
-                sx={{
-                  ...styles.modalButton,
-                  ...(formData?.info?.subprocessor_visible ? {} : styles.modalButtonDisabled)
-                }}
+                sx={
+                  {
+                    ...styles.modalButton,
+                    ...(formData?.info?.subprocessor_visible
+                      ? {}
+                      : styles.modalButtonDisabled),
+                  } as SxProps<Theme>
+                }
                 variant="contained"
                 onClick={handleAddSubprocessor}
-                isDisabled={!formData?.info?.subprocessor_visible || !newSubprocessor.name || !newSubprocessor.purpose || !newSubprocessor.url || !newSubprocessor.location}
+                isDisabled={
+                  !formData?.info?.subprocessor_visible ||
+                  !newSubprocessor.name ||
+                  !newSubprocessor.purpose ||
+                  !newSubprocessor.url ||
+                  !newSubprocessor.location
+                }
                 text="Add subprocessor"
               />
             </Stack>
@@ -532,4 +662,4 @@ const AITrustCenterSubprocessors: React.FC = () => {
   );
 };
 
-export default AITrustCenterSubprocessors; 
+export default AITrustCenterSubprocessors;

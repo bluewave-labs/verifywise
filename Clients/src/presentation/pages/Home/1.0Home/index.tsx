@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box} from "@mui/material";
+import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
   vwhomeBodyControls,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 
@@ -35,7 +35,6 @@ import { GetMyOrganization } from "../../../../application/repository/organizati
 import { getTierFeatures } from "../../../../application/repository/tiers.repository";
 import { Tier } from "../../../../domain/types/Tiers";
 
-
 const Home = () => {
   const {
     setDashboardValues,
@@ -57,10 +56,9 @@ const Home = () => {
   const [organizationTierId, setOrganizationTierId] = useState<number | null>(null);
   const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
 
-
   useEffect(() => {
     if (dashboard) {
-      setProjects(dashboard.projects_list.filter(p => !p.is_organizational));
+      setProjects(dashboard.projects_list.filter((p) => !p.is_organizational));
     }
   }, [dashboard]);
 
@@ -212,7 +210,7 @@ const Home = () => {
         <Stack sx={vwhomeBody}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={vwhomeHeading}>Projects overview</Typography>
-            <HelperIcon 
+            <HelperIcon
               onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
               size="small"
             />
@@ -268,39 +266,33 @@ const Home = () => {
           </Box>
         </Stack>
 
+        {/* TODO: Add TaskRadar visualization when backend data is ready */}
 
-         {/* TODO: Add TaskRadar visualization when backend data is ready */}
-
-
-            
-
-         <ProjectList projects={projects} />
-
-
-          </Stack>
-          
-          <Modal
-              open={isProjectFormModalOpen}
-              onClose={handleProjectFormModalClose}
-              aria-labelledby="modal-title"
-              aria-describedby="modal-description"
-          >
-              <Box sx={vwhomeCreateModalFrame}>
-                  <ProjectForm 
-                    defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
-                    onClose={handleProjectFormModalClose} 
-                  />
-              </Box>
-          </Modal>
-          <PageTour
-              steps={HomeSteps}
-              run={runHomeTour}
-              onFinish={() => {
-                  setRunHomeTour(false);
-              }}
-              tourKey="home-tour"
-          />
+        <ProjectList projects={projects} />
       </Stack>
+
+      <Modal
+        open={isProjectFormModalOpen}
+        onClose={handleProjectFormModalClose}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <Box sx={vwhomeCreateModalFrame}>
+          <ProjectForm
+            defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
+            onClose={handleProjectFormModalClose}
+          />
+        </Box>
+      </Modal>
+      <PageTour
+        steps={HomeSteps}
+        run={runHomeTour}
+        onFinish={() => {
+          setRunHomeTour(false);
+        }}
+        tourKey="home-tour"
+      />
+    </Stack>
   );
 };
 

@@ -24,7 +24,7 @@ import useProjectStatus, {
 import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
 import CreateDemoData from "../../components/CreateDemoData";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import NoProject from "../../components/NoProject/NoProject";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
@@ -112,10 +112,13 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
     newProjectData,
     () => setIsNewProjectCreate(false)
   );
-  
+
   const { userId } = useAuth();
-  const { projectStatus, loading: loadingProjectStatus, error: errorFetchingProjectStatus } =
-    useProjectStatus({ userId });
+  const {
+    projectStatus,
+    loading: loadingProjectStatus,
+    error: errorFetchingProjectStatus,
+  } = useProjectStatus({ userId });
 
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [openDemoDataModal, setOpenDemoDataModal] = useState(false);

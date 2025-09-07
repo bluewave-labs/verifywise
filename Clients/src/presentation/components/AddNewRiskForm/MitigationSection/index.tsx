@@ -51,7 +51,7 @@ interface MitigationSectionProps {
 }
 /**
  * MitigationSection component manages mitigation details for risk assessment.
- * 
+ *
  * Handles form fields for mitigation plan, implementation strategy, risk levels,
  * approvals, and recommendations with proper validation and state management.
  *
@@ -67,7 +67,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   mitigationValues,
   setMitigationValues,
   mitigationErrors = {},
-  userRoleName
+  userRoleName,
 }) => {
   const theme = useTheme();
   const isEditingDisabled =
@@ -75,7 +75,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
 
   const [alert, setAlert] = useState<alertState | null>(null);
 
-  const { users } = useUsers();
+  const { users, loading: usersLoading } = useUsers();
 
   // Memoized values
   const userOptions = useMemo(
@@ -115,7 +115,10 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   );
 
   const handleDateChange = useCallback(
-    (field: keyof Pick<MitigationFormValues, 'deadline' | 'dateOfAssessment'>, newDate: Dayjs | null) => {
+    (
+      field: keyof Pick<MitigationFormValues, "deadline" | "dateOfAssessment">,
+      newDate: Dayjs | null
+    ) => {
       if (newDate?.isValid()) {
         setMitigationValues((prevValues) => ({
           ...prevValues,
@@ -163,20 +166,20 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             overflowX: "hidden",
           }}
         >
-        <Stack sx={{ width: "100%", mb: 10 }}>
-          <Stack sx={{ gap: 8.5, maxHeight: MAX_CONTENT_HEIGHT }}>
-            {/* Row 1: Three columns */}
-            <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: theme.spacing(8.5),
-              }}
-            >
-              {/* Mitigation Status */}
-              <Select
+          <Stack sx={{ width: "100%", mb: 10 }}>
+            <Stack sx={{ gap: 8.5, maxHeight: MAX_CONTENT_HEIGHT }}>
+              {/* Row 1: Three columns */}
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: theme.spacing(8.5),
+                }}
+              >
+                {/* Mitigation Status */}
+                <Select
                   id="mitigation-status-input"
                   label="Mitigation status"
                   placeholder="Select status"
@@ -192,8 +195,8 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   error={mitigationErrors?.mitigationStatus}
                   disabled={isEditingDisabled}
                 />
-              {/* Current Risk Level */}
-              <Select
+                {/* Current Risk Level */}
+                <Select
                   id="current-risk-level-input"
                   label="Current risk level"
                   placeholder="Select risk level"
@@ -209,8 +212,8 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   error={mitigationErrors?.currentRiskLevel}
                   disabled={isEditingDisabled}
                 />
-              {/* Deadline */}
-              <Stack style={{ width: FORM_FIELD_WIDTH }}>
+                {/* Deadline */}
+                <Stack style={{ width: FORM_FIELD_WIDTH }}>
                   <DatePicker
                     label="Deadline"
                     date={
@@ -228,19 +231,19 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                     disabled={isEditingDisabled}
                   />
                 </Stack>
-            </Stack>
-            {/* Row 2: Mitigation Plan and Implementation Strategy */}
-            <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: theme.spacing(8.5),
-              }}
-            >
-              {/* Mitigation Plan */}
-              <Field
+              </Stack>
+              {/* Row 2: Mitigation Plan and Implementation Strategy */}
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: theme.spacing(8.5),
+                }}
+              >
+                {/* Mitigation Plan */}
+                <Field
                   id="mitigation-plan-input"
                   label="Mitigation plan"
                   type="description"
@@ -252,8 +255,8 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   disabled={isEditingDisabled}
                   placeholder="Write mitigation plan"
                 />
-              {/* Implementation Strategy */}
-              <Field
+                {/* Implementation Strategy */}
+                <Field
                   id="implementation-strategy-input"
                   label="Implementation strategy"
                   type="description"
@@ -265,42 +268,46 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   disabled={isEditingDisabled}
                   placeholder="Write implementation strategy"
                 />
+              </Stack>
             </Stack>
           </Stack>
-        </Stack>
-        <Divider />
-        <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 3 }}>
-          Calculate residual risk level
-        </Typography>
-        <Typography sx={{ fontSize: theme.typography.fontSize, mb: 4.5 }}>
-          The Risk Level is calculated by multiplying the Likelihood and
-          Severity scores. By assigning these scores, the risk level will be
-          determined based on your inputs.
-        </Typography>
+          <Divider />
+          <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 3 }}>
+            Calculate residual risk level
+          </Typography>
+          <Typography sx={{ fontSize: theme.typography.fontSize, mb: 4.5 }}>
+            The Risk Level is calculated by multiplying the Likelihood and
+            Severity scores. By assigning these scores, the risk level will be
+            determined based on your inputs.
+          </Typography>
           <RiskLevel
             likelihood={mitigationValues.likelihood}
             riskSeverity={mitigationValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
             disabled={isEditingDisabled}
           />
-        <Divider />
-        <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 4.5 }}>
-          Risk approval
-        </Typography>
-        <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 9.5 }}>
+          <Divider />
+          <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 4.5 }}>
+            Risk approval
+          </Typography>
+          <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 9.5 }}>
             <Select
               id="approver-input"
               label="Approver"
               placeholder="Select approver"
               value={
-                mitigationValues.approver === 0 ? "" : mitigationValues.approver
+                usersLoading || !users?.length
+                  ? ""
+                  : mitigationValues.approver === 0
+                  ? ""
+                  : mitigationValues.approver
               }
               onChange={handleOnSelectChange("approver")}
               items={userOptions}
               sx={formFieldStyles}
               isRequired
               error={mitigationErrors?.approver}
-              disabled={isEditingDisabled}
+              disabled={isEditingDisabled || usersLoading}
             />
             <Select
               id="approval-status-input"
@@ -331,7 +338,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               error={mitigationErrors?.dateOfAssessment}
               disabled={isEditingDisabled}
             />
-        </Stack>
+          </Stack>
           <Field
             id="recommendations-input"
             label="Recommendations"

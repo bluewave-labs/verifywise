@@ -23,7 +23,7 @@ import SelectComponent from "../../Inputs/Select";
 import ReviewerMultiSelect from "../../../vw-v2-components/Selects/ReviewerSelect";
 import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { TaskPriority, ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";

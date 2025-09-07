@@ -26,7 +26,7 @@ import {
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
   updatePolicy,

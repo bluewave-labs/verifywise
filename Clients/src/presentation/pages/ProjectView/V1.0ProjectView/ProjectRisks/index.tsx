@@ -7,7 +7,7 @@ import RisksCard from "../../../../components/Cards/RisksCard";
 import RiskVisualizationTabs from "../../../../components/RiskVisualization/RiskVisualizationTabs";
 import RiskFilters from "../../../../components/RiskVisualization/RiskFilters";
 import { rowStyle } from "./style";
-import CustomizableButton from "../../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
 import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";

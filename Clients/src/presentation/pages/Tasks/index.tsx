@@ -2,16 +2,20 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 import { 
   Box, Stack, Typography, TextField, InputAdornment, 
   Collapse, Paper, Checkbox, FormControlLabel, Chip, Divider,
-  Select as MuiSelect, MenuItem, ListItemText, SelectChangeEvent
+  Select as MuiSelect, MenuItem, ListItemText, SelectChangeEvent,
+  IconButton, Menu, Dialog, DialogTitle, DialogContent, DialogActions,
+  Button
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableButton from "../../vw-v2-components/Buttons";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskStatus, TaskPriority, TaskSummary } from "../../../domain/interfaces/i.task";
-import { getAllTasks, createTask } from "../../../application/repository/task.repository";
+import { getAllTasks, createTask, updateTask, deleteTask, updateTaskStatus } from "../../../application/repository/task.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
@@ -24,6 +28,11 @@ const Tasks: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<ITask | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
+  const [statusMenuAnchor, setStatusMenuAnchor] = useState<null | HTMLElement>(null);
+  const [statusMenuTaskId, setStatusMenuTaskId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
@@ -107,6 +116,59 @@ const Tasks: React.FC = () => {
       }
     } catch (error) {
       console.error('Error creating task:', error);
+    }
+  };
+
+  const handleEditTask = (task: ITask) => {
+    setEditingTask(task);
+  };
+
+  const handleDeleteTask = (task: ITask) => {
+    setTaskToDelete(task);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!taskToDelete) return;
+    
+    try {
+      await deleteTask({ id: taskToDelete.id! });
+      setTasks(prev => prev.filter(task => task.id !== taskToDelete.id));
+      setDeleteConfirmOpen(false);
+      setTaskToDelete(null);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
+
+  const handleUpdateTask = async (formData: any) => {
+    if (!editingTask) return;
+    
+    try {
+      const response = await updateTask({ id: editingTask.id!, body: formData });
+      if (response && response.data) {
+        setTasks(prev => prev.map(task => 
+          task.id === editingTask.id ? response.data : task
+        ));
+        setEditingTask(null);
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
+  const handleQuickStatusUpdate = async (taskId: number, newStatus: TaskStatus) => {
+    try {
+      const response = await updateTaskStatus({ id: taskId, status: newStatus });
+      if (response && response.data) {
+        setTasks(prev => prev.map(task => 
+          task.id === taskId ? { ...task, status: newStatus } : task
+        ));
+      }
+      setStatusMenuAnchor(null);
+      setStatusMenuTaskId(null);
+    } catch (error) {
+      console.error('Error updating task status:', error);
     }
   };
 
@@ -469,6 +531,11 @@ const Tasks: React.FC = () => {
                         Assignees
                       </Typography>
                     </Box>
+                    <Box sx={{ flex: 0.7 }}>
+                      <Typography variant="body2" fontWeight={600} color="text.secondary">
+                        Actions
+                      </Typography>
+                    </Box>
                   </Stack>
                 </Box>
 
@@ -552,10 +619,16 @@ const Tasks: React.FC = () => {
                         <Chip
                           label={task.status}
                           size="small"
+                          clickable
+                          onClick={(event) => {
+                            setStatusMenuAnchor(event.currentTarget);
+                            setStatusMenuTaskId(task.id!);
+                          }}
                           sx={{
                             fontSize: 11,
                             height: 24,
                             fontWeight: 500,
+                            cursor: 'pointer',
                             backgroundColor: 
                               task.status === TaskStatus.COMPLETED ? '#f0fdf4' :
                               task.status === TaskStatus.IN_PROGRESS ? '#eff6ff' :
@@ -568,7 +641,10 @@ const Tasks: React.FC = () => {
                               task.status === TaskStatus.COMPLETED ? '#bbf7d0' :
                               task.status === TaskStatus.IN_PROGRESS ? '#bfdbfe' :
                               task.status === TaskStatus.OVERDUE ? '#fecaca' : '#e5e7eb'
-                            }`
+                            }`,
+                            '&:hover': {
+                              opacity: 0.8
+                            }
                           }}
                         />
                       </Box>
@@ -648,6 +724,42 @@ const Tasks: React.FC = () => {
                           </Typography>
                         )}
                       </Box>
+
+                      {/* Actions */}
+                      <Box sx={{ flex: 0.7 }}>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditTask(task)}
+                            sx={{
+                              color: '#13715B',
+                              backgroundColor: 'transparent',
+                              '&:hover': {
+                                backgroundColor: '#f0fdf4',
+                                color: '#0f5d4f'
+                              },
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <EditIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteTask(task)}
+                            sx={{
+                              color: '#dc2626',
+                              backgroundColor: 'transparent',
+                              '&:hover': {
+                                backgroundColor: '#fef2f2',
+                                color: '#b91c1c'
+                              },
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <DeleteIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        </Stack>
+                      </Box>
                     </Stack>
                   </Box>
                 ))}
@@ -663,6 +775,105 @@ const Tasks: React.FC = () => {
         setIsOpen={setIsCreateTaskModalOpen}
         onSuccess={handleTaskCreated}
       />
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <CreateTask
+          isOpen={!!editingTask}
+          setIsOpen={(open) => !open && setEditingTask(null)}
+          onSuccess={handleUpdateTask}
+          initialData={editingTask}
+          mode="edit"
+        />
+      )}
+
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Delete Task</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setDeleteConfirmOpen(false)}
+            color="inherit"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={confirmDeleteTask}
+            color="error"
+            variant="contained"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Status Update Menu */}
+      <Menu
+        anchorEl={statusMenuAnchor}
+        open={Boolean(statusMenuAnchor)}
+        onClose={() => {
+          setStatusMenuAnchor(null);
+          setStatusMenuTaskId(null);
+        }}
+        PaperProps={{
+          sx: { minWidth: 160 }
+        }}
+      >
+        {Object.values(TaskStatus).map((status) => (
+          <MenuItem 
+            key={status}
+            onClick={() => statusMenuTaskId && handleQuickStatusUpdate(statusMenuTaskId, status)}
+            sx={{ 
+              fontSize: 14,
+              py: 1,
+              '&:hover': {
+                backgroundColor: 
+                  status === TaskStatus.COMPLETED ? '#f0fdf4' :
+                  status === TaskStatus.IN_PROGRESS ? '#eff6ff' :
+                  status === TaskStatus.OVERDUE ? '#fef2f2' : '#f9fafb',
+              }
+            }}
+          >
+            <Chip
+              label={status}
+              size="small"
+              sx={{
+                fontSize: 10,
+                height: 22,
+                mr: 1.5,
+                fontWeight: 500,
+                backgroundColor: 
+                  status === TaskStatus.COMPLETED ? '#f0fdf4' :
+                  status === TaskStatus.IN_PROGRESS ? '#eff6ff' :
+                  status === TaskStatus.OVERDUE ? '#fef2f2' : '#f9fafb',
+                color: 
+                  status === TaskStatus.COMPLETED ? '#16a34a' :
+                  status === TaskStatus.IN_PROGRESS ? '#2563eb' :
+                  status === TaskStatus.OVERDUE ? '#dc2626' : '#6b7280',
+                border: `1px solid ${
+                  status === TaskStatus.COMPLETED ? '#bbf7d0' :
+                  status === TaskStatus.IN_PROGRESS ? '#bfdbfe' :
+                  status === TaskStatus.OVERDUE ? '#fecaca' : '#e5e7eb'
+                }`
+              }}
+            />
+            <Typography variant="body2" fontWeight={500}>
+              {status}
+            </Typography>
+          </MenuItem>
+        ))}
+      </Menu>
     </Box>
   );
 };

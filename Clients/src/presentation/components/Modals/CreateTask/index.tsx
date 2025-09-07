@@ -25,13 +25,15 @@ import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
 import CustomizableButton from "../../../vw-v2-components/Buttons";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import { TaskPriority } from "../../../../domain/interfaces/i.task";
+import { TaskPriority, ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 
 interface CreateTaskProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSuccess?: (data: CreateTaskFormValues) => void;
+  initialData?: ITask;
+  mode?: 'create' | 'edit';
 }
 
 interface CreateTaskFormValues {
@@ -71,6 +73,8 @@ const CreateTask: FC<CreateTaskProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
+  initialData,
+  mode = 'create',
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState<CreateTaskFormValues>(initialState);
@@ -82,8 +86,19 @@ const CreateTask: FC<CreateTaskProps> = ({
       setValues(initialState);
       setErrors({});
       setNewCategory("");
+    } else if (isOpen && mode === 'edit' && initialData) {
+      setValues({
+        title: initialData.title,
+        description: initialData.description || "",
+        priority: initialData.priority,
+        due_date: initialData.due_date ? dayjs(initialData.due_date).format('YYYY-MM-DD') : "",
+        assignees: initialData.assignees?.map(String) || [],
+        categories: initialData.categories || [],
+      });
+    } else {
+      setValues(initialState);
     }
-  }, [isOpen]);
+  }, [isOpen, mode, initialData]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof CreateTaskFormValues) =>
@@ -163,9 +178,6 @@ const CreateTask: FC<CreateTaskProps> = ({
       newErrors.due_date = "Due date is required.";
     }
 
-    if (values.assignees.length === 0) {
-      newErrors.assignees = "At least one assignee is required.";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -221,7 +233,7 @@ const CreateTask: FC<CreateTaskProps> = ({
           {/* Header */}
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography fontSize={16} fontWeight={600}>
-              Create New Task
+              {mode === 'edit' ? 'Edit Task' : 'Create New Task'}
             </Typography>
             <Box
               component="span"
@@ -321,8 +333,8 @@ const CreateTask: FC<CreateTaskProps> = ({
               <ReviewerMultiSelect
                 selected={values.assignees}
                 setSelected={handleAssigneesChange}
-                label="Assignees"
-                required
+                label="Assignees (Optional)"
+                required={false}
                 error={errors.assignees}
               />
 
@@ -401,7 +413,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                 />
                 <CustomizableButton
                   variant="contained"
-                  text="Create Task"
+                  text={mode === 'edit' ? 'Update Task' : 'Create Task'}
                   sx={{
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",

@@ -354,7 +354,8 @@ export const updateTaskByIdQuery = async (
     userOrganizationId: number;
     transaction: Transaction;
   },
-  tenant: string
+  tenant: string,
+  assignees?: number[]
 ): Promise<TasksModel> => {
   // First, get the task to check permissions
   const existingTask = await getTaskByIdQuery(id, { userId, role }, tenant, userOrganizationId);
@@ -439,7 +440,46 @@ export const updateTaskByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  const updatedTask = result[0];
+
+  // Handle assignees update if provided
+  if (assignees !== undefined) {
+    // Remove existing assignees
+    await sequelize.query(
+      `DELETE FROM "${tenant}".task_assignees WHERE task_id = :taskId`,
+      {
+        replacements: { taskId: id },
+        type: QueryTypes.DELETE,
+        transaction,
+      }
+    );
+
+    // Add new assignees if any
+    if (assignees && assignees.length > 0) {
+      const assigneeValues = assignees.map((assigneeId, index) => 
+        `(:taskId, :assignee${index})`
+      ).join(', ');
+      
+      const assigneeReplacements: any = { taskId: id };
+      assignees.forEach((assigneeId, index) => {
+        assigneeReplacements[`assignee${index}`] = assigneeId;
+      });
+
+      await sequelize.query(
+        `INSERT INTO "${tenant}".task_assignees (task_id, user_id) VALUES ${assigneeValues}`,
+        {
+          replacements: assigneeReplacements,
+          type: QueryTypes.INSERT,
+          transaction,
+        }
+      );
+    }
+
+    // Add assignees to the response
+    (updatedTask.dataValues as any)["assignees"] = assignees;
+  }
+
+  return updatedTask;
 };
 
 // Soft delete task (only creator or admin)

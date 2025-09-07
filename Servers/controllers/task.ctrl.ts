@@ -291,7 +291,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     }
 
     const updateData: Partial<ITask> = {};
-    const { title, description, due_date, priority, status, categories } = req.body;
+    const { title, description, due_date, priority, status, categories, assignees } = req.body;
 
     // Only include fields that are being updated
     if (title !== undefined) updateData.title = title;
@@ -310,7 +310,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         userOrganizationId: req.organizationId!,
         transaction,
       },
-      req.tenantId!
+      req.tenantId!,
+      assignees // Pass assignees to the function
     );
 
     await transaction.commit();
@@ -322,7 +323,13 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       fileName: "task.ctrl.ts",
     });
 
-    return res.status(200).json(STATUS_CODE[200](updatedTask));
+    // Add assignees to response (manually from dataValues)
+    const taskResponse = {
+      ...updatedTask.toJSON(),
+      assignees: (updatedTask.dataValues as any)["assignees"] || []
+    };
+
+    return res.status(200).json(STATUS_CODE[200](taskResponse));
   } catch (error) {
     await transaction.rollback();
 

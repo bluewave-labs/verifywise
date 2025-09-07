@@ -11,6 +11,8 @@ import {
   Paper,
   Stack,
   CircularProgress,
+  SxProps,
+  Theme,
 } from "@mui/material";
 import Toggle from "../../../components/Inputs/Toggle";
 import IconButtonComponent from "../../../components/IconButton";
@@ -521,12 +523,14 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <CustomizableButton
-                sx={{
-                  ...styles.modalButton,
-                  ...(formData?.info?.subprocessor_visible
-                    ? {}
-                    : styles.modalButtonDisabled),
-                }}
+                sx={
+                  {
+                    ...styles.modalButton,
+                    ...(formData?.info?.subprocessor_visible
+                      ? {}
+                      : styles.modalButtonDisabled),
+                  } as SxProps<Theme>
+                }
                 variant="contained"
                 onClick={handleEditSave}
                 isDisabled={
@@ -583,12 +587,14 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 enabled={!!formData?.info?.subprocessor_visible}
               />
               <CustomizableButton
-                sx={{
-                  ...styles.modalButton,
-                  ...(formData?.info?.subprocessor_visible
-                    ? {}
-                    : styles.modalButtonDisabled),
-                }}
+                sx={
+                  {
+                    ...styles.modalButton,
+                    ...(formData?.info?.subprocessor_visible
+                      ? {}
+                      : styles.modalButtonDisabled),
+                  } as SxProps<Theme>
+                }
                 variant="contained"
                 onClick={handleAddSubprocessor}
                 isDisabled={

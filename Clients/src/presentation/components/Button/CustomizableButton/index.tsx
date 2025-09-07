@@ -129,7 +129,7 @@ const CustomizableButton = memo(
           try {
             onClick?.(event);
           } catch (error) {
-            console.error('CustomizableButton onClick error:', error);
+            console.error("CustomizableButton onClick error:", error);
           }
         },
         [onClick, loading, isDisabled]
@@ -138,32 +138,28 @@ const CustomizableButton = memo(
       // Handle keyboard events for accessibility
       const handleKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLButtonElement>) => {
-          if (event.key === 'Enter' || event.key === ' ') {
+          if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             if (!loading && !isDisabled) {
-              // Create a synthetic React mouse event
-              const syntheticEvent = {
-                ...event,
-                type: 'click',
-                currentTarget: event.currentTarget,
-                target: event.target,
-                preventDefault: event.preventDefault,
-                stopPropagation: event.stopPropagation,
-              } as React.MouseEvent<HTMLButtonElement>;
-              handleClick(syntheticEvent);
+              // For keyboard accessibility, call handleClick directly
+              // We need to create a proper synthetic event to avoid TypeScript errors
+              handleClick(
+                event as unknown as React.MouseEvent<HTMLButtonElement>
+              );
             }
           }
         },
         [handleClick, loading, isDisabled]
       );
 
-      // Get theme-based appearance
-      const appearance = singleTheme.buttons?.[color]?.[variant] || {};
+      // Get theme-based appearance - ensure proper typing for MUI sx prop
+      const appearance = (singleTheme.buttons?.[color]?.[variant] ||
+        {}) as SxProps<Theme>;
 
       // Determine button content
       const buttonText = children || text || "CustomizableButton";
       const resolvedStartIcon = startIcon || icon;
-      
+
       // Custom loading indicator or default spinner
       const spinner = loadingIndicator || (
         <CircularProgress
@@ -191,18 +187,23 @@ const CustomizableButton = memo(
           aria-describedby={ariaDescribedBy}
           aria-disabled={isDisabled || loading}
           data-testid={testId}
-          sx={{
-            ...appearance,
-            position: 'relative',
-            '&.Mui-disabled': {
-              pointerEvents: loading ? 'none' : 'auto',
+          sx={[
+            appearance,
+            {
+              position: "relative",
+              "&.Mui-disabled": {
+                pointerEvents: loading ? "none" : "auto",
+              },
             },
-            ...sx,
-          }}
+            ...(Array.isArray(sx) ? sx : [sx]),
+          ]}
           disableElevation={variant === "contained" && !isLink}
           startIcon={
             loading ? (
-              <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                component="span"
+                sx={{ display: "flex", alignItems: "center" }}
+              >
                 {spinner}
               </Box>
             ) : (
@@ -216,10 +217,10 @@ const CustomizableButton = memo(
             <Box
               component="span"
               sx={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
               }}
             >
               {spinner}
@@ -229,7 +230,7 @@ const CustomizableButton = memo(
             component="span"
             sx={{
               opacity: loading && !resolvedStartIcon && !endIcon ? 0 : 1,
-              transition: 'opacity 0.2s ease',
+              transition: "opacity 0.2s ease",
             }}
           >
             {buttonText}
@@ -241,6 +242,6 @@ const CustomizableButton = memo(
 );
 
 // Set display name for better debugging and dev tools
-CustomizableButton.displayName = 'CustomizableButton';
+CustomizableButton.displayName = "CustomizableButton";
 
 export default CustomizableButton;

@@ -2,109 +2,245 @@
  * This file is currently in use
  */
 
+import React, { memo, useCallback } from "react";
+import { Button, CircularProgress, Box } from "@mui/material";
+import { ButtonProps, SxProps, Theme } from "@mui/material";
+import singleTheme from "../../../themes/v1SingleTheme";
+
 /**
  * CustomizableButton component
  *
- * This component renders a button with various styles and properties.
+ * A highly customizable button component that extends Material-UI Button with additional features.
+ * Supports various styles, loading states, icons, and accessibility features.
+ *
+ * Features:
+ * - Theme-based styling with customizable variants
+ * - Loading state with spinner
+ * - Icon positioning with proper spacing
+ * - Full accessibility support with ARIA attributes
+ * - Keyboard navigation support
+ * - Performance optimized with memoization
  *
  * @component
  * @example
+ * ```tsx
  * <CustomizableButton
  *   variant="contained"
  *   size="medium"
- *   isDisabled={false}
- *   isLink={false}
  *   color="primary"
- *   onClick={() => console.log('Button clicked')}
- *   sx={{ margin: 1 }}
- * />
- *
- * @typedef {Object} CustomizableButtonProps
- * @property {"contained" | "outlined" | "text"} [variant="contained"] - The variant of the button.
- * @property {"small" | "medium" | "large"} [size="medium"] - The size of the button.
- * @property {boolean} [isDisabled=false] - If true, the button will be disabled.
- * @property {boolean} [isLink=false] - If true, the button will be styled as a link.
- * @property {"primary" | "secondary" | "success" | "warning" | "error" | "info"} [color="primary"] - The color of the button.
- * @property {function} [onClick] - The function to call when the button is clicked.
- * @property {SxProps} [sx] - The system prop that allows defining system overrides as well as additional CSS styles.
+ *   loading={false}
+ *   startIcon={<SaveIcon />}
+ *   onClick={handleSave}
+ *   ariaLabel="Save document"
+ * >
+ *   Save Document
+ * </CustomizableButton>
+ * ```
  */
 
-import React from "react";
-import { Button } from "@mui/material";
-import PropTypes from "prop-types";
-import { ButtonProps } from "@mui/material/Button";
-import singleTheme from "../../../themes/v1SingleTheme";
-
-interface CustomizableButtonProps {
+/**
+ * Props interface for the CustomizableButton component
+ */
+export interface CustomizableButtonProps {
+  /** The variant of the button */
   variant?: "contained" | "outlined" | "text";
+  /** The size of the button */
   size?: "small" | "medium" | "large";
+  /** If true, the button will be disabled */
   isDisabled?: boolean;
+  /** If true, the button will be styled as a link */
   isLink?: boolean;
+  /** The color theme of the button */
   color?: "primary" | "secondary" | "success" | "warning" | "error" | "info";
-  onClick?: any;
-  sx?: any;
+  /** Click event handler */
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Custom styles using MUI's sx prop */
+  sx?: SxProps<Theme>;
+  /** Button text content (deprecated: use children instead) */
   text?: string;
-  icon?: any;
+  /** Icon element (deprecated: use startIcon or endIcon instead) */
+  icon?: React.ReactNode;
+  /** Icon to display at the start of the button */
+  startIcon?: React.ReactNode;
+  /** Icon to display at the end of the button */
+  endIcon?: React.ReactNode;
+  /** Button content */
+  children?: React.ReactNode;
+  /** Loading state - shows spinner and disables button */
+  loading?: boolean;
+  /** Custom loading indicator */
+  loadingIndicator?: React.ReactNode;
+  /** ARIA label for accessibility */
+  ariaLabel?: string;
+  /** ARIA described by for accessibility */
+  ariaDescribedBy?: string;
+  /** Test identifier for automated testing */
+  testId?: string;
+  /** Button type attribute */
+  type?: "button" | "submit" | "reset";
+  /** Full width button */
+  fullWidth?: boolean;
+  /** Custom class name */
+  className?: string;
+  /** Tooltip text */
+  title?: string;
 }
 
-const CustomizableButton = React.forwardRef<
-  HTMLButtonElement,
-  CustomizableButtonProps
->(
-  (
-    {
-      variant = "contained",
-      size = "medium",
-      isDisabled = false,
-      isLink = false,
-      color = "primary",
-      onClick,
-      sx,
-      text = "CustomizableButton",
-      icon,
-      ...rest
-    },
-    ref
-  ) => {
-    const appearance = singleTheme.buttons[color][variant];
+/**
+ * CustomizableButton component implementation
+ */
+const CustomizableButton = memo(
+  React.forwardRef<HTMLButtonElement, CustomizableButtonProps>(
+    (
+      {
+        variant = "contained",
+        size = "medium",
+        isDisabled = false,
+        isLink = false,
+        color = "primary",
+        onClick,
+        sx,
+        text,
+        icon,
+        startIcon,
+        endIcon,
+        children,
+        loading = false,
+        loadingIndicator,
+        ariaLabel,
+        ariaDescribedBy,
+        testId,
+        type = "button",
+        fullWidth = false,
+        className,
+        title,
+        ...rest
+      },
+      ref
+    ) => {
+      // Handle click events with error boundary
+      const handleClick = useCallback(
+        (event: React.MouseEvent<HTMLButtonElement>) => {
+          if (loading || isDisabled) {
+            event.preventDefault();
+            return;
+          }
 
-    return (
-      <Button
-        ref={ref}
-        disableRipple
-        variant={variant as ButtonProps["variant"]}
-        size={size as ButtonProps["size"]}
-        disabled={isDisabled}
-        color={color as ButtonProps["color"]}
-        onClick={onClick}
-        sx={{ ...appearance, ...sx }}
-        disableElevation={variant === "contained" && !isLink}
-        {...rest}
-      >
-        {icon}
-        {text}
-      </Button>
-    );
-  }
+          try {
+            onClick?.(event);
+          } catch (error) {
+            console.error('CustomizableButton onClick error:', error);
+          }
+        },
+        [onClick, loading, isDisabled]
+      );
+
+      // Handle keyboard events for accessibility
+      const handleKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (!loading && !isDisabled) {
+              // Create a synthetic React mouse event
+              const syntheticEvent = {
+                ...event,
+                type: 'click',
+                currentTarget: event.currentTarget,
+                target: event.target,
+                preventDefault: event.preventDefault,
+                stopPropagation: event.stopPropagation,
+              } as React.MouseEvent<HTMLButtonElement>;
+              handleClick(syntheticEvent);
+            }
+          }
+        },
+        [handleClick, loading, isDisabled]
+      );
+
+      // Get theme-based appearance
+      const appearance = singleTheme.buttons?.[color]?.[variant] || {};
+
+      // Determine button content
+      const buttonText = children || text || "CustomizableButton";
+      const resolvedStartIcon = startIcon || icon;
+      
+      // Custom loading indicator or default spinner
+      const spinner = loadingIndicator || (
+        <CircularProgress
+          size={16}
+          color="inherit"
+          sx={{ mr: resolvedStartIcon || endIcon ? 1 : 0 }}
+        />
+      );
+
+      return (
+        <Button
+          ref={ref}
+          className={className}
+          disableRipple
+          variant={variant as ButtonProps["variant"]}
+          size={size as ButtonProps["size"]}
+          disabled={isDisabled || loading}
+          color={color as ButtonProps["color"]}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+          type={type}
+          fullWidth={fullWidth}
+          title={title}
+          aria-label={ariaLabel}
+          aria-describedby={ariaDescribedBy}
+          aria-disabled={isDisabled || loading}
+          data-testid={testId}
+          sx={{
+            ...appearance,
+            position: 'relative',
+            '&.Mui-disabled': {
+              pointerEvents: loading ? 'none' : 'auto',
+            },
+            ...sx,
+          }}
+          disableElevation={variant === "contained" && !isLink}
+          startIcon={
+            loading ? (
+              <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                {spinner}
+              </Box>
+            ) : (
+              resolvedStartIcon
+            )
+          }
+          endIcon={!loading ? endIcon : undefined}
+          {...rest}
+        >
+          {loading && !resolvedStartIcon && !endIcon && (
+            <Box
+              component="span"
+              sx={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              {spinner}
+            </Box>
+          )}
+          <Box
+            component="span"
+            sx={{
+              opacity: loading && !resolvedStartIcon && !endIcon ? 0 : 1,
+              transition: 'opacity 0.2s ease',
+            }}
+          >
+            {buttonText}
+          </Box>
+        </Button>
+      );
+    }
+  )
 );
 
-CustomizableButton.propTypes = {
-  variant: PropTypes.oneOf(["contained", "outlined", "text"]),
-  size: PropTypes.oneOf(["small", "medium", "large"]),
-  isDisabled: PropTypes.bool,
-  isLink: PropTypes.bool,
-  color: PropTypes.oneOf([
-    "primary",
-    "secondary",
-    "success",
-    "warning",
-    "error",
-    "info",
-  ]),
-  onClick: PropTypes.func,
-  sx: PropTypes.object,
-  text: PropTypes.string,
-  icon: PropTypes.node,
-};
+// Set display name for better debugging and dev tools
+CustomizableButton.displayName = 'CustomizableButton';
 
 export default CustomizableButton;

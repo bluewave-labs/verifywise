@@ -22,7 +22,7 @@ export const useUserFilesMetaData = () => {
       try {
         setLoading(true);
         setError(null);
-         const filesResponse = await getUserFilesMetaData({
+        const filesResponse = await getUserFilesMetaData({
           signal: abortController.signal,
         });
 
@@ -41,7 +41,11 @@ export const useUserFilesMetaData = () => {
               source: file.source,
               projectTitle: file.project_title,
               projectId: file.project_id.toString(),
-            }))
+              parentId: file.parent_id,
+              subId: file.sub_id,
+              metaId: file.meta_id,
+              isEvidence: file.is_evidence,
+            })),
           );
         } else {
           setFilesData([]);
@@ -53,7 +57,7 @@ export const useUserFilesMetaData = () => {
           return;
         }
         setError(
-          error instanceof Error ? error : new Error("Unknown error occurred")
+          error instanceof Error ? error : new Error("Unknown error occurred"),
         );
         setFilesData([]);
       } finally {

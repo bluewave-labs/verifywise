@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
+import CustomizableButton from "../../Button/CustomizableButton";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -33,6 +34,9 @@ interface FileBasicTableProps {
   paginated?: boolean;
   table: string;
 }
+const navigteToNewTab = (url: string) => {
+  window.open(url, "_blank", "noopener,noreferrer");
+};
 
 const FileBasicTable: React.FC<FileBasicTableProps> = ({
   data,
@@ -55,13 +59,35 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
       setRowsPerPage(parseInt(event.target.value, 10));
       setPage(0);
     },
-    []
+    [],
   );
 
   const paginatedRows = bodyData.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
+
+  const handleRowClick = (item: any, event: React.MouseEvent) => {
+    event.stopPropagation();
+    switch (item.source) {
+      case "Assessment tracker group":
+        navigteToNewTab(
+          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&topicId=${item.parentId}&questionId=${item.metaId}`,
+        );
+        break;
+      case "Compliance tracker group":
+        navigteToNewTab(
+          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`,
+        );
+        break;
+      case "Management system clauses group":
+      case "Reference controls group":
+      case "Main clauses group":
+      case "Annex controls group":
+      default:
+        console.warn("Unknown source type:", item.source);
+    }
+  };
 
   return (
     <>
@@ -103,6 +129,20 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.uploader}</TableCell>
                 <TableCell>{row.source}</TableCell>
                 {/* Add any additional cells here */}
+                <TableCell>
+                  <CustomizableButton
+                    sx={{
+                      backgroundColor: "#13715B",
+                      color: "#fff",
+                      border: "1px solid #13715B",
+                    }}
+                    variant="contained"
+                    text="View"
+                    onClick={(e: React.MouseEvent<HTMLElement>) => {
+                      handleRowClick(row, e);
+                    }}
+                  />
+                </TableCell>
                 <TableCell>
                   <IconButton
                     id={Number(row.id)}

@@ -1,7 +1,6 @@
 import React, {
   FC,
   useState,
-  useMemo,
   useCallback,
   useEffect,
   Suspense,
@@ -11,22 +10,22 @@ import {
   Modal,
   Stack,
   Box,
-  Chip,
   TextField,
   Typography,
-  InputAdornment,
+  Autocomplete,
 } from "@mui/material";
 import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import ReviewerMultiSelect from "../../../vw-v2-components/Selects/ReviewerSelect";
-import SaveIcon from "@mui/icons-material/Save";
-import AddIcon from "@mui/icons-material/Add";
+import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { TaskPriority, ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
+import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps, teamMembersRenderInputStyle } from "../../../vw-v2-components/Forms/ProjectForm/style";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import useUsers from "../../../../application/hooks/useUsers";
 
 interface CreateTaskProps {
   isOpen: boolean;
@@ -41,7 +40,7 @@ interface CreateTaskFormValues {
   description: string;
   priority: TaskPriority;
   due_date: string;
-  assignees: string[];
+  assignees: Array<{ _id: number; name: string; surname: string; email: string }>;
   categories: string[];
 }
 
@@ -77,22 +76,29 @@ const CreateTask: FC<CreateTaskProps> = ({
   mode = 'create',
 }) => {
   const theme = useTheme();
+  const { users } = useUsers();
   const [values, setValues] = useState<CreateTaskFormValues>(initialState);
   const [errors, setErrors] = useState<CreateTaskFormErrors>({});
-  const [newCategory, setNewCategory] = useState("");
 
   useEffect(() => {
     if (!isOpen) {
       setValues(initialState);
       setErrors({});
-      setNewCategory("");
     } else if (isOpen && mode === 'edit' && initialData) {
       setValues({
         title: initialData.title,
         description: initialData.description || "",
         priority: initialData.priority,
         due_date: initialData.due_date ? dayjs(initialData.due_date).format('YYYY-MM-DD') : "",
-        assignees: initialData.assignees?.map(String) || [],
+        assignees: initialData.assignees?.map(assigneeId => {
+          const user = users?.find(u => u.id === Number(assigneeId));
+          return user ? {
+            _id: user.id,
+            name: user.name,
+            surname: user.surname || '',
+            email: user.email
+          } : null;
+        }).filter((user): user is { _id: number; name: string; surname: string; email: string } => user !== null) || [],
         categories: initialData.categories || [],
       });
     } else {
@@ -119,10 +125,16 @@ const CreateTask: FC<CreateTaskProps> = ({
     []
   );
 
-  const handleAssigneesChange = useCallback((assignees: string[]) => {
-    setValues((prev) => ({ ...prev, assignees }));
-    setErrors((prev) => ({ ...prev, assignees: "" }));
-  }, []);
+  const handleAssigneesChange = useCallback(
+    (_event: React.SyntheticEvent, newValue: any[]) => {
+      setValues((prevValues) => ({
+        ...prevValues,
+        assignees: newValue,
+      }));
+      setErrors((prev) => ({ ...prev, assignees: "" }));
+    },
+    []
+  );
 
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     if (newDate?.isValid()) {
@@ -134,30 +146,6 @@ const CreateTask: FC<CreateTaskProps> = ({
     }
   }, []);
 
-  const handleAddCategory = useCallback(() => {
-    const category = newCategory.trim();
-    if (category && !values.categories.includes(category)) {
-      setValues((prev) => ({
-        ...prev,
-        categories: [...prev.categories, category],
-      }));
-      setNewCategory("");
-    }
-  }, [newCategory, values.categories]);
-
-  const handleRemoveCategory = useCallback((categoryToRemove: string) => {
-    setValues((prev) => ({
-      ...prev,
-      categories: prev.categories.filter(cat => cat !== categoryToRemove),
-    }));
-  }, []);
-
-  const handleCategoryKeyPress = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleAddCategory();
-    }
-  }, [handleAddCategory]);
 
   const validateForm = (): boolean => {
     const newErrors: CreateTaskFormErrors = {};
@@ -191,86 +179,90 @@ const CreateTask: FC<CreateTaskProps> = ({
     if (event) event.preventDefault();
     if (validateForm()) {
       if (onSuccess) {
-        onSuccess(values);
+        // Convert assignees back to string array for API
+        const formattedValues = {
+          ...values,
+          assignees: values.assignees.map(user => String(user._id)),
+        };
+        onSuccess(formattedValues as any);
       }
       handleClose();
     }
   };
 
-  const fieldStyle = useMemo(
-    () => ({
-      backgroundColor: theme.palette.background.main,
-      "& input": {
-        padding: "0 14px",
-      },
-    }),
-    [theme.palette.background.main]
-  );
 
   return (
     <Modal open={isOpen} onClose={handleClose}>
-      <Box
+      <Stack
         sx={{
           position: "absolute",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 600,
+          width: "fit-content",
+          maxWidth: "760px",
           maxHeight: "90vh",
-          bgcolor: theme.palette.background.main,
-          border: 1,
-          borderColor: theme.palette.border,
-          borderRadius: theme.shape.borderRadius,
+          backgroundColor: "#FCFCFD",
+          borderRadius: "4px",
           boxShadow: 24,
-          p: 4,
+          padding: 10,
+          gap: 10,
           overflowY: "auto",
           "&:focus": {
             outline: "none",
           },
         }}
       >
-        <Stack spacing={3}>
-          {/* Header */}
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography fontSize={16} fontWeight={600}>
+        {/* Header */}
+        <Stack
+          className="vwtask-form-header"
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <Stack className="vwtask-form-header-text">
+            <Typography
+              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+            >
               {mode === 'edit' ? 'Edit Task' : 'Create New Task'}
             </Typography>
-            <Box
-              component="span"
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClose();
-              }}
-              sx={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                padding: "8px",
-                "&:hover": {
-                  opacity: 0.8,
-                },
-              }}
-            >
-              <CloseIcon />
-            </Box>
+            <Typography sx={{ fontSize: 13, color: "#344054" }}>
+              {mode === 'edit' 
+                ? 'Update task details and assign team members.' 
+                : 'Create a new task by filling in the following details.'}
+            </Typography>
           </Stack>
+          <CloseIcon
+            style={{ color: "#98A2B3", cursor: "pointer" }}
+            onClick={handleClose}
+          />
+        </Stack>
 
-          {/* Form Content */}
-          <form onSubmit={handleSubmit}>
-            <Stack spacing={3}>
+        {/* Form Content */}
+        <form onSubmit={handleSubmit}>
+            <Stack
+              className="vwtask-form-body"
+              sx={{ display: "flex", flexDirection: "row", gap: 8 }}
+            >
+              <Stack className="vwtask-form-body-start" sx={{ gap: 8 }}>
               {/* Title */}
               <Suspense fallback={<div>Loading...</div>}>
                 <Field
                   id="title"
                   label="Task Title"
-                  width="100%"
+                  width="350px"
                   value={values.title}
                   onChange={handleOnTextFieldChange("title")}
                   error={errors.title}
                   isRequired
-                  sx={fieldStyle}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    "& input": {
+                      padding: "0 14px",
+                    },
+                  }}
                   placeholder="Enter task title"
                 />
               </Suspense>
@@ -296,137 +288,229 @@ const CreateTask: FC<CreateTaskProps> = ({
                   placeholder="Enter task description"
                   multiline
                   rows={3}
-                  sx={fieldStyle}
-                  fullWidth
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    width: "350px",
+                    "& input": {
+                      padding: "0 14px",
+                    },
+                  }}
                 />
               </Stack>
 
-              {/* Priority and Due Date */}
-              <Stack direction="row" spacing={2}>
-                <SelectComponent
-                  items={priorityOptions}
-                  value={values.priority}
-                  error={errors.priority}
-                  sx={{ width: 220 }}
-                  id="priority"
-                  label="Priority"
+              {/* Priority */}
+              <SelectComponent
+                items={priorityOptions}
+                value={values.priority}
+                error={errors.priority}
+                sx={{ 
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                id="priority"
+                label="Priority"
+                isRequired
+                onChange={handleOnSelectChange("priority")}
+                placeholder="Select priority"
+              />
+              
+              {/* Due Date */}
+              <Suspense fallback={<div>Loading...</div>}>
+                <DatePicker
+                  label="Due Date"
+                  date={values.due_date ? dayjs(values.due_date) : null}
+                  handleDateChange={handleDateChange}
+                  sx={{
+                    ...datePickerStyle,
+                    width: "350px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
                   isRequired
-                  onChange={handleOnSelectChange("priority")}
-                  placeholder="Select priority"
+                  error={errors.due_date}
                 />
-                <Suspense fallback={<div>Loading...</div>}>
-                  <DatePicker
-                    label="Due Date"
-                    date={values.due_date ? dayjs(values.due_date) : null}
-                    handleDateChange={handleDateChange}
-                    sx={{
-                      width: 220,
-                      backgroundColor: theme.palette.background.main,
-                    }}
-                    isRequired
-                    error={errors.due_date}
-                  />
-                </Suspense>
+              </Suspense>
               </Stack>
+
+              <Stack className="vwtask-form-body-end" sx={{ gap: 8 }}>
 
               {/* Assignees */}
-              <ReviewerMultiSelect
-                selected={values.assignees}
-                setSelected={handleAssigneesChange}
-                label="Assignees (Optional)"
-                required={false}
-                error={errors.assignees}
-              />
+              <Suspense fallback={<div>Loading...</div>}>
+                <Stack>
+                  <Typography
+                    sx={{
+                      fontSize: theme.typography.fontSize,
+                      fontWeight: 500,
+                      mb: 2,
+                    }}
+                  >
+                    Assignees (optional)
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    id="assignees-input"
+                    size="small"
+                    value={values.assignees.map((user) => ({
+                      _id: Number(user._id),
+                      name: user.name,
+                      surname: user.surname,
+                      email: user.email,
+                    }))}
+                    options={
+                      users
+                        ?.filter(
+                          (user) =>
+                            !values.assignees.some(
+                              (selectedUser) =>
+                                String(selectedUser._id) === String(user.id)
+                            )
+                        )
+                        .map((user) => ({
+                          _id: user.id,
+                          name: user.name,
+                          surname: user.surname || '',
+                          email: user.email,
+                        })) || []
+                    }
+                    noOptionsText={
+                      values.assignees.length === users?.length
+                        ? "All users selected"
+                        : "No options"
+                    }
+                    onChange={handleAssigneesChange}
+                    getOptionLabel={(user) => `${user.name} ${user.surname}`.trim()}
+                    renderOption={(props, option) => {
+                      const { key, ...optionProps } = props;
+                      const userEmail =
+                        option.email.length > 30
+                          ? `${option.email.slice(0, 30)}...`
+                          : option.email;
+                      return (
+                        <Box key={key} component="li" {...optionProps}>
+                          <Typography sx={{ fontSize: "13px" }}>
+                            {option.name} {option.surname}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: "11px",
+                              color: "rgb(157, 157, 157)",
+                              position: "absolute",
+                              right: "9px",
+                            }}
+                          >
+                            {userEmail}
+                          </Typography>
+                        </Box>
+                      );
+                    }}
+                    filterSelectedOptions
+                    popupIcon={<KeyboardArrowDown />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Select assignees"
+                        error={!!errors.assignees}
+                        sx={{ fontSize: '13px' }}
+                      />
+                    )}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                      ...teamMembersSxStyle,
+                      width: "350px",
+                    }}
+                    slotProps={teamMembersSlotProps}
+                  />
+                </Stack>
+              </Suspense>
 
               {/* Categories */}
               <Stack>
                 <Typography
                   sx={{
-                    fontSize: 13,
+                    fontSize: theme.typography.fontSize,
                     fontWeight: 500,
-                    mb: theme.spacing(2),
-                    color: theme.palette.text.secondary,
+                    mb: 2,
                   }}
                 >
                   Categories (optional)
                 </Typography>
-                <Stack direction="row" gap={theme.spacing(2)} alignItems="flex-start">
-                  <TextField
-                    size="small"
-                    placeholder="Add category"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    onKeyPress={handleCategoryKeyPress}
-                    sx={{ 
-                      flex: 1,
-                      backgroundColor: theme.palette.background.main,
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <CustomizableButton
-                            variant="outlined"
-                            size="small"
-                            icon={<AddIcon />}
-                            text="Add"
-                            onClick={handleAddCategory}
-                            isDisabled={!newCategory.trim()}
-                            sx={{ minWidth: 'auto', px: 1 }}
-                          />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Stack>
-                
-                {values.categories.length > 0 && (
-                  <Stack direction="row" flexWrap="wrap" spacing={1} mt={2}>
-                    {values.categories.map((category) => (
-                      <Chip
-                        key={category}
-                        label={category}
-                        size="small"
-                        onDelete={() => handleRemoveCategory(category)}
-                        sx={{ 
-                          fontSize: 12, 
-                          height: 28,
-                          backgroundColor: theme.palette.status?.success?.light || '#f0fdf4',
-                          color: theme.palette.status?.success?.text || '#16a34a',
-                        }}
-                      />
-                    ))}
-                  </Stack>
-                )}
-              </Stack>
-
-              {/* Form Actions */}
-              <Stack
-                direction="row"
-                justifyContent="flex-end"
-                spacing={2}
-                sx={{ pt: 2 }}
-              >
-                <CustomizableButton
-                  variant="outlined"
-                  text="Cancel"
-                  onClick={handleClose}
-                />
-                <CustomizableButton
-                  variant="contained"
-                  text={mode === 'edit' ? 'Update Task' : 'Create Task'}
-                  sx={{
-                    backgroundColor: "#13715B",
-                    border: "1px solid #13715B",
-                    gap: 2,
+                <Autocomplete
+                  multiple
+                  id="categories-input"
+                  size="small"
+                  value={values.categories.map(cat => ({ _id: cat, name: cat }))}
+                  options={[]}
+                  freeSolo
+                  onChange={(_, newValue) => {
+                    const categories = newValue.map(item => 
+                      typeof item === 'string' ? item : item.name
+                    );
+                    setValues(prev => ({ ...prev, categories }));
                   }}
-                  onClick={handleSubmit}
-                  icon={<SaveIcon />}
+                  getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props}>
+                      <Typography sx={{ fontSize: "13px" }}>
+                        {typeof option === 'string' ? option : option.name}
+                      </Typography>
+                    </Box>
+                  )}
+                  filterSelectedOptions
+                  popupIcon={<KeyboardArrowDown />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Add categories"
+                      sx={teamMembersRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...teamMembersSxStyle,
+                    width: "350px",
+                  }}
+                  slotProps={teamMembersSlotProps}
                 />
+              </Stack>
               </Stack>
             </Stack>
+
+            {/* Form Actions */}
+            <Stack
+              direction="row"
+              justifyContent="flex-end"
+              spacing={2}
+              sx={{ pt: 2, mt: 4 }}
+            >
+              <CustomizableButton
+                variant="outlined"
+                text="Cancel"
+                onClick={handleClose}
+                sx={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #D0D5DD",
+                  color: "#344054",
+                  gap: 2,
+                  "&:hover": {
+                    backgroundColor: "#F9F9F9",
+                    border: "1px solid #D0D5DD",
+                  },
+                }}
+              />
+              <CustomizableButton
+                variant="contained"
+                text={mode === 'edit' ? 'Update Task' : 'Create Task'}
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                  marginTop: 2,
+                }}
+                onClick={handleSubmit}
+                icon={<SaveIcon />}
+              />
+            </Stack>
           </form>
-        </Stack>
-      </Box>
+      </Stack>
     </Modal>
   );
 };

@@ -6,9 +6,12 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button
 } from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import SearchIcon from "@mui/icons-material/Search";
-import { FilterList as FilterIcon, Clear as ClearIcon, ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon } from "@mui/icons-material";
+import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
+import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
+import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-more.svg";
+import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-less.svg";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -21,6 +24,12 @@ import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
 import { vwhomeHeading, vwhomeHeaderCards, vwhomeBody, vwhomeBodyControls } from "../Home/1.0Home/style";
 import { searchBoxStyle, searchInputStyle } from "./style";
+import singleTheme from "../../themes/v1SingleTheme";
+import DatePicker from "../../components/Inputs/Datepicker";
+import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps } from "../../vw-v2-components/Forms/ProjectForm/style";
+import dayjs from "dayjs";
+import { Autocomplete } from "@mui/material";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -45,9 +54,24 @@ const Tasks: React.FC = () => {
   const [priorityFilters, setPriorityFilters] = useState<TaskPriority[]>([]);
   const [assigneeFilters, setAssigneeFilters] = useState<number[]>([]);
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
-  const [categoryInput, setCategoryInput] = useState("");
   const [dueDateFrom, setDueDateFrom] = useState("");
   const [dueDateTo, setDueDateTo] = useState("");
+
+  const handleDateFromChange = (newDate: dayjs.Dayjs | null) => {
+    if (newDate?.isValid()) {
+      setDueDateFrom(newDate.format('YYYY-MM-DD'));
+    } else {
+      setDueDateFrom("");
+    }
+  };
+
+  const handleDateToChange = (newDate: dayjs.Dayjs | null) => {
+    if (newDate?.isValid()) {
+      setDueDateTo(newDate.format('YYYY-MM-DD'));
+    } else {
+      setDueDateTo("");
+    }
+  };
   
   // Filter expansion state (like RiskFilters)
   const getInitialExpandedState = (): boolean => {
@@ -85,7 +109,6 @@ const Tasks: React.FC = () => {
     setPriorityFilters([]);
     setAssigneeFilters([]);
     setCategoryFilters([]);
-    setCategoryInput("");
     setDueDateFrom("");
     setDueDateTo("");
   };
@@ -114,6 +137,7 @@ const Tasks: React.FC = () => {
     const fetchTasks = async () => {
       try {
         setIsLoading(true);
+        setError(null); // Clear previous errors
         const response = await getAllTasks({
           search: debouncedSearchQuery || undefined,
           status: statusFilters.length > 0 ? statusFilters : undefined,
@@ -125,10 +149,12 @@ const Tasks: React.FC = () => {
           sort_by: sortBy === 'newest' ? 'created_at' : sortBy === 'oldest' ? 'created_at' : sortBy as any,
           sort_order: sortBy === 'oldest' ? 'ASC' : 'DESC'
         });
-        
-        setTasks(response.data?.tasks || []);
+
+        setTasks(response?.data?.tasks || []);
       } catch (err: any) {
-        setError(err.message || 'Failed to fetch tasks');
+        console.error("Error fetching tasks:", err);
+        setError("Failed to load tasks. Please try again later.");
+        setTasks([]);
       } finally {
         setIsLoading(false);
       }
@@ -219,14 +245,25 @@ const Tasks: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Page Header */}
       <Stack sx={vwhomeBody}>
-        <Typography sx={vwhomeHeading}>Tasks</Typography>
+        <Stack>
+          <Typography sx={vwhomeHeading}>Tasks list</Typography>
+          <Typography sx={singleTheme.textStyles.pageDescription}>
+            This table includes a list of tasks assigned to team members. You can create and
+            manage all tasks here.
+          </Typography>
+        </Stack>
         <Stack sx={vwhomeBodyControls}>
           <CustomizableButton
             variant="contained"
-            icon={<AddCircleOutlineIcon />}
-            text="Create task"
-            isDisabled={isCreatingDisabled}
+            text="Add new task"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            icon={<AddCircleIcon />}
             onClick={handleCreateTask}
+            isDisabled={isCreatingDisabled}
           />
         </Stack>
       </Stack>
@@ -243,7 +280,7 @@ const Tasks: React.FC = () => {
       <Box sx={{ mt: 6, mb: 6 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
           <Box sx={searchBoxStyle}>
-            <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+            <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
             <InputBase
               placeholder="Search tasks by title or description..."
               value={searchQuery}
@@ -288,8 +325,8 @@ const Tasks: React.FC = () => {
             }}
             onClick={() => handleExpandedChange(!filtersExpanded)}
           >
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <FilterIcon sx={{ color: "#13715B", fontSize: 20 }} />
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <FilterIcon style={{ color: "#13715B", width: "20px", height: "20px" }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
                 Filters
               </Typography>
@@ -343,8 +380,8 @@ const Tasks: React.FC = () => {
           <Collapse in={filtersExpanded}>
             <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
               {/* All Filters in One Row */}
-              <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start" }}>
-                <Stack direction={{ xs: "column", sm: "row" }} spacing="12px" sx={{ ml: "12px", width: "100%" }}>
+              <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing="16px" sx={{ ml: "12px", width: "100%" }}>
                   <Select
                     id="status-filter"
                     label="Status"
@@ -361,7 +398,10 @@ const Tasks: React.FC = () => {
                         setStatusFilters([value as TaskStatus]);
                       }
                     }}
-                    sx={{ minWidth: 140 }}
+                    sx={{ 
+                      minWidth: 140,
+                      minHeight: "34px"
+                    }}
                   />
 
                   <Select
@@ -380,7 +420,10 @@ const Tasks: React.FC = () => {
                         setPriorityFilters([value as TaskPriority]);
                       }
                     }}
-                    sx={{ minWidth: 140 }}
+                    sx={{ 
+                      minWidth: 140,
+                      minHeight: "34px"
+                    }}
                   />
                   
                   <Select
@@ -402,66 +445,78 @@ const Tasks: React.FC = () => {
                         setAssigneeFilters([Number(value)]);
                       }
                     }}
-                    sx={{ minWidth: 160 }}
+                    sx={{ 
+                      minWidth: 160,
+                      minHeight: "34px"
+                    }}
                   />
 
                   {/* Categories */}
                   <Box sx={{ minWidth: 200 }}>
                     <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Categories</Typography>
-                    <TextField
-                      placeholder="Enter category..."
+                    <Autocomplete
+                      multiple
+                      id="category-filter"
                       size="small"
-                      value={categoryInput}
-                      onChange={(e) => setCategoryInput(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && categoryInput.trim()) {
-                          const category = categoryInput.trim();
-                          if (!categoryFilters.includes(category)) {
-                            setCategoryFilters([...categoryFilters, category]);
-                          }
-                          setCategoryInput('');
-                        }
+                      value={categoryFilters.map(cat => ({ _id: cat, name: cat }))}
+                      options={[]}
+                      freeSolo
+                      onChange={(_, newValue) => {
+                        const categories = newValue.map(item => 
+                          typeof item === 'string' ? item : item.name
+                        );
+                        setCategoryFilters(categories);
                       }}
-                      sx={{ width: "100%", fontSize: 14 }}
+                      getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+                      renderOption={(props, option) => (
+                        <Box component="li" {...props}>
+                          <Typography sx={{ fontSize: "13px" }}>
+                            {typeof option === 'string' ? option : option.name}
+                          </Typography>
+                        </Box>
+                      )}
+                      filterSelectedOptions
+                      popupIcon={<KeyboardArrowDown />}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Enter categories..."
+                          sx={{
+                            "& ::placeholder": {
+                              fontSize: "13px",
+                            },
+                          }}
+                        />
+                      )}
+                      sx={{
+                        ...teamMembersSxStyle,
+                        width: "100%",
+                        minHeight: "34px"
+                      }}
+                      slotProps={teamMembersSlotProps}
                     />
-                    {categoryFilters.length > 0 && (
-                      <Stack direction="row" flexWrap="wrap" spacing={0.5} mt={1}>
-                        {categoryFilters.map((category) => (
-                          <Chip
-                            key={category}
-                            label={category}
-                            size="small"
-                            onDelete={() => {
-                              setCategoryFilters(categoryFilters.filter(cat => cat !== category));
-                            }}
-                            sx={{ fontSize: 12, height: 24 }}
-                          />
-                        ))}
-                      </Stack>
-                    )}
                   </Box>
 
                   {/* Due Date Range */}
                   <Box sx={{ minWidth: 280 }}>
-                    <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Due Date</Typography>
-                    <Stack direction="row" spacing={1}>
-                      <TextField
+                    <Stack direction="row" spacing={2}>
+                      <DatePicker
                         label="From"
-                        type="date"
-                        value={dueDateFrom}
-                        onChange={(e) => setDueDateFrom(e.target.value)}
-                        size="small"
-                        sx={{ width: 160 }}
-                        InputLabelProps={{ shrink: true }}
+                        date={dueDateFrom ? dayjs(dueDateFrom) : null}
+                        handleDateChange={handleDateFromChange}
+                        sx={{
+                          ...datePickerStyle,
+                          minHeight: "34px"
+                        }}
                       />
-                      <TextField
+                      <DatePicker
                         label="To"
-                        type="date"
-                        value={dueDateTo}
-                        onChange={(e) => setDueDateTo(e.target.value)}
-                        size="small"
-                        sx={{ width: 160 }}
-                        InputLabelProps={{ shrink: true }}
+                        date={dueDateTo ? dayjs(dueDateTo) : null}
+                        handleDateChange={handleDateToChange}
+                        sx={{
+                          ...datePickerStyle,
+                          minHeight: "34px"
+                        }}
                       />
                     </Stack>
                   </Box>
@@ -482,7 +537,7 @@ const Tasks: React.FC = () => {
         
         {error && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <Typography color="error">Error: {error}</Typography>
+            <Typography color="error">{error}</Typography>
           </Box>
         )}
         

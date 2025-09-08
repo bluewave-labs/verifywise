@@ -11,7 +11,6 @@ import {
   TableFooter,
   Chip,
   Box,
-  IconButton,
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
@@ -22,8 +21,8 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import { ITask } from "../../../../domain/interfaces/i.task";
 import { User } from "../../../../domain/types/User";
 import CustomSelect from "../../CustomSelect";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import IconButton from "../../IconButton";
+import RiskChip from "../../RiskLevel/RiskChip";
 
 const titleOfTableColumns = [
   "task",
@@ -34,12 +33,6 @@ const titleOfTableColumns = [
   "actions",
 ];
 
-// Task priority colors - same pattern as assessment priorities
-const taskPriorities = {
-  "High": { color: "#FD7E14" },     // Orange
-  "Medium": { color: "#EFB70E" },   // Yellow
-  "Low": { color: "#ABBDA1" },      // Green/gray
-};
 
 interface TasksTableProps {
   tasks: ITask[];
@@ -98,12 +91,11 @@ const TasksTable: React.FC<TasksTableProps> = ({
               <TableRow
                 key={task.id}
                 sx={singleTheme.tableStyles.primary.body.row}
-                onClick={() => onEdit(task)}
               >
                 {/* Task Name */}
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <Box>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2">
                       {task.title}
                     </Typography>
                     {task.categories && task.categories.length > 0 && (
@@ -140,14 +132,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
 
                 {/* Priority */}
                 <TableCell sx={cellStyle}>
-                  <Chip
-                    label={task.priority}
-                    sx={{
-                      backgroundColor: taskPriorities[task.priority as keyof typeof taskPriorities]?.color || "#B0B0B0",
-                      color: "#FFFFFF",
-                    }}
-                    size="small"
-                  />
+                  <RiskChip label={task.priority} />
                 </TableCell>
 
                 {/* Status */}
@@ -164,7 +149,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Due Date */}
                 <TableCell sx={cellStyle}>
                   {task.due_date ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>
                       {new Date(task.due_date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -172,7 +157,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
                       })}
                     </Typography>
                   ) : (
-                    <Typography variant="body2" color="text.disabled" sx={{ fontSize: 12 }}>
+                    <Typography variant="body2" color="text.disabled" sx={{ fontSize: 13 }}>
                       No due date
                     </Typography>
                   )}
@@ -230,7 +215,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
                       )}
                     </Stack>
                   ) : (
-                    <Typography variant="body2" color="text.disabled" sx={{ fontSize: 12 }}>
+                    <Typography variant="body2" color="text.disabled" sx={{ fontSize: 13 }}>
                       Unassigned
                     </Typography>
                   )}
@@ -245,44 +230,15 @@ const TasksTable: React.FC<TasksTableProps> = ({
                     zIndex: 10,
                   }}
                 >
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(task);
-                      }}
-                      sx={{
-                        color: '#13715B',
-                        backgroundColor: 'transparent',
-                        '&:hover': {
-                          backgroundColor: '#f0fdf4',
-                          color: '#0f5d4f'
-                        },
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <EditIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(task.id!);
-                      }}
-                      sx={{
-                        color: '#dc2626',
-                        backgroundColor: 'transparent',
-                        '&:hover': {
-                          backgroundColor: '#fef2f2',
-                          color: '#b91c1c'
-                        },
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Stack>
+                  <IconButton
+                    id={task.id!}
+                    onDelete={() => onDelete(task.id!)}
+                    onEdit={() => onEdit(task)}
+                    onMouseEvent={() => {}}
+                    warningTitle="Delete this task?"
+                    warningMessage="When you delete this task, all data related to this task will be removed. This action is non-recoverable."
+                    type="Task"
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -318,7 +274,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
           }}
         >
           <img src={Placeholder} alt="Placeholder" />
-          <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+          <Typography sx={{ fontSize: 13, color: "#475467" }}>
             There is currently no data in this table.
           </Typography>
         </Stack>
@@ -340,7 +296,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 <TableCell
                   sx={{ 
                     paddingX: theme.spacing(2),
-                    fontSize: 12,
+                    fontSize: 13,
                     opacity: 0.7 }}
                   >
                   Showing {getRange} of {tasks?.length} task(s)

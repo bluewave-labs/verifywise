@@ -482,7 +482,7 @@ const ProjectForm = ({
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {values.framework_type === FrameworkTypeEnum.ProjectBased
               ? "Create a new project from scratch by filling in the following."
-              : "Set up ISO 27001 (Organization ISMS)"}
+              : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
         </Stack>
         <ClearIcon

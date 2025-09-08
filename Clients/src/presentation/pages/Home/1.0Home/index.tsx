@@ -8,13 +8,10 @@ import {
 } from "./style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 
-import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
-import { logEngine } from "../../../../application/tools/log.engine";
 import { FrameworkTypeEnum } from "../../../vw-v2-components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 import { AlertState } from "../../../../application/interfaces/appStates";
@@ -43,7 +40,7 @@ const Home = () => {
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, setShowToastNotification] =
+  const [showToastNotification, _] =
     useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -88,58 +85,58 @@ const Home = () => {
     setRefreshProjectsFlag((prev) => !prev);
   };
 
-  const handleGenerateDemoDataClick = async () => {
-    setShowToastNotification(true);
-    try {
-      const response = await postAutoDrivers();
-      if (response.status === 201) {
-        logEngine({
-          type: "info",
-          message: "Demo data generated successfully.",
-        });
-        setAlertState({
-          variant: "success",
-          body: "Demo data generated successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 100);
+  // const handleGenerateDemoDataClick = async () => {
+  //   setShowToastNotification(true);
+  //   try {
+  //     const response = await postAutoDrivers();
+  //     if (response.status === 201) {
+  //       logEngine({
+  //         type: "info",
+  //         message: "Demo data generated successfully.",
+  //       });
+  //       setAlertState({
+  //         variant: "success",
+  //         body: "Demo data generated successfully.",
+  //       });
+  //       setTimeout(() => {
+  //         setAlertState(undefined);
+  //       }, 100);
 
-        await fetchDashboard();
-        setShowToastNotification(false);
-        window.location.reload();
-      } else {
-        logEngine({
-          type: "error",
-          message: "Failed to generate demo data.",
-        });
-        setAlertState({
-          variant: "error",
-          body: "Failed to generate demo data.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 100);
-      }
-      setShowToastNotification(false);
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      logEngine({
-        type: "error",
-        message: `An error occurred: ${errorMessage}`,
-      });
-      setAlertState({
-        variant: "error",
-        body: `An error occurred: ${errorMessage}`,
-      });
-      setTimeout(() => {
-        setAlertState(undefined);
-      }, 100);
-    } finally {
-      setShowToastNotification(false);
-      setRefreshProjectsFlag((prev) => !prev);
-    }
-  };
+  //       await fetchDashboard();
+  //       setShowToastNotification(false);
+  //       window.location.reload();
+  //     } else {
+  //       logEngine({
+  //         type: "error",
+  //         message: "Failed to generate demo data.",
+  //       });
+  //       setAlertState({
+  //         variant: "error",
+  //         body: "Failed to generate demo data.",
+  //       });
+  //       setTimeout(() => {
+  //         setAlertState(undefined);
+  //       }, 100);
+  //     }
+  //     setShowToastNotification(false);
+  //   } catch (error) {
+  //     const errorMessage = (error as Error).message;
+  //     logEngine({
+  //       type: "error",
+  //       message: `An error occurred: ${errorMessage}`,
+  //     });
+  //     setAlertState({
+  //       variant: "error",
+  //       body: `An error occurred: ${errorMessage}`,
+  //     });
+  //     setTimeout(() => {
+  //       setAlertState(undefined);
+  //     }, 100);
+  //   } finally {
+  //     setShowToastNotification(false);
+  //     setRefreshProjectsFlag((prev) => !prev);
+  //   }
+  // };
 
   return (
     <Stack className="vwhome">
@@ -171,7 +168,7 @@ const Home = () => {
             />
           </Stack>
           <Stack sx={vwhomeBodyControls}>
-            {projects.length === 0 && (
+            {/* {projects.length === 0 && (
               <CustomizableButton
                 variant="contained"
                 text="Create demo project"
@@ -186,7 +183,7 @@ const Home = () => {
                   !allowedRoles.projects.create.includes(userRoleName)
                 }
               />
-            )}
+            )} */}
             <div data-joyride-id="new-project-button" ref={refs[0]}>
               <CustomizableButton
                 variant="contained"

@@ -174,8 +174,8 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       { userId, role },
       req.tenantId!,
       filters,
-      sort,
-      { limit, offset }
+      sort
+      // Remove limit/offset for client-side pagination
     );
 
     // Calculate pagination metadata

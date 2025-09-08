@@ -33,7 +33,8 @@
       "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
       "mcp__ide__getDiagnostics",
       "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
-      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)"
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

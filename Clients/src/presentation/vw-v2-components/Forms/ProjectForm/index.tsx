@@ -10,8 +10,16 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-import { Suspense, useCallback, useContext, useMemo, useState, useEffect } from "react";
-import CustomizableButton from "../../Buttons";
+import { ClearIcon } from "@mui/x-date-pickers/icons";
+import {
+  Suspense,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle.svg";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ReactComponent as ArrowBackIcon } from "../../../assets/icons/arrow-back.svg";
@@ -54,7 +62,11 @@ import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
 import { createProject } from "../../../../application/repository/project.repository";
 
-const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) => {
+const ProjectForm = ({
+  sx,
+  onClose,
+  defaultFrameworkType,
+}: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>({
@@ -343,10 +355,13 @@ const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) =>
             Create new project
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {defaultFrameworkType ? 
-              `Creating a ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? 'organization-wide' : 'project-based'} project` :
-              "Please select the type of frameworks you need"
-            }
+            {defaultFrameworkType
+              ? `Creating a ${
+                  defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
+                    ? "organization-wide"
+                    : "project-based"
+                } project`
+              : "Please select the type of frameworks you need"}
           </Typography>
         </Stack>
         <CloseIcon
@@ -468,7 +483,7 @@ const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) =>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {values.framework_type === FrameworkTypeEnum.ProjectBased
               ? "Create a new project from scratch by filling in the following."
-              : "Set up ISO 27001 (Organization ISMS)"}
+              : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
         </Stack>
         <CloseIcon

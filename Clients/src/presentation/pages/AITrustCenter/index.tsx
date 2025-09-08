@@ -18,7 +18,7 @@ import {
   aiTrustCenterTabListStyle,
   aiTrustCenterPreviewButtonStyle,
 } from "./styles";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
@@ -45,7 +45,7 @@ const AITrustCenter: React.FC = () => {
       }
       // Open the public page in a new tab
       const publicUrl = `${window.location.origin}/aiTrustCentre/${tenantHash}`;
-      window.open(publicUrl, '_blank', 'noopener,noreferrer');
+      window.open(publicUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error opening preview:", error);
     }
@@ -63,13 +63,15 @@ const AITrustCenter: React.FC = () => {
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
           <Typography sx={aiTrustCenterHeaderTitle}>AI trust center</Typography>
-          <HelperIcon 
+          <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />
         </Stack>
         <Typography sx={aiTrustCenterHeaderDesc}>
-          AI Trust Center centralizes your AI policies, certifications, and subprocessors to demonstrate responsible, transparent, and compliant AI practices.
+          AI Trust Center centralizes your AI policies, certifications, and
+          subprocessors to demonstrate responsible, transparent, and compliant
+          AI practices.
         </Typography>
       </Stack>
       <Stack className="vw-project-view-body">

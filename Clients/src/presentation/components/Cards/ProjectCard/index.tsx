@@ -1,7 +1,7 @@
 import { Stack, Typography, Tooltip, Button } from "@mui/material";
 import { ReactComponent as NorthEastIcon } from "../../../assets/icons/arrow-up-right.svg";
 import ProgressBar from "../../ProjectCard/ProgressBar";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import {
   progressStyle,
   projectCardSpecKeyStyle,
@@ -124,9 +124,10 @@ const FrameworkButton = ({
   type: "eu" | "iso";
   onClick: () => void;
 }) => {
-  const tooltipText = type === "eu" 
-    ? "EU AI Act: View and complete requirements for EU's AI Act. Answer compliance questions and track your progress."
-    : "ISO 42001: Work through ISO/IEC 42001 requirements. Fill out clauses, annexes, and assessments to build your AI management system";
+  const tooltipText =
+    type === "eu"
+      ? "EU AI Act: View and complete requirements for EU's AI Act. Answer compliance questions and track your progress."
+      : "ISO 42001: Work through ISO/IEC 42001 requirements. Fill out clauses, annexes, and assessments to build your AI management system";
 
   return (
     <Tooltip title={tooltipText} arrow placement="top">
@@ -135,8 +136,8 @@ const FrameworkButton = ({
         onClick={onClick}
         sx={{
           ...(type === "eu" ? euAiActChipStyle : iso42001ChipStyle),
-          cursor: 'pointer',
-          '&:hover': {
+          cursor: "pointer",
+          "&:hover": {
             opacity: 0.9,
           },
         }}
@@ -216,16 +217,16 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             className="project-card-frameworks"
           >
             {projectFrameworkId && (
-              <FrameworkButton 
-                label="EU AI Act" 
-                type="eu" 
+              <FrameworkButton
+                label="EU AI Act"
+                type="eu"
                 onClick={() => handleFrameworkClick(1)}
               />
             )}
             {projectFrameworkId2 && (
-              <FrameworkButton 
-                label="ISO 42001" 
-                type="iso" 
+              <FrameworkButton
+                label="ISO 42001"
+                type="iso"
                 onClick={() => handleFrameworkClick(2)}
               />
             )}

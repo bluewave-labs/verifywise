@@ -28,7 +28,7 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle.svg";
 import AddNewRisk from "../../components/Modals/NewRisk";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../vw-v2-components/Toast";
 import RisksCard from "../../components/Cards/RisksCard";
@@ -39,7 +39,11 @@ import allowedRoles from "../../../application/constants/permissions";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
-import { useVendors, useDeleteVendor, VendorDetails } from "../../../application/hooks/useVendors";
+import {
+  useVendors,
+  useDeleteVendor,
+  VendorDetails,
+} from "../../../application/hooks/useVendors";
 import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
@@ -81,7 +85,7 @@ const Vendors = () => {
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
   const { data: vendors = [], isLoading: isVendorsLoading } = useVendors({
-    projectId: selectedProjectId
+    projectId: selectedProjectId,
   });
   const {
     vendorRisksSummary,
@@ -388,7 +392,7 @@ const Vendors = () => {
             <Stack>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography sx={vwhomeHeading}>Vendor list</Typography>
-                <HelperIcon 
+                <HelperIcon
                   onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
                   size="small"
                 />

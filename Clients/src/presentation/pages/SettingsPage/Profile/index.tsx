@@ -16,13 +16,17 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveOutlinedIcon } from "../../../assets/icons/save.svg";
 import { ReactComponent as DeleteOutlineIcon } from "../../../assets/icons/trash-01.svg";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
-import { deleteUserById, getUserById, updateUserById } from "../../../../application/repository/user.repository";
+import {
+  deleteUserById,
+  getUserById,
+  updateUserById,
+} from "../../../../application/repository/user.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 
 /**
@@ -76,20 +80,27 @@ const ProfileForm: React.FC = () => {
     email !== initialStateRef.current.email;
 
   const isSaveDisabled =
-    !!firstnameError || !!lastnameError || !!emailError || !isModified || saving;
+    !!firstnameError ||
+    !!lastnameError ||
+    !!emailError ||
+    !isModified ||
+    saving;
 
   const logout = useLogout();
 
   /**
    * Update initial state reference when data changes
    */
-  const updateInitialState = useCallback((name: string, surname: string, emailAddr: string) => {
-    initialStateRef.current = {
-      firstname: name,
-      lastname: surname,
-      email: emailAddr,
-    };
-  }, []);
+  const updateInitialState = useCallback(
+    (name: string, surname: string, emailAddr: string) => {
+      initialStateRef.current = {
+        firstname: name,
+        lastname: surname,
+        email: emailAddr,
+      };
+    },
+    []
+  );
 
   /**
    * Fetch user data on component mount.
@@ -108,8 +119,11 @@ const ProfileForm: React.FC = () => {
       setLastname(actualUserData?.surname || "");
       setEmail(actualUserData?.email || "");
 
-      updateInitialState(actualUserData?.name || "", actualUserData?.surname || "", actualUserData?.email || "");
-
+      updateInitialState(
+        actualUserData?.name || "",
+        actualUserData?.surname || "",
+        actualUserData?.email || ""
+      );
     } catch (error) {
       console.log(error);
       logEngine({
@@ -128,23 +142,26 @@ const ProfileForm: React.FC = () => {
   /**
    * Show alert with auto-hide functionality
    */
-  const showAlert = useCallback((
-    variant: "success" | "info" | "warning" | "error",
-    title: string,
-    body: string
-  ) => {
-    setAlert({
-      variant,
-      title,
-      body,
-      isToast: true,
-      visible: true,
-    });
+  const showAlert = useCallback(
+    (
+      variant: "success" | "info" | "warning" | "error",
+      title: string,
+      body: string
+    ) => {
+      setAlert({
+        variant,
+        title,
+        body,
+        isToast: true,
+        visible: true,
+      });
 
-    setTimeout(() => {
-      setAlert((prev) => ({ ...prev, visible: false }));
-    }, 3000);
-  }, []);
+      setTimeout(() => {
+        setAlert((prev) => ({ ...prev, visible: false }));
+      }, 3000);
+    },
+    []
+  );
 
   /**
    * Handle save button click with validation.
@@ -156,7 +173,11 @@ const ProfileForm: React.FC = () => {
         type: "error",
         message: "Validation errors occurred while saving the profile.",
       });
-      showAlert("error", "Error", "Validation errors occurred while saving the profile.");
+      showAlert(
+        "error",
+        "Error",
+        "Validation errors occurred while saving the profile."
+      );
       return;
     }
 
@@ -178,7 +199,7 @@ const ProfileForm: React.FC = () => {
       console.log("Update response:", response);
 
       // Validate response before proceeding with success path
-      if (response && (response.status >= 200 && response.status < 300)) {
+      if (response && response.status >= 200 && response.status < 300) {
         // Update the initial state to reflect the new saved values
         // This prevents the form from thinking it's still modified
         updateInitialState(firstname, lastname, email);
@@ -188,23 +209,44 @@ const ProfileForm: React.FC = () => {
         // Handle failure response
         logEngine({
           type: "error",
-          message: `Failed to update profile. Status: ${response?.status || 'undefined'}, Response: ${JSON.stringify(response)}`,
+          message: `Failed to update profile. Status: ${
+            response?.status || "undefined"
+          }, Response: ${JSON.stringify(response)}`,
         });
-        showAlert("error", "Error", "Failed to update profile. Please try again.");
+        showAlert(
+          "error",
+          "Error",
+          "Failed to update profile. Please try again."
+        );
       }
-
     } catch (error) {
       console.error("Update error:", error);
       logEngine({
         type: "error",
-        message: `An error occurred while updating the profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `An error occurred while updating the profile: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
-      showAlert("error", "Error", "Failed to update profile. Please try again.");
+      showAlert(
+        "error",
+        "Error",
+        "Failed to update profile. Please try again."
+      );
     } finally {
       setSaving(false);
       setShowToast(false);
     }
-  }, [firstname, lastname, email, firstnameError, lastnameError, emailError, id, updateInitialState, showAlert]);
+  }, [
+    firstname,
+    lastname,
+    email,
+    firstnameError,
+    lastnameError,
+    emailError,
+    id,
+    updateInitialState,
+    showAlert,
+  ]);
 
   /**
    * Handle delete dialog open.
@@ -296,16 +338,28 @@ const ProfileForm: React.FC = () => {
         // Handle failure case
         logEngine({
           type: "error",
-          message: `Failed to delete account. Status: ${response?.status || 'undefined'}, Response: ${JSON.stringify(response)}`,
+          message: `Failed to delete account. Status: ${
+            response?.status || "undefined"
+          }, Response: ${JSON.stringify(response)}`,
         });
-        showAlert("error", "Error", "Failed to delete account. Please try again.");
+        showAlert(
+          "error",
+          "Error",
+          "Failed to delete account. Please try again."
+        );
       }
     } catch (error) {
       logEngine({
         type: "error",
-        message: `An error occurred while deleting the account: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `An error occurred while deleting the account: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
-      showAlert("error", "Error", "Failed to delete account. Please try again.");
+      showAlert(
+        "error",
+        "Error",
+        "Failed to delete account. Please try again."
+      );
     } finally {
       setIsDeleteModalOpen(false);
       setShowToast(false);

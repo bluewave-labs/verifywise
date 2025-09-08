@@ -37,16 +37,6 @@ const Playground = () => {
     },
   ];
 
-  // Example 3: Custom route mapping for auto-generation
-  const customRouteMapping: Record<string, string> = {
-    "/project-view": "Project Overview",
-    "/project-view/risks": "Risk Management",
-    "/project-view/settings": "Project Settings",
-    "/model-inventory": "Model Inventory",
-    "/ai-trust-center": "AI Trust Center",
-    "/fairness-dashboard": "Fairness Dashboard",
-  };
-
   // Example 4: Long labels that will be truncated
   const longLabelBreadcrumbs: BreadcrumbItem[] = [
     {
@@ -118,7 +108,7 @@ const Playground = () => {
           Breadcrumbs automatically generated from current route with custom
           mapping
         </Typography>
-        <Breadcrumbs autoGenerate={true} routeMapping={customRouteMapping} />
+        <Breadcrumbs autoGenerate={true} />
       </Paper>
 
       {/* Example 3: Breadcrumbs with disabled items */}

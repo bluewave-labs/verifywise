@@ -11,7 +11,7 @@ import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 import Select from "../../Inputs/Select";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 
 interface NewTrainingProps {

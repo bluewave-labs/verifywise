@@ -12,7 +12,7 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveOutlinedIcon } from "../../../assets/icons/save.svg";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
@@ -142,7 +142,7 @@ const PasswordForm: React.FC = () => {
     setShowToast(true); // Show CustomizableToast
 
     try {
-       await updatePassword({
+      await updatePassword({
         userId: id,
         currentPassword,
         newPassword,
@@ -202,7 +202,7 @@ const PasswordForm: React.FC = () => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{borderRadius: 2 }}
+          sx={{ borderRadius: 2 }}
         />
       )}
       {alert.visible && (

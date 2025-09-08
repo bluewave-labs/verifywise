@@ -1,14 +1,9 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  Suspense,
-} from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle.svg";
 
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
 import {
   getAllEntities,
@@ -241,7 +236,7 @@ const Training: React.FC = () => {
         <Stack>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={vwhomeHeading}>AI training registry</Typography>
-            <HelperIcon 
+            <HelperIcon
               onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
               size="small"
             />

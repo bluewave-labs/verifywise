@@ -37,7 +37,7 @@ module.exports = {
         await queryInterface.sequelize.query(
           `ALTER TABLE "${tenantHash}".trainingregistar 
             ALTER COLUMN duration TYPE INTEGER 
-            USING regexp_replace(duration, '^([0-9]+).*$', '\\1')::INTEGER;`,
+            USING regexp_replace(duration::TEXT, '^([0-9]+).*$', '\\1')::INTEGER`,
           { transaction }
         );
       }

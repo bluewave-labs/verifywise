@@ -25,7 +25,7 @@ import { ReactComponent as Looks3Icon } from "../../assets/icons/heading-3.svg";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
   updatePolicy,

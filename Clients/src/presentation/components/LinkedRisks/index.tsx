@@ -1,16 +1,13 @@
-import { Button, Stack, Typography } from '@mui/material';
+import { Button, Stack, Typography } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../assets/icons/close.svg";
-import React, { useState } from 'react'
-import Field from '../Inputs/Field';
-import useProjectRisks from '../../../application/hooks/useProjectRisks';
-import LinkedRisksTable from '../Table/LinkedRisksTable';
-import { useSearchParams } from 'react-router-dom';
-import CustomizableButton from '../../vw-v2-components/Buttons';
+import React, { useState } from "react";
+import Field from "../Inputs/Field";
+import useProjectRisks from "../../../application/hooks/useProjectRisks";
+import LinkedRisksTable from "../Table/LinkedRisksTable";
+import { useSearchParams } from "react-router-dom";
+import CustomizableButton from "../Button/CustomizableButton";
 
-import {
-  textfieldStyle,
-  styles,
-} from "./styles";
+import { textfieldStyle, styles } from "./styles";
 
 interface LinkedRisksModalProps {
   onClose: () => void;
@@ -28,22 +25,24 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
   const [searchParams] = useSearchParams();
   const pId = searchParams.get("projectId");
   const projectId = parseInt(pId ?? "0");
-  const { projectRisks } = useProjectRisks({ projectId });  
+  const { projectRisks } = useProjectRisks({ projectId });
   const [searchInput, setSearchInput] = useState<string>("");
   const [checkedRows, setCheckedRows] = useState<number[]>(currentRisks);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
 
   const handleFormSubmit = () => {
-    setSelectecRisks(checkedRows.filter(r => !currentRisks.includes(r)));
+    setSelectecRisks(checkedRows.filter((r) => !currentRisks.includes(r)));
     _setDeletedRisks(deletedRisks);
     onClose();
-  }
+  };
 
-  const handleOnTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOnTextFieldChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setSearchInput(event.target.value);
-  };  
+  };
 
-  const filteredRisks = projectRisks.filter(risk =>
+  const filteredRisks = projectRisks.filter((risk) =>
     risk.risk_name.toLowerCase().includes(searchInput.toLowerCase())
   );
 
@@ -51,16 +50,15 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
     <Stack sx={styles.container}>
       <Stack>
         <Stack sx={styles.headingSection}>
-          <Typography sx={ styles.textTitle }>Link a risk from risk database</Typography>
-          <CloseIcon
-            style={ styles.clearIconStyle }
-            onClick={onClose}
-          />
+          <Typography sx={styles.textTitle}>
+            Link a risk from risk database
+          </Typography>
+          <CloseIcon sx={styles.clearIconStyle} onClick={onClose} />
         </Stack>
-        <Stack 
-          component="form"
-          sx={styles.searchInputWrapper}>
-          <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>Search from the risk database:</Typography>
+        <Stack component="form" sx={styles.searchInputWrapper}>
+          <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>
+            Search from the risk database:
+          </Typography>
           <Stack>
             <Field
               id="risk-input"
@@ -82,11 +80,16 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
           setDeletedRisks={setDeletedRisks}
         />
       </Stack>
-      <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end'}}>
-        <Button 
-          sx={styles.cancelBtn}
-          onClick={onClose}
-        >Cancel</Button>
+      <Stack
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Button sx={styles.cancelBtn} onClick={onClose}>
+          Cancel
+        </Button>
         <CustomizableButton
           sx={styles.CustomizableButton}
           variant="contained"
@@ -95,7 +98,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
         />
       </Stack>
     </Stack>
-  )
-}
+  );
+};
 
-export default LinkedRisksPopup
+export default LinkedRisksPopup;

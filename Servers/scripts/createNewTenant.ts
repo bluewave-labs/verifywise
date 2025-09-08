@@ -88,7 +88,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       (
         id serial NOT NULL,
         training_name character varying(255) NOT NULL,
-        duration integer,
+        duration varchar(255),
         provider character varying(255),
         department character varying(255),
         status enum_trainingregistar_status,

@@ -20,7 +20,7 @@ import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 
 import {
   AlertBox,

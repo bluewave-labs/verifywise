@@ -43,7 +43,7 @@ interface NewModelInventoryFormValues {
   provider: string;
   model: string;
   version: string;
-  approver: string;
+  approver: number;
   capabilities: string[];
   security_assessment: boolean;
   status: ModelInventoryStatus;
@@ -66,7 +66,7 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: "",
+  approver: -1,
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,

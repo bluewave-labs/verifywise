@@ -67,10 +67,7 @@ const checkFrameworkExistsQuery = async (
     `SELECT EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
     { replacements: { projectId, frameworkId }, transaction }
   )) as [[{ exists: boolean }], number];
-  if (exists) {
-    return false; // Framework already added
-  }
-  return true; // Framework can be added
+  return exists;
 }
 
 export const canAddFrameworkToProjectQuery = async (
@@ -85,7 +82,7 @@ export const canAddFrameworkToProjectQuery = async (
   }
 
   const [[{ is_framework_organizational }]] = (await sequelize.query(
-    `SELECT is_organizational AS is_framework_organizational FROM "${tenant}".frameworks WHERE id = :frameworkId;`,
+    `SELECT is_organizational AS is_framework_organizational FROM public.frameworks WHERE id = :frameworkId;`,
     { replacements: { frameworkId }, transaction }
   )) as [[{ is_framework_organizational: boolean }], number];
   const [[{ is_project_organizational }]] = (await sequelize.query(

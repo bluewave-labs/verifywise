@@ -5,13 +5,13 @@ import React, {
   useCallback,
   useContext,
   useMemo,
+  useEffect,
 } from "react";
 import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
-import CustomizableButton from "../../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../Button/CustomizableButton";
 const Field = lazy(() => import("../../../Inputs/Field"));
-import { styles, fieldStyle } from "./styles";
+import { styles, fieldStyle, selectReportStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
-const RadioGroup = lazy(() => import("../../../RadioGroup"));
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
@@ -63,9 +63,29 @@ interface ReportProps {
 
 const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<FormValues>({...initialState, project: dashboardValues.projects[0].id});
+  const [values, setValues] = useState<FormValues>({
+    ...initialState,
+    project: dashboardValues.projects[0].id,
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const theme = useTheme();
+
+  useEffect(() => {
+    const availableTypes =
+      values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
+
+    if (!availableTypes.includes(values.report_type)) {
+      setValues((prev) => ({
+        ...prev,
+        report_type: availableTypes[0], // reset to the first valid type
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        report_type: undefined, // clear any error
+      }));
+    }
+  }, [values.framework]);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
@@ -107,12 +127,12 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     const newValues = {
       ...values,
       projectFrameworkId: projectFrameworkId,
-    }
+    };
     onGenerate(newValues);
   };
 
   return (
-    <Stack sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+    <Stack sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Stack>
         <Typography sx={styles.titleText}>Generate Report</Typography>
         <Typography sx={styles.baseText}>
@@ -135,7 +155,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
                 ) || []
               }
               sx={{
-                width: "350px",
+                width: "100%",
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.project}
@@ -159,7 +179,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
                 })) || []
               }
               sx={{
-                width: "350px",
+                width: "100%",
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.framework}
@@ -169,25 +189,33 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
         </Stack>
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
-          <Typography sx={styles.semiTitleText}>Report Type *</Typography>
           <Suspense fallback={<div>Loading...</div>}>
-            <RadioGroup
-              values={
-                values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES
-              }
-              defaultValue="Project risks report"
-              onChange={(event) =>
-                setValues({ ...values, report_type: event.target.value })
-              }
+            <Select
+              id="report-type-input"
+              label="Report Type"
+              placeholder="Select report type"
+              value={values.report_type}
+              onChange={handleOnSelectChange("report_type")}
+              items={(values.framework === 1
+                ? EUAI_REPORT_TYPES
+                : ISO_REPORT_TYPES
+              ).map((type) => ({
+                _id: type, // unique key / value
+                name: type, // display name
+              }))}
+              sx={selectReportStyle}
+              error={errors.report_type}
+              isRequired
             />
           </Suspense>
         </Stack>
-        <Stack sx={{ paddingTop: theme.spacing(4) }}>
+
+        <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>
             <Field
               id="report-name"
               label="What should we call your report?"
-              width="350px"
+              width="100%"
               value={values.report_name}
               onChange={handleOnTextFieldChange("report_name")}
               error={errors.report_name}

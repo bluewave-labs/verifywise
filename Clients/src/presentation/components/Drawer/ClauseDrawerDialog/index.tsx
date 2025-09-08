@@ -16,12 +16,11 @@ import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
-import { useState, useEffect, Suspense} from "react";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import { useState, useEffect, Suspense } from "react";
+import CustomizableButton from "../../Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
-import useProjectData from "../../../../application/hooks/useProjectData";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
 import Alert from "../../Alert";
@@ -77,10 +76,12 @@ const VWISO42001ClauseDrawerDialog = ({
   const [deletedFilesIds, setDeletedFilesIds] = useState<number[]>([]);
   const [uploadFiles, setUploadFiles] = useState<FileData[]>([]);
   const [evidenceFilesDeleteCount, setEvidenceFilesDeleteCount] = useState(0);
-  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] = useState<boolean>(false);
+  const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
+    useState<boolean>(false);
   const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
   const [deletedRisks, setDeletedRisks] = useState<number[]>([]);
-  const [auditedStatusModalOpen, setAuditedStatusModalOpen] = useState<boolean>(false);
+  const [auditedStatusModalOpen, setAuditedStatusModalOpen] =
+    useState<boolean>(false);
   const statusIdMap = new Map([
     ["Not started", "0"],
     ["Draft", "1"],
@@ -88,8 +89,8 @@ const VWISO42001ClauseDrawerDialog = ({
     ["Awaiting review", "3"],
     ["Awaiting approval", "4"],
     ["Implemented", "5"],
-    ["Audited", "6"],
-    ["Needs rework", "7"],
+    // ["Audited", "6"],
+    ["Needs rework", "6"],
   ]);
   // Create the reverse map
   const idStatusMap = new Map();
@@ -99,9 +100,6 @@ const VWISO42001ClauseDrawerDialog = ({
 
   const { userId, userRoleName } = useAuth();
   const { users } = useUsers();
-  const { project } = useProjectData({
-    projectId: String(project_id) || "0",
-  });
 
   const isEditingDisabled =
     !allowedRoles.frameworks.edit.includes(userRoleName);
@@ -121,15 +119,11 @@ const VWISO42001ClauseDrawerDialog = ({
 
   // Filter users to only show project members
   useEffect(() => {
-    if (project && users?.length > 0) {
-      const members = users.filter(
-        (user: User) =>
-          typeof user.id === "number" &&
-          project.members.some((memberId) => Number(memberId) === user.id)
-      );
-      setProjectMembers(members);
+    if (users?.length > 0) {
+      // Since we don't have project data, use all users
+      setProjectMembers(users);
     }
-  }, [project, users]);
+  }, [users]);
 
   // Setup Uppy instance
   const [uppy] = useState(() => new Uppy());
@@ -146,7 +140,7 @@ const VWISO42001ClauseDrawerDialog = ({
 
           // Initialize form data with fetched values
           if (response.data) {
-            const statusId = statusIdMap.get(response.data.status) || "0";
+            const statusId = statusIdMap.get(response.data.status || "") || "0";
             setFormData({
               implementation_description:
                 response.data.implementation_description || "",
@@ -162,6 +156,11 @@ const VWISO42001ClauseDrawerDialog = ({
             if (response.data.due_date) {
               setDate(response.data.due_date);
             }
+
+            // Set risks in state
+            if (response.data.risks) {
+              setSelectedRisks(response.data.risks);
+            }
           }
 
           // On subclause fetch, set evidence files if available
@@ -170,6 +169,11 @@ const VWISO42001ClauseDrawerDialog = ({
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
+          handleAlert({
+            variant: "error",
+            body: "Error: Unable to load subclause data",
+            setAlert,
+          });
         } finally {
           setIsLoading(false);
         }
@@ -190,12 +194,15 @@ const VWISO42001ClauseDrawerDialog = ({
   const handleSelectChange =
     (field: string) => (event: SelectChangeEvent<string | number>) => {
       const value = event.target.value.toString();
-      if (field === "status" && value === "6"
-        && (selectedRisks.length > 0 || formData.risks.length > 0 || (
-          formData.risks.length > 0 && deletedRisks.length === formData.risks.length
-        ))
+      if (
+        field === "status" &&
+        value === "6" &&
+        (selectedRisks.length > 0 ||
+          formData.risks.length > 0 ||
+          (formData.risks.length > 0 &&
+            deletedRisks.length === formData.risks.length))
       ) {
-        setAuditedStatusModalOpen(true)
+        setAuditedStatusModalOpen(true);
       }
       handleFieldChange(field, value);
     };
@@ -229,7 +236,7 @@ const VWISO42001ClauseDrawerDialog = ({
       formDataToSend.append("approver", formData.approver);
       formDataToSend.append("auditor_feedback", formData.auditor_feedback);
       if (date) formDataToSend.append("due_date", date.toString());
-      formDataToSend.append("user_id", userId?.toString() || "");
+      formDataToSend.append("user_id", userId?.toString() || "1");
       formDataToSend.append("project_id", project_id.toString());
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
@@ -489,7 +496,7 @@ const VWISO42001ClauseDrawerDialog = ({
               sx={{
                 mt: 2,
                 borderRadius: 2,
-                minWidth: 155,      // minimum width
+                minWidth: 155, // minimum width
                 height: 25,
                 fontSize: 11,
                 border: "1px solid #D0D5DD",
@@ -558,8 +565,7 @@ const VWISO42001ClauseDrawerDialog = ({
             </Stack>
           </Stack>
 
-          
-          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal} >
+          <Dialog open={isFileUploadOpen} onClose={closeFileUploadModal}>
             <UppyUploadFile
               uppy={uppy}
               files={[...evidenceFiles, ...uploadFiles]}
@@ -571,44 +577,29 @@ const VWISO42001ClauseDrawerDialog = ({
           {alert && (
             <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
           )}
-          
+
           <Stack direction="row" spacing={2}>
-          <Button
-            variant="contained"
-            sx={{
-              mt: 2,
-              borderRadius: 2,
-              width: 155,
-              height: 25,
-              fontSize: 11,
-              border: "1px solid #D0D5DD",
-              backgroundColor: "white",
-              color: "#344054",
-            }}
-            disableRipple={
-              theme.components?.MuiButton?.defaultProps?.disableRipple
-            }
-            onClick={() => setIsLinkedRisksModalOpen(true)}
-            disabled={isEditingDisabled}
-          >
-            Add/Remove risks
-          </Button>
-          <Stack direction="row" spacing={10}>
-            <Typography
+            <Button
+              variant="contained"
               sx={{
+                mt: 2,
+                borderRadius: 2,
+                width: 155,
+                height: 25,
                 fontSize: 11,
+                border: "1px solid #D0D5DD",
+                backgroundColor: "white",
                 color: "#344054",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                textAlign: "center",
-                margin: "auto",
-                textWrap: "wrap",
               }}
+              disableRipple={
+                theme.components?.MuiButton?.defaultProps?.disableRipple
+              }
+              onClick={() => setIsLinkedRisksModalOpen(true)}
+              disabled={isEditingDisabled}
             >
-              {`${formData.risks.length || 0} risks linked`}
-            </Typography>
-            {selectedRisks.length > 0 && (
+              Add/Remove risks
+            </Button>
+            <Stack direction="row" spacing={10}>
               <Typography
                 sx={{
                   fontSize: 11,
@@ -621,74 +612,90 @@ const VWISO42001ClauseDrawerDialog = ({
                   textWrap: "wrap",
                 }}
               >
-                {`${selectedRisks.length} ${
-                  selectedRisks.length === 1 ? "risk" : "risks"
-                } pending upload`}
+                {`${formData.risks.length || 0} risks linked`}
               </Typography>
-            )}
-            {deletedRisks.length > 0 && (
-              <Typography
-                sx={{
-                  fontSize: 11,
-                  color: "#344054",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  textAlign: "center",
-                  margin: "auto",
-                  textWrap: "wrap",
-                }}
-              >
-                {`${deletedRisks.length} ${
-                  deletedRisks.length === 1 ? "risk" : "risks"
-                } pending delete`}
-              </Typography>
-            )}
+              {selectedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${selectedRisks.length} ${
+                    selectedRisks.length === 1 ? "risk" : "risks"
+                  } pending upload`}
+                </Typography>
+              )}
+              {deletedRisks.length > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#344054",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                    margin: "auto",
+                    textWrap: "wrap",
+                  }}
+                >
+                  {`${deletedRisks.length} ${
+                    deletedRisks.length === 1 ? "risk" : "risks"
+                  } pending delete`}
+                </Typography>
+              )}
+            </Stack>
           </Stack>
-        </Stack>
 
-        <Dialog 
-          open={auditedStatusModalOpen} 
-          onClose={() => setAuditedStatusModalOpen(false)}
-          PaperProps={{
-            sx: {
-              width: '800px',
-              maxWidth: '800px',
-            },
-          }}
-        >
-          <Suspense fallback={"loading..."}>
-            <AuditRiskPopup
-              onClose={() => setAuditedStatusModalOpen(false)}
-              risks={formData.risks.concat(selectedRisks)}
-              _deletedRisks={deletedRisks}
-              _setDeletedRisks={setDeletedRisks}
-              _selectedRisks={selectedRisks}
-              _setSelectedRisks={setSelectedRisks}
-            />
-          </Suspense>
-        </Dialog>
+          <Dialog
+            open={auditedStatusModalOpen}
+            onClose={() => setAuditedStatusModalOpen(false)}
+            PaperProps={{
+              sx: {
+                width: "800px",
+                maxWidth: "800px",
+              },
+            }}
+          >
+            <Suspense fallback={"loading..."}>
+              <AuditRiskPopup
+                onClose={() => setAuditedStatusModalOpen(false)}
+                risks={formData.risks.concat(selectedRisks)}
+                _deletedRisks={deletedRisks}
+                _setDeletedRisks={setDeletedRisks}
+                _selectedRisks={selectedRisks}
+                _setSelectedRisks={setSelectedRisks}
+              />
+            </Suspense>
+          </Dialog>
 
-        <Dialog 
-          open={isLinkedRisksModalOpen} 
-          onClose={() => setIsLinkedRisksModalOpen(false)}
-          PaperProps={{
-            sx: {
-              width: '1500px',
-              maxWidth: '1500px',
-            },
-          }}
-        >
-          <Suspense fallback={"loading..."}>
-            <LinkedRisksPopup
-              onClose={() => setIsLinkedRisksModalOpen(false)}
-              currentRisks={formData.risks.concat(selectedRisks).filter(risk => !deletedRisks.includes(risk))}
-              setSelectecRisks={setSelectedRisks}
-              _setDeletedRisks={setDeletedRisks}
-            />
-          </Suspense>
-        </Dialog>
-          
+          <Dialog
+            open={isLinkedRisksModalOpen}
+            onClose={() => setIsLinkedRisksModalOpen(false)}
+            PaperProps={{
+              sx: {
+                width: "1500px",
+                maxWidth: "1500px",
+              },
+            }}
+          >
+            <Suspense fallback={"loading..."}>
+              <LinkedRisksPopup
+                onClose={() => setIsLinkedRisksModalOpen(false)}
+                currentRisks={formData.risks
+                  .concat(selectedRisks)
+                  .filter((risk) => !deletedRisks.includes(risk))}
+                setSelectecRisks={setSelectedRisks}
+                _setDeletedRisks={setDeletedRisks}
+              />
+            </Suspense>
+          </Dialog>
         </Stack>
         <Divider />
         <Stack
@@ -709,8 +716,8 @@ const VWISO42001ClauseDrawerDialog = ({
               { _id: "3", name: "Awaiting review" },
               { _id: "4", name: "Awaiting approval" },
               { _id: "5", name: "Implemented" },
-              { _id: "6", name: "Audited" },
-              { _id: "7", name: "Needs rework" },
+              // { _id: "6", name: "Audited" },
+              { _id: "6", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}

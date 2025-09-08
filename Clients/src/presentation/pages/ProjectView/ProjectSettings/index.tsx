@@ -33,7 +33,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableToast from "../../../vw-v2-components/Toast";
@@ -43,7 +43,11 @@ import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../domain/types/User";
-import { deleteProject, updateProject } from "../../../../application/repository/project.repository";
+import {
+  deleteProject,
+  updateProject,
+} from "../../../../application/repository/project.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -119,7 +123,8 @@ const ProjectSettings = React.memo(
   }: {
     triggerRefresh?: (isUpdate: boolean) => void;
   }) => {
-    const { userRoleName, userId, setProjects } = useContext(VerifyWiseContext);
+    const { setProjects } = useContext(VerifyWiseContext);
+    const { userRoleName, userId } = useAuth();
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
@@ -211,6 +216,11 @@ const ProjectSettings = React.memo(
         listOfFrameworks: project?.framework || [],
       });
 
+    // Filter frameworks to only show non-organizational ones
+    const nonOrganizationalFrameworks = useMemo(
+      () => allFrameworks.filter((fw: Framework) => !fw.is_organizational),
+      [allFrameworks]
+    );
     useEffect(() => {
       setShowCustomizableSkeleton(true);
       if (project && monitoredFrameworks.length > 0) {
@@ -281,7 +291,7 @@ const ProjectSettings = React.memo(
                   newOwnerId = user;
                 }
                 if (user.id === values.owner) {
-                  oldOwner = user
+                  oldOwner = user;
                 }
               }
               setRemovedOwner(oldOwner);
@@ -302,8 +312,9 @@ const ProjectSettings = React.memo(
         ...prevValues,
         owner: pendingOwnerId.id,
         members: values.members.filter(
-          (member) => member !== pendingOwnerId.id)
-        }));
+          (member) => member !== pendingOwnerId.id
+        ),
+      }));
       setErrors((prevErrors) => ({ ...prevErrors, owner: "" }));
       setIsChangeOwnerModalOpen(false);
       setPendingOwnerId(null);
@@ -338,11 +349,13 @@ const ProjectSettings = React.memo(
                 values.monitoredRegulationsAndStandards.find(
                   (fw) => !newValue.some((nv) => nv._id === fw._id)
                 );
-              setRemovedFramework(prop === 'monitoredRegulationsAndStandards')
+              setRemovedFramework(prop === "monitoredRegulationsAndStandards");
               if (removedFramework) {
                 setIsFrameworkOperationInProgress(true);
                 setFrameworkToRemove(removedFramework);
-                setIsFrameworkRemoveModalOpen(values.monitoredRegulationsAndStandards.length > 1);
+                setIsFrameworkRemoveModalOpen(
+                  values.monitoredRegulationsAndStandards.length > 1
+                );
                 // Don't update values state yet
                 return;
               }
@@ -786,7 +799,19 @@ const ProjectSettings = React.memo(
                 title="Confirm owner change"
                 body={
                   <Typography fontSize={13}>
-                    You setting ownership from <strong>{removedOwner?.name} {removedOwner?.surname}</strong> to <strong>{pendingOwnerId?.name} {pendingOwnerId?.surname}</strong>. We will remove <strong>{pendingOwnerId?.name} {pendingOwnerId?.surname}</strong> from the members list.
+                    You setting ownership from{" "}
+                    <strong>
+                      {removedOwner?.name} {removedOwner?.surname}
+                    </strong>{" "}
+                    to{" "}
+                    <strong>
+                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                    </strong>
+                    . We will remove{" "}
+                    <strong>
+                      {pendingOwnerId?.name} {pendingOwnerId?.surname}
+                    </strong>{" "}
+                    from the members list.
                   </Typography>
                 }
                 cancelText="Cancel"
@@ -815,7 +840,7 @@ const ProjectSettings = React.memo(
                   id="monitored-regulations-and-standards-input"
                   size="small"
                   value={values.monitoredRegulationsAndStandards}
-                  options={allFrameworks.map((fw: Framework) => ({
+                  options={nonOrganizationalFrameworks.map((fw: Framework) => ({
                     _id: Number(fw.id),
                     name: fw.name,
                   }))}
@@ -827,7 +852,7 @@ const ProjectSettings = React.memo(
                   }
                   noOptionsText={
                     values.monitoredRegulationsAndStandards.length ===
-                    allFrameworks.length
+                    nonOrganizationalFrameworks.length
                       ? "All regulations selected"
                       : "No options"
                   }
@@ -935,14 +960,15 @@ const ProjectSettings = React.memo(
                     },
                   }}
                 />
-                {(removedFramework && values.monitoredRegulationsAndStandards.length === 1) && (
-                  <Typography
-                    variant="caption"
-                    sx={{ color: "warning.main", fontWeight: 300 }}
-                  >
-                    Framework cannot be empty.
-                  </Typography>
-                )}
+                {removedFramework &&
+                  values.monitoredRegulationsAndStandards.length === 1 && (
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "warning.main", fontWeight: 300 }}
+                    >
+                      Framework cannot be empty.
+                    </Typography>
+                  )}
               </Stack>
             )}
 
@@ -981,7 +1007,11 @@ const ProjectSettings = React.memo(
               )}
               options={
                 users
-                  ?.filter((user) => user.id !== values.owner && !values.members.includes(Number(user.id)))
+                  ?.filter(
+                    (user) =>
+                      user.id !== values.owner &&
+                      !values.members.includes(Number(user.id))
+                  )
                   .map((user) => ({
                     id: user.id,
                     name: user.name,
@@ -997,7 +1027,7 @@ const ProjectSettings = React.memo(
                     ? `${option.email.slice(0, 30)}...`
                     : option.email;
                 return (
-                  <Box key={key} component="li" {...optionProps}>
+                  <Box component="li" key={key} {...optionProps}>
                     <Typography sx={{ fontSize: "13px" }}>
                       {option.name} {option.surname}
                     </Typography>

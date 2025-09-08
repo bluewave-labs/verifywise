@@ -22,6 +22,7 @@ export type Project = {
     framework_id: number;
   }[];
   monitored_regulations_and_standards: string[];
+  is_organizational?: boolean;
   // vendors: string[];
 
   // statistical fields

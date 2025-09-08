@@ -26,7 +26,7 @@ import {
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
   updatePolicy,
@@ -62,16 +62,25 @@ const PolicyDetailModal: React.FC<Props> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   // const [isSubmitting, setIsSubmitting] = useState(false);
   // Track toggle state for toolbar buttons
-  type ToolbarKey = 'bold' | 'italic' | 'underline' | 'h1' | 'h2' | 'h3' | 'blockquote';
-  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
-    bold: false,
-    italic: false,
-    underline: false,
-    h1: false,
-    h2: false,
-    h3: false,
-    blockquote: false,
-  });
+  type ToolbarKey =
+    | "bold"
+    | "italic"
+    | "underline"
+    | "h1"
+    | "h2"
+    | "h3"
+    | "blockquote";
+  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>(
+    {
+      bold: false,
+      italic: false,
+      underline: false,
+      h1: false,
+      h2: false,
+      h3: false,
+      blockquote: false,
+    }
+  );
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -134,8 +143,8 @@ const PolicyDetailModal: React.FC<Props> = ({
           : "",
         assignedReviewers: policy.assigned_reviewer_ids
           ? policy.assigned_reviewer_ids
-            .map(i => users.find(user => user.id === i))
-            .filter((user): user is User => user !== undefined)
+              .map((i) => users.find((user) => user.id === i))
+              .filter((user): user is User => user !== undefined)
           : [],
         content: policy.content_html || "",
       });
@@ -214,7 +223,7 @@ const PolicyDetailModal: React.FC<Props> = ({
 
   return (
     <>
-    {/* {isSubmitting && (
+      {/* {isSubmitting && (
       <Stack
         sx={{
           width: "100vw",
@@ -229,48 +238,53 @@ const PolicyDetailModal: React.FC<Props> = ({
         <CustomizableToast title="Creating project. Please wait..." />
       </Stack>
       )} */}
-    <Drawer
-      open={true}
-      onClose={onClose}
-      anchor="right"
-      sx={{
-        width: 800,
-        "& .MuiDrawer-paper": {
-          width: 800,
-          borderRadius: 0,
-          padding: "15px 20px",
-          marginTop: "0",
-        },
-      }}
-    >
-
-      <Stack
+      <Drawer
+        open={true}
+        onClose={onClose}
+        anchor="right"
         sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
+          width: 800,
+          "& .MuiDrawer-paper": {
+            width: 800,
+            borderRadius: 0,
+            padding: "15px 20px",
+            marginTop: "0",
+          },
         }}
       >
-        <Stack>
-          <Typography
-            sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
-          >
-            {isNew ? "Create new policy" : formData.title}
-          </Typography>
+        <Stack
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <Stack>
+            <Typography
+              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+            >
+              {isNew ? "Create new policy" : formData.title}
+            </Typography>
+          </Stack>
+          <CloseIcon
+            sx={{ color: "#98A2B3", cursor: "pointer" }}
+            onClick={onClose}
+          />
         </Stack>
-        <CloseIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
-          onClick={onClose}
-        />
-      </Stack>
 
-      <Divider sx={{ my: 2 }} />
-
-      <Stack spacing={4}>
-        <PolicyForm formData={formData} setFormData={setFormData} tags={tags} errors={errors} setErrors={setErrors} />
         <Divider sx={{ my: 2 }} />
-        <Stack sx={{ width: "100%" }}>
-          <Typography
+
+        <Stack spacing={4}>
+          <PolicyForm
+            formData={formData}
+            setFormData={setFormData}
+            tags={tags}
+            errors={errors}
+            setErrors={setErrors}
+          />
+          <Divider sx={{ my: 2 }} />
+          <Stack sx={{ width: "100%" }}>
+            <Typography
               sx={{
                 fontSize: theme.typography.fontSize,
                 fontWeight: 500,
@@ -279,158 +293,189 @@ const PolicyDetailModal: React.FC<Props> = ({
             >
               Content
             </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 1,
-              mb: 2,
-            }}
-          >
-            {/* Toolbar */}
-            {([
-              {
-                key: "bold",
-                title: "Bold",
-                icon: <FormatBold />,
-                action: () => {
-                  editor.tf.bold.toggle();
-                  setToolbarState((prev) => ({ ...prev, bold: !prev.bold }));
-                },
-              },
-              {
-                key: "italic",
-                title: "Italic",
-                icon: <FormatItalic />,
-                action: () => {
-                  editor.tf.italic.toggle();
-                  setToolbarState((prev) => ({ ...prev, italic: !prev.italic }));
-                },
-              },
-              {
-                key: "underline",
-                title: "Underline",
-                icon: <FormatUnderlined />,
-                action: () => {
-                  editor.tf.underline.toggle();
-                  setToolbarState((prev) => ({ ...prev, underline: !prev.underline }));
-                },
-              },
-              {
-                key: "h1",
-                title: "Heading 1",
-                icon: <LooksOne />,
-                action: () => {
-                  editor.tf.h1.toggle();
-                  setToolbarState((prev) => ({ ...prev, h1: !prev.h1 }));
-                },
-              },
-              {
-                key: "h2",
-                title: "Heading 2",
-                icon: <LooksTwo />,
-                action: () => {
-                  editor.tf.h2.toggle();
-                  setToolbarState((prev) => ({ ...prev, h2: !prev.h2 }));
-                },
-              },
-              {
-                key: "h3",
-                title: "Heading 3",
-                icon: <Looks3 />,
-                action: () => {
-                  editor.tf.h3.toggle();
-                  setToolbarState((prev) => ({ ...prev, h3: !prev.h3 }));
-                },
-              },
-              {
-                key: "blockquote",
-                title: "Blockquote",
-                icon: <FormatQuote />,
-                action: () => {
-                  editor.tf.blockquote.toggle();
-                  setToolbarState((prev) => ({ ...prev, blockquote: !prev.blockquote }));
-                },
-              },
-            ] as Array<{ key: ToolbarKey; title: string; icon: JSX.Element; action: () => void }>).map(({ key, title, icon, action }) => (
-              <Tooltip key={title} title={title}>
-                <IconButton
-                  onClick={action}
-                  disableRipple
-                  size="small"
-                  sx={{
-                    padding: "6px",
-                    borderRadius: "3px",
-                    backgroundColor: toolbarState[key] ? "#E0F7FA" : "#FFFFFF",
-                    boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
-                    border: toolbarState[key] ? "2px solid #13715B" : "1px solid #E0E0E0",
-                    mr: 1,
-                    "&:hover": {
-                      backgroundColor: theme.palette.background.main,
-                      borderColor: "#888",
-                    },
-                  }}
-                >
-                  {icon}
-                  {toolbarState[key]}
-                </IconButton>
-              </Tooltip>
-            ))}
-          </Box>
-          <Plate
-            editor={editor}
-            onChange={({ value }) =>
-              setFormData((prev) => ({
-                ...prev,
-                content: value,
-              }))
-            }
-          >
-            <PlateContent
-              style={{
-                minHeight: "400px",
-                maxHeight: "400px",
-                overflowY: "auto",
-                padding: "16px",
-                border: "1px solid #E0E0E0",
-                borderRadius: "3px",
-                backgroundColor: "#FFFFFF",
-                fontSize: theme.typography.fontSize,
-                color: theme.palette.text.primary,
-                boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 1,
+                mb: 2,
               }}
-              placeholder="Start typing..."
-            />
-          </Plate>
+            >
+              {/* Toolbar */}
+              {(
+                [
+                  {
+                    key: "bold",
+                    title: "Bold",
+                    icon: <FormatBold />,
+                    action: () => {
+                      editor.tf.bold.toggle();
+                      setToolbarState((prev) => ({
+                        ...prev,
+                        bold: !prev.bold,
+                      }));
+                    },
+                  },
+                  {
+                    key: "italic",
+                    title: "Italic",
+                    icon: <FormatItalic />,
+                    action: () => {
+                      editor.tf.italic.toggle();
+                      setToolbarState((prev) => ({
+                        ...prev,
+                        italic: !prev.italic,
+                      }));
+                    },
+                  },
+                  {
+                    key: "underline",
+                    title: "Underline",
+                    icon: <FormatUnderlined />,
+                    action: () => {
+                      editor.tf.underline.toggle();
+                      setToolbarState((prev) => ({
+                        ...prev,
+                        underline: !prev.underline,
+                      }));
+                    },
+                  },
+                  {
+                    key: "h1",
+                    title: "Heading 1",
+                    icon: <LooksOne />,
+                    action: () => {
+                      editor.tf.h1.toggle();
+                      setToolbarState((prev) => ({ ...prev, h1: !prev.h1 }));
+                    },
+                  },
+                  {
+                    key: "h2",
+                    title: "Heading 2",
+                    icon: <LooksTwo />,
+                    action: () => {
+                      editor.tf.h2.toggle();
+                      setToolbarState((prev) => ({ ...prev, h2: !prev.h2 }));
+                    },
+                  },
+                  {
+                    key: "h3",
+                    title: "Heading 3",
+                    icon: <Looks3 />,
+                    action: () => {
+                      editor.tf.h3.toggle();
+                      setToolbarState((prev) => ({ ...prev, h3: !prev.h3 }));
+                    },
+                  },
+                  {
+                    key: "blockquote",
+                    title: "Blockquote",
+                    icon: <FormatQuote />,
+                    action: () => {
+                      editor.tf.blockquote.toggle();
+                      setToolbarState((prev) => ({
+                        ...prev,
+                        blockquote: !prev.blockquote,
+                      }));
+                    },
+                  },
+                ] as Array<{
+                  key: ToolbarKey;
+                  title: string;
+                  icon: JSX.Element;
+                  action: () => void;
+                }>
+              ).map(({ key, title, icon, action }) => (
+                <Tooltip key={title} title={title}>
+                  <IconButton
+                    onClick={action}
+                    disableRipple
+                    size="small"
+                    sx={{
+                      padding: "6px",
+                      borderRadius: "3px",
+                      backgroundColor: toolbarState[key]
+                        ? "#E0F7FA"
+                        : "#FFFFFF",
+                      boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
+                      border: "1px solid",
+                      borderColor: toolbarState[key]
+                        ? "#13715B"
+                        : "transparent",
+                      outline: toolbarState[key] ? "1px solid #13715B" : "none",
+                      mr: 1,
+                      transition:
+                        "border-color 0.2s ease, outline 0.2s ease, background-color 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: theme.palette.background.main,
+                        borderColor: toolbarState[key] ? "#13715B" : "#888", // preserve selection color
+                        outline: "1px solid rgba(0, 0, 0, 0.08)", // subtle hover outline
+                      },
+                    }}
+                  >
+                    {icon}
+                    {toolbarState[key]}
+                  </IconButton>
+                </Tooltip>
+              ))}
+            </Box>
+            <Plate
+              editor={editor}
+              onChange={({ value }) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  content: value,
+                }))
+              }
+            >
+              <PlateContent
+                style={{
+                  minHeight: "400px",
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                  padding: "16px",
+                  border: "1px solid #E0E0E0",
+                  borderRadius: "3px",
+                  backgroundColor: "#FFFFFF",
+                  fontSize: theme.typography.fontSize,
+                  color: theme.palette.text.primary,
+                  boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
+                }}
+                placeholder="Start typing..."
+              />
+            </Plate>
+          </Stack>
         </Stack>
-      </Stack>
 
-      <Stack
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-start",
-          padding: "16px 0px",
-        }}
-      >
-        <CustomizableButton
-          variant="contained"
-          text="Save"
+        <Box
           sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
-            gap: 2,
-            "&:hover": {
-              backgroundColor: "#0F5B4D",
-              borderColor: "#0F5B4D",
-            },
+            position: "absolute",
+            bottom: 10,
+            right: 10,
+            width: "100%",
+            p: 2,
+            display: "flex",
+            justifyContent: "flex-end",
           }}
-          onClick={save}
-          icon={<SaveIcon />}
-        />
-      </Stack>
-    </Drawer>
+        >
+          <CustomizableButton
+            variant="contained"
+            text="Save"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+              "&:hover": {
+                backgroundColor: "#0F5B4D",
+                borderColor: "#0F5B4D",
+              },
+            }}
+            onClick={save}
+            icon={<SaveIcon />}
+          />
+        </Box>
+      </Drawer>
     </>
   );
 };

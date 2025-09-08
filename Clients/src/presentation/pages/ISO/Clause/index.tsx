@@ -123,12 +123,15 @@ const ISO42001Clauses = ({
       setExpanded(isExpanded ? panel : false);
     };
 
-  const handleSubClauseClick = useCallback((clause: any, subClause: any, index: number) => {
-    setSelectedClause(clause);
-    setSelectedSubClause(subClause);
-    setSelectedIndex(index);
-    setDrawerOpen(true);
-  }, []);
+  const handleSubClauseClick = useCallback(
+    (clause: any, subClause: any, index: number) => {
+      setSelectedClause(clause);
+      setSelectedSubClause(subClause);
+      setSelectedIndex(index);
+      setDrawerOpen(true);
+    },
+    []
+  );
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
@@ -223,9 +226,16 @@ const ISO42001Clauses = ({
           const response = await getEntityById({
             routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
           });
-          setSelectedSubClause({...response.data, id: response.data.clause_id});
+          setSelectedSubClause({
+            ...response.data,
+            id: response.data.clause_id,
+          });
           if (clause && clauseId) {
-            handleSubClauseClick(clause, {...response.data, id: response.data.clause_id}, parseInt(clauseId));
+            handleSubClauseClick(
+              clause,
+              { ...response.data, id: response.data.clause_id },
+              parseInt(clauseId)
+            );
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);

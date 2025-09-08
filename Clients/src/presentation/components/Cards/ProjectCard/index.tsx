@@ -1,7 +1,7 @@
 import { Stack, Typography, Tooltip, Button } from "@mui/material";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import ProgressBar from "../../ProjectCard/ProgressBar";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import {
   progressStyle,
   projectCardSpecKeyStyle,
@@ -15,9 +15,8 @@ import {
 } from "./style";
 import { Project } from "../../../../domain/types/Project";
 import { formatDate } from "../../../tools/isoDateToString";
-import { useContext, useEffect, useState, useMemo, FC } from "react";
+import { useEffect, useState, useMemo, FC } from "react";
 import React from "react";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { User } from "../../../../domain/types/User";
 import useNavigateSearch from "../../../../application/hooks/useNavigateSearch";
 import {
@@ -25,6 +24,7 @@ import {
   ComplianceProgress,
 } from "../../../../application/interfaces/iprogress";
 import { fetchData } from "../../../../application/hooks/fetchDataHook";
+import useUsers from "../../../../application/hooks/useUsers";
 
 // Loading skeleton component
 const ProjectCardSkeleton: FC = () => (
@@ -124,9 +124,10 @@ const FrameworkButton = ({
   type: "eu" | "iso";
   onClick: () => void;
 }) => {
-  const tooltipText = type === "eu" 
-    ? "EU AI Act: View and complete requirements for EU's AI Act. Answer compliance questions and track your progress."
-    : "ISO 42001: Work through ISO/IEC 42001 requirements. Fill out clauses, annexes, and assessments to build your AI management system";
+  const tooltipText =
+    type === "eu"
+      ? "EU AI Act: View and complete requirements for EU's AI Act. Answer compliance questions and track your progress."
+      : "ISO 42001: Work through ISO/IEC 42001 requirements. Fill out clauses, annexes, and assessments to build your AI management system";
 
   return (
     <Tooltip title={tooltipText} arrow placement="top">
@@ -135,8 +136,8 @@ const FrameworkButton = ({
         onClick={onClick}
         sx={{
           ...(type === "eu" ? euAiActChipStyle : iso42001ChipStyle),
-          cursor: 'pointer',
-          '&:hover': {
+          cursor: "pointer",
+          "&:hover": {
             opacity: 0.9,
           },
         }}
@@ -155,7 +156,7 @@ const FrameworkButton = ({
 const ProjectCard: FC<ProjectCardProps> = React.memo(
   ({ project, isLoading = false }) => {
     const navigate = useNavigateSearch();
-    const { users } = useContext(VerifyWiseContext);
+    const { users } = useUsers();
 
     // Memoize framework IDs
     const projectFrameworkId = useMemo(
@@ -216,16 +217,16 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             className="project-card-frameworks"
           >
             {projectFrameworkId && (
-              <FrameworkButton 
-                label="EU AI Act" 
-                type="eu" 
+              <FrameworkButton
+                label="EU AI Act"
+                type="eu"
                 onClick={() => handleFrameworkClick(1)}
               />
             )}
             {projectFrameworkId2 && (
-              <FrameworkButton 
-                label="ISO 42001" 
-                type="iso" 
+              <FrameworkButton
+                label="ISO 42001"
+                type="iso"
                 onClick={() => handleFrameworkClick(2)}
               />
             )}

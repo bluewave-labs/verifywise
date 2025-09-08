@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useContext, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
@@ -7,7 +7,7 @@ import RisksCard from "../../../../components/Cards/RisksCard";
 import RiskVisualizationTabs from "../../../../components/RiskVisualization/RiskVisualizationTabs";
 import RiskFilters from "../../../../components/RiskVisualization/RiskFilters";
 import { rowStyle } from "./style";
-import CustomizableButton from "../../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VWProjectRisksTable from "../../../../vw-v2-components/Table";
 import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
@@ -19,9 +19,9 @@ import { deleteEntityById } from "../../../../../application/repository/entity.r
 import CustomizableToast from "../../../../vw-v2-components/Toast";
 import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
-import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
+import { useAuth } from "../../../../../application/hooks/useAuth";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -49,7 +49,7 @@ const initialLoadingState: LoadingStatus = {
 };
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId =
     parseInt(searchParams.get("projectId") ?? "0") || project!.id;
@@ -89,7 +89,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     riskLevel: number;
     reviewNotes: string;
   } | null>(null);
-  
+
   // New state for enhanced risk visualization
   const [selectedRisk, setSelectedRisk] = useState<ProjectRisk | null>(null);
   const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
@@ -97,7 +97,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   const fetchProjectRisks = useCallback(async () => {
     try {
-    const response = await getAllProjectRisksByProjectId({
+      const response = await getAllProjectRisksByProjectId({
         projectId: String(projectId),
       });
       setShowCustomizableSkeleton(false);
@@ -159,7 +159,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   }) => {
     setSelectedRiskData(riskData);
     // Created a dummy anchor element to trigger the popup
-    const dummyElement = document.createElement('div');
+    const dummyElement = document.createElement("div");
     setAiRiskAnchor(dummyElement);
   };
 
@@ -261,8 +261,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     setActiveFilters(filters);
   };
 
-
-
   return (
     <Stack className="vw-project-risks" key={refreshKey}>
       {alert && (
@@ -280,19 +278,17 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
-        <RisksCard 
-          risksSummary={projectRisksSummary} 
-        />
+        <RisksCard risksSummary={projectRisksSummary} />
       </Stack>
       <br />
-      
+
       <Stack spacing={3}>
         {/* Risk Filters */}
         <RiskFilters
           risks={projectRisks}
           onFilterChange={handleRiskFilterChange}
         />
-        
+
         {/* Risk Visualization Section */}
         <RiskVisualizationTabs
           risks={filteredRisks}

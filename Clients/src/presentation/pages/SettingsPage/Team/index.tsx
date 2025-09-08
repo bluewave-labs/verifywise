@@ -33,10 +33,15 @@ import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
-import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
+import {
+  deleteUserById,
+  updateUserById,
+} from "../../../../application/repository/user.repository";
+import useUsers from "../../../../application/hooks/useUsers";
+import { useAuth } from "../../../../application/hooks/useAuth";
 const Alert = lazy(() => import("../../../components/Alert"));
 
 // Constants for roles
@@ -75,8 +80,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues, users, userId, refreshUsers } =
-    useContext(VerifyWiseContext);
+  const { dashboardValues } = useContext(VerifyWiseContext);
+  const { userId } = useAuth();
+  const { users, refreshUsers } = useUsers();
 
   // Exclude the current user from the team users list
   const teamUsers = users;
@@ -84,39 +90,63 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const [inviteUserModalOpen, setInviteUserModalOpen] = useState(false);
 
-  const handleUpdateRole = async (memberId: string, newRole: string) => {
-    try {
-       const response = await updateUserById({
-        userId: parseInt(memberId),
-        userData: { roleId: newRole },
-      });
+  const handleUpdateRole = useCallback(
+    async (memberId: string, newRole: string) => {
+      try {
+        // Find the member to get their current data
+        const member = teamUsers.find(
+          (user) => user.id.toString() === memberId
+        );
+        if (!member) {
+          setAlert({
+            variant: "error",
+            body: "User not found.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+          return;
+        }
 
-      if (response.status === 202) {
-        handleAlert({
-          variant: "success",
-          body: "User role updated successfully.",
-          setAlert,
+        const response = await updateUserById({
+          userId: parseInt(memberId),
+          userData: {
+            name: member.name,
+            surname: member.surname,
+            email: member.email,
+            roleId: newRole,
+          },
         });
 
-        refreshUsers();
-      } else {
+        if (response.status === 202) {
+          handleAlert({
+            variant: "success",
+            body: "User role updated successfully.",
+            setAlert,
+          });
+
+          // Add a small delay to ensure the server has processed the update
+          setTimeout(() => {
+            refreshUsers();
+          }, 500);
+        } else {
+          setAlert({
+            variant: "error",
+            body: response.data?.data?.message || "An error occurred.",
+          });
+          setTimeout(() => setAlert(null), 3000);
+        }
+      } catch (error) {
         setAlert({
           variant: "error",
-          body: response.data?.data?.message || "An error occurred.",
+          body: `An error occurred: ${
+            (error as Error).message || "Please try again."
+          }`,
         });
+
         setTimeout(() => setAlert(null), 3000);
       }
-    } catch (error) {
-      setAlert({
-        variant: "error",
-        body: `An error occurred: ${
-          (error as Error).message || "Please try again."
-        }`,
-      });
-
-      setTimeout(() => setAlert(null), 3000);
-    }
-  };
+    },
+    [teamUsers, refreshUsers]
+  );
 
   const handleClose = () => {
     setOpen(false);
@@ -128,23 +158,35 @@ const TeamManagement: React.FC = (): JSX.Element => {
 
     const memberId = Number(memberToDelete);
 
+    try {
       const response = await deleteUserById({
-      userId: memberId,
-    });
-    if (response.status === 202) {
-      handleAlert({
-        variant: "success",
-        body: "User deleted successfully",
-        setAlert,
+        userId: memberId,
       });
-      refreshUsers();
-    } else {
+
+      if (response && response.status === 202) {
+        handleAlert({
+          variant: "success",
+          body: "User deleted successfully",
+          setAlert,
+        });
+        refreshUsers();
+      } else {
+        handleAlert({
+          variant: "error",
+          body: "User deletion failed",
+          setAlert,
+        });
+      }
+    } catch (error) {
       handleAlert({
         variant: "error",
-        body: "User deletion failed",
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
         setAlert,
       });
     }
+
     handleClose();
   };
 
@@ -154,7 +196,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
       const newRole = event.target.value;
       handleUpdateRole(memberId, newRole);
     },
-    []
+    [handleUpdateRole]
   );
 
   // Typography component for role display
@@ -215,25 +257,25 @@ const TeamManagement: React.FC = (): JSX.Element => {
     link: string | undefined = undefined
   ) => {
     console.log("Invitation to ", email, "is ", status);
-    
+
     if (status === 200) {
       handleAlert({
         variant: "success",
         body: `Invitation sent to ${email}. Please ask them to check their email and follow the link to create an account.`,
-        setAlert
+        setAlert,
       });
     } else if (status === 206) {
       handleAlert({
         variant: "info",
         body: `Invitation sent to ${email}. Please use this link: ${link} to create an account.`,
         setAlert,
-        alertTimeout: 20000
-      })
+        alertTimeout: 20000,
+      });
     } else {
       handleAlert({
         variant: "error",
         body: `Failed to send invitation to ${email}. Please try again.`,
-        setAlert
+        setAlert,
       });
     }
 
@@ -370,7 +412,9 @@ const TeamManagement: React.FC = (): JSX.Element => {
                             <TableCell
                               sx={singleTheme.tableStyles.primary.body.cell}
                             >
-                              {[member.name, member.surname].filter(Boolean).join(' ')}
+                              {[member.name, member.surname]
+                                .filter(Boolean)
+                                .join(" ")}
                             </TableCell>
                             <TableCell
                               sx={{

@@ -10,7 +10,7 @@ import {
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
-import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
 import singleTheme from "../../themes/v1SingleTheme";
 import { useSelector } from "react-redux";
@@ -28,10 +28,9 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AddNewRisk from "../../components/Modals/NewRisk";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../vw-v2-components/Toast";
-import { Project } from "../../../domain/types/Project";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
@@ -40,17 +39,15 @@ import allowedRoles from "../../../application/constants/permissions";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
-import { getAllProjects } from "../../../application/repository/project.repository";
 import {
-  deleteVendor,
-  getAllVendors,
-  getVendorById,
-  getVendorsByProjectId,
-} from "../../../application/repository/vendor.repository";
-import {
-  deleteVendorRisk,
-  getVendorRiskById,
-} from "../../../application/repository/vendorRisk.repository";
+  useVendors,
+  useDeleteVendor,
+  VendorDetails,
+} from "../../../application/hooks/useVendors";
+import { useProjects } from "../../../application/hooks/useProjects";
+import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
+import { getVendorById } from "../../../application/repository/vendor.repository";
+import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
 
 interface ExistingRisk {
   id?: number;
@@ -65,42 +62,31 @@ interface ExistingRisk {
   action_plan: string;
   vendor_id: string;
 }
-export interface VendorDetails {
-  id?: number;
-  projects: number[];
-  vendor_name: string;
-  vendor_provides: string;
-  website: string;
-  vendor_contact_person: string;
-  review_result: string;
-  review_status: string;
-  reviewer: string;
-  risk_status: string;
-  review_date: string;
-  assignee: string;
-}
+
+// Export VendorDetails interface for use in other components
+export type { VendorDetails };
 
 const Vendors = () => {
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const [isVendorsLoading, setIsVendorsLoading] = useState(true);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [value, setValue] = useState("1");
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [vendors, setVendors] = useState<VendorDetails[]>([]);
   const authToken = useSelector((state: AppState) => state.auth.authToken);
   const userToken = extractUserToken(authToken);
   const userRoleName = userToken?.roleName || "";
   const { users } = useUsers();
 
-  const [selectedVendor, setSelectedVendor] = useState<VendorDetails | null>(
-    null
-  );
+  const [selectedVendor, setSelectedVendor] = useState<any>(null);
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
-  const [controller, setController] = useState<AbortController | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
+
+  // TanStack Query hooks
+  const { data: projects = [] } = useProjects();
+  const { data: vendors = [], isLoading: isVendorsLoading } = useVendors({
+    projectId: selectedProjectId,
+  });
   const {
     vendorRisksSummary,
     refetchVendorRisks,
@@ -110,6 +96,11 @@ const Vendors = () => {
     projectId: selectedProjectId?.toString(),
     vendorId: selectedVendorId?.toString(),
   });
+
+  // Mutation hooks
+  const deleteVendorMutation = useDeleteVendor();
+  const deleteVendorRiskMutation = useDeleteVendorRisk();
+
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -128,14 +119,6 @@ const Vendors = () => {
     projects.length === 0;
   const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
 
-  const createAbortController = () => {
-    if (controller) {
-      controller.abort();
-    }
-    const newController = new AbortController();
-    setController(newController);
-    return newController.signal;
-  };
   const openAddNewVendor = () => {
     setIsOpen(true);
   };
@@ -146,53 +129,6 @@ const Vendors = () => {
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await getAllProjects();
-        if (response?.data && response.data.length > 0) {
-          setProjects(response.data);
-          setSelectedProjectId("all"); // Always default to 'all' after fetching
-        }
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-      }
-    };
-    fetchProjects();
-  }, []);
-
-  const fetchVendors = useCallback(async () => {
-    const signal = createAbortController();
-    if (signal.aborted) return;
-    setIsVendorsLoading(true);
-    if (!selectedProjectId) return;
-    try {
-      const response =
-        selectedProjectId === "all"
-          ? await getAllVendors({ signal })
-          : await getVendorsByProjectId({
-              projectId: parseInt(selectedProjectId),
-              signal,
-            });
-      if (response?.data) {
-        setVendors(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching vendors:", error);
-    } finally {
-      setIsVendorsLoading(false);
-    }
-  }, [selectedProjectId]);
-
-  useEffect(() => {
-    if (value === "1") {
-      fetchVendors();
-      return () => {
-        controller?.abort();
-      };
-    }
-    // No fetch on Risks tab
-  }, [selectedProjectId, value]);
 
   useEffect(() => {
     if (allVisible) {
@@ -204,9 +140,7 @@ const Vendors = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await deleteVendor({
-        id: Number(vendorId),
-      });
+      const response = await deleteVendorMutation.mutateAsync(vendorId);
 
       if (response.status === 202) {
         setAlert({
@@ -216,7 +150,6 @@ const Vendors = () => {
         setTimeout(() => {
           setAlert(null);
         }, 3000);
-        await fetchVendors();
         await refetchVendorRisks();
       } else if (response.status === 404) {
         setAlert({
@@ -253,6 +186,7 @@ const Vendors = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleDeleteRisk = async (riskId: number | undefined) => {
     if (!riskId) {
       setAlert({
@@ -265,9 +199,7 @@ const Vendors = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await deleteVendorRisk({
-        id: Number(riskId),
-      });
+      const response = await deleteVendorRiskMutation.mutateAsync(riskId);
 
       if (response.status === 202) {
         setAlert({
@@ -311,6 +243,7 @@ const Vendors = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleEditRisk = async (riskId: number | undefined) => {
     if (!riskId) {
       setAlert({
@@ -338,6 +271,7 @@ const Vendors = () => {
       setTimeout(() => setAlert(null), 3000);
     }
   };
+
   const handleEditVendor = async (id: number) => {
     try {
       const response = await getVendorById({
@@ -357,6 +291,7 @@ const Vendors = () => {
       setTimeout(() => setAlert(null), 3000);
     }
   };
+
   const handleProjectChange = (
     event: SelectChangeEvent<string | number>,
     _child: React.ReactNode
@@ -389,7 +324,7 @@ const Vendors = () => {
     });
 
     // Add vendors from local state that don't have risks
-    vendors.forEach((vendor: VendorDetails) => {
+    vendors.forEach((vendor: any) => {
       if (!uniqueVendors.has(vendor.id)) {
         uniqueVendors.set(vendor.id, {
           id: vendor.id,
@@ -457,7 +392,7 @@ const Vendors = () => {
             <Stack>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography sx={vwhomeHeading}>Vendor list</Typography>
-                <HelperIcon 
+                <HelperIcon
                   onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
                   size="small"
                 />
@@ -686,7 +621,6 @@ const Vendors = () => {
         setIsOpen={() => setIsOpen(false)}
         value={value}
         onSuccess={async () => {
-          await fetchVendors();
           await refetchVendorRisks();
         }}
         existingVendor={selectedVendor}

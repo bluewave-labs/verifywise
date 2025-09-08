@@ -1,6 +1,5 @@
 import { GetRequestParams } from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 import { RequestParams } from "../../domain/interfaces/iRequestParams";
 
 /**
@@ -13,12 +12,10 @@ import { RequestParams } from "../../domain/interfaces/iRequestParams";
 export async function GetMyOrganization({
   routeUrl,
   signal,
-  authToken = getAuthToken(),
   responseType = "json",
 }: GetRequestParams): Promise<any> {
   try {
     const response = await apiServices.get(routeUrl, {
-      headers: { Authorization: `Bearer ${authToken}` },
       signal,
       responseType,
     });
@@ -38,12 +35,9 @@ export async function GetMyOrganization({
 export async function CreateMyOrganization({
   routeUrl = "/organizations",
   body,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.post(routeUrl, body, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post(routeUrl, body);
     return response.data;
   } catch (error) {
     throw error;
@@ -60,12 +54,11 @@ export async function CreateMyOrganization({
 export async function UpdateMyOrganization({
   routeUrl = "/organizations",
   body,
-  authToken = getAuthToken(),
   headers,
 }: RequestParams): Promise<any> {
   try {
     const response = await apiServices.patch(routeUrl, body, {
-      headers: { Authorization: `Bearer ${authToken}`, ...headers },
+      headers: { ...headers },
     });
     return response.data;
   } catch (error) {

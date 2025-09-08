@@ -80,8 +80,8 @@ export function getStatusColor(status: string): string {
       return "#D6B971";
     case "Implemented":
       return "#52AB43";
-    case "Audited":
-      return "#B8D39C";
+    // case "Audited":
+    //   return "#B8D39C";
     case "Needs Rework":
       return "#800080";
     default:

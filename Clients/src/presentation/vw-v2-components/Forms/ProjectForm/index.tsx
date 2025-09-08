@@ -21,7 +21,6 @@ import {
 } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
@@ -33,7 +32,6 @@ import {
   radioGroupStyle,
   radioOptionStyle,
   continueButtonStyle,
-  backButtonStyle,
 } from "./style";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -59,18 +57,37 @@ import {
 import { FormValues } from "./constants";
 import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
-import { createProject } from "../../../../application/repository/project.repository";
+import { createProject, updateProject } from "../../../../application/repository/project.repository";
 
 const ProjectForm = ({
   sx,
   onClose,
   defaultFrameworkType,
+  projectToEdit,
 }: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<FormValues>({
-    ...initialState,
-    framework_type: defaultFrameworkType || null,
+  
+  // Initialize form values based on whether we're editing or creating
+  const [values, setValues] = useState<FormValues>(() => {
+    if (projectToEdit) {
+      return {
+        project_title: projectToEdit.project_title || "",
+        owner: projectToEdit.owner || 0,
+        members: projectToEdit.members || [],
+        start_date: projectToEdit.start_date || "",
+        ai_risk_classification: projectToEdit.ai_risk_classification || 0,
+        type_of_high_risk_role: projectToEdit.type_of_high_risk_role || 0,
+        goal: projectToEdit.goal || "",
+        enable_ai_data_insertion: projectToEdit.enable_ai_data_insertion || false,
+        monitored_regulations_and_standards: projectToEdit.monitored_regulations_and_standards || [],
+        framework_type: projectToEdit.is_organizational ? FrameworkTypeEnum.OrganizationWide : FrameworkTypeEnum.ProjectBased,
+      };
+    }
+    return {
+      ...initialState,
+      framework_type: defaultFrameworkType || null,
+    };
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -79,12 +96,12 @@ const ProjectForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
 
-  // Auto-advance to step 2 if a default framework type is provided
+  // Auto-advance to step 2 if a default framework type is provided or if editing a project
   useEffect(() => {
-    if (defaultFrameworkType) {
+    if (defaultFrameworkType || projectToEdit) {
       setCurrentStep(2);
     }
-  }, [defaultFrameworkType]);
+  }, [defaultFrameworkType, projectToEdit]);
 
   // Filter frameworks based on framework type
   const filteredFrameworks = useMemo(() => {
@@ -209,9 +226,9 @@ const ProjectForm = ({
     setCurrentStep(2);
   }, [values.framework_type, errors]);
 
-  const handleBack = useCallback(() => {
-    setCurrentStep(1);
-  }, []);
+  // const handleBack = useCallback(() => {
+  //   setCurrentStep(1);
+  // }, []);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -256,8 +273,8 @@ const ProjectForm = ({
       }
     }
 
-    // Validate frameworks for both framework types
-    if (values.monitored_regulations_and_standards.length === 0) {
+    // Validate frameworks for both framework types, but skip when editing
+    if (!projectToEdit && values.monitored_regulations_and_standards.length === 0) {
       newErrors.frameworks = "At least one framework is required.";
       setFrameworkRequired(true);
     }
@@ -296,20 +313,42 @@ const ProjectForm = ({
           body.is_organizational = true;
         }
 
-        // Set frameworks for both types
-        body.framework = values.monitored_regulations_and_standards.map(
-          (fw) => fw._id
-        );
+        // Set frameworks for both types, but skip when editing
+        if (!projectToEdit) {
+          body.framework = values.monitored_regulations_and_standards.map(
+            (fw) => fw._id
+          );
+        }
 
-        const res = await createProject({
-          body,
-        });
+        let res;
+        if (projectToEdit) {
+          // Update existing project
+          res = await updateProject({
+            id: projectToEdit.id,
+            body,
+          });
+        } else {
+          // Create new project
+          res = await createProject({
+            body,
+          });
+        }
 
-        if (res.status === 201) {
-          setProjects((prevProjects: Project[]) => [
-            ...prevProjects,
-            res.data.data.project as Project,
-          ]);
+        if (res.status === 201 || res.status === 200 || res.status === 202) {
+          if (projectToEdit) {
+            // Update the project in the projects list
+            setProjects((prevProjects: Project[]) =>
+              prevProjects.map((project) =>
+                project.id === projectToEdit.id ? res.data.data as Project : project
+              )
+            );
+          } else {
+            // Add new project to the projects list
+            setProjects((prevProjects: Project[]) => [
+              ...prevProjects,
+              res.data.data.project as Project,
+            ]);
+          }
           setTimeout(() => {
             setIsSubmitting(false);
             onClose();
@@ -351,10 +390,12 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            Create new project
+            {projectToEdit ? "Edit project" : "Create new project"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {defaultFrameworkType
+            {projectToEdit
+              ? "Update your project details below"
+              : defaultFrameworkType
               ? `Creating a ${
                   defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
                     ? "organization-wide"
@@ -461,7 +502,7 @@ const ProjectForm = ({
             zIndex: 9999,
           }}
         >
-          <CustomizableToast title="Creating project. Please wait..." />
+          <CustomizableToast title={projectToEdit ? "Updating project. Please wait..." : "Creating project. Please wait..."} />
         </Stack>
       )}
 
@@ -477,10 +518,12 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            Create new project
+            {projectToEdit ? "Edit project" : "Create new project"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {values.framework_type === FrameworkTypeEnum.ProjectBased
+            {projectToEdit
+              ? "Update your project details below"
+              : values.framework_type === FrameworkTypeEnum.ProjectBased
               ? "Create a new project from scratch by filling in the following."
               : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
@@ -646,92 +689,94 @@ const ProjectForm = ({
                 />
               </Stack>
             )}
-            <Stack>
-              <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  fontWeight: 500,
-                  mb: 2,
-                }}
-              >
-                Monitored regulations and standards *
-              </Typography>
-              <Autocomplete
-                multiple
-                id="monitored-regulations-and-standards-input"
-                size="small"
-                value={values.monitored_regulations_and_standards}
-                options={filteredFrameworks}
-                onChange={handleOnMultiSelect(
-                  "monitored_regulations_and_standards"
-                )}
-                getOptionLabel={(item) => item.name}
-                noOptionsText={
-                  values.monitored_regulations_and_standards.length ===
-                  filteredFrameworks.length
-                    ? "All regulations selected"
-                    : "No options"
-                }
-                renderOption={(props, option) => {
-                  const isComingSoon = option.name.includes("coming soon");
-                  return (
-                    <Box
-                      component="li"
-                      {...props}
-                      sx={{
-                        opacity: isComingSoon ? 0.5 : 1,
-                        cursor: isComingSoon ? "not-allowed" : "pointer",
-                        "&:hover": {
-                          backgroundColor: isComingSoon
-                            ? "transparent"
-                            : undefined,
-                        },
-                      }}
-                    >
-                      <Typography
+            {!projectToEdit && (
+              <Stack>
+                <Typography
+                  sx={{
+                    fontSize: theme.typography.fontSize,
+                    fontWeight: 500,
+                    mb: 2,
+                  }}
+                >
+                  Monitored regulations and standards *
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="monitored-regulations-and-standards-input"
+                  size="small"
+                  value={values.monitored_regulations_and_standards}
+                  options={filteredFrameworks}
+                  onChange={handleOnMultiSelect(
+                    "monitored_regulations_and_standards"
+                  )}
+                  getOptionLabel={(item) => item.name}
+                  noOptionsText={
+                    values.monitored_regulations_and_standards.length ===
+                    filteredFrameworks.length
+                      ? "All regulations selected"
+                      : "No options"
+                  }
+                  renderOption={(props, option) => {
+                    const isComingSoon = option.name.includes("coming soon");
+                    return (
+                      <Box
+                        component="li"
+                        {...props}
                         sx={{
-                          fontSize: "13px",
-                          color: isComingSoon
-                            ? "text.secondary"
-                            : "text.primary",
+                          opacity: isComingSoon ? 0.5 : 1,
+                          cursor: isComingSoon ? "not-allowed" : "pointer",
+                          "&:hover": {
+                            backgroundColor: isComingSoon
+                              ? "transparent"
+                              : undefined,
+                          },
                         }}
                       >
-                        {option.name}
-                      </Typography>
-                    </Box>
-                  );
-                }}
-                isOptionEqualToValue={(option, value) =>
-                  option._id === value._id
-                }
-                getOptionDisabled={(option) =>
-                  option.name.includes("coming soon")
-                }
-                filterSelectedOptions
-                popupIcon={<KeyboardArrowDown />}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    error={!!errors.frameworks}
-                    placeholder="Select regulations and standards"
-                    sx={teamMembersRenderInputStyle}
-                  />
+                        <Typography
+                          sx={{
+                            fontSize: "13px",
+                            color: isComingSoon
+                              ? "text.secondary"
+                              : "text.primary",
+                          }}
+                        >
+                          {option.name}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  isOptionEqualToValue={(option, value) =>
+                    option._id === value._id
+                  }
+                  getOptionDisabled={(option) =>
+                    option.name.includes("coming soon")
+                  }
+                  filterSelectedOptions
+                  popupIcon={<KeyboardArrowDown />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.frameworks}
+                      placeholder="Select regulations and standards"
+                      sx={teamMembersRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...teamMembersSxStyle,
+                  }}
+                  slotProps={teamMembersSlotProps}
+                />
+                {frameworkRequired && (
+                  <Typography
+                    variant="caption"
+                    sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                  >
+                    {errors.frameworks}
+                  </Typography>
                 )}
-                sx={{
-                  backgroundColor: theme.palette.background.main,
-                  ...teamMembersSxStyle,
-                }}
-                slotProps={teamMembersSlotProps}
-              />
-              {frameworkRequired && (
-                <Typography
-                  variant="caption"
-                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
-                >
-                  {errors.frameworks}
-                </Typography>
-              )}
-            </Stack>
+              </Stack>
+            )}
           </Suspense>
           <DatePicker
             label="Start date"
@@ -739,7 +784,10 @@ const ProjectForm = ({
               values.start_date ? dayjs(values.start_date) : dayjs(new Date())
             }
             handleDateChange={handleDateChange}
-            sx={datePickerStyle}
+            sx={{
+              ...datePickerStyle,
+              ...(projectToEdit && { width: "350px", "& input": { width: "300px" } }),
+            }}
             isRequired
             error={errors.startDate}
           />
@@ -751,13 +799,14 @@ const ProjectForm = ({
             onChange={handleOnTextFieldChange("goal")}
             sx={{
               backgroundColor: theme.palette.background.main,
+              ...(projectToEdit && { width: "350px" }), // Fix width when editing
             }}
             isRequired
             error={errors.goal}
           />
         </Stack>
       </Stack>
-      <Stack>
+      {!projectToEdit && (<Stack>
         <Checkbox
           size="small"
           id="auto-fill"
@@ -766,24 +815,17 @@ const ProjectForm = ({
           value={values.enable_ai_data_insertion.toString()}
           label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
         />
-      </Stack>
+      </Stack>)}
       <Stack
         sx={{
           display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
         }}
       >
         <CustomizableButton
-          variant="outlined"
-          text="Back"
-          sx={backButtonStyle}
-          icon={<ArrowBackIcon />}
-          onClick={handleBack}
-        />
-        <CustomizableButton
-          text="Create project"
+          text={projectToEdit ? "Update project" : "Create project"}
           sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon />}
           onClick={() => handleSubmit()}

@@ -171,7 +171,7 @@ const Home = () => {
             />
           </Stack>
           <Stack sx={vwhomeBodyControls}>
-            {projects.length === 0 && (
+            {/* {projects.length === 0 && (
               <CustomizableButton
                 variant="contained"
                 text="Create demo project"
@@ -186,7 +186,7 @@ const Home = () => {
                   !allowedRoles.projects.create.includes(userRoleName)
                 }
               />
-            )}
+            )} */}
             <div data-joyride-id="new-project-button" ref={refs[0]}>
               <CustomizableButton
                 variant="contained"

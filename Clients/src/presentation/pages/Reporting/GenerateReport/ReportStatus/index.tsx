@@ -11,7 +11,7 @@ const ReportStatus: React.FC<DisabledProps> = ({ isDisabled }) => {
     <>
       {isDisabled && (
         <Typography sx={styles.baseText}>
-          There is no report to download.
+          Create a project first to generate a report.
         </Typography>
       )}
     </>

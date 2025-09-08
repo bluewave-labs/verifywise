@@ -26,11 +26,6 @@ import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
-import { extractUserToken } from "../../../../application/tools/extractToken";
-import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { GetMyOrganization } from "../../../../application/repository/organization.repository";
-import { getTierFeatures } from "../../../../application/repository/tiers.repository";
-import { Tier } from "../../../../domain/types/Tiers";
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 
 const Home = () => {

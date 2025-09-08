@@ -275,7 +275,7 @@ const PolicyDetailModal: React.FC<Props> = ({
         <Divider sx={{ my: 2 }} />
 
         <Stack spacing={4} sx={{
-            paddingBottom: "80px", // leaves space so content won't hide under Save button
+            paddingBottom: 30, // leaves space so content won't hide under Save button
           }}>
           <PolicyForm
             formData={formData}

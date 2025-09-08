@@ -124,11 +124,11 @@ const menu: MenuItem[] = [
 ];
 
 const other: MenuItem[] = [
-  {
-    name: "Event Tracker",
-    icon: <WatchTower />,
-    path: "/event-tracker",
-  },
+  // {
+  //   name: "Event Tracker",
+  //   icon: <WatchTower />,
+  //   path: "/event-tracker",
+  // },
   {
     name: "Settings",
     icon: <Settings />,

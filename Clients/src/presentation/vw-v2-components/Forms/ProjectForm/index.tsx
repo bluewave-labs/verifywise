@@ -21,7 +21,6 @@ import {
 } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
@@ -33,7 +32,6 @@ import {
   radioGroupStyle,
   radioOptionStyle,
   continueButtonStyle,
-  backButtonStyle,
 } from "./style";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -228,9 +226,9 @@ const ProjectForm = ({
     setCurrentStep(2);
   }, [values.framework_type, errors]);
 
-  const handleBack = useCallback(() => {
-    setCurrentStep(1);
-  }, []);
+  // const handleBack = useCallback(() => {
+  //   setCurrentStep(1);
+  // }, []);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};

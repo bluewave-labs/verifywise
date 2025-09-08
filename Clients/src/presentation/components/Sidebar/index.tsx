@@ -569,7 +569,7 @@ const Sidebar = () => {
                           }),
                         }}
                       >
-                        <ListItemText 
+                        <ListItemText
                           sx={{
                             "& .MuiListItemText-primary": {
                               fontSize: "14px",

@@ -502,9 +502,21 @@ const Sidebar = () => {
                   <List
                     component="div"
                     disablePadding
-                    sx={{ pl: theme.spacing(12) }}
+                    sx={{ 
+                      pl: theme.spacing(12),
+                      position: "relative",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        left: theme.spacing(8),
+                        top: 0,
+                        bottom: theme.spacing(1),
+                        width: "1px",
+                        backgroundColor: theme.palette.border?.light || "#e0e0e0",
+                      }
+                    }}
                   >
-                    {item.children.map((child) => (
+                    {item.children.map((child, index) => (
                       <ListItemButton
                         key={child.path}
                         disableRipple={
@@ -523,6 +535,7 @@ const Sidebar = () => {
                           borderRadius: theme.shape.borderRadius,
                           px: theme.spacing(4),
                           my: theme.spacing(1),
+                          position: "relative",
                           backgroundColor:
                             location.pathname === child.path
                               ? "#F9F9F9"
@@ -530,6 +543,25 @@ const Sidebar = () => {
                           "&:hover": {
                             backgroundColor: "#F9F9F9",
                           },
+                          "&::before": {
+                            content: '""',
+                            position: "absolute",
+                            left: theme.spacing(-8),
+                            top: "50%",
+                            width: theme.spacing(4),
+                            height: "1px",
+                            backgroundColor: theme.palette.border?.light || "#e0e0e0",
+                            transform: "translateY(-50%)",
+                          },
+                          "&::after": index === item.children!.length - 1 ? {
+                            content: '""',
+                            position: "absolute",
+                            left: theme.spacing(-8),
+                            top: "50%",
+                            bottom: "-100%",
+                            width: "1px",
+                            backgroundColor: theme.palette.background.main || "#ffffff",
+                          } : {}
                         }}
                       >
                         <ListItemText>{child.name}</ListItemText>

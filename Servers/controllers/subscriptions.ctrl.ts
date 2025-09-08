@@ -131,51 +131,6 @@ export async function createSubscriptionController(
   }
 }
 
-export async function getSubscriptionByIdController(
-  req: Request,
-  res: Response
-) {
-  const id = parseInt(req.params.id);
-  
-  logStructured(
-    "processing",
-    `Fetching subscription by ID: ${id}`,
-    "getSubscriptionByIdController",
-    "subscriptions.ctrl.ts"
-  );
-  logger.debug(`🔍 Looking up subscription with ID: ${id}`);
-
-  try {
-    const subscription = await getSubscriptionById(id);
-    if (subscription) {
-      logStructured(
-        "successful",
-        `Subscription found: ID ${id}`,
-        "getSubscriptionByIdController",
-        "subscriptions.ctrl.ts"
-      );
-      return res.status(200).json(STATUS_CODE[200](subscription));
-    }
-
-    logStructured(
-      "error",
-      `Subscription not found: ID ${id}`,
-      "getSubscriptionByIdController",
-      "subscriptions.ctrl.ts"
-    );
-    return res.status(404).json(STATUS_CODE[404]({ message: "Subscription not found" }));
-  } catch (error) {
-    logStructured(
-      "error",
-      `Failed to fetch subscription: ID ${id}`,
-      "getSubscriptionByIdController",
-      "subscriptions.ctrl.ts"
-    );
-    logger.error("❌ Error in getSubscriptionByIdController:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
 export async function updateSubscriptionController(
   req: Request,
   res: Response

@@ -43,7 +43,6 @@ import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { getTierFeatures } from "../../../../application/repository/tiers.repository";
 import { Tier } from "../../../../domain/types/Tiers";
 import { useEffect } from "react";
-import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -287,10 +286,38 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(false);
   };
 
-  const { tierFeatures } = useSubscriptionData();
+  const userToken = extractUserToken(getAuthToken());
+  const organizationId = userToken?.organizationId;
+  const [organizationTierId, setOrganizationTierId] = useState<number | null>(
+    null
+  );
+  const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
+
+  useEffect(() => {
+    const fetchOrganizationTierId = async () => {
+      const organization = await GetMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+      });
+      const org = organization.data.data;
+      setOrganizationTierId(org.subscription_id);
+    };
+
+    fetchOrganizationTierId();
+  }, [organizationId]);
+
+  useEffect(() => {
+    const fetchTierFeatures = async () => {
+      const features = await getTierFeatures({
+        tierId: organizationTierId || 1,
+        routeUrl: "/tiers",
+      });
+      setTierFeatures(features.data);
+    };
+    fetchTierFeatures();
+  }, [organizationTierId]);
 
   const canAddTeamMembers =
-    tierFeatures?.data.seats === 0 || (tierFeatures?.data.seats && tierFeatures?.data.seats > teamUsers.length);
+    tierFeatures?.seats === 0 || (tierFeatures?.seats && tierFeatures?.seats > teamUsers.length);
 
   return (
     <Stack sx={{ mt: 3 }}>

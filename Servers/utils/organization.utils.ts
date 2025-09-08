@@ -123,7 +123,7 @@ export const updateOrganizationByIdQuery = async (
   transaction: Transaction
 ): Promise<OrganizationModel | null> => {
   const updateOrg: Partial<Record<keyof OrganizationModel, any>> = {};
-  const updateFields = ["name", "logo", "subscription_id"];
+  const updateFields = ["name", "logo"];
 
   const setClause = updateFields
     .filter((field) => {

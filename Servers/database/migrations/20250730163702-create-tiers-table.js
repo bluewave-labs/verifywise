@@ -7,7 +7,7 @@ module.exports = {
       -- Create the tiers table
       CREATE TABLE tiers (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(10) NOT NULL CHECK (name IN ('Free', 'Team', 'Business', 'Enterprise')),
+        name VARCHAR(10) NOT NULL CHECK (name IN ('Free', 'Team', 'Growth', 'Enterprise')),
         price INTEGER NOT NULL DEFAULT 0,
         features JSONB NOT NULL DEFAULT '{}',
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

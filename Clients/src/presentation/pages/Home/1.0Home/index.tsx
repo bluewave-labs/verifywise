@@ -26,7 +26,11 @@ import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
-import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
+import { extractUserToken } from "../../../../application/tools/extractToken";
+import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
+import { GetMyOrganization } from "../../../../application/repository/organization.repository";
+import { getTierFeatures } from "../../../../application/repository/tiers.repository";
+import { Tier } from "../../../../domain/types/Tiers";
 
 const Home = () => {
   const {
@@ -46,6 +50,8 @@ const Home = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
+  const [organizationTierId, setOrganizationTierId] = useState<number | null>(null);
+  const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
 
   useEffect(() => {
     if (dashboard) {
@@ -86,16 +92,40 @@ const Home = () => {
     setRefreshProjectsFlag((prev) => !prev);
   };
 
-  const { tierFeatures } = useSubscriptionData();
+  const userToken = extractUserToken(getAuthToken());
+  const organizationId = userToken?.organizationId;
+
+  useEffect(() => {
+    const fetchOrganizationTierId = async () => {
+      const organization = await GetMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+      });
+      const org = organization.data.data;
+      setOrganizationTierId(org.subscription_id);
+    }
+
+    fetchOrganizationTierId();
+  }, [organizationId]);
+
+  useEffect(() => {
+    const fetchTierFeatures = async () => {
+      const features = await getTierFeatures({
+        tierId: organizationTierId || 1,
+        routeUrl: "/tiers",
+      });
+      setTierFeatures(features.data);
+    }
+    fetchTierFeatures();
+  }, [organizationTierId]);
 
   const isDisabledLogic = () => {
-    if (dashboard?.projects && tierFeatures?.data.projects) {
+    if (dashboard?.projects && tierFeatures?.projects) {
       // If tierFeatures.projects is 0, it means unlimited projects
-      if (tierFeatures.data.projects === 0) {
+      if (tierFeatures.projects === 0) {
         return !allowedRoles.projects.create.includes(userRoleName);
       }
       // Otherwise, check if current projects count has reached the limit
-      return dashboard.projects >= tierFeatures.data.projects || !allowedRoles.projects.create.includes(userRoleName);
+      return dashboard.projects >= tierFeatures.projects || !allowedRoles.projects.create.includes(userRoleName);
     }
     return !allowedRoles.projects.create.includes(userRoleName);
   }

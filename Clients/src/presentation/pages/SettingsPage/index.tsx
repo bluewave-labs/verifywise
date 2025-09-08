@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Tabs, Tab, Stack } from "@mui/material";
-import { useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
-import Subscription from "./Subscription";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 
@@ -16,21 +14,10 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const [activeTab, setActiveTab] = useState(0);
-  const [searchParams] = useSearchParams();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
-
-  // Handle payment redirect - navigate to subscription tab if session_id and tierId are present
-  useEffect(() => {
-    const sessionId = searchParams.get('session_id');
-    const tierId = searchParams.get('tierId');
-    
-    if (sessionId && tierId) {
-      setActiveTab(4);
-    }
-  }, [searchParams]);
 
   return (
     <Stack className="vwhome">
@@ -50,7 +37,6 @@ export default function ProfilePage() {
           disabled={isTeamManagementDisabled}
         />
         <Tab label="Organization" disableRipple sx={settingTabStyle} />
-        <Tab label="Subscription" disableRipple sx={settingTabStyle} />
       </Tabs>
 
       {activeTab === 0 && <Profile />}
@@ -60,7 +46,6 @@ export default function ProfilePage() {
       {activeTab === 2 && <TeamManagement />}
 
       {activeTab === 3 && <Organization />}
-      {activeTab === 4 && <Subscription />}
     </Stack>
   );
 }

@@ -283,6 +283,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
             color: theme.palette.text.disabled,
             mx: 1,
             fontSize: "14px",
+            paddingTop: "4px",
           },
           "& .MuiBreadcrumbs-ol": {
             alignItems: "center",

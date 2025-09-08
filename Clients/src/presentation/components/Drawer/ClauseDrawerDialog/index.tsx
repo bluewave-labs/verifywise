@@ -89,8 +89,8 @@ const VWISO42001ClauseDrawerDialog = ({
     ["Awaiting review", "3"],
     ["Awaiting approval", "4"],
     ["Implemented", "5"],
-    ["Audited", "6"],
-    ["Needs rework", "7"],
+    // ["Audited", "6"],
+    ["Needs rework", "6"],
   ]);
   // Create the reverse map
   const idStatusMap = new Map();

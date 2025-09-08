@@ -1,8 +1,10 @@
-import { Stack, Typography, Box, Button, Modal } from "@mui/material";
+import { Stack, Typography, Box, Button, Modal, Menu, MenuItem, ListItemIcon, ListItemText, Divider } from "@mui/material";
 import { useContext, useEffect, useState, useMemo } from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -88,6 +90,7 @@ const Framework = () => {
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
+  const dropDownStyle = singleTheme.dropDownStyles.primary;
 
   // Check if there are any organizational projects
   const organizationalProject = useMemo(() => {
@@ -96,8 +99,37 @@ const Framework = () => {
 
   // State for modals
   const [isProjectFormModalOpen, setIsProjectFormModalOpen] = useState(false);
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // State for dropdown menu
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const isMenuOpen = Boolean(anchorEl);
+
+  // Handle dropdown menu
+  const handleManageProjectClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleManageFrameworksClick = () => {
+    setIsFrameworkModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleEditProjectClick = () => {
+    setIsEditProjectModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteProjectClick = () => {
+    setIsDeleteModalOpen(true);
+    handleMenuClose();
+  };
 
   // Function to refresh project data after framework changes
   const refreshProjectData = async () => {
@@ -191,7 +223,7 @@ const Framework = () => {
     { value: "awaiting approval", label: "Awaiting Approval" },
     { value: "awaiting review", label: "Awaiting Review" },
     { value: "draft", label: "Draft" },
-    { value: "audited", label: "Audited" },
+    // { value: "audited", label: "Audited" },
     { value: "needs rework", label: "Needs Rework" },
   ];
 
@@ -203,7 +235,7 @@ const Framework = () => {
     { value: "awaiting approval", label: "Awaiting Approval" },
     { value: "awaiting review", label: "Awaiting Review" },
     { value: "draft", label: "Draft" },
-    { value: "audited", label: "Audited" },
+    // { value: "audited", label: "Audited" },
     { value: "needs rework", label: "Needs Rework" },
   ];
 
@@ -422,7 +454,7 @@ const Framework = () => {
           p: 6,
           backgroundColor: "#000000",
           borderRadius: 3,
-          minHeight: "400px",
+              minHeight: "400px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -470,48 +502,131 @@ const Framework = () => {
           justifyContent: "flex-end"
         }}>
           {organizationalProject ? (
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <>
               <Button
                 variant="contained"
-                startIcon={<SettingsIcon />}
-                onClick={() => setIsFrameworkModalOpen(true)}
-                disabled={!allowedRoles.frameworks.manage.includes(userRoleName)}
+                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: '18px' }} />}
+                onClick={handleManageProjectClick}
+                disabled={
+                  !allowedRoles.frameworks.manage.includes(userRoleName) &&
+                  !allowedRoles.projects.edit.includes(userRoleName) &&
+                  !allowedRoles.projects.delete.includes(userRoleName)
+                }
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
                   textTransform: "none",
                   "&:hover": {
                     backgroundColor: "#0e5c47",
+                    boxShadow: '0px 4px 8px rgba(19, 113, 91, 0.3)',
                   },
                   "&:disabled": {
                     backgroundColor: "#cccccc",
                     color: "#666666",
+                    boxShadow: 'none',
+                  },
+                  "& .MuiButton-endIcon": {
+                    marginLeft: 1,
+                    transition: 'transform 0.2s ease',
+                  },
+                  "&:hover .MuiButton-endIcon": {
+                    transform: 'rotate(180deg)',
                   },
                 }}
               >
-                Manage Frameworks
+                Manage Project
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<DeleteIcon />}
-                onClick={() => setIsDeleteModalOpen(true)}
-                disabled={!allowedRoles.projects.delete.includes(userRoleName)}
-                sx={{
-                  backgroundColor: "#DB504A",
-                  border: "1px solid #DB504A",
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "#c1453f",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#cccccc",
-                    color: "#666666",
+              <Menu
+                anchorEl={anchorEl}
+                open={isMenuOpen}
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      ...dropDownStyle,
+                      width: 200,
+                      mt: 1,
+                    },
                   },
                 }}
               >
-                Delete Project
-              </Button>
-            </Box>
+                <MenuItem 
+                  onClick={handleManageFrameworksClick}
+                  disabled={!allowedRoles.frameworks.manage.includes(userRoleName)}
+                >
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <SettingsIcon 
+                      fontSize="small" 
+                      sx={{ 
+                        color: 'text.secondary',
+                        fontSize: '16px'
+                      }} 
+                    />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Manage Frameworks"
+                    primaryTypographyProps={{
+                      fontSize: '13px',
+                      fontWeight: 400,
+                      color: 'text.primary'
+                    }}
+                  />
+                </MenuItem>
+                <MenuItem 
+                  onClick={handleEditProjectClick}
+                  disabled={!allowedRoles.projects.edit.includes(userRoleName)}
+                >
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <EditIcon 
+                      fontSize="small" 
+                      sx={{ 
+                        color: 'text.secondary',
+                        fontSize: '16px'
+                      }} 
+                    />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Edit Project"
+                    primaryTypographyProps={{
+                      fontSize: '13px',
+                      fontWeight: 400,
+                      color: 'text.primary'
+                    }}
+                  />
+                </MenuItem>
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem 
+                  onClick={handleDeleteProjectClick}
+                  disabled={!allowedRoles.projects.delete.includes(userRoleName)}
+                >
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <DeleteIcon 
+                      fontSize="small" 
+                      sx={{ 
+                        color: 'error.main',
+                        fontSize: '16px'
+                      }} 
+                    />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Delete Project"
+                    primaryTypographyProps={{
+                      fontSize: '13px',
+                      fontWeight: 400,
+                      color: 'error.main'
+                    }}
+                  />
+                </MenuItem>
+              </Menu>
+            </>
           ) : (
             <Button
               variant="contained"
@@ -601,6 +716,46 @@ const Framework = () => {
               onClose={async () => {
                 setIsProjectFormModalOpen(false);
                 // Refresh project data after creating a new project
+                await refreshProjectData();
+              }}
+            />
+          </Box>
+        </Modal>
+      )}
+      
+      {isEditProjectModalOpen && organizationalProject && (
+        <Modal
+          open={isEditProjectModalOpen}
+          onClose={async () => {
+            setIsEditProjectModalOpen(false);
+            // Refresh project data after editing the project
+            await refreshProjectData();
+          }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              backgroundColor: "white",
+              borderRadius: 2,
+              boxShadow: 24,
+              maxHeight: "90vh",
+              maxWidth: "90vw",
+              overflow: "auto",
+              outline: "none",
+              p: 0,
+            }}
+          >
+            <ProjectForm
+              projectToEdit={organizationalProject}
+              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+              onClose={async () => {
+                setIsEditProjectModalOpen(false);
+                // Refresh project data after editing the project
                 await refreshProjectData();
               }}
             />

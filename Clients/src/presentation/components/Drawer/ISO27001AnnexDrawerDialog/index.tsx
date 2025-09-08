@@ -224,7 +224,7 @@ const VWISO27001AnnexDrawerDialog = ({
     const value = event.target.value.toString();
     if (
       field === "status" &&
-      value === "Audited" &&
+      value === "Implemented" &&
       (selectedRisks.length > 0 ||
         formData.risks.length > 0 ||
         (formData.risks.length > 0 &&

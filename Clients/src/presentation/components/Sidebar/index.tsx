@@ -502,9 +502,22 @@ const Sidebar = () => {
                   <List
                     component="div"
                     disablePadding
-                    sx={{ pl: theme.spacing(12) }}
+                    sx={{
+                      pl: theme.spacing(8), // Indent the nested list
+                      position: "relative",
+                      // The main vertical line of the tree
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        left: theme.spacing(3), // Position the line to align with parent icon center
+                        top: 0,
+                        bottom: 0,
+                        width: "1px",
+                        backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                      },
+                    }}
                   >
-                    {item.children.map((child) => (
+                    {item.children.map((child, index) => (
                       <ListItemButton
                         key={child.path}
                         disableRipple={
@@ -523,6 +536,7 @@ const Sidebar = () => {
                           borderRadius: theme.shape.borderRadius,
                           px: theme.spacing(4),
                           my: theme.spacing(1),
+                          position: "relative",
                           backgroundColor:
                             location.pathname === child.path
                               ? "#F9F9F9"
@@ -530,9 +544,41 @@ const Sidebar = () => {
                           "&:hover": {
                             backgroundColor: "#F9F9F9",
                           },
+                          // The horizontal line connecting item to the vertical tree line
+                          "&::before": {
+                            content: '""',
+                            position: "absolute",
+                            left: theme.spacing(-5), // Start from the vertical line's position
+                            top: "50%",
+                            width: theme.spacing(5), // Extend to the item's padding start
+                            height: "1px",
+                            backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                          },
+                          // L-shaped corner for the last item
+                          ...(index === item.children!.length - 1 && {
+                            "&::after": {
+                              content: '""',
+                              position: "absolute",
+                              left: theme.spacing(-8), // Align with the main vertical line
+                              top: "50%",
+                              bottom: "-200%", // Cover the area below the item to "erase" vertical line
+                              width: "1px",
+                              backgroundColor:
+                                theme.palette.background.main || "#ffffff",
+                            },
+                          }),
                         }}
                       >
-                        <ListItemText>{child.name}</ListItemText>
+                        <ListItemText
+                          sx={{
+                            "& .MuiListItemText-primary": {
+                              fontSize: "14px",
+                              color: theme.palette.text.secondary,
+                            },
+                          }}
+                        >
+                          {child.name}
+                        </ListItemText>
                       </ListItemButton>
                     ))}
                   </List>

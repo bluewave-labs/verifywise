@@ -806,7 +806,7 @@ const ProjectForm = ({
           />
         </Stack>
       </Stack>
-      <Stack>
+      {!projectToEdit && (<Stack>
         <Checkbox
           size="small"
           id="auto-fill"
@@ -815,7 +815,7 @@ const ProjectForm = ({
           value={values.enable_ai_data_insertion.toString()}
           label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
         />
-      </Stack>
+      </Stack>)}
       <Stack
         sx={{
           display: "flex",

@@ -9,11 +9,9 @@ import {
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
-import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
-import { logEngine } from "../../../../application/tools/log.engine";
 import { FrameworkTypeEnum } from "../../../vw-v2-components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
 import { AlertState } from "../../../../application/interfaces/appStates";
@@ -42,7 +40,7 @@ const Home = () => {
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, setShowToastNotification] =
+  const [showToastNotification, _] =
     useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);

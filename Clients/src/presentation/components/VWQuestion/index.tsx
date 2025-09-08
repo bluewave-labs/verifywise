@@ -8,19 +8,16 @@ import {
 import RichTextEditor from "../RichTextEditor";
 import {
   useCallback,
-  useContext,
   useMemo,
   useState,
   useEffect,
   Suspense,
 } from "react";
 import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import createUppy from "../../../application/tools/createUppy";
 import Alert from "../Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
@@ -30,6 +27,7 @@ import allowedRoles from "../../../application/constants/permissions";
 import LinkedRisksPopup from "../LinkedRisks";
 import AuditRiskPopup from "../RiskPopup/AuditRiskPopup";
 import { updateEUAIActAnswerById } from "../../../application/repository/question.repository";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 interface QuestionProps {
   question: Question;
@@ -57,7 +55,7 @@ const QuestionFrame = ({
   setRefreshKey,
   currentProjectId,
 }: QuestionProps) => {
-  const { userId, userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName, userId } = useAuth();
   const [values, setValues] = useState<Question>({
     ...question,
     risks: question.risks || [],
@@ -185,9 +183,6 @@ const QuestionFrame = ({
   };
 
   const handleRemoveFile = async (fileId: string) => {
-    const state = store.getState();
-    const authToken = state.auth.authToken;
-
     const formData = new FormData();
     const fileIdNumber = parseInt(fileId);
     if (isNaN(fileIdNumber)) {
@@ -207,7 +202,6 @@ const QuestionFrame = ({
     try {
       const response = await apiServices.post("/files", formData, {
         headers: {
-          Authorization: `Bearer ${authToken}`,
           "Content-Type": "multipart/form-data",
         },
       });

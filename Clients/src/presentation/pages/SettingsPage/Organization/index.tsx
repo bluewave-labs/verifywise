@@ -1,15 +1,16 @@
-import { Stack, useTheme, Box, Divider, CircularProgress, Typography, Button as MUIButton } from "@mui/material";
-import Field from "../../../components/Inputs/Field";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
 import {
-  useState,
-  useCallback,
-  ChangeEvent,
-  useEffect,
-  useContext,
-  useRef,
-} from "react";
+  Stack,
+  useTheme,
+  Box,
+  Divider,
+  CircularProgress,
+  Typography,
+  Button as MUIButton,
+} from "@mui/material";
+import Field from "../../../components/Inputs/Field";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import SaveIcon from "@mui/icons-material/Save";
+import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
   CreateMyOrganization,
@@ -17,13 +18,16 @@ import {
   UpdateMyOrganization,
 } from "../../../../application/repository/organization.repository";
 import Alert from "../../../components/Alert";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import allowedRoles from "../../../../application/constants/permissions";
 import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
-import { uploadAITrustCentreLogo, deleteAITrustCentreLogo } from "../../../../application/repository/aiTrustCentre.repository";
+import {
+  uploadAITrustCentreLogo,
+  deleteAITrustCentreLogo,
+} from "../../../../application/repository/aiTrustCentre.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -33,14 +37,18 @@ interface AlertState {
 }
 
 const Organization = () => {
-  const { userRoleName, organizationId } = useContext(VerifyWiseContext);
-  const isEditingDisabled = !allowedRoles.organizations.edit.includes(userRoleName);
-  const isCreatingDisabled = !allowedRoles.organizations.create.includes(userRoleName);
+  const { userRoleName, organizationId } = useAuth();
+  const isEditingDisabled =
+    !allowedRoles.organizations.edit.includes(userRoleName);
+  const isCreatingDisabled =
+    !allowedRoles.organizations.create.includes(userRoleName);
 
   // Organization states
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [organizationName, setOrganizationName] = useState("");
-  const [organizationNameError, setOrganizationNameError] = useState<string | null>(null);
+  const [organizationNameError, setOrganizationNameError] = useState<
+    string | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [organizationExists, setOrganizationExists] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -50,7 +58,9 @@ const Organization = () => {
   const [logoLoading, setLogoLoading] = useState(false);
   const [logoRemoving, setLogoRemoving] = useState(false);
   const [isRemoveLogoModalOpen, setIsRemoveLogoModalOpen] = useState(false);
-  const [selectedLogoPreview, setSelectedLogoPreview] = useState<string | null>(null);
+  const [selectedLogoPreview, setSelectedLogoPreview] = useState<string | null>(
+    null
+  );
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   // Refs
@@ -59,9 +69,12 @@ const Organization = () => {
   const [alert, setAlert] = useState<AlertState | null>(null);
 
   // Utility function to show alerts
-  const showAlert = useCallback((variant: AlertState['variant'], title: string, body: string) => {
-    setAlert({ variant, title, body, isToast: false });
-  }, []);
+  const showAlert = useCallback(
+    (variant: AlertState["variant"], title: string, body: string) => {
+      setAlert({ variant, title, body, isToast: false });
+    },
+    []
+  );
 
   // Utility function to clear preview and revoke URLs
   const clearLogoPreview = useCallback(() => {
@@ -72,26 +85,32 @@ const Organization = () => {
   }, [selectedLogoPreview]);
 
   // Function to fetch logo and convert Buffer to Blob URL
-  const fetchLogoAsBlobUrl = useCallback(async (tenantId: string): Promise<string | null> => {
-    try {
-      const authToken = getAuthToken();
-      const response = await apiServices.get(`/aiTrustCentre/${tenantId}/logo`, {
-        responseType: 'json',
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+  const fetchLogoAsBlobUrl = useCallback(
+    async (tenantId: string): Promise<string | null> => {
+      try {
+        const response = await apiServices.get(
+          `/aiTrustCentre/${tenantId}/logo`,
+          {
+            responseType: "json",
+          }
+        );
 
-      const responseData = response.data as any;
-      if (responseData?.data?.logo?.content?.data) {
-        const bufferData = new Uint8Array(responseData.data.logo.content.data);
-        const blob = new Blob([bufferData], { type: 'image/png' });
-        return URL.createObjectURL(blob);
+        const responseData = response.data as any;
+        if (responseData?.data?.logo?.content?.data) {
+          const bufferData = new Uint8Array(
+            responseData.data.logo.content.data
+          );
+          const blob = new Blob([bufferData], { type: "image/png" });
+          return URL.createObjectURL(blob);
+        }
+        return null;
+      } catch (error) {
+        console.error("Error fetching logo:", error);
+        return null;
       }
-      return null;
-    } catch (error) {
-      console.error('Error fetching logo:', error);
-      return null;
-    }
-  }, []);
+    },
+    []
+  );
 
   // Fetch organization data and logo
   const fetchOrganization = useCallback(async () => {
@@ -119,7 +138,7 @@ const Organization = () => {
             }
           }
         } catch (error) {
-          console.log('No existing logo found or error fetching logo:', error);
+          console.log("No existing logo found or error fetching logo:", error);
         } finally {
           setLogoLoading(false);
         }
@@ -132,72 +151,108 @@ const Organization = () => {
   }, [organizationId, fetchLogoAsBlobUrl]);
 
   // Handle organization name changes
-  const handleOrganizationNameChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setOrganizationName(value);
-    setHasChanges(true);
+  const handleOrganizationNameChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setOrganizationName(value);
+      setHasChanges(true);
 
-    const validation = checkStringValidation("Organization name", value, 2, 50, false, false);
-    setOrganizationNameError(validation.accepted ? null : validation.message);
-    setIsSaveDisabled(!value.trim() || !validation.accepted);
-  }, []);
+      const validation = checkStringValidation(
+        "Organization name",
+        value,
+        2,
+        50,
+        false,
+        false
+      );
+      setOrganizationNameError(validation.accepted ? null : validation.message);
+      setIsSaveDisabled(!value.trim() || !validation.accepted);
+    },
+    []
+  );
 
   // Handle logo file selection and upload
-  const handleLogoChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleLogoChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      showAlert("error", "Invalid File", 'Please select a valid image file');
-      return;
-    }
+      // Validate file
+      if (!file.type.startsWith("image/")) {
+        showAlert("error", "Invalid File", "Please select a valid image file");
+        return;
+      }
 
-    if (file.size > 5 * 1024 * 1024) {
-      showAlert("error", "File Too Large", 'File size must be less than 5MB');
-      return;
-    }
+      if (file.size > 5 * 1024 * 1024) {
+        showAlert("error", "File Too Large", "File size must be less than 5MB");
+        return;
+      }
 
-    // Create preview and upload
-    const previewUrl = URL.createObjectURL(file);
-    setSelectedLogoPreview(previewUrl);
-    setLogoUploading(true);
+      // Create preview and upload
+      const previewUrl = URL.createObjectURL(file);
+      setSelectedLogoPreview(previewUrl);
+      setLogoUploading(true);
 
-    try {
-      const response = await uploadAITrustCentreLogo(file);
+      try {
+        const response = await uploadAITrustCentreLogo(file);
 
-      if (response?.data?.logo) {
-        const authToken = getAuthToken();
-        const tokenData = extractUserToken(authToken);
-        const tenantId = tokenData?.tenantId;
+        if (response?.data?.logo) {
+          const authToken = getAuthToken();
+          const tokenData = extractUserToken(authToken);
+          const tenantId = tokenData?.tenantId;
 
-        if (tenantId) {
-          const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
-          if (logoBlobUrl) {
-            setLogoUrl(logoBlobUrl);
-            showAlert("success", "Logo Uploaded", response.data.message || "Organization logo uploaded successfully");
+          if (tenantId) {
+            const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
+            if (logoBlobUrl) {
+              setLogoUrl(logoBlobUrl);
+              showAlert(
+                "success",
+                "Logo Uploaded",
+                response.data.message ||
+                  "Organization logo uploaded successfully"
+              );
+            } else {
+              showAlert(
+                "error",
+                "Upload Failed",
+                "Failed to load uploaded logo"
+              );
+            }
           } else {
-            showAlert("error", "Upload Failed", 'Failed to load uploaded logo');
+            showAlert(
+              "error",
+              "Upload Failed",
+              "Failed to get tenant information"
+            );
           }
-        } else {
-          showAlert("error", "Upload Failed", 'Failed to get tenant information');
+        }
+      } catch (error: any) {
+        console.error("Error uploading logo:", error);
+        showAlert(
+          "error",
+          "Upload Failed",
+          error.message || "Failed to upload logo"
+        );
+      } finally {
+        setLogoUploading(false);
+        clearLogoPreview();
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
         }
       }
-    } catch (error: any) {
-      console.error('Error uploading logo:', error);
-      showAlert("error", "Upload Failed", error.message || 'Failed to upload logo');
-    } finally {
-      setLogoUploading(false);
-      clearLogoPreview();
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  }, [fetchLogoAsBlobUrl, showAlert, clearLogoPreview]);
+    },
+    [fetchLogoAsBlobUrl, showAlert, clearLogoPreview]
+  );
 
   // Logo removal handlers
-  const handleRemoveLogo = useCallback(() => setIsRemoveLogoModalOpen(true), []);
-  const handleRemoveLogoCancel = useCallback(() => setIsRemoveLogoModalOpen(false), []);
+  const handleRemoveLogo = useCallback(
+    () => setIsRemoveLogoModalOpen(true),
+    []
+  );
+  const handleRemoveLogoCancel = useCallback(
+    () => setIsRemoveLogoModalOpen(false),
+    []
+  );
 
   const handleRemoveLogoConfirm = useCallback(async () => {
     setLogoRemoving(true);
@@ -205,17 +260,25 @@ const Organization = () => {
       await deleteAITrustCentreLogo();
 
       // Clear logo and previews
-      if (logoUrl && logoUrl.startsWith('blob:')) {
+      if (logoUrl && logoUrl.startsWith("blob:")) {
         URL.revokeObjectURL(logoUrl);
       }
       setLogoUrl(null);
       clearLogoPreview();
 
       setIsRemoveLogoModalOpen(false);
-      showAlert("success", "Logo Removed", "Organization logo removed successfully");
+      showAlert(
+        "success",
+        "Logo Removed",
+        "Organization logo removed successfully"
+      );
     } catch (error) {
-      console.error('Error removing logo:', error);
-      showAlert("error", "Remove Failed", 'Failed to remove logo. Please try again.');
+      console.error("Error removing logo:", error);
+      showAlert(
+        "error",
+        "Remove Failed",
+        "Failed to remove logo. Please try again."
+      );
     } finally {
       setLogoRemoving(false);
     }
@@ -235,7 +298,11 @@ const Organization = () => {
         body: { name: organizationName },
       });
 
-      showAlert("success", "Organization Created", "The organization was created successfully.");
+      showAlert(
+        "success",
+        "Organization Created",
+        "The organization was created successfully."
+      );
 
       if (response && response.id) {
         setOrganizationName(response.name || "");
@@ -252,7 +319,9 @@ const Organization = () => {
 
   const handleUpdate = useCallback(async () => {
     if (!organizationName.trim() || organizationNameError || !organizationId) {
-      console.log("Validation error: Organization name is required, invalid, or no organization ID");
+      console.log(
+        "Validation error: Organization name is required, invalid, or no organization ID"
+      );
       return;
     }
 
@@ -263,7 +332,11 @@ const Organization = () => {
         body: { name: organizationName },
       });
 
-      showAlert("success", "Organization Updated", "The organization was updated successfully.");
+      showAlert(
+        "success",
+        "Organization Updated",
+        "The organization was updated successfully."
+      );
 
       if (response && response.id) {
         setOrganizationName(response.name || "");
@@ -275,7 +348,13 @@ const Organization = () => {
     } finally {
       setTimeout(() => setIsLoading(false), 1500);
     }
-  }, [organizationName, organizationNameError, organizationId, fetchOrganization, showAlert]);
+  }, [
+    organizationName,
+    organizationNameError,
+    organizationId,
+    fetchOrganization,
+    showAlert,
+  ]);
 
   // Effects
   useEffect(() => {
@@ -293,7 +372,7 @@ const Organization = () => {
   useEffect(() => {
     return () => {
       clearLogoPreview();
-      if (logoUrl && logoUrl.startsWith('blob:')) {
+      if (logoUrl && logoUrl.startsWith("blob:")) {
         URL.revokeObjectURL(logoUrl);
       }
     };
@@ -310,10 +389,7 @@ const Organization = () => {
           onClick={() => setAlert(null)}
         />
       )}
-      <Stack
-        className="organization-form"
-        sx={{ pt: theme.spacing(20) }}
-      >
+      <Stack className="organization-form" sx={{ pt: theme.spacing(20) }}>
         <Box
           sx={{
             display: "flex",
@@ -364,27 +440,31 @@ const Organization = () => {
           </Stack>
 
           {/* Organization Logo Section */}
-          <Stack sx={{ width: { xs: "100%", md: "40%", alignItems: 'center' } }}>
+          <Stack
+            sx={{ width: { xs: "100%", md: "40%", alignItems: "center" } }}
+          >
             <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 1 }}>
               Organization Logo
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Box sx={{
-                width: 100,
-                height: 100,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '50%',
-                border: '2px dashed #ddd',
-                backgroundColor: '#fafafa',
-                position: 'relative',
-                overflow: 'hidden',
-                '&:hover': {
-                  borderColor: '#999',
-                  backgroundColor: '#f5f5f5'
-                }
-              }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+              <Box
+                sx={{
+                  width: 100,
+                  height: 100,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "50%",
+                  border: "2px dashed #ddd",
+                  backgroundColor: "#fafafa",
+                  position: "relative",
+                  overflow: "hidden",
+                  "&:hover": {
+                    borderColor: "#999",
+                    backgroundColor: "#f5f5f5",
+                  },
+                }}
+              >
                 {logoUploading || logoLoading ? (
                   <CircularProgress size={24} />
                 ) : selectedLogoPreview ? (
@@ -393,10 +473,10 @@ const Organization = () => {
                     src={selectedLogoPreview}
                     alt="Selected Logo Preview"
                     sx={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                      borderRadius: 1
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      borderRadius: 1,
                     }}
                   />
                 ) : logoUrl ? (
@@ -405,39 +485,47 @@ const Organization = () => {
                     src={logoUrl}
                     alt="Organization Logo"
                     sx={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                      borderRadius: 1
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                      borderRadius: 1,
                     }}
                   />
                 ) : (
-                  <Box sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Typography sx={{ fontSize: 10, color: '#888', textAlign: 'center' }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <Typography
+                      sx={{ fontSize: 10, color: "#888", textAlign: "center" }}
+                    >
                       Logo
                     </Typography>
                   </Box>
                 )}
               </Box>
             </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: "flex", gap: 1 }}>
               <MUIButton
                 variant="text"
                 sx={{
                   fontSize: 12,
-                  textTransform: 'none',
-                  color: logoUrl ? '#666' : '#ccc',
-                  '&:hover': {
-                    backgroundColor: logoUrl ? 'rgba(102, 102, 102, 0.04)' : 'transparent'
-                  }
+                  textTransform: "none",
+                  color: logoUrl ? "#666" : "#ccc",
+                  "&:hover": {
+                    backgroundColor: logoUrl
+                      ? "rgba(102, 102, 102, 0.04)"
+                      : "transparent",
+                  },
                 }}
                 onClick={handleRemoveLogo}
-                disabled={!logoUrl || logoRemoving || logoUploading || logoLoading}
+                disabled={
+                  !logoUrl || logoRemoving || logoUploading || logoLoading
+                }
               >
                 {logoRemoving ? (
                   <>
@@ -445,7 +533,7 @@ const Organization = () => {
                     Removing...
                   </>
                 ) : (
-                  'Delete'
+                  "Delete"
                 )}
               </MUIButton>
               <MUIButton
@@ -454,14 +542,14 @@ const Organization = () => {
                 disableRipple
                 sx={{
                   fontSize: 12,
-                  textTransform: 'none',
-                  color: '#13715B',
-                  '&:hover': {
-                    backgroundColor: 'transparent !important'
+                  textTransform: "none",
+                  color: "#13715B",
+                  "&:hover": {
+                    backgroundColor: "transparent !important",
                   },
-                  '&:active': {
-                    backgroundColor: 'transparent !important'
-                  }
+                  "&:active": {
+                    backgroundColor: "transparent !important",
+                  },
                 }}
                 disabled={logoUploading || logoLoading}
               >
@@ -476,7 +564,7 @@ const Organization = () => {
                     Loading...
                   </>
                 ) : (
-                  'Update'
+                  "Update"
                 )}
                 <input
                   type="file"
@@ -491,10 +579,10 @@ const Organization = () => {
             <Typography
               sx={{
                 fontSize: 11,
-                color: '#666',
-                textAlign: 'center',
+                color: "#666",
+                textAlign: "center",
                 mt: 1,
-                lineHeight: 1.4
+                lineHeight: 1.4,
               }}
             >
               Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF
@@ -510,7 +598,8 @@ const Organization = () => {
           title="Confirm Logo Removal"
           body={
             <Typography fontSize={13}>
-              Are you sure you want to remove the organization logo? This action cannot be undone.
+              Are you sure you want to remove the organization logo? This action
+              cannot be undone.
             </Typography>
           }
           cancelText="Cancel"

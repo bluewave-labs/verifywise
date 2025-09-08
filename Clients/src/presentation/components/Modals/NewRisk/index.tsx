@@ -13,7 +13,14 @@
 
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
-import { Box, Modal, Stack, Typography, useTheme, Divider } from "@mui/material";
+import {
+  Box,
+  Modal,
+  Stack,
+  Typography,
+  useTheme,
+  Divider,
+} from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { ReactComponent as Close } from "../../../assets/icons/close.svg";
@@ -23,13 +30,16 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
 import { SelectChangeEvent } from "@mui/material";
-import { useCreateVendorRisk, useUpdateVendorRisk } from "../../../../application/hooks/useVendorRiskMutations";
+import {
+  useCreateVendorRisk,
+  useUpdateVendorRisk,
+} from "../../../../application/hooks/useVendorRiskMutations";
 import { useAuth } from "../../../../application/hooks/useAuth";
 const RiskLevel = lazy(() => import("../../RiskLevel"));
 
@@ -71,7 +81,7 @@ const initialState = {
   action_owner: "",
   risk_severity: "1",
   likelihood: "1",
-  risk_level: '',
+  risk_level: "",
   action_plan: "",
   vendor_id: "",
 };
@@ -108,7 +118,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   setIsOpen,
   value,
   existingRisk,
-  onSuccess = () => { },
+  onSuccess = () => {},
   vendors,
 }) => {
   const theme = useTheme();
@@ -117,9 +127,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const VENDOR_OPTIONS =
     vendors?.length > 0
       ? vendors.map((vendor: any) => ({
-        _id: vendor.id,
-        name: vendor.vendor_name,
-      }))
+          _id: vendor.id,
+          name: vendor.vendor_name,
+        }))
       : [{ _id: "no-vendor", name: "No Vendor Exists" }];
 
   const [values, setValues] = useState(initialState);
@@ -334,8 +344,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -384,8 +395,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -424,7 +436,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 onChange={(e) => handleOnChange("vendor_id", e.target.value)}
                 value={values.vendor_id}
                 error={errors.vendor_id}
-                sx={{ width: '100%' }}
+                sx={{ width: "100%" }}
                 isRequired
                 disabled={isEditingDisabled}
               />
@@ -439,7 +451,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                 onChange={(e) => handleOnChange("action_owner", e.target.value)}
                 value={values.action_owner || ""}
                 error={errors.action_owner}
-                sx={{ width: '100%' }}
+                sx={{ width: "100%" }}
                 isRequired
                 disabled={isEditingDisabled}
               />
@@ -450,7 +462,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               label="Risk description"
               width="100%"
               value={values.risk_description}
-              onChange={(e) => handleOnChange("risk_description", e.target.value)}
+              onChange={(e) =>
+                handleOnChange("risk_description", e.target.value)
+              }
               error={errors.risk_description}
               isRequired
               disabled={isEditingDisabled}
@@ -478,7 +492,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               label="Impact description"
               width="100%"
               value={values.impact_description}
-              onChange={(e) => handleOnChange("impact_description", e.target.value)}
+              onChange={(e) =>
+                handleOnChange("impact_description", e.target.value)
+              }
               error={errors.impact_description}
               isRequired
               disabled={isEditingDisabled}
@@ -494,7 +510,9 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
           Calculate risk level
         </Typography>
         <Typography fontSize={13} color="text.secondary" mb={4}>
-          The Risk Level is calculated by multiplying the Likelihood and Severity scores. By assigning these scores, the risk level will be determined based on your inputs.
+          The Risk Level is calculated by multiplying the Likelihood and
+          Severity scores. By assigning these scores, the risk level will be
+          determined based on your inputs.
         </Typography>
         <Stack direction="row" spacing={12}>
           <Suspense fallback={<div>Loading...</div>}>

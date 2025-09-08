@@ -1,12 +1,12 @@
-import { lazy, Suspense, useContext, useState } from "react";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import { lazy, Suspense, useState } from "react";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Stack, Dialog } from "@mui/material";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 const GenerateReportPopup = lazy(
   () => import("../../../components/Reporting/GenerateReport")
 );
 const ReportStatus = lazy(() => import("./ReportStatus"));
 import { styles } from "./styles";
+import { useProjects } from "../../../../application/hooks/useProjects";
 
 interface GenerateReportProps {
   onReportGenerated?: () => void;
@@ -16,8 +16,8 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
   onReportGenerated,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const { projects } = useContext(VerifyWiseContext);
-  const isDisabled = projects.length > 0 ? false : true;
+  const { data: projects } = useProjects();
+  const isDisabled = projects?.length && projects?.length > 0 ? false : true;
 
   return (
     <>

@@ -25,6 +25,7 @@ import {
 import allowedRoles from "../../../../application/constants/permissions";
 import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -62,8 +63,9 @@ const ProjectFrameworks = ({
   const [hasInitialized, setHasInitialized] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { changeComponentVisibility, userRoleName } =
+  const { changeComponentVisibility } =
     useContext(VerifyWiseContext);
+    const { userRoleName } = useAuth();
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
@@ -71,6 +73,12 @@ const ProjectFrameworks = ({
 
   const isManagingFrameworksDisabled =
     !allowedRoles.frameworks.manage.includes(userRoleName);
+
+  // Filter out organizational frameworks
+  const nonOrganizationalFrameworks = useMemo(
+    () => allFrameworks.filter((framework: Framework) => !framework.is_organizational),
+    [allFrameworks]
+  );
 
   useEffect(() => {
     changeComponentVisibility("projectFrameworks", allVisible);
@@ -220,7 +228,7 @@ const ProjectFrameworks = ({
       <AddFrameworkModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        frameworks={allFrameworks}
+        frameworks={nonOrganizationalFrameworks}
         project={project}
         onFrameworksChanged={(action, frameworkId?: number) => {
           if (triggerRefresh) {

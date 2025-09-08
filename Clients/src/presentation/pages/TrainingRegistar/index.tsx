@@ -1,17 +1,10 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useContext,
-  Suspense,
-} from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context"; // Assuming this path is correct for context
 import {
   getAllEntities,
   deleteEntityById,
@@ -28,6 +21,7 @@ import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -45,8 +39,7 @@ const Training: React.FC = () => {
   );
   const [showAlert, setShowAlert] = useState(false);
 
-  // Context for user roles/permissions, similar to Vendors component
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   // Assuming a similar permission structure for 'training' as 'vendors'
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName); // Example permission check
@@ -243,7 +236,7 @@ const Training: React.FC = () => {
         <Stack>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={vwhomeHeading}>AI training registry</Typography>
-            <HelperIcon 
+            <HelperIcon
               onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
               size="small"
             />

@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../Button/CustomizableButton";
 import { AuditRiskTable } from "../Table/AuditRiskTable/AuditRiskTable";
 import { useState } from "react";
 
@@ -18,7 +18,7 @@ export const AuditRiskPopup: React.FC<AuditRiskModalProps> = ({
   _deletedRisks,
   _setDeletedRisks,
   _selectedRisks,
-  _setSelectedRisks
+  _setSelectedRisks,
 }) => {
   const [checkedRows, setCheckedRows] = useState<number[]>([]);
 
@@ -36,42 +36,59 @@ export const AuditRiskPopup: React.FC<AuditRiskModalProps> = ({
       _setDeletedRisks(newDeletedRisks);
     }
     onClose();
-  }
+  };
 
   return (
-    <Stack sx={{
-      width: "100%",
-      backgroundColor: "#FCFCFD",
-      padding: 10,
-      borderRadius: "4px",
-      gap: 10,
-      justifyContent: "space-between",
-      minHeight: "300px"
-    }}>
+    <Stack
+      sx={{
+        width: "100%",
+        backgroundColor: "#FCFCFD",
+        padding: 10,
+        borderRadius: "4px",
+        gap: 10,
+        justifyContent: "space-between",
+        minHeight: "300px",
+      }}
+    >
       <Stack>
-        <Stack sx={{
-          width: '100%',
-          marginBottom: "20px"
-        }}>
-          <Typography sx={{
-            fontSize: 16, 
-            color: "#344054", 
-            fontWeight: "bold"
-          }}>Marked as done but linked risk detected</Typography>
+        <Stack
+          sx={{
+            width: "100%",
+            marginBottom: "20px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 16,
+              color: "#344054",
+              fontWeight: "bold",
+            }}
+          >
+            Marked as done but linked risk detected
+          </Typography>
         </Stack>
-        <Stack sx={{
-          width: '100%',
-          marginBottom: "20px"
-        }}>
-          <Typography sx={{
-            fontSize: "14px", 
-            color: "#475467"
-          }}>This section has been been marked as done, but there's still a risk linked to it:</Typography>
+        <Stack
+          sx={{
+            width: "100%",
+            marginBottom: "20px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "14px",
+              color: "#475467",
+            }}
+          >
+            This section has been been marked as done, but there's still a risk
+            linked to it:
+          </Typography>
         </Stack>
-        <Stack sx={{
-          width: '100%',
-          marginBottom: "20px"
-        }}>
+        <Stack
+          sx={{
+            width: "100%",
+            marginBottom: "20px",
+          }}
+        >
           <AuditRiskTable
             risks={risks}
             deletedRisks={_deletedRisks}
@@ -79,16 +96,30 @@ export const AuditRiskPopup: React.FC<AuditRiskModalProps> = ({
             setCheckedRows={setCheckedRows}
           />
         </Stack>
-        <Stack sx={{
-          width: '100%',
-        }}>
-          <Typography sx={{
-            fontSize: "14px", 
-            color: "#475467"
-          }}>Marking it as done doesn't automatically resolve this risk. What would you like to do?</Typography>
+        <Stack
+          sx={{
+            width: "100%",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "14px",
+              color: "#475467",
+            }}
+          >
+            Marking it as done doesn't automatically resolve this risk. What
+            would you like to do?
+          </Typography>
         </Stack>
       </Stack>
-      <Stack sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: 2 }}>
+      <Stack
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          gap: 2,
+        }}
+      >
         <CustomizableButton
           sx={{
             backgroundColor: "#13715B",
@@ -112,7 +143,7 @@ export const AuditRiskPopup: React.FC<AuditRiskModalProps> = ({
         />
       </Stack>
     </Stack>
-  )
-}
+  );
+};
 
 export default AuditRiskPopup;

@@ -5,4 +5,5 @@ export type Framework = {
   framework_id: string;
   name: string;
   description: string;
+  is_organizational: boolean;
 };

@@ -1,4 +1,4 @@
-import CustomizableButton from "../../Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
 

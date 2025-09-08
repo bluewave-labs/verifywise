@@ -24,11 +24,11 @@ import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 
 const ISO27001Annex = ({ 
-  FrameworkId, 
+  projectFrameworkId, 
   statusFilter, 
   applicabilityFilter 
 }: { 
-  FrameworkId: string | number;
+  projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
 }) => {
@@ -50,11 +50,11 @@ const ISO27001Annex = ({
     const fetchClauses = async () => {
       try {
         const annexProgressResponse = await getEntityById({
-          routeUrl: `/iso-27001/annexes/progress/${FrameworkId}`,
+          routeUrl: `/iso-27001/annexes/progress/${projectFrameworkId}`,
         });
         setAnnexesProgress(annexProgressResponse.data);
         const response = await GetAnnexesByProjectFrameworkId({
-          routeUrl: `/iso-27001/annexes/struct/byProjectId/${FrameworkId}`,
+          routeUrl: `/iso-27001/annexes/struct/byProjectId/${projectFrameworkId}`,
         });
         setAnnexes(response.data);
       } catch (error) {
@@ -135,7 +135,7 @@ const ISO27001Annex = ({
       const success = await updateISO27001AnnexStatus({
         id: control.id,
         newStatus,
-        projectFrameworkId: Number(FrameworkId),
+        projectFrameworkId: Number(projectFrameworkId),
         userId: userId || 1,
         currentData: control,
       });
@@ -273,7 +273,7 @@ const ISO27001Annex = ({
               onClose={() => setDrawerOpen(false)}
               control={selectedControl}
               annex={selectedAnnex}
-              projectFrameworkId={Number(FrameworkId)}
+              projectFrameworkId={Number(projectFrameworkId)}
               project_id={0}
               onSaveSuccess={(success, message) =>
                 handleSaveSuccess(success, message, selectedControl?.id)

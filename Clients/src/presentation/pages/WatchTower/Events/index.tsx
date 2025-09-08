@@ -1,13 +1,13 @@
 import { Stack, Typography, useTheme } from "@mui/material";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import EventsTable from "../../../components/Table/EventsTable";
 import { getAllEvents } from "../../../../application/repository/event.repository";
 import { Event } from "../../../../domain/types/Event";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import useUsers from "../../../../application/hooks/useUsers";
 
 const WatchTowerEvents = () => {
   const theme = useTheme();
-  const { users } = useContext(VerifyWiseContext);
+  const { users } = useUsers();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

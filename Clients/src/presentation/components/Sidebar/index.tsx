@@ -502,18 +502,20 @@ const Sidebar = () => {
                   <List
                     component="div"
                     disablePadding
-                    sx={{ 
-                      pl: theme.spacing(12),
+                    sx={{
+                      pl: theme.spacing(10), // Indent the nested list
                       position: "relative",
+                      // The main vertical line of the tree
                       "&::before": {
                         content: '""',
                         position: "absolute",
-                        left: theme.spacing(8),
+                        left: theme.spacing(4), // Position the line to align with parent icon center
                         top: 0,
-                        bottom: theme.spacing(1),
+                        bottom: 0,
                         width: "1px",
-                        backgroundColor: theme.palette.border?.light || "#e0e0e0",
-                      }
+                        backgroundColor:
+                          theme.palette.border?.light || "#e0e0e0",
+                      },
                     }}
                   >
                     {item.children.map((child, index) => (
@@ -543,25 +545,31 @@ const Sidebar = () => {
                           "&:hover": {
                             backgroundColor: "#F9F9F9",
                           },
+                          // The horizontal line connecting item to the vertical tree line
                           "&::before": {
                             content: '""',
                             position: "absolute",
-                            left: theme.spacing(-8),
+                            left: theme.spacing(-6), // Start from the vertical line's position
                             top: "50%",
-                            width: theme.spacing(4),
+                            width: theme.spacing(6), // Extend to the item's padding start
                             height: "1px",
-                            backgroundColor: theme.palette.border?.light || "#e0e0e0",
-                            transform: "translateY(-50%)",
+                            backgroundColor:
+                              theme.palette.border?.light || "#e0e0e0",
                           },
-                          "&::after": index === item.children!.length - 1 ? {
-                            content: '""',
-                            position: "absolute",
-                            left: theme.spacing(-8),
-                            top: "50%",
-                            bottom: "-100%",
-                            width: "1px",
-                            backgroundColor: theme.palette.background.main || "#ffffff",
-                          } : {}
+                          // This pseudo-element "erases" the part of the vertical line
+                          // below the final item, creating the L-shape corner
+                          ...(index === item.children!.length - 1 && {
+                            "&::after": {
+                              content: '""',
+                              position: "absolute",
+                              left: theme.spacing(-10), // Align with the main vertical line
+                              top: "50%",
+                              bottom: "-100%", // Cover the area below the item
+                              width: "1px",
+                              backgroundColor:
+                                theme.palette.background.main || "#ffffff",
+                            },
+                          }),
                         }}
                       >
                         <ListItemText>{child.name}</ListItemText>

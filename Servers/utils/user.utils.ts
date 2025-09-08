@@ -181,25 +181,26 @@ export const createNewUserQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<UserModel> => {
-  const { name, surname, email, password_hash, role_id, organization_id } = user;
+  const { name, surname, email, password_hash, role_id, organization_id, google_id } = user;
   const created_at = new Date();
   const last_login = new Date();
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id)
-        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo, :organization_id) RETURNING *`,
+      `INSERT INTO users (name, surname, email, password_hash, role_id, created_at, last_login, is_demo, organization_id, google_id)
+        VALUES (:name, :surname, :email, :password_hash, :role_id, :created_at, :last_login, :is_demo, :organization_id, :google_id) RETURNING *`,
       {
         replacements: {
           name,
           surname,
           email,
-          password_hash,
+          password_hash: password_hash || null,
           role_id,
           created_at,
           last_login,
           is_demo,
-          organization_id
+          organization_id,
+          google_id: google_id || null
         },
         mapToModel: true,
         model: UserModel,
@@ -265,10 +266,10 @@ export const resetPasswordQuery = async (
 export const updateUserByIdQuery = async (
   id: number,
   user: Partial<UserModel>,
-  transaction: Transaction
+  transaction: Transaction | null = null
 ): Promise<UserModel> => {
   const updateUser: Partial<Record<keyof UserModel, any>> = {};
-  const setClause = ["name", "surname", "email", "role_id", "last_login"]
+  const setClause = ["name", "surname", "email", "role_id", "last_login", "google_id"]
     .filter((f) => {
       if (
         user[f as keyof UserModel] !== undefined &&
@@ -290,7 +291,7 @@ export const updateUserByIdQuery = async (
     mapToModel: true,
     model: UserModel,
     // type: QueryTypes.UPDATE,
-    transaction,
+    ...(transaction ? { transaction } : {}),
   });
 
   return result[0];
@@ -309,6 +310,7 @@ export const updateUserByIdQuery = async (
  */
 export const deleteUserByIdQuery = async (
   id: number,
+  tenant: string,
   transaction: Transaction
 ): Promise<Boolean> => {
   const usersFK = [
@@ -318,16 +320,16 @@ export const deleteUserByIdQuery = async (
       fields: ["owner", "last_updated_by"],
     },
     { table: "vendors", model: VendorModel, fields: ["assignee", "reviewer"] },
-    {
-      table: "controls",
-      model: ControlModel,
-      fields: ["approver", "owner", "reviewer"],
-    },
-    {
-      table: "subcontrols",
-      model: SubcontrolModel,
-      fields: ["approver", "owner", "reviewer"],
-    },
+    // {
+    //   table: "controls",
+    //   model: ControlModel,
+    //   fields: ["approver", "owner", "reviewer"],
+    // },
+    // {
+    //   table: "subcontrols",
+    //   model: SubcontrolModel,
+    //   fields: ["approver", "owner", "reviewer"],
+    // },
     {
       table: "projectrisks",
       model: ProjectRiskModel,
@@ -340,8 +342,9 @@ export const deleteUserByIdQuery = async (
   for (let entry of usersFK) {
     await Promise.all(
       entry.fields.map(async (f) => {
+        console.log(entry.table);
         await sequelize.query(
-          `UPDATE ${entry.table} SET ${f} = :x WHERE ${f} = :id`,
+          `UPDATE "${tenant}".${entry.table} SET ${f} = :x WHERE ${f} = :id`,
           {
             replacements: { x: null, id },
             // type: QueryTypes.UPDATE
@@ -353,7 +356,7 @@ export const deleteUserByIdQuery = async (
   }
 
   await sequelize.query(
-    `DELETE FROM projects_members WHERE user_id = :user_id`,
+    `DELETE FROM "${tenant}".projects_members WHERE user_id = :user_id`,
     {
       replacements: { user_id: id },
       type: QueryTypes.DELETE,

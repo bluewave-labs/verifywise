@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   useTheme,
   Alert as MuiAlert,
@@ -12,17 +12,28 @@ import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
-import { updatePassword } from "../../../../application/repository/user.repository";
+import { getUserById, updatePassword } from "../../../../application/repository/user.repository";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();
   const state = store.getState();
   const userData = extractUserToken(state.auth.authToken); // Extract user data from token
   const { id } = userData || {};
+  const [pwdSet, setPwdSet] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {try {
+      const response = await getUserById({ userId: id });
+      setPwdSet(response.data.pwd_set ?? true);
+    } catch (error) {
+      console.log(error);
+    }}
+    fetchUserData();
+  }, [])
 
   // State management
   const [currentPassword, setCurrentPassword] = useState<string>("");
@@ -142,26 +153,36 @@ const PasswordForm: React.FC = () => {
     setShowToast(true); // Show CustomizableToast
 
     try {
-       await updatePassword({
+      const response = await updatePassword({
         userId: id,
         currentPassword,
         newPassword,
       });
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setAlert({
-        variant: "success",
-        title: "Success",
-        body: "Password updated successfully.",
-        isToast: true,
-        visible: true,
-      });
+      if (response.status == 202) {
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setAlert({
+          variant: "success",
+          title: "Success",
+          body: "Password updated successfully.",
+          isToast: true,
+          visible: true,
+        });
+      } else {
+        setAlert({
+          variant: "error",
+          title: "Error",
+          body: "Failed to update password. Please try again.",
+          isToast: true,
+          visible: true,
+        });
+      }
     } catch (error: any) {
       setAlert({
         variant: "error",
         title: "Error",
-        body: error.message || "Failed to update password. Please try again.",
+        body: error.response?.data?.message || "Failed to update password. Please try again.",
         isToast: true,
         visible: true,
       });
@@ -186,7 +207,6 @@ const PasswordForm: React.FC = () => {
   }, [handleSave]);
 
   const isSaveDisabled =
-    !currentPassword ||
     !newPassword ||
     !confirmPassword ||
     !!currentPasswordError ||
@@ -202,7 +222,7 @@ const PasswordForm: React.FC = () => {
           height="300px"
           minWidth={"100%"}
           minHeight={300}
-          sx={{borderRadius: 2 }}
+          sx={{ borderRadius: 2 }}
         />
       )}
       {alert.visible && (
@@ -219,13 +239,33 @@ const PasswordForm: React.FC = () => {
       {!loading && (
         <Box sx={{ width: "100%", maxWidth: 600 }}>
           <Stack sx={{ marginTop: theme.spacing(20) }}>
+            {!pwdSet && (
+              <Typography 
+                color="text.secondary" 
+                variant="caption" 
+                sx={{ mt: 1, mb: 2, fontStyle: "italic" }}
+              >
+                You have not set a password as you are signed in with Google
+              </Typography>
+            )}
             <Field
               id="Current password"
               label="Current password"
               value={currentPassword}
               onChange={handleCurrentPasswordChange}
               type="password"
-              sx={{ mb: 5, backgroundColor: "#FFFFFF" }}
+              sx={{ 
+                mb: 5, 
+                backgroundColor: !pwdSet ? "#f5f5f5" : "#FFFFFF",
+                opacity: !pwdSet ? 0.6 : 1,
+                "& .MuiInputBase-input": {
+                  color: !pwdSet ? "#9e9e9e" : "inherit"
+                },
+                "& .MuiInputLabel-root": {
+                  color: !pwdSet ? "#9e9e9e" : "inherit"
+                }
+              }}
+              disabled={!pwdSet}
             />
             {currentPasswordError && (
               <Typography color="error" variant="caption">

@@ -124,7 +124,7 @@ main() {
     fi
 
     # Keep containers running in foreground
-    $DOCKER_COMPOSE_CMD logs -f
+    # $DOCKER_COMPOSE_CMD logs -f
 }
 
 # Run main function

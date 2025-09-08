@@ -8,10 +8,9 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { useContext } from "react";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import "./index.css"; // Include your existing styles
+import useUsers from "../../../../application/hooks/useUsers";
 
 interface ReviewerMultiSelectProps {
   selected: string[];
@@ -29,7 +28,7 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
   error,
 }) => {
   const theme = useTheme();
-  const { users } = useContext(VerifyWiseContext);
+  const { users } = useUsers();
 
   const handleChange = (event: SelectChangeEvent<string[]>) => {
     const {

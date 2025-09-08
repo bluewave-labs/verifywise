@@ -11,10 +11,16 @@ import {
   Radio,
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
-import { Suspense, useCallback, useContext, useMemo, useState } from "react";
-import CustomizableButton from "../../Buttons";
+import {
+  Suspense,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
@@ -26,7 +32,6 @@ import {
   radioGroupStyle,
   radioOptionStyle,
   continueButtonStyle,
-  backButtonStyle,
 } from "./style";
 import Select from "../../../components/Inputs/Select";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -52,18 +57,80 @@ import {
 import { FormValues } from "./constants";
 import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
-import { createProject } from "../../../../application/repository/project.repository";
+import { createProject, updateProject } from "../../../../application/repository/project.repository";
 
-const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
+const ProjectForm = ({
+  sx,
+  onClose,
+  defaultFrameworkType,
+  projectToEdit,
+}: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<FormValues>(initialState);
+  
+  // Initialize form values based on whether we're editing or creating
+  const [values, setValues] = useState<FormValues>(() => {
+    if (projectToEdit) {
+      return {
+        project_title: projectToEdit.project_title || "",
+        owner: projectToEdit.owner || 0,
+        members: projectToEdit.members || [],
+        start_date: projectToEdit.start_date || "",
+        ai_risk_classification: projectToEdit.ai_risk_classification || 0,
+        type_of_high_risk_role: projectToEdit.type_of_high_risk_role || 0,
+        goal: projectToEdit.goal || "",
+        enable_ai_data_insertion: projectToEdit.enable_ai_data_insertion || false,
+        monitored_regulations_and_standards: projectToEdit.monitored_regulations_and_standards || [],
+        framework_type: projectToEdit.is_organizational ? FrameworkTypeEnum.OrganizationWide : FrameworkTypeEnum.ProjectBased,
+      };
+    }
+    return {
+      ...initialState,
+      framework_type: defaultFrameworkType || null,
+    };
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { users } = useUsers();
   const { allFrameworks } = useFrameworks({ listOfFrameworks: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
+
+  // Auto-advance to step 2 if a default framework type is provided or if editing a project
+  useEffect(() => {
+    if (defaultFrameworkType || projectToEdit) {
+      setCurrentStep(2);
+    }
+  }, [defaultFrameworkType, projectToEdit]);
+
+  // Filter frameworks based on framework type
+  const filteredFrameworks = useMemo(() => {
+    if (!allFrameworks) return [];
+
+    if (values.framework_type === FrameworkTypeEnum.ProjectBased) {
+      // Only show EU AI Act for project-based frameworks
+      return allFrameworks
+        .filter((fw) => fw.name.toLowerCase().includes("eu ai act"))
+        .map((fw) => ({
+          _id: Number(fw.id),
+          name: fw.name,
+        }));
+    } else if (values.framework_type === FrameworkTypeEnum.OrganizationWide) {
+      // Only show ISO 42001 and ISO 27001 for organization-wide frameworks
+      return allFrameworks
+        .filter(
+          (fw) =>
+            fw.name.toLowerCase().includes("iso 42001") ||
+            fw.name.toLowerCase().includes("iso 27001")
+        )
+        .map((fw) => ({
+          _id: Number(fw.id),
+          name: fw.name,
+        }));
+    }
+
+    return [];
+  }, [allFrameworks, values.framework_type]);
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );
@@ -144,6 +211,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
       setValues({
         ...values,
         framework_type: event.target.value as FrameworkTypeEnum,
+        monitored_regulations_and_standards: [], // Clear selected frameworks when type changes
       });
       setErrors({ ...errors, frameworkType: "" });
     },
@@ -158,9 +226,9 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
     setCurrentStep(2);
   }, [values.framework_type, errors]);
 
-  const handleBack = useCallback(() => {
-    setCurrentStep(1);
-  }, []);
+  // const handleBack = useCallback(() => {
+  //   setCurrentStep(1);
+  // }, []);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -203,11 +271,12 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
       if (!typeOfHighRiskRole.accepted) {
         newErrors.typeOfHighRiskRole = typeOfHighRiskRole.message;
       }
+    }
 
-      if (values.monitored_regulations_and_standards.length === 0) {
-        newErrors.frameworks = "At least one framework is required.";
-        setFrameworkRequired(true);
-      }
+    // Validate frameworks for both framework types, but skip when editing
+    if (!projectToEdit && values.monitored_regulations_and_standards.length === 0) {
+      newErrors.frameworks = "At least one framework is required.";
+      setFrameworkRequired(true);
     }
 
     setErrors(newErrors);
@@ -237,25 +306,49 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           body.ai_risk_classification = riskClassificationItems.find(
             (item) => item._id === values.ai_risk_classification
           )?.name;
-          body.framework = values.monitored_regulations_and_standards.map(
-            (fw) => fw._id
-          );
         } else {
           // For organization-wide frameworks, set default values
           body.type_of_high_risk_role = null;
           body.ai_risk_classification = null;
-          body.framework = []; // ISO 27001 frameworks will be handled by backend
+          body.is_organizational = true;
         }
 
-         const res = await createProject({
-          body,
-        });
+        // Set frameworks for both types, but skip when editing
+        if (!projectToEdit) {
+          body.framework = values.monitored_regulations_and_standards.map(
+            (fw) => fw._id
+          );
+        }
 
-        if (res.status === 201) {
-          setProjects((prevProjects: Project[]) => [
-            ...prevProjects,
-            res.data.data.project as Project,
-          ]);
+        let res;
+        if (projectToEdit) {
+          // Update existing project
+          res = await updateProject({
+            id: projectToEdit.id,
+            body,
+          });
+        } else {
+          // Create new project
+          res = await createProject({
+            body,
+          });
+        }
+
+        if (res.status === 201 || res.status === 200 || res.status === 202) {
+          if (projectToEdit) {
+            // Update the project in the projects list
+            setProjects((prevProjects: Project[]) =>
+              prevProjects.map((project) =>
+                project.id === projectToEdit.id ? res.data.data as Project : project
+              )
+            );
+          } else {
+            // Add new project to the projects list
+            setProjects((prevProjects: Project[]) => [
+              ...prevProjects,
+              res.data.data.project as Project,
+            ]);
+          }
           setTimeout(() => {
             setIsSubmitting(false);
             onClose();
@@ -297,10 +390,18 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            Create new project
+            {projectToEdit ? "Edit project" : "Create new project"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            Please select the type of frameworks you need
+            {projectToEdit
+              ? "Update your project details below"
+              : defaultFrameworkType
+              ? `Creating a ${
+                  defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
+                    ? "organization-wide"
+                    : "project-based"
+                } project`
+              : "Please select the type of frameworks you need"}
           </Typography>
         </Stack>
         <ClearIcon
@@ -310,49 +411,52 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
       </Stack>
 
       <Stack sx={{ gap: 4 }}>
-        <RadioGroup
-          value={values.framework_type || ""}
-          onChange={handleFrameworkTypeChange}
-          sx={radioGroupStyle}
-        >
-          {frameworkOptions.map((option) => (
-            <FormControlLabel
-              key={option.value}
-              value={option.value}
-              control={<Radio />}
-              disabled={option.value === FrameworkTypeEnum.OrganizationWide}
-              label={
-                <Stack sx={{ gap: 1 }}>
-                  <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
-                  >
-                    {option.title}
-                  </Typography>
-                  <Typography sx={{ fontSize: 13, color: "#667085" }}>
-                    {option.description}
-                  </Typography>
-                </Stack>
-              }
-              sx={{
-                ...radioOptionStyle,
-                "&.Mui-checked": {
-                  ...radioOptionStyle["&.selected"],
-                },
-                "& .MuiFormControlLabel-label": {
-                  width: "100%",
-                },
-              }}
-            />
-          ))}
-        </RadioGroup>
+        {!defaultFrameworkType && (
+          <>
+            <RadioGroup
+              value={values.framework_type || ""}
+              onChange={handleFrameworkTypeChange}
+              sx={radioGroupStyle}
+            >
+              {frameworkOptions.map((option) => (
+                <FormControlLabel
+                  key={option.value}
+                  value={option.value}
+                  control={<Radio />}
+                  label={
+                    <Stack sx={{ gap: 1 }}>
+                      <Typography
+                        sx={{ fontSize: 14, fontWeight: 500, color: "#344054" }}
+                      >
+                        {option.title}
+                      </Typography>
+                      <Typography sx={{ fontSize: 13, color: "#667085" }}>
+                        {option.description}
+                      </Typography>
+                    </Stack>
+                  }
+                  sx={{
+                    ...radioOptionStyle,
+                    "&.Mui-checked": {
+                      ...radioOptionStyle["&.selected"],
+                    },
+                    "& .MuiFormControlLabel-label": {
+                      width: "100%",
+                    },
+                  }}
+                />
+              ))}
+            </RadioGroup>
 
-        {errors.frameworkType && (
-          <Typography
-            variant="caption"
-            sx={{ color: "#f04438", fontWeight: 300 }}
-          >
-            {errors.frameworkType}
-          </Typography>
+            {errors.frameworkType && (
+              <Typography
+                variant="caption"
+                sx={{ color: "#f04438", fontWeight: 300 }}
+              >
+                {errors.frameworkType}
+              </Typography>
+            )}
+          </>
         )}
 
         <Stack
@@ -398,7 +502,7 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
             zIndex: 9999,
           }}
         >
-          <CustomizableToast title="Creating project. Please wait..." />
+          <CustomizableToast title={projectToEdit ? "Updating project. Please wait..." : "Creating project. Please wait..."} />
         </Stack>
       )}
 
@@ -414,12 +518,14 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            Create new project
+            {projectToEdit ? "Edit project" : "Create new project"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-            {values.framework_type === FrameworkTypeEnum.ProjectBased
+            {projectToEdit
+              ? "Update your project details below"
+              : values.framework_type === FrameworkTypeEnum.ProjectBased
               ? "Create a new project from scratch by filling in the following."
-              : "Set up ISO 27001 (Organization ISMS)"}
+              : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
         </Stack>
         <ClearIcon
@@ -497,91 +603,93 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
         </Stack>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
           <Suspense fallback={<div>Loading...</div>}>
-            <Stack>
-              <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  fontWeight: 500,
-                  mb: 2,
-                }}
-              >
-                Team members
-              </Typography>
-              <Autocomplete
-                multiple
-                id="users-input"
-                size="small"
-                value={values.members.map((user) => ({
-                  _id: Number(user._id),
-                  name: user.name,
-                  surname: user.surname,
-                  email: user.email,
-                }))}
-                options={
-                  users
-                    ?.filter(
-                      (user) =>
-                        !values.members.some(
-                          (selectedUser) =>
-                            String(selectedUser._id) === String(user.id)
-                        ) && values.owner !== user.id
-                    )
-                    .map((user) => ({
-                      _id: user.id,
-                      name: user.name,
-                      surname: user.surname,
-                      email: user.email,
-                    })) || []
-                }
-                noOptionsText={
-                  values.members.length === users.length
-                    ? "All members selected"
-                    : "No options"
-                }
-                onChange={handleOnMultiSelect("members")}
-                getOptionLabel={(user) => `${user.name} ${user.surname}`}
-                renderOption={(props, option) => {
-                  const { key, ...optionProps } = props;
-                  const userEmail =
-                    option.email.length > 30
-                      ? `${option.email.slice(0, 30)}...`
-                      : option.email;
-                  return (
-                    <Box key={key} component="li" {...optionProps}>
-                      <Typography sx={{ fontSize: "13px" }}>
-                        {option.name} {option.surname}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "11px",
-                          color: "rgb(157, 157, 157)",
-                          position: "absolute",
-                          right: "9px",
-                        }}
-                      >
-                        {userEmail}
-                      </Typography>
-                    </Box>
-                  );
-                }}
-                filterSelectedOptions
-                popupIcon={<KeyboardArrowDown />}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Select Users"
-                    error={!!errors.members}
-                    sx={teamMembersRenderInputStyle}
-                  />
-                )}
-                sx={{
-                  backgroundColor: theme.palette.background.main,
-                  ...teamMembersSxStyle,
-                }}
-                slotProps={teamMembersSlotProps}
-              />
-            </Stack>
             {values.framework_type === FrameworkTypeEnum.ProjectBased && (
+              <Stack>
+                <Typography
+                  sx={{
+                    fontSize: theme.typography.fontSize,
+                    fontWeight: 500,
+                    mb: 2,
+                  }}
+                >
+                  Team members
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="users-input"
+                  size="small"
+                  value={values.members.map((user) => ({
+                    _id: Number(user._id),
+                    name: user.name,
+                    surname: user.surname,
+                    email: user.email,
+                  }))}
+                  options={
+                    users
+                      ?.filter(
+                        (user) =>
+                          !values.members.some(
+                            (selectedUser) =>
+                              String(selectedUser._id) === String(user.id)
+                          ) && values.owner !== user.id
+                      )
+                      .map((user) => ({
+                        _id: user.id,
+                        name: user.name,
+                        surname: user.surname,
+                        email: user.email,
+                      })) || []
+                  }
+                  noOptionsText={
+                    values.members.length === users.length
+                      ? "All members selected"
+                      : "No options"
+                  }
+                  onChange={handleOnMultiSelect("members")}
+                  getOptionLabel={(user) => `${user.name} ${user.surname}`}
+                  renderOption={(props, option) => {
+                    const { key, ...optionProps } = props;
+                    const userEmail =
+                      option.email.length > 30
+                        ? `${option.email.slice(0, 30)}...`
+                        : option.email;
+                    return (
+                      <Box key={key} component="li" {...optionProps}>
+                        <Typography sx={{ fontSize: "13px" }}>
+                          {option.name} {option.surname}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: "11px",
+                            color: "rgb(157, 157, 157)",
+                            position: "absolute",
+                            right: "9px",
+                          }}
+                        >
+                          {userEmail}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  filterSelectedOptions
+                  popupIcon={<KeyboardArrowDown />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Select Users"
+                      error={!!errors.members}
+                      sx={teamMembersRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...teamMembersSxStyle,
+                  }}
+                  slotProps={teamMembersSlotProps}
+                />
+              </Stack>
+            )}
+            {!projectToEdit && (
               <Stack>
                 <Typography
                   sx={{
@@ -597,17 +705,14 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
                   id="monitored-regulations-and-standards-input"
                   size="small"
                   value={values.monitored_regulations_and_standards}
-                  options={allFrameworks.map((fw) => ({
-                    _id: Number(fw.id),
-                    name: fw.name,
-                  }))}
+                  options={filteredFrameworks}
                   onChange={handleOnMultiSelect(
                     "monitored_regulations_and_standards"
                   )}
                   getOptionLabel={(item) => item.name}
                   noOptionsText={
                     values.monitored_regulations_and_standards.length ===
-                    allFrameworks.length
+                    filteredFrameworks.length
                       ? "All regulations selected"
                       : "No options"
                   }
@@ -679,7 +784,10 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
               values.start_date ? dayjs(values.start_date) : dayjs(new Date())
             }
             handleDateChange={handleDateChange}
-            sx={datePickerStyle}
+            sx={{
+              ...datePickerStyle,
+              ...(projectToEdit && { width: "350px", "& input": { width: "300px" } }),
+            }}
             isRequired
             error={errors.startDate}
           />
@@ -691,13 +799,14 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
             onChange={handleOnTextFieldChange("goal")}
             sx={{
               backgroundColor: theme.palette.background.main,
+              ...(projectToEdit && { width: "350px" }), // Fix width when editing
             }}
             isRequired
             error={errors.goal}
           />
         </Stack>
       </Stack>
-      <Stack>
+      {!projectToEdit && (<Stack>
         <Checkbox
           size="small"
           id="auto-fill"
@@ -706,24 +815,17 @@ const ProjectForm = ({ sx, onClose }: ProjectFormProps) => {
           value={values.enable_ai_data_insertion.toString()}
           label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
         />
-      </Stack>
+      </Stack>)}
       <Stack
         sx={{
           display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
         }}
       >
         <CustomizableButton
-          variant="outlined"
-          text="Back"
-          sx={backButtonStyle}
-          icon={<ArrowBackIcon />}
-          onClick={handleBack}
-        />
-        <CustomizableButton
-          text="Create project"
+          text={projectToEdit ? "Update project" : "Create project"}
           sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon />}
           onClick={() => handleSubmit()}

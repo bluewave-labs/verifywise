@@ -1,43 +1,43 @@
 export const RISK_LABELS = {
   low: {
     text: "Low risk",
-    color: "#52AB43",
+    color: "#2E7D32",   // darker green
   },
   medium: {
     text: "Medium risk",
-    color: "#D6B971",
+    color: "#8D6E63",   // darker brown (instead of washed yellow)
   },
   high: {
     text: "High risk",
-    color: "#D68B61",
+    color: "#E65100",   // deep orange
   },
   critical: {
     text: "Very high risk",
-    color: "#C63622",
+    color: "#B71C1C",   // stronger red
   },
   noRisk: {
     text: "Very low risk",
-    color: "#B8D39C",
+    color: "#33691E",   // deep green
   },
   negligible: {
     text: "Negligible",
-    color: "#B8D39C",
+    color: "#33691E",
   },
   minor: {
     text: "Minor",
-    color: "#52AB43",
+    color: "#2E7D32",
   },
   moderate: {
     text: "Moderate",
-    color: "#D6B971",
+    color: "#8D6E63",
   },
   major: {
     text: "Major",
-    color: "#D68B61",
+    color: "#E65100",
   },
   catastrophic: {
     text: "Catastrophic",
-    color: "#C63622",
+    color: "#B71C1C",
   }
 };
 
@@ -70,10 +70,9 @@ export const getSeverityColorByText = (severity: string): string => {
 };
 
 // Reusable chip style object to avoid repetitive styling
-export const getRiskChipStyle = (theme: any) => ({
+export const getRiskChipStyle = () => ({
   color: 'white',
   fontWeight: 500,
-  borderRadius: theme.shape.borderRadius,
+  borderRadius: 12,
   height: 24,
 });
-

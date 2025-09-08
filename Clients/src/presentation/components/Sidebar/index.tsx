@@ -503,18 +503,17 @@ const Sidebar = () => {
                     component="div"
                     disablePadding
                     sx={{
-                      pl: theme.spacing(10), // Indent the nested list
+                      pl: theme.spacing(8), // Indent the nested list
                       position: "relative",
                       // The main vertical line of the tree
                       "&::before": {
                         content: '""',
                         position: "absolute",
-                        left: theme.spacing(4), // Position the line to align with parent icon center
+                        left: theme.spacing(3), // Position the line to align with parent icon center
                         top: 0,
                         bottom: 0,
                         width: "1px",
-                        backgroundColor:
-                          theme.palette.border?.light || "#e0e0e0",
+                        backgroundColor: "#D1D5DB", // Light gray color matching the reference
                       },
                     }}
                   >
@@ -549,22 +548,20 @@ const Sidebar = () => {
                           "&::before": {
                             content: '""',
                             position: "absolute",
-                            left: theme.spacing(-6), // Start from the vertical line's position
+                            left: theme.spacing(-5), // Start from the vertical line's position
                             top: "50%",
-                            width: theme.spacing(6), // Extend to the item's padding start
+                            width: theme.spacing(5), // Extend to the item's padding start
                             height: "1px",
-                            backgroundColor:
-                              theme.palette.border?.light || "#e0e0e0",
+                            backgroundColor: "#D1D5DB", // Light gray color matching the reference
                           },
-                          // This pseudo-element "erases" the part of the vertical line
-                          // below the final item, creating the L-shape corner
+                          // L-shaped corner for the last item
                           ...(index === item.children!.length - 1 && {
                             "&::after": {
                               content: '""',
                               position: "absolute",
-                              left: theme.spacing(-10), // Align with the main vertical line
+                              left: theme.spacing(-8), // Align with the main vertical line
                               top: "50%",
-                              bottom: "-100%", // Cover the area below the item
+                              bottom: "-200%", // Cover the area below the item to "erase" vertical line
                               width: "1px",
                               backgroundColor:
                                 theme.palette.background.main || "#ffffff",
@@ -572,7 +569,16 @@ const Sidebar = () => {
                           }),
                         }}
                       >
-                        <ListItemText>{child.name}</ListItemText>
+                        <ListItemText 
+                          sx={{
+                            "& .MuiListItemText-primary": {
+                              fontSize: "14px",
+                              color: theme.palette.text.secondary,
+                            },
+                          }}
+                        >
+                          {child.name}
+                        </ListItemText>
                       </ListItemButton>
                     ))}
                   </List>

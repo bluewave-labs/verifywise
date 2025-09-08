@@ -53,7 +53,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
           <Typography sx={styles.textTitle}>
             Link a risk from risk database
           </Typography>
-          <CloseIcon sx={styles.clearIconStyle} onClick={onClose} />
+          <CloseIcon style={styles.clearIconStyle} onClick={onClose} />
         </Stack>
         <Stack component="form" sx={styles.searchInputWrapper}>
           <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>

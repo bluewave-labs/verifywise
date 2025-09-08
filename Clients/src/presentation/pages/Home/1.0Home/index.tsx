@@ -8,7 +8,7 @@ import {
 } from "./style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle.svg";
-import { ReactComponent as CloudDownloadIcon } from "../../../assets/icons/cloudUpload.svg";
+//import { ReactComponent as CloudDownloadIcon } from "../../../assets/icons/cloudUpload.svg";
 
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../vw-v2-components/Toast";

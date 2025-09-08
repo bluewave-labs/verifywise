@@ -4,6 +4,7 @@ from ..core.config import ConfigManager, ModelConfig
 from ..core.config import PromptingConfig
 from .engine import InferenceEngine
 from .clients.openai_chat import OpenAIChatClient
+from .clients.hf_local import HFLocalClient
 
 
 def build_engine(
@@ -11,11 +12,7 @@ def build_engine(
     *,
     api_key: Optional[str] = None,
 ) -> InferenceEngine:
-    """Create an InferenceEngine based on the configured model provider.
-
-    For now, only remote OpenAI-style providers are implemented. Hugging Face local
-    models are intentionally skipped per instruction.
-    """
+    """Create an InferenceEngine based on the configured model provider."""
     model_cfg: ModelConfig = config_manager.get_model_config()
     prompting_cfg: PromptingConfig = config_manager.get_prompting_config()
 
@@ -38,7 +35,11 @@ def build_engine(
         )
         return InferenceEngine(client=client, gen_params=gen_params, prompting_config=prompting_cfg)
 
-    # Placeholder for future providers; deliberately skip Hugging Face implementation
+    if provider == "huggingface":
+        client = HFLocalClient(model_id=model_cfg.model_id, device=model_cfg.device)
+        return InferenceEngine(client=client, gen_params=gen_params, prompting_config=prompting_cfg)
+
+    # Placeholder for future providers
     raise ValueError(f"Unsupported or unimplemented provider: {model_cfg.provider}")
 
 

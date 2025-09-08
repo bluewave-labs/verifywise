@@ -38,7 +38,7 @@ import { ReactComponent as Policies } from "../../assets/icons/policies.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
-import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
+// import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
 import { ReactComponent as ModelInventory } from "../../assets/icons/list.svg";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -124,11 +124,11 @@ const menu: MenuItem[] = [
 ];
 
 const other: MenuItem[] = [
-  {
-    name: "Event Tracker",
-    icon: <WatchTower />,
-    path: "/event-tracker",
-  },
+  // {
+  //   name: "Event Tracker",
+  //   icon: <WatchTower />,
+  //   path: "/event-tracker",
+  // },
   {
     name: "Settings",
     icon: <Settings />,

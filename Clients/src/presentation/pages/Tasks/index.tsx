@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import { 
-  Box, Stack, Typography, TextField, InputAdornment, 
-  Collapse, Paper, Checkbox, FormControlLabel, Chip, Divider,
-  Select as MuiSelect, MenuItem, ListItemText, SelectChangeEvent,
-  IconButton, Menu, Dialog, DialogTitle, DialogContent, DialogActions,
+  Box, Stack, Typography, InputBase, TextField,
+  Collapse, Paper, Chip, 
+  IconButton,
+  Dialog, DialogTitle, DialogContent, DialogActions,
   Button
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { FilterList as FilterIcon, Clear as ClearIcon, ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon } from "@mui/icons-material";
+import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskStatus, TaskPriority, TaskSummary } from "../../../domain/interfaces/i.task";
@@ -20,21 +18,29 @@ import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
 import useUsers from "../../../application/hooks/useUsers";
+import CustomSelect from "../../components/CustomSelect";
 import { vwhomeHeading, vwhomeHeaderCards, vwhomeBody, vwhomeBodyControls } from "../Home/1.0Home/style";
+import { searchBoxStyle, searchInputStyle } from "./style";
+
+// Task status options for CustomSelect
+const TASK_STATUS_OPTIONS = [
+  TaskStatus.OPEN,
+  TaskStatus.IN_PROGRESS,
+  TaskStatus.COMPLETED, 
+  TaskStatus.OVERDUE,
+];
 
 const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<ITask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ITask | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
-  const [statusMenuAnchor, setStatusMenuAnchor] = useState<null | HTMLElement>(null);
-  const [statusMenuTaskId, setStatusMenuTaskId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
   const [priorityFilters, setPriorityFilters] = useState<TaskPriority[]>([]);
   const [assigneeFilters, setAssigneeFilters] = useState<number[]>([]);
@@ -43,19 +49,47 @@ const Tasks: React.FC = () => {
   const [dueDateFrom, setDueDateFrom] = useState("");
   const [dueDateTo, setDueDateTo] = useState("");
   
+  // Filter expansion state (like RiskFilters)
+  const getInitialExpandedState = (): boolean => {
+    const saved = localStorage.getItem('taskFilters_expanded');
+    return saved !== null ? JSON.parse(saved) : false;
+  };
+  const [filtersExpanded, setFiltersExpanded] = useState<boolean>(getInitialExpandedState());
+  
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
   const isCreatingDisabled = !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
-  // Check if any filters are active
-  const hasActiveFilters = useMemo(() => {
-    return statusFilters.length > 0 || 
-           priorityFilters.length > 0 || 
-           assigneeFilters.length > 0 || 
-           categoryFilters.length > 0 || 
-           dueDateFrom !== "" || 
-           dueDateTo !== "";
-  }, [statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo]);
+  // Handle expanded state changes and save to localStorage
+  const handleExpandedChange = (newExpanded: boolean) => {
+    setFiltersExpanded(newExpanded);
+    localStorage.setItem('taskFilters_expanded', JSON.stringify(newExpanded));
+  };
+
+  // Get active filter count (like RiskFilters)
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (statusFilters.length > 0) count++;
+    if (priorityFilters.length > 0) count++;
+    if (assigneeFilters.length > 0) count++;
+    if (categoryFilters.length > 0) count++;
+    if (dueDateFrom !== "" || dueDateTo !== "") count++;
+    return count;
+  };
+
+  const activeFilterCount = getActiveFilterCount();
+
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setStatusFilters([]);
+    setPriorityFilters([]);
+    setAssigneeFilters([]);
+    setCategoryFilters([]);
+    setCategoryInput("");
+    setDueDateFrom("");
+    setDueDateTo("");
+  };
+
 
   // Debounce search query
   useEffect(() => {
@@ -87,8 +121,11 @@ const Tasks: React.FC = () => {
           assignee: assigneeFilters.length > 0 ? assigneeFilters : undefined,
           category: categoryFilters.length > 0 ? categoryFilters : undefined,
           due_date_start: dueDateFrom || undefined,
-          due_date_end: dueDateTo || undefined
+          due_date_end: dueDateTo || undefined,
+          sort_by: sortBy === 'newest' ? 'created_at' : sortBy === 'oldest' ? 'created_at' : sortBy as any,
+          sort_order: sortBy === 'oldest' ? 'ASC' : 'DESC'
         });
+        
         setTasks(response.data?.tasks || []);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch tasks');
@@ -97,7 +134,7 @@ const Tasks: React.FC = () => {
       }
     };
     fetchTasks();
-  }, [debouncedSearchQuery, statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo]);
+  }, [debouncedSearchQuery, statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo, sortBy]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -123,9 +160,12 @@ const Tasks: React.FC = () => {
     setEditingTask(task);
   };
 
-  const handleDeleteTask = (task: ITask) => {
-    setTaskToDelete(task);
-    setDeleteConfirmOpen(true);
+  const handleDeleteTask = (taskId: number) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setTaskToDelete(task);
+      setDeleteConfirmOpen(true);
+    }
   };
 
   const confirmDeleteTask = async () => {
@@ -157,20 +197,23 @@ const Tasks: React.FC = () => {
     }
   };
 
-  const handleQuickStatusUpdate = async (taskId: number, newStatus: TaskStatus) => {
+
+  const handleTaskStatusChange = (taskId: number) => async (newStatus: string): Promise<boolean> => {
     try {
-      const response = await updateTaskStatus({ id: taskId, status: newStatus });
+      const response = await updateTaskStatus({ id: taskId, status: newStatus as TaskStatus });
       if (response && response.data) {
         setTasks(prev => prev.map(task => 
-          task.id === taskId ? { ...task, status: newStatus } : task
+          task.id === taskId ? { ...task, status: newStatus as TaskStatus } : task
         ));
+        return true;
       }
-      setStatusMenuAnchor(null);
-      setStatusMenuTaskId(null);
+      return false;
     } catch (error) {
       console.error('Error updating task status:', error);
+      return false;
     }
   };
+
 
   return (
     <Box sx={{ p: 3 }}>
@@ -189,7 +232,7 @@ const Tasks: React.FC = () => {
       </Stack>
 
       {/* Header Cards */}
-      <Stack sx={vwhomeHeaderCards}>
+      <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
         <HeaderCard title="Tasks" count={summary.total} />
         <HeaderCard title="Overdue" count={summary.overdue} />
         <HeaderCard title="In Progress" count={summary.inProgress} />
@@ -197,269 +240,240 @@ const Tasks: React.FC = () => {
       </Stack>
 
       {/* Search, Filter, and Sort Controls  */}
-      <Box sx={{ mt: 3, mb: 4 }}>
+      <Box sx={{ mt: 6, mb: 6 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <TextField
-            placeholder="Search tasks by title or description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ 
-              flex: 1,
-              mr: 2,
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: '#fff',
-                borderRadius: 2,
-              }
-            }}
-            variant="outlined"
-            size="small"
-          />
+          <Box sx={searchBoxStyle}>
+            <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+            <InputBase
+              placeholder="Search tasks by title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={searchInputStyle}
+              inputProps={{ "aria-label": "Search tasks" }}
+            />
+          </Box>
           
           <Stack direction="row" spacing={3} alignItems="center">
-            <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-              <CustomizableButton
-                variant="outlined"
-                icon={<FilterListIcon />}
-                text="Filters"
-                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                sx={{ 
-                  backgroundColor: isFiltersOpen ? '#f5f5f5' : 'transparent',
-                  minHeight: '36px'
-                }}
-              />
-              {hasActiveFilters && (
-                <Box sx={{
-                  backgroundColor: '#17b26a',
-                  color: 'white',
-                  px: 1.2,
-                  py: 0.3,
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  minWidth: '40px',
-                  textAlign: 'center',
-                  lineHeight: 1.2,
-                  ml: 0.5
-                }}>
-                  Active
-                </Box>
-              )}
-            </Box>
-            
-            <Select
-              id="sort-select"
-              value="newest"
-              items={[
-                { _id: "newest", name: "Newest First" },
-                { _id: "oldest", name: "Oldest First" },
-                { _id: "priority", name: "Priority" },
-                { _id: "due_date", name: "Due Date" },
-              ]}
-              onChange={() => {}}
-              getOptionValue={(item: any) => item._id}
+            <CustomSelect
+              currentValue={sortBy}
+              onValueChange={async (newSort: string) => {
+                setSortBy(newSort);
+                return true;
+              }}
+              options={["newest", "oldest", "priority", "due_date"]}
               sx={{ minWidth: 150 }}
             />
           </Stack>
         </Stack>
         
-        <Collapse in={isFiltersOpen}>
-          <Paper sx={{ border: '1px solid #e0e0e0', borderRadius: 2 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" p={3} pb={2}>
+        <Paper 
+          elevation={0}
+          sx={{ 
+            mb: 2,
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            backgroundColor: "transparent",
+            boxShadow: "none",
+          }}
+        >
+          {/* Filter Header */}
+          <Box 
+            sx={{ 
+              p: 2, 
+              borderBottom: filtersExpanded ? "1px solid #E5E7EB" : "none",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+            onClick={() => handleExpandedChange(!filtersExpanded)}
+          >
             <Stack direction="row" alignItems="center" spacing={1}>
-              <FilterListIcon color="primary" />
-              <Typography variant="subtitle1" fontWeight={600}>Filters</Typography>
-            </Stack>
-            <Stack 
-              direction="row" 
-              alignItems="center" 
-              spacing={1} 
-              sx={{ cursor: 'pointer' }}
-              onClick={() => {
-                setStatusFilters([]);
-                setPriorityFilters([]);
-                setAssigneeFilters([]);
-                setCategoryFilters([]);
-                setCategoryInput("");
-                setDueDateFrom("");
-                setDueDateTo("");
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">Clear All</Typography>
-              <CloseIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-            </Stack>
-          </Stack>
-          
-          <Box sx={{ px: 4, pb: 4 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-              {/* Status Filter */}
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Status</Typography>
-                <Stack spacing={0.5}>
-                  {Object.values(TaskStatus).map((status) => (
-                    <FormControlLabel
-                      key={status}
-                      control={
-                        <Checkbox
-                          checked={statusFilters.includes(status)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setStatusFilters([...statusFilters, status]);
-                            } else {
-                              setStatusFilters(statusFilters.filter(s => s !== status));
-                            }
-                          }}
-                          size="small"
-                        />
-                      }
-                      label={status}
-                      sx={{ 
-                        '& .MuiFormControlLabel-label': { fontSize: 14 },
-                        m: 0
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-              
-              {/* Priority Filter */}
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Priority</Typography>
-                <Stack spacing={0.5}>
-                  {Object.values(TaskPriority).map((priority) => (
-                    <FormControlLabel
-                      key={priority}
-                      control={
-                        <Checkbox
-                          checked={priorityFilters.includes(priority)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPriorityFilters([...priorityFilters, priority]);
-                            } else {
-                              setPriorityFilters(priorityFilters.filter(p => p !== priority));
-                            }
-                          }}
-                          size="small"
-                        />
-                      }
-                      label={priority}
-                      sx={{ 
-                        '& .MuiFormControlLabel-label': { fontSize: 14 },
-                        m: 0
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-              
-              {/* Assignee Filter */}
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Assignee</Typography>
-                <MuiSelect
-                  multiple
-                  value={assigneeFilters.map(String)}
-                  onChange={(event: SelectChangeEvent<string[]>) => {
-                    const value = event.target.value;
-                    const numericValues = (typeof value === 'string' ? value.split(',') : value).map(Number);
-                    setAssigneeFilters(numericValues);
+              <FilterIcon sx={{ color: "#13715B", fontSize: 20 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
+                Filters
+              </Typography>
+              {activeFilterCount > 0 && (
+                <Chip
+                  label={activeFilterCount}
+                  size="small"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    color: "white",
+                    fontWeight: 600,
+                    minWidth: 20,
+                    height: 20,
+                    "& .MuiChip-label": {
+                      px: 1,
+                      fontSize: 11,
+                    },
                   }}
-                  renderValue={(selected) =>
-                    selected.length === 0 
-                      ? 'Select assignees...' 
-                      : `${selected.length} selected`
-                  }
+                />
+              )}
+            </Stack>
+
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {activeFilterCount > 0 && (
+                <Button
                   size="small"
-                  displayEmpty
-                  sx={{ minWidth: 160, fontSize: 14 }}
-                >
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={String(user.id)}>
-                      <Checkbox checked={assigneeFilters.includes(user.id)} size="small" />
-                      <ListItemText 
-                        primary={`${user.name} ${user.surname ?? ''}`} 
-                        primaryTypographyProps={{ fontSize: 13 }}
-                      />
-                    </MenuItem>
-                  ))}
-                </MuiSelect>
-              </Box>
-              
-              {/* Categories Filter */}
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Categories</Typography>
-                <TextField
-                  placeholder="Enter category..."
-                  size="small"
-                  value={categoryInput}
-                  onChange={(e) => setCategoryInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && categoryInput.trim()) {
-                      const category = categoryInput.trim();
-                      if (!categoryFilters.includes(category)) {
-                        setCategoryFilters([...categoryFilters, category]);
-                      }
-                      setCategoryInput('');
+                  startIcon={<ClearIcon />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearAllFilters();
+                  }}
+                  sx={{
+                    color: "#6B7280",
+                    textTransform: "none",
+                    fontSize: 12,
+                    "&:hover": {
+                      backgroundColor: "#F3F4F6",
                     }
                   }}
-                  sx={{ minWidth: 160, fontSize: 14 }}
-                />
-                {categoryFilters.length > 0 && (
-                  <Stack direction="row" flexWrap="wrap" spacing={0.5} mt={1}>
-                    {categoryFilters.map((category) => (
-                      <Chip
-                        key={category}
-                        label={category}
-                        size="small"
-                        onDelete={() => {
-                          setCategoryFilters(categoryFilters.filter(cat => cat !== category));
-                        }}
-                        sx={{ fontSize: 12, height: 24 }}
-                      />
-                    ))}
-                  </Stack>
-                )}
-              </Box>
+                >
+                  Clear All
+                </Button>
+              )}
+              <IconButton size="small">
+                {filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
             </Stack>
-            
-            <Divider sx={{ my: 3 }} />
-            
-            {/* Due Date Range */}
-            <Box>
-              <Typography variant="body2" mb={2} color="text.secondary" fontWeight={500}>Due Date Range</Typography>
-              <Stack direction="row" justifyContent="space-between" sx={{ maxWidth: 700 }}>
-                <TextField
-                  placeholder="mm/dd/yyyy"
-                  type="date"
-                  value={dueDateFrom}
-                  onChange={(e) => setDueDateFrom(e.target.value)}
-                  size="small"
-                  sx={{ width: 300 }}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <TextField
-                  placeholder="mm/dd/yyyy"
-                  type="date"
-                  value={dueDateTo}
-                  onChange={(e) => setDueDateTo(e.target.value)}
-                  size="small"
-                  sx={{ width: 300 }}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Stack>
-            </Box>
           </Box>
-          </Paper>
-        </Collapse>
+
+          {/* Filter Content */}
+          <Collapse in={filtersExpanded}>
+            <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
+              {/* All Filters in One Row */}
+              <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start" }}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing="12px" sx={{ ml: "12px", width: "100%" }}>
+                  <Select
+                    id="status-filter"
+                    label="Status"
+                    value={statusFilters.length > 0 ? statusFilters[0] : "all"}
+                    items={[
+                      { _id: "all", name: "All Statuses" },
+                      ...Object.values(TaskStatus).map(status => ({ _id: status, name: status }))
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setStatusFilters([]);
+                      } else {
+                        setStatusFilters([value as TaskStatus]);
+                      }
+                    }}
+                    sx={{ minWidth: 140 }}
+                  />
+
+                  <Select
+                    id="priority-filter"
+                    label="Priority"
+                    value={priorityFilters.length > 0 ? priorityFilters[0] : "all"}
+                    items={[
+                      { _id: "all", name: "All Priorities" },
+                      ...Object.values(TaskPriority).map(priority => ({ _id: priority, name: priority }))
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setPriorityFilters([]);
+                      } else {
+                        setPriorityFilters([value as TaskPriority]);
+                      }
+                    }}
+                    sx={{ minWidth: 140 }}
+                  />
+                  
+                  <Select
+                    id="assignee-filter"
+                    label="Assignee"
+                    value={assigneeFilters.length > 0 ? assigneeFilters[0].toString() : "all"}
+                    items={[
+                      { _id: "all", name: "All Assignees" },
+                      ...users.map(user => ({ 
+                        _id: user.id.toString(), 
+                        name: `${user.name} ${user.surname ?? ''}`.trim() 
+                      }))
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setAssigneeFilters([]);
+                      } else {
+                        setAssigneeFilters([Number(value)]);
+                      }
+                    }}
+                    sx={{ minWidth: 160 }}
+                  />
+
+                  {/* Categories */}
+                  <Box sx={{ minWidth: 200 }}>
+                    <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Categories</Typography>
+                    <TextField
+                      placeholder="Enter category..."
+                      size="small"
+                      value={categoryInput}
+                      onChange={(e) => setCategoryInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && categoryInput.trim()) {
+                          const category = categoryInput.trim();
+                          if (!categoryFilters.includes(category)) {
+                            setCategoryFilters([...categoryFilters, category]);
+                          }
+                          setCategoryInput('');
+                        }
+                      }}
+                      sx={{ width: "100%", fontSize: 14 }}
+                    />
+                    {categoryFilters.length > 0 && (
+                      <Stack direction="row" flexWrap="wrap" spacing={0.5} mt={1}>
+                        {categoryFilters.map((category) => (
+                          <Chip
+                            key={category}
+                            label={category}
+                            size="small"
+                            onDelete={() => {
+                              setCategoryFilters(categoryFilters.filter(cat => cat !== category));
+                            }}
+                            sx={{ fontSize: 12, height: 24 }}
+                          />
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+
+                  {/* Due Date Range */}
+                  <Box sx={{ minWidth: 280 }}>
+                    <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Due Date</Typography>
+                    <Stack direction="row" spacing={1}>
+                      <TextField
+                        label="From"
+                        type="date"
+                        value={dueDateFrom}
+                        onChange={(e) => setDueDateFrom(e.target.value)}
+                        size="small"
+                        sx={{ width: 160 }}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                      <TextField
+                        label="To"
+                        type="date"
+                        value={dueDateTo}
+                        onChange={(e) => setDueDateTo(e.target.value)}
+                        size="small"
+                        sx={{ width: 160 }}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Stack>
+                  </Box>
+                </Stack>
+              </Box>
+            </Box>
+          </Collapse>
+        </Paper>
       </Box>
 
       {/* Content Area */}
-      <Box sx={{ mt: 3 }}>
+      <Box sx={{ mt: 5 }}>
         {isLoading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <Typography>Loading tasks...</Typography>
@@ -473,299 +487,15 @@ const Tasks: React.FC = () => {
         )}
         
         {!isLoading && !error && (
-          <Stack spacing={2}>
-            <Typography variant="body2" color="text.secondary">
-              Showing {tasks.length} tasks{debouncedSearchQuery ? ` matching "${debouncedSearchQuery}"` : ''}
-            </Typography>
-            
-            {tasks.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No tasks found
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Create your first task to get started!
-                </Typography>
-                {isCreatingDisabled && (
-                  <Typography variant="body2" color="error" sx={{ mt: 2 }}>
-                    Note: Only Admin and Editor users can create tasks.
-                  </Typography>
-                )}
-              </Box>
-            ) : (
-              <Box sx={{ 
-                border: '1px solid #e0e0e0', 
-                borderRadius: 2, 
-                backgroundColor: '#fff',
-                overflow: 'hidden'
-              }}>
-                {/* Table Header */}
-                <Box sx={{ 
-                  backgroundColor: '#f9fafb',
-                  borderBottom: '1px solid #e0e0e0',
-                  p: 2
-                }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Box sx={{ flex: 3 }}>
-                      <Typography variant="body2" fontWeight={600} color="text.secondary">
-                        Task
-                      </Typography>
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={600} color="text.secondary">
-                        Priority
-                      </Typography>
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={600} color="text.secondary">
-                        Status
-                      </Typography>
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={600} color="text.secondary">
-                        Due Date
-                      </Typography>
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" fontWeight={600} color="text.secondary">
-                        Assignees
-                      </Typography>
-                    </Box>
-                    <Box sx={{ flex: 0.7 }}>
-                      <Typography variant="body2" fontWeight={600} color="text.secondary">
-                        Actions
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Box>
-
-                {/* Task Rows */}
-                {tasks.map((task, index) => (
-                  <Box 
-                    key={task.id} 
-                    sx={{ 
-                      borderBottom: index < tasks.length - 1 ? '1px solid #e0e0e0' : 'none',
-                      p: 2,
-                      '&:hover': {
-                        backgroundColor: '#f9fafb'
-                      }
-                    }}
-                  >
-                    <Stack direction="row" alignItems="center" spacing={2}>
-                      {/* Task Info */}
-                      <Box sx={{ flex: 3 }}>
-                        <Typography variant="body2" fontWeight={600} gutterBottom>
-                          {task.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
-                          {task.description}
-                        </Typography>
-                        {task.categories && task.categories.length > 0 && (
-                          <Stack direction="row" spacing={0.5} mt={1}>
-                            {task.categories.slice(0, 2).map((category) => (
-                              <Chip
-                                key={category}
-                                label={category}
-                                size="small"
-                                sx={{ 
-                                  fontSize: 10, 
-                                  height: 20,
-                                  backgroundColor: '#f0f9ff',
-                                  color: '#0369a1'
-                                }}
-                              />
-                            ))}
-                            {task.categories.length > 2 && (
-                              <Chip
-                                label={`+${task.categories.length - 2}`}
-                                size="small"
-                                sx={{ 
-                                  fontSize: 10, 
-                                  height: 20,
-                                  backgroundColor: '#f3f4f6',
-                                  color: '#6b7280'
-                                }}
-                              />
-                            )}
-                          </Stack>
-                        )}
-                      </Box>
-
-                      {/* Priority */}
-                      <Box sx={{ flex: 1 }}>
-                        <Chip
-                          label={task.priority}
-                          size="small"
-                          sx={{
-                            fontSize: 11,
-                            height: 24,
-                            fontWeight: 500,
-                            backgroundColor: 
-                              task.priority === TaskPriority.HIGH ? '#fef2f2' :
-                              task.priority === TaskPriority.MEDIUM ? '#fefbf2' : '#f0fdf4',
-                            color: 
-                              task.priority === TaskPriority.HIGH ? '#dc2626' :
-                              task.priority === TaskPriority.MEDIUM ? '#d97706' : '#16a34a',
-                            border: `1px solid ${
-                              task.priority === TaskPriority.HIGH ? '#fecaca' :
-                              task.priority === TaskPriority.MEDIUM ? '#fed7aa' : '#bbf7d0'
-                            }`
-                          }}
-                        />
-                      </Box>
-
-                      {/* Status */}
-                      <Box sx={{ flex: 1 }}>
-                        <Chip
-                          label={task.status}
-                          size="small"
-                          clickable
-                          onClick={(event) => {
-                            setStatusMenuAnchor(event.currentTarget);
-                            setStatusMenuTaskId(task.id!);
-                          }}
-                          sx={{
-                            fontSize: 11,
-                            height: 24,
-                            fontWeight: 500,
-                            cursor: 'pointer',
-                            backgroundColor: 
-                              task.status === TaskStatus.COMPLETED ? '#f0fdf4' :
-                              task.status === TaskStatus.IN_PROGRESS ? '#eff6ff' :
-                              task.status === TaskStatus.OVERDUE ? '#fef2f2' : '#f9fafb',
-                            color: 
-                              task.status === TaskStatus.COMPLETED ? '#16a34a' :
-                              task.status === TaskStatus.IN_PROGRESS ? '#2563eb' :
-                              task.status === TaskStatus.OVERDUE ? '#dc2626' : '#6b7280',
-                            border: `1px solid ${
-                              task.status === TaskStatus.COMPLETED ? '#bbf7d0' :
-                              task.status === TaskStatus.IN_PROGRESS ? '#bfdbfe' :
-                              task.status === TaskStatus.OVERDUE ? '#fecaca' : '#e5e7eb'
-                            }`,
-                            '&:hover': {
-                              opacity: 0.8
-                            }
-                          }}
-                        />
-                      </Box>
-
-                      {/* Due Date */}
-                      <Box sx={{ flex: 1 }}>
-                        {task.due_date ? (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
-                            {new Date(task.due_date).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </Typography>
-                        ) : (
-                          <Typography variant="body2" color="text.disabled" sx={{ fontSize: 12 }}>
-                            No due date
-                          </Typography>
-                        )}
-                      </Box>
-
-                      {/* Assignees */}
-                      <Box sx={{ flex: 1 }}>
-                        {task.assignees && task.assignees.length > 0 ? (
-                          <Stack direction="row" spacing={0.5}>
-                            {task.assignees.slice(0, 3).map((assigneeId, idx) => {
-                              // Find user details from users array (following project members pattern)
-                              const user = users.find(u => u.id === Number(assigneeId));
-                              const initials = user 
-                                ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
-                                : '?';
-                              
-                              return (
-                                <Box
-                                  key={idx}
-                                  sx={{
-                                    width: 28,
-                                    height: 28,
-                                    borderRadius: '50%',
-                                    backgroundColor: '#f3f4f6',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: 11,
-                                    fontWeight: 500,
-                                    color: '#374151',
-                                    border: '2px solid #fff'
-                                  }}
-                                >
-                                  {initials}
-                                </Box>
-                              );
-                            })}
-                            {task.assignees.length > 3 && (
-                              <Box
-                                sx={{
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: '50%',
-                                  backgroundColor: '#e5e7eb',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: 10,
-                                  fontWeight: 500,
-                                  color: '#6b7280',
-                                  border: '2px solid #fff'
-                                }}
-                              >
-                                +{task.assignees.length - 3}
-                              </Box>
-                            )}
-                          </Stack>
-                        ) : (
-                          <Typography variant="body2" color="text.disabled" sx={{ fontSize: 12 }}>
-                            Unassigned
-                          </Typography>
-                        )}
-                      </Box>
-
-                      {/* Actions */}
-                      <Box sx={{ flex: 0.7 }}>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditTask(task)}
-                            sx={{
-                              color: '#13715B',
-                              backgroundColor: 'transparent',
-                              '&:hover': {
-                                backgroundColor: '#f0fdf4',
-                                color: '#0f5d4f'
-                              },
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <EditIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteTask(task)}
-                            sx={{
-                              color: '#dc2626',
-                              backgroundColor: 'transparent',
-                              '&:hover': {
-                                backgroundColor: '#fef2f2',
-                                color: '#b91c1c'
-                              },
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <DeleteIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
-                        </Stack>
-                      </Box>
-                    </Stack>
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Stack>
+          <TasksTable
+            tasks={tasks}
+            users={users}
+            onDelete={handleDeleteTask}
+            onEdit={handleEditTask}
+            onStatusChange={handleTaskStatusChange}
+            statusOptions={TASK_STATUS_OPTIONS}
+            isUpdateDisabled={isCreatingDisabled}
+          />
         )}
       </Box>
 
@@ -818,62 +548,6 @@ const Tasks: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Status Update Menu */}
-      <Menu
-        anchorEl={statusMenuAnchor}
-        open={Boolean(statusMenuAnchor)}
-        onClose={() => {
-          setStatusMenuAnchor(null);
-          setStatusMenuTaskId(null);
-        }}
-        PaperProps={{
-          sx: { minWidth: 160 }
-        }}
-      >
-        {Object.values(TaskStatus).map((status) => (
-          <MenuItem 
-            key={status}
-            onClick={() => statusMenuTaskId && handleQuickStatusUpdate(statusMenuTaskId, status)}
-            sx={{ 
-              fontSize: 14,
-              py: 1,
-              '&:hover': {
-                backgroundColor: 
-                  status === TaskStatus.COMPLETED ? '#f0fdf4' :
-                  status === TaskStatus.IN_PROGRESS ? '#eff6ff' :
-                  status === TaskStatus.OVERDUE ? '#fef2f2' : '#f9fafb',
-              }
-            }}
-          >
-            <Chip
-              label={status}
-              size="small"
-              sx={{
-                fontSize: 10,
-                height: 22,
-                mr: 1.5,
-                fontWeight: 500,
-                backgroundColor: 
-                  status === TaskStatus.COMPLETED ? '#f0fdf4' :
-                  status === TaskStatus.IN_PROGRESS ? '#eff6ff' :
-                  status === TaskStatus.OVERDUE ? '#fef2f2' : '#f9fafb',
-                color: 
-                  status === TaskStatus.COMPLETED ? '#16a34a' :
-                  status === TaskStatus.IN_PROGRESS ? '#2563eb' :
-                  status === TaskStatus.OVERDUE ? '#dc2626' : '#6b7280',
-                border: `1px solid ${
-                  status === TaskStatus.COMPLETED ? '#bbf7d0' :
-                  status === TaskStatus.IN_PROGRESS ? '#bfdbfe' :
-                  status === TaskStatus.OVERDUE ? '#fecaca' : '#e5e7eb'
-                }`
-              }}
-            />
-            <Typography variant="body2" fontWeight={500}>
-              {status}
-            </Typography>
-          </MenuItem>
-        ))}
-      </Menu>
     </Box>
   );
 };

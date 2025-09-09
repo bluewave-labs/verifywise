@@ -54,6 +54,10 @@ const PolicyDashboard: React.FC = () => {
     }
   };
 
+  const handleAddNewPolicy = () => {
+    handleOpen();
+  };
+
   const handleClose = () => setShowModal(false);
 
   const handleSaved = () => {
@@ -96,34 +100,34 @@ const PolicyDashboard: React.FC = () => {
       </Stack>
 
       <Stack
-          direction={{ xs: "column", md: "row" }}
-          justifyContent="space-between"
-          alignItems="flex-end"   // ✅ bottom alignment
-          mb={8}
-          mt={10}
-          gap={4}
-        >
-          {/* Policy by Status Cards */}
-          {policies.length > 0 && (
-            <Box sx={{ flex: 1 }}>
-              <PolicyStatusCard policies={policies} />
-            </Box>
-          )}
+        direction={{ xs: "column", md: "row" }}
+        justifyContent="space-between"
+        alignItems="flex-end" // ✅ bottom alignment
+        mb={8}
+        mt={10}
+        gap={4}
+      >
+        {/* Policy by Status Cards */}
+        {policies.length > 0 && (
+          <Box sx={{ flex: 1 }}>
+            <PolicyStatusCard policies={policies} />
+          </Box>
+        )}
 
-          {/* Add New Policy Button */}
-          <CustomizableButton
-            variant="contained"
-            text="Add new policy"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 3,
-              height: "fit-content",   // ✅ keeps button compact
-            }}
-            icon={<AddCircleOutlineIcon />}
-            onClick={handleOpen}
-          />
-        </Stack>
+        {/* Add New Policy Button */}
+        <CustomizableButton
+          variant="contained"
+          text="Add new policy"
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 3,
+            height: "fit-content", // ✅ keeps button compact
+          }}
+          icon={<AddCircleOutlineIcon />}
+          onClick={handleAddNewPolicy}
+        />
+      </Stack>
 
       {policies.length === 0 ? (
         <Stack

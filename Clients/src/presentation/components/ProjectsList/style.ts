@@ -8,7 +8,7 @@ export const searchBoxStyle = (isSearchBarVisible: boolean): SxProps<Theme> => (
   borderRadius: 1,
   p: "4px 6px",
   bgcolor: "#fff",
-  width: isSearchBarVisible ? "23.8%" : "40px",
+  width: isSearchBarVisible ? "23.8%" : "46px",
   transition: "all 0.3s ease",
   mb: 9,
 });

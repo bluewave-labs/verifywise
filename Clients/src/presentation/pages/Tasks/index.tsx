@@ -10,10 +10,13 @@ import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.s
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
-import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-more.svg";
-import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-less.svg";
+import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
+import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.svg";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import { ITask, TaskStatus, TaskPriority, TaskSummary } from "../../../domain/interfaces/i.task";
 import { getAllTasks, createTask, updateTask, deleteTask, updateTaskStatus } from "../../../application/repository/task.repository";
@@ -56,6 +59,7 @@ const Tasks: React.FC = () => {
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [dueDateFrom, setDueDateFrom] = useState("");
   const [dueDateTo, setDueDateTo] = useState("");
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const handleDateFromChange = (newDate: dayjs.Dayjs | null) => {
     if (newDate?.isValid()) {
@@ -242,31 +246,46 @@ const Tasks: React.FC = () => {
 
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Page Header */}
-      <Stack sx={vwhomeBody}>
-        <Stack>
-          <Typography sx={vwhomeHeading}>Tasks list</Typography>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            This table includes a list of tasks assigned to team members. You can create and
-            manage all tasks here.
-          </Typography>
+    <div className="tasks-page">
+      <PageBreadcrumbs />
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent="<h3>Task Management</h3><p>This page allows you to create, manage, and track tasks assigned to team members. You can filter tasks by status, priority, assignee, and due date.</p>"
+        pageTitle="Task Management"
+      />
+      
+      <Box sx={{ p: 3 }}>
+        {/* Page Header */}
+        <Stack sx={vwhomeBody}>
+          <Stack>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography sx={vwhomeHeading}>Tasks list</Typography>
+              <HelperIcon
+                onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+                size="small"
+              />
+            </Stack>
+            <Typography sx={singleTheme.textStyles.pageDescription}>
+              This table includes a list of tasks assigned to team members. You can create and
+              manage all tasks here.
+            </Typography>
+          </Stack>
+          <Stack sx={vwhomeBodyControls}>
+            <CustomizableButton
+              variant="contained"
+              text="Add new task"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<AddCircleIcon />}
+              onClick={handleCreateTask}
+              isDisabled={isCreatingDisabled}
+            />
+          </Stack>
         </Stack>
-        <Stack sx={vwhomeBodyControls}>
-          <CustomizableButton
-            variant="contained"
-            text="Add new task"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            icon={<AddCircleIcon />}
-            onClick={handleCreateTask}
-            isDisabled={isCreatingDisabled}
-          />
-        </Stack>
-      </Stack>
 
       {/* Header Cards */}
       <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
@@ -603,7 +622,8 @@ const Tasks: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-    </Box>
+      </Box>
+    </div>
   );
 };
 

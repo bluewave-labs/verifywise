@@ -16,7 +16,7 @@ import Popup from "../../../../components/Popup";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
-import CustomizableToast from "../../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../../components/Toast";
 import CustomizableSkeleton from "../../../../components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";

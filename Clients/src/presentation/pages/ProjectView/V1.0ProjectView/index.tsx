@@ -16,7 +16,7 @@ import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import ProjectFrameworks from "../ProjectFrameworks";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";

@@ -10,7 +10,7 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../components/Forms/ProjectForm";

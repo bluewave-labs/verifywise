@@ -20,7 +20,7 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableSkeleton from "../../../components/Skeletons";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
 import {
   deleteUserById,

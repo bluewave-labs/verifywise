@@ -27,7 +27,7 @@ import {
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import Alert from "../../../components/Alert";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 
 interface AddFrameworkModalProps {

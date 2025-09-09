@@ -19,7 +19,7 @@ import {
 } from "../../../../application/repository/organization.repository";
 import Alert from "../../../components/Alert";
 import allowedRoles from "../../../../application/constants/permissions";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   uploadAITrustCentreLogo,
   deleteAITrustCentreLogo,
@@ -112,15 +112,16 @@ const Organization = () => {
           const bufferData = new Uint8Array(
             responseData.data.logo.content.data
           );
-          
+
           // Determine the correct MIME type from the response or default to png
-          const mimeType = responseData.data.logo.mimeType || 
-                          responseData.data.logo.contentType || 
-                          'image/png';
-          
+          const mimeType =
+            responseData.data.logo.mimeType ||
+            responseData.data.logo.contentType ||
+            "image/png";
+
           const blob = new Blob([bufferData], { type: mimeType });
           const blobUrl = URL.createObjectURL(blob);
-          
+
           // Validate that the blob URL can be loaded as an image
           return new Promise((resolve) => {
             const img = new Image();
@@ -144,49 +145,49 @@ const Organization = () => {
     []
   );
 
-      // Fetch organization data and logo
-      const fetchOrganization = useCallback(async () => {
+  // Fetch organization data and logo
+  const fetchOrganization = useCallback(async () => {
+    try {
+      const organizations = await GetMyOrganization({
+        routeUrl: `/organizations/${organizationId}`,
+      });
+      const org = organizations.data.data;
+      setOrganizationName(org.name || "");
+      setOrganizationExists(true);
+      setHasChanges(false);
+
+      // Fetch logo if organization exists
+      if (org.id) {
+        setLogoLoading(true);
+        setLogoLoadError(false); // Reset error state
         try {
-          const organizations = await GetMyOrganization({
-            routeUrl: `/organizations/${organizationId}`,
-          });
-          const org = organizations.data.data;
-          setOrganizationName(org.name || "");
-          setOrganizationExists(true);
-          setHasChanges(false);
+          const authToken = getAuthToken();
+          const tokenData = extractUserToken(authToken);
+          const tenantId = tokenData?.tenantId;
 
-          // Fetch logo if organization exists
-          if (org.id) {
-            setLogoLoading(true);
-            setLogoLoadError(false); // Reset error state
-            try {
-              const authToken = getAuthToken();
-              const tokenData = extractUserToken(authToken);
-              const tenantId = tokenData?.tenantId;
-
-              if (tenantId) {
-                const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
-                if (logoBlobUrl) {
-                  setLogoLoadError(false); // Reset error state
-                  setLogoUrl(logoBlobUrl);
-                } else {
-                  setLogoLoadError(true);
-                }
-              }
-            } catch (error) {
-              console.log("No existing logo found or error fetching logo:", error);
+          if (tenantId) {
+            const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
+            if (logoBlobUrl) {
+              setLogoLoadError(false); // Reset error state
+              setLogoUrl(logoBlobUrl);
+            } else {
               setLogoLoadError(true);
-            } finally {
-              setLogoLoading(false);
             }
           }
         } catch (error) {
-          setOrganizationExists(false);
-          setOrganizationName("");
-          setHasChanges(false);
-          setLogoLoadError(false);
+          console.log("No existing logo found or error fetching logo:", error);
+          setLogoLoadError(true);
+        } finally {
+          setLogoLoading(false);
         }
-      }, [organizationId, fetchLogoAsBlobUrl]);
+      }
+    } catch (error) {
+      setOrganizationExists(false);
+      setOrganizationName("");
+      setHasChanges(false);
+      setLogoLoadError(false);
+    }
+  }, [organizationId, fetchLogoAsBlobUrl]);
 
   // Handle organization name changes
   const handleOrganizationNameChange = useCallback(
@@ -222,8 +223,15 @@ const Organization = () => {
       }
 
       // Reject SVG files for security reasons
-      if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith('.svg')) {
-        showAlert("error", "Invalid File", "SVG files are not supported. Please use PNG, JPG, or GIF format.");
+      if (
+        file.type === "image/svg+xml" ||
+        file.name.toLowerCase().endsWith(".svg")
+      ) {
+        showAlert(
+          "error",
+          "Invalid File",
+          "SVG files are not supported. Please use PNG, JPG, or GIF format."
+        );
         return;
       }
 
@@ -251,10 +259,10 @@ const Organization = () => {
               URL.revokeObjectURL(logoUrl);
               setLogoUrl(null);
             }
-            
+
             // Add a small delay to ensure the upload is processed
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
             const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
             if (logoBlobUrl) {
               setLogoLoadError(false); // Reset error state

@@ -1,9 +1,5 @@
-/**
- * This file is currently in use
- */
-
 import { Alert, Typography } from "@mui/material";
-import singleTheme from "../../themes/v1SingleTheme";
+import { singleTheme } from "../../../themes";
 
 const alertStyles = singleTheme.alertStyles;
 

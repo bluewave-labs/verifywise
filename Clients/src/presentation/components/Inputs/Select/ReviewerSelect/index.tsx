@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as KeyboardArrowDownIcon } from "../../../assets/icons/down-arrow.svg";
 import "./index.css"; // Include your existing styles
-import useUsers from "../../../../application/hooks/useUsers";
+import useUsers from "../../../../../application/hooks/useUsers";
 
 interface ReviewerMultiSelectProps {
   selected: string[];
@@ -133,7 +133,11 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
                 margin: theme.spacing(2),
               }}
             >
-              <Checkbox checked={selected.includes(idStr)} disableFocusRipple disableRipple />
+              <Checkbox
+                checked={selected.includes(idStr)}
+                disableFocusRipple
+                disableRipple
+              />
               <ListItemText
                 primary={`${user.name} ${user.surname ?? ""}`}
                 secondary={user.email}

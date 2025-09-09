@@ -28,7 +28,7 @@ import { Suspense, useEffect, useState, lazy, useCallback } from "react";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import useUsers from "../../../../application/hooks/useUsers";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";

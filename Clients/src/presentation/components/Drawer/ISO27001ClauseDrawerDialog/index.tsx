@@ -22,7 +22,7 @@ import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
@@ -85,8 +85,8 @@ const VWISO27001ClauseDrawerDialog = ({
     ["Awaiting review", "3"],
     ["Awaiting approval", "4"],
     ["Implemented", "5"],
-    ["Audited", "6"],
-    ["Needs rework", "7"],
+    // ["Audited", "6"],
+    ["Needs rework", "6"],
   ]);
   // Create the reverse map
   const idStatusMap = new Map();
@@ -706,8 +706,8 @@ const VWISO27001ClauseDrawerDialog = ({
               { _id: "3", name: "Awaiting review" },
               { _id: "4", name: "Awaiting approval" },
               { _id: "5", name: "Implemented" },
-              { _id: "6", name: "Audited" },
-              { _id: "7", name: "Needs rework" },
+              // { _id: "6", name: "Audited" },
+              { _id: "6", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
-import { Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -22,6 +22,8 @@ import {
   emptyStateTextStyle,
 } from "../ModelInventory/style";
 import { useTheme } from "@mui/material";
+import PolicyStatusCard from "./PolicyStatusCard";
+
 const PolicyDashboard: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -50,6 +52,10 @@ const PolicyDashboard: React.FC = () => {
       setSelectedPolicy(p);
       setShowModal(true); // Open modal with selected policy
     }
+  };
+
+  const handleAddNewPolicy = () => {
+    handleOpen();
   };
 
   const handleClose = () => setShowModal(false);
@@ -94,12 +100,21 @@ const PolicyDashboard: React.FC = () => {
       </Stack>
 
       <Stack
-        direction="row"
-        justifyContent="flex-end"
-        alignItems="center"
+        direction={{ xs: "column", md: "row" }}
+        justifyContent="space-between"
+        alignItems="flex-end" // ✅ bottom alignment
         mb={8}
         mt={10}
+        gap={4}
       >
+        {/* Policy by Status Cards */}
+        {policies.length > 0 && (
+          <Box sx={{ flex: 1 }}>
+            <PolicyStatusCard policies={policies} />
+          </Box>
+        )}
+
+        {/* Add New Policy Button */}
         <CustomizableButton
           variant="contained"
           text="Add new policy"
@@ -107,11 +122,10 @@ const PolicyDashboard: React.FC = () => {
             backgroundColor: "#13715B",
             border: "1px solid #13715B",
             gap: 3,
+            height: "fit-content", // ✅ keeps button compact
           }}
           icon={<AddCircleOutlineIcon />}
-          onClick={() => {
-            handleOpen();
-          }}
+          onClick={handleAddNewPolicy}
         />
       </Stack>
 

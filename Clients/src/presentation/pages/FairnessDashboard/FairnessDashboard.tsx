@@ -30,7 +30,7 @@ import Select from "../../components/Inputs/Select";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabPanelStyle } from "../Vendors/style";
 import Alert from "../../components/Alert";
-import CustomizableToast from "../../vw-v2-components/Toast";
+import CustomizableToast from "../../components/Toast";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import biasFairnessHelpContent from "../../../presentation/helpers/bias-fairness-help.html?raw";
@@ -260,7 +260,7 @@ export default function FairnessDashboard() {
           <Typography sx={styles.vwHeadingTitle}>
             Bias & fairness dashboard
           </Typography>
-          <HelperIcon 
+          <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />

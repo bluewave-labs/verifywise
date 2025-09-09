@@ -18,7 +18,7 @@ import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../Toast";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 

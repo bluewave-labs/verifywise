@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import { ReactComponent as KeyboardArrowDown } from "../../../assets/icons/down-arrow.svg";
+import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import React, {
   useState,
   useCallback,
@@ -24,7 +24,7 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   assignFrameworkToProject,
   deleteEntityById,
@@ -36,8 +36,8 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import { ReactComponent as DeleteIcon } from "../../../assets/icons/trash-01.svg";
-import CustomizableToast from "../../../vw-v2-components/Toast";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableToast from "../../../components/Toast";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";

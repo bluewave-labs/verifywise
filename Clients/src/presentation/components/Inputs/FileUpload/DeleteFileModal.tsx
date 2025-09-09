@@ -1,5 +1,5 @@
 import { Typography } from "@mui/material";
-import DualButtonModal from "../../Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 
 interface DeleteFileModalProps {
   isOpen: boolean;

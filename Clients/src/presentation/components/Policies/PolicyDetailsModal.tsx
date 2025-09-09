@@ -273,7 +273,9 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={4}>
+        <Stack spacing={4} sx={{
+            paddingBottom: 30, // leaves space so content won't hide under Save button
+          }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -449,13 +451,16 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Box
           sx={{
-            position: "absolute",
-            bottom: 10,
-            right: 10,
-            width: "100%",
+            position: "fixed",            
+            bottom: 0,
+            right: 0,
+            width: 800,                     // same width as Drawer
             p: 2,
+            backgroundColor: "#fff",        // give it a background to overlap content
+            borderTop: "1px solid #E0E0E0", 
             display: "flex",
             justifyContent: "flex-end",
+            zIndex: 1201,                   // above Drawer content
           }}
         >
           <CustomizableButton

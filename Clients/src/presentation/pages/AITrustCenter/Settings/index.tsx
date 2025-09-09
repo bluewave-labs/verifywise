@@ -13,7 +13,7 @@ import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,
@@ -46,12 +46,24 @@ const AITrustCenterSettings: React.FC = () => {
   const [logoLoading, setLogoLoading] = React.useState(false);
   const [logoRemoving, setLogoRemoving] = React.useState(false);
   const [logoError, setLogoError] = React.useState<string | null>(null);
+  const [logoLoadError, setLogoLoadError] = React.useState(false);
   const [isRemoveLogoModalOpen, setIsRemoveLogoModalOpen] =
     React.useState(false);
   const [selectedLogoPreview, setSelectedLogoPreview] = React.useState<
     string | null
   >(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle logo load error
+  const handleLogoError = React.useCallback(() => {
+    setLogoLoadError(true);
+    console.warn("Logo failed to load, displaying placeholder");
+  }, []);
+
+  // Handle logo load success
+  const handleLogoLoad = React.useCallback(() => {
+    setLogoLoadError(false);
+  }, []);
 
   // Function to fetch logo and convert Buffer to Blob URL
   const fetchLogoAsBlobUrl = async (
@@ -69,11 +81,31 @@ const AITrustCenterSettings: React.FC = () => {
       if (responseData?.data?.logo?.content?.data) {
         // Convert Buffer data to Uint8Array
         const bufferData = new Uint8Array(responseData.data.logo.content.data);
+
+        // Determine the correct MIME type from the response or default to png
+        const mimeType =
+          responseData.data.logo.mimeType ||
+          responseData.data.logo.contentType ||
+          "image/png";
+
         // Create Blob from the buffer data
-        const blob = new Blob([bufferData], { type: "image/png" }); // Assuming PNG, adjust as needed
+        const blob = new Blob([bufferData], { type: mimeType });
         // Create object URL
         const blobUrl = URL.createObjectURL(blob);
-        return blobUrl;
+
+        // Validate that the blob URL can be loaded as an image
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            resolve(blobUrl);
+          };
+          img.onerror = () => {
+            console.error("Failed to load logo image");
+            URL.revokeObjectURL(blobUrl);
+            resolve(null);
+          };
+          img.src = blobUrl;
+        });
       }
       return null;
     } catch (error) {
@@ -93,6 +125,7 @@ const AITrustCenterSettings: React.FC = () => {
 
         if (tenantId) {
           setLogoLoading(true);
+          setLogoLoadError(false); // Reset error state
           try {
             const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
             if (logoBlobUrl) {
@@ -104,10 +137,12 @@ const AITrustCenterSettings: React.FC = () => {
                   logo_url: logoBlobUrl,
                 },
               };
+              setLogoLoadError(false); // Reset error state
               setFormData(updatedData);
               setOriginalData(updatedData);
             } else {
               // No logo found, use the original data
+              setLogoLoadError(true);
               setFormData(overviewData);
               setOriginalData(overviewData);
             }
@@ -116,6 +151,7 @@ const AITrustCenterSettings: React.FC = () => {
               "No existing logo found or error fetching logo:",
               error
             );
+            setLogoLoadError(true);
             // Use the original data even if logo fetch fails
             setFormData(overviewData);
             setOriginalData(overviewData);
@@ -206,6 +242,17 @@ const AITrustCenterSettings: React.FC = () => {
         return;
       }
 
+      // Reject SVG files for security reasons
+      if (
+        file.type === "image/svg+xml" ||
+        file.name.toLowerCase().endsWith(".svg")
+      ) {
+        setLogoError(
+          "SVG files are not supported. Please use PNG, JPG, or GIF format."
+        );
+        return;
+      }
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setLogoError("File size must be less than 5MB");
@@ -231,6 +278,17 @@ const AITrustCenterSettings: React.FC = () => {
           const tenantId = tokenData?.tenantId;
 
           if (tenantId) {
+            // Clear any existing logo URL before setting new one
+            if (
+              formData?.info?.logo_url &&
+              formData.info.logo_url.startsWith("blob:")
+            ) {
+              URL.revokeObjectURL(formData.info.logo_url);
+            }
+
+            // Add a small delay to ensure the upload is processed
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
             // Fetch the logo and convert to Blob URL
             const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
 
@@ -242,10 +300,11 @@ const AITrustCenterSettings: React.FC = () => {
                   logo_url: logoBlobUrl,
                 },
               };
+              setLogoLoadError(false); // Reset error state
               setFormData(updatedFormData);
               setOriginalData(updatedFormData);
             } else {
-              setLogoError("Failed to load uploaded logo");
+              setLogoError("Failed to load uploaded logo. Please try again.");
             }
           } else {
             console.error("Could not extract tenant ID from token");
@@ -310,6 +369,7 @@ const AITrustCenterSettings: React.FC = () => {
 
       setFormData(updatedFormData);
       setOriginalData(updatedFormData);
+      setLogoLoadError(false); // Reset error state
 
       // Clear any preview
       if (selectedLogoPreview) {
@@ -469,18 +529,23 @@ const AITrustCenterSettings: React.FC = () => {
                     component="img"
                     src={selectedLogoPreview}
                     alt="Selected Logo Preview"
+                    onError={handleLogoError}
+                    onLoad={handleLogoLoad}
                     sx={{
                       maxWidth: "100%",
                       maxHeight: "100%",
                       objectFit: "contain",
                       borderRadius: 1,
+                      display: logoLoadError ? "none" : "block",
                     }}
                   />
-                ) : formData?.info?.logo_url ? (
+                ) : formData?.info?.logo_url && !logoLoadError ? (
                   <Box
                     component="img"
                     src={formData.info.logo_url}
                     alt="Company Logo"
+                    onError={handleLogoError}
+                    onLoad={handleLogoLoad}
                     sx={{
                       maxWidth: "100%",
                       maxHeight: "100%",
@@ -517,7 +582,7 @@ const AITrustCenterSettings: React.FC = () => {
                     <Typography
                       sx={{ fontSize: 10, color: "#888", textAlign: "center" }}
                     >
-                      Logo
+                      {logoLoadError ? "Failed to load logo" : "Logo"}
                     </Typography>
                   </Box>
                 )}
@@ -543,7 +608,7 @@ const AITrustCenterSettings: React.FC = () => {
                 )}
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
                   hidden
                   ref={fileInputRef}
                   onChange={handleLogoChange}

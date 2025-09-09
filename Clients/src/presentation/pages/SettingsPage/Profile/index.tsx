@@ -12,15 +12,15 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import validator from "validator";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveOutlinedIcon } from "../../../assets/icons/save.svg";
 import { ReactComponent as DeleteOutlineIcon } from "../../../assets/icons/trash-01.svg";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableSkeleton from "../../../components/Skeletons";
+import CustomizableToast from "../../../components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
 import {
   deleteUserById,

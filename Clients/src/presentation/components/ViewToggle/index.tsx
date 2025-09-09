@@ -31,11 +31,11 @@ interface ViewToggleProps {
 
 /**
  * ViewToggle - Reusable component for switching between card and table views
- * 
+ *
  * @example
  * ```tsx
  * const [viewMode, setViewMode] = useState<ViewMode>("card");
- * 
+ *
  * <ViewToggle
  *   viewMode={viewMode}
  *   onViewChange={setViewMode}

@@ -9,7 +9,7 @@ import RiskFilters from "../../../../components/RiskVisualization/RiskFilters";
 import { rowStyle } from "./style";
 import CustomizableButton from "../../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import VWProjectRisksTable from "../../../../vw-v2-components/Table";
+import VWProjectRisksTable from "../../../../components/Table/VWProjectRisksTable";
 import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../../../components/AddNewRiskForm";
 import Popup from "../../../../components/Popup";

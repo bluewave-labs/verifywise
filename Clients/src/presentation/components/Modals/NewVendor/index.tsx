@@ -34,7 +34,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";

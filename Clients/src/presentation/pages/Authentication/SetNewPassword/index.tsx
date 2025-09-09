@@ -15,7 +15,7 @@ import { validatePassword } from "../../../../application/validations/formValida
 import type { FormErrors } from "../../../../application/validations/formValidation";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 
 interface ResetPasswordFormValues {
   password: string;

@@ -98,9 +98,19 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
             aria-label={`Policy: ${policy.title}`}
             sx={{...singleTheme.tableStyles.primary.body.row}}
             onClick={(_event) => {
-                  const target = _event.target as HTMLElement;
-    if (target.closest("button")) return;
-    onOpen(policy.id);
+                    const target = _event.target as HTMLElement;
+
+  // Prevent triggering onOpen when clicking within any modal or dialog
+  if (
+    target.closest("button") ||
+    target.closest(".MuiDialog-root") || // MUI Dialog
+    target.closest("[role='dialog']") || // General dialogs
+    target.closest(".modal") // Any custom modal class
+  ) {
+    return;
+  }
+
+  onOpen(policy.id);
             }}
           >
             <TableCell sx={cellStyle}>{policy.title.length > 30 ? `${policy.title.slice(0, 30)}...` : policy.title}</TableCell>
@@ -126,7 +136,8 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
             </TableCell>
             <TableCell sx={cellStyle}>{getUserNameById(policy.last_updated_by)}</TableCell>
             <TableCell>
-  <CustomIconButton
+              <div onClick={(e) => e.stopPropagation()}>
+                  <CustomIconButton
     id={Number(policy.id)}
     onDelete={() => {
       onDelete(policy.id);
@@ -140,6 +151,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
     warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."
     type=""
   />
+              </div>
             </TableCell>
           </TableRow>
         )}

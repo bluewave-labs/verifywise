@@ -12,8 +12,8 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import Alert from "../../../components/Alert";
-import { FrameworkTypeEnum } from "../../../vw-v2-components/Forms/ProjectForm/constants";
-import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
+import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
+import ProjectForm from "../../../components/Forms/ProjectForm";
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
@@ -40,8 +40,7 @@ const Home = () => {
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, _] =
-    useState<boolean>(false);
+  const [showToastNotification, _] = useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();

@@ -99,7 +99,7 @@ const Subscription: React.FC = () => {
 
 
   const handleSubscribe = (tierId: number) => {
-    if (dashboard?.projects >= Number(allTiers?.find((tier: Tier) => tier.id === tierId)?.features?.projects)) {
+    if ((dashboard?.projects ?? 0) >= Number(allTiers?.find((tier: Tier) => tier.id === tierId)?.features?.projects)) {
       setAlertMessage("You can't subscribe to this tier since the project exceeds the limit. Doing so will make you unable to use VerifyWise.");
       return;
     } else {

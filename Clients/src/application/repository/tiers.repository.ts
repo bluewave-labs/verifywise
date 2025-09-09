@@ -35,7 +35,8 @@ export async function getTierFeatures({
     headers: { Authorization: `Bearer ${authToken}` },
     responseType,
   });
-  return response.data;
+  const data = response.data as { data?: TierResponse };
+  return data.data ?? {};
 }
 
 export async function getAllTiers({
@@ -50,5 +51,6 @@ export async function getAllTiers({
     signal,
   });
 
-  return response.data.data ?? [];
+  const data = response.data as { data?: TierResponse[] };
+  return data.data ?? [];
 }

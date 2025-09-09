@@ -37,12 +37,6 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
-import { GetMyOrganization } from "../../../../application/repository/organization.repository";
-import { extractUserToken } from "../../../../application/tools/extractToken";
-import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { getTierFeatures } from "../../../../application/repository/tiers.repository";
-import { Tier } from "../../../../domain/types/Tiers";
-import { useEffect } from "react";
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 
 import useUsers from "../../../../application/hooks/useUsers";
@@ -290,7 +284,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const { tierFeatures } = useSubscriptionData();
 
   const canAddTeamMembers =
-    tierFeatures?.data.seats === 0 || (tierFeatures?.data.seats && tierFeatures?.data.seats > teamUsers.length);
+    tierFeatures?.seats === 0 || (tierFeatures?.seats && tierFeatures?.seats > teamUsers.length);
 
   return (
     <Stack sx={{ mt: 3 }}>

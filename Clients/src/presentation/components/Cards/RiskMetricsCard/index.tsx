@@ -51,7 +51,7 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
           gap: 1,
         }}
       >
-        <SpeedIcon sx={{ fontSize: 18, color: "#13715B" }} />
+        <SpeedIcon style={{ fontSize: 18, color: "#13715B" }} />
         Risk Intelligence
       </Typography>
 

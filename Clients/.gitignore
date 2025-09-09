@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 
+# Ignore TS build info
+**/*.tsbuildinfo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

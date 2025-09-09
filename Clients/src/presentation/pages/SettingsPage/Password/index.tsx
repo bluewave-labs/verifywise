@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";

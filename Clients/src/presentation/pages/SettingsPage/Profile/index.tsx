@@ -12,7 +12,7 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import validator from "validator";
 import { logEngine } from "../../../../application/tools/log.engine";
 import localStorage from "redux-persist/es/storage";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";

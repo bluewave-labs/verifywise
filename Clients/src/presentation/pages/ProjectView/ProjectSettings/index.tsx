@@ -24,7 +24,7 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   assignFrameworkToProject,
   deleteEntityById,

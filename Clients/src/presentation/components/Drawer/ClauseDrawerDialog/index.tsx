@@ -89,8 +89,8 @@ const VWISO42001ClauseDrawerDialog = ({
     ["Awaiting review", "3"],
     ["Awaiting approval", "4"],
     ["Implemented", "5"],
-    ["Audited", "6"],
-    ["Needs rework", "7"],
+    // ["Audited", "6"],
+    ["Needs rework", "6"],
   ]);
   // Create the reverse map
   const idStatusMap = new Map();
@@ -716,8 +716,8 @@ const VWISO42001ClauseDrawerDialog = ({
               { _id: "3", name: "Awaiting review" },
               { _id: "4", name: "Awaiting approval" },
               { _id: "5", name: "Implemented" },
-              { _id: "6", name: "Audited" },
-              { _id: "7", name: "Needs rework" },
+              // { _id: "6", name: "Audited" },
+              { _id: "6", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}

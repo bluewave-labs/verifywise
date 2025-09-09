@@ -4,7 +4,7 @@ import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import { Box, Stack, Typography } from "@mui/material";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
@@ -17,7 +17,10 @@ import { Policy } from "../../../domain/types/Policy";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 // import { mainStackStyle } from "../ModelInventory/style";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
-import { emptyStateContainerStyle, emptyStateTextStyle } from "../ModelInventory/style";
+import {
+  emptyStateContainerStyle,
+  emptyStateTextStyle,
+} from "../ModelInventory/style";
 import { useTheme } from "@mui/material";
 import PolicyStatusCard from "./PolicyStatusCard";
 
@@ -26,7 +29,7 @@ const PolicyDashboard: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const theme = useTheme()
+  const theme = useTheme();
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const fetchAll = async () => {
@@ -72,20 +75,20 @@ const PolicyDashboard: React.FC = () => {
       <Stack sx={{ gap: "15px" }}>
         <PageBreadcrumbs />
         <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent="<h3>Policy Manager</h3><p>Policy Manager lets you create and update company AI policies in one place to stay compliant and consistent.</p><h3>Features</h3><ul><li>Create new AI policies</li><li>Edit existing policies</li><li>Organize policies with tags</li><li>Maintain compliance standards</li></ul>"
-        pageTitle="Policy Manager"
-      />
-      <Stack>
+          isOpen={isHelperDrawerOpen}
+          onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+          helpContent="<h3>Policy Manager</h3><p>Policy Manager lets you create and update company AI policies in one place to stay compliant and consistent.</p><h3>Features</h3><ul><li>Create new AI policies</li><li>Edit existing policies</li><li>Organize policies with tags</li><li>Maintain compliance standards</li></ul>"
+          pageTitle="Policy Manager"
+        />
+        <Stack>
           <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={vwhomeHeading}>Policy Manager</Typography>
-            <HelperIcon 
-            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-            size="small"
-          />
-        </Stack>
-        <Typography sx={singleTheme.textStyles.pageDescription}>
+            <Typography sx={vwhomeHeading}>Policy Manager</Typography>
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          </Stack>
+          <Typography sx={singleTheme.textStyles.pageDescription}>
             Policy Manager lets you create and update company AI policies in one
             place to stay compliant and consistent.
           </Typography>
@@ -123,16 +126,16 @@ const PolicyDashboard: React.FC = () => {
         </Stack>
 
       {policies.length === 0 ? (
-      <Stack
-        alignItems="center"
-        justifyContent="center"
-        sx={emptyStateContainerStyle(theme)}
-      >
-        <img src={placeholderImage} alt="Placeholder" />
-        <Typography sx={emptyStateTextStyle}>
-          There is currently no data in this table.
-        </Typography>
-      </Stack>
+        <Stack
+          alignItems="center"
+          justifyContent="center"
+          sx={emptyStateContainerStyle(theme)}
+        >
+          <img src={placeholderImage} alt="Placeholder" />
+          <Typography sx={emptyStateTextStyle}>
+            There is currently no data in this table.
+          </Typography>
+        </Stack>
       ) : (
         <PolicyTable
           data={policies}

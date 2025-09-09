@@ -21,6 +21,7 @@ import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
+import { svgStyles } from "../style";
 
 const ISO42001Annex = ({
   project,
@@ -202,7 +203,7 @@ const ISO42001Annex = ({
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
                     <ExpandMoreIcon
-                      sx={styles.expandIcon(expanded === annex.id)}
+                      style={svgStyles.expandIcon(expanded === annex.id)}
                     />
                     {annex.title}
                   </AccordionSummary>

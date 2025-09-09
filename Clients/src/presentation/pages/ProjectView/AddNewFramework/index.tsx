@@ -200,7 +200,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
                           color: "#13715B",
                         }}
                       >
-                        <CheckIcon sx={{ color: "#13715B", fontSize: 18 }} />
+                        <CheckIcon style={{ color: "#13715B", fontSize: 18 }} />
                         Added
                       </Box>
                     )}

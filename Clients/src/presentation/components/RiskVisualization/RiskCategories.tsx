@@ -246,7 +246,7 @@ const RiskCategories: React.FC<RiskCategoriesProps> = ({
                       </Typography>
                     </Box>
                     
-                    {isExpanded ? <ExpandLessIcon sx={{ color: '#6B7280' }} /> : <ExpandMoreIcon sx={{ color: '#6B7280' }} />}
+                    {isExpanded ? <ExpandLessIcon style={{ color: '#6B7280' }} /> : <ExpandMoreIcon style={{ color: '#6B7280' }} />}
                   </Box>
 
                   <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>

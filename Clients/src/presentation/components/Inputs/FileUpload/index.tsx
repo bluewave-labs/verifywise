@@ -81,7 +81,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
     <Stack className="uppy-holder" sx={styles.container}>
       <Stack sx={styles.header}>
         <IconButton onClick={onClose}>
-          <CloseIcon sx={{ width: 24, height: 24 }} />
+          <CloseIcon style={{ width: 24, height: 24 }} />
         </IconButton>
       </Stack>
 

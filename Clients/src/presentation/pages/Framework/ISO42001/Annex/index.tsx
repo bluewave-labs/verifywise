@@ -19,6 +19,7 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO42001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { svgStyles } from "../../../ISO/style";
 
 const ISO42001Annex = ({
   projectFrameworkId,
@@ -224,7 +225,7 @@ const ISO42001Annex = ({
               onChange={handleAccordionChange(annex.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
+                <ExpandMoreIcon style={svgStyles.expandIcon(expanded === annex.id)} />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {annex.arrangement} {annex.title}
                 </Typography>

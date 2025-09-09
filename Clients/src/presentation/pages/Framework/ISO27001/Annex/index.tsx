@@ -10,6 +10,7 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repos
 import { useCallback, useEffect, useState } from "react";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../Clause/style";
+import { svgStyles } from "../../../ISO/style";
 import { ReactComponent as ExpandMoreIcon } from "../../../../assets/icons/down-arrow.svg";
 import VWISO27001AnnexDrawerDialog from "../../../../components/Drawer/ISO27001AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
@@ -201,7 +202,7 @@ const ISO27001Annex = ({
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
                     <ExpandMoreIcon
-                      sx={styles.expandIcon(expanded === annex.id)}
+                      style={svgStyles.expandIcon(expanded === annex.id)}
                     />
                     {annex.arrangement}.{annex.order_no} {annex.title}
                   </AccordionSummary>

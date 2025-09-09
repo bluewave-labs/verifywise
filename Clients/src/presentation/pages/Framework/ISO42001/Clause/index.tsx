@@ -23,6 +23,8 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO42001ClauseStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { svgStyles } from "../../../ISO/style";
+
 
 const ISO42001Clause = ({
   projectFrameworkId,
@@ -306,10 +308,7 @@ const ISO42001Clause = ({
             >
               <AccordionSummary sx={styles.accordionSummary}>
                 <ExpandMoreIcon
-                  style={{
-                    transform: expanded === clause.id ? "rotate(180deg)" : "rotate(270deg)",
-                    transition: "transform 0.5s ease-in",
-                  }}
+                  style={svgStyles.expandIcon(expanded === clause.id)}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.arrangement} {clause.title}

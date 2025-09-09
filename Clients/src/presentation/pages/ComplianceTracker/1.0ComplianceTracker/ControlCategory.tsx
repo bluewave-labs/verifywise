@@ -67,7 +67,7 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
           className="control-category-accordion-summary"
           expandIcon={
             <ExpandMoreIcon
-              sx={{
+              style={{
                 transform:
                   expanded === controlCategory.id
                     ? "rotate(180deg)"

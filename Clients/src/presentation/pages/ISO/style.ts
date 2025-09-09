@@ -1,5 +1,6 @@
 import { SxProps, Theme } from "@mui/material";
 import { keyframes } from "@mui/system";
+import { CSSProperties } from "react";
 
 // Animation
 export const flashAnimation = keyframes`
@@ -55,6 +56,14 @@ export const commonStyles = {
     transform: expanded ? "rotate(180deg)" : "rotate(270deg)",
     transition: "transform 0.5s ease-in",
   }) as SxProps<Theme>,
+};
+
+// SVG-compatible styles (for style prop)
+export const svgStyles = {
+  expandIcon: (expanded: boolean): CSSProperties => ({
+    transform: expanded ? "rotate(180deg)" : "rotate(270deg)",
+    transition: "transform 0.5s ease-in",
+  }),
 };
 
 /**

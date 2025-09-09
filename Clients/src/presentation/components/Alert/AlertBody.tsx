@@ -61,7 +61,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                   </Typography>
                 ) : (
                   <ContentCopyIcon
-                    sx={{ fontSize: "13px", color: textColor }}
+                    style={{ fontSize: "13px", color: textColor }}
                   />
                 )}
               </Box>

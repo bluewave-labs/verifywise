@@ -154,7 +154,7 @@ const Overview = ({
                 >
                   <Box display="flex" alignItems="center" gap={1}>
                     <CheckCircleOutlineIcon
-                      sx={{ color: "#28A745", fontSize: 28 }}
+                      style={{ color: "#28A745", fontSize: 28 }}
                     />
                     <Typography variant="body2">{resource.name}</Typography>
                   </Box>

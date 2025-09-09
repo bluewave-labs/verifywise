@@ -22,6 +22,7 @@ import { styles } from "./styles";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
 import { useSearchParams } from "react-router-dom";
+import { svgStyles } from "../style";
 
 const ISO42001Clauses = ({
   project,
@@ -270,7 +271,7 @@ const ISO42001Clauses = ({
             >
               <AccordionSummary sx={styles.accordionSummary}>
                 <ExpandMoreIcon
-                  sx={styles.expandIcon(expanded === clause.id)}
+                  style={svgStyles.expandIcon(expanded === clause.id)}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.title}

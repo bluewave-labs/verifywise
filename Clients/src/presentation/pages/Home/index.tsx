@@ -21,7 +21,7 @@ import useProjectStatus, {
   Assessments,
   Controls,
 } from "../../../application/hooks/useProjectStatus";
-import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../components/Skeletons";
 import { Card } from "../../components/ProjectCard/styles";
 import CreateDemoData from "../../components/CreateDemoData";
 import CustomizableButton from "../../components/Button/CustomizableButton";

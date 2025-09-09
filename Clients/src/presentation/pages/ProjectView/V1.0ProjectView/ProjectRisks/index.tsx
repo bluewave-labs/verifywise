@@ -17,7 +17,7 @@ import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
 import CustomizableToast from "../../../../vw-v2-components/Toast";
-import CustomizableSkeleton from "../../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../../components/Skeletons";
 import allowedRoles from "../../../../../application/constants/permissions";
 import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";

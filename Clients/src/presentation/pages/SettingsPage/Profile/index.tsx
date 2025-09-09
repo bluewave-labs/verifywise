@@ -19,7 +19,7 @@ import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../vw-v2-components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
 import {

@@ -29,7 +29,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../components/Skeletons";
 import CustomizableToast from "../../vw-v2-components/Toast";
 import RisksCard from "../../components/Cards/RisksCard";
 import { vwhomeHeading } from "../Home/1.0Home/style";

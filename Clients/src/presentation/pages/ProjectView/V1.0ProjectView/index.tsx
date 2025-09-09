@@ -11,7 +11,7 @@ import { SyntheticEvent, useState, useEffect } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import VWProjectRisks from "./ProjectRisks";
 import ProjectSettings from "../ProjectSettings";
 import useProjectData from "../../../../application/hooks/useProjectData";

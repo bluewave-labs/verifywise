@@ -566,9 +566,7 @@ const Framework = () => {
                   "& .MuiButton-endIcon": {
                     marginLeft: 1,
                     transition: "transform 0.2s ease",
-                  },
-                  "&:hover .MuiButton-endIcon": {
-                    transform: "rotate(180deg)",
+                    transform: isMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
                   },
                 }}
               >

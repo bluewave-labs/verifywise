@@ -74,10 +74,46 @@ const getUserFilesMetaDataQuery = async (
         })) as [any[], number];
         let assessment = assessmentResult[0][0];
         if (assessment) {
-          console.log("Assessment query result:", assessment);
           result.meta_id = assessment.question_id;
           result.sub_id = assessment.subtopic_id;
           result.parent_id = assessment.topic_id;
+        }
+      }
+
+      if (result.source === "Annex controls group") {
+        const annexControlQuery = `
+        SELECT ac.id AS annex_control_id, acs.id as annex_id
+        FROM "${tenant}".annexcontrols_iso27001 ac
+        JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcontrol_meta_id
+        WHERE ac.evidence_links @> jsonb_build_array(jsonb_build_object('id', :fileId::text));`;
+        let annexControlResult = (await sequelize.query(annexControlQuery, {
+          replacements: { fileId: result.id },
+        })) as [any[], number];
+
+        let annexControl = annexControlResult[0][0];
+        if (annexControl) {
+          result.meta_id = annexControl.annex_control_id;
+          result.parent_id = annexControl.annex_id;
+        }
+      }
+
+      if (result.source === "Reference controls group") {
+        const referenceControlQuery = `
+        SELECT ac.id AS annex_category_id, acs.id as annex_id
+        FROM "${tenant}".annexcategories_iso ac
+        JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
+        WHERE ac.evidence_links @> jsonb_build_array(jsonb_build_object('id', :fileId::text));`;
+        let referenceControlResult = (await sequelize.query(
+          referenceControlQuery,
+          {
+            replacements: { fileId: result.id },
+          },
+        )) as [any[], number];
+
+        let referenceControl = referenceControlResult[0][0];
+        if (referenceControl) {
+          result.meta_id = referenceControl.annex_category_id;
+          result.parent_id = referenceControl.annex_id;
         }
       }
 

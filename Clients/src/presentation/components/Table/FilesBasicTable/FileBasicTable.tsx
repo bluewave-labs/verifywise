@@ -67,7 +67,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
     page * rowsPerPage + rowsPerPage,
   );
 
-  const handleRowClick = (item: any, event: React.MouseEvent) => {
+  const handleRowClick = (item: FileData, event: React.MouseEvent) => {
     event.stopPropagation();
     switch (item.source) {
       case "Assessment tracker group":
@@ -80,10 +80,16 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
           `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`,
         );
         break;
-      case "Management system clauses group":
       case "Reference controls group":
-      case "Main clauses group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexControlId=${item.metaId}`,
+        );
+        break;
       case "Annex controls group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-27001&annexId=${item.parentId}&annexControlId=${item.metaId}`,
+        );
+        break;
       default:
         console.warn("Unknown source type:", item.source);
     }

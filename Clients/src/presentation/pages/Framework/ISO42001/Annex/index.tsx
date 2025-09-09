@@ -19,6 +19,7 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO42001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { useSearchParams } from "react-router-dom";
 
 const ISO42001Annex = ({
   projectFrameworkId,
@@ -40,6 +41,10 @@ const ISO42001Annex = ({
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  const [searchParams] = useSearchParams();
+  const annexId = searchParams.get("annexId");
+  const annexControlId = searchParams.get("annexControlId");
+
   useEffect(() => {
     const fetchAnnexes = async () => {
       try {
@@ -57,6 +62,19 @@ const ISO42001Annex = ({
     };
     fetchAnnexes();
   }, [projectFrameworkId, refreshTrigger]);
+
+  useEffect(() => {
+    if (annexId && annexes && annexes.length > 0) {
+      const annex = annexes.find((a: any) => a.id === Number(annexId));
+      if (annex) {
+        handleAccordionChange(annex.id)(new Event("click") as any, true);
+        const annexControl = annex.annexCategories?.find(
+          (ac: any) => ac.id === Number(annexControlId),
+        );
+        if (annexControl) handleControlClick(annex, annexControl);
+      }
+    }
+  }, [annexId, annexes, annexControlId]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -78,7 +96,7 @@ const ISO42001Annex = ({
   const handleSaveSuccess = async (
     success: boolean,
     message?: string,
-    savedControlId?: number
+    savedControlId?: number,
   ) => {
     handleAlert({
       variant: success ? "success" : "error",
@@ -96,7 +114,10 @@ const ISO42001Annex = ({
     }
   };
 
-  const handleStatusChange = async (control: any, newStatus: string): Promise<boolean> => {
+  const handleStatusChange = async (
+    control: any,
+    newStatus: string,
+  ): Promise<boolean> => {
     try {
       const success = await updateISO42001AnnexStatus({
         id: control.id,
@@ -115,7 +136,7 @@ const ISO42001Annex = ({
 
         setFlashingRowId(control.id);
         setTimeout(() => setFlashingRowId(null), 2000);
-        
+
         setRefreshTrigger((prev) => prev + 1);
       } else {
         handleAlert({
@@ -146,7 +167,7 @@ const ISO42001Annex = ({
     if (statusFilter && statusFilter !== "") {
       filteredControls = filteredControls.filter(
         (control: any) =>
-          control.status?.toLowerCase() === statusFilter.toLowerCase()
+          control.status?.toLowerCase() === statusFilter.toLowerCase(),
       );
     }
 
@@ -158,7 +179,7 @@ const ISO42001Annex = ({
     ) {
       const isApplicable = applicabilityFilter === "true";
       filteredControls = filteredControls.filter(
-        (control: any) => Boolean(control.is_applicable) === isApplicable
+        (control: any) => Boolean(control.is_applicable) === isApplicable,
       );
     }
 
@@ -173,7 +194,7 @@ const ISO42001Annex = ({
               }}
               sx={styles.controlRow(
                 filteredControls.length - 1 === index,
-                flashingRowId === control.id
+                flashingRowId === control.id,
               )}
             >
               <Stack>
@@ -184,7 +205,9 @@ const ISO42001Annex = ({
               </Stack>
               <StatusDropdown
                 currentStatus={control.status || "Not started"}
-                onStatusChange={(newStatus) => handleStatusChange(control, newStatus)}
+                onStatusChange={(newStatus) =>
+                  handleStatusChange(control, newStatus)
+                }
                 size="small"
                 allowedRoles={allowedRoles.frameworks.edit}
                 userRole={userRoleName}

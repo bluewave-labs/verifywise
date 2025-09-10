@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any, Dict, List, Union, cast
 
 import os
 import pandas as pd
@@ -42,4 +42,39 @@ class InferencePipeline:
 
         self.engine: InferenceEngine = build_engine(self.config_manager, api_key=resolved_api_key)
 
+
+    def _get_samples(
+        self,
+        *,
+        batch_size: Optional[int] = None,
+        limit_samples: Optional[int] = None,
+    ) -> Union[List[Dict[str, Any]], List[List[Dict[str, Any]]]]:
+        """Retrieve samples from the DataLoader with optional limiting and batching.
+
+        Args:
+            batch_size: If provided, return samples grouped into batches of this size.
+            limit_samples: If provided, restrict the total number of samples returned.
+
+        Returns:
+            - List[Dict] if batch_size is None
+            - List[List[Dict]] if batch_size is set
+        """
+        samples = self.data_loader.generate_features_and_metadata(batch_size)
+
+        if limit_samples is None:
+            return samples
+
+        # Apply limiting behavior depending on batching mode
+        if batch_size is None:
+            samples_list = cast(List[Dict[str, Any]], samples)
+            return samples_list[:limit_samples]
+
+        # Batched case: flatten → limit → regroup
+        samples_batches = cast(List[List[Dict[str, Any]]], samples)
+        flat_samples: List[Dict[str, Any]] = [item for batch in samples_batches for item in batch]
+        flat_samples = flat_samples[:limit_samples]
+        rebatched: List[List[Dict[str, Any]]] = [
+            flat_samples[i : i + batch_size] for i in range(0, len(flat_samples), batch_size)
+        ]
+        return rebatched
 

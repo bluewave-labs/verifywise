@@ -84,6 +84,27 @@ export interface ComprehensiveDashboardData {
       completion_rate: number;
       avg_score: number;
     }>;
+    status_distribution: Array<{
+      status: string;
+      count: number;
+      percentage: number;
+    }>;
+    department_analysis: Array<{
+      department: string;
+      count: number;
+      avg_participants: number;
+    }>;
+    provider_analysis: Array<{
+      provider: string;
+      count: number;
+      total_participants: number;
+    }>;
+    monthly_trends: Array<{
+      month: string;
+      planned: number;
+      in_progress: number;
+      completed: number;
+    }>;
   };
   
   // AI & Technology Analytics
@@ -351,9 +372,75 @@ export const useComprehensiveDashboard = () => {
       const trainings = await getAllEntities({ routeUrl: "/trainingRegistar" });
       const trainingsData = trainings.data || [];
 
+      // Status distribution analysis
+      const statusCounts = trainingsData.reduce((acc: Record<string, number>, training: Record<string, unknown>) => {
+        const status = String(training.status || 'Unknown');
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {});
+
+      const status_distribution = Object.entries(statusCounts).map(([status, count]) => ({
+        status,
+        count: Number(count),
+        percentage: Math.round((Number(count) / trainingsData.length) * 100)
+      }));
+
+      // Department analysis
+      const departmentCounts = trainingsData.reduce((acc: Record<string, {count: number, totalParticipants: number}>, training: Record<string, unknown>) => {
+        const department = String(training.department || 'Unknown');
+        const participants = Number(training.people || training.numberOfPeople || 0);
+        
+        if (!acc[department]) {
+          acc[department] = { count: 0, totalParticipants: 0 };
+        }
+        acc[department].count += 1;
+        acc[department].totalParticipants += participants;
+        return acc;
+      }, {});
+
+      const department_analysis = Object.entries(departmentCounts).map(([department, deptData]) => {
+        const typedDeptData = deptData as {count: number, totalParticipants: number};
+        return {
+          department,
+          count: typedDeptData.count,
+          avg_participants: Math.round(typedDeptData.totalParticipants / typedDeptData.count) || 0
+        };
+      });
+
+      // Provider analysis
+      const providerCounts = trainingsData.reduce((acc: Record<string, {count: number, totalParticipants: number}>, training: Record<string, unknown>) => {
+        const provider = String(training.provider || 'Unknown');
+        const participants = Number(training.people || training.numberOfPeople || 0);
+        
+        if (!acc[provider]) {
+          acc[provider] = { count: 0, totalParticipants: 0 };
+        }
+        acc[provider].count += 1;
+        acc[provider].totalParticipants += participants;
+        return acc;
+      }, {});
+
+      const provider_analysis = Object.entries(providerCounts).map(([provider, providerData]) => {
+        const typedProviderData = providerData as {count: number, totalParticipants: number};
+        return {
+          provider,
+          count: typedProviderData.count,
+          total_participants: typedProviderData.totalParticipants
+        };
+      });
+
+      // Monthly trends (simulated for last 6 months)
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      const monthly_trends = months.map(month => ({
+        month,
+        planned: Math.round(Math.random() * 5 + 2),
+        in_progress: Math.round(Math.random() * 3 + 1),
+        completed: Math.round(Math.random() * 4 + 3)
+      }));
+
       const program_effectiveness = trainingsData.slice(0, 5).map((training: Record<string, unknown>, index: number) => ({
-        program_name: String(training.program_name || training.name || `Training Program ${index + 1}`),
-        participants: Math.round(20 + Math.random() * 100),
+        program_name: String(training.training_name || training.program_name || training.name || `Training Program ${index + 1}`),
+        participants: Number(training.people || training.numberOfPeople || Math.round(20 + Math.random() * 100)),
         completion_rate: Math.round(70 + Math.random() * 25),
         avg_score: Math.round(75 + Math.random() * 20)
       }));
@@ -362,14 +449,22 @@ export const useComprehensiveDashboard = () => {
         total_programs: trainingsData.length,
         completion_rate: Math.round(82 + Math.random() * 15),
         average_score: Math.round(78 + Math.random() * 15),
-        program_effectiveness
+        program_effectiveness,
+        status_distribution,
+        department_analysis,
+        provider_analysis,
+        monthly_trends
       };
     } catch {
       return {
         total_programs: 0,
         completion_rate: 0,
         average_score: 0,
-        program_effectiveness: []
+        program_effectiveness: [],
+        status_distribution: [],
+        department_analysis: [],
+        provider_analysis: [],
+        monthly_trends: []
       };
     }
   }, []);

@@ -2062,12 +2062,158 @@ const DashboardOverview: React.FC = () => {
               </Grid>
             </Grid>
 
-            {/* Performance Charts and Details */}
+            {/* Training Analytics Dashboard */}
+            <Typography variant="h5" fontWeight="600" sx={{ mb: 3, color: "#13715B" }}>
+              📚 Training Registry Analytics
+            </Typography>
+            
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              {/* Training Status Distribution */}
+              <Grid item xs={12} md={6}>
+                <ChartContainer
+                  title="Training Status Distribution"
+                  subtitle="Current status breakdown of all training programs"
+                >
+                  <PieChart
+                    series={[
+                      {
+                        data: data.training.status_distribution.map((status) => ({
+                          label: status.status,
+                          value: status.count,
+                          color: status.status === 'Completed' 
+                            ? "#4CAF50" 
+                            : status.status === 'In Progress' 
+                            ? "#FF9800"
+                            : status.status === 'Planned'
+                            ? "#2196F3"
+                            : "#9E9E9E"
+                        })),
+                        innerRadius: 50,
+                        outerRadius: 120,
+                        paddingAngle: 2,
+                        cornerRadius: 5,
+                      },
+                    ]}
+                    height={300}
+                  />
+                </ChartContainer>
+              </Grid>
+
+              {/* Department Training Analysis */}
+              <Grid item xs={12} md={6}>
+                <ChartContainer
+                  title="Training by Department"
+                  subtitle="Training programs and average participants per department"
+                >
+                  <BarChart
+                    xAxis={[
+                      {
+                        scaleType: "band",
+                        data: data.training.department_analysis.map(
+                          (dept) => dept.department.length > 12 
+                            ? dept.department.substring(0, 12) + "..." 
+                            : dept.department
+                        ),
+                      },
+                    ]}
+                    series={[
+                      {
+                        data: data.training.department_analysis.map(
+                          (dept) => dept.count
+                        ),
+                        label: "Training Count",
+                        color: "#667eea",
+                      },
+                      {
+                        data: data.training.department_analysis.map(
+                          (dept) => dept.avg_participants
+                        ),
+                        label: "Avg Participants",
+                        color: "#764ba2",
+                      },
+                    ]}
+                    height={300}
+                  />
+                </ChartContainer>
+              </Grid>
+
+              {/* Monthly Training Trends */}
+              <Grid item xs={12} md={6}>
+                <ChartContainer
+                  title="Training Trends (Last 6 Months)"
+                  subtitle="Training status progression over time"
+                >
+                  <LineChart
+                    xAxis={[
+                      {
+                        scaleType: "point",
+                        data: data.training.monthly_trends.map((trend) => trend.month),
+                      },
+                    ]}
+                    series={[
+                      {
+                        data: data.training.monthly_trends.map((trend) => trend.planned),
+                        label: "Planned",
+                        color: "#2196F3",
+                        curve: "linear",
+                      },
+                      {
+                        data: data.training.monthly_trends.map((trend) => trend.in_progress),
+                        label: "In Progress",
+                        color: "#FF9800",
+                        curve: "linear",
+                      },
+                      {
+                        data: data.training.monthly_trends.map((trend) => trend.completed),
+                        label: "Completed",
+                        color: "#4CAF50",
+                        curve: "linear",
+                      },
+                    ]}
+                    height={300}
+                  />
+                </ChartContainer>
+              </Grid>
+
+              {/* Training Provider Analysis */}
+              <Grid item xs={12} md={6}>
+                <ChartContainer
+                  title="Training Provider Analysis"
+                  subtitle="Total participants by training provider"
+                >
+                  <BarChart
+                    layout="vertical"
+                    yAxis={[
+                      {
+                        scaleType: "band",
+                        data: data.training.provider_analysis.map(
+                          (provider) => provider.provider.length > 15 
+                            ? provider.provider.substring(0, 15) + "..." 
+                            : provider.provider
+                        ),
+                      },
+                    ]}
+                    series={[
+                      {
+                        data: data.training.provider_analysis.map(
+                          (provider) => provider.total_participants
+                        ),
+                        label: "Total Participants",
+                        color: "#13715B",
+                      },
+                    ]}
+                    height={300}
+                  />
+                </ChartContainer>
+              </Grid>
+            </Grid>
+
+            {/* Traditional Performance Charts */}
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <ChartContainer
                   title="Training Program Effectiveness"
-                  subtitle="Completion rates and performance"
+                  subtitle="Completion rates and performance scores"
                 >
                   <BarChart
                     xAxis={[

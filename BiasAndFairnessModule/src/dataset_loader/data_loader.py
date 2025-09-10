@@ -6,6 +6,39 @@ from sklearn.datasets import fetch_openml
 import numpy as np
 
 
+def _normalize_key(name: str) -> str:
+    """
+    Normalize a column name by replacing periods and hyphens with underscores.
+
+    Args:
+        name (str): Original column name
+
+    Returns:
+        str: Normalized column name
+    """
+    return name.replace(".", "_").replace("-", "_")
+
+
+def _normalize_value(value: Any) -> Any:
+    """
+    Normalize a value for serialization/prompting.
+
+    - Convert NumPy scalar types to native Python types
+    - Strip whitespace from strings
+
+    Args:
+        value (Any): Original value
+
+    Returns:
+        Any: Normalized value
+    """
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, str):
+        return value.strip()
+    return value
+
+
 class DataLoader:
     """
     A class to load and preprocess datasets based on configuration parameters.
@@ -98,11 +131,8 @@ class DataLoader:
         # Normalize keys (convert periods and hyphens to underscores) and map values
         features: Dict[str, Any] = {}
         for col in feature_columns:
-            key = col.replace(".", "_").replace("-", "_")
-            value = row[col]
-            # Convert NumPy scalar types (e.g., np.int64) to native Python types
-            if isinstance(value, np.generic):
-                value = value.item()
+            key = _normalize_key(col)
+            value = _normalize_value(row[col])
             features[key] = value
 
         return features

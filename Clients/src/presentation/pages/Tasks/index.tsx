@@ -29,7 +29,7 @@ import { vwhomeHeading, vwhomeHeaderCards, vwhomeBody, vwhomeBodyControls } from
 import { searchBoxStyle, searchInputStyle } from "./style";
 import singleTheme from "../../themes/v1SingleTheme";
 import DatePicker from "../../components/Inputs/Datepicker";
-import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps } from "../../vw-v2-components/Forms/ProjectForm/style";
+import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps } from "../../components/Forms/ProjectForm/style";
 import dayjs from "dayjs";
 import { Autocomplete } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";

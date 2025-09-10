@@ -23,7 +23,7 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { TaskPriority, ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
-import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps, teamMembersRenderInputStyle } from "../../../vw-v2-components/Forms/ProjectForm/style";
+import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps, teamMembersRenderInputStyle } from "../../Forms/ProjectForm/style";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import useUsers from "../../../../application/hooks/useUsers";
 

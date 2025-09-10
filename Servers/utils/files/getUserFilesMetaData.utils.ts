@@ -80,11 +80,45 @@ const getUserFilesMetaDataQuery = async (
         }
       }
 
+      if (result.source === "Main clauses group") {
+        const subClauseQuery = `
+        SELECT sc.id AS sub_clause_id, scs.clause_id as clause_id
+        FROM "${tenant}".subclauses_iso27001 sc
+        JOIN public.subclauses_struct_iso27001 scs ON scs.id = sc.subclause_meta_id
+        WHERE sc.evidence_links @> jsonb_build_array(jsonb_build_object('id', :fileId::text));`;
+        let subClauseResult = (await sequelize.query(subClauseQuery, {
+          replacements: { fileId: result.id },
+        })) as [any[], number];
+
+        let subClause = subClauseResult[0][0];
+        if (subClause) {
+          result.meta_id = subClause.sub_clause_id;
+          result.parent_id = subClause.clause_id;
+        }
+      }
+
+      if (result.source === "Management system clauses group") {
+        const subClauseQuery = `
+        SELECT sc.id AS sub_clause_id, scs.clause_id as clause_id
+        FROM "${tenant}".subclauses_iso sc
+        JOIN public.subclauses_struct_iso scs ON scs.id = sc.subclause_meta_id
+        WHERE sc.evidence_links @> jsonb_build_array(jsonb_build_object('id', :fileId::text));`;
+        let subClauseResult = (await sequelize.query(subClauseQuery, {
+          replacements: { fileId: result.id },
+        })) as [any[], number];
+
+        let subClause = subClauseResult[0][0];
+        if (subClause) {
+          result.meta_id = subClause.sub_clause_id;
+          result.parent_id = subClause.clause_id;
+        }
+      }
+
       if (result.source === "Annex controls group") {
         const annexControlQuery = `
-        SELECT ac.id AS annex_control_id, acs.id as annex_id
+        SELECT ac.id AS annex_control_id, acs.annex_id as annex_id
         FROM "${tenant}".annexcontrols_iso27001 ac
-        JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcontrol_meta_id
+        JOIN public.annexcontrols_struct_iso27001 acs ON acs.id = ac.annexcontrol_meta_id
         WHERE ac.evidence_links @> jsonb_build_array(jsonb_build_object('id', :fileId::text));`;
         let annexControlResult = (await sequelize.query(annexControlQuery, {
           replacements: { fileId: result.id },
@@ -99,7 +133,7 @@ const getUserFilesMetaDataQuery = async (
 
       if (result.source === "Reference controls group") {
         const referenceControlQuery = `
-        SELECT ac.id AS annex_category_id, acs.id as annex_id
+        SELECT ac.id AS annex_category_id, acs.annex_id as annex_id
         FROM "${tenant}".annexcategories_iso ac
         JOIN public.annexcategories_struct_iso acs ON acs.id = ac.annexcategory_meta_id
         WHERE ac.evidence_links @> jsonb_build_array(jsonb_build_object('id', :fileId::text));`;

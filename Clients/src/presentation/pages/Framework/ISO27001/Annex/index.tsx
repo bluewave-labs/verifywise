@@ -45,7 +45,7 @@ const ISO27001Annex = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [controlsMap, setControlsMap] = useState<{ [key: number]: any[] }>({});
   const [annexTitle, setAnnexTitle] = useState<string>("");
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const annexId = searchParams.get("annexId");
   const annexControlId = searchParams.get("annexControlId");
 
@@ -190,6 +190,16 @@ const ISO27001Annex = ({
     }
   };
 
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    if (annexId && annexControlId) {
+      searchParams.delete("annexId");
+      searchParams.delete("annexControlId");
+      searchParams.delete("frameworkName");
+      setSearchParams(searchParams);
+    }
+  };
+
   return (
     <Stack className="iso-27001-annex">
       {alert && (
@@ -290,7 +300,7 @@ const ISO27001Annex = ({
             <VWISO27001AnnexDrawerDialog
               title={annexTitle}
               open={drawerOpen}
-              onClose={() => setDrawerOpen(false)}
+              onClose={handleDrawerClose}
               control={selectedControl}
               annex={selectedAnnex}
               projectFrameworkId={Number(projectFrameworkId)}

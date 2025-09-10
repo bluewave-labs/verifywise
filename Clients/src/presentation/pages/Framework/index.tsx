@@ -228,6 +228,8 @@ const Framework = () => {
   const getProjectFrameworkId = (frameworkId: string) => {
     if (!organizationalProject?.framework) return null;
 
+    console.log({ frameworkId, organizationalProject });
+
     const projectFramework = organizationalProject.framework.find(
       (f) => f.framework_id === Number(frameworkId),
     );
@@ -276,13 +278,11 @@ const Framework = () => {
   // Reset selected framework when filtered frameworks change
   useEffect(() => {
     if (
+      !frameworkName &&
       filteredFrameworks.length > 0 &&
       selectedFramework >= filteredFrameworks.length
     ) {
       setSelectedFramework(0);
-    }
-    if (frameworkName) {
-      setSelectedFramework(frameworkName === "iso-42001" ? 1 : 0);
     }
   }, [filteredFrameworks, selectedFramework, frameworkName]);
 

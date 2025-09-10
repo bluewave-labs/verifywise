@@ -80,6 +80,16 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
           `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`,
         );
         break;
+      case "Management system clauses group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-42001&clauseId=${item.parentId}&subClauseId=${item.metaId}`,
+        );
+        break;
+      case "Main clauses group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-27001&clauseId=${item.parentId}&subClauseId=${item.metaId}`,
+        );
+        break;
       case "Reference controls group":
         navigteToNewTab(
           `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexControlId=${item.metaId}`,

@@ -67,7 +67,7 @@ class ModelInferencePipeline:
                 - answer: Target column value for the row
                 - protected_attributes: Dictionary of protected attribute values
         """
-        samples = self.data_loader.generate_prompts_and_metadata(batch_size)
+        samples = self.data_loader.generate_features_and_metadata(batch_size)
 
         if limit_samples is not None:
             if batch_size is None:

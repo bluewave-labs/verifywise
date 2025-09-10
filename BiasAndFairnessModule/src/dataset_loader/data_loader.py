@@ -78,15 +78,14 @@ class DataLoader:
 
         return self.data
 
-    def _format_single_prompt(
-        self, row: pd.Series, include_answer: bool = False
+    def _format_single_feature(
+        self, row: pd.Series
     ) -> Dict[str, Any]:
         """
         Convert a single row of data into a features dictionary for prompting.
 
         Args:
             row (pd.Series): A single row from the dataset
-            include_answer (bool): Ignored; answer inclusion is handled downstream
 
         Returns:
             Dict[str, Any]: Feature dictionary with column names underscore-normalized
@@ -147,7 +146,7 @@ class DataLoader:
 
         # Generate feature dicts for all requested indices
         items = [
-            self._format_single_prompt(self.data.iloc[idx], include_answer)
+            self._format_single_feature(self.data.iloc[idx])
             for idx in indices
         ]
 
@@ -166,7 +165,7 @@ class DataLoader:
         """
         return {attr: row[attr] for attr in self.dataset_config.protected_attributes}
 
-    def generate_prompts_and_metadata(
+    def generate_features_and_metadata(
         self, batch_size: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
@@ -180,7 +179,7 @@ class DataLoader:
             If batch_size is None:
                 List[Dict]: List of dictionaries with keys:
                 - sample_id: Index of the row
-                - prompt: Features dictionary for the row
+                - features: Features dictionary for the row
                 - answer: Target column value for the row
                 - protected_attributes: Dictionary of protected attribute values
             If batch_size is provided:
@@ -200,7 +199,7 @@ class DataLoader:
             row = self.data.iloc[idx]
             sample = {
                 "sample_id": idx,
-                "prompt": self._format_single_prompt(row),
+                "features": self._format_single_feature(row),
                 "answer": row[self.dataset_config.target_column],
                 "protected_attributes": self._extract_protected_attributes(row),
             }

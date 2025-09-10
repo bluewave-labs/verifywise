@@ -62,7 +62,7 @@ const getUserFilesMetaDataQuery = async (
       result.parent_id = undefined;
 
       switch (result.source) {
-        case "Annex controls group":
+        case "Annex controls group": {
           const annexControlQuery = `
           SELECT ac.id AS annex_control_id, acs.annex_id as annex_id
           FROM "${tenant}".annexcontrols_iso27001 ac
@@ -78,7 +78,8 @@ const getUserFilesMetaDataQuery = async (
             result.parent_id = annexControl.annex_id;
           }
           break;
-        case "Compliance tracker group":
+        }
+        case "Compliance tracker group": {
           const subControlQuery = `SELECT s.* FROM "${tenant}".subcontrols_eu s
           WHERE (
             s.evidence_files @> jsonb_build_array(jsonb_build_object('id', :fileId::text))
@@ -98,7 +99,8 @@ const getUserFilesMetaDataQuery = async (
             result.meta_id = subControl.subcontrol_meta_id;
           }
           break;
-        case "Assessment tracker group":
+        }
+        case "Assessment tracker group": {
           const assessmentQuery = `SELECT ans.question_id AS question_id, topic.id AS topic_id, subtopic.id AS subtopic_id,
           question.id AS parent_id
           FROM "${tenant}".answers_eu ans
@@ -116,7 +118,8 @@ const getUserFilesMetaDataQuery = async (
             result.parent_id = assessment.topic_id;
           }
           break;
-        case "Reference controls group":
+        }
+        case "Reference controls group": {
           const referenceControlQuery = `
           SELECT ac.id AS annex_category_id, acs.annex_id as annex_id
           FROM "${tenant}".annexcategories_iso ac
@@ -135,7 +138,8 @@ const getUserFilesMetaDataQuery = async (
             result.parent_id = referenceControl.annex_id;
           }
           break;
-        case "Main clauses group":
+        }
+        case "Main clauses group": {
           const mainClauseQuery = `
           SELECT sc.id AS sub_clause_id, scs.clause_id as clause_id
           FROM "${tenant}".subclauses_iso27001 sc
@@ -151,7 +155,8 @@ const getUserFilesMetaDataQuery = async (
             result.parent_id = mainClause.clause_id;
           }
           break;
-        case "Management system clauses group":
+        }
+        case "Management system clauses group": {
           const subClauseQuery = `
         SELECT sc.id AS sub_clause_id, scs.clause_id as clause_id
         FROM "${tenant}".subclauses_iso sc
@@ -167,6 +172,7 @@ const getUserFilesMetaDataQuery = async (
             result.parent_id = subClause.clause_id;
           }
           break;
+        }
         default:
           result.is_evidence = true;
           console.error(`Unknown source type: ${result.source}`);

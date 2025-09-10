@@ -145,7 +145,11 @@ const NewControlPane = ({
         (sc) => sc.id === Number(subControlId),
       );
       if (subControl) {
-        setSelectedTab(Number(subControl.order_no) - 1);
+        const sorted = (data.subControls || [])
+          .slice()
+          .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0));
+        const idx = sorted.findIndex((sc) => sc.id === subControl.id);
+        setSelectedTab(idx >= 0 ? idx : 0);
         setActiveSection(
           isEvidence === null
             ? "Overview"

@@ -270,7 +270,12 @@ const ISO27001Clause = ({
           });
           setSelectedSubClause(response.data);
           if (clause && response.data && clauseId) {
-            handleSubClauseClick(clause, response.data, parseInt(clauseId));
+            const idx = Array.isArray(clause.subClauses)
+              ? clause.subClauses.findIndex(
+                  (sc: any) => sc.id === response.data.id,
+                )
+              : 0;
+            handleSubClauseClick(clause, response.data, idx >= 0 ? idx : 0);
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);

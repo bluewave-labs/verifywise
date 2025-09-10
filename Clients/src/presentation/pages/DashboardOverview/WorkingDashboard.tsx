@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { 
   Box, 
   Card, 
@@ -18,7 +18,7 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value }) => (
-  <Card elevation={0} sx={cardStyles.base}>
+  <Card elevation={0} sx={(theme) => cardStyles.base(theme)}>
     <CardContent sx={{ p: 2 }}>
       <Box>
         <Typography 

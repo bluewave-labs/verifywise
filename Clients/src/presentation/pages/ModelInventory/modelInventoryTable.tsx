@@ -233,8 +233,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   {modelInventory.version || "-"}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {userMap.get(modelInventory.approver) ||
-                    modelInventory.approver}
+                  {userMap.get(modelInventory.approver.toString())}
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <CapabilitiesChips

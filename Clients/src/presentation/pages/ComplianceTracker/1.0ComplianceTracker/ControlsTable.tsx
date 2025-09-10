@@ -17,13 +17,16 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { Control } from "../../../../domain/types/Control";
 import { User } from "../../../../domain/types/User";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
 import { StyledTableRow, AlertBox, styles } from "./styles";
 import { useSearchParams } from "react-router-dom";
 import useUsers from "../../../../application/hooks/useUsers";
-import { getControlByIdAndProject, getControlsByControlCategoryId } from "../../../../application/repository/control_eu_act.repository";
+import {
+  getControlByIdAndProject,
+  getControlsByControlCategoryId,
+} from "../../../../application/repository/control_eu_act.repository";
 
 interface Column {
   name: string;
@@ -68,14 +71,16 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   useEffect(() => {
     if (controlId) {
-      const controlExists = controls.find(control => control.id === Number(controlId));
+      const controlExists = controls.find(
+        (control) => control.id === Number(controlId)
+      );
       if (controlExists) {
         (async () => {
           await handleRowClick(Number(controlId));
         })();
       }
     }
-  }, [controlId, controls])
+  }, [controlId, controls]);
 
   // Reset state when project changes
   useEffect(() => {

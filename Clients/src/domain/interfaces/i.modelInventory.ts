@@ -4,7 +4,7 @@ export interface IModelInventory {
   provider: string;
   model: string;
   version?: string;
-  approver: string;
+  approver: number;
   capabilities: string[];
   security_assessment: boolean;
   status: ModelInventoryStatus;

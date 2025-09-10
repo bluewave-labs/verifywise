@@ -4,7 +4,7 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
-import CustomizableSkeleton from "../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../components/Skeletons";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjects } from "../../../application/hooks/useProjects";
@@ -106,9 +106,9 @@ const FileManager: React.FC = (): JSX.Element => {
         helpContent={evidencesHelpContent}
         pageTitle="Evidences & Documents"
       />
-      <FileManagerHeader 
-        theme={theme} 
-        ref={refs[0]} 
+      <FileManagerHeader
+        theme={theme}
+        ref={refs[0]}
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
       />
       {/* Project filter dropdown */}
@@ -143,32 +143,28 @@ const FileManager: React.FC = (): JSX.Element => {
  * Header component for the FileManager.
  * Uses React.forwardRef to handle the ref passed from the parent component.
  */
-const FileManagerHeader = forwardRef<HTMLDivElement, { theme: Theme; onHelperClick?: () => void }>(
-  ({ theme, onHelperClick }, ref) => (
-    <Stack
-      className="vwhome-header"
-      ref={ref}
-      data-joyride-id="file-manager-title"
-    >
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
-        {onHelperClick && (
-          <HelperIcon 
-            onClick={onHelperClick}
-            size="small"
-          />
-        )}
-      </Stack>
-      <Typography
-        sx={{
-          color: theme.palette.text.secondary,
-          fontSize: theme.typography.fontSize,
-        }}
-      >
-        This table lists all the files uploaded to the system.
-      </Typography>
+const FileManagerHeader = forwardRef<
+  HTMLDivElement,
+  { theme: Theme; onHelperClick?: () => void }
+>(({ theme, onHelperClick }, ref) => (
+  <Stack
+    className="vwhome-header"
+    ref={ref}
+    data-joyride-id="file-manager-title"
+  >
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
+      {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
     </Stack>
-  )
-);
+    <Typography
+      sx={{
+        color: theme.palette.text.secondary,
+        fontSize: theme.typography.fontSize,
+      }}
+    >
+      This table lists all the files uploaded to the system.
+    </Typography>
+  </Stack>
+));
 
 export default FileManager;

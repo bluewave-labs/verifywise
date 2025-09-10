@@ -20,7 +20,7 @@ import dayjs from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import { User } from "../../../../domain/types/User";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
@@ -224,7 +224,7 @@ const VWISO27001AnnexDrawerDialog = ({
     const value = event.target.value.toString();
     if (
       field === "status" &&
-      value === "Audited" &&
+      value === "Implemented" &&
       (selectedRisks.length > 0 ||
         formData.risks.length > 0 ||
         (formData.risks.length > 0 &&

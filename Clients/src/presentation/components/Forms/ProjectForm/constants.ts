@@ -70,6 +70,7 @@ export interface ProjectFormProps {
   onClose: () => void;
   sx?: SxProps<Theme> | undefined;
   defaultFrameworkType?: FrameworkTypeEnum;
+  projectToEdit?: any; // Add optional prop for editing
 }
 
 export interface FrameworkOption {

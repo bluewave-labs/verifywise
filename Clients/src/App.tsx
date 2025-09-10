@@ -24,6 +24,7 @@ import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation } from "react-router-dom";
+import { DeploymentManager } from "./application/utils/deploymentHelpers";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
@@ -60,6 +61,10 @@ function App() {
       setAlert(alertProps);
       setTimeout(() => setAlert(null), 5000);
     });
+
+    // Initialize deployment update checking
+    DeploymentManager.initializeUpdateCheck();
+
     return () => setShowAlertCallback(() => {});
   }, []);
 

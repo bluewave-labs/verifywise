@@ -30,6 +30,8 @@ class InferencePipeline:
         self.provider: str = (model_cfg.provider or "").strip()
         self.model_id: str = model_cfg.model_id
         self.formatter: str = prompting_cfg.formatter
+        # Alias to match requested name in formatted results
+        self.prompt_formatter: str = prompting_cfg.formatter
 
         # Initialize and load dataset
         self.data_loader: DataLoader = DataLoader(dataset_cfg)
@@ -77,4 +79,69 @@ class InferencePipeline:
             flat_samples[i : i + batch_size] for i in range(0, len(flat_samples), batch_size)
         ]
         return rebatched
+
+
+    def _format_result(
+        self,
+        *,
+        sample: Dict[str, Any],
+        timestamp: str,
+        prediction: str,
+    ) -> Dict[str, Any]:
+        """Create a standardized result row for a single inference.
+
+        Args:
+            sample: Sample dict containing `sample_id`, `features`, `answer`, and `protected_attributes`.
+            timestamp: ISO-8601 formatted timestamp string.
+            prediction: Model prediction text/value for the sample.
+
+        Returns:
+            A dictionary representing the standardized inference result row.
+        """
+        row: Dict[str, Any] = {
+            "sample_id": sample["sample_id"],
+            "features": sample["features"],
+            "answer": sample["answer"],
+            "protected_attributes": sample["protected_attributes"],
+            "prediction": prediction,
+            "provider": self.provider,
+            "model_id": self.model_id,
+            "prompt_formatter": self.prompt_formatter,
+            "timestamp": timestamp,
+        }
+        return row
+
+
+    def run(
+        self,
+        *,
+        batch_size: Optional[int] = None,
+        limit_samples: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Run inference and return a flat list of standardized result rows."""
+        samples = self._get_samples(batch_size=batch_size, limit_samples=limit_samples)
+
+        results: List[Dict[str, Any]] = []
+
+        if batch_size is None:
+            samples_list = cast(List[Dict[str, Any]], samples)
+            features_list: List[Dict[str, Any]] = [s["features"] for s in samples_list]
+            predictions: List[str] = self.engine.predict_batch(features_list)
+            for s, pred in zip(samples_list, predictions):
+                ts = pd.Timestamp.now().isoformat()
+                results.append(
+                    self._format_result(sample=s, timestamp=ts, prediction=pred)
+                )
+            return results
+
+        samples_batches = cast(List[List[Dict[str, Any]]], samples)
+        for batch in samples_batches:
+            features_list = [s["features"] for s in batch]
+            predictions = self.engine.predict_batch(features_list)
+            for s, pred in zip(batch, predictions):
+                ts = pd.Timestamp.now().isoformat()
+                results.append(
+                    self._format_result(sample=s, timestamp=ts, prediction=pred)
+                )
+        return results
 

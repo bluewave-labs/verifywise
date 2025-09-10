@@ -272,6 +272,7 @@ const VWISO42001AnnexDrawerDialog = ({
       if (date) formDataToSend.append("due_date", date.toString());
       formDataToSend.append("user_id", userId?.toString() || "1");
       formDataToSend.append("project_id", project_id.toString());
+      console.log(project_id);
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
       formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));

@@ -26,6 +26,7 @@ import DualButtonModal from "../../vw-v2-components/Dialogs/DualButtonModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../vw-v2-components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
+import { get } from "https";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -372,6 +373,7 @@ const Framework = () => {
 
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
+                project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
@@ -379,6 +381,7 @@ const Framework = () => {
 
             <TabPanel value="annex" sx={tabPanelStyle}>
               <ISO27001Annex
+                project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
@@ -429,6 +432,7 @@ const Framework = () => {
 
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
+                project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
@@ -436,6 +440,7 @@ const Framework = () => {
 
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
+                project={organizationalProject}
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}

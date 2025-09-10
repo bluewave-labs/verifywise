@@ -22,12 +22,15 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO27001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { Project } from "../../../../../domain/types/Project";
 
 const ISO27001Annex = ({ 
+  project,
   projectFrameworkId, 
   statusFilter, 
   applicabilityFilter 
 }: { 
+  project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
@@ -274,7 +277,7 @@ const ISO27001Annex = ({
               control={selectedControl}
               annex={selectedAnnex}
               projectFrameworkId={Number(projectFrameworkId)}
-              project_id={0}
+              project_id={Number(project.id)}
               onSaveSuccess={(success, message) =>
                 handleSaveSuccess(success, message, selectedControl?.id)
               }

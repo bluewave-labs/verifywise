@@ -228,8 +228,6 @@ const Framework = () => {
   const getProjectFrameworkId = (frameworkId: string) => {
     if (!organizationalProject?.framework) return null;
 
-    console.log({ frameworkId, organizationalProject });
-
     const projectFramework = organizationalProject.framework.find(
       (f) => f.framework_id === Number(frameworkId),
     );

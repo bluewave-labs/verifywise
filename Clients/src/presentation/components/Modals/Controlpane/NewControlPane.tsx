@@ -146,7 +146,6 @@ const NewControlPane = ({
       );
       if (subControl) {
         setSelectedTab(Number(subControl.order_no) - 1);
-        console.log("isEvidence:", isEvidence);
         setActiveSection(
           isEvidence === null
             ? "Overview"

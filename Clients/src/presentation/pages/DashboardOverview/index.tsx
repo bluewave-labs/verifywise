@@ -18,7 +18,6 @@ import {
   Security as ComplianceIcon,
   Warning as RiskIcon,
   Refresh as RefreshIcon,
-  People as UsersIcon,
   Dashboard as DashboardIcon,
 } from "@mui/icons-material";
 import {
@@ -52,17 +51,12 @@ const ModernKPICard: React.FC<ModernKPICardProps> = ({
     onClick={onClick}
     sx={{
       height: "100%",
-      background: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)",
-      backdropFilter: "blur(10px)",
-      border: "1px solid rgba(255,255,255,0.2)",
-      borderRadius: 3,
+      border: "1px solid rgba(0,0,0,0.1)",
+      borderRadius: 2,
       cursor: onClick ? "pointer" : "default",
-      transition: "all 0.3s ease",
       "&:hover": onClick
         ? {
-            transform: "translateY(-4px)",
-            boxShadow: "0 12px 32px rgba(0,0,0,0.1)",
-            border: `1px solid ${color}30`,
+            borderColor: color,
           }
         : {},
     }}
@@ -105,7 +99,7 @@ const ModernKPICard: React.FC<ModernKPICardProps> = ({
             width: 60,
             height: 60,
             borderRadius: 2,
-            background: `linear-gradient(135deg, ${color}15 0%, ${color}25 100%)`,
+            backgroundColor: `${color}15`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -125,7 +119,7 @@ const DashboardOverview: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3, display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
+      <Box sx={{ width: "100%", p: 3, display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
         <Stack alignItems="center" spacing={2}>
           <CircularProgress size={40} />
           <Typography variant="body1" color="text.secondary">
@@ -138,7 +132,7 @@ const DashboardOverview: React.FC = () => {
 
   if (error) {
     return (
-      <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>
+      <Box sx={{ width: "100%", p: 3 }}>
         <Alert
           severity="error"
           action={
@@ -156,7 +150,7 @@ const DashboardOverview: React.FC = () => {
 
   if (!data) {
     return (
-      <Box sx={{ p: 3, maxWidth: 1200, mx: "auto" }}>
+      <Box sx={{ width: "100%", p: 3 }}>
         <Alert severity="warning">
           <Typography variant="h6">No Data Available</Typography>
           <Typography variant="body2">
@@ -174,7 +168,7 @@ const DashboardOverview: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", px: 3, py: 2 }}>
+    <Box sx={{ width: "100%", px: 3, py: 2 }}>
       <Stack spacing={3}>
         <PageBreadcrumbs />
         
@@ -245,15 +239,6 @@ const DashboardOverview: React.FC = () => {
                     icon={<ProjectIcon fontSize="large" />}
                     color="#667eea"
                     subtitle={`${data.projects.active_projects} active`}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} lg={3}>
-                  <ModernKPICard
-                    title="Active Users"
-                    value={data.users.total_active_users}
-                    icon={<UsersIcon fontSize="large" />}
-                    color="#764ba2"
-                    subtitle="Total users"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} lg={3}>

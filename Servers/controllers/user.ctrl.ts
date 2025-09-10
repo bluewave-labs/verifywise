@@ -162,7 +162,7 @@ async function createNewUser(req: Request, res: Response) {
     const existingUser = await getUserByEmailQuery(email);
     if (existingUser) {
       logStructured('error', `user already exists: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Attempted to create duplicate user: ${email}`);
+      await logEvent('Error', `Attempted to create duplicate user: ${email}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res
         .status(409)
@@ -176,7 +176,7 @@ async function createNewUser(req: Request, res: Response) {
     const isEmailUnique = await UserModel.validateEmailUniqueness(email);
     if (!isEmailUnique) {
       logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Email not unique during creation: ${email}`);
+      await logEvent('Error', `Email not unique during creation: ${email}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(409).json(STATUS_CODE[409]('Email already exists'));
     }
@@ -186,12 +186,12 @@ async function createNewUser(req: Request, res: Response) {
     if (user) {
       await transaction.commit();
       logStructured('successful', `user created: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Create', `User created: ${email}`);
+      await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
       return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 
     logStructured('error', `failed to create user: ${email}`, 'createNewUser', 'user.ctrl.ts');
-    await logEvent('Error', `User creation failed: ${email}`);
+    await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
   } catch (error) {
@@ -203,18 +203,18 @@ async function createNewUser(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during user creation: ${error.message}`);
+      await logEvent('Error', `Validation error during user creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during user creation: ${error.message}`);
+      await logEvent('Error', `Business logic error during user creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
 
     logStructured('error', `unexpected error: ${email}`, 'createNewUser', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in createNewUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -365,13 +365,13 @@ async function resetPassword(req: Request, res: Response) {
 
       await transaction.commit();
       logStructured('successful', `password reset for ${email}`, 'resetPassword', 'user.ctrl.ts');
-      await logEvent('Update', `Password reset for user: ${email}`);
+      await logEvent('Update', `Password reset for user: ${email}`, req.userId!, req.tenantId!);
 
       return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
     logStructured('error', `user not found: ${email}`, 'resetPassword', 'user.ctrl.ts');
-    await logEvent('Error', `Password reset failed — user not found: ${email}`);
+    await logEvent('Error', `Password reset failed — user not found: ${email}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
@@ -379,18 +379,18 @@ async function resetPassword(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'resetPassword', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during password reset: ${error.message}`);
+      await logEvent('Error', `Validation error during password reset: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'resetPassword', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during password reset: ${error.message}`);
+      await logEvent('Error', `Business logic error during password reset: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
 
     logStructured('error', `unexpected error for ${email}`, 'resetPassword', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during password reset for ${email}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during password reset for ${email}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in resetPassword:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -425,12 +425,12 @@ async function updateUserById(req: Request, res: Response) {
 
       await transaction.commit();
       logStructured('successful', `user updated: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-      await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`);
+      await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`, req.userId!, req.tenantId!);
       return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
     logStructured('error', `user not found: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Update failed — user not found: ID ${id}`);
+    await logEvent('Error', `Update failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
@@ -438,18 +438,18 @@ async function updateUserById(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'updateUserById', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during update: ${error.message}`);
+      await logEvent('Error', `Validation error during update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'updateUserById', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during update: ${error.message}`);
+      await logEvent('Error', `Business logic error during update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
 
     logStructured('error', `unexpected error for user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during update for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during update for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in updateUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -468,7 +468,7 @@ async function deleteUserById(req: Request, res: Response) {
     if (user) {
       if (user.isDemoUser()) {
         logStructured('error', `attempted to delete demo user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-        await logEvent('Error', `Blocked deletion of demo user ID ${id}`);
+        await logEvent('Error', `Blocked deletion of demo user ID ${id}`, req.userId!, req.tenantId!);
         await transaction.rollback();
         return res.status(403).json(STATUS_CODE[403]('Demo users cannot be deleted'));
       }
@@ -477,19 +477,19 @@ async function deleteUserById(req: Request, res: Response) {
       await transaction.commit();
 
       logStructured('successful', `user deleted: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-      await logEvent('Delete', `User deleted: ID ${id}, email: ${user.email}`);
+      await logEvent('Delete', `User deleted: ID ${id}, email: ${user.email}`, req.userId!, req.tenantId!);
 
       return res.status(202).json(STATUS_CODE[202](deletedUser));
     }
 
     logStructured('error', `user not found: ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Delete failed — user not found: ID ${id}`);
+    await logEvent('Error', `Delete failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]('User not found'));
   } catch (error) {
     await transaction.rollback();
     logStructured('error', `unexpected error deleting user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during delete for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during delete for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in deleteUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -621,7 +621,7 @@ async function ChangePassword(req: Request, res: Response) {
 
     if (!user) {
       logStructured('error', `user not found: ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
-      await logEvent('Error', `Password change failed — user not found: ID ${id}`);
+      await logEvent('Error', `Password change failed — user not found: ID ${id}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(404).json({ message: 'User not found' });
     }
@@ -636,7 +636,7 @@ async function ChangePassword(req: Request, res: Response) {
 
     await transaction.commit();
     logStructured('successful', `password changed for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
-    await logEvent('Update', `Password changed for user ID ${id}`);
+    await logEvent('Update', `Password changed for user ID ${id}`, req.userId!, req.tenantId!);
 
     return res.status(202).json({
       message: 'Password updated successfully',
@@ -647,18 +647,18 @@ async function ChangePassword(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'ChangePassword', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during password change: ${error.message}`);
+      await logEvent('Error', `Validation error during password change: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json({ message: error.message });
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'ChangePassword', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during password change: ${error.message}`);
+      await logEvent('Error', `Business logic error during password change: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json({ message: error.message });
     }
 
     logStructured('error', `unexpected error for user ID ${id}`, 'ChangePassword', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during password change for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during password change for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in ChangePassword:', error);
     return res.status(500).json({ message: (error as Error).message });
   }
@@ -678,7 +678,7 @@ async function updateUserRole(req: Request, res: Response) {
     const targetUser = await getUserByIdQuery(parseInt(id));
     if (!targetUser) {
       logStructured('error', `target user not found: ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Role update failed — target user not found: ID ${id}`);
+      await logEvent('Error', `Role update failed — target user not found: ID ${id}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(404).json({ message: 'User not found' });
     }
@@ -686,7 +686,7 @@ async function updateUserRole(req: Request, res: Response) {
     const currentUser = await getUserByIdQuery(currentUserId);
     if (!currentUser) {
       logStructured('error', `admin user not found: ID ${currentUserId}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Role update failed — admin user not found: ID ${currentUserId}`);
+      await logEvent('Error', `Role update failed — admin user not found: ID ${currentUserId}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(404).json({ message: 'Current user not found' });
     }
@@ -701,7 +701,7 @@ async function updateUserRole(req: Request, res: Response) {
 
     await transaction.commit();
     logStructured('successful', `role updated for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
-    await logEvent('Update', `User role updated: ID ${id}, new role ID: ${newRoleId}, by admin ID: ${currentUserId}`);
+    await logEvent('Update', `User role updated: ID ${id}, new role ID: ${newRoleId}, by admin ID: ${currentUserId}`, req.userId!, req.tenantId!);
 
     return res.status(202).json({
       message: 'User role updated successfully',
@@ -712,18 +712,18 @@ async function updateUserRole(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation error: ${error.message}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during role update: ${error.message}`);
+      await logEvent('Error', `Validation error during role update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json({ message: error.message });
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'updateUserRole', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during role update: ${error.message}`);
+      await logEvent('Error', `Business logic error during role update: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json({ message: error.message });
     }
 
     logStructured('error', `unexpected error for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during role update for user ID ${id}: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during role update for user ID ${id}: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in updateUserRole:', error);
     return res.status(500).json({ message: (error as Error).message });
   }

@@ -111,7 +111,7 @@ export async function createSubscriptionController(
       "createSubscriptionController",
       "subscriptions.ctrl.ts"
     );
-    await logEvent("Error", `Failed to create subscription`);
+    await logEvent("Error", `Failed to create subscription`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -178,7 +178,7 @@ export async function updateSubscriptionController(
         "updateSubscriptionController",
         "subscriptions.ctrl.ts"
       );
-      await logEvent("Update", `Subscription updated successfully`);
+      await logEvent("Update", `Subscription updated successfully`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](updatedSubscription));
     }
 
@@ -188,7 +188,7 @@ export async function updateSubscriptionController(
       "updateSubscriptionController",
       "subscriptions.ctrl.ts"
     );
-    await logEvent("Error", `Subscription not found`);
+    await logEvent("Error", `Subscription not found`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(404)

@@ -58,7 +58,9 @@ export async function getAllFrameworks(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve frameworks: ${(error as Error).message}`
+      `Failed to retrieve frameworks: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllFrameworks:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -110,7 +112,9 @@ export async function getFrameworkById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve framework by ID: ${frameworkId}`
+      `Failed to retrieve framework by ID: ${frameworkId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getFrameworkById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -151,7 +155,9 @@ export async function createNewFramework(
       );
       await logEvent(
         "Error",
-        `Attempted to create duplicate framework: ${name}`
+        `Attempted to create duplicate framework: ${name}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -170,7 +176,7 @@ export async function createNewFramework(
         "createNewFramework",
         "framework.ctrl.ts"
       );
-      await logEvent("Create", `Framework created: ${name}`);
+      await logEvent("Create", `Framework created: ${name}`, req.userId!, req.tenantId!);
       return res
         .status(201)
         .json(STATUS_CODE[201](savedFramework.toSafeJSON()));
@@ -182,7 +188,7 @@ export async function createNewFramework(
       "createNewFramework",
       "framework.ctrl.ts"
     );
-    await logEvent("Error", `Framework creation failed: ${name}`);
+    await logEvent("Error", `Framework creation failed: ${name}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to create framework"));
   } catch (error) {
@@ -197,7 +203,9 @@ export async function createNewFramework(
       );
       await logEvent(
         "Error",
-        `Validation error during framework creation: ${error.message}`
+        `Validation error during framework creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -211,7 +219,9 @@ export async function createNewFramework(
       );
       await logEvent(
         "Error",
-        `Business logic error during framework creation: ${error.message}`
+        `Business logic error during framework creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -224,7 +234,9 @@ export async function createNewFramework(
     );
     await logEvent(
       "Error",
-      `Unexpected error during framework creation: ${(error as Error).message}`
+      `Unexpected error during framework creation: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createNewFramework:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -260,7 +272,9 @@ export async function updateFrameworkById(
       );
       await logEvent(
         "Error",
-        `Update failed — framework not found: ID ${frameworkId}`
+        `Update failed — framework not found: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Framework not found"));
@@ -277,7 +291,9 @@ export async function updateFrameworkById(
       );
       await logEvent(
         "Error",
-        `Blocked update of framework in use: ID ${frameworkId}`
+        `Blocked update of framework in use: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -299,7 +315,9 @@ export async function updateFrameworkById(
         );
         await logEvent(
           "Error",
-          `Attempted to update to duplicate name: ${name}`
+          `Attempted to update to duplicate name: ${name}`,
+          req.userId!,
+          req.tenantId!
         );
         await transaction.rollback();
         return res
@@ -324,7 +342,9 @@ export async function updateFrameworkById(
       );
       await logEvent(
         "Update",
-        `Framework updated: ID ${frameworkId}, name: ${updatedFramework.name}`
+        `Framework updated: ID ${frameworkId}, name: ${updatedFramework.name}`,
+        req.userId!,
+        req.tenantId!
       );
       return res
         .status(202)
@@ -337,7 +357,7 @@ export async function updateFrameworkById(
       "updateFrameworkById",
       "framework.ctrl.ts"
     );
-    await logEvent("Error", `Framework update failed: ID ${frameworkId}`);
+    await logEvent("Error", `Framework update failed: ID ${frameworkId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to update framework"));
   } catch (error) {
@@ -352,7 +372,9 @@ export async function updateFrameworkById(
       );
       await logEvent(
         "Error",
-        `Validation error during framework update: ${error.message}`
+        `Validation error during framework update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -366,7 +388,9 @@ export async function updateFrameworkById(
       );
       await logEvent(
         "Error",
-        `Business logic error during framework update: ${error.message}`
+        `Business logic error during framework update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -380,7 +404,9 @@ export async function updateFrameworkById(
       );
       await logEvent(
         "Error",
-        `Framework not found during update: ID ${frameworkId}`
+        `Framework not found during update: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(404).json(STATUS_CODE[404](error.message));
     }
@@ -395,7 +421,9 @@ export async function updateFrameworkById(
       "Error",
       `Unexpected error during framework update for ID ${frameworkId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateFrameworkById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -430,7 +458,9 @@ export async function deleteFrameworkById(
       );
       await logEvent(
         "Error",
-        `Delete failed — framework not found: ID ${frameworkId}`
+        `Delete failed — framework not found: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Framework not found"));
@@ -446,7 +476,9 @@ export async function deleteFrameworkById(
       );
       await logEvent(
         "Error",
-        `Blocked deletion of framework: ID ${frameworkId}`
+        `Blocked deletion of framework: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -465,7 +497,9 @@ export async function deleteFrameworkById(
       );
       await logEvent(
         "Error",
-        `Blocked deletion of framework in use: ID ${frameworkId}`
+        `Blocked deletion of framework in use: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -487,7 +521,9 @@ export async function deleteFrameworkById(
       );
       await logEvent(
         "Delete",
-        `Framework deleted: ID ${frameworkId}, name: ${existingFramework.name}`
+        `Framework deleted: ID ${frameworkId}, name: ${existingFramework.name}`,
+        req.userId!,
+        req.tenantId!
       );
       return res
         .status(202)
@@ -500,7 +536,7 @@ export async function deleteFrameworkById(
       "deleteFrameworkById",
       "framework.ctrl.ts"
     );
-    await logEvent("Error", `Framework deletion failed: ID ${frameworkId}`);
+    await logEvent("Error", `Framework deletion failed: ID ${frameworkId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to delete framework"));
   } catch (error) {
@@ -515,7 +551,9 @@ export async function deleteFrameworkById(
       );
       await logEvent(
         "Error",
-        `Validation error during framework deletion: ${error.message}`
+        `Validation error during framework deletion: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -529,7 +567,9 @@ export async function deleteFrameworkById(
       );
       await logEvent(
         "Error",
-        `Framework not found during deletion: ID ${frameworkId}`
+        `Framework not found during deletion: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(404).json(STATUS_CODE[404](error.message));
     }
@@ -544,7 +584,9 @@ export async function deleteFrameworkById(
       "Error",
       `Unexpected error during framework deletion for ID ${frameworkId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteFrameworkById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -597,7 +639,9 @@ export async function searchFrameworksByName(
     );
     await logEvent(
       "Error",
-      `Failed to search frameworks: ${(error as Error).message}`
+      `Failed to search frameworks: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
 
     if (error instanceof ValidationException) {
@@ -635,7 +679,9 @@ export async function getFrameworkMetadata(
       );
       await logEvent(
         "Error",
-        `Metadata fetch failed — framework not found: ID ${frameworkId}`
+        `Metadata fetch failed — framework not found: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(404).json(STATUS_CODE[404]("Framework not found"));
     }
@@ -664,7 +710,9 @@ export async function getFrameworkMetadata(
     );
     await logEvent(
       "Error",
-      `Failed to fetch framework metadata: ${(error as Error).message}`
+      `Failed to fetch framework metadata: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
 
     if (error instanceof ValidationException) {
@@ -708,7 +756,9 @@ export async function addFrameworkToProject(
       );
       await logEvent(
         "Error",
-        `Framework not found during project addition: ID ${frameworkId}`
+        `Framework not found during project addition: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Framework not found"));
@@ -731,7 +781,9 @@ export async function addFrameworkToProject(
       );
       await logEvent(
         "Create",
-        `Framework ${frameworkId} added to project ${projectId}`
+        `Framework ${frameworkId} added to project ${projectId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -745,7 +797,9 @@ export async function addFrameworkToProject(
     );
     await logEvent(
       "Error",
-      `Failed to add framework ${frameworkId} to project ${projectId}`
+      `Failed to add framework ${frameworkId} to project ${projectId}`,
+      req.userId!,
+      req.tenantId!
     );
     return res
       .status(404)
@@ -766,7 +820,9 @@ export async function addFrameworkToProject(
       "Error",
       `Unexpected error adding framework to project: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
 
     if (error instanceof ValidationException) {
@@ -812,7 +868,9 @@ export async function deleteFrameworkFromProject(
       );
       await logEvent(
         "Error",
-        `Framework not found during project removal: ID ${frameworkId}`
+        `Framework not found during project removal: ID ${frameworkId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Framework not found"));
@@ -835,7 +893,9 @@ export async function deleteFrameworkFromProject(
       );
       await logEvent(
         "Delete",
-        `Framework ${frameworkId} removed from project ${projectId}`
+        `Framework ${frameworkId} removed from project ${projectId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](result));
     }
@@ -849,7 +909,9 @@ export async function deleteFrameworkFromProject(
     );
     await logEvent(
       "Error",
-      `Failed to remove framework ${frameworkId} from project ${projectId}`
+      `Failed to remove framework ${frameworkId} from project ${projectId}`,
+      req.userId!,
+      req.tenantId!
     );
     return res
       .status(404)
@@ -870,7 +932,9 @@ export async function deleteFrameworkFromProject(
       "Error",
       `Unexpected error removing framework from project: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
 
     if (error instanceof ValidationException) {

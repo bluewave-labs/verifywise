@@ -19,7 +19,6 @@ import {
   Paper,
   Avatar,
   Badge,
-  Fab,
   Switch,
   FormControlLabel,
   Tab,
@@ -66,6 +65,9 @@ import {
   DataThresholdingOutlined,
 } from "@mui/icons-material";
 import { useComprehensiveDashboard } from "../../../application/hooks/useComprehensiveDashboard";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import { vwhomeHeading } from "../Home/1.0Home/style";
+import singleTheme from "../../themes/v1SingleTheme";
 
 // Modern KPI Card with enhanced styling
 interface ModernKPICardProps {
@@ -586,48 +588,25 @@ const DashboardOverview: React.FC = () => {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        }}
-      >
-        <CircularProgress size={60} sx={{ color: "white", mb: 3 }} />
-        <Typography
-          variant="h5"
-          sx={{ color: "white", mb: 1, fontWeight: 600 }}
-        >
-          Loading Analytics Dashboard...
-        </Typography>
-        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
-          Gathering insights from across your organization
-        </Typography>
+      <Box sx={{ p: 3, display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
+        <Stack alignItems="center" spacing={2}>
+          <CircularProgress size={40} />
+          <Typography variant="body1" color="text.secondary">
+            Loading Analytics Dashboard...
+          </Typography>
+        </Stack>
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box
-        sx={{
-          p: 3,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          minHeight: "100vh",
-        }}
-      >
+      <Box sx={{ p: 3 }}>
         <Alert
           severity="error"
-          sx={{ maxWidth: 600, mx: "auto", mt: 8 }}
+          sx={{ maxWidth: 600, mx: "auto", mt: 4 }}
           action={
-            <IconButton
-              size="small"
-              onClick={refresh}
-              sx={{ color: "inherit" }}
-            >
+            <IconButton size="small" onClick={refresh} sx={{ color: "inherit" }}>
               <RefreshIcon />
             </IconButton>
           }
@@ -641,14 +620,8 @@ const DashboardOverview: React.FC = () => {
 
   if (!data) {
     return (
-      <Box
-        sx={{
-          p: 3,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          minHeight: "100vh",
-        }}
-      >
-        <Alert severity="warning" sx={{ maxWidth: 600, mx: "auto", mt: 8 }}>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning" sx={{ maxWidth: 600, mx: "auto", mt: 4 }}>
           <Typography variant="h6">No Data Available</Typography>
           <Typography variant="body2">
             Unable to load dashboard analytics
@@ -958,137 +931,86 @@ const DashboardOverview: React.FC = () => {
   const insights = generateInsights();
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        position: "relative",
-      }}
-    >
-      {/* Floating Action Button for Refresh */}
-      <Fab
-        color="primary"
-        sx={{
-          position: "fixed",
-          bottom: 32,
-          right: 32,
-          zIndex: 1000,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          "&:hover": {
-            background: "linear-gradient(135deg, #5a67d8 0%, #6b4996 100%)",
-          },
-        }}
-        onClick={refresh}
-        disabled={loading}
-      >
-        <RefreshIcon />
-      </Fab>
-
-      {/* Header */}
-      <Box sx={{ p: 3, pb: 0 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={3}
-        >
-          <Box>
-            <Typography
-              variant="h3"
-              sx={{ color: "white", fontWeight: 700, mb: 1 }}
-            >
-              Analytics Dashboard
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{ color: "rgba(255,255,255,0.8)", fontWeight: 400 }}
-            >
-              Comprehensive insights across your organization
-              {lastUpdated && (
-                <span> • Last updated: {lastUpdated.toLocaleTimeString()}</span>
-              )}
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={comparisonMode}
-                    onChange={(e) => setComparisonMode(e.target.checked)}
-                    size="small"
-                    sx={{
-                      "& .MuiSwitch-thumb": { backgroundColor: "white" },
-                      "& .MuiSwitch-track": {
-                        backgroundColor: "rgba(255,255,255,0.3)",
-                      },
-                    }}
-                  />
-                }
-                label={
-                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                    Compare
-                  </Typography>
-                }
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    size="small"
-                    sx={{
-                      "& .MuiSwitch-thumb": { backgroundColor: "white" },
-                      "& .MuiSwitch-track": {
-                        backgroundColor: "rgba(255,255,255,0.3)",
-                      },
-                    }}
-                  />
-                }
-                label={
-                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                    Auto-refresh
-                  </Typography>
-                }
-              />
+    <Box>
+      <Stack sx={{ gap: "15px" }}>
+        <PageBreadcrumbs />
+        <Stack>
+          <Stack direction="row" alignItems="center" spacing={1} justifyContent="space-between">
+            <Box>
+              <Typography sx={vwhomeHeading}>Analytics Dashboard</Typography>
+              <Typography sx={singleTheme.textStyles.pageDescription}>
+                Comprehensive insights across your organization
+                {lastUpdated && (
+                  <span> • Last updated: {lastUpdated.toLocaleTimeString()}</span>
+                )}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={comparisonMode}
+                      onChange={(e) => setComparisonMode(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <Typography sx={{ fontSize: "0.75rem" }}>Compare</Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={autoRefresh}
+                      onChange={(e) => setAutoRefresh(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <Typography sx={{ fontSize: "0.75rem" }}>Auto-refresh</Typography>
+                  }
+                />
+              </Stack>
+              <IconButton onClick={refresh} disabled={loading}>
+                <RefreshIcon />
+              </IconButton>
+              <Badge badgeContent={data.risks.critical_risks} color="error">
+                <NotificationIcon />
+              </Badge>
             </Stack>
-            <Badge badgeContent={data.risks.critical_risks} color="error">
-              <NotificationIcon sx={{ color: "white" }} />
-            </Badge>
           </Stack>
         </Stack>
+      </Stack>
 
-        {/* Navigation Tabs */}
-        <Paper
-          elevation={0}
+      
+      {/* Tab Navigation */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2,
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(0,0,0,0.1)",
+          mb: 2,
+        }}
+      >
+        <Tabs
+          value={selectedTab}
+          onChange={(_, newValue) => setSelectedTab(newValue)}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
-            background: "rgba(255,255,255,0.1)",
-            backdropFilter: "blur(10px)",
-            borderRadius: 2,
+            "& .MuiTab-root": {
+              fontWeight: 600,
+              textTransform: "none",
+              minHeight: 48,
+              fontSize: "0.875rem",
+            },
+            "& .MuiTabs-indicator": {
+              height: 2,
+              borderRadius: 1,
+            },
           }}
-        >
-          <Tabs
-            value={selectedTab}
-            onChange={(_, newValue) => setSelectedTab(newValue)}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              "& .MuiTab-root": {
-                color: "rgba(255,255,255,0.7)",
-                fontWeight: 600,
-                textTransform: "none",
-                minHeight: 64,
-                "&.Mui-selected": {
-                  color: "white",
-                  background: "rgba(255,255,255,0.1)",
-                },
-              },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "white",
-                height: 3,
-                borderRadius: "3px 3px 0 0",
-              },
-            }}
           >
             {tabContent.map((tab) => (
               <Tab
@@ -1101,10 +1023,9 @@ const DashboardOverview: React.FC = () => {
             ))}
           </Tabs>
         </Paper>
-      </Box>
 
       {/* Content Area */}
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ mt: 2 }}>
         {/* Executive Overview Tab */}
         {selectedTab === 0 && (
           <Stack spacing={3}>

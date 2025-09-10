@@ -51,7 +51,14 @@ const policyStatusBadgeStyle = (status: string) => {
   };
 };
 
-const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error, onRefresh }) => {
+const PolicyTable: React.FC<Props> = ({
+  data,
+  onOpen,
+  onDelete,
+  isLoading,
+  error,
+  onRefresh,
+}) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
   // Helper function to get user name by ID
@@ -60,12 +67,14 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
     return user ? user.name + " " + user.surname : "-";
   };
 
-    const { users } = useUsers();
-
-
+  const { users } = useUsers();
 
   if (error) {
-    return <div className="error-message">Error loading policies: {error.message}</div>;
+    return (
+      <div className="error-message">
+        Error loading policies: {error.message}
+      </div>
+    );
   }
 
   if (isLoading) {
@@ -86,7 +95,7 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
       <CustomizablePolicyTable
         table="policy-table"
         data={{ rows, cols: tableHeaders }}
-        bodyData={[ ...data ]}
+        bodyData={[...data]}
         paginated
         setSelectedRow={() => {}}
         setAnchorEl={() => {}}
@@ -96,61 +105,75 @@ const PolicyTable: React.FC<Props> = ({ data, onOpen, onDelete, isLoading, error
             key={policy.id}
             tabIndex={0}
             aria-label={`Policy: ${policy.title}`}
-            sx={{...singleTheme.tableStyles.primary.body.row}}
+            sx={{ ...singleTheme.tableStyles.primary.body.row }}
             onClick={(_event) => {
-                    const target = _event.target as HTMLElement;
+              const target = _event.target as HTMLElement;
 
-  // Prevent triggering onOpen when clicking within any modal or dialog
-  if (
-    target.closest("button") ||
-    target.closest(".MuiDialog-root") || // MUI Dialog
-    target.closest("[role='dialog']") || // General dialogs
-    target.closest(".modal") // Any custom modal class
-  ) {
-    return;
-  }
+              // Prevent triggering onOpen when clicking within any modal or dialog
+              if (
+                target.closest("button") ||
+                target.closest(".MuiDialog-root") || // MUI Dialog
+                target.closest("[role='dialog']") || // General dialogs
+                target.closest(".modal") // Any custom modal class
+              ) {
+                return;
+              }
 
-  onOpen(policy.id);
+              onOpen(policy.id);
             }}
           >
-            <TableCell sx={cellStyle}>{policy.title.length > 30 ? `${policy.title.slice(0, 30)}...` : policy.title}</TableCell>
+            <TableCell sx={cellStyle}>
+              {policy.title.length > 30
+                ? `${policy.title.slice(0, 30)}...`
+                : policy.title}
+            </TableCell>
             <TableCell sx={cellStyle}>
               <span style={policyStatusBadgeStyle(policy.status)}>
                 {policy.status}
               </span>
             </TableCell>
-            <TableCell sx={cellStyle}>{
-              policy.tags?.join(", ").length > 30 ? `${policy.tags?.join(", ").slice(0, 30)}...` : policy.tags?.join(", ") || "-"
-            }</TableCell>
             <TableCell sx={cellStyle}>
-              {policy.next_review_date ? new Date(policy.next_review_date).toLocaleDateString() : "-"}
+              {policy.tags?.join(", ").length > 30
+                ? `${policy.tags?.join(", ").slice(0, 30)}...`
+                : policy.tags?.join(", ") || "-"}
             </TableCell>
-            <TableCell sx={cellStyle}>{getUserNameById(policy.author_id)}</TableCell>
+            <TableCell sx={cellStyle}>
+              {policy.next_review_date
+                ? new Date(policy.next_review_date).toLocaleDateString()
+                : "-"}
+            </TableCell>
+            <TableCell sx={cellStyle}>
+              {getUserNameById(policy.author_id)}
+            </TableCell>
             {/* <TableCell sx={cellStyle}>
               {
                 policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").length > 30 ? `${policy.assigned_reviewer_ids?.map(getUserNameById).join(", ").slice(0, 30)}...` : policy.assigned_reviewer_ids?.map(getUserNameById).join(", ") || "-"
               }
             </TableCell> */}
             <TableCell sx={cellStyle}>
-              {policy.last_updated_at ? new Date(policy.last_updated_at).toLocaleString() : "-"}
+              {policy.last_updated_at
+                ? new Date(policy.last_updated_at).toLocaleString()
+                : "-"}
             </TableCell>
-            <TableCell sx={cellStyle}>{getUserNameById(policy.last_updated_by)}</TableCell>
+            <TableCell sx={cellStyle}>
+              {getUserNameById(policy.last_updated_by)}
+            </TableCell>
             <TableCell>
               <div onClick={(e) => e.stopPropagation()}>
-                  <CustomIconButton
-    id={Number(policy.id)}
-    onDelete={() => {
-      onDelete(policy.id);
-      onRefresh?.();
-    }}
-    onEdit={() => {
-      onOpen(policy.id);
-    }}
-    onMouseEvent={(e: React.SyntheticEvent) => e.stopPropagation()}
-    warningTitle="Delete this policy?"
-    warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."
-    type=""
-  />
+                <CustomIconButton
+                  id={Number(policy.id)}
+                  onDelete={() => {
+                    onDelete(policy.id);
+                    onRefresh?.();
+                  }}
+                  onEdit={() => {
+                    onOpen(policy.id);
+                  }}
+                  onMouseEvent={() => {}}
+                  warningTitle="Delete this policy?"
+                  warningMessage="When you delete this policy, all data related to it will be removed. This action is non-recoverable."
+                  type=""
+                />
               </div>
             </TableCell>
           </TableRow>

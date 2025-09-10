@@ -18,14 +18,7 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value }) => (
-  <Card elevation={0} sx={(theme) => ({ 
-    ...cardStyles.base(theme),
-    height: '100%',
-    cursor: 'default',
-    '&:hover': { 
-      backgroundColor: theme.palette.action?.hover || '#fafafa'
-    }
-  })}>
+  <Card elevation={0} sx={cardStyles.base}>
     <CardContent sx={{ p: 2 }}>
       <Box>
         <Typography 
@@ -57,21 +50,10 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value }) => (
 const WorkingDashboard: React.FC = () => {
   const { dashboard, loading, fetchDashboard } = useDashboard();
   const { evidenceMetrics, vendorRiskMetrics, vendorMetrics, usersMetrics, policyMetrics } = useDashboardMetrics();
-  const [componentError, setComponentError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);
-
-  if (componentError) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h6" color="error">
-          Component Error: {componentError}
-        </Typography>
-      </Box>
-    );
-  }
 
   if (loading) {
     return (

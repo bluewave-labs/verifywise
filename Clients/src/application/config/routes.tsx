@@ -30,7 +30,6 @@ import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDa
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import Framework from "../../presentation/pages/Framework";
-import DashboardOverview from "../../presentation/pages/DashboardOverview";
 import WorkingDashboard from "../../presentation/pages/DashboardOverview/WorkingDashboard";
 
 export const createRoutes = (

@@ -37,15 +37,6 @@ import {
   VerifiedUser as TrustCenterIcon,
   TrendingUp as TrendIcon
 } from '@mui/icons-material';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
 import { useDashboard } from '../../../application/hooks/useDashboard';
 import { useDashboardMetrics } from '../../../application/hooks/useDashboardMetrics';
 
@@ -274,7 +265,7 @@ const DashboardOverview: React.FC = () => {
             </Card>
           </Grid>
 
-          {/* Risk Overview Chart - Only show if data available */}
+          {/* Risk Overview - Only show if data available */}
           {riskMetrics && (
             <Grid item xs={12}>
               <Card elevation={2}>
@@ -282,22 +273,48 @@ const DashboardOverview: React.FC = () => {
                   <Typography variant="h6" gutterBottom fontWeight="semibold">
                     Risk Overview
                   </Typography>
-                  <Box sx={{ height: 250 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={[
-                        { severity: 'High', count: riskMetrics.distribution.high },
-                        { severity: 'Medium', count: riskMetrics.distribution.medium },
-                        { severity: 'Low', count: riskMetrics.distribution.low },
-                        { severity: 'Resolved', count: riskMetrics.distribution.resolved }
-                      ]}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="severity" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#13715B" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
+                  <Grid container spacing={2}>
+                    <Grid item xs={3}>
+                      <Stack alignItems="center" spacing={1}>
+                        <Typography variant="h4" fontWeight="bold" color="error.main">
+                          {riskMetrics.distribution.high}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          High
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <Stack alignItems="center" spacing={1}>
+                        <Typography variant="h4" fontWeight="bold" color="warning.main">
+                          {riskMetrics.distribution.medium}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Medium
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <Stack alignItems="center" spacing={1}>
+                        <Typography variant="h4" fontWeight="bold" color="success.main">
+                          {riskMetrics.distribution.low}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Low
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <Stack alignItems="center" spacing={1}>
+                        <Typography variant="h4" fontWeight="bold" color="info.main">
+                          {riskMetrics.distribution.resolved}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Resolved
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                  </Grid>
                 </CardContent>
               </Card>
             </Grid>

@@ -562,10 +562,12 @@ const Framework = () => {
             <>
               <Button
                 variant="contained"
-                startIcon={<SettingsIcon />}
-                onClick={() => setIsFrameworkModalOpen(true)}
+                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: "18px" }} />}
+                onClick={handleManageProjectClick}
                 disabled={
-                  !allowedRoles.frameworks.manage.includes(userRoleName)
+                  !allowedRoles.frameworks.manage.includes(userRoleName) &&
+                  !allowedRoles.projects.edit.includes(userRoleName) &&
+                  !allowedRoles.projects.delete.includes(userRoleName)
                 }
                 sx={{
                   backgroundColor: "#13715B",
@@ -775,6 +777,46 @@ const Framework = () => {
               onClose={async () => {
                 setIsProjectFormModalOpen(false);
                 // Refresh project data after creating a new project
+                await refreshProjectData();
+              }}
+            />
+          </Box>
+        </Modal>
+      )}
+
+      {isEditProjectModalOpen && organizationalProject && (
+        <Modal
+          open={isEditProjectModalOpen}
+          onClose={async () => {
+            setIsEditProjectModalOpen(false);
+            // Refresh project data after editing the project
+            await refreshProjectData();
+          }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              backgroundColor: "white",
+              borderRadius: 2,
+              boxShadow: 24,
+              maxHeight: "90vh",
+              maxWidth: "90vw",
+              overflow: "auto",
+              outline: "none",
+              p: 0,
+            }}
+          >
+            <ProjectForm
+              projectToEdit={organizationalProject}
+              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
+              onClose={async () => {
+                setIsEditProjectModalOpen(false);
+                // Refresh project data after editing the project
                 await refreshProjectData();
               }}
             />

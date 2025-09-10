@@ -34,7 +34,9 @@
       "mcp__ide__getDiagnostics",
       "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
       "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

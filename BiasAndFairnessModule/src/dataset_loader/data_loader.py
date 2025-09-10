@@ -112,13 +112,14 @@ class DataLoader:
         return self.data
 
     def _format_single_feature(
-        self, row: pd.Series
+        self, row: pd.Series, include_answer: bool = False
     ) -> Dict[str, Any]:
         """
         Convert a single row of data into a features dictionary for prompting.
 
         Args:
             row (pd.Series): A single row from the dataset
+            include_answer (bool): If True, include ground truth answer in features
 
         Returns:
             Dict[str, Any]: Feature dictionary with column names underscore-normalized
@@ -135,9 +136,14 @@ class DataLoader:
             value = _normalize_value(row[col])
             features[key] = value
 
+        # Optionally include the ground truth answer inside features
+        if include_answer:
+            target_key = _normalize_key(self.dataset_config.target_column)
+            features[target_key] = _normalize_value(row[self.dataset_config.target_column])
+
         return features
 
-    def get_sample_prompts(
+    def get_sample_features(
         self, indices: Union[int, List[int]], include_answer: bool = False
     ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
@@ -145,7 +151,7 @@ class DataLoader:
 
         Args:
             indices (Union[int, List[int]]): Single index or list of
-                                             indices to get prompts for
+                                             indices to get features for
             include_answer (bool): Whether to include the target column
                                    value as answer
 
@@ -176,7 +182,7 @@ class DataLoader:
 
         # Generate feature dicts for all requested indices
         items = [
-            self._format_single_feature(self.data.iloc[idx])
+            self._format_single_feature(self.data.iloc[idx], include_answer)
             for idx in indices
         ]
 

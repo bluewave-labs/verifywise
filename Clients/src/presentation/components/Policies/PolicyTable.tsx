@@ -133,7 +133,6 @@ const PolicyTable: React.FC<Props> = ({
               </span>
             </TableCell>
             <TableCell sx={cellStyle}>
-            <TableCell sx={cellStyle}>
               {(() => {
                 const tags = policy.tags?.join(", ") ?? "-";
                 return tags.length > 30 ? `${tags.slice(0, 30)}...` : tags;

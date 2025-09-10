@@ -18,7 +18,14 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value }) => (
-  <Card elevation={0} sx={(theme) => cardStyles.base(theme)}>
+  <Card elevation={0} sx={(theme) => ({
+    ...cardStyles.base(theme) as any,
+    height: '100%',
+    cursor: 'default',
+    '&:hover': { 
+      backgroundColor: theme.palette.action?.hover || '#fafafa'
+    }
+  })}>
     <CardContent sx={{ p: 2 }}>
       <Box>
         <Typography 

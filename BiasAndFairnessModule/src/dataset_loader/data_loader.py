@@ -81,8 +81,6 @@ class DataLoader:
             if isinstance(dataset, Dataset):
                 # Convert to pandas DataFrame
                 self.data = pd.DataFrame(dataset)
-                # Replace "?" values with "unknown"
-                self.data = self.data.replace("?", "Unknown")
             else:
                 raise ValueError("Expected a Dataset object from Huggingface")
         elif self.dataset_config.platform.lower() == "scikit-learn":
@@ -95,6 +93,10 @@ class DataLoader:
                 raise ValueError(f"Unknown scikit-learn dataset: {self.dataset_config.source}")
         else:
             raise ValueError(f"Unsupported platform: {self.dataset_config.platform}")
+
+        # Replace ambiguous values consistently across all platforms
+        if isinstance(self.data, pd.DataFrame):
+            self.data = self.data.replace("?", "Unknown")
 
         # Apply sampling if enabled
         if hasattr(self.dataset_config, "sampling") and getattr(

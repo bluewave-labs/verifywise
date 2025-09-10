@@ -117,8 +117,13 @@ class InferencePipeline:
         *,
         batch_size: Optional[int] = None,
         limit_samples: Optional[int] = None,
+        auto_save: bool = True,
     ) -> List[Dict[str, Any]]:
-        """Run inference and return a flat list of standardized result rows."""
+        """Run inference and return a flat list of standardized result rows.
+
+        If `auto_save` is True, results will be saved to the configured
+        `artifacts.inference_results_path` CSV file.
+        """
         samples = self._get_samples(batch_size=batch_size, limit_samples=limit_samples)
 
         results: List[Dict[str, Any]] = []
@@ -132,6 +137,8 @@ class InferencePipeline:
                 results.append(
                     self._format_result(sample=s, timestamp=ts, prediction=pred)
                 )
+            if auto_save:
+                self.save(results)
             return results
 
         samples_batches = cast(List[List[Dict[str, Any]]], samples)
@@ -143,5 +150,14 @@ class InferencePipeline:
                 results.append(
                     self._format_result(sample=s, timestamp=ts, prediction=pred)
                 )
+        if auto_save:
+            self.save(results)
         return results
+
+    def save(self, results: List[Dict[str, Any]]) -> None:
+        """Save results to CSV at the configured artifacts path."""
+        artifacts_cfg = self.config_manager.get_artifacts_config()
+        output_path = artifacts_cfg.inference_results_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(results).to_csv(output_path, index=False)
 

@@ -354,31 +354,6 @@ const DashboardOverview: React.FC = () => {
                 </Grid>
               </Grid>
 
-              {/* Project Health Overview */}
-              <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    Project Health Overview
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {data.projects.project_health.slice(0, 6).map((project) => (
-                      <Grid item xs={12} sm={6} md={4} key={project.project_id}>
-                        <Box sx={{ p: 2, border: "1px solid rgba(0,0,0,0.1)", borderRadius: 1 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                            {project.project_name}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                            Health Score: {project.health_score}%
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Completion: {project.completion_rate}%
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </Card>
             </Stack>
           )}
 

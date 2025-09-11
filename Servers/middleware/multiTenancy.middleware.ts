@@ -5,20 +5,19 @@ import { getOrganizationsExistsQuery } from "../utils/organization.utils";
 export const checkMultiTenancy = async (req: Request, res: Response, next: NextFunction) => {
   const requestOrigin = req.headers.origin || req.headers.host;
   const organizationExists = await getOrganizationsExistsQuery();
-  // if (
-  //   (
-  //     process.env.MULTI_TENANCY_ENABLED === "true" &&
-  //     (
-  //       requestOrigin?.includes("app.verifywise.ai") ||
-  //       requestOrigin?.includes("test.verifywise.ai")
-  //     )
-  //   ) || !organizationExists.exists
-  // ) {
-  //   next();
-  // } else {
-  //   return res.status(403).json({
-  //     message: "Multi tenancy is not enabled in this server. Please contact VerifyWise to get a license for multi tenancy option.",
-  //   });
-  // }
-  next();
+  if (
+    (
+      process.env.MULTI_TENANCY_ENABLED === "true" &&
+      (
+        requestOrigin?.includes("app.verifywise.ai") ||
+        requestOrigin?.includes("test.verifywise.ai")
+      )
+    ) || !organizationExists.exists
+  ) {
+    next();
+  } else {
+    return res.status(403).json({
+      message: "Multi tenancy is not enabled in this server. Please contact VerifyWise to get a license for multi tenancy option.",
+    });
+  }
 }

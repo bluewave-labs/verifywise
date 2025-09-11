@@ -8,5 +8,5 @@ export const ENV_VARs = {
       : "http://localhost:3000/"), // final Node/SSR fallback
   IS_DEMO_APP: import.meta.env.VITE_IS_DEMO_APP === "true",
   IS_MULTI_TENANT: import.meta.env.VITE_IS_MULTI_TENANT === "true",
-  GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "933050253300-0uc92iboh8gb6pvdpnla00haak33i3ci.apps.googleusercontent.com",
-}
+  GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "",
+};

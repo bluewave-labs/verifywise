@@ -19,5 +19,5 @@ export const useIsMultiTenant = () => {
     fetchOrganizationCount()
   }, []);
 
-  return { isMultiTenant: true };
+  return { isMultiTenant };
 }

@@ -17,6 +17,8 @@ import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s
 import * as fs from 'fs';
 import * as path from 'path';
 import { getLogBaseDirectory, getCurrentDateStringUTC } from '../tenant/tenantContext';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Configuration from environment variables
 const config = {

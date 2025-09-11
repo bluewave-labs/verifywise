@@ -37,7 +37,6 @@ import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
-import { get } from "https";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {

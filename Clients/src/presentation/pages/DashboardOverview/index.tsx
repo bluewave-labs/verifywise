@@ -169,11 +169,11 @@ const DashboardOverview: React.FC = () => {
 
   return (
     <Box sx={{ width: "100%", px: 3, py: 2 }}>
-      <Stack spacing={3}>
+      <Stack sx={{ gap: "16px" }}>
         <PageBreadcrumbs />
         
         {/* Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
           <Box>
             <Typography sx={vwhomeHeading}>Dashboard Overview</Typography>
             <Typography sx={singleTheme.textStyles.pageDescription}>
@@ -196,6 +196,7 @@ const DashboardOverview: React.FC = () => {
           sx={{
             borderRadius: 2,
             border: "1px solid rgba(0,0,0,0.1)",
+            mb: 2,
           }}
         >
           <Tabs
@@ -229,7 +230,7 @@ const DashboardOverview: React.FC = () => {
         <Box>
           {/* Executive Overview Tab */}
           {selectedTab === 0 && (
-            <Stack spacing={3}>
+            <Stack sx={{ gap: "24px" }}>
               {/* Executive KPI Cards */}
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6} lg={3}>
@@ -291,7 +292,7 @@ const DashboardOverview: React.FC = () => {
 
           {/* Compliance Analytics Tab */}
           {selectedTab === 1 && (
-            <Stack spacing={3}>
+            <Stack sx={{ gap: "24px" }}>
               {/* Compliance KPIs */}
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6} md={3}>
@@ -366,7 +367,7 @@ const DashboardOverview: React.FC = () => {
 
           {/* Risk Management Tab */}
           {selectedTab === 2 && (
-            <Stack spacing={3}>
+            <Stack sx={{ gap: "24px" }}>
               {/* Risk KPIs */}
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6} md={3}>

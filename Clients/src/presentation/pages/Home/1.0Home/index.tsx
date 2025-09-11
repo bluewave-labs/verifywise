@@ -87,14 +87,14 @@ const Home = () => {
 
   const { tierFeatures } = useSubscriptionData();
 
-  const isDisabledLogic = () => {
-    if (dashboard?.projects && tierFeatures?.data.projects) {
+  const isDisabledLogic = () => {    
+    if (dashboard?.projects && tierFeatures?.projects) {
       // If tierFeatures.projects is 0, it means unlimited projects
-      if (tierFeatures.data.projects === 0) {
+      if (tierFeatures.projects === 0) {
         return !allowedRoles.projects.create.includes(userRoleName);
       }
       // Otherwise, check if current projects count has reached the limit
-      return dashboard.projects >= tierFeatures.data.projects || !allowedRoles.projects.create.includes(userRoleName);
+      return dashboard.projects >= tierFeatures.projects || !allowedRoles.projects.create.includes(userRoleName);
     }
     return !allowedRoles.projects.create.includes(userRoleName);
   }

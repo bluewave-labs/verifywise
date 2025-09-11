@@ -259,7 +259,7 @@ const Subscription: React.FC = () => {
     
     // If project limit is 0, it means unlimited projects (Enterprise tier)
     // Only show warning if tier has a project limit > 0 and current projects exceed that limit
-    if (projectLimit > 0 && dashboard?.projects >= projectLimit) {
+    if (projectLimit > 0 && ((dashboard?.projects ?? 0) >= projectLimit)) {
       setAlertMessage("You can't subscribe to this tier since the project exceeds the limit. Doing so will make you unable to use VerifyWise.");
       return;
     } else {
@@ -296,21 +296,23 @@ const Subscription: React.FC = () => {
   const getFeatureCategories = () => {
     if (!allTiers.length) return [];
     
-    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name]);
+    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES]);
     if (!sampleTier) return [];
-    
-    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name].features;
+
+    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name as keyof typeof ENHANCED_PLAN_FEATURES].features;
     return Object.keys(enhancedFeatures);
   };
 
   const getFeaturesByCategory = (category: string) => {
     if (!allTiers.length) return [];
     
-    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name]);
+    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES]);
     if (!sampleTier) return [];
     
-    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name].features;
-    return Object.keys(enhancedFeatures[category] || {});
+    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name as keyof typeof ENHANCED_PLAN_FEATURES].features;
+    return Object.keys(
+      enhancedFeatures[category as keyof typeof enhancedFeatures] || {}
+    );
   };
 
   return (
@@ -430,7 +432,7 @@ const Subscription: React.FC = () => {
                       {/* Empty cell for feature column */}
                     </TableCell>
                     {allTiers?.map((tier: Tier) => {
-                      const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name];
+                      const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES];
                       return (
                         <TableCell key={`desc-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
                           <Typography variant="body2" color="text.secondary">
@@ -505,8 +507,9 @@ const Subscription: React.FC = () => {
                           </TableCell>
                           
                           {allTiers.map((tier: Tier) => {
-                            const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name];
-                            const featureValue = enhancedPlan?.features[category]?.[feature];
+                            const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES];
+                            const featureCategory = enhancedPlan?.features[category as keyof typeof enhancedPlan.features] as Record<string, boolean | string> | undefined;
+                            const featureValue = featureCategory ? featureCategory[feature] : false;
                             
                             return (
                               <TableCell key={tier.id} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>

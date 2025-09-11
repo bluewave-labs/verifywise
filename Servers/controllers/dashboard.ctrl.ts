@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { logFailure, logProcessing, logSuccess } from "../utils/logger/logHelper";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { getDashboardDataQuery, getExecutiveOverviewQuery } from "../utils/dashboard.utils";
+import { getDashboardDataQuery, getExecutiveOverviewQuery, getComplianceAnalyticsQuery } from "../utils/dashboard.utils";
 
 export async function getDashboardData(req: Request, res: Response) {
   logProcessing({
@@ -61,6 +61,39 @@ export async function getExecutiveOverview(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to retrieve executive overview data",
       functionName: "getExecutiveOverview",
+      fileName: "dashboard.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getComplianceAnalytics(req: Request, res: Response) {
+  logProcessing({
+    description: "starting getComplianceAnalytics",
+    functionName: "getComplianceAnalytics",
+    fileName: "dashboard.ctrl.ts",
+  });
+
+  try {
+    const complianceAnalytics = await getComplianceAnalyticsQuery(req.tenantId!, req.userId!, req.role!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved compliance analytics data successfully",
+      functionName: "getComplianceAnalytics",
+      fileName: "dashboard.ctrl.ts",
+    });
+
+    return res
+      .status(complianceAnalytics ? 200 : 204)
+      .json(STATUS_CODE[complianceAnalytics ? 200 : 204](complianceAnalytics));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve compliance analytics data",
+      functionName: "getComplianceAnalytics",
       fileName: "dashboard.ctrl.ts",
       error: error as Error,
     });

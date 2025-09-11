@@ -42,3 +42,40 @@ export interface IExecutiveOverview {
     chart_data: IChartData[];
   };
 }
+
+export interface IComplianceProjectDetail {
+  project_id: number;
+  project_name: string;
+  completion_rate: number;
+  total_controls: number;
+  completed_controls: number;
+  trend: number;
+}
+
+export interface IComplianceFrameworkDetail {
+  framework: string;
+  framework_id: number;
+  average_completion: number;
+  total_projects: number;
+  projects: IComplianceProjectDetail[];
+  completion_distribution: IChartData[];
+}
+
+export interface IComplianceAnalytics {
+  iso27001: IComplianceFrameworkDetail;
+  iso42001: IComplianceFrameworkDetail;
+  overall_compliance: {
+    score: number;
+    total_projects: number;
+    chart_data: IChartData[];
+  };
+  project_tracker: {
+    projects: IComplianceProjectDetail[];
+    completion_trends: Array<{
+      date: string;
+      iso27001: number;
+      iso42001: number;
+      overall: number;
+    }>;
+  };
+}

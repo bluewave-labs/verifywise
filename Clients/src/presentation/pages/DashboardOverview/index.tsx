@@ -27,6 +27,7 @@ import {
 } from "@mui/x-charts";
 import { useComprehensiveDashboard } from "../../../application/hooks/useComprehensiveDashboard";
 import { useExecutiveOverview } from "../../../application/hooks/useExecutiveOverview";
+import { useComplianceAnalytics } from "../../../application/hooks/useComplianceAnalytics";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -118,14 +119,16 @@ const ModernKPICard: React.FC<ModernKPICardProps> = ({
 const DashboardOverview: React.FC = () => {
   const { data, loading, error, lastUpdated, refresh } = useComprehensiveDashboard();
   const { data: executiveData, loading: executiveLoading, error: executiveError, refresh: refreshExecutive } = useExecutiveOverview();
+  const { data: complianceData, loading: complianceLoading, error: complianceError, refresh: refreshCompliance } = useComplianceAnalytics();
   const [selectedTab, setSelectedTab] = useState(0);
 
   const handleRefresh = () => {
     refresh();
     refreshExecutive();
+    refreshCompliance();
   };
 
-  if (loading || executiveLoading) {
+  if (loading || executiveLoading || complianceLoading) {
     return (
       <Box sx={{ width: "100%", p: 3, display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
         <Stack alignItems="center" spacing={2}>
@@ -138,7 +141,7 @@ const DashboardOverview: React.FC = () => {
     );
   }
 
-  if (error || executiveError) {
+  if (error || executiveError || complianceError) {
     return (
       <Box sx={{ width: "100%", p: 3 }}>
         <Alert
@@ -150,13 +153,13 @@ const DashboardOverview: React.FC = () => {
           }
         >
           <Typography variant="h6">Error Loading Dashboard</Typography>
-          <Typography variant="body2">{error || executiveError}</Typography>
+          <Typography variant="body2">{error || executiveError || complianceError}</Typography>
         </Alert>
       </Box>
     );
   }
 
-  if (!data || !executiveData) {
+  if (!data || !executiveData || !complianceData) {
     return (
       <Box sx={{ width: "100%", p: 3 }}>
         <Alert severity="warning">
@@ -365,25 +368,25 @@ const DashboardOverview: React.FC = () => {
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="ISO 27001"
-                    value={`${data.compliance.iso27001_avg}%`}
+                    value={`${complianceData.iso27001.average_completion}%`}
                     icon={<ComplianceIcon fontSize="large" />}
                     color="#2196F3"
-                    subtitle="Average completion"
+                    subtitle={`${complianceData.iso27001.total_projects} projects`}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="ISO 42001"
-                    value={`${data.compliance.iso42001_avg}%`}
+                    value={`${complianceData.iso42001.average_completion}%`}
                     icon={<ComplianceIcon fontSize="large" />}
                     color="#9C27B0"
-                    subtitle="Average completion"
+                    subtitle={`${complianceData.iso42001.total_projects} projects`}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="Overall Compliance"
-                    value={`${data.compliance.overall_compliance}%`}
+                    value={`${complianceData.overall_compliance.score}%`}
                     icon={<ComplianceIcon fontSize="large" />}
                     color="#4CAF50"
                     subtitle="Organization wide"
@@ -392,7 +395,7 @@ const DashboardOverview: React.FC = () => {
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="Projects Tracked"
-                    value={data.compliance.compliance_trends.reduce((acc, framework) => acc + framework.projects.length, 0)}
+                    value={complianceData.project_tracker.projects.length}
                     icon={<ProjectIcon fontSize="large" />}
                     color="#FF9800"
                     subtitle="Total projects"
@@ -400,35 +403,93 @@ const DashboardOverview: React.FC = () => {
                 </Grid>
               </Grid>
 
+              {/* Compliance Charts */}
+              <Grid container spacing={3}>
+                {/* ISO 27001 Distribution */}
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                        ISO 27001 Project Distribution
+                      </Typography>
+                      <PieChart
+                        series={[
+                          {
+                            data: complianceData.iso27001.completion_distribution.map((item, index) => ({
+                              id: index,
+                              value: item.value,
+                              label: item.name,
+                              color: item.color
+                            })),
+                          },
+                        ]}
+                        width={350}
+                        height={200}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* ISO 42001 Distribution */}
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                        ISO 42001 Project Distribution
+                      </Typography>
+                      <PieChart
+                        series={[
+                          {
+                            data: complianceData.iso42001.completion_distribution.map((item, index) => ({
+                              id: index,
+                              value: item.value,
+                              label: item.name,
+                              color: item.color
+                            })),
+                          },
+                        ]}
+                        width={350}
+                        height={200}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
               {/* Compliance Trends */}
               <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    Compliance by Framework
+                    Compliance Progress Trends
                   </Typography>
-                  {data.compliance.compliance_trends.map((framework) => (
-                    <Box key={framework.framework} sx={{ mb: 3 }}>
-                      <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
-                        {framework.framework}
-                      </Typography>
-                      <Grid container spacing={2}>
-                        {framework.projects.slice(0, 6).map((project) => (
-                          <Grid item xs={12} sm={6} md={4} key={project.project_id}>
-                            <Box sx={{ p: 2, border: "1px solid rgba(0,0,0,0.1)", borderRadius: 1 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                                {project.project_name}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Completion: {project.completion_rate}%
-                              </Typography>
-                            </Box>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </Box>
-                  ))}
+                  <LineChart
+                    xAxis={[{ 
+                      scaleType: 'point', 
+                      data: complianceData.project_tracker.completion_trends.map(item => item.date) 
+                    }]}
+                    series={[
+                      {
+                        data: complianceData.project_tracker.completion_trends.map(item => item.iso27001),
+                        label: 'ISO 27001',
+                        color: '#2196F3'
+                      },
+                      {
+                        data: complianceData.project_tracker.completion_trends.map(item => item.iso42001),
+                        label: 'ISO 42001',
+                        color: '#9C27B0'
+                      },
+                      {
+                        data: complianceData.project_tracker.completion_trends.map(item => item.overall),
+                        label: 'Overall',
+                        color: '#4CAF50'
+                      }
+                    ]}
+                    width={800}
+                    height={300}
+                  />
                 </CardContent>
               </Card>
+
             </Stack>
           )}
 

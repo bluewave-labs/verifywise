@@ -1,16 +1,11 @@
 // New component file: ProjectList.tsx
 import { useState, useMemo } from "react";
-import {
-  Box,
-  Typography,
-  InputBase,
-  IconButton,
-} from "@mui/material";
+import { Box, Typography, InputBase, IconButton } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
-import ViewToggle from "../../vw-v2-components/ViewToggle";
+import ViewToggle from "../ViewToggle";
 import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
 
 import { Project } from "../../../domain/types/Project";
@@ -29,7 +24,10 @@ interface ProjectListProps {
 const ProjectList = ({ projects }: ProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
-  const [viewMode, setViewMode] = usePersistedViewMode("projects-view-mode", "card");
+  const [viewMode, setViewMode] = usePersistedViewMode(
+    "projects-view-mode",
+    "card"
+  );
 
   // Filter projects with memoization
   const filteredProjects = useMemo(() => {
@@ -64,9 +62,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
 
     if (filteredProjects.length <= 3) {
       return (
-        <Box
-          sx={projectWrapperStyle(filteredProjects.length)}
-        >
+        <Box sx={projectWrapperStyle(filteredProjects.length)}>
           {filteredProjects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
@@ -88,18 +84,20 @@ const ProjectList = ({ projects }: ProjectListProps) => {
   return (
     <Box sx={{ width: "100%" }}>
       {/* Controls Row */}
-      <Box sx={{ 
-        display: "flex", 
-        justifyContent: "space-between", 
-        alignItems: "center",
-        mb: 2 
-      }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         {/* Search Box */}
         <Box sx={searchBoxStyle(isSearchBarVisible)}>
           <IconButton
-          disableRipple
-          disableFocusRipple
-          sx={{ "&:hover": { backgroundColor: "transparent" } }}
+            disableRipple
+            disableFocusRipple
+            sx={{ "&:hover": { backgroundColor: "transparent" } }}
             aria-label="Toggle project search"
             aria-expanded={isSearchBarVisible}
             onClick={() => setIsSearchBarVisible((prev) => !prev)}
@@ -121,10 +119,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
 
         {/* View Toggle */}
         {projects && projects.length > 0 && (
-          <ViewToggle
-            viewMode={viewMode}
-            onViewChange={setViewMode}
-          />
+          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         )}
       </Box>
 

@@ -3,21 +3,20 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer, 
+  TableContainer,
   TablePagination,
   TableRow,
   TableFooter,
   Typography,
   useTheme,
 } from "@mui/material";
-import singleTheme from "../../themes/v1SingleTheme";
+import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import TablePaginationActions from "../../components/TablePagination";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
+import TablePaginationActions from "../../TablePagination";
+import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import VWProjectRisksTableHead from "./VWProjectRisksTableHead";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
-
 
 const VWProjectRisksTable = ({
   columns,
@@ -42,7 +41,10 @@ const VWProjectRisksTable = ({
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Ensure page is valid when rows are empty
-  const validPage = rows.length === 0 ? 0 : Math.min(page, Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1));
+  const validPage =
+    rows.length === 0
+      ? 0
+      : Math.min(page, Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1));
 
   // Update page if it's invalid
   useEffect(() => {
@@ -108,7 +110,7 @@ const VWProjectRisksTable = ({
         )}
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={columns.length} sx={{ border: 'none', p: 0 }}>
+            <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
               <Box
                 sx={{
                   display: "flex",
@@ -128,7 +130,7 @@ const VWProjectRisksTable = ({
                 >
                   Showing {getRange} of {rows?.length} project risk(s)
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
                   <TablePagination
                     component="div"
                     count={rows?.length}
@@ -137,10 +139,15 @@ const VWProjectRisksTable = ({
                     rowsPerPage={rowsPerPage}
                     rowsPerPageOptions={[5, 10, 15, 20, 25]}
                     onRowsPerPageChange={handleChangeRowsPerPage}
-                    ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                    ActionsComponent={(props) => (
+                      <TablePaginationActions {...props} />
+                    )}
                     labelRowsPerPage="Project risks per page"
                     labelDisplayedRows={({ page, count }) =>
-                      `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+                      `Page ${page + 1} of ${Math.max(
+                        0,
+                        Math.ceil(count / rowsPerPage)
+                      )}`
                     }
                     sx={{
                       mt: theme.spacing(6),
@@ -167,7 +174,10 @@ const VWProjectRisksTable = ({
                               mb: theme.spacing(2),
                             },
                           },
-                          transformOrigin: { vertical: "bottom", horizontal: "left" },
+                          transformOrigin: {
+                            vertical: "bottom",
+                            horizontal: "left",
+                          },
                           anchorOrigin: { vertical: "top", horizontal: "left" },
                           sx: { mt: theme.spacing(-2) },
                         },

@@ -13,7 +13,7 @@ import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,
@@ -81,17 +81,18 @@ const AITrustCenterSettings: React.FC = () => {
       if (responseData?.data?.logo?.content?.data) {
         // Convert Buffer data to Uint8Array
         const bufferData = new Uint8Array(responseData.data.logo.content.data);
-        
+
         // Determine the correct MIME type from the response or default to png
-        const mimeType = responseData.data.logo.mimeType || 
-                        responseData.data.logo.contentType || 
-                        'image/png';
-        
+        const mimeType =
+          responseData.data.logo.mimeType ||
+          responseData.data.logo.contentType ||
+          "image/png";
+
         // Create Blob from the buffer data
         const blob = new Blob([bufferData], { type: mimeType });
         // Create object URL
         const blobUrl = URL.createObjectURL(blob);
-        
+
         // Validate that the blob URL can be loaded as an image
         return new Promise((resolve) => {
           const img = new Image();
@@ -242,8 +243,13 @@ const AITrustCenterSettings: React.FC = () => {
       }
 
       // Reject SVG files for security reasons
-      if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith('.svg')) {
-        setLogoError("SVG files are not supported. Please use PNG, JPG, or GIF format.");
+      if (
+        file.type === "image/svg+xml" ||
+        file.name.toLowerCase().endsWith(".svg")
+      ) {
+        setLogoError(
+          "SVG files are not supported. Please use PNG, JPG, or GIF format."
+        );
         return;
       }
 
@@ -273,13 +279,16 @@ const AITrustCenterSettings: React.FC = () => {
 
           if (tenantId) {
             // Clear any existing logo URL before setting new one
-            if (formData?.info?.logo_url && formData.info.logo_url.startsWith("blob:")) {
+            if (
+              formData?.info?.logo_url &&
+              formData.info.logo_url.startsWith("blob:")
+            ) {
               URL.revokeObjectURL(formData.info.logo_url);
             }
-            
+
             // Add a small delay to ensure the upload is processed
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
             // Fetch the logo and convert to Blob URL
             const logoBlobUrl = await fetchLogoAsBlobUrl(tenantId);
 

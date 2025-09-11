@@ -69,22 +69,22 @@ export function getStatusColor(status: string): string {
     normalizedStatus.slice(1).toLowerCase()
   ) {
     case "Not Started":
-      return "#C63622";
+      return "#4B5563";
     case "Draft":
-      return "#D68B61";
-    case "In Progress":
-      return "#D6B971";
-    case "Awaiting Review":
-      return "#D6B971";
-    case "Awaiting Approval":
-      return "#D6B971";
+      return "#D97706";
+    case "In progress":
+      return "#2563EB";
+    case "Awaiting review":
+      return "#7C3AED";
+    case "Awaiting approval":
+      return "#4F46E5";
     case "Implemented":
-      return "#52AB43";
-    // case "Audited":
-    //   return "#B8D39C";
-    case "Needs Rework":
-      return "#800080";
+      return "#059669";
+    case "Audited":
+      return "#0D9488";
+    case "Needs rework":
+      return "#EA580C";
     default:
-      return "#C63622"; // Default to "Not Started" color
+      return "#4B5563"; // Default to "Not Started" color
   }
 }

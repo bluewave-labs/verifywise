@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import RiskHeatMap from "./RiskHeatMap";
 import RiskCategories from "./RiskCategories";
-import TabBar from "../../vw-v2-components/TabBar/TabBar";
+import TabBar from "../TabBar/TabBar";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -22,15 +22,10 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 }
-
 
 interface RiskVisualizationTabsProps {
   risks: ProjectRisk[];
@@ -51,16 +46,15 @@ const RiskVisualizationTabs: React.FC<RiskVisualizationTabsProps> = ({
 
   // Visualization components
   const HeatMapView = () => (
-    <RiskHeatMap 
+    <RiskHeatMap
       risks={risks}
       selectedRisk={selectedRisk}
       onRiskSelect={onRiskSelect}
     />
   );
 
-
   const CategoryView = () => (
-    <RiskCategories 
+    <RiskCategories
       risks={risks}
       selectedRisk={selectedRisk}
       onRiskSelect={onRiskSelect}
@@ -71,14 +65,10 @@ const RiskVisualizationTabs: React.FC<RiskVisualizationTabsProps> = ({
 
   return (
     <Box sx={{ mt: 3 }}>
-      <TabBar
-        tabs={tabs}
-        value={value}
-        onChange={handleChange}
-      />
-      
-      <Box 
-        sx={{ 
+      <TabBar tabs={tabs} value={value} onChange={handleChange} />
+
+      <Box
+        sx={{
           backgroundColor: "#FFFFFF",
           border: "1px solid #E5E7EB",
           borderRadius: 2,

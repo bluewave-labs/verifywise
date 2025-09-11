@@ -1,5 +1,5 @@
 import os
-from typing import Dict
+from typing import Dict, Iterable, List, TypeVar, Optional
 
 import yaml
 
@@ -33,3 +33,18 @@ def read_yaml(file_path: str) -> Dict:
             return content
         except yaml.YAMLError as e:
             raise yaml.YAMLError(f"Error parsing YAML file: {str(e)}")
+
+
+T = TypeVar("T")
+
+
+def chunked(items: List[T], n: Optional[int]) -> Iterable[List[T]]:
+    """Yield consecutive chunks of size ``n`` from ``items``.
+
+    If ``n`` is None or <= 0, yields the entire ``items`` as a single chunk.
+    """
+    if n is None or n <= 0:
+        yield items
+        return
+    for i in range(0, len(items), n):
+        yield items[i : i + n]

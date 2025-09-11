@@ -47,13 +47,13 @@ const ModernKPICard: React.FC<ModernKPICardProps> = ({
   onClick,
 }) => (
   <Card
-    elevation={0}
     onClick={onClick}
     sx={{
       height: "100%",
       border: "1px solid rgba(0,0,0,0.1)",
       borderRadius: 2,
       cursor: onClick ? "pointer" : "default",
+      boxShadow: "none",
       "&:hover": onClick
         ? {
             borderColor: color,
@@ -192,11 +192,11 @@ const DashboardOverview: React.FC = () => {
 
         {/* Tab Navigation */}
         <Paper
-          elevation={0}
           sx={{
             borderRadius: 2,
             border: "1px solid rgba(0,0,0,0.1)",
             mb: 2,
+            boxShadow: "none",
           }}
         >
           <Tabs
@@ -263,7 +263,7 @@ const DashboardOverview: React.FC = () => {
               </Grid>
 
               {/* Project Health Overview */}
-              <Card elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2 }}>
+              <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     Project Health Overview
@@ -334,7 +334,7 @@ const DashboardOverview: React.FC = () => {
               </Grid>
 
               {/* Compliance Trends */}
-              <Card elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2 }}>
+              <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     Compliance by Framework
@@ -411,7 +411,7 @@ const DashboardOverview: React.FC = () => {
               {/* Risk Distribution */}
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <Card elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2 }}>
+                  <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                     <CardContent sx={{ p: 3 }}>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                         Risk Distribution
@@ -435,7 +435,7 @@ const DashboardOverview: React.FC = () => {
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <Card elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2 }}>
+                  <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                     <CardContent sx={{ p: 3 }}>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                         Risk Trends by Category
@@ -452,7 +452,7 @@ const DashboardOverview: React.FC = () => {
               </Grid>
 
               {/* Top Risk Projects */}
-              <Card elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2 }}>
+              <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     Top Risk Projects

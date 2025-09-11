@@ -90,7 +90,7 @@ const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
         }}
         sx={{
           '& .MuiChartsLegend-root': {
-            display: 'none'
+            display: 'none !important'
           },
           '& .MuiChartsTooltip-root': {
             fontSize: '13px !important',
@@ -102,7 +102,6 @@ const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
             fontSize: '13px !important',
           }
         }}
-        legend={{ hidden: true }}
       />
       {/* Center text showing total */}
       <Box

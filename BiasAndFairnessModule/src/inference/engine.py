@@ -1,10 +1,13 @@
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union, overload
 
 from .clients.base import LLMClient
 from ..prompts.base import PromptInput
 from ..prompts.registry import get_formatter
 from ..core.prompt_config import resolve_prompt_config
 from ..core.config import PromptingConfig
+
+
+Features = Dict[str, Any]
 
 
 class InferenceEngine:
@@ -46,51 +49,30 @@ class InferenceEngine:
         )
         return formatter.format(prompt_input)
 
-    def predict(self, features: Dict[str, Any]) -> str:
-        """Generate a prediction for a single features dict.
+    @overload
+    def predict(self, features: Features) -> str: ...
 
-        Args:
-            features: Tabular features for one sample.
+    @overload
+    def predict(self, features: List[Features]) -> List[str]: ...
 
-        Returns:
-            Model output text.
+    def predict(self, features: Union[Features, List[Features]]):
+        """Generate prediction(s) for one or more feature dicts.
+
+        Accepts a single features dict or a list of them, formats prompts,
+        and delegates to the client's batch generation API.
         """
-        prompt_body = self._format_prompt(features)
+        params = {
+            "max_new_tokens": int(self.gen_params.get("max_new_tokens", 256)),
+            "temperature": float(self.gen_params.get("temperature", 0.7)),
+            "top_p": float(self.gen_params.get("top_p", 0.9)),
+        }
 
-        max_new_tokens = int(self.gen_params.get("max_new_tokens", 256))
-        temperature = float(self.gen_params.get("temperature", 0.7))
-        top_p = float(self.gen_params.get("top_p", 0.9))
+        if isinstance(features, dict):
+            prompts = [self._format_prompt(features)]
+            outputs = self.client.generate_batch(prompts=prompts, **params)
+            return outputs[0]
 
-        return self.client.generate(
-            prompt=prompt_body,  # string or messages list per formatter
-            max_new_tokens=max_new_tokens,
-            temperature=temperature,
-            top_p=top_p,
-        )
-
-    def predict_batch(self, features_list: List[Dict[str, Any]]) -> List[str]:
-        """Generate predictions for a list of feature dicts.
-
-        Args:
-            features_list: List of tabular feature dicts.
-
-        Returns:
-            List of model outputs in the same order as inputs.
-        """
-        outputs: List[str] = []
-        max_new_tokens = int(self.gen_params.get("max_new_tokens", 256))
-        temperature = float(self.gen_params.get("temperature", 0.7))
-        top_p = float(self.gen_params.get("top_p", 0.9))
-
-        for features in features_list:
-            prompt_body = self._format_prompt(features)
-            out = self.client.generate(
-                prompt=prompt_body,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=top_p,
-            )
-            outputs.append(out)
-        return outputs
+        prompts = [self._format_prompt(f) for f in features]
+        return self.client.generate_batch(prompts=prompts, **params)
 
 

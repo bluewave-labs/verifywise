@@ -91,7 +91,14 @@ const CustomModal: React.FC<CustomModalProps> = ({
   };
 
   return (
-    <Modal open={isOpen} onClose={handleClose}>
+    <Modal 
+      open={isOpen} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }}
+    >
       <Stack
         gap={theme.spacing(4)}
         sx={{

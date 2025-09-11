@@ -18,6 +18,7 @@ import {
   BasicModalCancelButtonStyle,
   BasicModalDeleteButtonStyle,
 } from "./style";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
@@ -29,11 +30,28 @@ const BasicModal: React.FC<BasicModalProps> = ({
   type,
 }) => {
   const theme = useTheme();
+  
+  useModalKeyHandling({ 
+    isOpen, 
+    onClose: () => setIsOpen(false) 
+  });
+
   return (
-    <Modal open={isOpen} onClose={setIsOpen}>
+    <Modal 
+      open={isOpen} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          setIsOpen(false);
+        }
+      }}
+    >
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
         sx={{
           position: "absolute",
           top: "50%",
@@ -51,13 +69,25 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
+        <Typography 
+          id="modal-delete-vendor" 
+          fontSize={16} 
+          fontWeight={600}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+        >
           {warningTitle}
         </Typography>
         <Typography
           id="delete-monitor-confirmation"
           fontSize={13}
           textAlign={"justify"}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
         >
           {warningMessage}
         </Typography>
@@ -66,6 +96,10 @@ const BasicModal: React.FC<BasicModalProps> = ({
           gap={theme.spacing(4)}
           mt={theme.spacing(12)}
           justifyContent="flex-end"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
         >
           <Button
             disableRipple

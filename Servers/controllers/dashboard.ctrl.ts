@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { logFailure, logProcessing, logSuccess } from "../utils/logger/logHelper";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { getDashboardDataQuery } from "../utils/dashboard.utils";
+import { getDashboardDataQuery, getExecutiveOverviewQuery } from "../utils/dashboard.utils";
 
 export async function getDashboardData(req: Request, res: Response) {
   logProcessing({
@@ -28,6 +28,39 @@ export async function getDashboardData(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to retrieve dashboard data",
       functionName: "getDashboardData",
+      fileName: "dashboard.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getExecutiveOverview(req: Request, res: Response) {
+  logProcessing({
+    description: "starting getExecutiveOverview",
+    functionName: "getExecutiveOverview",
+    fileName: "dashboard.ctrl.ts",
+  });
+
+  try {
+    const executiveOverview = await getExecutiveOverviewQuery(req.tenantId!, req.userId!, req.role!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved executive overview data successfully",
+      functionName: "getExecutiveOverview",
+      fileName: "dashboard.ctrl.ts",
+    });
+
+    return res
+      .status(executiveOverview ? 200 : 204)
+      .json(STATUS_CODE[executiveOverview ? 200 : 204](executiveOverview));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve executive overview data",
+      functionName: "getExecutiveOverview",
       fileName: "dashboard.ctrl.ts",
       error: error as Error,
     });

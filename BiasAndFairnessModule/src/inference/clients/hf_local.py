@@ -1,9 +1,9 @@
-from typing import Optional
+from typing import List
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 
-from .base import LLMClient
+from .base import LLMClient, Prompt
 
 
 class HFLocalClient(LLMClient):
@@ -73,4 +73,44 @@ class HFLocalClient(LLMClient):
             return text.split("<|assistant|>")[-1].strip()
         return text.strip()
 
+    def generate_batch(
+        self,
+        prompts: List[Prompt],
+        *,
+        max_new_tokens: int,
+        temperature: float,
+        top_p: float,
+    ) -> List[str]:
+        # HF local client supports only raw string prompts
+        if not all(isinstance(p, str) for p in prompts):
+            raise AssertionError("HFLocalClient expects string prompts in generate_batch")
+
+        inputs = self.tokenizer(
+            prompts,  # type: ignore[arg-type]
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+        )
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        gen_cfg = GenerationConfig(
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            do_sample=True,
+            pad_token_id=self.tokenizer.pad_token_id,
+            eos_token_id=self.tokenizer.eos_token_id,
+        )
+
+        with torch.no_grad():
+            output_ids = self.model.generate(**inputs, generation_config=gen_cfg)
+
+        texts = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)
+        cleaned: List[str] = []
+        for text in texts:
+            if "<|assistant|>" in text:
+                cleaned.append(text.split("<|assistant|>")[-1].strip())
+            else:
+                cleaned.append(text.strip())
+        return cleaned
 

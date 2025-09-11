@@ -68,7 +68,6 @@ const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
         width={size}
         height={size}
         slotProps={{
-          legend: { hidden: true },
           tooltip: {
             sx: {
               '& .MuiChartsTooltip-root': {
@@ -103,6 +102,7 @@ const StatusDonutChart: React.FC<StatusDonutChartProps> = ({
             fontSize: '13px !important',
           }
         }}
+        legend={{ hidden: true }}
       />
       {/* Center text showing total */}
       <Box

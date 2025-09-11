@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   postgresdb:
@@ -27,6 +27,8 @@ services:
     pull_policy: always
     ports:
       - $BACKEND_PORT:$BACKEND_PORT
+    volumes:
+      - app_logs:/app/logs
     environment:
       - PORT=$BACKEND_PORT
       - DB_HOST=postgresdb
@@ -65,3 +67,4 @@ services:
 
 volumes:
   db:
+  app_logs:

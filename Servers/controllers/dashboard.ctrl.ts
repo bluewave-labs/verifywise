@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { logFailure, logProcessing, logSuccess } from "../utils/logger/logHelper";
 import { STATUS_CODE } from "../utils/statusCode.utils";
-import { getDashboardDataQuery, getExecutiveOverviewQuery, getComplianceAnalyticsQuery } from "../utils/dashboard.utils";
+import { getDashboardDataQuery, getExecutiveOverviewQuery, getComplianceAnalyticsQuery, getRiskAnalyticsQuery } from "../utils/dashboard.utils";
 
 export async function getDashboardData(req: Request, res: Response) {
   logProcessing({
@@ -94,6 +94,39 @@ export async function getComplianceAnalytics(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to retrieve compliance analytics data",
       functionName: "getComplianceAnalytics",
+      fileName: "dashboard.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getRiskAnalytics(req: Request, res: Response) {
+  logProcessing({
+    description: "starting getRiskAnalytics",
+    functionName: "getRiskAnalytics",
+    fileName: "dashboard.ctrl.ts",
+  });
+
+  try {
+    const riskAnalytics = await getRiskAnalyticsQuery(req.tenantId!, req.userId!, req.role!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: "Retrieved risk analytics data successfully",
+      functionName: "getRiskAnalytics",
+      fileName: "dashboard.ctrl.ts",
+    });
+
+    return res
+      .status(riskAnalytics ? 200 : 204)
+      .json(STATUS_CODE[riskAnalytics ? 200 : 204](riskAnalytics));
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: "Failed to retrieve risk analytics data",
+      functionName: "getRiskAnalytics",
       fileName: "dashboard.ctrl.ts",
       error: error as Error,
     });

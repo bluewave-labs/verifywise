@@ -28,6 +28,7 @@ import {
 import { useComprehensiveDashboard } from "../../../application/hooks/useComprehensiveDashboard";
 import { useExecutiveOverview } from "../../../application/hooks/useExecutiveOverview";
 import { useComplianceAnalytics } from "../../../application/hooks/useComplianceAnalytics";
+import { useRiskAnalytics } from "../../../application/hooks/useRiskAnalytics";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -120,15 +121,17 @@ const DashboardOverview: React.FC = () => {
   const { data, loading, error, lastUpdated, refresh } = useComprehensiveDashboard();
   const { data: executiveData, loading: executiveLoading, error: executiveError, refresh: refreshExecutive } = useExecutiveOverview();
   const { data: complianceData, loading: complianceLoading, error: complianceError, refresh: refreshCompliance } = useComplianceAnalytics();
+  const { data: riskData, loading: riskLoading, error: riskError, refetch: refreshRisk } = useRiskAnalytics();
   const [selectedTab, setSelectedTab] = useState(0);
 
   const handleRefresh = () => {
     refresh();
     refreshExecutive();
     refreshCompliance();
+    refreshRisk();
   };
 
-  if (loading || executiveLoading || complianceLoading) {
+  if (loading || executiveLoading || complianceLoading || riskLoading) {
     return (
       <Box sx={{ width: "100%", p: 3, display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
         <Stack alignItems="center" spacing={2}>
@@ -141,7 +144,7 @@ const DashboardOverview: React.FC = () => {
     );
   }
 
-  if (error || executiveError || complianceError) {
+  if (error || executiveError || complianceError || riskError) {
     return (
       <Box sx={{ width: "100%", p: 3 }}>
         <Alert
@@ -153,13 +156,13 @@ const DashboardOverview: React.FC = () => {
           }
         >
           <Typography variant="h6">Error Loading Dashboard</Typography>
-          <Typography variant="body2">{error || executiveError || complianceError}</Typography>
+          <Typography variant="body2">{error || executiveError || complianceError || riskError}</Typography>
         </Alert>
       </Box>
     );
   }
 
-  if (!data || !executiveData || !complianceData) {
+  if (!data || !executiveData || !complianceData || !riskData) {
     return (
       <Box sx={{ width: "100%", p: 3 }}>
         <Alert severity="warning">
@@ -501,25 +504,25 @@ const DashboardOverview: React.FC = () => {
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="Total Risks"
-                    value={data.risks.total_risks}
+                    value={riskData.total_risks.count}
                     icon={<RiskIcon fontSize="large" />}
                     color="#FF5722"
-                    subtitle="All identified risks"
+                    subtitle={`${riskData.total_risks.project_risks} project + ${riskData.total_risks.vendor_risks} vendor`}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="Critical Risks"
-                    value={data.risks.critical_risks}
+                    value={riskData.critical_risks.count}
                     icon={<RiskIcon fontSize="large" />}
                     color="#f44336"
-                    subtitle="High priority"
+                    subtitle="High & very high priority"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="Vendor Risks"
-                    value={data.risks.vendor_risks}
+                    value={riskData.vendor_risks.count}
                     icon={<RiskIcon fontSize="large" />}
                     color="#FF9800"
                     subtitle="Third-party risks"
@@ -528,31 +531,31 @@ const DashboardOverview: React.FC = () => {
                 <Grid item xs={12} sm={6} md={3}>
                   <ModernKPICard
                     title="Resolved Risks"
-                    value={data.risks.risk_distribution.resolved}
+                    value={riskData.resolved_risks.count}
                     icon={<RiskIcon fontSize="large" />}
                     color="#4CAF50"
-                    subtitle="Successfully mitigated"
+                    subtitle={`${riskData.resolved_risks.completion_rate}% completion rate`}
                   />
                 </Grid>
               </Grid>
 
-              {/* Risk Distribution */}
+              {/* Risk Charts */}
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                     <CardContent sx={{ p: 3 }}>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                        Risk Distribution
+                        Total Risks Breakdown
                       </Typography>
                       <PieChart
                         series={[
                           {
-                            data: [
-                              { id: 0, value: data.risks.risk_distribution.high, label: 'High' },
-                              { id: 1, value: data.risks.risk_distribution.medium, label: 'Medium' },
-                              { id: 2, value: data.risks.risk_distribution.low, label: 'Low' },
-                              { id: 3, value: data.risks.risk_distribution.resolved, label: 'Resolved' },
-                            ],
+                            data: riskData.total_risks.chart_data.map((item, index) => ({
+                              id: index,
+                              value: item.value,
+                              label: item.name,
+                              color: item.color,
+                            })),
                           },
                         ]}
                         width={400}
@@ -566,11 +569,19 @@ const DashboardOverview: React.FC = () => {
                   <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                     <CardContent sx={{ p: 3 }}>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                        Risk Trends by Category
+                        Critical Risks Distribution
                       </Typography>
-                      <BarChart
-                        xAxis={[{ scaleType: 'band', data: data.risks.risk_trends.map(trend => trend.category) }]}
-                        series={[{ data: data.risks.risk_trends.map(trend => trend.count) }]}
+                      <PieChart
+                        series={[
+                          {
+                            data: riskData.critical_risks.chart_data.map((item, index) => ({
+                              id: index,
+                              value: item.value,
+                              label: item.name,
+                              color: item.color,
+                            })),
+                          },
+                        ]}
                         width={400}
                         height={200}
                       />
@@ -579,6 +590,78 @@ const DashboardOverview: React.FC = () => {
                 </Grid>
               </Grid>
 
+              {/* Vendor Risks and Resolution Charts */}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                        Vendor Risks by Level
+                      </Typography>
+                      <PieChart
+                        series={[
+                          {
+                            data: riskData.vendor_risks.chart_data.map((item, index) => ({
+                              id: index,
+                              value: item.value,
+                              label: item.name,
+                              color: item.color,
+                            })),
+                          },
+                        ]}
+                        width={400}
+                        height={200}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                        Risk Resolution Status
+                      </Typography>
+                      <PieChart
+                        series={[
+                          {
+                            data: riskData.resolved_risks.chart_data.map((item, index) => ({
+                              id: index,
+                              value: item.value,
+                              label: item.name,
+                              color: item.color,
+                            })),
+                          },
+                        ]}
+                        width={400}
+                        height={200}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {/* Risk Trends */}
+              <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    Risk Trends by Category
+                  </Typography>
+                  <BarChart
+                    xAxis={[{ 
+                      scaleType: 'band', 
+                      data: riskData.risk_trends.map(trend => trend.category) 
+                    }]}
+                    series={[{ 
+                      data: riskData.risk_trends.map(trend => trend.count),
+                      color: '#FF5722'
+                    }]}
+                    width={800}
+                    height={300}
+                  />
+                </CardContent>
+              </Card>
+
               {/* Top Risk Projects */}
               <Card sx={{ border: "1px solid rgba(0,0,0,0.1)", borderRadius: 2, boxShadow: "none" }}>
                 <CardContent sx={{ p: 3 }}>
@@ -586,17 +669,26 @@ const DashboardOverview: React.FC = () => {
                     Top Risk Projects
                   </Typography>
                   <Grid container spacing={2}>
-                    {data.risks.top_risk_projects.slice(0, 6).map((project) => (
+                    {riskData.top_risk_projects.slice(0, 6).map((project) => (
                       <Grid item xs={12} sm={6} md={4} key={project.project_id}>
                         <Box sx={{ p: 2, border: "1px solid rgba(0,0,0,0.1)", borderRadius: 1 }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                             {project.project_name}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                            Risk Count: {project.risk_count}
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            Total Risks: {project.total_risks}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            Critical: {project.critical_risks}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            Vendor: {project.vendor_risks}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            Resolved: {project.resolved_risks}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Severity: {project.severity_score}%
+                            Risk Score: {project.risk_score.toFixed(1)}
                           </Typography>
                         </Box>
                       </Grid>

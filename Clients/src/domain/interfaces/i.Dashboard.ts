@@ -1,4 +1,9 @@
-import { IProjectAttributes } from "./i.project";
+export interface IProjectAttributes {
+  id: number;
+  project_name: string;
+  description?: string;
+  status?: string;
+}
 
 export interface IDashboard {
   projects: number;

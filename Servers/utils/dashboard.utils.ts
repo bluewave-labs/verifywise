@@ -1,8 +1,9 @@
 import { sequelize } from "../database/db";
-import { IDashboard, IExecutiveOverview, IComplianceAnalytics } from "../domain.layer/interfaces/i.Dashboard";
+import { IDashboard, IExecutiveOverview, IComplianceAnalytics, IRiskAnalytics } from "../domain.layer/interfaces/i.Dashboard";
 import { getAllProjectsQuery } from "./project.utils";
 import { countSubClausesISOByProjectId, countAnnexControlsISOByProjectId } from "./iso27001.utils";
 import { countSubClausesISOByProjectId as countSubClausesISO42001ByProjectId, countAnnexCategoriesISOByProjectId } from "./iso42001.utils";
+import { getAllVendorRisksAllProjectsQuery } from "./vendorRisk.utils";
 
 export const getDashboardDataQuery = async (
   tenant: string,
@@ -332,6 +333,173 @@ export const getComplianceAnalyticsQuery = async (
 
   } catch (error) {
     console.error('Error fetching compliance analytics:', error);
+    return null;
+  }
+}
+
+export const getRiskAnalyticsQuery = async (
+  tenant: string,
+  userId: number,
+  role: string
+): Promise<IRiskAnalytics | null> => {
+  try {
+    const projects = await getAllProjectsQuery({ userId, role }, tenant);
+    
+    // Get all project risks
+    const allProjectRisks = await sequelize.query(`
+      SELECT 
+        pr.id,
+        pr.project_id,
+        pr.risk_level_autocalculated as risk_level,
+        pr.mitigation_status,
+        pr.risk_category,
+        p.project_title
+      FROM "${tenant}".projectrisks pr
+      JOIN "${tenant}".projects p ON pr.project_id = p.id
+    `) as [any[], number];
+
+    // Get all vendor risks
+    const allVendorRisks = await getAllVendorRisksAllProjectsQuery(tenant);
+    
+    // Calculate project risks statistics
+    const projectRisks = allProjectRisks[0];
+    const totalProjectRisks = projectRisks.length;
+    const criticalProjectRisks = projectRisks.filter(r => 
+      r.risk_level?.toLowerCase().includes('high')
+    ).length;
+    const resolvedProjectRisks = projectRisks.filter(r => 
+      r.mitigation_status === 'Completed'
+    ).length;
+
+    // Calculate vendor risks statistics
+    const totalVendorRisks = allVendorRisks.length;
+    const criticalVendorRisks = allVendorRisks.filter((r: any) => 
+      r.risk_level?.toLowerCase().includes('high')
+    ).length;
+
+    // Total statistics
+    const totalRisks = totalProjectRisks + totalVendorRisks;
+    const criticalRisks = criticalProjectRisks + criticalVendorRisks;
+
+    // Risk distribution
+    const highRisks = projectRisks.filter(r => r.risk_level?.toLowerCase().includes('high')).length +
+                     allVendorRisks.filter((r: any) => r.risk_level?.toLowerCase().includes('high')).length;
+    
+    const mediumRisks = projectRisks.filter(r => r.risk_level?.toLowerCase().includes('medium')).length +
+                       allVendorRisks.filter((r: any) => r.risk_level?.toLowerCase().includes('medium')).length;
+    
+    const lowRisks = projectRisks.filter(r => 
+      r.risk_level?.toLowerCase().includes('low') && 
+      !r.risk_level?.toLowerCase().includes('very low')
+    ).length + allVendorRisks.filter((r: any) => 
+      r.risk_level?.toLowerCase().includes('low')
+    ).length;
+
+    const veryLowRisks = projectRisks.filter(r => 
+      r.risk_level?.toLowerCase().includes('very low') || 
+      r.risk_level?.toLowerCase().includes('no risk')
+    ).length;
+
+    // Project-level risk analysis
+    const projectRiskAnalysis = projects.map(project => {
+      const projectData = project as any;
+      const projectRiskItems = projectRisks.filter(r => r.project_id === projectData.id);
+      const vendorRiskItems = allVendorRisks.filter((r: any) => {
+        // Vendor risks are associated with projects through vendors_projects table
+        return r.vendor?.projects?.some((p: any) => p.id === projectData.id);
+      });
+
+      const totalProjectRiskCount = projectRiskItems.length;
+      const totalVendorRiskCount = vendorRiskItems.length;
+      const totalRiskCount = totalProjectRiskCount + totalVendorRiskCount;
+      
+      const criticalRiskCount = 
+        projectRiskItems.filter(r => r.risk_level?.toLowerCase().includes('high')).length +
+        vendorRiskItems.filter((r: any) => r.risk_level?.toLowerCase().includes('high')).length;
+      
+      const resolvedRiskCount = 
+        projectRiskItems.filter(r => r.mitigation_status === 'Completed').length +
+        vendorRiskItems.filter((r: any) => r.status === 'Resolved').length;
+
+      return {
+        project_id: projectData.id,
+        project_name: projectData.project_title,
+        total_risks: totalRiskCount,
+        critical_risks: criticalRiskCount,
+        vendor_risks: totalVendorRiskCount,
+        resolved_risks: resolvedRiskCount,
+        risk_score: totalRiskCount > 0 ? Math.round((resolvedRiskCount / totalRiskCount) * 100) : 100
+      };
+    });
+
+    // Risk category trends (mock data based on risk categories)
+    const riskCategories = ['Technical', 'Operational', 'Financial', 'Compliance', 'Strategic'];
+    const riskTrends = riskCategories.map(category => ({
+      category,
+      count: Math.floor(Math.random() * 20) + 5, // Mock data
+      change: Math.floor(Math.random() * 20) - 10 // Mock trend data
+    }));
+
+    // Vendor risk level distribution
+    const vendorRiskLevels = allVendorRisks.reduce((acc: any, risk: any) => {
+      const level = risk.risk_level || 'Unknown';
+      acc[level] = (acc[level] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      total_risks: {
+        count: totalRisks,
+        project_risks: totalProjectRisks,
+        vendor_risks: totalVendorRisks,
+        chart_data: [
+          { name: 'Project Risks', value: totalProjectRisks, color: '#2196F3' },
+          { name: 'Vendor Risks', value: totalVendorRisks, color: '#FF9800' }
+        ]
+      },
+      critical_risks: {
+        count: criticalRisks,
+        high_risk: highRisks,
+        very_high_risk: projectRisks.filter(r => r.risk_level?.toLowerCase().includes('very high')).length,
+        chart_data: [
+          { name: 'Critical', value: criticalRisks, color: '#f44336' },
+          { name: 'Non-Critical', value: totalRisks - criticalRisks, color: '#4CAF50' }
+        ]
+      },
+      vendor_risks: {
+        count: totalVendorRisks,
+        by_risk_level: Object.entries(vendorRiskLevels).map(([level, count]) => ({
+          risk_level: level,
+          count: count as number
+        })),
+        chart_data: [
+          { name: 'High', value: criticalVendorRisks, color: '#f44336' },
+          { name: 'Medium', value: allVendorRisks.filter((r: any) => r.risk_level?.toLowerCase().includes('medium')).length, color: '#FF9800' },
+          { name: 'Low', value: allVendorRisks.filter((r: any) => r.risk_level?.toLowerCase().includes('low')).length, color: '#4CAF50' }
+        ]
+      },
+      resolved_risks: {
+        count: resolvedProjectRisks,
+        completion_rate: totalRisks > 0 ? Math.round((resolvedProjectRisks / totalRisks) * 100) : 0,
+        chart_data: [
+          { name: 'Resolved', value: resolvedProjectRisks, color: '#4CAF50' },
+          { name: 'Unresolved', value: totalRisks - resolvedProjectRisks, color: '#f44336' }
+        ]
+      },
+      risk_distribution: {
+        high: highRisks,
+        medium: mediumRisks,
+        low: lowRisks + veryLowRisks,
+        resolved: resolvedProjectRisks
+      },
+      risk_trends: riskTrends,
+      top_risk_projects: projectRiskAnalysis
+        .sort((a, b) => b.total_risks - a.total_risks)
+        .slice(0, 10)
+    };
+
+  } catch (error) {
+    console.error('Error fetching risk analytics:', error);
     return null;
   }
 }

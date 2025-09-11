@@ -246,7 +246,7 @@ async function createNewUserWithGoogle(req: Request, res: Response) {
     const existingUser = await getUserByEmailQuery(email!);
     if (existingUser) {
       logStructured('error', `user already exists: ${email}`, 'createNewUserWithGoogle', 'user.ctrl.ts');
-      await logEvent('Error', `Attempted to create duplicate user: ${email}`);
+      await logEvent('Error', `Attempted to create duplicate user: ${email}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res
         .status(409)
@@ -260,7 +260,7 @@ async function createNewUserWithGoogle(req: Request, res: Response) {
     const isEmailUnique = await UserModel.validateEmailUniqueness(email!);
     if (!isEmailUnique) {
       logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Email not unique during creation: ${email}`);
+      await logEvent('Error', `Email not unique during creation: ${email}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(409).json(STATUS_CODE[409]('Email already exists'));
     }
@@ -270,12 +270,12 @@ async function createNewUserWithGoogle(req: Request, res: Response) {
     if (user) {
       await transaction.commit();
       logStructured('successful', `user created: ${email}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Create', `User created: ${email}`);
+      await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
       return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
 
     logStructured('error', `failed to create user: ${email}`, 'createNewUser', 'user.ctrl.ts');
-    await logEvent('Error', `User creation failed: ${email}`);
+    await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]('Failed to create user'));
   } catch (error) {
@@ -287,18 +287,18 @@ async function createNewUserWithGoogle(req: Request, res: Response) {
 
     if (error instanceof ValidationException) {
       logStructured('error', `validation failed: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Validation error during user creation: ${error.message}`);
+      await logEvent('Error', `Validation error during user creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
 
     if (error instanceof BusinessLogicException) {
       logStructured('error', `business logic error: ${error.message}`, 'createNewUser', 'user.ctrl.ts');
-      await logEvent('Error', `Business logic error during user creation: ${error.message}`);
+      await logEvent('Error', `Business logic error during user creation: ${error.message}`, req.userId!, req.tenantId!);
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
 
     logStructured('error', `unexpected error`, 'createNewUser', 'user.ctrl.ts');
-    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`);
+    await logEvent('Error', `Unexpected error during user creation: ${(error as Error).message}`, req.userId!, req.tenantId!);
     logger.error('❌ Error in createNewUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

@@ -14,12 +14,9 @@ import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
-import CustomizableToast from "../../../vw-v2-components/Toast"; // Import CustomizableToast
 import { getUserById, updatePassword } from "../../../../application/repository/user.repository";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast"; // Import CustomizableToast
-import { updatePassword } from "../../../../application/repository/user.repository";
 
 const PasswordForm: React.FC = () => {
   const theme = useTheme();

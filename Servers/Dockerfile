@@ -13,7 +13,7 @@ COPY ./templates ./dist/templates
 
 RUN apk add --no-cache dcron
 RUN touch /var/log/cron.log
-RUN echo "0 0 * * * cd /app && node dist/utils/logger/upload-logs-to-do.js >> /var/log/cron.log 2>&1" > /etc/crontabs/root
+RUN echo "0 0 * * * TZ=UTC cd /app && node dist/utils/logger/upload-logs-to-do.js >> /var/log/cron.log 2>&1" > /etc/crontabs/root
 
 EXPOSE 3000
 

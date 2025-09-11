@@ -68,7 +68,7 @@ const VWProjectRisksTable = ({
       setRowsPerPage(parseInt(event.target.value, 10));
       setPage(0);
     },
-    []
+    [],
   );
 
   return (
@@ -146,13 +146,13 @@ const VWProjectRisksTable = ({
                     labelDisplayedRows={({ page, count }) =>
                       `Page ${page + 1} of ${Math.max(
                         0,
-                        Math.ceil(count / rowsPerPage)
+                        Math.ceil(count / rowsPerPage),
                       )}`
                     }
                     sx={{
                       mt: theme.spacing(6),
                       color: theme.palette.text.secondary,
-                      "& .MuiTablePagination-select": {
+                      "& .MuiSelect-select": {
                         width: theme.spacing(10),
                         borderRadius: theme.shape.borderRadius,
                         border: `1px solid ${theme.palette.border.light}`,

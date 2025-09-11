@@ -1,9 +1,10 @@
-from typing import Optional, Any, Dict, List, Union, cast
+from typing import Optional, Any, Dict, List
 
 import os
 import pandas as pd
 
 from ..core.config import ConfigManager, DatasetConfig, ModelConfig, PromptingConfig
+from ..core.common import chunked
 from ..dataset_loader.data_loader import DataLoader
 from .engine import InferenceEngine
 from .factory import build_engine
@@ -48,37 +49,22 @@ class InferencePipeline:
     def _get_samples(
         self,
         *,
-        batch_size: Optional[int] = None,
         limit_samples: Optional[int] = None,
-    ) -> Union[List[Dict[str, Any]], List[List[Dict[str, Any]]]]:
-        """Retrieve samples from the DataLoader with optional limiting and batching.
+    ) -> List[Dict[str, Any]]:
+        """Retrieve a flat list of samples from the DataLoader with optional limiting.
 
         Args:
-            batch_size: If provided, return samples grouped into batches of this size.
             limit_samples: If provided, restrict the total number of samples returned.
 
         Returns:
-            - List[Dict] if batch_size is None
-            - List[List[Dict]] if batch_size is set
+            List[Dict]: Flat list of sample dictionaries.
         """
-        samples = self.data_loader.generate_features_and_metadata(batch_size)
+        samples: List[Dict[str, Any]] = self.data_loader.generate_features_and_metadata(batch_size=None)
 
         if limit_samples is None:
             return samples
 
-        # Apply limiting behavior depending on batching mode
-        if batch_size is None:
-            samples_list = cast(List[Dict[str, Any]], samples)
-            return samples_list[:limit_samples]
-
-        # Batched case: flatten → limit → regroup
-        samples_batches = cast(List[List[Dict[str, Any]]], samples)
-        flat_samples: List[Dict[str, Any]] = [item for batch in samples_batches for item in batch]
-        flat_samples = flat_samples[:limit_samples]
-        rebatched: List[List[Dict[str, Any]]] = [
-            flat_samples[i : i + batch_size] for i in range(0, len(flat_samples), batch_size)
-        ]
-        return rebatched
+        return samples[:limit_samples]
 
 
     def _format_result(
@@ -124,27 +110,14 @@ class InferencePipeline:
         If `auto_save` is True, results will be saved to the configured
         `artifacts.inference_results_path` CSV file.
         """
-        samples = self._get_samples(batch_size=batch_size, limit_samples=limit_samples)
+        samples = self._get_samples(limit_samples=limit_samples)
 
         results: List[Dict[str, Any]] = []
 
-        if batch_size is None:
-            samples_list = cast(List[Dict[str, Any]], samples)
-            features_list: List[Dict[str, Any]] = [s["features"] for s in samples_list]
-            predictions: List[str] = self.engine.predict_batch(features_list)
-            for s, pred in zip(samples_list, predictions):
-                ts = pd.Timestamp.now().isoformat()
-                results.append(
-                    self._format_result(sample=s, timestamp=ts, prediction=pred)
-                )
-            if auto_save:
-                self.save(results)
-            return results
-
-        samples_batches = cast(List[List[Dict[str, Any]]], samples)
-        for batch in samples_batches:
-            features_list = [s["features"] for s in batch]
-            predictions = self.engine.predict_batch(features_list)
+        # Optional chunking using helper; if batch_size is None or <= 0, one chunk
+        for batch in chunked(samples, batch_size):
+            features_list: List[Dict[str, Any]] = [s["features"] for s in batch]
+            predictions: List[str] = self.engine.predict(features_list)
             for s, pred in zip(batch, predictions):
                 ts = pd.Timestamp.now().isoformat()
                 results.append(

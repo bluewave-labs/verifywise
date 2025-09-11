@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material";
-import DualButtonModal from "../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../Dialogs/DualButtonModal";
 
 interface DemoDataProps {
   handleCancelDemoData: () => void;

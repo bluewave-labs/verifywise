@@ -1,18 +1,18 @@
 import { TableBody, TableCell, TableRow, Chip, Dialog } from "@mui/material";
-import singleTheme from "../../themes/v1SingleTheme";
+import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { getMitigationStatusColor } from "../../constants/statusColors";
-import RiskChip from "../../components/RiskLevel/RiskChip";
-import IconButton from "../../components/IconButton";
-import { formatDate } from "../../tools/isoDateToString";
-import allowedRoles from "../../../application/constants/permissions";
+import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
+import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { getMitigationStatusColor } from "../../../constants/statusColors";
+import RiskChip from "../../RiskLevel/RiskChip";
+import IconButton from "../../IconButton";
+import { formatDate } from "../../../tools/isoDateToString";
+import allowedRoles from "../../../../application/constants/permissions";
 import { useSearchParams } from "react-router-dom";
-import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ProjectRiskMitigation } from "../../components/ProjectRiskMitigation/ProjectRiskMitigation";
-import useUsers from "../../../application/hooks/useUsers";
-import { useAuth } from "../../../application/hooks/useAuth";
+import CustomizableButton from "../../Button/CustomizableButton";
+import { ProjectRiskMitigation } from "../../ProjectRiskMitigation/ProjectRiskMitigation";
+import useUsers from "../../../../application/hooks/useUsers";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 function getDummyEvent() {
   const realEvent = new Event("click", { bubbles: true, cancelable: true });

@@ -26,7 +26,7 @@ import {
   UpdateAnnexCategoryById,
 } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";

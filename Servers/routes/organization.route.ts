@@ -17,6 +17,7 @@ import {
   getOrganizationById,
   updateOrganizationById,
   getOrganizationsExists,
+  createOrganizationWithGoogle,
 } from "../controllers/organization.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -28,6 +29,7 @@ router.get("/:id", authenticateJWT, getOrganizationById);
 
 // POST requests
 router.post("/", checkMultiTenancy, createOrganization);
+router.post("/with-google", checkMultiTenancy, createOrganizationWithGoogle);
 
 // PATCH requests
 router.patch("/:id", authenticateJWT, updateOrganizationById);

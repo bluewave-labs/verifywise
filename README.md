@@ -64,7 +64,7 @@ VerifyWise is designed for:
 - User registration, authentication, and role-based access control (RBAC) support
 - Major features:
   - Multiple projects
-  - Support for EU AI Act and ISO 42001
+  - Support for EU AI Act, ISO 42001 and ISO 27001
   - Vendors & vendor risks
   - AI project risks
   - Bias & fairness check of ML systems
@@ -77,13 +77,14 @@ VerifyWise is designed for:
   - Risk and control mappings for EU AI Act & ISO 42001
   - Detailed eports
   - Event logs (audits) for enterprise organizations
+  - Google OAuth2 support for authentication
 
 ## Roadmap
 
-- More frameworks (eg. 27001 or AI regulatory frameworks)
+- More frameworks (eg. SOC2 and other AI regulatory frameworks)
+- Tasks
 - Mappings between frameworks
 - Bias & fairness check of LLM models
-- Google OAuth2 support for authentication
 - Automated reports
 - Integration with 3rd party platforms
 - Slack notifications

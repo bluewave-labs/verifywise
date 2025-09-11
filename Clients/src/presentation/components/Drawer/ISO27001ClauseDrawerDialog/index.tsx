@@ -22,7 +22,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";

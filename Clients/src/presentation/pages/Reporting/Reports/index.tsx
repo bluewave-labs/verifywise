@@ -11,7 +11,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../../components/Alert";
 import ProjectFilterDropdown from "../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 import { useProjects } from "../../../../application/hooks/useProjects";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import { Project } from "../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 

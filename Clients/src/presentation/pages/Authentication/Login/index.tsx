@@ -9,7 +9,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "../../../../application/redux/auth/authSlice";
 import { setExpiration } from "../../../../application/redux/auth/authSlice";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";

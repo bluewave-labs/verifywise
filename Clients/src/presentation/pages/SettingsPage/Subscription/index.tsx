@@ -1,16 +1,18 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Grid, Card, CardContent, CardActions, Button, Typography, Stack, CircularProgress, Box, SvgIcon, Alert, Tooltip } from "@mui/material";
+import { 
+  Card, Button, Typography, Stack, CircularProgress, 
+  Box, Alert, Tooltip, Table, TableBody, TableCell, TableContainer, 
+  TableRow
+} from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import { useSubscriptionManagement } from "../../../../application/hooks/useSubscriptionManagement";
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined'; 
-import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';               
-import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined'; 
-import ApartmentOutlinedIcon from '@mui/icons-material/ApartmentOutlined';          
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';  
+  
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { getAllTiers } from "../../../../application/repository/tiers.repository";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 
@@ -20,12 +22,165 @@ const pricingUrlMap = {
   Enterprise: 'https://buy.stripe.com/cNidR8fAVfBL10e9cHa7C0b',
 };
 
-const iconMap = {
-  Free: MonetizationOnOutlinedIcon,
-  Team: PeopleOutlineIcon,
-  Business: BusinessCenterOutlinedIcon,
-  Enterprise: ApartmentOutlinedIcon,
+// Enhanced pricing plans with detailed features for comparison table
+const ENHANCED_PLAN_FEATURES = {
+  'Free': {
+    description: 'Perfect for getting started',
+    popular: false,
+    features: {
+      'Core Features': {
+        'Seats': '1 seat',
+        'Projects': '1 project',
+        'Frameworks': '1 framework'
+      },
+      'AI Governance Features': {
+        'Project risks': true,
+        'Reports': true,
+        'Evidence center': true,
+        'Vendor & risk module': true,
+        'Bias & fairness check': true,
+        'AI policy manager': true,
+        'Model inventory': true,
+        'Tasks': true,
+        'MIT AI risk inventory': true,
+        'AI trust center': true,
+        'Audit logs': true,
+        'AI training register': true
+      },
+      'Support & Training': {
+        'Support': 'Email support',
+        'Private Discord channel': false,
+        'Response SLA': '24 hours',
+        'Training': false
+      }
+    }
+  },
+  'Team': {
+    description: 'Ideal for small teams',
+    popular: false,
+    features: {
+      'Core Features': {
+        'Seats': 'Unlimited seats',
+        'Projects': '10 projects',
+        'Frameworks': 'All frameworks'
+      },
+      'AI Governance Features': {
+        'Project risks': true,
+        'Reports': true,
+        'Evidence center': true,
+        'Vendor & risk module': true,
+        'Bias & fairness check': true,
+        'AI policy manager': true,
+        'Model inventory': true,
+        'Tasks': true,
+        'MIT AI risk inventory': true,
+        'AI trust center': true,
+        'Audit logs': true,
+        'AI training register': true
+      },
+      'Support & Training': {
+        'Support': 'Email support',
+        'Private Discord channel': false,
+        'Response SLA': '12 hours',
+        'Training': false
+      }
+    }
+  },
+  'Growth': {
+    description: 'Best for growing organizations',
+    popular: true,
+    features: {
+      'Core Features': {
+        'Seats': 'Unlimited seats',
+        'Projects': '50 projects',
+        'Frameworks': 'All frameworks'
+      },
+      'AI Governance Features': {
+        'Project risks': true,
+        'Reports': true,
+        'Evidence center': true,
+        'Vendor & risk module': true,
+        'Bias & fairness check': true,
+        'AI policy manager': true,
+        'Model inventory': true,
+        'Tasks': true,
+        'MIT AI risk inventory': true,
+        'AI trust center': true,
+        'Audit logs': true,
+        'AI training register': true
+      },
+      'Support & Training': {
+        'Support': 'Priority email support',
+        'Private Discord channel': true,
+        'Response SLA': '4 hours',
+        'Training': false
+      }
+    }
+  },
+  'Business': {
+    description: 'Best for growing organizations',
+    popular: true,
+    features: {
+      'Core Features': {
+        'Seats': 'Unlimited seats',
+        'Projects': '50 projects',
+        'Frameworks': 'All frameworks'
+      },
+      'AI Governance Features': {
+        'Project risks': true,
+        'Reports': true,
+        'Evidence center': true,
+        'Vendor & risk module': true,
+        'Bias & fairness check': true,
+        'AI policy manager': true,
+        'Model inventory': true,
+        'Tasks': true,
+        'MIT AI risk inventory': true,
+        'AI trust center': true,
+        'Audit logs': true,
+        'AI training register': true
+      },
+      'Support & Training': {
+        'Support': 'Email support',
+        'Private Discord channel': true,
+        'Response SLA': '8 hours',
+        'Training': 'Two onboarding workshops'
+      }
+    }
+  },
+  'Enterprise': {
+    description: 'For large enterprises',
+    popular: false,
+    features: {
+      'Core Features': {
+        'Seats': 'Unlimited seats',
+        'Projects': 'Unlimited projects',
+        'Frameworks': 'All frameworks'
+      },
+      'AI Governance Features': {
+        'Project risks': true,
+        'Reports': true,
+        'Evidence center': true,
+        'Vendor & risk module': true,
+        'Bias & fairness check': true,
+        'AI policy manager': true,
+        'Model inventory': true,
+        'Tasks': true,
+        'MIT AI risk inventory': true,
+        'AI trust center': true,
+        'Audit logs': true,
+        'AI training register': true
+      },
+      'Support & Training': {
+        'Support': 'Phone + email support',
+        'Private Discord channel': true,
+        'Response SLA': '4 hours',
+        'Training': 'Two onboarding workshops'
+      }
+    }
+  }
 };
+
 
 type Tier = { id: number; name: string; price: number | null; features?: Record<string, string | number> };
 
@@ -99,11 +254,16 @@ const Subscription: React.FC = () => {
 
 
   const handleSubscribe = (tierId: number) => {
-    if ((dashboard?.projects ?? 0) >= Number(allTiers?.find((tier: Tier) => tier.id === tierId)?.features?.projects)) {
+    const selectedTier = allTiers?.find((tier: Tier) => tier.id === tierId);
+    const projectLimit = Number(selectedTier?.features?.projects);
+    
+    // If project limit is 0, it means unlimited projects (Enterprise tier)
+    // Only show warning if tier has a project limit > 0 and current projects exceed that limit
+    if (projectLimit > 0 && ((dashboard?.projects ?? 0) >= projectLimit)) {
       setAlertMessage("You can't subscribe to this tier since the project exceeds the limit. Doing so will make you unable to use VerifyWise.");
       return;
     } else {
-      const url = `${pricingUrlMap[allTiers.find((tier: Tier) => tier.id === tierId)?.name as keyof typeof pricingUrlMap]}`;
+      const url = `${pricingUrlMap[selectedTier?.name as keyof typeof pricingUrlMap]}`;
       window.location.href = url;
     }
   };
@@ -116,130 +276,257 @@ const Subscription: React.FC = () => {
     );
   }
 
+
+  const renderFeatureValue = (value: boolean | string) => {
+    if (typeof value === 'boolean') {
+      return value ? (
+        <CheckCircleIcon sx={{ color: 'success.main', fontSize: 20 }} />
+      ) : (
+        <CloseIcon sx={{ color: 'action.disabled', fontSize: 20 }} />
+      );
+    }
+    return (
+      <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+        {value}
+      </Typography>
+    );
+  };
+
+  // Get feature categories for comparison table
+  const getFeatureCategories = () => {
+    if (!allTiers.length) return [];
+    
+    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES]);
+    if (!sampleTier) return [];
+
+    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name as keyof typeof ENHANCED_PLAN_FEATURES].features;
+    return Object.keys(enhancedFeatures);
+  };
+
+  const getFeaturesByCategory = (category: string) => {
+    if (!allTiers.length) return [];
+    
+    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES]);
+    if (!sampleTier) return [];
+    
+    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name as keyof typeof ENHANCED_PLAN_FEATURES].features;
+    return Object.keys(
+      enhancedFeatures[category as keyof typeof enhancedFeatures] || {}
+    );
+  };
+
   return (
-    <Stack spacing={4} sx={{ mt: 3 }}>
-    {alertMessage && (
-      <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setAlertMessage('')}>
-        {alertMessage}
-      </Alert>
-    )}
-    
-    {showPaymentSuccess && subscriptionSuccess && (
-      <Alert severity="success" sx={{ mb: 2 }}>
-        Payment successful! Your subscription has been updated. Thank you for your purchase.
-      </Alert>
-    )}
-    
-    {subscriptionError && (
-      <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-        Failed to process subscription: {subscriptionError}
-      </Alert>
-    )}
-    
-    {dataError && (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {dataError}
-      </Alert>
-    )}
-    
-    {isProcessing && (
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Processing your subscription...
-      </Alert>
-    )}
-    
-    <Typography variant="h4" component="h1" align="center" fontWeight="bold">
-      Choose Your Plan
-    </Typography>
- 
-    <Grid container spacing={3} alignItems="stretch" justifyContent="center">
-      {allTiers?.map((tier: Tier) => {
+    <Box sx={{ mt: 3, px: 3, maxWidth: '100%' }}>
+      <Stack spacing={4}>
+        {/* Alert Messages */}
+        {alertMessage && (
+          <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setAlertMessage('')}>
+            {alertMessage}
+          </Alert>
+        )}
+        
+        {showPaymentSuccess && subscriptionSuccess && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Payment successful! Your subscription has been updated. Thank you for your purchase.
+          </Alert>
+        )}
+        
+        {subscriptionError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
+            Failed to process subscription: {subscriptionError}
+          </Alert>
+        )}
+        
+        {dataError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {dataError}
+          </Alert>
+        )}
+        
+        {isProcessing && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Processing your subscription...
+          </Alert>
+        )}
+        
+        <Typography 
+          component="h1" 
+          align="center" 
+          sx={{
+            fontSize: 24,
+            color: "#2D3748",
+            fontWeight: 600,
+            mb: 2
+          }}
+        >
+          Choose Your Plan
+        </Typography>
 
-        const PlanIcon = iconMap[tier?.name?.split(' ')[0] as keyof typeof iconMap] || HelpOutlineIcon;
+        <Typography 
+          align="center" 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ mb: 4 }}
+        >
+          If you are looking for on-premise, air-gapped deployment, please{' '}
+          <Typography 
+            component="a" 
+            href="https://verifywise.ai/contact" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            sx={{ 
+              color: 'primary.main', 
+              textDecoration: 'underline',
+              '&:hover': {
+                textDecoration: 'none'
+              }
+            }}
+          >
+            contact us
+          </Typography>
+        </Typography>
 
-        return (
-          <Grid item xs={12} sm={6} md={3} key={tier.id}>
-            <Card
-              variant="outlined"
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 3,
-                borderColor: 'grey.300',
-                p: 2, 
-              }}
-            >
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Stack direction="row" alignItems="center" mb={10}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      color: 'primary.main',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <SvgIcon component={PlanIcon}/>
-                  </Box>
-                  <Typography variant="h6" fontWeight="bold">
-                    {tier.name}
-                  </Typography>
-                </Stack>
+        {/* Unified Pricing and Features Table */}
+        <Card variant="outlined" sx={{ borderRadius: '8px' }}>
+            <TableContainer>
+              <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+                <TableBody>
+                  {/* Pricing Header Rows */}
 
-                <Typography variant="h4" fontWeight="bold" component="div" sx={{ mb: 10 }}>
-                  {tier.price === null ? 'Contact Us' : `$${tier.price}`}
-                  {tier.price !== null && <Typography component="span" variant="subtitle1" color="text.secondary">/mo</Typography>}
-                </Typography>
+                  {/* Plan Name Row */}
+                  <TableRow>
+                    <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
+                      {/* Empty cell for feature column */}
+                    </TableCell>
+                    {allTiers?.map((tier: Tier) => (
+                        <TableCell key={`name-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                          <Typography variant="h6" fontWeight="bold">
+                            {tier.name}
+                          </Typography>
+                        </TableCell>
+                    ))}
+                  </TableRow>
 
-                <Stack spacing={5}>
-                  {tier.features && Object.entries(tier.features).map(([key, value]) => (
-                    <Stack direction="row" spacing={1.5} alignItems="center" key={key}>
-                      <CheckCircleIcon color="primary" fontSize="small" />
-                      <Typography variant="body2">
-                        <strong>{String(value) === '0' ? 'Unlimited' : String(value)}</strong> {key}
-                      </Typography>
-                    </Stack>
+                  {/* Price Row */}
+                  <TableRow>
+                    <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
+                      {/* Empty cell for feature column */}
+                    </TableCell>
+                    {allTiers?.map((tier: Tier) => (
+                      <TableCell key={`price-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                        <Typography variant="h5" fontWeight="bold" color="primary.main">
+                          {tier.price === null ? 'Contact Us' : `$${tier.price}`}
+                          {tier.price !== null && (
+                            <Typography component="span" variant="body2" color="text.secondary">
+                              /month
+                            </Typography>
+                          )}
+                        </Typography>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+
+                  {/* Description Row */}
+                  <TableRow>
+                    <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
+                      {/* Empty cell for feature column */}
+                    </TableCell>
+                    {allTiers?.map((tier: Tier) => {
+                      const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES];
+                      return (
+                        <TableCell key={`desc-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {enhancedPlan?.description || 'Choose this plan for your needs'}
+                          </Typography>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+
+                  {/* CTA Button Row */}
+                  <TableRow sx={{ borderBottom: 2, borderColor: 'grey.300' }}>
+                    <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
+                      {/* Empty cell for feature column */}
+                    </TableCell>
+                    {allTiers?.map((tier: Tier) => (
+                      <TableCell key={`cta-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                        <Tooltip 
+                          title={
+                            organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)
+                              ? 'To cancel your subscription head over to stripe' 
+                              : ''
+                          }
+                          arrow
+                          placement="bottom"
+                        >
+                          <span style={{ width: '100%', display: 'block' }}>
+                            <Button
+                              variant="contained"
+                              fullWidth
+                              size="medium"
+                              onClick={() => handleSubscribe(tier.id)}
+                              disabled={organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)}
+                              endIcon={<ArrowForwardIcon />}
+                              disableRipple={true}
+                              sx={{
+                                bgcolor: 'primary.main',
+                                '&:hover': {
+                                  bgcolor: 'primary.dark',
+                                  transform: 'scale(1.02)',
+                                },
+                                transition: 'all 0.15s ease-in-out',
+                              }}
+                            >
+                              {organizationTierId === tier.id ? 'Current Plan' : (tier.id === 1 && organizationTierId !== 1) ? 'Not Available' : 'Subscribe'}
+                            </Button>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+
+                  {/* Feature Categories */}
+                  {getFeatureCategories().map((category) => (
+                    <React.Fragment key={category}>
+                      {/* Category Header */}
+                      <TableRow sx={{ bgcolor: 'grey.50' }}>
+                        <TableCell colSpan={allTiers.length + 1} sx={{ py: 2, borderBottom: 1, borderColor: 'grey.200' }}>
+                          <Typography variant="h6" fontWeight="semibold" color="text.primary">
+                            {category}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                      
+                      {/* Feature Rows */}
+                      {getFeaturesByCategory(category).map((feature) => (
+                        <TableRow key={feature} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
+                          <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
+                            <Typography variant="body2" fontWeight="medium">
+                              {feature}
+                            </Typography>
+                          </TableCell>
+                          
+                          {allTiers.map((tier: Tier) => {
+                            const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES];
+                            const featureCategory = enhancedPlan?.features[category as keyof typeof enhancedPlan.features] as Record<string, boolean | string> | undefined;
+                            const featureValue = featureCategory ? featureCategory[feature] : false;
+                            
+                            return (
+                              <TableCell key={tier.id} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                                {renderFeatureValue(featureValue || false)}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
                   ))}
-                </Stack>
-              </CardContent>
-              <CardActions sx={{ p: 2, pt: 1 }}>
-              <Tooltip 
-                title={
-                  organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)
-                    ? 'To cancel your subscription head over to stripe' 
-                    : ''
-                }
-                arrow
-                placement="bottom"
-              >
-                <span style={{ width: '100%', display: 'block' }}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    onClick={() => handleSubscribe(tier.id)}
-                    disabled={organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)}
-                    sx={{
-                      transition: 'transform 0.15s ease-in-out',
-                      '&:hover': {
-                        transform: 'scale(1.02)',
-                      },
-                    }}
-                  >
-                    {organizationTierId === tier.id ? 'Current Plan' : (tier.id === 1 && organizationTierId !== 1) ? 'Not Available' : 'Subscribe'}
-                  </Button>
-                </span>
-              </Tooltip>
-            </CardActions>
-            </Card>
-          </Grid>
-        );
-      })}
-    </Grid>
-  </Stack>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+      </Stack>
+    </Box>
   );
 };
 

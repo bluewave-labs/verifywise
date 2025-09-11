@@ -89,6 +89,7 @@ class HFLocalClient(LLMClient):
             prompts,  # type: ignore[arg-type]
             return_tensors="pt",
             padding=True,
+            padding_side="left",
             truncation=True,
         )
         inputs = {k: v.to(self.device) for k, v in inputs.items()}

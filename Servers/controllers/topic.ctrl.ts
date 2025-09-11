@@ -29,6 +29,8 @@ export async function getAllTopics(req: Request, res: Response): Promise<any> {
     description: "starting getAllTopics",
     functionName: "getAllTopics",
     fileName: "topic.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logStructured(
     "processing",
@@ -76,6 +78,8 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
     description: "starting getTopicById",
     functionName: "getTopicById",
     fileName: "topic.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logStructured(
     "processing",
@@ -128,6 +132,8 @@ export async function createNewTopic(
     description: "starting createNewTopic",
     functionName: "createNewTopic",
     fileName: "topic.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logStructured(
     "processing",
@@ -162,6 +168,8 @@ export async function createNewTopic(
         description: "Created new topic",
         functionName: "createNewTopic",
         fileName: "topic.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       logStructured(
         "successful",
@@ -171,7 +179,9 @@ export async function createNewTopic(
       );
       await logEvent(
         "Create",
-        `Topic created: ID ${createdTopic.id}, title: ${topicData.title}`
+        `Topic created: ID ${createdTopic.id}, title: ${topicData.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](createdTopic));
     }
@@ -182,7 +192,7 @@ export async function createNewTopic(
       "createNewTopic",
       "topic.ctrl.ts"
     );
-    await logEvent("Error", `Topic creation failed: ${topicData.title}`);
+    await logEvent("Error", `Topic creation failed: ${topicData.title}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to create topic"));
   } catch (error) {
@@ -197,7 +207,9 @@ export async function createNewTopic(
       );
       await logEvent(
         "Error",
-        `Validation error during topic creation: ${error.message}`
+        `Validation error during topic creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -211,7 +223,9 @@ export async function createNewTopic(
       );
       await logEvent(
         "Error",
-        `Business logic error during topic creation: ${error.message}`
+        `Business logic error during topic creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -221,6 +235,8 @@ export async function createNewTopic(
       description: "Failed to create topic",
       functionName: "createNewTopic",
       fileName: "topic.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     logStructured(
@@ -231,7 +247,9 @@ export async function createNewTopic(
     );
     await logEvent(
       "Error",
-      `Unexpected error during topic creation: ${(error as Error).message}`
+      `Unexpected error during topic creation: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createNewTopic:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -250,6 +268,8 @@ export async function updateTopicById(
     description: "starting updateTopicById",
     functionName: "updateTopicById",
     fileName: "topic.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logStructured(
     "processing",
@@ -270,7 +290,7 @@ export async function updateTopicById(
         "updateTopicById",
         "topic.ctrl.ts"
       );
-      await logEvent("Error", `Update failed — topic not found: ID ${topicId}`);
+      await logEvent("Error", `Update failed — topic not found: ID ${topicId}`, req.userId!, req.tenantId!);
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Topic not found"));
     }
@@ -297,6 +317,8 @@ export async function updateTopicById(
         description: `Updated topic ID ${topicId}`,
         functionName: "updateTopicById",
         fileName: "topic.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       logStructured(
         "successful",
@@ -306,7 +328,9 @@ export async function updateTopicById(
       );
       await logEvent(
         "Update",
-        `Topic updated: ID ${topicId}, title: ${topicModel.title}`
+        `Topic updated: ID ${topicId}, title: ${topicModel.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](topic));
     }
@@ -317,7 +341,7 @@ export async function updateTopicById(
       "updateTopicById",
       "topic.ctrl.ts"
     );
-    await logEvent("Error", `Topic update failed: ID ${topicId}`);
+    await logEvent("Error", `Topic update failed: ID ${topicId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to update topic"));
   } catch (error) {
@@ -332,7 +356,9 @@ export async function updateTopicById(
       );
       await logEvent(
         "Error",
-        `Validation error during topic update: ${error.message}`
+        `Validation error during topic update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -346,7 +372,9 @@ export async function updateTopicById(
       );
       await logEvent(
         "Error",
-        `Business logic error during topic update: ${error.message}`
+        `Business logic error during topic update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -356,6 +384,8 @@ export async function updateTopicById(
       description: "Failed to update topic",
       functionName: "updateTopicById",
       fileName: "topic.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     logStructured(
@@ -366,7 +396,9 @@ export async function updateTopicById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during topic update for ID ${topicId}: ${(error as Error).message}`
+      `Unexpected error during topic update for ID ${topicId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateTopicById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -384,6 +416,8 @@ export async function deleteTopicById(
     description: "starting deleteTopicById",
     functionName: "deleteTopicById",
     fileName: "topic.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logStructured(
     "processing",
@@ -408,6 +442,8 @@ export async function deleteTopicById(
         description: `Deleted topic ID ${topicId}`,
         functionName: "deleteTopicById",
         fileName: "topic.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       logStructured(
         "successful",
@@ -415,7 +451,7 @@ export async function deleteTopicById(
         "deleteTopicById",
         "topic.ctrl.ts"
       );
-      await logEvent("Delete", `Topic deleted: ID ${topicId}`);
+      await logEvent("Delete", `Topic deleted: ID ${topicId}`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](topic));
     }
 
@@ -425,7 +461,7 @@ export async function deleteTopicById(
       "deleteTopicById",
       "topic.ctrl.ts"
     );
-    await logEvent("Error", `Delete failed — topic not found: ID ${topicId}`);
+    await logEvent("Error", `Delete failed — topic not found: ID ${topicId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Topic not found"));
   } catch (error) {
@@ -436,6 +472,8 @@ export async function deleteTopicById(
       description: "Failed to delete topic",
       functionName: "deleteTopicById",
       fileName: "topic.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     logStructured(
@@ -446,7 +484,9 @@ export async function deleteTopicById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during topic delete for ID ${topicId}: ${(error as Error).message}`
+      `Unexpected error during topic delete for ID ${topicId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteTopicById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -463,6 +503,8 @@ export async function getTopicByAssessmentId(
     description: `starting getTopicByAssessmentId for assessment ID ${assessmentId}`,
     functionName: "getTopicByAssessmentId",
     fileName: "topic.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logStructured(
     "processing",

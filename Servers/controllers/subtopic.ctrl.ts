@@ -174,7 +174,9 @@ export async function createNewSubtopic(
       );
       await logEvent(
         "Create",
-        `Subtopic created: ID ${newSubtopic.id}, title: ${subtopicData.title}`
+        `Subtopic created: ID ${newSubtopic.id}, title: ${subtopicData.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](newSubtopic));
     }
@@ -185,7 +187,7 @@ export async function createNewSubtopic(
       "createNewSubtopic",
       "subtopic.ctrl.ts"
     );
-    await logEvent("Error", `Subtopic creation failed: ${subtopicData.title}`);
+    await logEvent("Error", `Subtopic creation failed: ${subtopicData.title}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to create subtopic"));
   } catch (error) {
@@ -200,7 +202,9 @@ export async function createNewSubtopic(
       );
       await logEvent(
         "Error",
-        `Validation error during subtopic creation: ${error.message}`
+        `Validation error during subtopic creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -214,7 +218,9 @@ export async function createNewSubtopic(
       );
       await logEvent(
         "Error",
-        `Business logic error during subtopic creation: ${error.message}`
+        `Business logic error during subtopic creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -227,7 +233,9 @@ export async function createNewSubtopic(
     );
     await logEvent(
       "Error",
-      `Unexpected error during subtopic creation: ${(error as Error).message}`
+      `Unexpected error during subtopic creation: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createNewSubtopic:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -264,7 +272,9 @@ export async function updateSubtopicById(
       );
       await logEvent(
         "Error",
-        `Update failed — subtopic not found: ID ${subtopicId}`
+        `Update failed — subtopic not found: ID ${subtopicId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Subtopic not found"));
@@ -299,7 +309,9 @@ export async function updateSubtopicById(
       );
       await logEvent(
         "Update",
-        `Subtopic updated: ID ${subtopicId}, title: ${existingSubtopic.title}`
+        `Subtopic updated: ID ${subtopicId}, title: ${existingSubtopic.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(202).json(STATUS_CODE[202](updatedSubtopic));
     }
@@ -310,7 +322,7 @@ export async function updateSubtopicById(
       "updateSubtopicById",
       "subtopic.ctrl.ts"
     );
-    await logEvent("Error", `Subtopic update failed: ID ${subtopicId}`);
+    await logEvent("Error", `Subtopic update failed: ID ${subtopicId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to update subtopic"));
   } catch (error) {
@@ -325,7 +337,9 @@ export async function updateSubtopicById(
       );
       await logEvent(
         "Error",
-        `Validation error during subtopic update: ${error.message}`
+        `Validation error during subtopic update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -339,7 +353,9 @@ export async function updateSubtopicById(
       );
       await logEvent(
         "Error",
-        `Business logic error during subtopic update: ${error.message}`
+        `Business logic error during subtopic update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -353,7 +369,9 @@ export async function updateSubtopicById(
       );
       await logEvent(
         "Error",
-        `Update failed — subtopic not found: ID ${subtopicId}`
+        `Update failed — subtopic not found: ID ${subtopicId}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(404).json(STATUS_CODE[404](error.message));
     }
@@ -366,7 +384,9 @@ export async function updateSubtopicById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during subtopic update for ID ${subtopicId}: ${(error as Error).message}`
+      `Unexpected error during subtopic update for ID ${subtopicId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateSubtopicById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

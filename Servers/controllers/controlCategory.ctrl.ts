@@ -62,7 +62,9 @@ export async function getAllControlCategories(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve control categories: ${(error as Error).message}`
+      `Failed to retrieve control categories: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllControlCategories:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -114,7 +116,9 @@ export async function getControlCategoryById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve control category by ID: ${controlCategoryId}`
+      `Failed to retrieve control category by ID: ${controlCategoryId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getControlCategoryById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -166,7 +170,9 @@ export async function getControlCategoryByProjectId(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve control categories for project ID: ${projectId}`
+      `Failed to retrieve control categories for project ID: ${projectId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getControlCategoryByProjectId:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -203,7 +209,9 @@ export async function createControlCategory(
       );
       await logEvent(
         "Error",
-        `Attempted to create duplicate control category: ${title} for project ID: ${project_id}`
+        `Attempted to create duplicate control category: ${title} for project ID: ${project_id}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -240,7 +248,9 @@ export async function createControlCategory(
       );
       await logEvent(
         "Create",
-        `Control category created: ${title} for project ID: ${project_id}`
+        `Control category created: ${title} for project ID: ${project_id}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](createdControlCategory));
     }
@@ -251,7 +261,7 @@ export async function createControlCategory(
       "createControlCategory",
       "controlCategory.ctrl.ts"
     );
-    await logEvent("Error", `Control category creation failed: ${title}`);
+    await logEvent("Error", `Control category creation failed: ${title}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -268,7 +278,9 @@ export async function createControlCategory(
       );
       await logEvent(
         "Error",
-        `Validation error during control category creation: ${error.message}`
+        `Validation error during control category creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -282,7 +294,9 @@ export async function createControlCategory(
       );
       await logEvent(
         "Error",
-        `Business logic error during control category creation: ${error.message}`
+        `Business logic error during control category creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -297,7 +311,9 @@ export async function createControlCategory(
       "Error",
       `Unexpected error during control category creation: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createControlCategory:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -337,7 +353,9 @@ export async function updateControlCategoryById(
       );
       await logEvent(
         "Error",
-        `Update failed — control category not found: ID ${controlCategoryId}`
+        `Update failed — control category not found: ID ${controlCategoryId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -355,7 +373,9 @@ export async function updateControlCategoryById(
       );
       await logEvent(
         "Error",
-        `Blocked update of demo control category ID ${controlCategoryId}`
+        `Blocked update of demo control category ID ${controlCategoryId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -379,7 +399,9 @@ export async function updateControlCategoryById(
         );
         await logEvent(
           "Error",
-          `Attempted to update to duplicate title: ${title}`
+          `Attempted to update to duplicate title: ${title}`,
+          req.userId!,
+          req.tenantId!
         );
         await transaction.rollback();
         return res
@@ -415,7 +437,9 @@ export async function updateControlCategoryById(
       );
       await logEvent(
         "Update",
-        `Control category updated: ID ${controlCategoryId}, title: ${updatedControlCategory.title}`
+        `Control category updated: ID ${controlCategoryId}, title: ${updatedControlCategory.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(202).json(STATUS_CODE[202](updatedControlCategory));
     }
@@ -428,7 +452,9 @@ export async function updateControlCategoryById(
     );
     await logEvent(
       "Error",
-      `Control category update failed: ID ${controlCategoryId}`
+      `Control category update failed: ID ${controlCategoryId}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res
@@ -446,7 +472,9 @@ export async function updateControlCategoryById(
       );
       await logEvent(
         "Error",
-        `Validation error during control category update: ${error.message}`
+        `Validation error during control category update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -460,7 +488,9 @@ export async function updateControlCategoryById(
       );
       await logEvent(
         "Error",
-        `Business logic error during control category update: ${error.message}`
+        `Business logic error during control category update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -475,7 +505,9 @@ export async function updateControlCategoryById(
       "Error",
       `Unexpected error during control category update for ID ${controlCategoryId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateControlCategoryById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -514,7 +546,9 @@ export async function deleteControlCategoryById(
       );
       await logEvent(
         "Error",
-        `Delete failed — control category not found: ID ${controlCategoryId}`
+        `Delete failed — control category not found: ID ${controlCategoryId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -532,7 +566,9 @@ export async function deleteControlCategoryById(
       );
       await logEvent(
         "Error",
-        `Blocked deletion of demo control category ID ${controlCategoryId}`
+        `Blocked deletion of demo control category ID ${controlCategoryId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res
@@ -556,7 +592,9 @@ export async function deleteControlCategoryById(
       );
       await logEvent(
         "Delete",
-        `Control category deleted: ID ${controlCategoryId}, title: ${existingControlCategory.title}`
+        `Control category deleted: ID ${controlCategoryId}, title: ${existingControlCategory.title}`,
+        req.userId!,
+        req.tenantId!
       );
       return res
         .status(202)
@@ -573,7 +611,9 @@ export async function deleteControlCategoryById(
     );
     await logEvent(
       "Error",
-      `Control category deletion failed: ID ${controlCategoryId}`
+      `Control category deletion failed: ID ${controlCategoryId}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res
@@ -591,7 +631,9 @@ export async function deleteControlCategoryById(
       "Error",
       `Unexpected error during control category deletion for ID ${controlCategoryId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteControlCategoryById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

@@ -67,7 +67,9 @@ export async function getAllOrganizations(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve organizations: ${(error as Error).message}`
+      `Failed to retrieve organizations: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllOrganizations:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -132,7 +134,9 @@ export async function getOrganizationById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve organization by ID: ${organizationId}`
+      `Failed to retrieve organization by ID: ${organizationId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getOrganizationById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -213,7 +217,9 @@ export async function createOrganization(
       );
       await logEvent(
         "Create",
-        `Organization created: ${createdOrganization.name}`
+        `Organization created: ${createdOrganization.name}`,
+        user.id!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
     }
@@ -224,7 +230,7 @@ export async function createOrganization(
       "createOrganization",
       "organization.ctrl.ts"
     );
-    await logEvent("Error", "Organization creation failed");
+    await logEvent("Error", "Organization creation failed", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -242,7 +248,9 @@ export async function createOrganization(
       );
       await logEvent(
         "Error",
-        `Validation error during organization creation: ${error.message}`
+        `Validation error during organization creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -256,7 +264,9 @@ export async function createOrganization(
       );
       await logEvent(
         "Error",
-        `Business logic error during organization creation: ${error.message}`
+        `Business logic error during organization creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -271,7 +281,9 @@ export async function createOrganization(
       "Error",
       `Unexpected error during organization creation: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createOrganization:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -326,7 +338,7 @@ export async function updateOrganizationById(
         "updateOrganizationById",
         "organization.ctrl.ts"
       );
-      await logEvent("Update", `Organization updated: ID ${organizationId}`);
+      await logEvent("Update", `Organization updated: ID ${organizationId}`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](updatedOrganization));
     }
 
@@ -338,7 +350,9 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      "Organization not found for updateOrganizationById"
+      "Organization not found for updateOrganizationById",
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Organization not found"));
@@ -355,7 +369,9 @@ export async function updateOrganizationById(
       );
       await logEvent(
         "Error",
-        `Validation error during organization update: ${error.message}`
+        `Validation error during organization update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -369,7 +385,9 @@ export async function updateOrganizationById(
       );
       await logEvent(
         "Error",
-        `Business logic error during organization update: ${error.message}`
+        `Business logic error during organization update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -384,7 +402,9 @@ export async function updateOrganizationById(
       "Error",
       `Unexpected error during update for organization ID ${organizationId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateOrganizationById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -423,7 +443,9 @@ export async function deleteOrganizationById(
       );
       await logEvent(
         "Error",
-        `Delete failed — organization not found: ID ${organizationId}`
+        `Delete failed — organization not found: ID ${organizationId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Organization not found"));
@@ -442,7 +464,7 @@ export async function deleteOrganizationById(
         "deleteOrganizationById",
         "organization.ctrl.ts"
       );
-      await logEvent("Delete", `Organization deleted: ID ${organizationId}`);
+      await logEvent("Delete", `Organization deleted: ID ${organizationId}`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](organization));
     }
 
@@ -452,7 +474,7 @@ export async function deleteOrganizationById(
       "deleteOrganizationById",
       "organization.ctrl.ts"
     );
-    await logEvent("Error", "Unable to delete organization");
+    await logEvent("Error", "Unable to delete organization", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -469,7 +491,9 @@ export async function deleteOrganizationById(
       "Error",
       `Unexpected error during delete for organization ID ${organizationId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteOrganizationById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

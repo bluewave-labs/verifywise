@@ -28,6 +28,8 @@ export async function getAllTrainingRegistar(
     description: "starting getAllTrainingRegistar",
     functionName: "getAllTrainingRegistar",
     fileName: "trainingRegistar.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("📚 Fetching all training registrars");
 
@@ -39,6 +41,8 @@ export async function getAllTrainingRegistar(
         description: `Retrieved ${trainingRegistars.length} training registrars`,
         functionName: "getAllTrainingRegistar",
         fileName: "trainingRegistar.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](trainingRegistars));
     }
@@ -48,6 +52,8 @@ export async function getAllTrainingRegistar(
       description: "No training registrars found",
       functionName: "getAllTrainingRegistar",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(204).json(STATUS_CODE[204](trainingRegistars));
   } catch (error) {
@@ -56,6 +62,8 @@ export async function getAllTrainingRegistar(
       description: "Failed to retrieve training registrars",
       functionName: "getAllTrainingRegistar",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -73,6 +81,8 @@ export async function getTrainingRegistarById(
     description: `starting getTrainingRegistarById for training registrar ID ${trainingRegistarId}`,
     functionName: "getTrainingRegistarById",
     fileName: "trainingRegistar.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`🔍 Looking up training registrar ID ${trainingRegistarId}`);
 
@@ -88,6 +98,8 @@ export async function getTrainingRegistarById(
         description: `Retrieved training registrar ID ${trainingRegistarId}`,
         functionName: "getTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(200).json(STATUS_CODE[200](trainingRegistar));
     }
@@ -97,6 +109,8 @@ export async function getTrainingRegistarById(
       description: `Training registrar not found: ID ${trainingRegistarId}`,
       functionName: "getTrainingRegistarById",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(404).json(STATUS_CODE[404](trainingRegistar));
   } catch (error) {
@@ -105,6 +119,8 @@ export async function getTrainingRegistarById(
       description: `Failed to retrieve training registrar ID ${trainingRegistarId}`,
       functionName: "getTrainingRegistarById",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -122,6 +138,8 @@ export async function createNewTrainingRegistar(
     description: "starting createNewTrainingRegistar",
     functionName: "createNewTrainingRegistar",
     fileName: "trainingRegistar.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug("🛠️ Creating new training registrar");
 
@@ -141,6 +159,8 @@ export async function createNewTrainingRegistar(
         description: "Missing required fields for training registrar creation",
         functionName: "createNewTrainingRegistar",
         fileName: "trainingRegistar.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: new Error("Missing required fields"),
       });
       return res.status(400).json(
@@ -163,6 +183,8 @@ export async function createNewTrainingRegistar(
         description: `Successfully created training registrar: ${newTrainingRegistar.training_name}`,
         functionName: "createNewTrainingRegistar",
         fileName: "trainingRegistar.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(201).json(STATUS_CODE[201](createdNewTrainingRegistar));
     }
@@ -173,6 +195,8 @@ export async function createNewTrainingRegistar(
       description: "Failed to create training registrar",
       functionName: "createNewTrainingRegistar",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: new Error("Creation failed"),
     });
     return res.status(503).json(STATUS_CODE[503]({}));
@@ -183,6 +207,8 @@ export async function createNewTrainingRegistar(
       description: "Failed to create training registrar",
       functionName: "createNewTrainingRegistar",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -201,6 +227,8 @@ export async function updateTrainingRegistarById(
     description: `starting updateTrainingRegistarById for training registrar ID ${trainingRegistarId}`,
     functionName: "updateTrainingRegistarById",
     fileName: "trainingRegistar.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`✏️ Updating training registrar ID ${trainingRegistarId}`);
 
@@ -225,6 +253,8 @@ export async function updateTrainingRegistarById(
         description: `Missing required fields for updating training registrar ID ${trainingRegistarId}`,
         functionName: "updateTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
         error: new Error("Missing required fields"),
       });
       return res.status(400).json(
@@ -248,6 +278,8 @@ export async function updateTrainingRegistarById(
         description: `Successfully updated training registrar ID ${trainingRegistarId}`,
         functionName: "updateTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(202).json(STATUS_CODE[202](trainingRegistar));
     }
@@ -258,6 +290,8 @@ export async function updateTrainingRegistarById(
       description: `Training registrar not found: ID ${trainingRegistarId}`,
       functionName: "updateTrainingRegistarById",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: new Error("Training registrar not found"),
     });
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -268,6 +302,8 @@ export async function updateTrainingRegistarById(
       description: `Failed to update training registrar ID ${trainingRegistarId}`,
       functionName: "updateTrainingRegistarById",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -285,6 +321,8 @@ export async function deleteTrainingRegistarById(
     description: `starting deleteTrainingRegistarById for training registrar ID ${trainingRegistarId}`,
     functionName: "deleteTrainingRegistarById",
     fileName: "trainingRegistar.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(`🗑️ Deleting training registrar ID ${trainingRegistarId}`);
 
@@ -302,6 +340,8 @@ export async function deleteTrainingRegistarById(
         description: `Successfully deleted training registrar ID ${trainingRegistarId}`,
         functionName: "deleteTrainingRegistarById",
         fileName: "trainingRegistar.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
       return res.status(202).json(STATUS_CODE[202](deleteTrainingRegistar));
     }
@@ -312,6 +352,8 @@ export async function deleteTrainingRegistarById(
       description: `Training registrar not found: ID ${trainingRegistarId}`,
       functionName: "deleteTrainingRegistarById",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: new Error("Training registrar not found"),
     });
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -322,6 +364,8 @@ export async function deleteTrainingRegistarById(
       description: `Failed to delete training registrar ID ${trainingRegistarId}`,
       functionName: "deleteTrainingRegistarById",
       fileName: "trainingRegistar.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

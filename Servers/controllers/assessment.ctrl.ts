@@ -44,6 +44,8 @@ export async function getAllAssessments(
     description: "starting getAllAssessments",
     functionName: "getAllAssessments",
     fileName: "assessment.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!
   });
 
   try {
@@ -54,6 +56,8 @@ export async function getAllAssessments(
       description: "Retrieved all assessments",
       functionName: "getAllAssessments",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!
     });
 
     return res
@@ -65,7 +69,9 @@ export async function getAllAssessments(
       description: "Failed to retrieve assessments",
       functionName: "getAllAssessments",
       fileName: "assessment.ctrl.ts",
-      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+      error: error as Error
     });
 
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -81,6 +87,8 @@ export async function getAssessmentById(
     description: `starting getAssessmentById for ID ${assessmentId}`,
     functionName: "getAssessmentById",
     fileName: "assessment.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!
   });
 
   try {
@@ -94,6 +102,8 @@ export async function getAssessmentById(
       description: `Retrieved assessment ID ${assessmentId}`,
       functionName: "getAssessmentById",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res
@@ -105,6 +115,8 @@ export async function getAssessmentById(
       description: "Failed to retrieve assessment by ID",
       functionName: "getAssessmentById",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -121,6 +133,8 @@ export async function createAssessment(
     description: "starting createAssessment",
     functionName: "createAssessment",
     fileName: "assessment.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -147,6 +161,8 @@ export async function createAssessment(
         description: "Created new assessment",
         functionName: "createAssessment",
         fileName: "assessment.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(201).json(
@@ -164,6 +180,8 @@ export async function createAssessment(
       description: "Assessment creation returned null",
       functionName: "createAssessment",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(503).json(
@@ -179,6 +197,8 @@ export async function createAssessment(
       description: "Error creating assessment",
       functionName: "createAssessment",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -200,6 +220,8 @@ export async function updateAssessmentById(
     description: `starting updateAssessmentById for ID ${assessmentId}`,
     functionName: "updateAssessmentById",
     fileName: "assessment.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -225,6 +247,8 @@ export async function updateAssessmentById(
         description: `Updated assessment ID ${assessmentId}`,
         functionName: "updateAssessmentById",
         fileName: "assessment.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(202).json(
@@ -242,6 +266,8 @@ export async function updateAssessmentById(
       description: "Assessment not found or no changes made",
       functionName: "updateAssessmentById",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(
@@ -258,6 +284,8 @@ export async function updateAssessmentById(
       description: "Error updating assessment",
       functionName: "updateAssessmentById",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -279,6 +307,8 @@ export async function deleteAssessmentById(
     description: `starting deleteAssessmentById for ID ${assessmentId}`,
     functionName: "deleteAssessmentById",
     fileName: "assessment.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -296,6 +326,8 @@ export async function deleteAssessmentById(
         description: `Deleted assessment ID ${assessmentId}`,
         functionName: "deleteAssessmentById",
         fileName: "assessment.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(202).json(STATUS_CODE[202](deletedAssessment));
@@ -306,6 +338,8 @@ export async function deleteAssessmentById(
       description: `Assessment not found for deletion: ID ${assessmentId}`,
       functionName: "deleteAssessmentById",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -317,6 +351,8 @@ export async function deleteAssessmentById(
       description: "Failed to delete assessment",
       functionName: "deleteAssessmentById",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -330,6 +366,8 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
     description: `starting getAnswers for assessment ID ${assessmentId}`,
     functionName: "getAnswers",
     fileName: "assessment.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -364,6 +402,8 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
       description: `Retrieved answers for assessment ID ${assessmentId}`,
       functionName: "getAnswers",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200]({ message: assessment }));
@@ -373,6 +413,8 @@ export async function getAnswers(req: Request, res: Response): Promise<any> {
       description: "Failed to retrieve answers",
       functionName: "getAnswers",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -389,6 +431,8 @@ export async function getAssessmentByProjectId(
     description: `starting getAssessmentByProjectId for project ID ${projectId}`,
     functionName: "getAssessmentByProjectId",
     fileName: "assessment.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -402,6 +446,8 @@ export async function getAssessmentByProjectId(
       description: `Retrieved assessments for project ID ${projectId}`,
       functionName: "getAssessmentByProjectId",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res
@@ -417,6 +463,8 @@ export async function getAssessmentByProjectId(
       description: "Failed to retrieve assessments by project ID",
       functionName: "getAssessmentByProjectId",
       fileName: "assessment.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 

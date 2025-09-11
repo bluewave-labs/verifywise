@@ -31,6 +31,8 @@ export async function getAllProjects(req: Request, res: Response): Promise<any> 
     description: "starting getAllProjects",
     functionName: "getAllProjects",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -46,6 +48,8 @@ export async function getAllProjects(req: Request, res: Response): Promise<any> 
       description: "Retrieved all projects",
       functionName: "getAllProjects",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(200).json(STATUS_CODE[200](projects));
@@ -55,6 +59,8 @@ export async function getAllProjects(req: Request, res: Response): Promise<any> 
       description: "Failed to retrieve all projects",
       functionName: "getAllProjects",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -69,6 +75,8 @@ export async function getProjectById(req: Request, res: Response): Promise<any> 
     description: `starting getProjectById for ID ${projectId}`,
     functionName: "getProjectById",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -79,6 +87,8 @@ export async function getProjectById(req: Request, res: Response): Promise<any> 
       description: `Retrieved project ID ${projectId}`,
       functionName: "getProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     if (project) {
@@ -90,6 +100,8 @@ export async function getProjectById(req: Request, res: Response): Promise<any> 
       description: `Project not found: ID ${projectId}`,
       functionName: "getProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -99,6 +111,8 @@ export async function getProjectById(req: Request, res: Response): Promise<any> 
       description: "Failed to retrieve project by ID",
       functionName: "getProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -113,6 +127,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     description: "starting createProject",
     functionName: "createProject",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -175,6 +191,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         description: "Created new project",
         functionName: "createProject",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(201).json(
@@ -190,6 +208,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       description: "Project creation returned null",
       functionName: "createProject",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(503).json(STATUS_CODE[503]({}));
@@ -201,6 +221,8 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       description: "Failed to create project",
       functionName: "createProject",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -216,6 +238,8 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
     description: `starting updateProjectById for ID ${projectId}`,
     functionName: "updateProjectById",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -248,6 +272,8 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         description: `Updated project ID ${projectId}`,
         functionName: "updateProjectById",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(202).json(STATUS_CODE[202](project));
@@ -258,6 +284,8 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       description: `Project not found for update: ID ${projectId}`,
       functionName: "updateProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -269,6 +297,8 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       description: "Failed to update project",
       functionName: "updateProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -284,6 +314,8 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
     description: `starting deleteProjectById for ID ${projectId}`,
     functionName: "deleteProjectById",
     fileName: "project.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -297,6 +329,8 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
         description: `Deleted project ID ${projectId}`,
         functionName: "deleteProjectById",
         fileName: "project.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(202).json(STATUS_CODE[202](deletedProject));
@@ -307,6 +341,8 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
       description: `Project not found for deletion: ID ${projectId}`,
       functionName: "deleteProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404]({}));
@@ -318,6 +354,8 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
       description: "Failed to delete project",
       functionName: "deleteProjectById",
       fileName: "project.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -331,6 +369,8 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
     description: `starting getProjectStatsById for project ID ${projectId}`,
     functionName: "getProjectStatsById",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -356,6 +396,8 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
       description: `Retrieved project stats for project ID ${projectId}`,
       functionName: "getProjectStatsById",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(202).json(STATUS_CODE[202](overviewDetails));
@@ -365,6 +407,8 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
       description: "Failed to retrieve project stats",
       functionName: "getProjectStatsById",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -378,6 +422,8 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
     description: `starting getProjectRisksCalculations for project ID ${projectId}`,
     functionName: "getProjectRisksCalculations",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -388,6 +434,8 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       description: `Calculated risks for project ID ${projectId}`,
       functionName: "getProjectRisksCalculations",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(projectRisksCalculations ? 200 : 204).json(
@@ -399,6 +447,8 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       description: "Failed to calculate project risks",
       functionName: "getProjectRisksCalculations",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -412,6 +462,8 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
     description: `starting getVendorRisksCalculations for project ID ${projectId}`,
     functionName: "getVendorRisksCalculations",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -422,6 +474,8 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       description: `Calculated vendor risks for project ID ${projectId}`,
       functionName: "getVendorRisksCalculations",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(vendorRisksCalculations ? 200 : 204).json(
@@ -433,6 +487,8 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       description: "Failed to calculate vendor risks",
       functionName: "getVendorRisksCalculations",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -446,6 +502,8 @@ export async function getCompliances(req: Request, res: Response) {
     description: `starting getCompliances for project ID ${projectId}`,
     functionName: "getCompliances",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -476,6 +534,8 @@ export async function getCompliances(req: Request, res: Response) {
         description: `Retrieved compliance data for project ID ${projectId}`,
         functionName: "getCompliances",
         fileName: "projec.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(STATUS_CODE[200](controlCategories));
@@ -486,6 +546,8 @@ export async function getCompliances(req: Request, res: Response) {
       description: `Project not found for compliance lookup: ID ${projectId}`,
       functionName: "getCompliances",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -495,6 +557,8 @@ export async function getCompliances(req: Request, res: Response) {
       description: "Failed to fetch compliance data",
       functionName: "getCompliances",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -508,6 +572,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
     description: `starting projectComplianceProgress for ID ${projectId}`,
     functionName: "projectComplianceProgress",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -521,6 +587,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
         description: `Compliance progress calculated for project ID ${projectId}`,
         functionName: "projectComplianceProgress",
         fileName: "projec.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -536,6 +604,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       description: `Project not found: ID ${projectId}`,
       functionName: "projectComplianceProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -545,6 +615,8 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       description: "Failed to get compliance progress",
       functionName: "projectComplianceProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -558,6 +630,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
     description: `starting projectAssessmentProgress for ID ${projectId}`,
     functionName: "projectAssessmentProgress",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -571,6 +645,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
         description: `Assessment progress calculated for project ID ${projectId}`,
         functionName: "projectAssessmentProgress",
         fileName: "projec.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -586,6 +662,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       description: `Project not found: ID ${projectId}`,
       functionName: "projectAssessmentProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -595,6 +673,8 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       description: "Failed to get assessment progress",
       functionName: "projectAssessmentProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -609,6 +689,8 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
     description: "starting allProjectsComplianceProgress",
     functionName: "allProjectsComplianceProgress",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -633,6 +715,8 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
         description: "Compliance progress calculated across all projects",
         functionName: "allProjectsComplianceProgress",
         fileName: "projec.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -648,6 +732,8 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
       description: "No projects found for compliance progress",
       functionName: "allProjectsComplianceProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -657,6 +743,8 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
       description: "Failed to get compliance progress for all projects",
       functionName: "allProjectsComplianceProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 
@@ -671,6 +759,8 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
     description: "starting allProjectsAssessmentProgress",
     functionName: "allProjectsAssessmentProgress",
     fileName: "projec.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
   });
 
   try {
@@ -695,6 +785,8 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
         description: "Assessment progress calculated across all projects",
         functionName: "allProjectsAssessmentProgress",
         fileName: "projec.ctrl.ts",
+        userId: req.userId!,
+        tenantId: req.tenantId!,
       });
 
       return res.status(200).json(
@@ -710,6 +802,8 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       description: "No projects found for assessment progress",
       functionName: "allProjectsAssessmentProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -719,6 +813,8 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       description: "Failed to get assessment progress for all projects",
       functionName: "allProjectsAssessmentProgress",
       fileName: "projec.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
 

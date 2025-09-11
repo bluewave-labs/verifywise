@@ -62,7 +62,9 @@ export async function getAllProjectRisks(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve project risks for project ID: ${projectId}`
+      `Failed to retrieve project risks for project ID: ${projectId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllProjectRisks:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -113,7 +115,9 @@ export async function getProjectRiskById(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve project risk by ID: ${projectRiskId}`
+      `Failed to retrieve project risk by ID: ${projectRiskId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getProjectRiskById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -155,7 +159,9 @@ export async function getNonMitigatedProjectRisks(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve non-mitigated project risks for project ID: ${projectId}`
+      `Failed to retrieve non-mitigated project risks for project ID: ${projectId}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getNonMitigatedProjectRisks:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -203,7 +209,9 @@ export async function createProjectRisk(
       );
       await logEvent(
         "Create",
-        `Project risk created: ${projectRiskModel.risk_name}`
+        `Project risk created: ${projectRiskModel.risk_name}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](newProjectRisk));
     }
@@ -214,7 +222,7 @@ export async function createProjectRisk(
       "createProjectRisk",
       "projectRisks.ctrl.ts"
     );
-    await logEvent("Error", "Project risk creation failed");
+    await logEvent("Error", "Project risk creation failed", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -232,7 +240,9 @@ export async function createProjectRisk(
       );
       await logEvent(
         "Error",
-        `Validation error during project risk creation: ${error.message}`
+        `Validation error during project risk creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -246,7 +256,9 @@ export async function createProjectRisk(
       );
       await logEvent(
         "Error",
-        `Business logic error during project risk creation: ${error.message}`
+        `Business logic error during project risk creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -261,7 +273,9 @@ export async function createProjectRisk(
       "Error",
       `Unexpected error during project risk creation: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createProjectRisk:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -299,7 +313,9 @@ export async function updateProjectRiskById(
       );
       await logEvent(
         "Error",
-        `Project risk not found for update: ID ${projectRiskId}`
+        `Project risk not found for update: ID ${projectRiskId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
@@ -327,7 +343,7 @@ export async function updateProjectRiskById(
         "updateProjectRiskById",
         "projectRisks.ctrl.ts"
       );
-      await logEvent("Update", `Project risk updated: ID ${projectRiskId}`);
+      await logEvent("Update", `Project risk updated: ID ${projectRiskId}`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](updatedProjectRisk));
     }
 
@@ -337,7 +353,7 @@ export async function updateProjectRiskById(
       "updateProjectRiskById",
       "projectRisks.ctrl.ts"
     );
-    await logEvent("Error", "Project risk not found for updateProjectRiskById");
+    await logEvent("Error", "Project risk not found for updateProjectRiskById", req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
   } catch (error) {
@@ -353,7 +369,9 @@ export async function updateProjectRiskById(
       );
       await logEvent(
         "Error",
-        `Validation error during project risk update: ${error.message}`
+        `Validation error during project risk update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -367,7 +385,9 @@ export async function updateProjectRiskById(
       );
       await logEvent(
         "Error",
-        `Business logic error during project risk update: ${error.message}`
+        `Business logic error during project risk update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -382,7 +402,9 @@ export async function updateProjectRiskById(
       "Error",
       `Unexpected error during update for project risk ID ${projectRiskId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateProjectRiskById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -417,7 +439,7 @@ export async function deleteProjectRiskById(
         "deleteProjectRiskById",
         "projectRisks.ctrl.ts"
       );
-      await logEvent("Delete", `Project risk deleted: ID ${projectRiskId}`);
+      await logEvent("Delete", `Project risk deleted: ID ${projectRiskId}`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](deletedProjectRisk));
     }
 
@@ -429,7 +451,9 @@ export async function deleteProjectRiskById(
     );
     await logEvent(
       "Error",
-      `Delete failed — project risk not found: ID ${projectRiskId}`
+      `Delete failed — project risk not found: ID ${projectRiskId}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
@@ -445,7 +469,9 @@ export async function deleteProjectRiskById(
       "Error",
       `Unexpected error during delete for project risk ID ${projectRiskId}: ${
         (error as Error).message
-      }`
+      }`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteProjectRiskById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

@@ -617,32 +617,33 @@ export async function saveClauses(
       delete: string;
       risksDelete: string;
       risksMitigated: string;
+      project_id: string;
     };
 
     const filesToDelete = JSON.parse(subClause.delete || "[]") as number[];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
-    // Get project_id from subclause
-    const projectIdResult = (await sequelize.query(
-      `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso27001 sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
-      {
-        replacements: { id: subClauseId },
-        transaction,
-      }
-    )) as [{ id: number }[], number];
+    // // Get project_id from subclause
+    // const projectIdResult = (await sequelize.query(
+    //   `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso27001 sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    //   {
+    //     replacements: { id: subClauseId },
+    //     transaction,
+    //   }
+    // )) as [{ id: number }[], number];
 
-    if (projectIdResult[0].length === 0) {
-      throw new Error("Project ID not found for subclause");
-    }
+    // if (projectIdResult[0].length === 0) {
+    //   throw new Error("Project ID not found for subclause");
+    // }
 
-    const projectId = projectIdResult[0][0].id;
+    // const projectId = projectIdResult[0][0].id;
 
     let uploadedFiles: FileType[] = [];
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       uploadedFiles = await uploadFiles(
         req.files as UploadedFile[],
         parseInt(subClause.user_id),
-        projectId,
+        parseInt(subClause.project_id),
         "Main clauses group",
         req.tenantId!,
         transaction
@@ -726,27 +727,27 @@ export async function saveAnnexes(
     const filesToDelete = JSON.parse(annexControl.delete || "[]") as number[];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
-    // Get project_id from annex control
-    const projectIdResult = (await sequelize.query(
-      `SELECT pf.project_id as id FROM "${req.tenantId!}".annexcontrols_iso27001 ac JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id WHERE ac.id = :id;`,
-      {
-        replacements: { id: annexControlId },
-        transaction,
-      }
-    )) as [{ id: number }[], number];
+    // // Get project_id from annex control
+    // const projectIdResult = (await sequelize.query(
+    //   `SELECT pf.project_id as id FROM "${req.tenantId!}".annexcontrols_iso27001 ac JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id WHERE ac.id = :id;`,
+    //   {
+    //     replacements: { id: annexControlId },
+    //     transaction,
+    //   }
+    // )) as [{ id: number }[], number];
 
-    if (projectIdResult[0].length === 0) {
-      throw new Error("Project ID not found for annex control");
-    }
+    // if (projectIdResult[0].length === 0) {
+    //   throw new Error("Project ID not found for annex control");
+    // }
 
-    const projectId = projectIdResult[0][0].id;
+    // const projectId = projectIdResult[0][0].id;
 
     let uploadedFiles: FileType[] = [];
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       uploadedFiles = await uploadFiles(
         req.files as UploadedFile[],
         parseInt(annexControl.user_id),
-        projectId,
+        parseInt(annexControl.project_id),
         "Annex controls group",
         req.tenantId!,
         transaction

@@ -23,11 +23,14 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO27001ClauseStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { Project } from "../../../../../domain/types/Project";
 
 const ISO27001Clause = ({
+  project,
   projectFrameworkId,
   statusFilter,
 }: {
+  project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
 }) => {
@@ -320,6 +323,7 @@ const ISO27001Clause = ({
         <VWISO27001ClauseDrawerDialog
           open={drawerOpen}
           onClose={handleDrawerClose}
+          project_id={Number(project.id)}
           subClause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(projectFrameworkId)}

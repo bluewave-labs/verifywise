@@ -16,9 +16,7 @@ from typing import Optional, Dict, Any
 
 from .config import ConfigManager
 from ..dataset_loader.data_loader import DataLoader
-from ..model_loader.model_loader import ModelLoader, load_sklearn_model
 from ..eval_engine.eval_runner import EvaluationRunner
-from ..inference.inference import ModelInferencePipeline
 from ..eval_engine.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
 from ..eval_engine.evaluation_module import FairnessEvaluator
 
@@ -58,13 +56,8 @@ def run_prompt_evaluation(
     logger.info("Starting prompt-based LLM evaluation...")
     
     try:
-        # Create inference pipeline
-        inference_pipeline = ModelInferencePipeline(config_path)
-        
-        # Generate prompts and run inference
-        samples = inference_pipeline.generate_prompts(limit_samples=limit_samples)
-        prompts = [sample["prompt"] for sample in samples]
-        responses = inference_pipeline.model_loader.predict(prompts)
+        # NOTE: ModelInferencePipeline has been removed.
+        raise RuntimeError("Prompt-based LLM evaluation via CLI is no longer supported.")
         
         # Extract sensitive attributes
         sensitive_attributes = [sample["protected_attributes"] for sample in samples]
@@ -137,6 +130,7 @@ def run_predict_evaluation(
         if model_path is None:
             model_path = "model.joblib"  # Default model path
         
+        from ..model_loader.model_loader import load_sklearn_model  # type: ignore
         model = load_sklearn_model(model_path)
         logger.info(f"Loaded model from {model_path}")
         

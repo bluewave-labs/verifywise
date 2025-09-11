@@ -7,8 +7,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.core.config import ConfigManager
 from src.dataset_loader.data_loader import DataLoader
-from src.model_loader.model_loader import load_sklearn_model, ModelLoader
-from src.inference.inference import ModelInferencePipeline
+try:
+    from src.model_loader.model_loader import load_sklearn_model, ModelLoader  # type: ignore
+except Exception:  # pragma: no cover
+    load_sklearn_model = None  # type: ignore
+    ModelLoader = None  # type: ignore
+try:
+    from src.inference.inference import ModelInferencePipeline  # type: ignore
+except Exception:  # pragma: no cover
+    ModelInferencePipeline = None  # type: ignore
 from src.eval_engine.fairness_compass_engine import FairnessCompassEngine
 from src.eval_engine.compass_router import route_metric, get_task_type_from_config, get_label_behavior_from_data
 from src.eval_engine.evaluation_module import FairnessEvaluator

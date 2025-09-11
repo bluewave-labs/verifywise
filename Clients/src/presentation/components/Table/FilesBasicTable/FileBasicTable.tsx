@@ -1,4 +1,5 @@
 import {
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -13,9 +14,9 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
-import CustomizableButton from "../../Button/CustomizableButton";
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 
@@ -143,22 +144,28 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.projectTitle}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
-                <TableCell>{row.source}</TableCell>
-                {/* Add any additional cells here */}
                 <TableCell>
-                  <CustomizableButton
+                  <Box
                     sx={{
-                      backgroundColor: "#13715B",
-                      color: "#fff",
-                      border: "1px solid #13715B",
+                      display: "flex",
+                      alignItems: "flex-end",
+                      gap: "4px",
+                      textDecoration: "underline",
+                      "&:hover": {
+                        cursor: "pointer",
+                        "& svg": { visibility: "visible" },
+                      },
                     }}
-                    variant="contained"
-                    text="View"
-                    onClick={(e: React.MouseEvent<HTMLElement>) => {
-                      handleRowClick(row, e);
-                    }}
-                  />
+                    onClick={(event) => handleRowClick(row, event)}
+                  >
+                    {row.source}
+                    <OpenInNewIcon
+                      fontSize="small"
+                      sx={{ visibility: "hidden" }}
+                    />
+                  </Box>
                 </TableCell>
+                {/* Add any additional cells here */}
                 <TableCell>
                   <IconButton
                     id={Number(row.id)}

@@ -23,11 +23,14 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO42001ClauseStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { Project } from "../../../../../domain/types/Project";
 
 const ISO42001Clause = ({
+  project,
   projectFrameworkId,
   statusFilter,
 }: {
+  project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
 }) => {
@@ -323,7 +326,7 @@ const ISO42001Clause = ({
           subClause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(projectFrameworkId)}
-          project_id={0}
+          project_id={Number(project.id)}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }

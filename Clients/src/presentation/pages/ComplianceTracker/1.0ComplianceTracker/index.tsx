@@ -3,7 +3,7 @@ import { Stack, Typography } from "@mui/material";
 import { pageHeadingStyle } from "../../Assessment/1.0AssessmentTracker/index.style";
 import { getEntityById } from "../../../../application/repository/entity.repository";
 import StatsCard from "../../../components/Cards/StatsCard";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import ControlCategoryTile from "./ControlCategory";
 import PageTour from "../../../components/PageTour";

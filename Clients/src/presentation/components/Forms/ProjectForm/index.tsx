@@ -57,7 +57,10 @@ import {
 import { FormValues } from "./constants";
 import { initialState } from "./constants";
 import { ProjectFormProps } from "./constants";
-import { createProject, updateProject } from "../../../../application/repository/project.repository";
+import {
+  createProject,
+  updateProject,
+} from "../../../../application/repository/project.repository";
 
 const ProjectForm = ({
   sx,
@@ -67,7 +70,7 @@ const ProjectForm = ({
 }: ProjectFormProps) => {
   const theme = useTheme();
   const { setProjects } = useContext(VerifyWiseContext);
-  
+
   // Initialize form values based on whether we're editing or creating
   const [values, setValues] = useState<FormValues>(() => {
     if (projectToEdit) {
@@ -79,9 +82,13 @@ const ProjectForm = ({
         ai_risk_classification: projectToEdit.ai_risk_classification || 0,
         type_of_high_risk_role: projectToEdit.type_of_high_risk_role || 0,
         goal: projectToEdit.goal || "",
-        enable_ai_data_insertion: projectToEdit.enable_ai_data_insertion || false,
-        monitored_regulations_and_standards: projectToEdit.monitored_regulations_and_standards || [],
-        framework_type: projectToEdit.is_organizational ? FrameworkTypeEnum.OrganizationWide : FrameworkTypeEnum.ProjectBased,
+        enable_ai_data_insertion:
+          projectToEdit.enable_ai_data_insertion || false,
+        monitored_regulations_and_standards:
+          projectToEdit.monitored_regulations_and_standards || [],
+        framework_type: projectToEdit.is_organizational
+          ? FrameworkTypeEnum.OrganizationWide
+          : FrameworkTypeEnum.ProjectBased,
       };
     }
     return {
@@ -274,7 +281,10 @@ const ProjectForm = ({
     }
 
     // Validate frameworks for both framework types, but skip when editing
-    if (!projectToEdit && values.monitored_regulations_and_standards.length === 0) {
+    if (
+      !projectToEdit &&
+      values.monitored_regulations_and_standards.length === 0
+    ) {
       newErrors.frameworks = "At least one framework is required.";
       setFrameworkRequired(true);
     }
@@ -339,7 +349,9 @@ const ProjectForm = ({
             // Update the project in the projects list
             setProjects((prevProjects: Project[]) =>
               prevProjects.map((project) =>
-                project.id === projectToEdit.id ? res.data.data as Project : project
+                project.id === projectToEdit.id
+                  ? (res.data.data as Project)
+                  : project
               )
             );
           } else {
@@ -485,7 +497,7 @@ const ProjectForm = ({
         backgroundColor: "#FCFCFD",
         padding: 10,
         borderRadius: "4px",
-        gap: 10,
+        gap: 8,
         ...sx,
         maxWidth: "760px",
       }}
@@ -502,7 +514,13 @@ const ProjectForm = ({
             zIndex: 9999,
           }}
         >
-          <CustomizableToast title={projectToEdit ? "Updating project. Please wait..." : "Creating project. Please wait..."} />
+          <CustomizableToast
+            title={
+              projectToEdit
+                ? "Updating project. Please wait..."
+                : "Creating project. Please wait..."
+            }
+          />
         </Stack>
       )}
 
@@ -786,36 +804,61 @@ const ProjectForm = ({
             handleDateChange={handleDateChange}
             sx={{
               ...datePickerStyle,
-              ...(projectToEdit && { width: "350px", "& input": { width: "300px" } }),
+              ...(projectToEdit && {
+                width: "350px",
+                "& input": { width: "300px" },
+              }),
             }}
             isRequired
             error={errors.startDate}
           />
-          <Field
-            id="goal-input"
-            label="Goal"
-            type="description"
-            value={values.goal}
-            onChange={handleOnTextFieldChange("goal")}
-            sx={{
-              backgroundColor: theme.palette.background.main,
-              ...(projectToEdit && { width: "350px" }), // Fix width when editing
-            }}
-            isRequired
-            error={errors.goal}
-          />
+          {/* Goal field - only for project-based frameworks */}
+          {values.framework_type === FrameworkTypeEnum.ProjectBased && (
+            <Field
+              id="goal-input"
+              label="Goal"
+              type="description"
+              value={values.goal}
+              onChange={handleOnTextFieldChange("goal")}
+              sx={{
+                backgroundColor: theme.palette.background.main,
+                ...(projectToEdit && { width: "350px" }), // Fix width when editing
+              }}
+              isRequired
+              error={errors.goal}
+            />
+          )}
         </Stack>
       </Stack>
-      {!projectToEdit && (<Stack>
-        <Checkbox
-          size="small"
-          id="auto-fill"
-          onChange={handleCheckboxChange}
-          isChecked={values.enable_ai_data_insertion}
-          value={values.enable_ai_data_insertion.toString()}
-          label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
+
+      {/* Goal field - full width only for organization-wide frameworks */}
+      {values.framework_type === FrameworkTypeEnum.OrganizationWide && (
+        <Field
+          id="goal-input"
+          label="Goal"
+          type="description"
+          value={values.goal}
+          onChange={handleOnTextFieldChange("goal")}
+          sx={{
+            backgroundColor: theme.palette.background.main,
+            width: "100%",
+          }}
+          isRequired
+          error={errors.goal}
         />
-      </Stack>)}
+      )}
+      {!projectToEdit && (
+        <Stack>
+          <Checkbox
+            size="small"
+            id="auto-fill"
+            onChange={handleCheckboxChange}
+            isChecked={values.enable_ai_data_insertion}
+            value={values.enable_ai_data_insertion.toString()}
+            label="Enable this option to automatically fill in the Compliance Tracker and Assessment Tracker questions with AI-generated answers, helping you save time. You can review and edit these answers anytime."
+          />
+        </Stack>
+      )}
       <Stack
         sx={{
           display: "flex",

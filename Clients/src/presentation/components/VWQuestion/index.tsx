@@ -6,14 +6,8 @@ import {
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import {
-  useCallback,
-  useMemo,
-  useState,
-  useEffect,
-  Suspense,
-} from "react";
-import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
+import { useCallback, useMemo, useState, useEffect, Suspense } from "react";
+import UppyUploadFile from "../Inputs/FileUpload";
 import createUppy from "../../../application/tools/createUppy";
 import Alert from "../Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
@@ -335,11 +329,11 @@ const QuestionFrame = ({
           <Button
             variant="contained"
             sx={{
-              minWidth: 155,      // minimum width
+              minWidth: 155, // minimum width
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",
-              flexShrink: 0,        //  prevent shrinking in flex layouts
+              flexShrink: 0, //  prevent shrinking in flex layouts
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}

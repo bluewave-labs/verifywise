@@ -1,9 +1,7 @@
 import { TableCell, TableHead, TableRow } from "@mui/material";
-import singleTheme from "../../themes/v1SingleTheme";
-
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
-  
   return (
     <TableHead
       sx={{
@@ -19,11 +17,11 @@ const VWProjectRisksTableHead = ({ columns }: { columns: any[] }) => {
               ...singleTheme.tableStyles.primary.header.cell,
               ...(index === columns.length - 1
                 ? {
-                  position: "sticky",
-                  right: 0,
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }
+                    position: "sticky",
+                    right: 0,
+                    backgroundColor:
+                      singleTheme.tableStyles.primary.header.backgroundColors,
+                  }
                 : {}),
             }}
           >

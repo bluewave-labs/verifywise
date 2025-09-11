@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ViewMode } from "../vw-v2-components/ViewToggle";
+import { ViewMode } from "../components/ViewToggle";
 
 /**
  * Custom hook for managing view mode with localStorage persistence
- * 
+ *
  * @param key - localStorage key for persistence
  * @param defaultValue - default view mode if not found in localStorage
  * @returns [viewMode, setViewMode] tuple

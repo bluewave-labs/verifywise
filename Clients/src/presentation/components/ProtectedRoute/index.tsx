@@ -4,7 +4,7 @@ import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUserExists } from "../../../application/redux/auth/authSlice";
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
-import CustomizableToast from "../../vw-v2-components/Toast";
+import CustomizableToast from "../Toast";
 
 interface ProtectedRouteProps {
   Component: ComponentType<any>;

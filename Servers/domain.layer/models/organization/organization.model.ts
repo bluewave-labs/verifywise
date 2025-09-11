@@ -159,6 +159,7 @@ export class OrganizationModel
   async updateOrganization(updateData: {
     name?: string;
     logo?: string;
+    subscription_id?: number;
     members?: number[];
     projects?: number[];
   }): Promise<void> {
@@ -215,6 +216,10 @@ export class OrganizationModel
       }
 
       this.logo = updateData.logo || "";
+    }
+
+    if (updateData.subscription_id !== undefined) {
+      this.subscription_id = updateData.subscription_id;
     }
   }
 

@@ -8,6 +8,19 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
     await sequelize.query(`CREATE SCHEMA "${tenantHash}";`, { transaction });
 
     await sequelize.query(
+      `CREATE TABLE "${tenantHash}".event_logs (
+        id SERIAL PRIMARY KEY,
+        event_type public.event_type_enum NOT NULL,
+        description TEXT,
+        user_id INTEGER,
+        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_event_logs_user FOREIGN KEY (user_id)
+          REFERENCES public.users (id)
+          ON UPDATE CASCADE
+          ON DELETE SET NULL
+      );`, { transaction });
+
+    await sequelize.query(
       `CREATE OR REPLACE FUNCTION "${tenantHash}".check_only_one_organizational_project()
         RETURNS TRIGGER AS $$
         BEGIN

@@ -38,7 +38,7 @@ import { ReactComponent as Policies } from "../../assets/icons/policies.svg";
 
 /**Adding the training register icon */
 import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
-// import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
+import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
 import { ReactComponent as ModelInventory } from "../../assets/icons/list.svg";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -124,11 +124,11 @@ const menu: MenuItem[] = [
 ];
 
 const other: MenuItem[] = [
-  // {
-  //   name: "Event Tracker",
-  //   icon: <WatchTower />,
-  //   path: "/event-tracker",
-  // },
+  {
+    name: "Event Tracker",
+    icon: <WatchTower />,
+    path: "/event-tracker",
+  },
   {
     name: "Settings",
     icon: <Settings />,
@@ -305,7 +305,7 @@ const Sidebar = () => {
           },
         }}
         onClick={() => {
-          setOpen({ Dashboard: false, Account: false });
+          setOpen({ Dashboard: true, Account: false }); // Keep Dashboard always open
           dispatch(toggleSidebar());
         }}
       >
@@ -462,12 +462,18 @@ const Sidebar = () => {
                     theme.components?.MuiListItemButton?.defaultProps
                       ?.disableRipple
                   }
-                  onClick={() =>
-                    setOpen((prev) => ({
-                      ...prev,
-                      [`${item.name}`]: !prev[`${item.name}`],
-                    }))
-                  }
+                  onClick={() => {
+                    if (item.name === "Dashboard") {
+                      // Navigate directly to the main dashboard instead of toggling
+                      navigate("/");
+                    } else {
+                      // Keep toggle behavior for other menu items with children
+                      setOpen((prev) => ({
+                        ...prev,
+                        [`${item.name}`]: !prev[`${item.name}`],
+                      }));
+                    }
+                  }}
                   sx={{
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
@@ -498,7 +504,7 @@ const Sidebar = () => {
                   </ListItemIcon>
                   <ListItemText>{item.name}</ListItemText>
                 </ListItemButton>
-                <Collapse in={open[`${item.name}`]} timeout="auto">
+                <Collapse in={item.name === "Dashboard" ? true : open[`${item.name}`]} timeout="auto">
                   <List
                     component="div"
                     disablePadding

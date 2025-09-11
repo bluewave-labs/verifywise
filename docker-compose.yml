@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   postgresdb:
@@ -27,6 +27,8 @@ services:
     pull_policy: always
     ports:
       - $BACKEND_PORT:$BACKEND_PORT
+    volumes:
+      - app_logs:/app/logs
     environment:
       - PORT=$BACKEND_PORT
       - DB_HOST=postgresdb
@@ -39,6 +41,13 @@ services:
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
       - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
+      - DO_SPACES_REGION=$DO_SPACES_REGION
+      - DO_SPACES_BUCKET=$DO_SPACES_BUCKET
+      - DO_SPACES_ENDPOINT=$DO_SPACES_ENDPOINT
+      - DO_SPACES_KEY=$DO_SPACES_KEY
+      - DO_SPACES_SECRET=$DO_SPACES_SECRET
+      - LOG_DO_PREFIX=$LOG_DO_PREFIX
+      - LOG_COMPRESSION_ENABLED=$LOG_COMPRESSION_ENABLED
   frontend:
     depends_on:
       - backend
@@ -65,3 +74,4 @@ services:
 
 volumes:
   db:
+  app_logs:

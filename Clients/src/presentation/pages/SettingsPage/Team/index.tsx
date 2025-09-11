@@ -30,19 +30,14 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import TablePaginationActions from "../../../components/TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import InviteUserModal from "../../../components/Modals/InviteUser";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { deleteUserById, updateUserById } from "../../../../application/repository/user.repository";
-import { GetMyOrganization } from "../../../../application/repository/organization.repository";
-import { extractUserToken } from "../../../../application/tools/extractToken";
-import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { getTierFeatures } from "../../../../application/repository/tiers.repository";
-import { Tier } from "../../../../domain/types/Tiers";
-import { useEffect } from "react";
+import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
 
 import useUsers from "../../../../application/hooks/useUsers";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -286,35 +281,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
     setInviteUserModalOpen(false);
   };
 
-  const userToken = extractUserToken(getAuthToken());
-  const organizationId = userToken?.organizationId;
-  const [organizationTierId, setOrganizationTierId] = useState<number | null>(
-    null
-  );
-  const [tierFeatures, setTierFeatures] = useState<Tier | null>(null);
-
-  useEffect(() => {
-    const fetchOrganizationTierId = async () => {
-      const organization = await GetMyOrganization({
-        routeUrl: `/organizations/${organizationId}`,
-      });
-      const org = organization.data.data;
-      setOrganizationTierId(org.subscription_id);
-    };
-
-    fetchOrganizationTierId();
-  }, [organizationId]);
-
-  useEffect(() => {
-    const fetchTierFeatures = async () => {
-      const features = await getTierFeatures({
-        tierId: organizationTierId || 1,
-        routeUrl: "/tiers",
-      });
-      setTierFeatures(features.data);
-    };
-    fetchTierFeatures();
-  }, [organizationTierId]);
+  const { tierFeatures } = useSubscriptionData();
 
   const canAddTeamMembers =
     tierFeatures?.seats === 0 || (tierFeatures?.seats && tierFeatures?.seats > teamUsers.length);

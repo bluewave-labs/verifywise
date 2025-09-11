@@ -1,5 +1,13 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { getAuthToken } from "../redux/auth/getAuthToken";
+import { Tier } from "../../domain/types/Tiers";
+
+interface TierResponse {
+  id: number;
+  name: string;
+  price: number;
+  features: Tier;
+}
 
 /**
  * Retrieves features for a specific tier.
@@ -27,5 +35,22 @@ export async function getTierFeatures({
     headers: { Authorization: `Bearer ${authToken}` },
     responseType,
   });
-  return response.data;
+  const data = response.data as { data?: TierResponse };
+  return data.data ?? {};
+}
+
+export async function getAllTiers({
+  signal,
+  authToken = getAuthToken(),
+}: {
+  signal?: AbortSignal;
+  authToken?: string;
+} = {}): Promise<TierResponse[]> {
+  const response = await apiServices.get("/tiers", {
+    headers: { Authorization: `Bearer ${authToken}` },
+    signal,
+  });
+
+  const data = response.data as { data?: TierResponse[] };
+  return data.data ?? [];
 }

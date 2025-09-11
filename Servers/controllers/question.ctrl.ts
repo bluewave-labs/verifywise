@@ -63,7 +63,9 @@ export async function getAllQuestions(
     );
     await logEvent(
       "Error",
-      `Failed to retrieve questions: ${(error as Error).message}`
+      `Failed to retrieve questions: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getAllQuestions:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -110,7 +112,7 @@ export async function getQuestionById(
       "getQuestionById",
       "question.ctrl.ts"
     );
-    await logEvent("Error", `Failed to retrieve question by ID: ${questionId}`);
+    await logEvent("Error", `Failed to retrieve question by ID: ${questionId}`, req.userId!, req.tenantId!);
     logger.error("❌ Error in getQuestionById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -183,7 +185,9 @@ export async function createQuestion(
       );
       await logEvent(
         "Create",
-        `Question created: ID ${createdQuestion.id}, subtopic ID: ${subtopic_id}`
+        `Question created: ID ${createdQuestion.id}, subtopic ID: ${subtopic_id}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(201).json(STATUS_CODE[201](createdQuestion));
     }
@@ -196,7 +200,9 @@ export async function createQuestion(
     );
     await logEvent(
       "Error",
-      `Question creation failed for subtopic ID: ${subtopic_id}`
+      `Question creation failed for subtopic ID: ${subtopic_id}`,
+      req.userId!,
+      req.tenantId!
     );
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to create question"));
@@ -212,7 +218,9 @@ export async function createQuestion(
       );
       await logEvent(
         "Error",
-        `Validation error during question creation: ${error.message}`
+        `Validation error during question creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -226,7 +234,9 @@ export async function createQuestion(
       );
       await logEvent(
         "Error",
-        `Business logic error during question creation: ${error.message}`
+        `Business logic error during question creation: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -239,7 +249,9 @@ export async function createQuestion(
     );
     await logEvent(
       "Error",
-      `Unexpected error during question creation for subtopic ID ${subtopic_id}: ${(error as Error).message}`
+      `Unexpected error during question creation for subtopic ID ${subtopic_id}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in createQuestion:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -277,7 +289,9 @@ export async function updateQuestionById(
       );
       await logEvent(
         "Error",
-        `Update failed — question not found: ID ${questionId}`
+        `Update failed — question not found: ID ${questionId}`,
+        req.userId!,
+        req.tenantId!
       );
       await transaction.rollback();
       return res.status(404).json(STATUS_CODE[404]("Question not found"));
@@ -321,7 +335,9 @@ export async function updateQuestionById(
       );
       await logEvent(
         "Update",
-        `Question updated: ID ${questionId}, subtopic ID: ${updatedQuestion.subtopic_id}`
+        `Question updated: ID ${questionId}, subtopic ID: ${updatedQuestion.subtopic_id}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(200).json(STATUS_CODE[200](updatedQuestion));
     }
@@ -332,7 +348,7 @@ export async function updateQuestionById(
       "updateQuestionById",
       "question.ctrl.ts"
     );
-    await logEvent("Error", `Question update failed: ID ${questionId}`);
+    await logEvent("Error", `Question update failed: ID ${questionId}`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res.status(400).json(STATUS_CODE[400]("Failed to update question"));
   } catch (error) {
@@ -347,7 +363,9 @@ export async function updateQuestionById(
       );
       await logEvent(
         "Error",
-        `Validation error during question update: ${error.message}`
+        `Validation error during question update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(400).json(STATUS_CODE[400](error.message));
     }
@@ -361,7 +379,9 @@ export async function updateQuestionById(
       );
       await logEvent(
         "Error",
-        `Business logic error during question update: ${error.message}`
+        `Business logic error during question update: ${error.message}`,
+        req.userId!,
+        req.tenantId!
       );
       return res.status(403).json(STATUS_CODE[403](error.message));
     }
@@ -374,7 +394,9 @@ export async function updateQuestionById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during question update for ID ${questionId}: ${(error as Error).message}`
+      `Unexpected error during question update for ID ${questionId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in updateQuestionById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -411,7 +433,7 @@ export async function deleteQuestionById(
         "deleteQuestionById",
         "question.ctrl.ts"
       );
-      await logEvent("Delete", `Question deleted: ID ${questionId}`);
+      await logEvent("Delete", `Question deleted: ID ${questionId}`, req.userId!, req.tenantId!);
       return res.status(202).json(STATUS_CODE[202](deletedQuestion));
     }
 
@@ -433,7 +455,9 @@ export async function deleteQuestionById(
     );
     await logEvent(
       "Error",
-      `Failed to delete question ID ${questionId}: ${(error as Error).message}`
+      `Failed to delete question ID ${questionId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in deleteQuestionById:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -459,7 +483,7 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
         "getQuestionsBySubtopicId",
         "question.ctrl.ts"
       );
-      await logEvent("Error", `Invalid subtopic ID provided: ${req.params.id}`);
+      await logEvent("Error", `Invalid subtopic ID provided: ${req.params.id}`, req.userId!, req.tenantId!);
       return res
         .status(400)
         .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
@@ -500,7 +524,9 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Failed to retrieve questions for subtopic ID ${subtopicId}: ${(error as Error).message}`
+      `Failed to retrieve questions for subtopic ID ${subtopicId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getQuestionsBySubtopicId:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
@@ -526,7 +552,7 @@ export async function getQuestionsByTopicId(req: Request, res: Response) {
         "getQuestionsByTopicId",
         "question.ctrl.ts"
       );
-      await logEvent("Error", `Invalid topic ID provided: ${req.params.id}`);
+      await logEvent("Error", `Invalid topic ID provided: ${req.params.id}`, req.userId!, req.tenantId!);
       return res
         .status(400)
         .json(STATUS_CODE[400]({ message: "Invalid topic ID" }));
@@ -564,7 +590,9 @@ export async function getQuestionsByTopicId(req: Request, res: Response) {
     );
     await logEvent(
       "Error",
-      `Failed to retrieve questions for topic ID ${topicId}: ${(error as Error).message}`
+      `Failed to retrieve questions for topic ID ${topicId}: ${(error as Error).message}`,
+      req.userId!,
+      req.tenantId!
     );
     logger.error("❌ Error in getQuestionsByTopicId:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

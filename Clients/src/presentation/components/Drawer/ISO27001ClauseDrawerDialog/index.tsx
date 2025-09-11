@@ -22,7 +22,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
@@ -50,6 +50,7 @@ interface VWISO27001ClauseDrawerDialogProps {
   projectFrameworkId: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
   index: number;
+  project_id: number;
 }
 
 const VWISO27001ClauseDrawerDialog = ({
@@ -60,6 +61,7 @@ const VWISO27001ClauseDrawerDialog = ({
   projectFrameworkId,
   onSaveSuccess,
   index,
+  project_id,
 }: VWISO27001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -231,6 +233,7 @@ const VWISO27001ClauseDrawerDialog = ({
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
       formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
+      formDataToSend.append("project_id", project_id.toString());
 
       uploadFiles.forEach((file) => {
         if (file.data instanceof Blob) {

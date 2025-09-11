@@ -111,7 +111,7 @@ export async function createSubscriptionController(
       "createSubscriptionController",
       "subscriptions.ctrl.ts"
     );
-    await logEvent("Error", `Failed to create subscription`);
+    await logEvent("Error", `Failed to create subscription`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(400)
@@ -128,6 +128,51 @@ export async function createSubscriptionController(
     return res
       .status(500)
       .json(STATUS_CODE[500]({ message: (error as Error).message }));
+  }
+}
+
+export async function getSubscriptionByIdController(
+  req: Request,
+  res: Response
+) {
+  const id = parseInt(req.params.id);
+  
+  logStructured(
+    "processing",
+    `Fetching subscription by ID: ${id}`,
+    "getSubscriptionByIdController",
+    "subscriptions.ctrl.ts"
+  );
+  logger.debug(`🔍 Looking up subscription with ID: ${id}`);
+
+  try {
+    const subscription = await getSubscriptionById(id);
+    if (subscription) {
+      logStructured(
+        "successful",
+        `Subscription found: ID ${id}`,
+        "getSubscriptionByIdController",
+        "subscriptions.ctrl.ts"
+      );
+      return res.status(200).json(STATUS_CODE[200](subscription));
+    }
+
+    logStructured(
+      "error",
+      `Subscription not found: ID ${id}`,
+      "getSubscriptionByIdController",
+      "subscriptions.ctrl.ts"
+    );
+    return res.status(404).json(STATUS_CODE[404]({ message: "Subscription not found" }));
+  } catch (error) {
+    logStructured(
+      "error",
+      `Failed to fetch subscription: ID ${id}`,
+      "getSubscriptionByIdController",
+      "subscriptions.ctrl.ts"
+    );
+    logger.error("❌ Error in getSubscriptionByIdController:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
@@ -178,7 +223,7 @@ export async function updateSubscriptionController(
         "updateSubscriptionController",
         "subscriptions.ctrl.ts"
       );
-      await logEvent("Update", `Subscription updated successfully`);
+      await logEvent("Update", `Subscription updated successfully`, req.userId!, req.tenantId!);
       return res.status(200).json(STATUS_CODE[200](updatedSubscription));
     }
 
@@ -188,7 +233,7 @@ export async function updateSubscriptionController(
       "updateSubscriptionController",
       "subscriptions.ctrl.ts"
     );
-    await logEvent("Error", `Subscription not found`);
+    await logEvent("Error", `Subscription not found`, req.userId!, req.tenantId!);
     await transaction.rollback();
     return res
       .status(404)

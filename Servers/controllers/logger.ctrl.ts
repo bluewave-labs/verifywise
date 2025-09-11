@@ -4,7 +4,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 
 async function getEvents(req: Request, res: Response) {
   try {
-    const events = await getEventsQuery();
+    const events = await getEventsQuery(req.tenantId!);
     res.status(200).json(STATUS_CODE[200](events));
   } catch (error) {
     res.status(500).json({ message: "Failed to get events" });
@@ -13,7 +13,7 @@ async function getEvents(req: Request, res: Response) {
 
 async function getLogs(req: Request, res: Response) {
   try {
-    const logs = await getLogsQuery();
+    const logs = await getLogsQuery(req.tenantId!);
     res.status(200).json(STATUS_CODE[200](logs));
   } catch (error) {
     res.status(500).json({ message: "Failed to get logs" });

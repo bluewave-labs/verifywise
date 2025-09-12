@@ -27,6 +27,7 @@ import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 
+
 const Home = () => {
   const {
     setDashboardValues,
@@ -83,6 +84,7 @@ const Home = () => {
     setIsProjectFormModalOpen(false);
     setRefreshProjectsFlag((prev) => !prev);
   };
+
 
   // const handleGenerateDemoDataClick = async () => {
   //   setShowToastNotification(true);
@@ -226,7 +228,11 @@ const Home = () => {
 
       <Modal
         open={isProjectFormModalOpen}
-        onClose={handleProjectFormModalClose}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            handleProjectFormModalClose();
+          }
+        }}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >

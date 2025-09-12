@@ -64,7 +64,7 @@ const Popup: FC<PopupProps> = ({
       pb: 15,
       pl: 15,
       pr: 15,
-      maxHeight: 650,
+      maxHeight: "90vh",
       width: "fit-content",
       overflow: "auto",
     },

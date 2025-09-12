@@ -1,4 +1,4 @@
-import { Button, Stack, Typography, useTheme } from "@mui/material";
+import { Button, Divider, Stack, Typography, useTheme } from "@mui/material";
 import React, { Suspense, useState, useEffect } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
@@ -23,9 +23,13 @@ import { useDispatch } from "react-redux";
 import {
   setUserExists,
   setAuthToken,
+  setExpiration,
 } from "../../../../application/redux/auth/authSlice";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import useUsers from "../../../../application/hooks/useUsers";
+import { GoogleSignIn } from "../../../components/GoogleSignIn";
+import { decodeGoogleToken, GoogleAuthResponse } from "../../../../application/tools/googleAuth";
+import { createNewOrganizationWithGoogle } from "../../../../application/repository/organization.repository";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -371,6 +375,95 @@ const RegisterMultiTenant: React.FC = () => {
               ← Back to Login
             </Typography>
             <Stack sx={{ gap: theme.spacing(7.5) }}>
+            <GoogleSignIn
+              isSubmitting={isSubmitting}
+              setIsSubmitting={setIsSubmitting}
+              text="Google Sign up"
+              callback={
+                async (response: GoogleAuthResponse) => {
+                  try {
+                    setIsSubmitting(true);                    
+                    // Decode the Google token to get user info
+                    const googleUser = decodeGoogleToken(response.credential);
+                    
+                    logEngine({
+                      type: "info",
+                      message: `Google Sign-Up attempt for user: ${googleUser.email}`,
+                    });
+        
+                    // Send the Google token to your backend for verification and login
+                    const loginResponse = await createNewOrganizationWithGoogle({
+                      googleToken: response.credential,
+                      body: {
+                        name: organizationValues.organizationName
+                      }
+                    });
+
+                    if (loginResponse.status === 201) {
+                      const token = loginResponse.data.data.token;
+
+                      // Always remember Google sign-in for 30 days
+                      const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+                      dispatch(setAuthToken(token));
+                      dispatch(setExpiration(expirationDate));
+
+                      logEngine({
+                        type: "info",
+                        message: "Google Sign-In successful.",
+                      });
+        
+                      setTimeout(() => {
+                        setIsSubmitting(false);
+                        navigate("/");
+                      }, 2000);
+                    } else {
+                      logEngine({
+                        type: "error",
+                        message: loginResponse.data.data || "Google Sign-In failed with unexpected response.",
+                      });
+        
+                      setIsSubmitting(false);
+                      setAlert({
+                        variant: "error",
+                        body: loginResponse.data.data || "Google Sign-In failed. Please try again.",
+                      });
+                      setTimeout(() => setAlert(null), 3000);
+                    }
+                  } catch (error: any) {
+                    logEngine({
+                      type: "error",
+                      message: `Google Sign-In error: ${error.message}`,
+                    });
+        
+                    setIsSubmitting(false);
+                    setAlert({
+                      variant: "error",
+                      body: error.message || "Google Sign-In failed. Please try again.",
+                    });
+                    setTimeout(() => setAlert(null), 3000);
+                  }
+                }
+              }
+            />
+            <Stack sx={{ position: 'relative', my: 2 }}>
+              <Divider />
+              <Typography
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: '#fff',
+                  px: 2,
+                  fontSize: 14,
+                  color: theme.palette.text.secondary,
+                  fontWeight: 500,
+                }}
+              >
+                or
+              </Typography>
+            </Stack>
+            <Stack sx={{ gap: theme.spacing(7.5) }}>
               <Field
                 label="Name"
                 isRequired
@@ -449,6 +542,7 @@ const RegisterMultiTenant: React.FC = () => {
               >
                 Get started
               </Button>
+            </Stack>
             </Stack>
           </Stack>
         </form>

@@ -1748,6 +1748,31 @@ paths:
 
   # Model Inventory
   /model-inventory:
+    get:
+      summary: Get all model inventory entries
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: List of model inventory entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModelInventory'
+        '204':
+          description: No model inventory entries found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     post:
       summary: Create model inventory entry
       tags: [Model Inventory]
@@ -1762,6 +1787,94 @@ paths:
       responses:
         '201':
           description: Model inventory entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /model-inventory/{id}:
+    get:
+      summary: Get model inventory entry by ID
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model inventory entry ID
+      responses:
+        '200':
+          description: Model inventory entry found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelInventory'
+        '204':
+          description: Model inventory entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    patch:
+      summary: Update model inventory entry
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model inventory entry ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelInventory'
+      responses:
+        '200':
+          description: Model inventory entry updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model inventory entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    delete:
+      summary: Delete model inventory entry
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model inventory entry ID
+      responses:
+        '200':
+          description: Model inventory entry deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model inventory entry not found
           content:
             application/json:
               schema:
@@ -3211,14 +3324,48 @@ components:
       properties:
         id:
           type: integer
-        model_name:
+        provider_model:
           type: string
-        model_version:
+          description: Combined provider and model name (for backward compatibility)
+        provider:
           type: string
-        model_type:
+          description: Model provider organization
+        model:
           type: string
+          description: Model name
+        version:
+          type: string
+          description: Model version
+        approver:
+          type: string
+          description: Person who approved the model
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: List of model capabilities
+        security_assessment:
+          type: boolean
+          description: Whether security assessment has been completed
         status:
           type: string
+          enum: ["Approved", "Restricted", "Pending", "Blocked"]
+          description: Model approval status
+        status_date:
+          type: string
+          format: date-time
+          description: Date when status was last updated
+        is_demo:
+          type: boolean
+          description: Whether this is a demo entry
+        created_at:
+          type: string
+          format: date-time
+          description: Entry creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Entry last update timestamp
 
     Training:
       type: object

@@ -7,6 +7,7 @@ const GenerateReportPopup = lazy(
 const ReportStatus = lazy(() => import("./ReportStatus"));
 import { styles } from "./styles";
 import { useProjects } from "../../../../application/hooks/useProjects";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface GenerateReportProps {
   onReportGenerated?: () => void;
@@ -18,6 +19,11 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { data: projects } = useProjects();
   const isDisabled = projects?.length && projects?.length > 0 ? false : true;
+
+  useModalKeyHandling({
+    isOpen: isModalOpen,
+    onClose: () => setIsModalOpen(false),
+  });
 
   return (
     <>
@@ -37,7 +43,14 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
           <ReportStatus isDisabled={isDisabled} />
         </Suspense>
       </Stack>
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Dialog 
+        open={isModalOpen} 
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            setIsModalOpen(false);
+          }
+        }}
+      >
         <Suspense fallback={"loading..."}>
           <GenerateReportPopup
             onClose={() => setIsModalOpen(false)}

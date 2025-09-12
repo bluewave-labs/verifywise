@@ -44,6 +44,7 @@ import {
   useCreateVendor,
   useUpdateVendor,
 } from "../../../../application/hooks/useVendors";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 export interface VendorDetails {
   id?: number;
@@ -88,7 +89,7 @@ const initialState = {
 
 interface AddNewVendorProps {
   isOpen: boolean;
-  setIsOpen: () => void;
+  setIsOpen: (isOpen: boolean) => void;
   value: string;
   onSuccess: () => void;
   existingVendor?: VendorDetails | null;
@@ -193,6 +194,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       }));
     }
   }, [existingVendor]);
+
+  // ESC key handling and focus trapping
+  useModalKeyHandling({
+    isOpen,
+    onClose: () => setIsOpen(false)
+  });
 
   /**
    * Opens the confirmation modal if form validation passes
@@ -362,7 +369,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => setAlert(null), 3000);
         onSuccess();
-        setIsOpen();
+        setIsOpen(false);
       } else {
         setAlert({
           variant: "error",
@@ -417,7 +424,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => setAlert(null), 3000);
         onSuccess();
-        setIsOpen();
+        setIsOpen(false);
       } else {
         setAlert({
           variant: "error",
@@ -753,15 +760,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         onClose={(_event, reason) => {
           if (reason !== "backdropClick") {
             setValues(initialState);
-            setIsOpen();
+            setIsOpen(false);
           }
         }}
-        disableEscapeKeyDown
         sx={{ overflowY: "scroll" }}
       >
         <Stack
           gap={theme.spacing(2)}
           color={theme.palette.text.secondary}
+          onClick={(e) => e.stopPropagation()}
           sx={{
             backgroundColor: "#D9D9D9",
             position: "absolute",
@@ -796,7 +803,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
               {existingVendor ? "Edit vendor" : "Add new vendor"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
+            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
           </Stack>
           <Box
             sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}

@@ -321,7 +321,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal open={isOpen} onClose={handleClose} sx={{ overflowY: "scroll" }}>
+    <Modal 
+      open={isOpen} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }} 
+      sx={{ overflowY: "scroll" }}
+    >
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}

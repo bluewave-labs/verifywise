@@ -18,10 +18,11 @@ import {
   BasicModalCancelButtonStyle,
   BasicModalDeleteButtonStyle,
 } from "./style";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
-  // setIsOpen,
+  setIsOpen,
   onDelete,
   onCancel,
   warningTitle,
@@ -29,14 +30,28 @@ const BasicModal: React.FC<BasicModalProps> = ({
   type,
 }) => {
   const theme = useTheme();
+
+  useModalKeyHandling({
+    isOpen,
+    onClose: () => setIsOpen(false)
+  });
+
   return (
-    <Modal open={isOpen} onClose={() => {
-      // Prevent closing the modal by clicking outside. 
-// The modal only closes via Cancel button or programmatically via onDelete.
-    }}>
+    <Modal
+      open={isOpen}
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          setIsOpen(false);
+        }
+      }}
+    >
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
         sx={{
           position: "absolute",
           top: "50%",
@@ -54,13 +69,17 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
+        <Typography
+          id="modal-delete-vendor"
+          fontSize={16}
+          fontWeight={600}
+        >
           {warningTitle}
         </Typography>
         <Typography
           id="delete-monitor-confirmation"
           fontSize={13}
-          textAlign={"left"}
+          textAlign={"justify"}
         >
           {warningMessage}
         </Typography>

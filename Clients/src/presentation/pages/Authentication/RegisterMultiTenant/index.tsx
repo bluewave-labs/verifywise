@@ -29,7 +29,6 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 import useUsers from "../../../../application/hooks/useUsers";
 import { GoogleSignIn } from "../../../components/GoogleSignIn";
 import { decodeGoogleToken, GoogleAuthResponse } from "../../../../application/tools/googleAuth";
-import { createNewUserWithGoogle } from "../../../../application/repository/user.repository";
 import { createNewOrganizationWithGoogle } from "../../../../application/repository/organization.repository";
 
 // Initial state for form values

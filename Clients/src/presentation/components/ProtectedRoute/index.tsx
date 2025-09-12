@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { setUserExists } from "../../../application/redux/auth/authSlice";
+import { setUserExists, clearAuthState } from "../../../application/redux/auth/authSlice";
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../Toast";
 
@@ -33,26 +33,38 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
   const isPublicRoute = publicRoutes.includes(location.pathname);
 
   useEffect(() => {
-    // Check if user exists in the database
+    // Check if user exists in the database and validate token
     const checkUserExistsInDatabase = async () => {
       try {
         const response = await getAllEntities({
           routeUrl: "/users/check/exists",
         });
         const userExists = response ?? false;
-        // if (!userExists) {
-        //   dispatch(clearAuthState())
-        // }
+        
+        // If we have a token, validate it's still valid
+        if (authState.authToken && authState.authToken.trim() !== "") {
+          try {
+            // Test token validity with a simple API call
+            await getAllEntities({
+              routeUrl: "/users/me",
+            });
+          } catch (tokenError) {
+            console.warn("Token validation failed, clearing auth state:", tokenError);
+            dispatch(clearAuthState());
+          }
+        }
 
         dispatch(setUserExists(userExists));
       } catch (error) {
         console.error("Error checking if user exists:", error);
+        // If there's a network error but we have a token, don't clear it
+        // Only clear on explicit auth failures
       } finally {
         setLoading(false);
       }
     };
     checkUserExistsInDatabase();
-  }, [dispatch]);
+  }, [dispatch, authState.authToken]);
 
   if (loading) {
     return <CustomizableToast title="Loading..." />; // Show a loading indicator while checking user existence

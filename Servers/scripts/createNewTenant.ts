@@ -10,7 +10,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
     await sequelize.query(
       `CREATE TABLE "${tenantHash}".event_logs (
         id SERIAL PRIMARY KEY,
-        event_type public.event_type_enum NOT NULL,
+        event_type public.enum_event_logs_event_type NOT NULL,
         description TEXT,
         user_id INTEGER,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

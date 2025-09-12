@@ -531,6 +531,8 @@ const Sidebar = () => {
                         bottom: 0,
                         width: "1px",
                         backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                        zIndex: 1, // Ensure tree lines stay above background
+                        pointerEvents: "none", // Prevent interference with hover
                       },
                     }}
                   >
@@ -552,6 +554,7 @@ const Sidebar = () => {
                           gap: theme.spacing(4),
                           borderRadius: theme.shape.borderRadius,
                           px: theme.spacing(4),
+                          pl: `calc(${theme.spacing(4)} + 20px)`, // Add extra left padding to avoid tree overlap
                           my: theme.spacing(1),
                           position: "relative",
                           backgroundColor:
@@ -570,6 +573,8 @@ const Sidebar = () => {
                             width: theme.spacing(5), // Extend to the item's padding start
                             height: "1px",
                             backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                            zIndex: 1, // Ensure tree lines stay above background
+                            pointerEvents: "none", // Prevent interference with hover
                           },
                           // L-shaped corner for the last item
                           ...(index === item.children!.length - 1 && {
@@ -582,6 +587,8 @@ const Sidebar = () => {
                               width: "1px",
                               backgroundColor:
                                 theme.palette.background.main || "#ffffff",
+                              zIndex: 1, // Ensure tree lines stay above background
+                              pointerEvents: "none", // Prevent interference with hover
                             },
                           }),
                         }}
@@ -591,6 +598,7 @@ const Sidebar = () => {
                             "& .MuiListItemText-primary": {
                               fontSize: "13px",
                               color: theme.palette.text.secondary,
+                              fontWeight: 400, // Ensure consistent font weight
                             },
                           }}
                         >

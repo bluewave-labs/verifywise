@@ -25,6 +25,7 @@ export interface IconButtonProps {
   onMakeVisible?: () => void;
   onDownload?: () => void;
   isVisible?: boolean;
+  canDelete?: boolean;
 }
 
 export interface AutoCompleteOption {

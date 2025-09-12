@@ -37,6 +37,7 @@ import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import { deleteProject } from "../../../application/repository/project.repository";
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
+import { useSearchParams } from "react-router-dom";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -97,6 +98,11 @@ const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
 });
 
 const Framework = () => {
+  const [searchParams] = useSearchParams();
+  const frameworkName = searchParams.get("frameworkName");
+  const annexId = searchParams.get("annexId");
+  const clauseId = searchParams.get("clauseId");
+
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
@@ -121,7 +127,7 @@ const Framework = () => {
 
   // Handle dropdown menu
   const handleManageProjectClick = (
-    event: React.MouseEvent<HTMLButtonElement>
+    event: React.MouseEvent<HTMLButtonElement>,
   ) => {
     setAnchorEl(event.currentTarget);
   };
@@ -174,8 +180,8 @@ const Framework = () => {
         // Remove the project from context
         setProjects((prevProjects) =>
           prevProjects.filter(
-            (project) => project.id !== organizationalProject.id
-          )
+            (project) => project.id !== organizationalProject.id,
+          ),
         );
         // Stay on the Framework page - the UI will automatically show "No Organizational Project Found"
       } else {
@@ -202,7 +208,7 @@ const Framework = () => {
 
     // Get framework IDs from the organizational project
     const projectFrameworkIds = organizationalProject.framework.map((f) =>
-      Number(f.framework_id)
+      Number(f.framework_id),
     );
 
     // Filter frameworks to only include those assigned to the project and exclude EU AI Act
@@ -223,7 +229,7 @@ const Framework = () => {
     if (!organizationalProject?.framework) return null;
 
     const projectFramework = organizationalProject.framework.find(
-      (f) => f.framework_id === Number(frameworkId)
+      (f) => f.framework_id === Number(frameworkId),
     );
 
     return projectFramework?.project_framework_id || null;
@@ -270,12 +276,23 @@ const Framework = () => {
   // Reset selected framework when filtered frameworks change
   useEffect(() => {
     if (
+      !frameworkName &&
       filteredFrameworks.length > 0 &&
       selectedFramework >= filteredFrameworks.length
     ) {
       setSelectedFramework(0);
     }
-  }, [filteredFrameworks, selectedFramework]);
+  }, [filteredFrameworks, selectedFramework, frameworkName]);
+
+  useEffect(() => {
+    if (frameworkName === "iso-42001") {
+      setSelectedFramework(1);
+      setIso42001TabValue(annexId ? "annexes" : "clauses");
+    } else if (frameworkName === "iso-27001") {
+      setSelectedFramework(0);
+      setIso27001TabValue(annexId ? "annex" : "clause");
+    }
+  }, [frameworkName, annexId, clauseId]);
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
   useEffect(() => {
@@ -293,14 +310,14 @@ const Framework = () => {
 
   const handleIso27001TabChange = (
     _: React.SyntheticEvent,
-    newValue: string
+    newValue: string,
   ) => {
     setIso27001TabValue(newValue);
   };
 
   const handleIso42001TabChange = (
     _: React.SyntheticEvent,
-    newValue: string
+    newValue: string,
   ) => {
     setIso42001TabValue(newValue);
   };
@@ -400,18 +417,16 @@ const Framework = () => {
 
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
             </TabPanel>
 
             <TabPanel value="annex" sx={tabPanelStyle}>
               <ISO27001Annex
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
               />
@@ -461,18 +476,16 @@ const Framework = () => {
 
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
             </TabPanel>
 
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
               />
@@ -706,7 +719,7 @@ const Framework = () => {
                   onClick={() => handleFrameworkSelect(index)}
                   sx={getFrameworkTabStyle(
                     selectedFramework === index,
-                    index === filteredFrameworks.length - 1
+                    index === filteredFrameworks.length - 1,
                   )}
                 >
                   {framework.name}

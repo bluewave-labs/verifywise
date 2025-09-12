@@ -30,15 +30,15 @@ const BasicModal: React.FC<BasicModalProps> = ({
   type,
 }) => {
   const theme = useTheme();
-  
-  useModalKeyHandling({ 
-    isOpen, 
-    onClose: () => setIsOpen(false) 
+
+  useModalKeyHandling({
+    isOpen,
+    onClose: () => setIsOpen(false)
   });
 
   return (
-    <Modal 
-      open={isOpen} 
+    <Modal
+      open={isOpen}
       onClose={(_event, reason) => {
         if (reason !== 'backdropClick') {
           setIsOpen(false);
@@ -69,14 +69,10 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        <Typography 
-          id="modal-delete-vendor" 
-          fontSize={16} 
+        <Typography
+          id="modal-delete-vendor"
+          fontSize={16}
           fontWeight={600}
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-          }}
         >
           {warningTitle}
         </Typography>
@@ -84,10 +80,6 @@ const BasicModal: React.FC<BasicModalProps> = ({
           id="delete-monitor-confirmation"
           fontSize={13}
           textAlign={"justify"}
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-          }}
         >
           {warningMessage}
         </Typography>
@@ -96,10 +88,6 @@ const BasicModal: React.FC<BasicModalProps> = ({
           gap={theme.spacing(4)}
           mt={theme.spacing(12)}
           justifyContent="flex-end"
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-          }}
         >
           <Button
             disableRipple

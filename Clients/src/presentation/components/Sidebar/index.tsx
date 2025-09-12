@@ -305,7 +305,7 @@ const Sidebar = () => {
           },
         }}
         onClick={() => {
-          setOpen({ Dashboard: false, Account: false });
+          setOpen({ Dashboard: true, Account: false }); // Keep Dashboard always open
           dispatch(toggleSidebar());
         }}
       >
@@ -462,12 +462,18 @@ const Sidebar = () => {
                     theme.components?.MuiListItemButton?.defaultProps
                       ?.disableRipple
                   }
-                  onClick={() =>
-                    setOpen((prev) => ({
-                      ...prev,
-                      [`${item.name}`]: !prev[`${item.name}`],
-                    }))
-                  }
+                  onClick={() => {
+                    if (item.name === "Dashboard") {
+                      // Navigate directly to the main dashboard instead of toggling
+                      navigate("/");
+                    } else {
+                      // Keep toggle behavior for other menu items with children
+                      setOpen((prev) => ({
+                        ...prev,
+                        [`${item.name}`]: !prev[`${item.name}`],
+                      }));
+                    }
+                  }}
                   sx={{
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
@@ -496,9 +502,20 @@ const Sidebar = () => {
                       {item.icon}
                     </Box>
                   </ListItemIcon>
-                  <ListItemText>{item.name}</ListItemText>
+                  <ListItemText
+                    sx={{
+                      "& .MuiListItemText-primary": {
+                        fontSize: "13px",
+                      },
+                    }}
+                  >
+                    {item.name}
+                  </ListItemText>
                 </ListItemButton>
-                <Collapse in={open[`${item.name}`]} timeout="auto">
+                <Collapse
+                  in={item.name === "Dashboard" ? true : open[`${item.name}`]}
+                  timeout="auto"
+                >
                   <List
                     component="div"
                     disablePadding
@@ -509,11 +526,13 @@ const Sidebar = () => {
                       "&::before": {
                         content: '""',
                         position: "absolute",
-                        left: theme.spacing(3), // Position the line to align with parent icon center
+                        left: `calc(${theme.spacing(3)} + 12px)`, // Position the line to align with parent icon center + 12px offset
                         top: 0,
                         bottom: 0,
                         width: "1px",
                         backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                        zIndex: 1, // Ensure tree lines stay above background
+                        pointerEvents: "none", // Prevent interference with hover
                       },
                     }}
                   >
@@ -535,6 +554,7 @@ const Sidebar = () => {
                           gap: theme.spacing(4),
                           borderRadius: theme.shape.borderRadius,
                           px: theme.spacing(4),
+                          pl: `calc(${theme.spacing(4)} + 20px)`, // Add extra left padding to avoid tree overlap
                           my: theme.spacing(1),
                           position: "relative",
                           backgroundColor:
@@ -548,23 +568,27 @@ const Sidebar = () => {
                           "&::before": {
                             content: '""',
                             position: "absolute",
-                            left: theme.spacing(-5), // Start from the vertical line's position
+                            left: `calc(${theme.spacing(-5)} + 12px)`, // Start from the vertical line's position + 12px offset
                             top: "50%",
                             width: theme.spacing(5), // Extend to the item's padding start
                             height: "1px",
                             backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                            zIndex: 1, // Ensure tree lines stay above background
+                            pointerEvents: "none", // Prevent interference with hover
                           },
                           // L-shaped corner for the last item
                           ...(index === item.children!.length - 1 && {
                             "&::after": {
                               content: '""',
                               position: "absolute",
-                              left: theme.spacing(-8), // Align with the main vertical line
+                              left: `calc(${theme.spacing(-8)} + 12px)`, // Align with the main vertical line + 12px offset
                               top: "50%",
                               bottom: "-200%", // Cover the area below the item to "erase" vertical line
                               width: "1px",
                               backgroundColor:
                                 theme.palette.background.main || "#ffffff",
+                              zIndex: 1, // Ensure tree lines stay above background
+                              pointerEvents: "none", // Prevent interference with hover
                             },
                           }),
                         }}
@@ -572,8 +596,9 @@ const Sidebar = () => {
                         <ListItemText
                           sx={{
                             "& .MuiListItemText-primary": {
-                              fontSize: "14px",
+                              fontSize: "13px",
                               color: theme.palette.text.secondary,
+                              fontWeight: 400, // Ensure consistent font weight
                             },
                           }}
                         >
@@ -640,7 +665,15 @@ const Sidebar = () => {
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-                <ListItemText>{item.name}</ListItemText>
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
+                      fontSize: "13px",
+                    },
+                  }}
+                >
+                  {item.name}
+                </ListItemText>
               </ListItemButton>
             </Tooltip>
           ) : null
@@ -704,7 +737,15 @@ const Sidebar = () => {
               }}
             >
               <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-              <ListItemText>{item.name}</ListItemText>
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                  },
+                }}
+              >
+                {item.name}
+              </ListItemText>
             </ListItemButton>
           </Tooltip>
         ))}
@@ -841,10 +882,12 @@ const Sidebar = () => {
           {collapsed && (
             <MenuItem sx={{ cursor: "default", minWidth: "150px" }}>
               <Box mb={theme.spacing(2)}>
-                <Typography component="span" fontWeight={500} fontSize={13}>
+                <Typography component="span" fontWeight={500} fontSize="13px">
                   {user.name} {user.surname}
                 </Typography>
-                <Typography sx={{ textTransform: "capitalize", fontSize: 12 }}>
+                <Typography
+                  sx={{ textTransform: "capitalize", fontSize: "13px" }}
+                >
                   {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
               </Box>
@@ -859,7 +902,7 @@ const Sidebar = () => {
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },
-              fontSize: 13,
+              fontSize: "13px",
 
               "& .MuiTouchRipple-root": {
                 display: "none",

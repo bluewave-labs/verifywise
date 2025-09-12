@@ -131,7 +131,9 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
-                onClick={() => onEdit(row.id)}      
+                // onClick={() => onEdit(row.id)}  
+                // Removed row-level onClick to prevent accidental edit modal opening
+                // Editing is now handled only through the actions menu (IconButton)    
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {row.vendor_name}
@@ -160,7 +162,6 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     zIndex: 10,
                   }}
                 >
-                  { isDeletingAllowed &&
                     <IconButton
                       id={row.id}
                       onDelete={() => onDelete(row.id)}
@@ -169,8 +170,9 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                       warningTitle="Delete this vendor?"
                       warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
                       type="Vendor"
-                    />
-                  }
+                      canDelete={isDeletingAllowed} // pass down as a prop
+                  />
+
                 </TableCell>
               </TableRow>
             ))}

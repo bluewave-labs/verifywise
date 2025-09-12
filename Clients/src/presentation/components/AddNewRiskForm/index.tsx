@@ -11,7 +11,7 @@ import { useSearchParams } from "react-router-dom";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
-import UpdateIcon from "@mui/icons-material/Update";
+import { ReactComponent as UpdateIconSVGWhite } from "../../assets/icons/update-white.svg";
 import dayjs from "dayjs";
 
 import { Likelihood, Severity } from "../RiskLevel/constants";
@@ -643,7 +643,13 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
               mt: COMPONENT_CONSTANTS.TAB_MARGIN_TOP,
               "&:hover": { boxShadow: "none" },
             }}
-            icon={popupStatus === "new" ? <SaveIconSVGWhite /> : <UpdateIcon />}
+            icon={
+              popupStatus === "new" ? (
+                <SaveIconSVGWhite />
+              ) : (
+                <UpdateIconSVGWhite />
+              )
+            }
             variant="contained"
             onClick={riskFormSubmitHandler}
             text={popupStatus === "new" ? "Save" : "Update"}

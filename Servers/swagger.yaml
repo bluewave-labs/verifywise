@@ -1769,6 +1769,32 @@ paths:
 
   # Training
   /training:
+    get:
+      summary: Get all training records
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: List of training records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Training'
+        '204':
+          description: No training records found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
     post:
       summary: Create training registry entry
       tags: [Training]
@@ -1779,10 +1805,113 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Training'
+              $ref: '#/components/schemas/TrainingInput'
       responses:
         '201':
           description: Training registry entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /training/training-id/{id}:
+    get:
+      summary: Get training record by ID
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Training record ID
+      responses:
+        '200':
+          description: Training record details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Training'
+        '404':
+          description: Training record not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /training/{id}:
+    patch:
+      summary: Update training record
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Training record ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingUpdate'
+      responses:
+        '202':
+          description: Training record updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Training record not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    delete:
+      summary: Delete training record
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Training record ID
+      responses:
+        '202':
+          description: Training record deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Training record not found
           content:
             application/json:
               schema:
@@ -3098,13 +3227,82 @@ components:
           type: integer
         training_name:
           type: string
-        description:
+        duration:
           type: string
+          description: Duration of the training (e.g., "2 days", "8 hours")
+        provider:
+          type: string
+          description: Training provider organization
+        department:
+          type: string
+          description: Target department for the training
         status:
           type: string
-        completion_date:
+          enum: ["Planned", "In Progress", "Completed"]
+        people:
+          type: integer
+          description: Number of participants
+        description:
           type: string
-          format: date
+          description: Detailed description of the training
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TrainingInput:
+      type: object
+      required: [training_name, duration, provider, department, status, numberOfPeople]
+      properties:
+        training_name:
+          type: string
+          minLength: 1
+        duration:
+          type: string
+          minLength: 1
+        provider:
+          type: string
+          minLength: 1
+        department:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: ["Planned", "In Progress", "Completed"]
+        numberOfPeople:
+          type: integer
+          minimum: 1
+          description: Number of participants (mapped to 'people' in database)
+        description:
+          type: string
+
+    TrainingUpdate:
+      type: object
+      required: [training_name, duration, provider, department, status, numberOfPeople]
+      properties:
+        training_name:
+          type: string
+          minLength: 1
+        duration:
+          type: string
+          minLength: 1
+        provider:
+          type: string
+          minLength: 1
+        department:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: ["Planned", "In Progress", "Completed"]
+        numberOfPeople:
+          type: integer
+          minimum: 1
+          description: Number of participants (mapped to 'people' in database)
+        description:
+          type: string
 
     Answer:
       type: object

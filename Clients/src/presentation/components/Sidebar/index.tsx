@@ -502,9 +502,20 @@ const Sidebar = () => {
                       {item.icon}
                     </Box>
                   </ListItemIcon>
-                  <ListItemText>{item.name}</ListItemText>
+                  <ListItemText
+                    sx={{
+                      "& .MuiListItemText-primary": {
+                        fontSize: "13px",
+                      },
+                    }}
+                  >
+                    {item.name}
+                  </ListItemText>
                 </ListItemButton>
-                <Collapse in={item.name === "Dashboard" ? true : open[`${item.name}`]} timeout="auto">
+                <Collapse
+                  in={item.name === "Dashboard" ? true : open[`${item.name}`]}
+                  timeout="auto"
+                >
                   <List
                     component="div"
                     disablePadding
@@ -578,7 +589,7 @@ const Sidebar = () => {
                         <ListItemText
                           sx={{
                             "& .MuiListItemText-primary": {
-                              fontSize: "14px",
+                              fontSize: "13px",
                               color: theme.palette.text.secondary,
                             },
                           }}
@@ -646,7 +657,15 @@ const Sidebar = () => {
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-                <ListItemText>{item.name}</ListItemText>
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
+                      fontSize: "13px",
+                    },
+                  }}
+                >
+                  {item.name}
+                </ListItemText>
               </ListItemButton>
             </Tooltip>
           ) : null
@@ -710,7 +729,15 @@ const Sidebar = () => {
               }}
             >
               <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-              <ListItemText>{item.name}</ListItemText>
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                  },
+                }}
+              >
+                {item.name}
+              </ListItemText>
             </ListItemButton>
           </Tooltip>
         ))}
@@ -847,10 +874,12 @@ const Sidebar = () => {
           {collapsed && (
             <MenuItem sx={{ cursor: "default", minWidth: "150px" }}>
               <Box mb={theme.spacing(2)}>
-                <Typography component="span" fontWeight={500} fontSize={13}>
+                <Typography component="span" fontWeight={500} fontSize="13px">
                   {user.name} {user.surname}
                 </Typography>
-                <Typography sx={{ textTransform: "capitalize", fontSize: 12 }}>
+                <Typography
+                  sx={{ textTransform: "capitalize", fontSize: "13px" }}
+                >
                   {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
               </Box>
@@ -865,7 +894,7 @@ const Sidebar = () => {
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },
-              fontSize: 13,
+              fontSize: "13px",
 
               "& .MuiTouchRipple-root": {
                 display: "none",

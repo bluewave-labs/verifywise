@@ -298,13 +298,13 @@ const RegisterUser: React.FC = () => {
                     } else {
                       logEngine({
                         type: "error",
-                        message: "Google Sign-In failed with unexpected response.",
+                        message: loginResponse.data.data || "Google Sign-In failed with unexpected response.",
                       });
         
                       setIsSubmitting(false);
                       setAlert({
                         variant: "error",
-                        body: "Google Sign-In failed. Please try again.",
+                        body: loginResponse.data.data || "Google Sign-In failed. Please try again.",
                       });
                       setTimeout(() => setAlert(null), 3000);
                     }

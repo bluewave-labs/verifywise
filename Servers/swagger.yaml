@@ -76,18 +76,8 @@ info:
   version: 2.0.0
 
 servers:
-  - url: "{protocol}://{host}:{port}/api"
-    description: Configurable server
-    variables:
-      protocol:
-        default: http
-        enum:
-          - http
-          - https
-      host:
-        default: localhost
-      port:
-        default: "3000"
+  - url: "http://localhost:3000/api"
+    description: Development server
 
 paths:
   # Authentication & User Management
@@ -199,27 +189,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
-  /users:
-    get:
-      summary: Get all users
-      tags: [Users]
-      security:
-        - JWTAuth: []
-      responses:
-        '200':
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
-
   /users/{userId}:
     get:
       summary: Get user by ID
@@ -324,12 +293,19 @@ paths:
                 $ref: '#/components/schemas/ApiResponse'
 
   # Organizations
-  /organizations:
+  /organizations/{id}:
     get:
-      summary: Get organization details
+      summary: Get organization by ID
       tags: [Organizations]
       security:
         - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Organization ID
       responses:
         '200':
           description: Organization details

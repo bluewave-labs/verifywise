@@ -21,7 +21,7 @@ import {
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
-  setIsOpen,
+  // setIsOpen,
   onDelete,
   onCancel,
   warningTitle,
@@ -30,7 +30,10 @@ const BasicModal: React.FC<BasicModalProps> = ({
 }) => {
   const theme = useTheme();
   return (
-    <Modal open={isOpen} onClose={setIsOpen}>
+    <Modal open={isOpen} onClose={() => {
+      // Prevent closing the modal by clicking outside. 
+// The modal only closes via Cancel button or programmatically via onDelete.
+    }}>
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}

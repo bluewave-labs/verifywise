@@ -417,18 +417,16 @@ const Framework = () => {
 
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
             </TabPanel>
 
             <TabPanel value="annex" sx={tabPanelStyle}>
               <ISO27001Annex
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
               />
@@ -478,18 +476,16 @@ const Framework = () => {
 
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
             </TabPanel>
 
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
-                projectFrameworkId={
-                  getProjectFrameworkId(framework.id) || framework.id
-                }
+                project={organizationalProject}
+                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
               />

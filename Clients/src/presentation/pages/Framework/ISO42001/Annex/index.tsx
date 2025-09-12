@@ -19,13 +19,16 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO42001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 
 const ISO42001Annex = ({
+  project,
   projectFrameworkId,
   statusFilter,
   applicabilityFilter,
 }: {
+  project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
@@ -264,7 +267,7 @@ const ISO42001Annex = ({
           annex={selectedAnnex}
           control={selectedControl}
           projectFrameworkId={Number(projectFrameworkId)}
-          project_id={0}
+          project_id={Number(project.id)}
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedControl?.id)
           }

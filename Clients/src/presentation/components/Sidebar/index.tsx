@@ -526,7 +526,7 @@ const Sidebar = () => {
                       "&::before": {
                         content: '""',
                         position: "absolute",
-                        left: theme.spacing(3), // Position the line to align with parent icon center
+                        left: `calc(${theme.spacing(3)} + 12px)`, // Position the line to align with parent icon center + 12px offset
                         top: 0,
                         bottom: 0,
                         width: "1px",
@@ -565,7 +565,7 @@ const Sidebar = () => {
                           "&::before": {
                             content: '""',
                             position: "absolute",
-                            left: theme.spacing(-5), // Start from the vertical line's position
+                            left: `calc(${theme.spacing(-5)} + 12px)`, // Start from the vertical line's position + 12px offset
                             top: "50%",
                             width: theme.spacing(5), // Extend to the item's padding start
                             height: "1px",
@@ -576,7 +576,7 @@ const Sidebar = () => {
                             "&::after": {
                               content: '""',
                               position: "absolute",
-                              left: theme.spacing(-8), // Align with the main vertical line
+                              left: `calc(${theme.spacing(-8)} + 12px)`, // Align with the main vertical line + 12px offset
                               top: "50%",
                               bottom: "-200%", // Cover the area below the item to "erase" vertical line
                               width: "1px",

@@ -23,6 +23,7 @@ import { Modal, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
+import singleTheme from "../../../themes/v1SingleTheme";
 import Alert from "../../../components/Alert";
 import {
   useAITrustCentreOverviewQuery,
@@ -452,10 +453,15 @@ const AITrustCenterSubprocessors: React.FC = () => {
             }}
           >
             <Table>
-              <TableHead>
-                <TableRow>
+              <TableHead
+                sx={{
+                  backgroundColor:
+                    singleTheme.tableStyles.primary.header.backgroundColors,
+                }}
+              >
+                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                   {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={styles.tableCell}>
+                    <TableCell key={col.id} sx={singleTheme.tableStyles.primary.header.cell}>
                       {col.label}
                     </TableCell>
                   ))}

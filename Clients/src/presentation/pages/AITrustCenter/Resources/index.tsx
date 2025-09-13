@@ -41,6 +41,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
 import { useTheme } from "@mui/material/styles";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 interface Resource {
   id: number;
@@ -527,10 +528,15 @@ const TrustCenterResources: React.FC = () => {
             }}
           >
             <Table>
-              <TableHead>
-                <TableRow>
+              <TableHead
+                sx={{
+                  backgroundColor:
+                    singleTheme.tableStyles.primary.header.backgroundColors,
+                }}
+              >
+                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
                   {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={styles.tableCell}>
+                    <TableCell key={col.id} sx={singleTheme.tableStyles.primary.header.cell}>
                       {col.label}
                     </TableCell>
                   ))}

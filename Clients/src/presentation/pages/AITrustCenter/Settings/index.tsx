@@ -25,9 +25,11 @@ import {
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
 
 const AITrustCenterSettings: React.FC = () => {
   const styles = useStyles();
+  const { fetchLogoAsBlobUrl } = useLogoFetch();
   const {
     data: overviewData,
     isLoading: loading,
@@ -64,64 +66,6 @@ const AITrustCenterSettings: React.FC = () => {
   const handleLogoLoad = React.useCallback(() => {
     setLogoLoadError(false);
   }, []);
-
-  // Function to fetch logo and convert Buffer to Blob URL
-  const fetchLogoAsBlobUrl = async (
-    tenantId: string
-  ): Promise<string | null> => {
-    try {
-      const response = await apiServices.get(
-        `/aiTrustCentre/${tenantId}/logo`,
-        {
-          responseType: "json",
-        }
-      );
-
-      const responseData = response.data as any;
-      if (responseData?.data?.logo?.content) {
-        const logoData = responseData.data.logo;
-        let bufferData: Uint8Array;
-        let mimeType: string;
-
-        // Handle different response formats
-        if (logoData.content instanceof ArrayBuffer || 
-            (Array.isArray(logoData.content) && logoData.content.length > 0)) {
-          bufferData = new Uint8Array(logoData.content);
-          mimeType = logoData.type || "image/png";
-        } else if (logoData.content.data) {
-          bufferData = new Uint8Array(logoData.content.data);
-          mimeType = logoData.mimeType || logoData.contentType || "image/png";
-        } else {
-          return null;
-        }
-
-        // Auto-detect and fix SVG MIME type
-        if (mimeType === "image/png" && bufferData.length > 0) {
-          const svgSignature = new TextDecoder().decode(bufferData.slice(0, 20));
-          if (svgSignature.includes("<?xml") || svgSignature.includes("<svg")) {
-            mimeType = "image/svg+xml";
-          }
-        }
-
-        const blob = new Blob([bufferData], { type: mimeType });
-        const blobUrl = URL.createObjectURL(blob);
-
-        // Validate image loading
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(blobUrl);
-          img.onerror = () => {
-            URL.revokeObjectURL(blobUrl);
-            resolve(null);
-          };
-          img.src = blobUrl;
-        });
-      }
-      return null;
-    } catch (error) {
-      return null;
-    }
-  };
 
   // Process overview data and fetch logo when data is available
   React.useEffect(() => {

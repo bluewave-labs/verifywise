@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { setUserExists, clearAuthState } from "../../../application/redux/auth/authSlice";
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../Toast";
+import { extractUserToken } from "../../../application/tools/extractToken";
 
 interface ProtectedRouteProps {
   Component: ComponentType<any>;
@@ -43,10 +44,11 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
         
         // If we have a token, validate it's still valid
         if (authState.authToken && authState.authToken.trim() !== "") {
+          const user = extractUserToken(authState.authToken);
           try {
             // Test token validity with a simple API call
             await getAllEntities({
-              routeUrl: "/users/me",
+              routeUrl: `/users/${user?.id}`,
             });
           } catch (tokenError) {
             console.warn("Token validation failed, clearing auth state:", tokenError);

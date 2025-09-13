@@ -4,7 +4,6 @@ import {
   SelectChangeEvent,
   Stack,
   Tab,
-  Typography,
   useTheme,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -12,7 +11,6 @@ import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import { Suspense, useEffect, useState, useMemo } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
-import singleTheme from "../../themes/v1SingleTheme";
 import { useSelector } from "react-redux";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { AppState } from "../../../application/interfaces/appStates";
@@ -32,7 +30,6 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../components/Skeletons";
 import CustomizableToast from "../../components/Toast";
 import RisksCard from "../../components/Cards/RisksCard";
-import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";

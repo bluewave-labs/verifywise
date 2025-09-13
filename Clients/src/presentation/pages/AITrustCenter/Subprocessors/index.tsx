@@ -2,13 +2,7 @@ import React, { useState, Suspense } from "react";
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
   TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Stack,
   CircularProgress,
   SxProps,
@@ -23,7 +17,7 @@ import { Modal, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
-import singleTheme from "../../../themes/v1SingleTheme";
+import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 import Alert from "../../../components/Alert";
 import {
   useAITrustCentreOverviewQuery,
@@ -65,7 +59,7 @@ const SubprocessorTableRow: React.FC<{
   const styles = useStyles(theme);
 
   return (
-    <TableRow sx={styles.tableRow(isFlashing)}>
+    <>
       <TableCell>
         <Typography sx={styles.tableDataCell}>{subprocessor.name}</Typography>
       </TableCell>
@@ -95,7 +89,7 @@ const SubprocessorTableRow: React.FC<{
           />
         </Box>
       </TableCell>
-    </TableRow>
+    </>
   );
 };
 
@@ -443,55 +437,24 @@ const AITrustCenterSubprocessors: React.FC = () => {
           </Box>
         </Box>
         <Box sx={styles.tableWrapper}>
-          <TableContainer
-            component={Paper}
-            sx={{
-              ...styles.tableContainer,
-              ...(formData?.info?.subprocessor_visible
-                ? {}
-                : { opacity: 0.9, pointerEvents: "none" }),
-            }}
-          >
-            <Table>
-              <TableHead
-                sx={{
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }}
-              >
-                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                  {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={singleTheme.tableStyles.primary.header.cell}>
-                      {col.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {subprocessors && subprocessors.length > 0 ? (
-                  subprocessors.map((sp) => (
-                    <SubprocessorTableRow
-                      key={sp.id}
-                      subprocessor={sp}
-                      onDelete={handleDelete}
-                      onEdit={handleEdit}
-                      isFlashing={flashingRowId === sp.id}
-                    />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      <Typography sx={styles.emptyStateText}>
-                        No subprocessors found. Add your first subprocessor to
-                        get started.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {!formData?.info?.subprocessor_visible && <Box sx={styles.overlay} />}
+          <AITrustCenterTable
+            data={subprocessors || []}
+            columns={TABLE_COLUMNS}
+            isLoading={subprocessorsLoading}
+            paginated={false}
+            disabled={!formData?.info?.subprocessor_visible}
+            emptyStateText="No subprocessors found. Add your first subprocessor to get started."
+            renderRow={(subprocessor, index) => (
+              <SubprocessorTableRow
+                key={subprocessor.id}
+                subprocessor={subprocessor}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                isFlashing={flashingRowId === subprocessor.id}
+              />
+            )}
+            tableId="subprocessors-table"
+          />
         </Box>
 
         {/* Edit Subprocessor Modal */}

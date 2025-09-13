@@ -4,13 +4,7 @@ import {
   Typography,
   IconButton,
   Dialog,
-  Table,
-  TableBody,
   TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   CircularProgress,
   DialogTitle,
   DialogContent,
@@ -41,7 +35,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
 import { useTheme } from "@mui/material/styles";
-import singleTheme from "../../../themes/v1SingleTheme";
+import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 
 interface Resource {
   id: number;
@@ -70,7 +64,7 @@ const ResourceTableRow: React.FC<{
   const styles = useStyles(theme);
 
   return (
-    <TableRow sx={styles.tableRow(isFlashing)}>
+    <>
       <TableCell>
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
@@ -98,7 +92,7 @@ const ResourceTableRow: React.FC<{
           type="resource"
         />
       </TableCell>
-    </TableRow>
+    </>
   );
 };
 
@@ -518,57 +512,26 @@ const TrustCenterResources: React.FC = () => {
         </Box>
 
         <Box sx={styles.tableWrapper}>
-          <TableContainer
-            component={Paper}
-            sx={{
-              ...styles.tableContainer,
-              ...(formData?.info?.resources_visible
-                ? {}
-                : { opacity: 0.9, pointerEvents: "none" }),
-            }}
-          >
-            <Table>
-              <TableHead
-                sx={{
-                  backgroundColor:
-                    singleTheme.tableStyles.primary.header.backgroundColors,
-                }}
-              >
-                <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-                  {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={singleTheme.tableStyles.primary.header.cell}>
-                      {col.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {resources && resources.length > 0 ? (
-                  resources.map((resource) => (
-                    <ResourceTableRow
-                      key={resource.id}
-                      resource={resource}
-                      onDelete={handleDeleteResource}
-                      onEdit={handleEditResource}
-                      onMakeVisible={handleMakeVisible}
-                      onDownload={handleDownload}
-                      isFlashing={flashingRowId === resource.id}
-                    />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Typography sx={styles.emptyStateText}>
-                        No resources found. Add your first resource to get
-                        started.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {!formData?.info?.resources_visible && <Box sx={styles.overlay} />}
+          <AITrustCenterTable
+            data={resources || []}
+            columns={TABLE_COLUMNS}
+            isLoading={resourcesLoading}
+            paginated={false}
+            disabled={!formData?.info?.resources_visible}
+            emptyStateText="No resources found. Add your first resource to get started."
+            renderRow={(resource, index) => (
+              <ResourceTableRow
+                key={resource.id}
+                resource={resource}
+                onDelete={handleDeleteResource}
+                onEdit={handleEditResource}
+                onMakeVisible={handleMakeVisible}
+                onDownload={handleDownload}
+                isFlashing={flashingRowId === resource.id}
+              />
+            )}
+            tableId="resources-table"
+          />
         </Box>
 
         {/* Add Resource Modal */}

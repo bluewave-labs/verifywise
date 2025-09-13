@@ -303,7 +303,12 @@ const ISO27001Annex = ({
             <VWISO27001AnnexDrawerDialog
               title={annexTitle}
               open={drawerOpen}
-              onClose={handleDrawerClose}
+              onClose={(_event?: any, reason?: string) => {
+                if (reason === "backdropClick") {
+                  return; // block closing on backdrop click
+                }
+                handleDrawerClose();
+              }}
               control={selectedControl}
               annex={selectedAnnex}
               projectFrameworkId={Number(projectFrameworkId)}

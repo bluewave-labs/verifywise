@@ -108,28 +108,39 @@ const Organization = () => {
         );
 
         const responseData = response.data as any;
-        if (responseData?.data?.logo?.content?.data) {
-          const bufferData = new Uint8Array(
-            responseData.data.logo.content.data
-          );
+        if (responseData?.data?.logo?.content) {
+          const logoData = responseData.data.logo;
+          let bufferData: Uint8Array;
+          let mimeType: string;
 
-          // Determine the correct MIME type from the response or default to png
-          const mimeType =
-            responseData.data.logo.mimeType ||
-            responseData.data.logo.contentType ||
-            "image/png";
+          // Handle different response formats
+          if (logoData.content instanceof ArrayBuffer || 
+              (Array.isArray(logoData.content) && logoData.content.length > 0)) {
+            bufferData = new Uint8Array(logoData.content);
+            mimeType = logoData.type || "image/png";
+          } else if (logoData.content.data) {
+            bufferData = new Uint8Array(logoData.content.data);
+            mimeType = logoData.mimeType || logoData.contentType || "image/png";
+          } else {
+            return null;
+          }
+
+          // Auto-detect and fix SVG MIME type
+          if (mimeType === "image/png" && bufferData.length > 0) {
+            const svgSignature = new TextDecoder().decode(bufferData.slice(0, 20));
+            if (svgSignature.includes("<?xml") || svgSignature.includes("<svg")) {
+              mimeType = "image/svg+xml";
+            }
+          }
 
           const blob = new Blob([bufferData], { type: mimeType });
           const blobUrl = URL.createObjectURL(blob);
 
-          // Validate that the blob URL can be loaded as an image
+          // Validate image loading
           return new Promise((resolve) => {
             const img = new Image();
-            img.onload = () => {
-              resolve(blobUrl);
-            };
+            img.onload = () => resolve(blobUrl);
             img.onerror = () => {
-              console.error("Failed to load logo image");
               URL.revokeObjectURL(blobUrl);
               resolve(null);
             };
@@ -138,7 +149,6 @@ const Organization = () => {
         }
         return null;
       } catch (error) {
-        console.error("Error fetching logo:", error);
         return null;
       }
     },
@@ -222,19 +232,7 @@ const Organization = () => {
         return;
       }
 
-      // Reject SVG files for security reasons
-      if (
-        file.type === "image/svg+xml" ||
-        file.name.toLowerCase().endsWith(".svg")
-      ) {
-        showAlert(
-          "error",
-          "Invalid File",
-          "SVG files are not supported. Please use PNG, JPG, or GIF format."
-        );
-        return;
-      }
-
+      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         showAlert("error", "File Too Large", "File size must be less than 5MB");
         return;
@@ -636,7 +634,7 @@ const Organization = () => {
                 )}
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
                   hidden
                   ref={fileInputRef}
                   onChange={handleLogoChange}
@@ -653,7 +651,7 @@ const Organization = () => {
                 lineHeight: 1.4,
               }}
             >
-              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF
+              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF, SVG
             </Typography>
           </Stack>
         </Box>

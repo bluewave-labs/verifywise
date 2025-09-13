@@ -78,29 +78,39 @@ const AITrustCenterSettings: React.FC = () => {
       );
 
       const responseData = response.data as any;
-      if (responseData?.data?.logo?.content?.data) {
-        // Convert Buffer data to Uint8Array
-        const bufferData = new Uint8Array(responseData.data.logo.content.data);
+      if (responseData?.data?.logo?.content) {
+        const logoData = responseData.data.logo;
+        let bufferData: Uint8Array;
+        let mimeType: string;
 
-        // Determine the correct MIME type from the response or default to png
-        const mimeType =
-          responseData.data.logo.mimeType ||
-          responseData.data.logo.contentType ||
-          "image/png";
+        // Handle different response formats
+        if (logoData.content instanceof ArrayBuffer || 
+            (Array.isArray(logoData.content) && logoData.content.length > 0)) {
+          bufferData = new Uint8Array(logoData.content);
+          mimeType = logoData.type || "image/png";
+        } else if (logoData.content.data) {
+          bufferData = new Uint8Array(logoData.content.data);
+          mimeType = logoData.mimeType || logoData.contentType || "image/png";
+        } else {
+          return null;
+        }
 
-        // Create Blob from the buffer data
+        // Auto-detect and fix SVG MIME type
+        if (mimeType === "image/png" && bufferData.length > 0) {
+          const svgSignature = new TextDecoder().decode(bufferData.slice(0, 20));
+          if (svgSignature.includes("<?xml") || svgSignature.includes("<svg")) {
+            mimeType = "image/svg+xml";
+          }
+        }
+
         const blob = new Blob([bufferData], { type: mimeType });
-        // Create object URL
         const blobUrl = URL.createObjectURL(blob);
 
-        // Validate that the blob URL can be loaded as an image
+        // Validate image loading
         return new Promise((resolve) => {
           const img = new Image();
-          img.onload = () => {
-            resolve(blobUrl);
-          };
+          img.onload = () => resolve(blobUrl);
           img.onerror = () => {
-            console.error("Failed to load logo image");
             URL.revokeObjectURL(blobUrl);
             resolve(null);
           };
@@ -109,7 +119,6 @@ const AITrustCenterSettings: React.FC = () => {
       }
       return null;
     } catch (error) {
-      console.error("Error fetching logo:", error);
       return null;
     }
   };
@@ -239,17 +248,6 @@ const AITrustCenterSettings: React.FC = () => {
       // Validate file type first
       if (!file.type.startsWith("image/")) {
         setLogoError("Please select a valid image file");
-        return;
-      }
-
-      // Reject SVG files for security reasons
-      if (
-        file.type === "image/svg+xml" ||
-        file.name.toLowerCase().endsWith(".svg")
-      ) {
-        setLogoError(
-          "SVG files are not supported. Please use PNG, JPG, or GIF format."
-        );
         return;
       }
 
@@ -608,7 +606,7 @@ const AITrustCenterSettings: React.FC = () => {
                 )}
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
                   hidden
                   ref={fileInputRef}
                   onChange={handleLogoChange}
@@ -642,7 +640,7 @@ const AITrustCenterSettings: React.FC = () => {
                   lineHeight: 1.4,
                 }}
               >
-                Recommended: 240×120px • Max size: 5MB • Formats: PNG, JPG, GIF
+                Recommended: 240×120px • Max size: 5MB • Formats: PNG, JPG, GIF, SVG
               </Typography>
             </Stack>
           </Stack>

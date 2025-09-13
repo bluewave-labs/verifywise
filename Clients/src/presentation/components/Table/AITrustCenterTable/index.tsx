@@ -31,7 +31,7 @@ interface AITrustCenterTableProps<T> {
   isLoading?: boolean;
   paginated?: boolean;
   emptyStateText?: string;
-  renderRow: (item: T, index: number) => React.ReactNode;
+  renderRow: (item: T) => React.ReactNode;
   onRowClick?: (item: T) => void;
   tableId?: string;
   disabled?: boolean;
@@ -79,7 +79,7 @@ const AITrustCenterTable = <T extends { id: number }>({
         }}
       >
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
-          {columns.map((column, index) => (
+          {columns.map((column) => (
             <TableCell
               key={column.id}
               sx={{
@@ -118,7 +118,7 @@ const AITrustCenterTable = <T extends { id: number }>({
         {data &&
           data
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((item, index) => (
+            .map((item) => (
               <TableRow
                 key={item.id}
                 sx={{
@@ -138,7 +138,7 @@ const AITrustCenterTable = <T extends { id: number }>({
                 }}
                 onClick={() => !disabled && onRowClick?.(item)}
               >
-                {renderRow(item, index)}
+                {renderRow(item)}
               </TableRow>
             ))}
       </TableBody>

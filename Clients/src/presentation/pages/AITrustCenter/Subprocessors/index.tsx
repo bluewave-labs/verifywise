@@ -53,8 +53,7 @@ const SubprocessorTableRow: React.FC<{
   subprocessor: Subprocessor;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
-  isFlashing: boolean;
-}> = ({ subprocessor, onDelete, onEdit, isFlashing }) => {
+}> = ({ subprocessor, onDelete, onEdit }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
 
@@ -147,7 +146,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
     url: "",
     location: "",
   });
-  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
 
   // Success/Error states
   const [alert, setAlert] = useState<{
@@ -323,9 +321,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
       setEditId(null);
       setForm({ name: "", purpose: "", url: "", location: "" });
       setEditSubprocessorError(null);
-
-      setFlashingRowId(editId);
-      setTimeout(() => setFlashingRowId(null), 2000);
     } catch (error: any) {
       setEditSubprocessorError(
         error.message || "Failed to update subprocessor"
@@ -444,13 +439,12 @@ const AITrustCenterSubprocessors: React.FC = () => {
             paginated={false}
             disabled={!formData?.info?.subprocessor_visible}
             emptyStateText="No subprocessors found. Add your first subprocessor to get started."
-            renderRow={(subprocessor, index) => (
+            renderRow={(subprocessor) => (
               <SubprocessorTableRow
                 key={subprocessor.id}
                 subprocessor={subprocessor}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
-                isFlashing={flashingRowId === subprocessor.id}
               />
             )}
             tableId="subprocessors-table"

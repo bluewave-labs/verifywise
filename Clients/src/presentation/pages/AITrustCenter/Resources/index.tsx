@@ -51,14 +51,12 @@ const ResourceTableRow: React.FC<{
   onEdit: (id: number) => void;
   onMakeVisible: (id: number) => void;
   onDownload: (id: number) => void;
-  isFlashing: boolean;
 }> = ({
   resource,
   onDelete,
   onEdit,
   onMakeVisible,
   onDownload,
-  isFlashing,
 }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
@@ -150,7 +148,6 @@ const TrustCenterResources: React.FC = () => {
     filename: "",
     file_id: undefined,
   });
-  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
 
   // Success/Error states
   const [alert, setAlert] = useState<{
@@ -359,9 +356,6 @@ const TrustCenterResources: React.FC = () => {
         file_id: undefined,
       });
       setEditResourceError(null);
-
-      setFlashingRowId(editResource.id);
-      setTimeout(() => setFlashingRowId(null), 2000);
     } catch (error: any) {
       setEditResourceError(error.message || "Failed to update resource");
     }
@@ -402,8 +396,6 @@ const TrustCenterResources: React.FC = () => {
           file: undefined,
           oldFileId: undefined,
         });
-        setFlashingRowId(resourceId);
-        setTimeout(() => setFlashingRowId(null), 2000);
       } catch (error: any) {
         setEditResourceError(
           error.message || "Failed to update resource visibility"
@@ -519,7 +511,7 @@ const TrustCenterResources: React.FC = () => {
             paginated={false}
             disabled={!formData?.info?.resources_visible}
             emptyStateText="No resources found. Add your first resource to get started."
-            renderRow={(resource, index) => (
+            renderRow={(resource) => (
               <ResourceTableRow
                 key={resource.id}
                 resource={resource}
@@ -527,7 +519,6 @@ const TrustCenterResources: React.FC = () => {
                 onEdit={handleEditResource}
                 onMakeVisible={handleMakeVisible}
                 onDownload={handleDownload}
-                isFlashing={flashingRowId === resource.id}
               />
             )}
             tableId="resources-table"

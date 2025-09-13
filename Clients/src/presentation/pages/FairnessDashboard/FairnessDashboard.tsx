@@ -323,6 +323,7 @@ export default function FairnessDashboard() {
               ref={buttonRef}
               variant="contained"
               startIcon={<AddCircleOutlineIcon />}
+              disableRipple
               onClick={() => setDialogOpen(true)}
               sx={{
                 backgroundColor: "#13715B",

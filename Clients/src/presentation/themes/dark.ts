@@ -271,6 +271,31 @@ const dark = createTheme({
         disableRipple: true,
       },
     },
+    MuiTab: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiToggleButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiSwitch: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiRadio: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiChip: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
   },
 });
 

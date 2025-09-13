@@ -3,6 +3,7 @@ import { ClearIcon } from "@mui/x-date-pickers/icons";
 import React from "react";
 import { FC } from "react";
 import { Unstable_Popup as BasePopup } from "@mui/base/Unstable_Popup";
+import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 
 interface PopupProps {
   popupId: string;
@@ -26,6 +27,11 @@ const Popup: FC<PopupProps> = ({
   const theme = useTheme();
   const open = Boolean(anchor);
   const id = open ? popupId : undefined;
+
+  useModalKeyHandling({
+    isOpen: open,
+    onClose: () => handleOpenOrClose?.(null as any),
+  });
 
   const styles = {
     openPopupButton: {
@@ -58,7 +64,7 @@ const Popup: FC<PopupProps> = ({
       pb: 15,
       pl: 15,
       pr: 15,
-      maxHeight: 650,
+      maxHeight: "90vh",
       width: "fit-content",
       overflow: "auto",
     },

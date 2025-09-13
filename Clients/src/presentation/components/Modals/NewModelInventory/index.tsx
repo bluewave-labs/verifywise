@@ -29,6 +29,8 @@ import { getAllEntities } from "../../../../application/repository/entity.reposi
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
+
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -245,6 +247,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const handleClose = () => {
     setIsOpen(false);
   };
+
+  useModalKeyHandling({
+    isOpen,
+    onClose: handleClose,
+  });
 
   const handleSubmit = (event?: React.FormEvent) => {
     if (event) event.preventDefault();

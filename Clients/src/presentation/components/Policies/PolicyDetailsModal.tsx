@@ -34,6 +34,7 @@ import {
 import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
+import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 
 interface Props {
   policy: Policy | null;
@@ -81,6 +82,11 @@ const PolicyDetailModal: React.FC<Props> = ({
       blockquote: false,
     }
   );
+
+  useModalKeyHandling({
+    isOpen: true,
+    onClose,
+  });
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -240,7 +246,11 @@ const PolicyDetailModal: React.FC<Props> = ({
       )} */}
       <Drawer
         open={true}
-        onClose={onClose}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            onClose();
+          }
+        }}
         anchor="right"
         sx={{
           width: 800,

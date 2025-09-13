@@ -34,6 +34,8 @@ import CustomizableToast from "../../components/Toast";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import biasFairnessHelpContent from "../../../presentation/helpers/bias-fairness-help.html?raw";
+import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
+
 
 export type FairnessModel = {
   id: number | string; // Use number or string based on your backend response
@@ -246,6 +248,11 @@ export default function FairnessDashboard() {
     body: string;
   } | null>(null);
 
+  useModalKeyHandling({
+    isOpen: dialogOpen,
+    onClose: () => resetForm(),
+  });
+
   return (
     <Stack className="vwhome" gap="20px">
       <PageBreadcrumbs />
@@ -388,7 +395,11 @@ export default function FairnessDashboard() {
             }}
           />
 
-          <Dialog open={dialogOpen} onClose={resetForm} maxWidth="sm" fullWidth>
+          <Dialog open={dialogOpen} onClose={(_event, reason) => {
+            if (reason !== 'backdropClick') {
+              resetForm();
+            }
+          }} maxWidth="sm" fullWidth>
             <DialogTitle>
               <Box
                 display="flex"

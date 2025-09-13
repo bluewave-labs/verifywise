@@ -26,7 +26,6 @@ import {
 } from "../../../../application/repository/aiTrustCentre.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
 

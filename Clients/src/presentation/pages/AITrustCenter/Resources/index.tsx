@@ -41,6 +41,7 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
 import { useTheme } from "@mui/material/styles";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface Resource {
   id: number;
@@ -264,6 +265,17 @@ const TrustCenterResources: React.FC = () => {
     });
     setEditResourceError(null);
   };
+
+  // Add modal key handling for ESC key support
+  useModalKeyHandling({
+    isOpen: addModalOpen,
+    onClose: handleCloseAddModal,
+  });
+
+  useModalKeyHandling({
+    isOpen: editModalOpen,
+    onClose: handleCloseEditModal,
+  });
 
   // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -568,7 +580,12 @@ const TrustCenterResources: React.FC = () => {
         {/* Add Resource Modal */}
         <Dialog
           open={addModalOpen}
-          onClose={handleCloseAddModal}
+          onClose={async (_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseAddModal();
+          }}
           maxWidth="sm"
           fullWidth
           PaperProps={{
@@ -653,7 +670,12 @@ const TrustCenterResources: React.FC = () => {
         {/* Edit Resource Modal */}
         <Dialog
           open={editModalOpen}
-          onClose={handleCloseEditModal}
+          onClose={(_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseEditModal();
+          }}
           maxWidth="sm"
           fullWidth
           PaperProps={{

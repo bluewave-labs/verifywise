@@ -36,6 +36,7 @@ import {
 } from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 
@@ -265,6 +266,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
     setNewSubprocessor((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Add modal key handling for ESC key support
+  useModalKeyHandling({
+    isOpen: addModalOpen,
+    onClose: handleCloseAddModal,
+  });
+
+  useModalKeyHandling({
+    isOpen: editModalOpen,
+    onClose: handleCloseEditModal,
+  });
+
   // Subprocessor operations
   const handleAddSubprocessor = async () => {
     if (
@@ -489,7 +501,15 @@ const AITrustCenterSubprocessors: React.FC = () => {
         </Box>
 
         {/* Edit Subprocessor Modal */}
-        <Modal open={editModalOpen} onClose={handleCloseEditModal}>
+        <Modal
+          open={editModalOpen}
+          onClose={(_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseEditModal();
+          }}
+        >
           <Box sx={styles.modal}>
             <Box sx={styles.modalHeader}>
               <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
@@ -547,7 +567,15 @@ const AITrustCenterSubprocessors: React.FC = () => {
         </Modal>
 
         {/* Add Subprocessor Modal */}
-        <Modal open={addModalOpen} onClose={handleCloseAddModal}>
+        <Modal
+          open={addModalOpen}
+          onClose={(_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseAddModal();
+          }}
+        >
           <Box sx={styles.modal}>
             <Box sx={styles.modalHeader}>
               <Typography sx={styles.modalTitle}>

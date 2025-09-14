@@ -44,7 +44,7 @@ export const inputStyles = {
 
 interface VWISO42001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (event?: any, reason?: string) => void;
   subClause: any;
   clause: any;
   evidenceFiles?: FileData[];

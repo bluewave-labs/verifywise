@@ -357,7 +357,7 @@ const Vendors = () => {
 
   return (
     <div className="vendors-page">
-     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: "48px" }} > <PageBreadcrumbs /> </Stack>
+     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

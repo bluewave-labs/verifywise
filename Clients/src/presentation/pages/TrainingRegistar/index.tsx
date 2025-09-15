@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
-import { Box, Stack, Typography, Fade } from "@mui/material";
+import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
@@ -16,12 +16,11 @@ import {
 import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable
 import NewTraining from "../../../presentation/components/Modals/NewTraining"; // Import the NewTraining modal
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
-import { vwhomeHeading } from "../Home/1.0Home/style";
-import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 import { useAuth } from "../../../application/hooks/useAuth";
+import PageHeader from "../../components/Layout/PageHeader";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -196,7 +195,7 @@ const Training: React.FC = () => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
-      <PageBreadcrumbs />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -233,20 +232,20 @@ const Training: React.FC = () => {
       )}
 
       <Stack gap={4}>
-        <Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>AI training registry</Typography>
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          </Stack>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            This registry lists all AI-related training programs available to
-            your organization. You can view, add, and manage training details
-            here.
-          </Typography>
-        </Stack>
+
+        <PageHeader
+               title="AI training registry"
+               description=" This registry lists all AI-related training programs available to
+               your organization. You can view, add, and manage training details here."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
 
         <Stack direction="row" justifyContent="flex-end" alignItems="center">
           <CustomizableButton

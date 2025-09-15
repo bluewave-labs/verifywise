@@ -108,7 +108,9 @@ export const biasAndFairnessService = {
    * Gets all bias and fairness evaluations
    */
   async getAllBiasFairnessEvaluations(): Promise<any[]> {
-    const response = await CustomAxios.get("/bias_and_fairness/evaluations");
+    const response = await CustomAxios.get("/bias_and_fairness/evaluations", {
+      timeout: 60000, // 1 minute timeout
+    });
     return response.data;
   },
 
@@ -131,7 +133,9 @@ export const biasAndFairnessService = {
    * Gets the status of an evaluation
    */
   async getEvaluationStatus(evaluationId: string): Promise<EvaluationStatus> {
-    const response = await CustomAxios.get(`/bias_and_fairness/evaluate/status/${evaluationId}`);
+    const response = await CustomAxios.get(`/bias_and_fairness/evaluate/status/${evaluationId}`, {
+      timeout: 60000, // 1 minute timeout
+    });
     return response.data;
   },
 
@@ -139,7 +143,9 @@ export const biasAndFairnessService = {
    * Gets the results of a completed evaluation
    */
   async getEvaluationResults(evaluationId: string): Promise<any> {
-    const response = await CustomAxios.get(`/biasand_fairness/evaluate/results/${evaluationId}`);
+    const response = await CustomAxios.get(`/bias_and_fairness/evaluate/results/${evaluationId}`, {
+      timeout: 60000, // 1 minute timeout
+    });
     return response.data;
   },
 
@@ -147,7 +153,7 @@ export const biasAndFairnessService = {
    * Gets all evaluations for the current user/organization
    */
   async getAllEvaluations(): Promise<EvaluationStatus[]> {
-    const response = await CustomAxios.get("/biasand_fairness/evaluate/all");
+    const response = await CustomAxios.get("/bias_and_fairness/evaluate/all");
     return response.data;
   },
 
@@ -155,14 +161,14 @@ export const biasAndFairnessService = {
    * Cancels a running evaluation
    */
   async cancelEvaluation(evaluationId: string): Promise<void> {
-    await CustomAxios.delete(`/biasand_fairness/evaluate/${evaluationId}`);
+    await CustomAxios.delete(`/bias_and_fairness/evaluate/${evaluationId}`);
   },
 
   /**
    * Gets available evaluation metrics
    */
   async getAvailableMetrics(): Promise<string[]> {
-    const response = await CustomAxios.get("/biasand_fairness/metrics/available");
+    const response = await CustomAxios.get("/bias_and_fairness/metrics/available");
     return response.data;
   },
 
@@ -170,7 +176,7 @@ export const biasAndFairnessService = {
    * Gets available bias detection methods
    */
   async getAvailableBiasMethods(): Promise<string[]> {
-    const response = await CustomAxios.get("/biasand_fairness/bias-methods/available");
+    const response = await CustomAxios.get("/bias_and_fairness/bias-methods/available");
     return response.data;
   },
 

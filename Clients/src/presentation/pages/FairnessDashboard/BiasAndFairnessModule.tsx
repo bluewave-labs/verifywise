@@ -21,7 +21,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
-import FairnessTable from "../../../presentation/components/Table/FairnessTable";
+import EvaluationTable from "../../../presentation/components/Table/EvaluationTable";
 
 interface BiasAndFairnessConfig {
   dataset: {
@@ -109,9 +109,26 @@ export default function BiasAndFairnessModule() {
   const loadEvaluations = async () => {
     try {
       const data = await biasAndFairnessService.getAllBiasFairnessEvaluations();
+      console.log("Loaded evaluations:", data);
       setEvaluations(data);
+      
+      // Check for any pending/running evaluations and poll their status
+      const pendingEvaluations = data.filter(evaluation => 
+        !evaluation.status || evaluation.status === "pending" || evaluation.status === "running"
+      );
+      
+      if (pendingEvaluations.length > 0) {
+        console.log(`Found ${pendingEvaluations.length} pending/running evaluations`);
+        // Poll status for pending evaluations
+        pendingEvaluations.forEach(evaluation => {
+          if (evaluation.eval_id) {
+            pollEvaluationStatus(evaluation.eval_id);
+          }
+        });
+      }
     } catch (error) {
       console.error("Failed to load evaluations:", error);
+      setError("Failed to load evaluations. Please refresh the page.");
       // For now, use empty array if API fails
       setEvaluations([]);
     }
@@ -206,7 +223,6 @@ export default function BiasAndFairnessModule() {
     try {
       // Transform config to match API payload
       const apiPayload = {
-        debug_write_only: true,
         dataset: {
           name: config.dataset.name,
           source: config.dataset.source,
@@ -232,7 +248,7 @@ export default function BiasAndFairnessModule() {
           attribute_groups: config.postProcessing?.attributeGroups
         },
         sampling: {
-          enabled: false,
+          enabled: true,
           n_samples: 50,
           random_seed: 42
         }
@@ -274,12 +290,13 @@ export default function BiasAndFairnessModule() {
 
   // Transform evaluations for FairnessTable
   const tableRows = evaluations.map(evaluation => ({
-    id: evaluation.eval_id,
-    model: evaluation.model_name,
-    dataset: evaluation.dataset_name,
+    id: evaluation.eval_id || "Pending...",
+    model: evaluation.model_name || "Unknown Model",
+    dataset: evaluation.dataset_name || "Unknown Dataset",
     status: evaluation.status === "completed" ? "Completed" : 
             evaluation.status === "running" ? "In Progress" : 
-            evaluation.status === "failed" ? "Failed" : "Pending"
+            evaluation.status === "failed" ? "Failed" : 
+            evaluation.status === "pending" ? "Pending" : "Pending"
   }));
 
   const tableColumns = [
@@ -296,9 +313,9 @@ export default function BiasAndFairnessModule() {
     window.open(`/fairness-dashboard/bias-fairness-results/${evaluation.id}`, '_blank');
   };
 
-  const handleRemoveModel = async (id: number) => {
+  const handleRemoveModel = async (id: string) => {
     try {
-      await biasAndFairnessService.deleteBiasFairnessEvaluation(id.toString());
+      await biasAndFairnessService.deleteBiasFairnessEvaluation(id);
       await loadEvaluations(); // Reload the list
     } catch (error) {
       console.error("Failed to delete evaluation:", error);
@@ -352,7 +369,7 @@ export default function BiasAndFairnessModule() {
 
       {/* Evaluation Results Table */}
       <Box mb={4}>
-        <FairnessTable
+        <EvaluationTable
           columns={tableColumns}
           rows={tableRows}
           removeModel={{

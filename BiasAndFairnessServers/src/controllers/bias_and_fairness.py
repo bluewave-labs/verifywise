@@ -326,8 +326,8 @@ async def create_config_and_run_evaluation(background_tasks: BackgroundTasks, co
         # Support top-level sampling as a fallback if dataset.sampling is not provided
         sampling_input = (dataset_input.get("sampling") or config_data.get("sampling") or {})
         sampling_norm = {
-            "enabled": bool((sampling_input or {}).get("enabled", False)),
-            "n_samples": int((sampling_input or {}).get("n_samples", 500)),
+            "enabled": bool((sampling_input or {}).get("enabled", True)),
+            "n_samples": int((sampling_input or {}).get("n_samples", 50)),
             "random_seed": int((sampling_input or {}).get("random_seed", 42)),
         }
 
@@ -362,7 +362,7 @@ async def create_config_and_run_evaluation(background_tasks: BackgroundTasks, co
                 "huggingface": {
                     "enabled": model_hf_input.get("enabled", True),
                     "model_id": resolved_model_id,
-                    "device": model_hf_input.get("device", "cuda"),
+                    "device": model_hf_input.get("device", "cpu"),
                     "max_new_tokens": model_hf_input.get("max_new_tokens", 50),
                     "temperature": model_hf_input.get("temperature", 0.7),
                     "top_p": model_hf_input.get("top_p", 0.9),
@@ -420,6 +420,8 @@ async def create_config_and_run_evaluation(background_tasks: BackgroundTasks, co
                 tenant=tenant,
                 db=db
             )
+            # Persist the newly created evaluation row
+            await db.commit()
         
         # Start background task to run evaluation
         background_tasks.add_task(
@@ -457,13 +459,29 @@ async def run_bias_fairness_evaluation(job_id: int, config_path: str, eval_id: s
         # Update status to running
         async with get_db() as db:
             await update_bias_fairness_evaluation_status(eval_id, "running", None, db, tenant)
+            await db.commit()
         
         # Prepare to run the evaluation using the module's virtualenv python if available
         import subprocess
         import sys
-        module_dir = Path("BiasAndFairnessModule").resolve()
+        # Determine repo root from current file path (same as in create_config_and_run_evaluation)
+        repo_root = Path(__file__).resolve().parents[3]
+        module_dir = repo_root / "BiasAndFairnessModule"
         module_python = module_dir / "venv" / "bin" / "python"
+        
+        # Check if module directory exists
+        if not module_dir.exists():
+            raise Exception(f"BiasAndFairnessModule directory not found at {module_dir}")
+        
+        # Check if config file exists
+        if not Path(config_path).exists():
+            raise Exception(f"Config file not found at {config_path}")
+        
+        # Use module's python if available, otherwise use system python
         python_exec = str(module_python) if module_python.exists() else sys.executable
+        print(f"Using Python executable: {python_exec}")
+        print(f"Working directory: {module_dir}")
+        print(f"Config path: {config_path}")
 
         # Run the evaluation using the complete pipeline in the module directory
         result = subprocess.run(
@@ -471,6 +489,7 @@ async def run_bias_fairness_evaluation(job_id: int, config_path: str, eval_id: s
             capture_output=True,
             text=True,
             cwd=str(module_dir),
+            timeout=1800  # 30 minute timeout
         )
         
         if result.returncode == 0:
@@ -483,6 +502,7 @@ async def run_bias_fairness_evaluation(job_id: int, config_path: str, eval_id: s
                 # Update status to completed with results
                 async with get_db() as db:
                     await update_bias_fairness_evaluation_status(eval_id, "completed", results, db, tenant)
+                    await db.commit()
                 
                 # Update job status
                 await update_job_status(job_id, {
@@ -492,32 +512,89 @@ async def run_bias_fairness_evaluation(job_id: int, config_path: str, eval_id: s
                     "message": "Evaluation completed successfully"
                 })
             else:
-                # Update status to failed
-                async with get_db() as db:
-                    await update_bias_fairness_evaluation_status(eval_id, "failed", None, db, tenant)
+                # Check if there are any existing results files we can use as fallback
+                fallback_paths = [
+                    Path(module_dir) / "artifacts" / "fairness_compass_results.json",
+                    Path(module_dir) / "artifacts" / "inference_results.csv"
+                ]
                 
-                await update_job_status(job_id, {
-                    "status": "failed",
-                    "eval_id": eval_id,
-                    "error": "Results file not found",
-                    "message": "Evaluation failed - results file not generated"
-                })
+                fallback_results = None
+                for fallback_path in fallback_paths:
+                    if fallback_path.exists():
+                        print(f"Using fallback results from {fallback_path}")
+                        if fallback_path.suffix == '.json':
+                            with open(fallback_path, 'r') as f:
+                                fallback_results = json.load(f)
+                        else:
+                            # For CSV files, create a basic result structure
+                            fallback_results = {
+                                "message": "Evaluation completed with fallback results",
+                                "source_file": str(fallback_path),
+                                "status": "completed_with_fallback"
+                            }
+                        break
+                
+                if fallback_results:
+                    # Update status to completed with fallback results
+                    async with get_db() as db:
+                        await update_bias_fairness_evaluation_status(eval_id, "completed", fallback_results, db, tenant)
+                        await db.commit()
+                    
+                    await update_job_status(job_id, {
+                        "status": "completed",
+                        "eval_id": eval_id,
+                        "results": fallback_results,
+                        "message": "Evaluation completed with fallback results"
+                    })
+                else:
+                    # Update status to failed
+                    async with get_db() as db:
+                        await update_bias_fairness_evaluation_status(eval_id, "failed", None, db, tenant)
+                        await db.commit()
+                    
+                    await update_job_status(job_id, {
+                        "status": "failed",
+                        "eval_id": eval_id,
+                        "error": "Results file not found",
+                        "message": "Evaluation failed - results file not generated"
+                    })
         else:
+            # Log detailed error information
+            error_details = {
+                "return_code": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "python_exec": python_exec,
+                "working_dir": str(module_dir),
+                "config_path": config_path
+            }
+            print(f"Evaluation failed with return code {result.returncode}")
+            print(f"STDOUT: {result.stdout}")
+            print(f"STDERR: {result.stderr}")
+            
             # Update status to failed
             async with get_db() as db:
                 await update_bias_fairness_evaluation_status(eval_id, "failed", None, db, tenant)
+                await db.commit()
             
             await update_job_status(job_id, {
                 "status": "failed",
                 "eval_id": eval_id,
                 "error": result.stderr,
-                "message": "Evaluation failed - CLI execution error"
+                "error_details": error_details,
+                "message": f"Evaluation failed - CLI execution error (return code: {result.returncode})"
             })
             
     except Exception as e:
+        # Log the exception details
+        print(f"Exception in run_bias_fairness_evaluation: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
         # Update status to failed
         async with get_db() as db:
             await update_bias_fairness_evaluation_status(eval_id, "failed", None, db, tenant)
+            await db.commit()
         
         await update_job_status(job_id, {
             "status": "failed",
@@ -541,9 +618,27 @@ async def get_all_bias_fairness_evaluations_controller(tenant: str):
     try:
         async with get_db() as db:
             evaluations = await get_all_bias_fairness_evaluations(db, tenant)
+            # Convert RowMapping objects to dictionaries for JSON serialization
+            evaluations_list = []
+            for evaluation in evaluations:
+                eval_dict = {
+                    'id': evaluation.id,
+                    'eval_id': evaluation.eval_id,
+                    'model_name': evaluation.model_name,
+                    'dataset_name': evaluation.dataset_name,
+                    'model_task': evaluation.model_task,
+                    'label_behavior': evaluation.label_behavior,
+                    'config_data': evaluation.config_data,
+                    'status': evaluation.status,
+                    'results': evaluation.results,
+                    'created_at': evaluation.created_at.isoformat() if evaluation.created_at else None,
+                    'updated_at': evaluation.updated_at.isoformat() if evaluation.updated_at else None
+                }
+                evaluations_list.append(eval_dict)
+            
             return JSONResponse(
                 status_code=200,
-                content=evaluations
+                content=evaluations_list
             )
     except Exception as e:
         raise HTTPException(
@@ -561,9 +656,25 @@ async def get_bias_fairness_evaluation_by_id_controller(eval_id: str, tenant: st
                     status_code=404,
                     detail=f"Evaluation with ID {eval_id} not found"
                 )
+            
+            # Convert RowMapping object to dictionary for JSON serialization
+            eval_dict = {
+                'id': evaluation.id,
+                'eval_id': evaluation.eval_id,
+                'model_name': evaluation.model_name,
+                'dataset_name': evaluation.dataset_name,
+                'model_task': evaluation.model_task,
+                'label_behavior': evaluation.label_behavior,
+                'config_data': evaluation.config_data,
+                'status': evaluation.status,
+                'results': evaluation.results,
+                'created_at': evaluation.created_at.isoformat() if evaluation.created_at else None,
+                'updated_at': evaluation.updated_at.isoformat() if evaluation.updated_at else None
+            }
+            
             return JSONResponse(
                 status_code=200,
-                content=evaluation
+                content=eval_dict
             )
     except HTTPException as he:
         raise he

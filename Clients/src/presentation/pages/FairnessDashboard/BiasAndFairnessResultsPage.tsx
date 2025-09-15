@@ -23,7 +23,7 @@ const Plot = createPlotlyComponent(Plotly);
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import singleTheme from "../../themes/v1SingleTheme";
 
-type MetricEntry = { value: number; status?: string; confidence?: string; [k: string]: any };
+type MetricEntry = { value: number; status?: string; confidence?: string; [k: string]: unknown };
 type DataQuality = {
   data_quality_score?: number;
   insights?: string[];
@@ -230,8 +230,16 @@ export default function BiasAndFairnessResultsPage() {
             mb: 2,
           }}
         >
-          Bias & Fairness Evaluation Results
+          Bias & fairness evaluation results
         </Typography>
+        {(
+          <Chip
+            label={metrics?.status === 'completed' ? 'Completed' : (metrics?.status || (isDemo ? 'Demo' : ''))}
+            color="success"
+            size="small"
+            sx={{ ml: 2 }}
+          />
+        )}
       </Box>
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} variant="scrollable" scrollButtons allowScrollButtonsMobile>
@@ -249,8 +257,8 @@ export default function BiasAndFairnessResultsPage() {
       {tab === 0 && (
       <Box mb={4}>
         <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
-          <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
-            Evaluation Information
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Evaluation information
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -284,18 +292,18 @@ export default function BiasAndFairnessResultsPage() {
       {tab === 0 && Object.keys(performance).length > 0 && (
         <Box mb={4}>
           <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
-            <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
-              Performance Metrics
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Performance metrics
             </Typography>
             <Grid container spacing={2}>
               {Object.entries(performance).map(([metric, value]) => (
                 <Grid item xs={6} md={3} key={metric}>
                   <Card sx={{ backgroundColor: "#f8fafc" }}>
                     <CardContent sx={{ p: 2, textAlign: "center" }}>
-                      <Typography variant="h6" sx={{ color: "#13715B", fontWeight: 600 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
                         {(value as number) !== undefined ? ((value as number) * 100).toFixed(1) + '%' : ''}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: "#6B7280", textTransform: "capitalize" }}>
+                      <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
                         {metric.replace('_', ' ')}
                       </Typography>
                     </CardContent>
@@ -310,15 +318,15 @@ export default function BiasAndFairnessResultsPage() {
       {/* Fairness Metrics by Attribute */}
       {tab === 0 && Object.keys(fairness_metrics).length > 0 && (
         <Box mb={4}>
-          <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
-            Fairness Metrics by Protected Attribute
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Fairness metrics by protected attribute
           </Typography>
           
           {/* Sex Metrics */}
           {Object.keys(sexMetrics).length > 0 && (
             <Box mb={4}>
               <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                Sex Attribute Fairness Metrics
+                Sex attribute fairness metrics
               </Typography>
               {Plot ? (
                 <Plot
@@ -345,7 +353,7 @@ export default function BiasAndFairnessResultsPage() {
           {Object.keys(raceMetrics).length > 0 && (
             <Box mb={4}>
               <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                Race Attribute Fairness Metrics
+                Race attribute fairness metrics
               </Typography>
               {Plot ? (
                 <Plot
@@ -374,25 +382,25 @@ export default function BiasAndFairnessResultsPage() {
       {tab === 0 && data_quality && Object.keys(data_quality).length > 0 && (
         <Box mb={4}>
           <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
-            <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
-              Data Quality Assessment
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Data quality assessment
             </Typography>
             {data_quality.data_quality_score && (
               <>
-                <Typography variant="h4" sx={{ color: "#13715B", fontWeight: 600, mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 600, mb: 2 }}>
                   {(data_quality.data_quality_score * 100).toFixed(1)}%
                 </Typography>
                 <Typography variant="body2" sx={{ color: "#6B7280", mb: 2 }}>
-                  Overall Data Quality Score
+                  Overall data quality score
                 </Typography>
               </>
             )}
             {flagged && Object.keys(flagged).length > 0 && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Flagged Metrics</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Flagged metrics</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {Object.entries(flagged).map(([k, v]) => (
-                    <Chip key={k} color="warning" variant="outlined" label={`${k}: ${((v as { value?: number })?.value ?? '').toString().slice(0, 6)} - ${(
+                    <Chip key={k} variant="outlined" label={`${k}: ${((v as { value?: number })?.value ?? '').toString().slice(0, 6)} - ${(
                       v as { reason?: string }
                     )?.reason || 'flagged'}`} />
                   ))}
@@ -416,8 +424,8 @@ export default function BiasAndFairnessResultsPage() {
       {tab === 0 && uniqueMetrics.length > 0 && (
         <Box mb={4}>
           <Paper elevation={0} sx={{ p: 3, backgroundColor: "white" }}>
-            <Typography variant="h6" sx={{ mb: 2, color: "#13715B", fontWeight: 600 }}>
-              Metric Descriptions
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Metric descriptions
             </Typography>
             <Grid container spacing={2}>
               {uniqueMetrics.slice(0, 6).map((metric) => (
@@ -472,7 +480,7 @@ export default function BiasAndFairnessResultsPage() {
       {/* Metrics Explorer */}
       {tab === 3 && (
         <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
-          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Metrics Explorer</Typography>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Metrics Explorer</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>User-selected</Typography>
@@ -519,7 +527,7 @@ export default function BiasAndFairnessResultsPage() {
       {/* Data & Subgroups */}
       {tab === 4 && (
         <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
-          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Data & Subgroups</Typography>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Data & Subgroups</Typography>
           <Typography variant="body2" sx={{ color: '#6B7280' }}>
             Explore distributions of protected attributes and subgroup sample sizes. (Coming soon)
           </Typography>
@@ -529,7 +537,7 @@ export default function BiasAndFairnessResultsPage() {
       {/* Mitigation */}
       {tab === 5 && (
         <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
-          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Mitigation</Typography>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Mitigation</Typography>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Recommended Metrics</Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
             {(metricsCfg.fairness_compass_recommended_metrics || []).map(m => (
@@ -545,7 +553,7 @@ export default function BiasAndFairnessResultsPage() {
       {/* Runs & History */}
       {tab === 6 && (
         <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
-          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Evaluation Runs & History</Typography>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Evaluation Runs & History</Typography>
           <Typography variant="body2" sx={{ color: '#6B7280' }}>
             View past runs, compare configurations, and export results. (Coming soon)
           </Typography>
@@ -555,7 +563,7 @@ export default function BiasAndFairnessResultsPage() {
       {/* Settings / Config */}
       {tab === 7 && (
         <Paper elevation={0} sx={{ p: 3, backgroundColor: 'white' }}>
-          <Typography variant="h6" sx={{ mb: 2, color: '#13715B', fontWeight: 600 }}>Settings / Config</Typography>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Settings / Config</Typography>
           <Typography variant="body2" sx={{ color: '#6B7280' }}>
             Configure default thresholds, sampling, and integration settings. (Coming soon)
           </Typography>

@@ -558,6 +558,7 @@ const Framework = () => {
                 variant="contained"
                 endIcon={<KeyboardArrowDownIcon sx={{ fontSize: "18px" }} />}
                 onClick={handleManageProjectClick}
+                disableRipple
                 disabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&
                   !allowedRoles.projects.edit.includes(userRoleName) &&

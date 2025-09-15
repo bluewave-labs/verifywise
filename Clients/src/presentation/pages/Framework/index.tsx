@@ -194,55 +194,6 @@ const Framework = () => {
     }
   };
 
-  // Check if there are any organizational projects
-  const organizationalProject = useMemo(() => {
-    return projects.find(project => project.is_organizational === true);
-  }, [projects]);
-
-  // State for modals
-  const [isProjectFormModalOpen, setIsProjectFormModalOpen] = useState(false);
-  const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  // Function to refresh project data after framework changes
-  const refreshProjectData = async () => {
-    try {
-      // Import the projects repository function
-      const { getAllProjects } = await import("../../../application/repository/project.repository");
-      const response = await getAllProjects();
-      if (response?.data) {
-        setProjects(response.data);
-      }
-    } catch (error) {
-      console.error("Error refreshing projects:", error);
-    }
-  };
-
-  // Function to handle project deletion
-  const handleDeleteProject = async () => {
-    if (!organizationalProject) return;
-    
-    try {
-      const response = await deleteProject({
-        id: organizationalProject.id,
-      });
-      
-      if (response.status >= 200 && response.status < 300) {
-        // Remove the project from context
-        setProjects((prevProjects) =>
-          prevProjects.filter((project) => project.id !== organizationalProject.id)
-        );
-        // Stay on the Framework page - the UI will automatically show "No Organizational Project Found"
-      } else {
-        console.error("Failed to delete project");
-      }
-    } catch (error) {
-      console.error("Error deleting project:", error);
-    } finally {
-      setIsDeleteModalOpen(false);
-    }
-  };
-
   // Fetch all frameworks
   const { allFrameworks, loading, error, refreshFilteredFrameworks } =
     useFrameworks({
@@ -787,6 +738,7 @@ const Framework = () => {
       {!organizationalProject && (
         <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001 and ISO 42001 frameworks for your organization." />
       )}
+
       {/* Modals */}
       {isProjectFormModalOpen && (
         <Modal
@@ -898,6 +850,7 @@ const Framework = () => {
           }}
         />
       )}
+
       {isDeleteModalOpen && organizationalProject && (
         <DualButtonModal
           title="Confirm Delete"

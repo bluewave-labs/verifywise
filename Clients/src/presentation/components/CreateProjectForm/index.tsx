@@ -29,6 +29,7 @@ import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
 import { Project } from "../../../domain/types/Project";
+import { createProjectFormStyles } from "./styles";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -224,13 +225,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   );
 
   const fieldStyle = useMemo(
-    () => ({
-      backgroundColor: theme.palette.background.main,
-      "& input": {
-        padding: "0 14px",
-      },
-    }),
-    [theme.palette.background.main]
+    () => createProjectFormStyles.fieldStyle(theme),
+    [theme]
   );
 
   const handleOnMultiSelect = useCallback(
@@ -251,18 +247,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
       <Stack component="form" onSubmit={handleSubmit}>
         <Stack
           direction="row"
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            columnGap: 20,
-            rowGap: 8,
-            mt: 13.5,
-          }}
+          sx={createProjectFormStyles.formContainer}
         >
           <Stack
-            sx={{
-              rowGap: 8,
-            }}
+            sx={createProjectFormStyles.leftColumn}
           >
             <Suspense fallback={<div>Loading...</div>}>
               <Field
@@ -290,10 +278,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     email: user.email,
                   })) || []
                 }
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
+                sx={createProjectFormStyles.selectStyle(theme)}
                 error={errors.owner}
                 isRequired
               />
@@ -310,10 +295,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 }
                 onChange={handleOnSelectChange("ai_risk_classification")}
                 items={riskClassificationItems}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
+                sx={createProjectFormStyles.selectStyle(theme)}
                 error={errors.riskClassification}
                 isRequired
               />
@@ -330,10 +312,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 }
                 onChange={handleOnSelectChange("type_of_high_risk_role")}
                 items={highRiskRoleItems}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
+                sx={createProjectFormStyles.selectStyle(theme)}
                 isRequired
                 error={errors.typeOfHighRiskRole}
               />
@@ -342,11 +321,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           <Stack>
             <Suspense fallback={<div>Loading...</div>}>
               <Typography
-                sx={{
-                  fontSize: theme.typography.fontSize,
-                  fontWeight: 500,
-                  mb: 2,
-                }}
+                sx={createProjectFormStyles.teamMembersTitle(theme)}
               >
                 Team members *
               </Typography>
@@ -386,16 +361,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                       : option.email;
                   return (
                     <Box key={key} component="li" {...optionProps}>
-                      <Typography sx={{ fontSize: "13px" }}>
+                      <Typography sx={createProjectFormStyles.autocompleteOptionText}>
                         {option.name} {option.surname}
                       </Typography>
                       <Typography
-                        sx={{
-                          fontSize: "11px",
-                          color: "rgb(157, 157, 157)",
-                          position: "absolute",
-                          right: "9px",
-                        }}
+                        sx={createProjectFormStyles.autocompleteEmailText}
                       >
                         {userEmail}
                       </Typography>
@@ -409,68 +379,23 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     {...params}
                     placeholder="Select Users"
                     error={memberRequired}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        paddingTop: "3.8px !important",
-                        paddingBottom: "3.8px !important",
-                      },
-                      "& ::placeholder": {
-                        fontSize: "13px",
-                      },
-                    }}
+                    sx={createProjectFormStyles.autocompleteTextField}
                   />
                 )}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "3px",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "none",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#888",
-                      borderWidth: "1px",
-                    },
-                  },
-                }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      "& .MuiAutocomplete-listbox": {
-                        "& .MuiAutocomplete-option": {
-                          fontSize: "13px",
-                          color: "#1c2130",
-                          paddingLeft: "9px",
-                          paddingRight: "9px",
-                        },
-                        "& .MuiAutocomplete-option.Mui-focused": {
-                          background: "#f9fafb",
-                        },
-                      },
-                      "& .MuiAutocomplete-noOptions": {
-                        fontSize: "13px",
-                        paddingLeft: "9px",
-                        paddingRight: "9px",
-                      },
-                    },
-                  },
-                }}
+                sx={createProjectFormStyles.autocompleteContainer(theme)}
+                slotProps={createProjectFormStyles.autocompleteSlotProps}
               />
               {memberRequired && (
                 <Typography
                   variant="caption"
-                  sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+                  sx={createProjectFormStyles.errorText}
                 >
                   {errors.members}
                 </Typography>
               )}
             </Suspense>
             <Stack
-              sx={{
-                rowGap: 8,
-                mt: 8,
-              }}
+              sx={createProjectFormStyles.rightColumnContainer}
             >
               <Suspense fallback={<div>Loading...</div>}>
                 <DatePicker
@@ -481,10 +406,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                       : dayjs(new Date())
                   }
                   handleDateChange={handleDateChange}
-                  sx={{
-                    width: "130px",
-                    "& input": { width: "85px" },
-                  }}
+                  sx={createProjectFormStyles.datePicker}
                   isRequired
                   error={errors.startDate}
                 />
@@ -496,9 +418,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                   type="description"
                   value={values.goal}
                   onChange={handleOnTextFieldChange("goal")}
-                  sx={{
-                    backgroundColor: theme.palette.background.main,
-                  }}
+                  sx={createProjectFormStyles.goalField(theme)}
                   isRequired
                   error={errors.goal}
                 />
@@ -512,18 +432,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           disableRipple={
             theme.components?.MuiButton?.defaultProps?.disableRipple
           }
-          sx={{
-            borderRadius: 2,
-            maxHeight: 34,
-            textTransform: "inherit",
-            backgroundColor: "#4C7DE7",
-            boxShadow: "none",
-            border: "1px solid #175CD3",
-            ml: "auto",
-            mr: 0,
-            mt: "30px",
-            "&:hover": { boxShadow: "none", backgroundColor: "#175CD3 " },
-          }}
+          sx={createProjectFormStyles.submitButton}
         >
           Create project
         </Button>

@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 from ..core.config import ConfigManager, DatasetConfig, ModelConfig, PromptingConfig
-from ..core.common import chunked
+from ..core.common import chunked, parse_json_strict
 from ..dataset_loader.data_loader import DataLoader
 from .engine import InferenceEngine
 from .factory import build_engine
@@ -84,12 +84,30 @@ class InferencePipeline:
         Returns:
             A dictionary representing the standardized inference result row.
         """
+        provider_lower = self.provider.lower()
+        pred_value: Optional[str] = None
+        conf_value: Optional[float] = None
+        raw_output: Optional[str] = prediction
+        if provider_lower == "openai":
+            parsed = parse_json_strict(prediction)
+            pred_value = parsed["prediction"]
+            conf_value = float(parsed["confidence"])
+        elif provider_lower == "huggingface":
+            pred_value = prediction
+            conf_value = None
+        else:
+            raise NotImplementedError(
+                f"Provider '{self.provider}' is not supported in _format_result"
+            )
+
         row: Dict[str, Any] = {
             "sample_id": sample["sample_id"],
             "features": sample["features"],
             "answer": sample["answer"],
             "protected_attributes": sample["protected_attributes"],
-            "prediction": prediction,
+            "raw_output": raw_output,
+            "prediction": pred_value,
+            "confidence": conf_value,
             "provider": self.provider,
             "model_id": self.model_id,
             "prompt_formatter": self.prompt_formatter,

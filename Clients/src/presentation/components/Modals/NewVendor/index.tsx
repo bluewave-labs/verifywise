@@ -34,13 +34,17 @@ import { checkStringValidation } from "../../../../application/validations/strin
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import allowedRoles from "../../../../application/constants/permissions";
-import { useCreateVendor, useUpdateVendor } from "../../../../application/hooks/useVendors";
+import {
+  useCreateVendor,
+  useUpdateVendor,
+} from "../../../../application/hooks/useVendors";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 export interface VendorDetails {
   id?: number;
@@ -85,7 +89,7 @@ const initialState = {
 
 interface AddNewVendorProps {
   isOpen: boolean;
-  setIsOpen: () => void;
+  setIsOpen: (isOpen: boolean) => void;
   value: string;
   onSuccess: () => void;
   existingVendor?: VendorDetails | null;
@@ -99,14 +103,13 @@ const REVIEW_STATUS_OPTIONS = [
   { _id: "requiresFollowUp", name: "Requires follow-up" },
 ];
 
-
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
   isOpen,
   setIsOpen,
   value,
   onSuccess,
   existingVendor,
-  onChange = () => { },
+  onChange = () => {},
 }) => {
   const theme = useTheme();
   const [values, setValues] = useState(initialState);
@@ -139,9 +142,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const formattedProjects = useMemo(() => {
     return Array.isArray(projects)
       ? projects?.map((project: any) => ({
-        _id: project.id,
-        name: project.project_title,
-      }))
+          _id: project.id,
+          name: project.project_title,
+        }))
       : [];
   }, [projects]);
 
@@ -191,6 +194,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       }));
     }
   }, [existingVendor]);
+
+  // ESC key handling and focus trapping
+  useModalKeyHandling({
+    isOpen,
+    onClose: () => setIsOpen(false)
+  });
 
   /**
    * Opens the confirmation modal if form validation passes
@@ -295,8 +304,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       !values.vendorDetails.reviewStatus ||
       Number(values.vendorDetails.reviewStatus) === 0
     ) {
-      newErrors.reviewStatus =
-        "Please select a status from the dropdown";
+      newErrors.reviewStatus = "Please select a status from the dropdown";
     }
     if (
       !values.vendorDetails.reviewer ||
@@ -361,7 +369,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => setAlert(null), 3000);
         onSuccess();
-        setIsOpen();
+        setIsOpen(false);
       } else {
         setAlert({
           variant: "error",
@@ -381,8 +389,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
 
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -415,7 +424,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => setAlert(null), 3000);
         onSuccess();
-        setIsOpen();
+        setIsOpen(false);
       } else {
         setAlert({
           variant: "error",
@@ -431,8 +440,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       });
       setAlert({
         variant: "error",
-        body: `An error occurred: ${(error as Error).message || "Please try again."
-          }`,
+        body: `An error occurred: ${
+          (error as Error).message || "Please try again."
+        }`,
       });
 
       setTimeout(() => setAlert(null), 3000);
@@ -472,9 +482,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Box>
         </Stack>
-        <Stack sx={{ flex: 1 }}
-          mt={theme.spacing(1)}>
-          <Stack >
+        <Stack sx={{ flex: 1 }} mt={theme.spacing(1)}>
+          <Stack>
             <Typography
               sx={{
                 fontSize: theme.typography.fontSize,
@@ -497,7 +506,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               options={projectOptions || []}
               noOptionsText={
                 values?.vendorDetails?.projectIds?.length ===
-                  projectOptions?.length
+                projectOptions?.length
                   ? "All projects are selected"
                   : "No options"
               }
@@ -574,7 +583,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     whiteSpace: "nowrap",
                   },
                 },
-                border: errors.projectIds ? `1px solid #f04438` : `1px solid ${theme.palette.border.dark}`,
+                border: errors.projectIds
+                  ? `1px solid #f04438`
+                  : `1px solid ${theme.palette.border.dark}`,
                 borderRadius: "3px",
                 opacity: errors.projectIds ? 0.8 : 1,
               }}
@@ -645,7 +656,6 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Stack>
         </Stack>
-
       </Stack>
       <Stack marginBottom={theme.spacing(8)}>
         <Field // vendorProvides
@@ -750,15 +760,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         onClose={(_event, reason) => {
           if (reason !== "backdropClick") {
             setValues(initialState);
-            setIsOpen();
+            setIsOpen(false);
           }
         }}
-        disableEscapeKeyDown
         sx={{ overflowY: "scroll" }}
       >
         <Stack
           gap={theme.spacing(2)}
           color={theme.palette.text.secondary}
+          onClick={(e) => e.stopPropagation()}
           sx={{
             backgroundColor: "#D9D9D9",
             position: "absolute",
@@ -793,7 +803,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
               {existingVendor ? "Edit vendor" : "Add new vendor"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
+            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
           </Stack>
           <Box
             sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}

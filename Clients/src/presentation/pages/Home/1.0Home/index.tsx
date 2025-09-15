@@ -1,22 +1,25 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box} from "@mui/material";
+import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
   vwhomeBodyControls,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 
-import { postAutoDrivers } from "../../../../application/repository/entity.repository";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
+<<<<<<< HEAD
 import { logEngine } from "../../../../application/tools/log.engine";
 import { FrameworkTypeEnum } from "../../../vw-v2-components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
+=======
+import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
+import ProjectForm from "../../../components/Forms/ProjectForm";
+>>>>>>> upstream/develop
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
@@ -44,16 +47,18 @@ const Home = () => {
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, setShowToastNotification] =
-    useState<boolean>(false);
+  const [showToastNotification, _] = useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
 
-
   useEffect(() => {
     if (dashboard) {
+<<<<<<< HEAD
       setProjects(dashboard.projects_list.filter(p => !p.is_organizational));
+=======
+      setProjects(dashboard.projects_list.filter((p) => !p.is_organizational));
+>>>>>>> upstream/develop
     }
   }, [dashboard]);
 
@@ -90,58 +95,59 @@ const Home = () => {
     setRefreshProjectsFlag((prev) => !prev);
   };
 
-  const handleGenerateDemoDataClick = async () => {
-    setShowToastNotification(true);
-    try {
-      const response = await postAutoDrivers();
-      if (response.status === 201) {
-        logEngine({
-          type: "info",
-          message: "Demo data generated successfully.",
-        });
-        setAlertState({
-          variant: "success",
-          body: "Demo data generated successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 100);
 
-        await fetchDashboard();
-        setShowToastNotification(false);
-        window.location.reload();
-      } else {
-        logEngine({
-          type: "error",
-          message: "Failed to generate demo data.",
-        });
-        setAlertState({
-          variant: "error",
-          body: "Failed to generate demo data.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 100);
-      }
-      setShowToastNotification(false);
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      logEngine({
-        type: "error",
-        message: `An error occurred: ${errorMessage}`,
-      });
-      setAlertState({
-        variant: "error",
-        body: `An error occurred: ${errorMessage}`,
-      });
-      setTimeout(() => {
-        setAlertState(undefined);
-      }, 100);
-    } finally {
-      setShowToastNotification(false);
-      setRefreshProjectsFlag((prev) => !prev);
-    }
-  };
+  // const handleGenerateDemoDataClick = async () => {
+  //   setShowToastNotification(true);
+  //   try {
+  //     const response = await postAutoDrivers();
+  //     if (response.status === 201) {
+  //       logEngine({
+  //         type: "info",
+  //         message: "Demo data generated successfully.",
+  //       });
+  //       setAlertState({
+  //         variant: "success",
+  //         body: "Demo data generated successfully.",
+  //       });
+  //       setTimeout(() => {
+  //         setAlertState(undefined);
+  //       }, 100);
+
+  //       await fetchDashboard();
+  //       setShowToastNotification(false);
+  //       window.location.reload();
+  //     } else {
+  //       logEngine({
+  //         type: "error",
+  //         message: "Failed to generate demo data.",
+  //       });
+  //       setAlertState({
+  //         variant: "error",
+  //         body: "Failed to generate demo data.",
+  //       });
+  //       setTimeout(() => {
+  //         setAlertState(undefined);
+  //       }, 100);
+  //     }
+  //     setShowToastNotification(false);
+  //   } catch (error) {
+  //     const errorMessage = (error as Error).message;
+  //     logEngine({
+  //       type: "error",
+  //       message: `An error occurred: ${errorMessage}`,
+  //     });
+  //     setAlertState({
+  //       variant: "error",
+  //       body: `An error occurred: ${errorMessage}`,
+  //     });
+  //     setTimeout(() => {
+  //       setAlertState(undefined);
+  //     }, 100);
+  //   } finally {
+  //     setShowToastNotification(false);
+  //     setRefreshProjectsFlag((prev) => !prev);
+  //   }
+  // };
 
   return (
     <Stack className="vwhome">
@@ -167,13 +173,13 @@ const Home = () => {
         <Stack sx={vwhomeBody}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={vwhomeHeading}>Projects overview</Typography>
-            <HelperIcon 
+            <HelperIcon
               onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
               size="small"
             />
           </Stack>
           <Stack sx={vwhomeBodyControls}>
-            {projects.length === 0 && (
+            {/* {projects.length === 0 && (
               <CustomizableButton
                 variant="contained"
                 text="Create demo project"
@@ -188,7 +194,7 @@ const Home = () => {
                   !allowedRoles.projects.create.includes(userRoleName)
                 }
               />
-            )}
+            )} */}
             <div data-joyride-id="new-project-button" ref={refs[0]}>
               <CustomizableButton
                 variant="contained"
@@ -225,7 +231,9 @@ const Home = () => {
           </Box>
         </Stack>
 
+        {/* TODO: Add TaskRadar visualization when backend data is ready */}
 
+<<<<<<< HEAD
          {/* TODO: Add TaskRadar visualization when backend data is ready */}
 
 
@@ -257,7 +265,37 @@ const Home = () => {
               }}
               tourKey="home-tour"
           />
+=======
+        <ProjectList projects={projects} />
+>>>>>>> upstream/develop
       </Stack>
+
+      <Modal
+        open={isProjectFormModalOpen}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            handleProjectFormModalClose();
+          }
+        }}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <Box sx={vwhomeCreateModalFrame}>
+          <ProjectForm
+            defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
+            onClose={handleProjectFormModalClose}
+          />
+        </Box>
+      </Modal>
+      <PageTour
+        steps={HomeSteps}
+        run={runHomeTour}
+        onFinish={() => {
+          setRunHomeTour(false);
+        }}
+        tourKey="home-tour"
+      />
+    </Stack>
   );
 };
 

@@ -23,11 +23,21 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO27001ClauseStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { Project } from "../../../../../domain/types/Project";
+import { useModalKeyHandling } from "../../../../../application/hooks/useModalKeyHandling";
 
 const ISO27001Clause = ({
+<<<<<<< HEAD
   projectFrameworkId,
   statusFilter,
 }: {
+=======
+  project,
+  projectFrameworkId,
+  statusFilter,
+}: {
+  project: Project;
+>>>>>>> upstream/develop
   projectFrameworkId: number | string;
   statusFilter?: string;
 }) => {
@@ -42,7 +52,7 @@ const ISO27001Clause = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [subClausesMap, setSubClausesMap] = useState<{ [key: number]: any[] }>(
-    {}
+    {},
   );
   const [loadingSubClauses, setLoadingSubClauses] = useState<{
     [key: number]: boolean;
@@ -88,7 +98,7 @@ const ISO27001Clause = ({
 
         const mergedSubClauses = detailedSubClauses.map((detailed: any) => {
           const match = clauseSubClausesWithStatus.find(
-            (s) => s.id === detailed.id
+            (s) => s.id === detailed.id,
           );
           return {
             ...detailed,
@@ -103,7 +113,7 @@ const ISO27001Clause = ({
         setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: false }));
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -127,7 +137,7 @@ const ISO27001Clause = ({
       setSelectedIndex(index);
       setDrawerOpen(true);
     },
-    []
+    [],
   );
 
   const handleDrawerClose = () => {
@@ -137,14 +147,21 @@ const ISO27001Clause = ({
     if (clauseId && subClauseId) {
       searchParams.delete("clauseId");
       searchParams.delete("subClauseId");
+      searchParams.delete("frameworkName");
       setSearchParams(searchParams);
     }
   };
 
+  // Add modal key handling for ESC key support
+  useModalKeyHandling({
+    isOpen: drawerOpen,
+    onClose: handleDrawerClose,
+  });
+
   const handleSaveSuccess = async (
     success: boolean,
     message?: string,
-    savedSubClauseId?: number
+    savedSubClauseId?: number,
   ) => {
     handleAlert({
       variant: success ? "success" : "error",
@@ -162,7 +179,10 @@ const ISO27001Clause = ({
     }
   };
 
-  const handleStatusChange = async (subClause: any, newStatus: string): Promise<boolean> => {
+  const handleStatusChange = async (
+    subClause: any,
+    newStatus: string,
+  ): Promise<boolean> => {
     try {
       const success = await updateISO27001ClauseStatus({
         id: subClause.id,
@@ -181,7 +201,7 @@ const ISO27001Clause = ({
 
         setFlashingRowId(subClause.id);
         setTimeout(() => setFlashingRowId(null), 2000);
-        
+
         setRefreshTrigger((prev) => prev + 1);
       } else {
         handleAlert({
@@ -210,7 +230,7 @@ const ISO27001Clause = ({
     const filteredSubClauses =
       statusFilter && statusFilter !== ""
         ? subClauses.filter(
-            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase()
+            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase(),
           )
         : subClauses;
 
@@ -229,7 +249,7 @@ const ISO27001Clause = ({
               }}
               sx={styles.subClauseRow(
                 filteredSubClauses.length - 1 === index,
-                flashingRowId === subClause.id
+                flashingRowId === subClause.id,
               )}
             >
               <Typography fontSize={13}>
@@ -238,7 +258,9 @@ const ISO27001Clause = ({
               </Typography>
               <StatusDropdown
                 currentStatus={subClause.status ?? "Not started"}
-                onStatusChange={(newStatus) => handleStatusChange(subClause, newStatus)}
+                onStatusChange={(newStatus) =>
+                  handleStatusChange(subClause, newStatus)
+                }
                 size="small"
                 allowedRoles={allowedRoles.frameworks.edit}
                 userRole={userRoleName}
@@ -260,18 +282,20 @@ const ISO27001Clause = ({
       async function fetchSubClause() {
         try {
           const response = await getEntityById({
+<<<<<<< HEAD
             routeUrl: `/iso-27001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
+=======
+            routeUrl: `/iso-27001/subClause/byId/${subClauseId}?projectFrameworkId=${projectFrameworkId}`,
+>>>>>>> upstream/develop
           });
-          setSelectedSubClause({
-            ...response.data,
-            id: response.data.clause_id,
-          });
-          if (clause && clauseId) {
-            handleSubClauseClick(
-              clause,
-              { ...response.data, id: response.data.clause_id },
-              parseInt(clauseId)
-            );
+          setSelectedSubClause(response.data);
+          if (clause && response.data && clauseId) {
+            const idx = Array.isArray(clause.subClauses)
+              ? clause.subClauses.findIndex(
+                  (sc: any) => sc.id === response.data.id,
+                )
+              : 0;
+            handleSubClauseClick(clause, response.data, idx >= 0 ? idx : 0);
           }
         } catch (error) {
           console.error("Error fetching subclause:", error);
@@ -319,7 +343,13 @@ const ISO27001Clause = ({
       {drawerOpen && (
         <VWISO27001ClauseDrawerDialog
           open={drawerOpen}
-          onClose={handleDrawerClose}
+          onClose={(_event?: any, reason?: string) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleDrawerClose();
+          }}
+          project_id={Number(project.id)}
           subClause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(projectFrameworkId)}

@@ -26,7 +26,7 @@ import {
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
   updatePolicy,
@@ -34,6 +34,7 @@ import {
 import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
+import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 
 interface Props {
   policy: Policy | null;
@@ -81,6 +82,11 @@ const PolicyDetailModal: React.FC<Props> = ({
       blockquote: false,
     }
   );
+
+  useModalKeyHandling({
+    isOpen: true,
+    onClose,
+  });
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -240,7 +246,11 @@ const PolicyDetailModal: React.FC<Props> = ({
       )} */}
       <Drawer
         open={true}
-        onClose={onClose}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            onClose();
+          }
+        }}
         anchor="right"
         sx={{
           width: 800,
@@ -274,7 +284,9 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={4}>
+        <Stack spacing={4} sx={{
+            paddingBottom: 30, // leaves space so content won't hide under Save button
+          }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -450,13 +462,16 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Box
           sx={{
-            position: "absolute",
-            bottom: 10,
-            right: 10,
-            width: "100%",
+            position: "fixed",            
+            bottom: 0,
+            right: 0,
+            width: 800,                     // same width as Drawer
             p: 2,
+            backgroundColor: "#fff",        // give it a background to overlap content
+            borderTop: "1px solid #E0E0E0", 
             display: "flex",
             justifyContent: "flex-end",
+            zIndex: 1201,                   // above Drawer content
           }}
         >
           <CustomizableButton

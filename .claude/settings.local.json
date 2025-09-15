@@ -23,7 +23,18 @@
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
       "Bash(git stash:*)",
-      "Bash(gh pr view:*)"
+      "Bash(gh pr view:*)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm/**)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "mcp__ide__getDiagnostics",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

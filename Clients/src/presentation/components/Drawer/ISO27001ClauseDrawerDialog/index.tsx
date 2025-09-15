@@ -17,12 +17,12 @@ import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
@@ -42,7 +42,7 @@ export const inputStyles = {
 
 interface VWISO27001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (event?: any, reason?: string) => void;
   subClause: any;
   clause: any;
   evidenceFiles?: FileData[];
@@ -50,6 +50,7 @@ interface VWISO27001ClauseDrawerDialogProps {
   projectFrameworkId: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
   index: number;
+  project_id: number;
 }
 
 const VWISO27001ClauseDrawerDialog = ({
@@ -60,6 +61,7 @@ const VWISO27001ClauseDrawerDialog = ({
   projectFrameworkId,
   onSaveSuccess,
   index,
+  project_id,
 }: VWISO27001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -85,8 +87,8 @@ const VWISO27001ClauseDrawerDialog = ({
     ["Awaiting review", "3"],
     ["Awaiting approval", "4"],
     ["Implemented", "5"],
-    ["Audited", "6"],
-    ["Needs rework", "7"],
+    // ["Audited", "6"],
+    ["Needs rework", "6"],
   ]);
   // Create the reverse map
   const idStatusMap = new Map();
@@ -231,6 +233,7 @@ const VWISO27001ClauseDrawerDialog = ({
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
       formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
+      formDataToSend.append("project_id", project_id.toString());
 
       uploadFiles.forEach((file) => {
         if (file.data instanceof Blob) {
@@ -706,8 +709,8 @@ const VWISO27001ClauseDrawerDialog = ({
               { _id: "3", name: "Awaiting review" },
               { _id: "4", name: "Awaiting approval" },
               { _id: "5", name: "Implemented" },
-              { _id: "6", name: "Audited" },
-              { _id: "7", name: "Needs rework" },
+              // { _id: "6", name: "Audited" },
+              { _id: "6", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}

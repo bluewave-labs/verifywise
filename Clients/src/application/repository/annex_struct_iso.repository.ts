@@ -1,15 +1,12 @@
 import { GetRequestParams } from "../../domain/interfaces/iRequestParams";
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 
 export async function GetAllAnnexes({
   routeUrl,
   signal,
-  authToken = getAuthToken(),
   responseType = "json",
 }: GetRequestParams): Promise<any> {
   const response = await apiServices.get(routeUrl, {
-    headers: { Authorization: `Bearer ${authToken}` },
     signal,
     responseType,
   });
@@ -22,11 +19,9 @@ export async function GetAllAnnexes({
 export async function GetAnnexesByProjectFrameworkId({
   routeUrl,
   signal,
-  authToken = getAuthToken(),
   responseType = "json",
 }: GetRequestParams): Promise<any> {
   const response = await apiServices.get(routeUrl, {
-    headers: { Authorization: `Bearer ${authToken}` },
     signal,
     responseType,
   });
@@ -39,11 +34,9 @@ export async function GetAnnexesByProjectFrameworkId({
 export async function GetAnnexControlISO27001ById({
   routeUrl,
   signal,
-  authToken = getAuthToken(),
   responseType = "json",
 }: GetRequestParams): Promise<any> {
   const response = await apiServices.get(routeUrl, {
-    headers: { Authorization: `Bearer ${authToken}` },
     signal,
     responseType,
   });

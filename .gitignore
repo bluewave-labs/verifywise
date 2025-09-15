@@ -14,7 +14,14 @@ express.log
 fastapi.log
 react.log
 .idea/
+<<<<<<< HEAD
 
 # TS build info
 *.tsbuildinfo
 Clients/*.tsbuildinfo
+=======
+.claude
+.github
+.kombai
+.vscode
+>>>>>>> upstream/develop

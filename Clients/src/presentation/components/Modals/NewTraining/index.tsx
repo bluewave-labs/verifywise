@@ -11,8 +11,9 @@ import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 import Select from "../../Inputs/Select";
 import SaveIcon from "@mui/icons-material/Save";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface NewTrainingProps {
   isOpen: boolean;
@@ -180,10 +181,19 @@ const NewTraining: FC<NewTrainingProps> = ({
     [theme.palette.background.main]
   );
 
+    useModalKeyHandling({
+        isOpen,
+        onClose: handleClose,
+    });
+
   return (
     <Dialog
       open={isOpen}
-      onClose={handleClose}
+      onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+              handleClose();
+          }
+      }}
       maxWidth="sm"
       fullWidth
       PaperProps={{

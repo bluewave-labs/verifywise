@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useState, useEffect, useContext } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
@@ -17,15 +17,15 @@ import type {
   OrganizationFormValues,
   OrganizationFormErrors,
 } from "../../../../application/validations/formValidation";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
 import { useDispatch } from "react-redux";
 import {
   setUserExists,
   setAuthToken,
 } from "../../../../application/redux/auth/authSlice";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
+import useUsers from "../../../../application/hooks/useUsers";
 
 // Initial state for form values
 const initialState: FormValues = {
@@ -45,7 +45,7 @@ const initialOrganizationState: OrganizationFormValues = {
 const RegisterMultiTenant: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { users } = useContext(VerifyWiseContext);
+  const { users } = useUsers();
 
   // State for form values
   const [values, setValues] = useState<FormValues>(initialState);

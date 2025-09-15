@@ -22,13 +22,15 @@ const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
 import SaveIcon from "@mui/icons-material/Save";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
+
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -43,7 +45,7 @@ interface NewModelInventoryFormValues {
   provider: string;
   model: string;
   version: string;
-  approver: string;
+  approver: number;
   capabilities: string[];
   security_assessment: boolean;
   status: ModelInventoryStatus;
@@ -66,7 +68,7 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: "",
+  approver: -1,
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,
@@ -246,6 +248,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     setIsOpen(false);
   };
 
+  useModalKeyHandling({
+    isOpen,
+    onClose: handleClose,
+  });
+
   const handleSubmit = (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     if (validateForm()) {
@@ -321,7 +328,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal open={isOpen} onClose={handleClose} sx={{ overflowY: "scroll" }}>
+    <Modal 
+      open={isOpen} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }} 
+      sx={{ overflowY: "scroll" }}
+    >
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}

@@ -4,7 +4,7 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import TabContext from "@mui/lab/TabContext";
 import { tabStyle, tabPanelStyle } from "../V1.0ProjectView/style";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import ComplianceTracker from "../../../pages/ComplianceTracker/1.0ComplianceTracker";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
@@ -25,6 +25,7 @@ import {
 import allowedRoles from "../../../../application/constants/permissions";
 import TabFilterBar from "../../../components/FrameworkFilter/TabFilterBar";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 const FRAMEWORK_IDS = {
   EU_AI_ACT: 1,
@@ -62,8 +63,8 @@ const ProjectFrameworks = ({
   const [hasInitialized, setHasInitialized] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { changeComponentVisibility, userRoleName } =
-    useContext(VerifyWiseContext);
+  const { changeComponentVisibility } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
 
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
@@ -74,7 +75,14 @@ const ProjectFrameworks = ({
 
   // Filter out organizational frameworks
   const nonOrganizationalFrameworks = useMemo(
+<<<<<<< HEAD
     () => allFrameworks.filter((framework: Framework) => !framework.is_organizational),
+=======
+    () =>
+      allFrameworks.filter(
+        (framework: Framework) => !framework.is_organizational
+      ),
+>>>>>>> upstream/develop
     [allFrameworks]
   );
 

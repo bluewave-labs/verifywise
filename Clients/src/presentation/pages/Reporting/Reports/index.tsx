@@ -1,7 +1,6 @@
-import React, { useState, useContext, lazy, Suspense, useEffect } from "react";
+import React, { useState, lazy, Suspense, useEffect } from "react";
 import { Stack, Box, Typography } from "@mui/material";
 const ReportTable = lazy(() => import("../../../components/Table/ReportTable"));
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { TITLE_OF_COLUMNS } from "./constants";
 import useGeneratedReports, {
   GeneratedReports,
@@ -12,8 +11,9 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../../components/Alert";
 import ProjectFilterDropdown from "../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
 import { useProjects } from "../../../../application/hooks/useProjects";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import { Project } from "../../../../domain/types/Project";
+import { useSearchParams } from "react-router-dom";
 
 interface ReportsProps {
   refreshKey?: number;
@@ -22,9 +22,8 @@ interface ReportsProps {
 const Reports: React.FC<ReportsProps> = ({
   refreshKey: externalRefreshKey = 0,
 }) => {
-  const { dashboardValues } = useContext(VerifyWiseContext);
-  const { selectedProjectId } = dashboardValues;
-  const projectId = selectedProjectId;
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get("projectId") ?? "1";
   const [currentPage, setCurrentPage] = useState(0);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";

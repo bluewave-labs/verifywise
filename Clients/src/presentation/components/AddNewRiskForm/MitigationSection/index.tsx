@@ -2,6 +2,7 @@ import {
   FC,
   useState,
   useCallback,
+  useMemo,
   lazy,
   Suspense,
   Dispatch,
@@ -26,6 +27,15 @@ import {
 import { alertState } from "../../../../domain/interfaces/iAlert";
 import allowedRoles from "../../../../application/constants/permissions";
 
+// Constants
+const FORM_FIELD_WIDTH = 325;
+const IMPLEMENTATION_STRATEGY_WIDTH = 670;
+const DATE_PICKER_WIDTH = 130;
+const DATE_INPUT_WIDTH = 85;
+const MIN_HEIGHT = 500;
+const MAX_HEIGHT = 500;
+const MAX_CONTENT_HEIGHT = 400;
+
 // Lazy load components
 const Select = lazy(() => import("../../Inputs/Select"));
 const Field = lazy(() => import("../../Inputs/Field"));
@@ -36,70 +46,62 @@ const Alert = lazy(() => import("../../Alert"));
 interface MitigationSectionProps {
   mitigationValues: MitigationFormValues;
   setMitigationValues: Dispatch<SetStateAction<MitigationFormValues>>;
-  migitateErrors: MitigationFormErrors;
+  mitigationErrors?: MitigationFormErrors;
   userRoleName: string;
 }
 /**
- * MitigationSection component is a form used to add or edit mitigation details for a risk.
- * It includes fields for mitigation plan, implementation strategy, recommendations, deadlines, and approval status.
- * The form validates the input fields and displays errors if any field is invalid.
+ * MitigationSection component manages mitigation details for risk assessment.
+ *
+ * Handles form fields for mitigation plan, implementation strategy, risk levels,
+ * approvals, and recommendations with proper validation and state management.
  *
  * @component
- *
- * @param {Object} props - The component props
- * @param {Function} props.closePopup - Function to close the popup containing the form
- *
- * @returns {JSX.Element} The rendered MitigationSection component
- */
-/**
- * MitigationSection component is a form used to capture and validate mitigation details.
- *
- * @component
- * @param {MitigationSectionProps} props - The props for the MitigationSection component.
- * @param {Function} props.closePopup - Function to close the popup.
- *
- * @returns {JSX.Element} The rendered MitigationSection component.
- *
- * @example
- * <MitigationSection closePopup={handleClosePopup} />
- *
- * @remarks
- * This component uses various hooks such as `useState`, `useCallback`, and `useMemo` to manage state and optimize performance.
- * It includes form validation logic and handles form submission.
- * The form fields include mitigation status, mitigation plan, current risk level, implementation strategy, start date, approver, approval status, and recommendations.
- *
- * @requires useTheme
- * @requires useState
- * @requires useCallback
- * @requires useMemo
- * @requires Suspense
- * @requires Stack
- * @requires Alert
- * @requires Select
- * @requires Field
- * @requires DatePicker
- * @requires Divider
- * @requires Typography
- * @requires RiskLevel
- * @requires Button
- * @requires checkStringValidation
- * @requires selectValidation
- * @requires dayjs
+ * @param {MitigationSectionProps} props - Component props
+ * @param {MitigationFormValues} props.mitigationValues - Current form values
+ * @param {function} props.setMitigationValues - State setter for form values
+ * @param {MitigationFormErrors} [props.mitigationErrors] - Form validation errors (optional)
+ * @param {string} props.userRoleName - Current user's role for permission checks
+ * @returns {JSX.Element} Rendered mitigation form section
  */
 const MitigationSection: FC<MitigationSectionProps> = ({
   mitigationValues,
   setMitigationValues,
-  migitateErrors,
-  userRoleName
+  mitigationErrors = {},
+  userRoleName,
 }) => {
   const theme = useTheme();
   const isEditingDisabled =
     !allowedRoles.projectRisks.edit.includes(userRoleName);
 
-  const [_, setErrors] = useState<MitigationFormErrors>({});
   const [alert, setAlert] = useState<alertState | null>(null);
 
-  const { users } = useUsers();
+  const { users, loading: usersLoading } = useUsers();
+
+  // Memoized values
+  const userOptions = useMemo(
+    () =>
+      users?.map((user) => ({
+        _id: user.id,
+        name: `${user.name} ${user.surname}`,
+      })) || [],
+    [users]
+  );
+
+  const formFieldStyles = useMemo(
+    () => ({
+      width: FORM_FIELD_WIDTH,
+      backgroundColor: theme.palette.background.main,
+    }),
+    [theme.palette.background.main]
+  );
+
+  const datePickerStyles = useMemo(
+    () => ({
+      width: DATE_PICKER_WIDTH,
+      "& input": { width: DATE_INPUT_WIDTH },
+    }),
+    []
+  );
 
   const handleOnSelectChange = useCallback(
     (prop: keyof MitigationFormValues) =>
@@ -108,21 +110,25 @@ const MitigationSection: FC<MitigationSectionProps> = ({
           ...prevValues,
           [prop]: event.target.value,
         }));
-        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
-    []
+    [setMitigationValues]
   );
 
   const handleDateChange = useCallback(
-    (field: string, newDate: Dayjs | null) => {
+    (
+      field: keyof Pick<MitigationFormValues, "deadline" | "dateOfAssessment">,
+      newDate: Dayjs | null
+    ) => {
       if (newDate?.isValid()) {
         setMitigationValues((prevValues) => ({
           ...prevValues,
-          [field]: newDate ? newDate.toISOString() : "",
+          [field]: newDate.toISOString(),
         }));
+      } else {
+        console.warn(`Invalid date provided for field: ${field}`);
       }
     },
-    []
+    [setMitigationValues]
   );
 
   const handleOnTextFieldChange = useCallback(
@@ -132,13 +138,12 @@ const MitigationSection: FC<MitigationSectionProps> = ({
           ...prevValues,
           [prop]: event.target.value,
         }));
-        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
-    []
+    [setMitigationValues]
   );
 
   return (
-    <Stack sx={{ minHeight: 500, maxHeight: 500 }}>
+    <Stack sx={{ minHeight: MIN_HEIGHT, maxHeight: MAX_HEIGHT }}>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
           <Alert
@@ -150,30 +155,29 @@ const MitigationSection: FC<MitigationSectionProps> = ({
           />
         </Suspense>
       )}
-      <Stack
-        component="form"
-        className={styles.popupBody}
-        sx={{
-          width: "100%",
-          maxHeight: "fit-content",
-          overflowY: "auto",
-          overflowX: "hidden",
-        }}
-      >
-        <Stack sx={{ width: "100%", mb: 10 }}>
-          <Stack sx={{ gap: 8.5, maxHeight: 400 }}>
-            {/* Row 1: Three columns */}
-            <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: theme.spacing(8.5),
-              }}
-            >
-              <Suspense fallback={<div>Loading...</div>}>
-                {" "}
+      <Suspense fallback={<div>Loading form components...</div>}>
+        <Stack
+          component="form"
+          className={styles.popupBody}
+          sx={{
+            width: "100%",
+            maxHeight: "fit-content",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          <Stack sx={{ width: "100%", mb: 10 }}>
+            <Stack sx={{ gap: 8.5, maxHeight: MAX_CONTENT_HEIGHT }}>
+              {/* Row 1: Three columns */}
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: theme.spacing(8.5),
+                }}
+              >
                 {/* Mitigation Status */}
                 <Select
                   id="mitigation-status-input"
@@ -186,17 +190,11 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   }
                   onChange={handleOnSelectChange("mitigationStatus")}
                   items={mitigationStatusItems}
-                  sx={{
-                    width: "325px",
-                    backgroundColor: theme.palette.background.main,
-                  }}
+                  sx={formFieldStyles}
                   isRequired
-                  error={migitateErrors.mitigationStatus}
+                  error={mitigationErrors?.mitigationStatus}
                   disabled={isEditingDisabled}
                 />
-              </Suspense>
-              <Suspense fallback={<div>Loading...</div>}>
-                {" "}
                 {/* Current Risk Level */}
                 <Select
                   id="current-risk-level-input"
@@ -209,21 +207,15 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   }
                   onChange={handleOnSelectChange("currentRiskLevel")}
                   items={riskLevelItems}
-                  sx={{
-                    width: "325px",
-                    backgroundColor: theme.palette.background.main,
-                  }}
+                  sx={formFieldStyles}
                   isRequired
-                  error={migitateErrors.currentRiskLevel}
+                  error={mitigationErrors?.currentRiskLevel}
                   disabled={isEditingDisabled}
                 />
-              </Suspense>
-              <Suspense fallback={<div>Loading...</div>}>
-                {" "}
-                {/* Start Date */}
-                <Stack style={{ width: "325px" }}>
+                {/* Deadline */}
+                <Stack style={{ width: FORM_FIELD_WIDTH }}>
                   <DatePicker
-                    label="Start date"
+                    label="Deadline"
                     date={
                       mitigationValues.deadline
                         ? dayjs(mitigationValues.deadline)
@@ -231,28 +223,25 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                     }
                     handleDateChange={(e) => handleDateChange("deadline", e)}
                     sx={{
-                      width: "325px",
-                      "& input": { width: 85 },
+                      width: FORM_FIELD_WIDTH,
+                      "& input": { width: DATE_INPUT_WIDTH },
                     }}
                     isRequired
-                    error={migitateErrors.deadline}
+                    error={mitigationErrors?.deadline}
                     disabled={isEditingDisabled}
                   />
                 </Stack>
-              </Suspense>
-            </Stack>
-            {/* Row 2: Mitigation Plan and Implementation Strategy */}
-            <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: theme.spacing(8.5),
-              }}
-            >
-              <Suspense fallback={<div>Loading...</div>}>
-                {" "}
+              </Stack>
+              {/* Row 2: Mitigation Plan and Implementation Strategy */}
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: theme.spacing(8.5),
+                }}
+              >
                 {/* Mitigation Plan */}
                 <Field
                   id="mitigation-plan-input"
@@ -260,17 +249,12 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   type="description"
                   value={mitigationValues.mitigationPlan}
                   onChange={handleOnTextFieldChange("mitigationPlan")}
-                  sx={{
-                    width: "325px",
-                  }}
+                  sx={{ width: FORM_FIELD_WIDTH }}
                   isRequired
-                  error={migitateErrors.mitigationPlan}
+                  error={mitigationErrors?.mitigationPlan}
                   disabled={isEditingDisabled}
                   placeholder="Write mitigation plan"
                 />
-              </Suspense>
-              <Suspense fallback={<div>Loading...</div>}>
-                {" "}
                 {/* Implementation Strategy */}
                 <Field
                   id="implementation-strategy-input"
@@ -278,65 +262,53 @@ const MitigationSection: FC<MitigationSectionProps> = ({
                   type="description"
                   value={mitigationValues.implementationStrategy}
                   onChange={handleOnTextFieldChange("implementationStrategy")}
-                  sx={{
-                    width: "670px",
-                  }}
+                  sx={{ width: IMPLEMENTATION_STRATEGY_WIDTH }}
                   isRequired
-                  error={migitateErrors.implementationStrategy}
+                  error={mitigationErrors?.implementationStrategy}
                   disabled={isEditingDisabled}
                   placeholder="Write implementation strategy"
                 />
-              </Suspense>
+              </Stack>
             </Stack>
           </Stack>
-        </Stack>
-        <Divider />
-        <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 3 }}>
-          Calculate residual risk level
-        </Typography>
-        <Typography sx={{ fontSize: theme.typography.fontSize, mb: 4.5 }}>
-          The Risk Level is calculated by multiplying the Likelihood and
-          Severity scores. By assigning these scores, the risk level will be
-          determined based on your inputs.
-        </Typography>
-        <Suspense fallback={<div>Loading...</div>}>
+          <Divider />
+          <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 3 }}>
+            Calculate residual risk level
+          </Typography>
+          <Typography sx={{ fontSize: theme.typography.fontSize, mb: 4.5 }}>
+            The Risk Level is calculated by multiplying the Likelihood and
+            Severity scores. By assigning these scores, the risk level will be
+            determined based on your inputs.
+          </Typography>
           <RiskLevel
             likelihood={mitigationValues.likelihood}
             riskSeverity={mitigationValues.riskSeverity}
             handleOnSelectChange={handleOnSelectChange}
             disabled={isEditingDisabled}
           />
-        </Suspense>
-        <Divider />
-        <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 4.5 }}>
-          Risk approval
-        </Typography>
-        <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 9.5 }}>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Divider />
+          <Typography sx={{ fontSize: 16, fontWeight: 600, mt: 8, mb: 4.5 }}>
+            Risk approval
+          </Typography>
+          <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 9.5 }}>
             <Select
               id="approver-input"
               label="Approver"
               placeholder="Select approver"
               value={
-                mitigationValues.approver === 0 ? "" : mitigationValues.approver
+                usersLoading || !users?.length
+                  ? ""
+                  : mitigationValues.approver === 0
+                  ? ""
+                  : mitigationValues.approver
               }
               onChange={handleOnSelectChange("approver")}
-              items={
-                users?.map((user) => ({
-                  _id: user.id,
-                  name: `${user.name} ${user.surname}`,
-                })) || []
-              }
-              sx={{
-                width: 324,
-                backgroundColor: theme.palette.background.main,
-              }}
+              items={userOptions}
+              sx={formFieldStyles}
               isRequired
-              error={migitateErrors.approver}
-              disabled={isEditingDisabled}
+              error={mitigationErrors?.approver}
+              disabled={isEditingDisabled || usersLoading}
             />
-          </Suspense>
-          <Suspense fallback={<div>Loading...</div>}>
             <Select
               id="approval-status-input"
               label="Approval status"
@@ -348,35 +320,25 @@ const MitigationSection: FC<MitigationSectionProps> = ({
               }
               onChange={handleOnSelectChange("approvalStatus")}
               items={approvalStatusItems}
-              sx={{
-                width: 324,
-                backgroundColor: theme.palette.background.main,
-              }}
+              sx={formFieldStyles}
               isRequired
-              error={migitateErrors.approvalStatus}
+              error={mitigationErrors?.approvalStatus}
               disabled={isEditingDisabled}
             />
-          </Suspense>
-          <Suspense fallback={<div>Loading...</div>}>
             <DatePicker
-              label="Start date"
+              label="Assessment date"
               date={
                 mitigationValues.dateOfAssessment
                   ? dayjs(mitigationValues.dateOfAssessment)
                   : dayjs(new Date())
               }
               handleDateChange={(e) => handleDateChange("dateOfAssessment", e)}
-              sx={{
-                width: 130,
-                "& input": { width: 85 },
-              }}
+              sx={datePickerStyles}
               isRequired
-              error={migitateErrors.dateOfAssessment}
+              error={mitigationErrors?.dateOfAssessment}
               disabled={isEditingDisabled}
             />
-          </Suspense>
-        </Stack>
-        <Suspense fallback={<div>Loading...</div>}>
+          </Stack>
           <Field
             id="recommendations-input"
             label="Recommendations"
@@ -386,8 +348,8 @@ const MitigationSection: FC<MitigationSectionProps> = ({
             isOptional
             disabled={isEditingDisabled}
           />
-        </Suspense>
-      </Stack>
+        </Stack>
+      </Suspense>
     </Stack>
   );
 };

@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  Suspense,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -12,9 +6,8 @@ import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
 
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   getAllEntities,
   deleteEntityById,
@@ -22,7 +15,7 @@ import {
   updateEntityById,
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
-
+import { useAuth } from "../../../application/hooks/useAuth";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
@@ -67,8 +60,7 @@ const ModelInventory: React.FC = () => {
     (state: any) => state.ui?.modelInventory?.statusFilter || "all"
   );
 
-  // Context for user roles/permissions
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
@@ -344,7 +336,7 @@ const ModelInventory: React.FC = () => {
         <Stack>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={vwhomeHeading}>Model Inventory</Typography>
-            <HelperIcon 
+            <HelperIcon
               onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
               size="small"
             />

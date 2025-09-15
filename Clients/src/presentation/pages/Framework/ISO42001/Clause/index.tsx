@@ -26,17 +26,11 @@ import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
 
 const ISO42001Clause = ({
-<<<<<<< HEAD
-  projectFrameworkId,
-  statusFilter,
-}: {
-=======
   project,
   projectFrameworkId,
   statusFilter,
 }: {
   project: Project;
->>>>>>> upstream/develop
   projectFrameworkId: number | string;
   statusFilter?: string;
 }) => {
@@ -275,11 +269,7 @@ const ISO42001Clause = ({
       async function fetchSubClause() {
         try {
           const response = await getEntityById({
-<<<<<<< HEAD
-            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
-=======
             routeUrl: `/iso-42001/subClause/byId/${subClauseId}?projectFrameworkId=${projectFrameworkId}`,
->>>>>>> upstream/develop
           });
           setSelectedSubClause(response.data);
           if (clause && response.data && clauseId) {
@@ -345,11 +335,7 @@ const ISO42001Clause = ({
           subClause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(projectFrameworkId)}
-<<<<<<< HEAD
-          project_id={0}
-=======
           project_id={Number(project.id)}
->>>>>>> upstream/develop
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedSubClause?.id)
           }

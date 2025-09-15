@@ -12,14 +12,8 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
-<<<<<<< HEAD
-import { logEngine } from "../../../../application/tools/log.engine";
-import { FrameworkTypeEnum } from "../../../vw-v2-components/Forms/ProjectForm/constants";
-import ProjectForm from "../../../vw-v2-components/Forms/ProjectForm";
-=======
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../components/Forms/ProjectForm";
->>>>>>> upstream/develop
 import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
@@ -54,11 +48,7 @@ const Home = () => {
 
   useEffect(() => {
     if (dashboard) {
-<<<<<<< HEAD
-      setProjects(dashboard.projects_list.filter(p => !p.is_organizational));
-=======
       setProjects(dashboard.projects_list.filter((p) => !p.is_organizational));
->>>>>>> upstream/develop
     }
   }, [dashboard]);
 
@@ -233,41 +223,7 @@ const Home = () => {
 
         {/* TODO: Add TaskRadar visualization when backend data is ready */}
 
-<<<<<<< HEAD
-         {/* TODO: Add TaskRadar visualization when backend data is ready */}
-
-
-            
-
-         <ProjectList projects={projects} />
-
-
-          </Stack>
-          
-          <Modal
-              open={isProjectFormModalOpen}
-              onClose={handleProjectFormModalClose}
-              aria-labelledby="modal-title"
-              aria-describedby="modal-description"
-          >
-              <Box sx={vwhomeCreateModalFrame}>
-                  <ProjectForm 
-                    defaultFrameworkType={FrameworkTypeEnum.ProjectBased}
-                    onClose={handleProjectFormModalClose} 
-                  />
-              </Box>
-          </Modal>
-          <PageTour
-              steps={HomeSteps}
-              run={runHomeTour}
-              onFinish={() => {
-                  setRunHomeTour(false);
-              }}
-              tourKey="home-tour"
-          />
-=======
         <ProjectList projects={projects} />
->>>>>>> upstream/develop
       </Stack>
 
       <Modal

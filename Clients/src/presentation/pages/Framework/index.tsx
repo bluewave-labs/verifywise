@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import { Stack, Typography, Box, Button, Modal } from "@mui/material";
-=======
 import {
   Stack,
   Typography,
@@ -13,16 +10,12 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
->>>>>>> upstream/develop
 import { useContext, useEffect, useState, useMemo } from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
-<<<<<<< HEAD
-=======
 import EditIcon from "@mui/icons-material/Edit";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
->>>>>>> upstream/develop
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -37,15 +30,6 @@ import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
-<<<<<<< HEAD
-import ProjectForm from "../../vw-v2-components/Forms/ProjectForm";
-import AddFrameworkModal from "../ProjectView/AddNewFramework";
-import allowedRoles from "../../../application/constants/permissions";
-import DualButtonModal from "../../vw-v2-components/Dialogs/DualButtonModal";
-import { deleteProject } from "../../../application/repository/project.repository";
-import { FrameworkTypeEnum } from "../../vw-v2-components/Forms/ProjectForm/constants";
-import NoProject from "../../components/NoProject/NoProject";
-=======
 import ProjectForm from "../../components/Forms/ProjectForm";
 import AddFrameworkModal from "../ProjectView/AddNewFramework";
 import allowedRoles from "../../../application/constants/permissions";
@@ -54,7 +38,6 @@ import { deleteProject } from "../../../application/repository/project.repositor
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useSearchParams } from "react-router-dom";
->>>>>>> upstream/develop
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -115,9 +98,6 @@ const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
 });
 
 const Framework = () => {
-<<<<<<< HEAD
-  const { changeComponentVisibility, projects, userRoleName, setProjects } = useContext(VerifyWiseContext);
-=======
   const [searchParams] = useSearchParams();
   const frameworkName = searchParams.get("frameworkName");
   const annexId = searchParams.get("annexId");
@@ -125,7 +105,6 @@ const Framework = () => {
 
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
->>>>>>> upstream/develop
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
@@ -265,50 +244,31 @@ const Framework = () => {
   };
 
   // Fetch all frameworks
-<<<<<<< HEAD
-  const { allFrameworks, loading, error, refreshFilteredFrameworks } = useFrameworks({
-    listOfFrameworks: organizationalProject?.framework || [], // Use organizational project's frameworks
-  });
-=======
   const { allFrameworks, loading, error, refreshFilteredFrameworks } =
     useFrameworks({
       listOfFrameworks: organizationalProject?.framework || [], // Use organizational project's frameworks
     });
->>>>>>> upstream/develop
 
   // Only show frameworks that are actually assigned to the organizational project
   const filteredFrameworks = useMemo(() => {
     if (!organizationalProject || !organizationalProject.framework) {
       return [];
     }
-<<<<<<< HEAD
-    
-    // Get framework IDs from the organizational project
-    const projectFrameworkIds = organizationalProject.framework.map(f => Number(f.framework_id));
-    
-=======
 
     // Get framework IDs from the organizational project
     const projectFrameworkIds = organizationalProject.framework.map((f) =>
       Number(f.framework_id),
     );
 
->>>>>>> upstream/develop
     // Filter frameworks to only include those assigned to the project and exclude EU AI Act
     return allFrameworks.filter((framework) => {
       const frameworkId = Number(framework.id);
       const isAssignedToProject = projectFrameworkIds.includes(frameworkId);
       const isNotEuAiAct = !framework.name.toLowerCase().includes("eu ai act");
-<<<<<<< HEAD
-      const isIsoFramework = framework.name.toLowerCase().includes("iso 27001") || 
-                            framework.name.toLowerCase().includes("iso 42001");
-      
-=======
       const isIsoFramework =
         framework.name.toLowerCase().includes("iso 27001") ||
         framework.name.toLowerCase().includes("iso 42001");
 
->>>>>>> upstream/develop
       return isAssignedToProject && isNotEuAiAct && isIsoFramework;
     });
   }, [allFrameworks, organizationalProject]);
@@ -316,19 +276,11 @@ const Framework = () => {
   // Helper function to get projectFrameworkId for a given framework
   const getProjectFrameworkId = (frameworkId: string) => {
     if (!organizationalProject?.framework) return null;
-<<<<<<< HEAD
-    
-    const projectFramework = organizationalProject.framework.find(
-      f => f.framework_id === Number(frameworkId)
-    );
-    
-=======
 
     const projectFramework = organizationalProject.framework.find(
       (f) => f.framework_id === Number(frameworkId),
     );
 
->>>>>>> upstream/develop
     return projectFramework?.project_framework_id || null;
   };
 
@@ -372,12 +324,6 @@ const Framework = () => {
 
   // Reset selected framework when filtered frameworks change
   useEffect(() => {
-<<<<<<< HEAD
-    if (filteredFrameworks.length > 0 && selectedFramework >= filteredFrameworks.length) {
-      setSelectedFramework(0);
-    }
-  }, [filteredFrameworks, selectedFramework]);
-=======
     if (
       !frameworkName &&
       filteredFrameworks.length > 0 &&
@@ -396,7 +342,6 @@ const Framework = () => {
       setIso27001TabValue(annexId ? "annex" : "clause");
     }
   }, [frameworkName, annexId, clauseId]);
->>>>>>> upstream/develop
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
   useEffect(() => {
@@ -454,15 +399,6 @@ const Framework = () => {
 
     if (!filteredFrameworks.length) {
       return (
-<<<<<<< HEAD
-        <Box sx={{ 
-          textAlign: "center", 
-          py: 8,
-          backgroundColor: "#F9FAFB",
-          borderRadius: 2,
-          border: "1px solid #E5E7EB"
-        }}>
-=======
         <Box
           sx={{
             textAlign: "center",
@@ -472,17 +408,12 @@ const Framework = () => {
             border: "1px solid #E5E7EB",
           }}
         >
->>>>>>> upstream/develop
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
             No ISO frameworks assigned to this project yet.
           </Typography>
           <Typography variant="body2" color="text.secondary">
-<<<<<<< HEAD
-            Use the "Manage Frameworks" button to add ISO 27001 or ISO 42001 frameworks to your organizational project.
-=======
             Use the "Manage Frameworks" button to add ISO 27001 or ISO 42001
             frameworks to your organizational project.
->>>>>>> upstream/develop
           </Typography>
         </Box>
       );
@@ -535,10 +466,7 @@ const Framework = () => {
 
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
-<<<<<<< HEAD
-=======
                 project={organizationalProject}
->>>>>>> upstream/develop
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
@@ -546,10 +474,7 @@ const Framework = () => {
 
             <TabPanel value="annex" sx={tabPanelStyle}>
               <ISO27001Annex
-<<<<<<< HEAD
-=======
                 project={organizationalProject}
->>>>>>> upstream/develop
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
@@ -600,10 +525,7 @@ const Framework = () => {
 
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
-<<<<<<< HEAD
-=======
                 project={organizationalProject}
->>>>>>> upstream/develop
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
               />
@@ -611,10 +533,7 @@ const Framework = () => {
 
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
-<<<<<<< HEAD
-=======
                 project={organizationalProject}
->>>>>>> upstream/develop
                 projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
@@ -671,24 +590,6 @@ const Framework = () => {
           Explore different frameworks to understand their requirements and
           implementation guidelines.
         </Typography>
-<<<<<<< HEAD
-        
-        {/* Conditional Button Section */}
-        <Box sx={{
-          mt: 4,
-          mb: 4,
-          display: "flex",
-          gap: 2,
-          justifyContent: "flex-end"
-        }}>
-          {organizationalProject ? (
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<SettingsIcon />}
-                onClick={() => setIsFrameworkModalOpen(true)}
-                disabled={!allowedRoles.frameworks.manage.includes(userRoleName)}
-=======
 
         {/* Conditional Button Section */}
         <Box
@@ -712,49 +613,17 @@ const Framework = () => {
                   !allowedRoles.projects.edit.includes(userRoleName) &&
                   !allowedRoles.projects.delete.includes(userRoleName)
                 }
->>>>>>> upstream/develop
                 sx={{
                   backgroundColor: "#13715B",
                   border: "1px solid #13715B",
                   textTransform: "none",
                   "&:hover": {
                     backgroundColor: "#0e5c47",
-<<<<<<< HEAD
-=======
                     boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
->>>>>>> upstream/develop
                   },
                   "&:disabled": {
                     backgroundColor: "#cccccc",
                     color: "#666666",
-<<<<<<< HEAD
-                  },
-                }}
-              >
-                Manage Frameworks
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<DeleteIcon />}
-                onClick={() => setIsDeleteModalOpen(true)}
-                disabled={!allowedRoles.projects.delete.includes(userRoleName)}
-                sx={{
-                  backgroundColor: "#DB504A",
-                  border: "1px solid #DB504A",
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "#c1453f",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#cccccc",
-                    color: "#666666",
-                  },
-                }}
-              >
-                Delete Project
-              </Button>
-            </Box>
-=======
                     boxShadow: "none",
                   },
                   "& .MuiButton-endIcon": {
@@ -863,7 +732,6 @@ const Framework = () => {
                 </MenuItem>
               </Menu>
             </>
->>>>>>> upstream/develop
           ) : (
             <Button
               variant="contained"
@@ -901,11 +769,7 @@ const Framework = () => {
                   onClick={() => handleFrameworkSelect(index)}
                   sx={getFrameworkTabStyle(
                     selectedFramework === index,
-<<<<<<< HEAD
-                    index === filteredFrameworks.length - 1
-=======
                     index === filteredFrameworks.length - 1,
->>>>>>> upstream/develop
                   )}
                 >
                   {framework.name}
@@ -923,20 +787,10 @@ const Framework = () => {
       {!organizationalProject && (
         <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001 and ISO 42001 frameworks for your organization." />
       )}
-<<<<<<< HEAD
-      
-=======
-
->>>>>>> upstream/develop
       {/* Modals */}
       {isProjectFormModalOpen && (
         <Modal
           open={isProjectFormModalOpen}
-<<<<<<< HEAD
-          onClose={async () => {
-            setIsProjectFormModalOpen(false);
-            // Refresh project data after creating a new project
-=======
           onClose={async (_event, reason) => {
             // Prevent closing on backdrop click
             if (reason === "backdropClick") {
@@ -944,7 +798,6 @@ const Framework = () => {
             }
             setIsProjectFormModalOpen(false);
             // Refresh project data after editing the project
->>>>>>> upstream/develop
             await refreshProjectData();
           }}
           sx={{
@@ -977,9 +830,6 @@ const Framework = () => {
           </Box>
         </Modal>
       )}
-<<<<<<< HEAD
-      
-=======
 
       {isEditProjectModalOpen && organizationalProject && (
         <Modal
@@ -1025,25 +875,18 @@ const Framework = () => {
         </Modal>
       )}
 
->>>>>>> upstream/develop
       {isFrameworkModalOpen && organizationalProject && (
         <AddFrameworkModal
           open={isFrameworkModalOpen}
           onClose={() => setIsFrameworkModalOpen(false)}
           frameworks={allFrameworks.filter((framework) => {
             // Only show organizational frameworks (ISO 27001 and ISO 42001) for organizational projects
-<<<<<<< HEAD
-            const isNotEuAiAct = !framework.name.toLowerCase().includes("eu ai act");
-            const isIsoFramework = framework.name.toLowerCase().includes("iso 27001") || 
-                                  framework.name.toLowerCase().includes("iso 42001");
-=======
             const isNotEuAiAct = !framework.name
               .toLowerCase()
               .includes("eu ai act");
             const isIsoFramework =
               framework.name.toLowerCase().includes("iso 27001") ||
               framework.name.toLowerCase().includes("iso 42001");
->>>>>>> upstream/develop
             return isNotEuAiAct && isIsoFramework;
           })}
           project={organizationalProject}
@@ -1055,23 +898,14 @@ const Framework = () => {
           }}
         />
       )}
-<<<<<<< HEAD
-      
-=======
-
->>>>>>> upstream/develop
       {isDeleteModalOpen && organizationalProject && (
         <DualButtonModal
           title="Confirm Delete"
           body={
             <Typography fontSize={13}>
-<<<<<<< HEAD
-              Are you sure you want to delete the project "{organizationalProject.project_title}"? This action cannot be undone and will remove all associated data.
-=======
               Are you sure you want to delete the project "
               {organizationalProject.project_title}"? This action cannot be
               undone and will remove all associated data.
->>>>>>> upstream/develop
             </Typography>
           }
           cancelText="Cancel"

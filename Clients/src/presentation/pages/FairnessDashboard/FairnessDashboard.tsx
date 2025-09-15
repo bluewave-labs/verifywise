@@ -34,12 +34,7 @@ import CustomizableToast from "../../components/Toast";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import biasFairnessHelpContent from "../../../presentation/helpers/bias-fairness-help.html?raw";
-<<<<<<< HEAD
 import BiasAndFairnessModule from "./BiasAndFairnessModule";
-=======
-import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
-
->>>>>>> upstream/develop
 
 export type FairnessModel = {
   id: number | string; // Use number or string based on your backend response

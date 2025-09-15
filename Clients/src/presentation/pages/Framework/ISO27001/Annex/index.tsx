@@ -25,13 +25,6 @@ import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 
-<<<<<<< HEAD
-const ISO27001Annex = ({ 
-  projectFrameworkId, 
-  statusFilter, 
-  applicabilityFilter 
-}: { 
-=======
 const ISO27001Annex = ({
   project,
   projectFrameworkId,
@@ -39,7 +32,6 @@ const ISO27001Annex = ({
   applicabilityFilter,
 }: {
   project: Project;
->>>>>>> upstream/develop
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
@@ -320,11 +312,7 @@ const ISO27001Annex = ({
               control={selectedControl}
               annex={selectedAnnex}
               projectFrameworkId={Number(projectFrameworkId)}
-<<<<<<< HEAD
-              project_id={0}
-=======
               project_id={Number(project.id)}
->>>>>>> upstream/develop
               onSaveSuccess={(success, message) =>
                 handleSaveSuccess(success, message, selectedControl?.id)
               }

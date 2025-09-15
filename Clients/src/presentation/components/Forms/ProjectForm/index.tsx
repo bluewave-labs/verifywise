@@ -11,10 +11,6 @@ import {
   Radio,
 } from "@mui/material";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
-<<<<<<< HEAD:Clients/src/presentation/vw-v2-components/Forms/ProjectForm/index.tsx
-import { Suspense, useCallback, useContext, useMemo, useState, useEffect } from "react";
-import CustomizableButton from "../../Buttons";
-=======
 import {
   Suspense,
   useCallback,
@@ -24,7 +20,6 @@ import {
   useEffect,
 } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
->>>>>>> upstream/develop:Clients/src/presentation/components/Forms/ProjectForm/index.tsx
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import Field from "../../../components/Inputs/Field";
 import {
@@ -67,14 +62,6 @@ import {
   updateProject,
 } from "../../../../application/repository/project.repository";
 
-<<<<<<< HEAD:Clients/src/presentation/vw-v2-components/Forms/ProjectForm/index.tsx
-const ProjectForm = ({ sx, onClose, defaultFrameworkType }: ProjectFormProps) => {
-  const theme = useTheme();
-  const { setProjects } = useContext(VerifyWiseContext);
-  const [values, setValues] = useState<FormValues>({
-    ...initialState,
-    framework_type: defaultFrameworkType || null,
-=======
 const ProjectForm = ({
   sx,
   onClose,
@@ -108,7 +95,6 @@ const ProjectForm = ({
       ...initialState,
       framework_type: defaultFrameworkType || null,
     };
->>>>>>> upstream/develop:Clients/src/presentation/components/Forms/ProjectForm/index.tsx
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -117,21 +103,12 @@ const ProjectForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [frameworkRequired, setFrameworkRequired] = useState<boolean>(false);
 
-<<<<<<< HEAD:Clients/src/presentation/vw-v2-components/Forms/ProjectForm/index.tsx
-  // Auto-advance to step 2 if a default framework type is provided
-  useEffect(() => {
-    if (defaultFrameworkType) {
-      setCurrentStep(2);
-    }
-  }, [defaultFrameworkType]);
-=======
   // Auto-advance to step 2 if a default framework type is provided or if editing a project
   useEffect(() => {
     if (defaultFrameworkType || projectToEdit) {
       setCurrentStep(2);
     }
   }, [defaultFrameworkType, projectToEdit]);
->>>>>>> upstream/develop:Clients/src/presentation/components/Forms/ProjectForm/index.tsx
 
   // Filter frameworks based on framework type
   const filteredFrameworks = useMemo(() => {
@@ -428,12 +405,6 @@ const ProjectForm = ({
             {projectToEdit ? "Edit project" : "Create new project"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
-<<<<<<< HEAD:Clients/src/presentation/vw-v2-components/Forms/ProjectForm/index.tsx
-            {defaultFrameworkType ? 
-              `Creating a ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? 'organization-wide' : 'project-based'} project` :
-              "Please select the type of frameworks you need"
-            }
-=======
             {projectToEdit
               ? "Update your project details below"
               : defaultFrameworkType
@@ -443,7 +414,6 @@ const ProjectForm = ({
                     : "project-based"
                 } project`
               : "Please select the type of frameworks you need"}
->>>>>>> upstream/develop:Clients/src/presentation/components/Forms/ProjectForm/index.tsx
           </Typography>
         </Stack>
         <ClearIcon

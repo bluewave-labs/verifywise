@@ -23,18 +23,12 @@ import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
 
 const ISO42001Annex = ({
-<<<<<<< HEAD
-=======
   project,
->>>>>>> upstream/develop
   projectFrameworkId,
   statusFilter,
   applicabilityFilter,
 }: {
-<<<<<<< HEAD
-=======
   project: Project;
->>>>>>> upstream/develop
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
@@ -71,8 +65,6 @@ const ISO42001Annex = ({
     };
     fetchAnnexes();
   }, [projectFrameworkId, refreshTrigger]);
-<<<<<<< HEAD
-=======
 
   useEffect(() => {
     if (annexId && annexes && annexes.length > 0) {
@@ -86,7 +78,6 @@ const ISO42001Annex = ({
       }
     }
   }, [annexId, annexes, annexControlId]);
->>>>>>> upstream/develop
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -281,11 +272,7 @@ const ISO42001Annex = ({
           annex={selectedAnnex}
           control={selectedControl}
           projectFrameworkId={Number(projectFrameworkId)}
-<<<<<<< HEAD
-          project_id={0}
-=======
           project_id={Number(project.id)}
->>>>>>> upstream/develop
           onSaveSuccess={(success, message) =>
             handleSaveSuccess(success, message, selectedControl?.id)
           }

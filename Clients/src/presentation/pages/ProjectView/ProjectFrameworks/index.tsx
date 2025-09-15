@@ -75,14 +75,10 @@ const ProjectFrameworks = ({
 
   // Filter out organizational frameworks
   const nonOrganizationalFrameworks = useMemo(
-<<<<<<< HEAD
-    () => allFrameworks.filter((framework: Framework) => !framework.is_organizational),
-=======
     () =>
       allFrameworks.filter(
         (framework: Framework) => !framework.is_organizational
       ),
->>>>>>> upstream/develop
     [allFrameworks]
   );
 

@@ -27,17 +27,11 @@ import { Project } from "../../../../../domain/types/Project";
 import { useModalKeyHandling } from "../../../../../application/hooks/useModalKeyHandling";
 
 const ISO27001Clause = ({
-<<<<<<< HEAD
-  projectFrameworkId,
-  statusFilter,
-}: {
-=======
   project,
   projectFrameworkId,
   statusFilter,
 }: {
   project: Project;
->>>>>>> upstream/develop
   projectFrameworkId: number | string;
   statusFilter?: string;
 }) => {
@@ -282,11 +276,7 @@ const ISO27001Clause = ({
       async function fetchSubClause() {
         try {
           const response = await getEntityById({
-<<<<<<< HEAD
-            routeUrl: `/iso-27001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
-=======
             routeUrl: `/iso-27001/subClause/byId/${subClauseId}?projectFrameworkId=${projectFrameworkId}`,
->>>>>>> upstream/develop
           });
           setSelectedSubClause(response.data);
           if (clause && response.data && clauseId) {

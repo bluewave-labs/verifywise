@@ -98,6 +98,9 @@ class DataLoader:
         if isinstance(self.data, pd.DataFrame):
             self.data = self.data.replace("?", "Unknown")
 
+        # Drop non-predictive columns if present across platforms
+        self._drop_unused_columns()
+
         # Apply sampling if enabled
         if hasattr(self.dataset_config, "sampling") and getattr(
             self.dataset_config.sampling, "enabled", False
@@ -112,6 +115,22 @@ class DataLoader:
                 ).reset_index(drop=True)
 
         return self.data
+
+    def _drop_unused_columns(self) -> None:
+        """
+        Remove columns that are not useful for prediction regardless of source.
+        Matches on normalized column names to handle hyphens/periods variations.
+        """
+        if self.data is None or not isinstance(self.data, pd.DataFrame):
+            return
+        columns_to_remove = {"fnlwgt", "education_num"}
+        columns_to_drop = [
+            column_name
+            for column_name in self.data.columns
+            if _normalize_key(column_name) in columns_to_remove
+        ]
+        if columns_to_drop:
+            self.data = self.data.drop(columns=columns_to_drop)
 
     def _format_single_feature(
         self, row: pd.Series, include_answer: bool = False

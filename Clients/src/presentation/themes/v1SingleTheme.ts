@@ -47,7 +47,6 @@ const buttons = {
       textTransform: "Inherit",
       borderRadius: "4px",
       border: `1px solid ${borderColors.primary}`,
-      disableRipple: true, // Apply ripple setting
       "&:hover": {
         boxShadow: shadowEffect.NoShadow,
       },
@@ -84,7 +83,6 @@ const buttons = {
       textTransform: "Inherit",
       borderRadius: "4px",
       border: `1px solid ${borderColors.error}`,
-      disableRipple: true, // Apply ripple setting
       "&:hover": {
         boxShadow: shadowEffect.NoShadow,
         backgroundColor: "#d32f2f",

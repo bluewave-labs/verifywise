@@ -103,11 +103,11 @@ const EvaluationTableBody: React.FC<EvaluationTableBodyProps> = ({
           </TableCell>
           <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, paddingLeft: "12px", paddingRight: "12px" }}>
           <ConfirmableDeleteIconButton
-            disabled={row.status !== "Completed"}
-            id={parseInt(row.id) || 0}
-            onConfirm={() => onRemoveModel.onConfirm(row.id)}
+            disabled={false}
+            id={row.id}
+            onConfirm={(id) => onRemoveModel.onConfirm(id)}
             title={`Delete this evaluation?`}
-            message={`Are you sure you want to delete evaluation ID ${row.id}? This action is non-recoverable.`}
+            message={`Are you sure you want to delete evaluation ID ${row.id} (Status: ${row.status})? This action is non-recoverable.`}
             customIcon={<img src={trash} alt="Delete" style={{ width: '20px', height: '20px' }} />}
           />
           </TableCell>

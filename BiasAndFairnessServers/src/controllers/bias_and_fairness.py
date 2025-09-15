@@ -694,6 +694,7 @@ async def delete_bias_fairness_evaluation_controller(eval_id: str, tenant: str):
                     status_code=404,
                     detail=f"Evaluation with ID {eval_id} not found"
                 )
+            await db.commit()  # Commit the deletion
             return JSONResponse(
                 status_code=200,
                 content={"message": f"Evaluation {eval_id} deleted successfully"}
@@ -701,6 +702,9 @@ async def delete_bias_fairness_evaluation_controller(eval_id: str, tenant: str):
     except HTTPException as he:
         raise he
     except Exception as e:
+        # Rollback the transaction if something went wrong
+        async with get_db() as db:
+            await db.rollback()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to delete evaluation: {str(e)}"

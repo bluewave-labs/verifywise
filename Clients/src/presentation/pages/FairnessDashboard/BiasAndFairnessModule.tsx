@@ -315,11 +315,33 @@ export default function BiasAndFairnessModule() {
 
   const handleRemoveModel = async (id: string) => {
     try {
+      console.log("Deleting evaluation with ID:", id);
+      
+      // Optimistically remove the item from the local state for immediate UI feedback
+      setEvaluations((prevEvaluations) => {
+        const newEvaluations = prevEvaluations.filter((evaluation) => evaluation.eval_id !== id);
+        console.log("Optimistic update: removed evaluation", id, "New evaluations length:", newEvaluations.length);
+        return newEvaluations;
+      });
+
+      // Perform the actual delete operation
       await biasAndFairnessService.deleteBiasFairnessEvaluation(id);
-      await loadEvaluations(); // Reload the list
+      console.log("Delete API call successful");
+
+      // Fetch fresh data to ensure consistency with server
+      await loadEvaluations();
+      console.log("Fresh data fetched, UI updated");
+
+      setSuccess("Evaluation deleted successfully!");
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error("Failed to delete evaluation:", error);
-      setError("Failed to delete evaluation");
+      
+      // If delete failed, revert the optimistic update by fetching fresh data
+      await loadEvaluations();
+      
+      setError("Failed to delete evaluation. Please try again.");
+      setTimeout(() => setError(null), 5000);
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";

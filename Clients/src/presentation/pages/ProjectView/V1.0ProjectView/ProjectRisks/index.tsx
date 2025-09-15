@@ -8,7 +8,7 @@ import RiskVisualizationTabs from "../../../../components/RiskVisualization/Risk
 import RiskFilters from "../../../../components/RiskVisualization/RiskFilters";
 import { rowStyle } from "./style";
 import CustomizableButton from "../../../../components/Button/CustomizableButton";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../../../assets/icons/plus-circle-white.svg"
 import VWProjectRisksTable from "../../../../components/Table/VWProjectRisksTable";
 import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../../../components/AddNewRiskForm";

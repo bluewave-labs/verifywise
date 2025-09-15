@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { Box, Stack, Typography, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
 import {

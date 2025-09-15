@@ -266,38 +266,23 @@ const CreateTask: FC<CreateTaskProps> = ({
                   placeholder="Enter task title"
                 />
               </Suspense>
-
-              {/* Description */}
-              <Stack>
-                <Typography
+                        {/* Due Date */}
+              <Suspense fallback={<div>Loading...</div>}>
+                <DatePicker
+                  label="Due Date"
+                  date={values.due_date ? dayjs(values.due_date) : null}
+                  handleDateChange={handleDateChange}
                   sx={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    mb: theme.spacing(2),
-                    color: theme.palette.text.secondary,
-                  }}
-                >
-                  Description *
-                </Typography>
-                <TextField
-                  id="description"
-                  value={values.description}
-                  onChange={handleOnTextFieldChange("description")}
-                  error={!!errors.description}
-                  helperText={errors.description}
-                  placeholder="Enter task description"
-                  multiline
-                  rows={3}
-                  sx={{
-                    backgroundColor: theme.palette.background.main,
+                    ...datePickerStyle,
                     width: "350px",
-                    "& input": {
-                      padding: "0 14px",
-                    },
+                    backgroundColor: theme.palette.background.main,
                   }}
+                  isRequired
+                  error={errors.due_date}
                 />
-              </Stack>
+              </Suspense>
 
+            
               {/* Priority */}
               <SelectComponent
                 items={priorityOptions}
@@ -314,21 +299,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                 placeholder="Select priority"
               />
               
-              {/* Due Date */}
-              <Suspense fallback={<div>Loading...</div>}>
-                <DatePicker
-                  label="Due Date"
-                  date={values.due_date ? dayjs(values.due_date) : null}
-                  handleDateChange={handleDateChange}
-                  sx={{
-                    ...datePickerStyle,
-                    width: "350px",
-                    backgroundColor: theme.palette.background.main,
-                  }}
-                  isRequired
-                  error={errors.due_date}
-                />
-              </Suspense>
+    
               </Stack>
 
               <Stack className="vwtask-form-body-end" sx={{ gap: 8 }}>
@@ -471,6 +442,36 @@ const CreateTask: FC<CreateTaskProps> = ({
                   slotProps={teamMembersSlotProps}
                 />
               </Stack>
+                {/* Description */}
+              <Stack>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    mb: theme.spacing(2),
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  Description *
+                </Typography>
+                <TextField
+                  id="description"
+                  value={values.description}
+                  onChange={handleOnTextFieldChange("description")}
+                  error={!!errors.description}
+                  helperText={errors.description}
+                  multiline
+                  rows={3}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    width: "350px",
+                    "& input": {
+                      padding: "0 14px",
+                    },
+                  }}
+                />
+              </Stack>
+
               </Stack>
             </Stack>
 

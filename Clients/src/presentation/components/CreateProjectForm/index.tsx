@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useCallback } from "react";
+import React, { FC, useState, useMemo, useCallback, Suspense, lazy } from "react";
 import {
   Button,
   SelectChangeEvent,
@@ -14,12 +14,7 @@ import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import selectValidation from "../../../application/validations/selectValidation";
-import { Suspense, lazy } from "react";
-const Select = lazy(() => import("../Inputs/Select"));
-const DatePicker = lazy(() => import("../Inputs/Datepicker"));
-const Field = lazy(() => import("../Inputs/Field"));
 import { extractUserToken } from "../../../application/tools/extractToken";
-import React from "react";
 import useUsers from "../../../application/hooks/useUsers";
 import {
   HighRiskRoleEnum,
@@ -29,9 +24,15 @@ import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
+import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
+import { Project } from "../../../domain/types/Project";
+
+const Select = lazy(() => import("../Inputs/Select"));
+const DatePicker = lazy(() => import("../Inputs/Datepicker"));
+const Field = lazy(() => import("../Inputs/Field"));
 
 const initialState: CreateProjectFormValues = {
   project_title: "",
@@ -43,9 +44,19 @@ const initialState: CreateProjectFormValues = {
   goal: "",
 };
 
+
+interface ProjectResponse {
+  status: number;
+  data: {
+    data: {
+      project: Project;
+    };
+  };
+}
+
 interface CreateProjectFormProps {
   closePopup: () => void;
-  onNewProject: (value: { isNewProject: boolean; project: any }) => void;
+  onNewProject: (value: { isNewProject: boolean; project: Project }) => void;
 }
 
 /**
@@ -83,19 +94,19 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   const handleOnSelectChange = useCallback(
     (prop: keyof CreateProjectFormValues) =>
       (event: SelectChangeEvent<string | number>) => {
-        setValues({ ...values, [prop]: event.target.value });
-        setErrors({ ...errors, [prop]: "" });
+        setValues(prevValues => ({ ...prevValues, [prop]: event.target.value }));
+        setErrors(prevErrors => ({ ...prevErrors, [prop]: "" }));
       },
-    [values, errors]
+    []
   );
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof CreateProjectFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues({ ...values, [prop]: event.target.value });
-        setErrors({ ...errors, [prop]: "" });
+        setValues(prevValues => ({ ...prevValues, [prop]: event.target.value }));
+        setErrors(prevErrors => ({ ...prevErrors, [prop]: "" }));
       },
-    [values, errors]
+    []
   );
 
   const validateForm = (): boolean => {
@@ -156,11 +167,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     }
   };
 
-  const confirmSubmit = async () => {
-    const userInfo = extractUserToken(authState.authToken);
+  const confirmSubmit = async (): Promise<void> => {
+    try {
+      const userInfo = extractUserToken(authState.authToken);
 
-    const teamMember = values.members.map((user) => String(user._id));
-    await createProject({
+      const teamMember = values.members.map((user) => String(user._id));
+      const response: ProjectResponse = await createProject({
         body: {
           ...values,
           type_of_high_risk_role: highRiskRoleItems.find(
@@ -173,18 +185,21 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           last_updated_by: userInfo?.id,
           members: teamMember,
         },
-      }).then((response) => {
-        // Reset form after successful submission
-        setValues(initialState);
-        setErrors({});
-        closePopup();
-        if (response.status === 201) {
-          onNewProject({
-            isNewProject: true,
-            project: response.data.data.project,
-          });
-        }
       });
+      
+      setValues(initialState);
+      setErrors({});
+      closePopup();
+      
+      if (response.status === 201) {
+        onNewProject({
+          isNewProject: true,
+          project: response.data.data.project,
+        });
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+    }
   };
 
   const riskClassificationItems = useMemo(
@@ -220,12 +235,13 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: any[]) => {
+      (_event: React.SyntheticEvent, newValue: CreateProjectFormUser[]) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
         }));
         setMemberRequired(false);
+        setErrors(prevErrors => ({ ...prevErrors, members: "" }));
       },
     []
   );
@@ -353,10 +369,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                       name: user.name,
                       surname: user.surname,
                       email: user.email,
-                    })) || []
+                    } satisfies CreateProjectFormUser)) || []
                 }
                 noOptionsText={
-                  values.members.length === users.length
+                  values.members.length === users?.length
                     ? "All members selected"
                     : "No options"
                 }

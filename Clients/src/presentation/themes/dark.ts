@@ -291,11 +291,6 @@ const dark = createTheme({
         disableRipple: true,
       },
     },
-    MuiChip: {
-      defaultProps: {
-        disableRipple: true,
-      },
-    },
   },
 });
 

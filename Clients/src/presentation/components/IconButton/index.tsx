@@ -31,6 +31,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   onMakeVisible,
   onDownload,
   isVisible,
+  canDelete
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -124,6 +125,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       return ["download"];
     } else if (type === "Resource") {
       return ["edit", "make visible", "download", "remove"];
+    } else if (type === "Vendor") {
+      return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
     } else {
       return ["edit", "remove"];
     }

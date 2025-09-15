@@ -29,6 +29,7 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import Alert from "../../../components/Alert";
 import CustomizableToast from "../../../components/Toast";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface AddFrameworkModalProps {
   open: boolean;
@@ -147,8 +148,20 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
   const isFrameworkAdded = (fw: Framework) =>
     project.framework?.some((pf) => Number(pf.framework_id) === Number(fw.id));
 
+  useModalKeyHandling({
+    isOpen: open,
+    onClose: () => onClose(),
+  });
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal 
+      open={open} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          onClose();
+        }
+      }}
+    >
       <Box sx={modalContainerStyle}>
         {/* Header */}
         <Box sx={modalHeaderStyle}>

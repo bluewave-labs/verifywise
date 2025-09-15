@@ -29,6 +29,8 @@ import { getAllEntities } from "../../../../application/repository/entity.reposi
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
+
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -246,6 +248,11 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     setIsOpen(false);
   };
 
+  useModalKeyHandling({
+    isOpen,
+    onClose: handleClose,
+  });
+
   const handleSubmit = (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     if (validateForm()) {
@@ -321,7 +328,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal open={isOpen} onClose={handleClose} sx={{ overflowY: "scroll" }}>
+    <Modal 
+      open={isOpen} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }} 
+      sx={{ overflowY: "scroll" }}
+    >
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}

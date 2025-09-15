@@ -4,7 +4,6 @@ import {
   SelectChangeEvent,
   Stack,
   Tab,
-  Typography,
   useTheme,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -12,7 +11,6 @@ import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import { Suspense, useEffect, useState, useMemo } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
-import singleTheme from "../../themes/v1SingleTheme";
 import { useSelector } from "react-redux";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { AppState } from "../../../application/interfaces/appStates";
@@ -32,7 +30,6 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../components/Skeletons";
 import CustomizableToast from "../../components/Toast";
 import RisksCard from "../../components/Cards/RisksCard";
-import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
@@ -48,6 +45,7 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
+import PageHeader from "../../components/Layout/PageHeader";
 
 interface ExistingRisk {
   id?: number;
@@ -359,7 +357,7 @@ const Vendors = () => {
 
   return (
     <div className="vendors-page">
-      <PageBreadcrumbs />
+     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: "48px" }} > <PageBreadcrumbs /> </Stack>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -389,20 +387,18 @@ const Vendors = () => {
                 />
               </Suspense>
             )}
-            <Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography sx={vwhomeHeading}>Vendor list</Typography>
-                <HelperIcon
-                  onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-                  size="small"
-                />
-              </Stack>
-              <Typography sx={singleTheme.textStyles.pageDescription}>
-                This table includes a list of external entities that provides
-                AI-related products, services, or components. You can create and
-                manage all vendors here.
-              </Typography>
-            </Stack>
+             <PageHeader
+               title="Vendor list"
+               description="This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
           </>
         ) : (
           <>
@@ -418,13 +414,10 @@ const Vendors = () => {
               </Suspense>
             )}
 
-            <Stack>
-              <Typography sx={vwhomeHeading}>Vendor risks list</Typography>
-              <Typography sx={singleTheme.textStyles.pageDescription}>
-                This table includes a list of risks related to a vendor. You can
-                create and manage all vendor risks here.
-              </Typography>
-            </Stack>
+            <PageHeader
+                title="Vendor risks list"
+                description="This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+                />
           </>
         )}
         <TabContext value={value}>

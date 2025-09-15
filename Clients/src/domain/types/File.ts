@@ -21,4 +21,8 @@ export type FileData = {
   source?: string;
   projectTitle?: string;
   projectId?: string;
+  parentId?: number;
+  subId?: number;
+  metaId?: number;
+  isEvidence?: boolean;
 };

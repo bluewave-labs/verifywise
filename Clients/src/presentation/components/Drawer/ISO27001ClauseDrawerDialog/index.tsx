@@ -18,7 +18,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -42,7 +42,7 @@ export const inputStyles = {
 
 interface VWISO27001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (event?: any, reason?: string) => void;
   subClause: any;
   clause: any;
   evidenceFiles?: FileData[];
@@ -50,6 +50,7 @@ interface VWISO27001ClauseDrawerDialogProps {
   projectFrameworkId: number;
   onSaveSuccess?: (success: boolean, message?: string) => void;
   index: number;
+  project_id: number;
 }
 
 const VWISO27001ClauseDrawerDialog = ({
@@ -60,6 +61,7 @@ const VWISO27001ClauseDrawerDialog = ({
   projectFrameworkId,
   onSaveSuccess,
   index,
+  project_id,
 }: VWISO27001ClauseDrawerDialogProps) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
@@ -231,6 +233,7 @@ const VWISO27001ClauseDrawerDialog = ({
       formDataToSend.append("delete", JSON.stringify(deletedFilesIds));
       formDataToSend.append("risksMitigated", JSON.stringify(selectedRisks));
       formDataToSend.append("risksDelete", JSON.stringify(deletedRisks));
+      formDataToSend.append("project_id", project_id.toString());
 
       uploadFiles.forEach((file) => {
         if (file.data instanceof Blob) {
@@ -816,7 +819,7 @@ const VWISO27001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

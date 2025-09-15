@@ -39,6 +39,13 @@ export interface FileType {
     | "Annex controls group";
 }
 
+export interface FileList extends FileType {
+  is_evidence?: boolean; // To separate feedback files from evidence files
+  parent_id?: number; // Could be topic_id for assessment, control_id for control
+  sub_id?: number; // Could be subtopic_id for assessment (intermediate ids)
+  meta_id?: number; // Could be question_id for assessment, sub_control_id for control
+}
+
 @Table({
   tableName: "files",
 })
@@ -84,7 +91,7 @@ export class FileModel extends Model<File> {
       "Management system clauses group",
       "Reference controls group",
       "Main clauses group",
-      "Annex controls group"
+      "Annex controls group",
     ),
   })
   source!:

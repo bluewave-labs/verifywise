@@ -22,12 +22,16 @@ import StatusDropdown from "../../../../components/StatusDropdown";
 import { updateISO27001AnnexStatus } from "../../../../components/StatusDropdown/statusUpdateApi";
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
+import { Project } from "../../../../../domain/types/Project";
+import { useSearchParams } from "react-router-dom";
 
-const ISO27001Annex = ({ 
-  projectFrameworkId, 
-  statusFilter, 
-  applicabilityFilter 
-}: { 
+const ISO27001Annex = ({
+  project,
+  projectFrameworkId,
+  statusFilter,
+  applicabilityFilter,
+}: {
+  project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
@@ -37,14 +41,16 @@ const ISO27001Annex = ({
   const [annexesProgress, setAnnexesProgress] = useState<any>({});
   const [annexes, setAnnexes] = useState<any>();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [selectedControl, setSelectedControl] = useState<any>(null);
   const [selectedAnnex, setSelectedAnnex] = useState<any>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [controlsMap, setControlsMap] = useState<{ [key: number]: any[] }>({});
+  const [annexTitle, setAnnexTitle] = useState<string>("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const annexId = searchParams.get("annexId");
+  const annexControlId = searchParams.get("annexControlId");
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -62,7 +68,21 @@ const ISO27001Annex = ({
       }
     };
     fetchClauses();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, projectFrameworkId]);
+
+  useEffect(() => {
+    if (annexId && annexes && annexes.length > 0) {
+      const annex = annexes.find((a: any) => a.id === Number(annexId));
+      if (annex) {
+        handleAccordionChange(annex.id)(new Event("click") as any, true);
+        const annexControl = annex.annexControls?.find(
+          (ac: any) => ac.id === Number(annexControlId),
+        );
+        if (annexControl) handleControlClick(annex, annexControl);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [annexId, annexes, annexControlId]);
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -73,16 +93,12 @@ const ISO27001Annex = ({
       }
     };
 
-  const handleControlClick = (
-    order: any,
-    annex: any,
-    control: any,
-    index: number
-  ) => {
-    setSelectedOrder(order);
+  const handleControlClick = (annex: any, control: any) => {
+    setAnnexTitle(
+      `${annex.arrangement}.${annex.order_no}.${control.order_no} ${control.title}`,
+    );
     setSelectedAnnex(annex);
     setSelectedControl(control);
-    setSelectedIndex(index);
     setDrawerOpen(true);
   };
 
@@ -101,7 +117,7 @@ const ISO27001Annex = ({
   const handleSaveSuccess = async (
     success: boolean,
     message?: string,
-    savedControlId?: number
+    savedControlId?: number,
   ) => {
     // Show appropriate toast message
     handleAlert({
@@ -130,7 +146,10 @@ const ISO27001Annex = ({
     }
   };
 
-  const handleStatusChange = async (control: any, newStatus: string): Promise<boolean> => {
+  const handleStatusChange = async (
+    control: any,
+    newStatus: string,
+  ): Promise<boolean> => {
     try {
       const success = await updateISO27001AnnexStatus({
         id: control.id,
@@ -149,7 +168,7 @@ const ISO27001Annex = ({
 
         setFlashingRowId(control.id);
         setTimeout(() => setFlashingRowId(null), 2000);
-        
+
         if (expanded !== false) {
           await fetchControls(expanded);
         }
@@ -171,6 +190,16 @@ const ISO27001Annex = ({
         setAlert,
       });
       return false;
+    }
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    if (annexId && annexControlId) {
+      searchParams.delete("annexId");
+      searchParams.delete("annexControlId");
+      searchParams.delete("frameworkName");
+      setSearchParams(searchParams);
     }
   };
 
@@ -208,33 +237,37 @@ const ISO27001Annex = ({
                   <AccordionDetails sx={{ padding: 0 }}>
                     {(() => {
                       let filteredControls = annex.annexControls || [];
-                      
+
                       // Apply status filter
                       if (statusFilter && statusFilter !== "") {
                         filteredControls = filteredControls.filter(
-                          (control: any) => 
-                            control.status?.toLowerCase() === statusFilter.toLowerCase()
+                          (control: any) =>
+                            control.status?.toLowerCase() ===
+                            statusFilter.toLowerCase(),
                         );
                       }
-                      
+
                       // Apply applicability filter
-                      if (applicabilityFilter && applicabilityFilter !== "all" && applicabilityFilter !== "") {
+                      if (
+                        applicabilityFilter &&
+                        applicabilityFilter !== "all" &&
+                        applicabilityFilter !== ""
+                      ) {
                         const isApplicable = applicabilityFilter === "true";
                         filteredControls = filteredControls.filter(
-                          (control: any) => Boolean(control.applicable) === isApplicable
+                          (control: any) =>
+                            Boolean(control.applicable) === isApplicable,
                         );
                       }
-                      
+
                       return filteredControls.length > 0 ? (
                         filteredControls.map((control: any, index: number) => (
                           <Stack
                             key={control.id}
-                            onClick={() =>
-                              handleControlClick("A", annex, control, index)
-                            }
+                            onClick={() => handleControlClick(annex, control)}
                             sx={styles.controlRow(
                               filteredControls.length - 1 === index,
-                              flashingRowId === control.id
+                              flashingRowId === control.id,
                             )}
                           >
                             <Stack>
@@ -245,7 +278,9 @@ const ISO27001Annex = ({
                             </Stack>
                             <StatusDropdown
                               currentStatus={control.status || "Not started"}
-                              onStatusChange={(newStatus) => handleStatusChange(control, newStatus)}
+                              onStatusChange={(newStatus) =>
+                                handleStatusChange(control, newStatus)
+                              }
                               size="small"
                               allowedRoles={allowedRoles.frameworks.edit}
                               userRole={userRoleName}
@@ -253,7 +288,7 @@ const ISO27001Annex = ({
                           </Stack>
                         ))
                       ) : (
-                        <Stack sx={{ p: 2, textAlign: 'center' }}>
+                        <Stack sx={{ p: 2, textAlign: "center" }}>
                           <Typography variant="body2" color="text.secondary">
                             No matching controls
                           </Typography>
@@ -266,15 +301,18 @@ const ISO27001Annex = ({
             ))}
           {drawerOpen && (
             <VWISO27001AnnexDrawerDialog
-              title={`${selectedOrder}.${selectedAnnex?.order_no}.${
-                selectedIndex + 1
-              } ${selectedControl?.title}`}
+              title={annexTitle}
               open={drawerOpen}
-              onClose={() => setDrawerOpen(false)}
+              onClose={(_event?: any, reason?: string) => {
+                if (reason === "backdropClick") {
+                  return; // block closing on backdrop click
+                }
+                handleDrawerClose();
+              }}
               control={selectedControl}
               annex={selectedAnnex}
               projectFrameworkId={Number(projectFrameworkId)}
-              project_id={0}
+              project_id={Number(project.id)}
               onSaveSuccess={(success, message) =>
                 handleSaveSuccess(success, message, selectedControl?.id)
               }

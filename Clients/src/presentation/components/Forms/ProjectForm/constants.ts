@@ -70,10 +70,7 @@ export interface ProjectFormProps {
   onClose: () => void;
   sx?: SxProps<Theme> | undefined;
   defaultFrameworkType?: FrameworkTypeEnum;
-<<<<<<< HEAD:Clients/src/presentation/vw-v2-components/Forms/ProjectForm/constants.ts
-=======
   projectToEdit?: any; // Add optional prop for editing
->>>>>>> upstream/develop:Clients/src/presentation/components/Forms/ProjectForm/constants.ts
 }
 
 export interface FrameworkOption {

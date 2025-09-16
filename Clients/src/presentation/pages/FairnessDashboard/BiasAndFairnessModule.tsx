@@ -104,7 +104,7 @@ export default function BiasAndFairnessModule() {
   // Load evaluations from database
   useEffect(() => {
     loadEvaluations();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEvaluations = async () => {
     try {
@@ -297,7 +297,7 @@ export default function BiasAndFairnessModule() {
             evaluation.status === "running" ? "In Progress" : 
             evaluation.status === "failed" ? "Failed" : 
             evaluation.status === "pending" ? "Pending" : "Pending"
-  }));
+  } as { id: string; model: string; dataset: string; status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" }));
 
   const tableColumns = [
     "EVAL ID",

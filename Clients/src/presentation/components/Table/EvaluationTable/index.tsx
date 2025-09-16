@@ -17,8 +17,6 @@ import {
   import {
     paginationStatus,
     paginationStyle,
-    paginationDropdown,
-    paginationSelect,
     emptyData
   } from "./styles";
   import singleTheme from '../../../themes/v1SingleTheme';

@@ -385,6 +385,27 @@ const Subscription: React.FC = () => {
             contact us
           </Typography>
         </Typography>
+        
+        <Box
+          sx={{
+            backgroundColor: '#EAF3EC',
+            border: '1px solid #A3B18A',
+            borderRadius: 2,
+            width: 'fit-content',
+            px: 2,
+            py: 1.5,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          <Typography sx={{ fontWeight: 600, color: '#344E41' }}>
+            Current Plan:
+          </Typography>
+          <Typography sx={{ fontWeight: 600, color: '#344E41' }}>
+            {allTiers.find(tier => tier.id === organizationTierId)?.name || '—'}
+          </Typography>
+        </Box>
 
         {/* Unified Pricing and Features Table */}
         <Card variant="outlined" sx={{ borderRadius: '8px' }}>

@@ -41,6 +41,8 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
     onClose: onCancel,
   });
 
+  if (!isOpen) return null;
+
   return (
     <>
       <Stack

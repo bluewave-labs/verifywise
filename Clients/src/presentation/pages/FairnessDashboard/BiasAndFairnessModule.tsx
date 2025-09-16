@@ -309,8 +309,8 @@ export default function BiasAndFairnessModule() {
   ];
 
   const handleShowDetails = (evaluation: { id: string }) => {
-    // Navigate to the detailed results page
-    window.open(`/fairness-dashboard/bias-fairness-results/${evaluation.id}`, '_blank');
+    // Navigate to the detailed results page in the same tab
+    navigate(`/fairness-dashboard/bias-fairness-results/${evaluation.id}`);
   };
 
   const handleRemoveModel = async (id: string) => {

@@ -19,7 +19,7 @@ import {
   IconButton,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import CloseIcon from "@mui/icons-material/Close";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
@@ -36,6 +36,8 @@ import HelperIcon from "../../components/HelperIcon";
 import biasFairnessHelpContent from "../../../presentation/helpers/bias-fairness-help.html?raw";
 import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
+import PageHeader from "../../components/Layout/PageHeader";
+
 
 export type FairnessModel = {
   id: number | string; // Use number or string based on your backend response
@@ -78,7 +80,7 @@ export default function FairnessDashboard() {
         return; // Don't raise error
       }
 
-      const formatted = metrics.map((item: any) => ({
+      const formatted = metrics.map((item: { metrics_id: number | string; model_filename: string; data_filename: string }) => ({
         id: item.metrics_id, // use this for "ID" column
         model: item.model_filename,
         dataset: item.data_filename,
@@ -255,7 +257,7 @@ export default function FairnessDashboard() {
 
   return (
     <Stack className="vwhome" gap="20px">
-      <PageBreadcrumbs />
+       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -263,21 +265,20 @@ export default function FairnessDashboard() {
         pageTitle="Bias & Fairness Assessment"
       />
       <Box>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={styles.vwHeadingTitle}>
-            Bias & fairness dashboard
-          </Typography>
-          <HelperIcon
-            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-            size="small"
-          />
-        </Stack>
-        <Typography sx={styles.vwSubHeadingTitle}>
-          {tab === "uploads" 
-            ? "This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model's input requirements."
-            : "Advanced bias detection and fairness evaluation using the BiasAndFairnessModule. Configure your evaluation parameters to perform comprehensive fairness analysis with multiple metrics and bias detection methods."
+        <PageHeader
+          title="Bias & fairness dashboard"
+          description={
+            tab === "uploads" 
+              ? "This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model's input requirements."
+              : "Advanced bias detection and fairness evaluation using the BiasAndFairnessModule. Configure your evaluation parameters to perform comprehensive fairness analysis with multiple metrics and bias detection methods."
           }
-        </Typography>
+          rightContent={
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          }
+        />
       </Box>
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>

@@ -20,7 +20,7 @@ import {
   useEffect,
 } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg"
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,

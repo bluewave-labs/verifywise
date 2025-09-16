@@ -31,6 +31,7 @@ import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDa
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import Framework from "../../presentation/pages/Framework";
+import Tasks from "../../presentation/pages/Tasks";
 import WorkingDashboard from "../../presentation/pages/DashboardOverview/WorkingDashboard";
 
 export const createRoutes = (
@@ -67,6 +68,7 @@ export const createRoutes = (
     <Route path="/policies" element={<PolicyDashboard/>}/>
     <Route path="/event-tracker" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
+    <Route path="/tasks" element={<Tasks />} />
   </Route>,
   <Route
     key="admin-reg"

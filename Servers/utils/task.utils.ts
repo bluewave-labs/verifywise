@@ -1,5 +1,5 @@
 import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
-import { UserModel } from "../domain.layer/models/user/user.model";
+import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { sequelize } from "../database/db";
 import { QueryTypes, Transaction, Op, WhereOptions, OrderItem } from "sequelize";
 import { ITask } from "../domain.layer/interfaces/i.task";
@@ -20,11 +20,13 @@ interface GetTasksOptions {
 
 interface TaskFilters {
   status?: string[];
+  priority?: string[];
   due_date_start?: string;
   due_date_end?: string;
   category?: string[];
   assignee?: number[];
-  organization_id?: number; 
+  organization_id?: number;
+  search?: string;
 }
 
 interface TaskSortOptions {
@@ -64,7 +66,8 @@ const addVisibilityLogic = (
 export const createNewTaskQuery = async (
   task: ITask,
   tenant: string,
-  transaction: Transaction
+  transaction: Transaction,
+  assignees?: Array<{ user_id: number }>
 ): Promise<TasksModel> => {
 
   
@@ -90,7 +93,36 @@ export const createNewTaskQuery = async (
       transaction,
     }
   );
-  return result[0] as TasksModel;
+  
+  const createdTask = result[0] as TasksModel;
+  
+  // Handle assignees following the project members pattern
+  (createdTask.dataValues as any)["assignees"] = [];
+  
+  if (assignees && assignees.length > 0) {
+    for (let assignee of assignees) {
+      // Handle both formats: string/number directly, or object with user_id property
+      const userId = typeof assignee === 'string' || typeof assignee === 'number' 
+        ? Number(assignee) 
+        : Number(assignee.user_id);
+        
+      if (!isNaN(userId) && userId > 0) {
+        await sequelize.query(
+          `INSERT INTO "${tenant}".task_assignees (task_id, user_id) VALUES (:task_id, :user_id) RETURNING *`,
+          {
+            replacements: { 
+              task_id: createdTask.id, 
+              user_id: userId 
+            },
+            transaction,
+          }
+        );
+        (createdTask.dataValues as any)["assignees"].push(userId);
+      }
+    }
+  }
+  
+  return createdTask;
 };
 
 // GET /tasks: Fetch list with filters (status, due_date range, category, assignee) and sorts (due_date, priority, created_at). Apply pagination (25 items per page, server-side). Enforce visibility rules.
@@ -132,6 +164,14 @@ export const getTasksQuery = async (
     });
   }
 
+  if (filters.priority && filters.priority.length > 0) {
+    const priorityList = filters.priority.map((p, i) => `:priority${i}`).join(', ');
+    whereConditions.push(`t.priority IN (${priorityList})`);
+    filters.priority.forEach((priority, i) => {
+      replacements[`priority${i}`] = priority;
+    });
+  }
+
   if (filters.due_date_start) {
     whereConditions.push(`t.due_date >= :due_date_start`);
     replacements.due_date_start = filters.due_date_start;
@@ -164,6 +204,11 @@ export const getTasksQuery = async (
     filters.assignee.forEach((assignee, i) => {
       replacements[`assignee${i}`] = assignee;
     });
+  }
+
+  if (filters.search) {
+    whereConditions.push(`(t.title ILIKE :search OR t.description ILIKE :search)`);
+    replacements.search = `%${filters.search}%`;
   }
 
  
@@ -229,6 +274,19 @@ export const getTasksQuery = async (
     type: QueryTypes.SELECT,
   });
 
+  // Add assignees to each task following the project members pattern
+  for (const task of tasks) {
+    const assignees = await sequelize.query(
+      `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+      {
+        replacements: { task_id: task.id },
+        mapToModel: true,
+        model: TaskAssigneesModel,
+      }
+    );
+    (task.dataValues as any)["assignees"] = assignees.map((a: any) => a.user_id);
+  }
+
   return tasks as TasksModel[];
 };
 
@@ -259,7 +317,24 @@ export const getTaskByIdQuery = async (
     type: QueryTypes.SELECT,
   });
   
-  return tasks.length > 0 ? (tasks[0] as TasksModel) : null;
+  if (tasks.length > 0) {
+    const task = tasks[0] as TasksModel;
+    
+    // Add assignees following the project members pattern
+    const assignees = await sequelize.query(
+      `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+      {
+        replacements: { task_id: task.id },
+        mapToModel: true,
+        model: TaskAssigneesModel,
+      }
+    );
+    (task.dataValues as any)["assignees"] = assignees.map((a: any) => a.user_id);
+    
+    return task;
+  }
+  
+  return null;
 };
 
 // Update task with permission checks
@@ -279,7 +354,8 @@ export const updateTaskByIdQuery = async (
     userOrganizationId: number;
     transaction: Transaction;
   },
-  tenant: string
+  tenant: string,
+  assignees?: number[]
 ): Promise<TasksModel> => {
   // First, get the task to check permissions
   const existingTask = await getTaskByIdQuery(id, { userId, role }, tenant, userOrganizationId);
@@ -364,7 +440,46 @@ export const updateTaskByIdQuery = async (
     transaction,
   });
 
-  return result[0];
+  const updatedTask = result[0];
+
+  // Handle assignees update if provided
+  if (assignees !== undefined) {
+    // Remove existing assignees
+    await sequelize.query(
+      `DELETE FROM "${tenant}".task_assignees WHERE task_id = :taskId`,
+      {
+        replacements: { taskId: id },
+        type: QueryTypes.DELETE,
+        transaction,
+      }
+    );
+
+    // Add new assignees if any
+    if (assignees && assignees.length > 0) {
+      const assigneeValues = assignees.map((assigneeId, index) => 
+        `(:taskId, :assignee${index})`
+      ).join(', ');
+      
+      const assigneeReplacements: any = { taskId: id };
+      assignees.forEach((assigneeId, index) => {
+        assigneeReplacements[`assignee${index}`] = assigneeId;
+      });
+
+      await sequelize.query(
+        `INSERT INTO "${tenant}".task_assignees (task_id, user_id) VALUES ${assigneeValues}`,
+        {
+          replacements: assigneeReplacements,
+          type: QueryTypes.INSERT,
+          transaction,
+        }
+      );
+    }
+
+    // Add assignees to the response
+    (updatedTask.dataValues as any)["assignees"] = assignees;
+  }
+
+  return updatedTask;
 };
 
 // Soft delete task (only creator or admin)

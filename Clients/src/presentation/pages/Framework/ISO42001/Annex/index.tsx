@@ -263,7 +263,12 @@ const ISO42001Annex = ({
         <VWISO42001AnnexDrawerDialog
           title={selectedControl?.title || ""}
           open={drawerOpen}
-          onClose={handleDrawerClose}
+          onClose={(_event?: any, reason?: string) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleDrawerClose();
+          }}
           annex={selectedAnnex}
           control={selectedControl}
           projectFrameworkId={Number(projectFrameworkId)}

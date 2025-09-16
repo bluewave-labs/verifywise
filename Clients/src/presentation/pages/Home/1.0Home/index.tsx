@@ -7,8 +7,7 @@ import {
   vwhomeHeading,
 } from "./style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";

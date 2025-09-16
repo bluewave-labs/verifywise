@@ -558,6 +558,7 @@ const Framework = () => {
                 variant="contained"
                 endIcon={<KeyboardArrowDownIcon sx={{ fontSize: "18px" }} />}
                 onClick={handleManageProjectClick}
+                disableRipple
                 disabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&
                   !allowedRoles.projects.edit.includes(userRoleName) &&
@@ -742,9 +743,13 @@ const Framework = () => {
       {isProjectFormModalOpen && (
         <Modal
           open={isProjectFormModalOpen}
-          onClose={async () => {
+          onClose={async (_event, reason) => {
+            // Prevent closing on backdrop click
+            if (reason === "backdropClick") {
+              return;
+            }
             setIsProjectFormModalOpen(false);
-            // Refresh project data after creating a new project
+            // Refresh project data after editing the project
             await refreshProjectData();
           }}
           sx={{
@@ -781,7 +786,11 @@ const Framework = () => {
       {isEditProjectModalOpen && organizationalProject && (
         <Modal
           open={isEditProjectModalOpen}
-          onClose={async () => {
+          onClose={async (_event, reason) => {
+            // Prevent closing on backdrop click
+            if (reason === "backdropClick") {
+              return;
+            }
             setIsEditProjectModalOpen(false);
             // Refresh project data after editing the project
             await refreshProjectData();

@@ -89,7 +89,15 @@ const FileManager: React.FC = (): JSX.Element => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ height: 10 }}
+      >
+        {" "}
+        <PageBreadcrumbs />{" "}
+      </Stack>
       <PageTour
         steps={FileSteps}
         run={runFileTour}
@@ -144,17 +152,16 @@ interface FileManagerHeaderProps {
   onHelperClick?: () => void;
 }
 
-const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({ onHelperClick }) => (
-    <PageHeader
-      title="Evidences & documents"
-      description="This table lists all the files uploaded to the system."
-      rightContent={
-        onHelperClick && (
-          <HelperIcon onClick={onHelperClick} size="small" />
-        )
-      }
-    />
+const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
+  onHelperClick,
+}) => (
+  <PageHeader
+    title="Evidences & documents"
+    description="This table lists all the files uploaded to the system."
+    rightContent={
+      onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />
+    }
+  />
 );
-
 
 export default FileManager;

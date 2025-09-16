@@ -38,9 +38,10 @@ class FairnessEvaluator:
             # Validate required columns
             required_columns = [
                 "sample_id",
-                "prompt",
                 "answer",
                 "prediction",
+                "confidence",
+                "raw_output",
             ]
             missing_columns = [
                 col for col in required_columns if col not in self.results.columns

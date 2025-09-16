@@ -154,9 +154,6 @@ const CreateTask: FC<CreateTaskProps> = ({
       newErrors.title = "Task title is required.";
     }
 
-    if (!values.description || !values.description.trim()) {
-      newErrors.description = "Task description is required.";
-    }
 
     if (!values.priority) {
       newErrors.priority = "Priority is required.";
@@ -314,7 +311,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                       mb: 2,
                     }}
                   >
-                    Assignees (optional)
+                    Assignees
                   </Typography>
                   <Autocomplete
                     multiple
@@ -402,7 +399,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     mb: 2,
                   }}
                 >
-                  Categories (optional)
+                  Categories
                 </Typography>
                 <Autocomplete
                   multiple
@@ -430,7 +427,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="Add categories"
+                      placeholder="Press Enter to add categories"
                       sx={teamMembersRenderInputStyle}
                     />
                   )}
@@ -452,7 +449,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  Description *
+                  Description
                 </Typography>
                 <TextField
                   id="description"

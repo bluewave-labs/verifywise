@@ -33,14 +33,24 @@ import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps } from "../..
 import dayjs from "dayjs";
 import { Autocomplete } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import Toggle from "../../components/Toggle";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
   TaskStatus.OPEN,
   TaskStatus.IN_PROGRESS,
-  TaskStatus.COMPLETED, 
-  TaskStatus.OVERDUE,
+  TaskStatus.COMPLETED,
 ];
+
+// Status display mapping
+const STATUS_DISPLAY_MAP = {
+  [TaskStatus.OPEN]: "Open",
+  [TaskStatus.IN_PROGRESS]: "In progress", 
+  [TaskStatus.COMPLETED]: "Completed",
+  [TaskStatus.OVERDUE]: "Overdue"
+};
+
+// Reverse mapping for API calls
 
 const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<ITask[]>([]);
@@ -52,13 +62,14 @@ const Tasks: React.FC = () => {
   const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("Newest");
   const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
   const [priorityFilters, setPriorityFilters] = useState<TaskPriority[]>([]);
   const [assigneeFilters, setAssigneeFilters] = useState<number[]>([]);
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [dueDateFrom, setDueDateFrom] = useState("");
   const [dueDateTo, setDueDateTo] = useState("");
+  const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const handleDateFromChange = (newDate: dayjs.Dayjs | null) => {
@@ -102,6 +113,7 @@ const Tasks: React.FC = () => {
     if (assigneeFilters.length > 0) count++;
     if (categoryFilters.length > 0) count++;
     if (dueDateFrom !== "" || dueDateTo !== "") count++;
+    if (includeArchived) count++;
     return count;
   };
 
@@ -115,6 +127,7 @@ const Tasks: React.FC = () => {
     setCategoryFilters([]);
     setDueDateFrom("");
     setDueDateTo("");
+    setIncludeArchived(false);
   };
 
 
@@ -133,7 +146,7 @@ const Tasks: React.FC = () => {
     open: tasks.filter(task => task.status === TaskStatus.OPEN).length,
     inProgress: tasks.filter(task => task.status === TaskStatus.IN_PROGRESS).length,
     completed: tasks.filter(task => task.status === TaskStatus.COMPLETED).length,
-    overdue: tasks.filter(task => task.status === TaskStatus.OVERDUE).length,
+    overdue: tasks.filter(task => task.isOverdue === true).length,
   }), [tasks]);
 
   // Fetch tasks when component mounts or any filter changes
@@ -142,19 +155,30 @@ const Tasks: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null); // Clear previous errors
+        // Filter out "Overdue" from status filters for API call since it's computed
+        const apiStatusFilters = statusFilters.filter(status => status !== TaskStatus.OVERDUE);
+        
         const response = await getAllTasks({
           search: debouncedSearchQuery || undefined,
-          status: statusFilters.length > 0 ? statusFilters : undefined,
+          status: apiStatusFilters.length > 0 ? apiStatusFilters : undefined,
           priority: priorityFilters.length > 0 ? priorityFilters : undefined,
           assignee: assigneeFilters.length > 0 ? assigneeFilters : undefined,
           category: categoryFilters.length > 0 ? categoryFilters : undefined,
           due_date_start: dueDateFrom || undefined,
           due_date_end: dueDateTo || undefined,
-          sort_by: sortBy === 'newest' ? 'created_at' : sortBy === 'oldest' ? 'created_at' : sortBy as any,
-          sort_order: sortBy === 'oldest' ? 'ASC' : 'DESC'
+          include_archived: includeArchived || undefined,
+          sort_by: sortBy === 'Newest' ? 'created_at' : sortBy === 'Oldest' ? 'created_at' : sortBy === 'Priority' ? 'priority' : sortBy === 'Due date' ? 'due_date' : 'created_at',
+          sort_order: sortBy === 'Oldest' ? 'ASC' : 'DESC'
         });
 
-        setTasks(response?.data?.tasks || []);
+        let filteredTasks = response?.data?.tasks || [];
+        
+        // Apply frontend filtering for "Overdue" status
+        if (statusFilters.includes(TaskStatus.OVERDUE)) {
+          filteredTasks = filteredTasks.filter((task: ITask) => task.isOverdue === true);
+        }
+
+        setTasks(filteredTasks);
       } catch (err: any) {
         console.error("Error fetching tasks:", err);
         setError("Failed to load tasks. Please try again later.");
@@ -164,7 +188,7 @@ const Tasks: React.FC = () => {
       }
     };
     fetchTasks();
-  }, [debouncedSearchQuery, statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo, sortBy]);
+  }, [debouncedSearchQuery, statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo, includeArchived, sortBy]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -291,7 +315,7 @@ const Tasks: React.FC = () => {
       <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
         <HeaderCard title="Tasks" count={summary.total} />
         <HeaderCard title="Overdue" count={summary.overdue} />
-        <HeaderCard title="In Progress" count={summary.inProgress} />
+        <HeaderCard title="In progress" count={summary.inProgress} />
         <HeaderCard title="Completed" count={summary.completed} />
       </Stack>
 
@@ -316,7 +340,7 @@ const Tasks: React.FC = () => {
                 setSortBy(newSort);
                 return true;
               }}
-              options={["newest", "oldest", "priority", "due_date"]}
+              options={["Newest", "Oldest", "Priority", "Due date"]}
               sx={{ minWidth: 150 }}
             />
           </Stack>
@@ -407,7 +431,10 @@ const Tasks: React.FC = () => {
                     value={statusFilters.length > 0 ? statusFilters[0] : "all"}
                     items={[
                       { _id: "all", name: "All Statuses" },
-                      ...Object.values(TaskStatus).map(status => ({ _id: status, name: status }))
+                      ...Object.values(TaskStatus).map(status => ({ 
+                        _id: status, 
+                        name: STATUS_DISPLAY_MAP[status as TaskStatus] || status
+                      }))
                     ]}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -499,7 +526,7 @@ const Tasks: React.FC = () => {
                       renderInput={(params) => (
                         <TextField
                           {...params}
-                          placeholder="Enter categories..."
+                          placeholder="Press Enter to add categories"
                           sx={{
                             "& ::placeholder": {
                               fontSize: "13px",
@@ -537,6 +564,26 @@ const Tasks: React.FC = () => {
                           minHeight: "34px"
                         }}
                       />
+                      <Stack direction="column" spacing={1} sx={{ ml: "16px !important" }}>
+                        <Typography sx={{ 
+                          fontSize: 13, 
+                          fontWeight: 500, 
+                          color: "#344054",
+                          mb: 1
+                        }}>
+                          Include archived
+                        </Typography>
+                        <Box sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          minHeight: "34px"
+                        }}>
+                          <Toggle
+                            checked={includeArchived}
+                            onChange={(checked) => setIncludeArchived(checked)}
+                          />
+                        </Box>
+                      </Stack>
                     </Stack>
                   </Box>
                 </Stack>
@@ -564,10 +611,10 @@ const Tasks: React.FC = () => {
           <TasksTable
             tasks={tasks}
             users={users}
-            onDelete={handleDeleteTask}
+            onArchive={handleDeleteTask}
             onEdit={handleEditTask}
             onStatusChange={handleTaskStatusChange}
-            statusOptions={TASK_STATUS_OPTIONS}
+            statusOptions={TASK_STATUS_OPTIONS.map(status => STATUS_DISPLAY_MAP[status as TaskStatus] || status)}
             isUpdateDisabled={isCreatingDisabled}
           />
         )}
@@ -599,10 +646,10 @@ const Tasks: React.FC = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Delete Task</DialogTitle>
+        <DialogTitle>Archive Task</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
+            Are you sure you want to archive "{taskToDelete?.title}"? You can restore it later by using the "Show all tasks" toggle.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -614,10 +661,10 @@ const Tasks: React.FC = () => {
           </Button>
           <Button 
             onClick={confirmDeleteTask}
-            color="error"
+            color="warning"
             variant="contained"
           >
-            Delete
+            Archive
           </Button>
         </DialogActions>
       </Dialog>

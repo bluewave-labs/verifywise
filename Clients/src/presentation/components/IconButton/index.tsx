@@ -141,6 +141,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (item === "make visible") {
       return isVisible ? "Make Hidden" : "Make Visible";
     }
+    if (item === "remove" && type === "Task") {
+      return "Archive";
+    }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
 

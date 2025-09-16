@@ -18,26 +18,40 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
-import { ITask } from "../../../../domain/interfaces/i.task";
+import { ITask, TaskStatus } from "../../../../domain/interfaces/i.task";
 import { User } from "../../../../domain/types/User";
 import CustomSelect from "../../CustomSelect";
 import IconButton from "../../IconButton";
 import RiskChip from "../../RiskLevel/RiskChip";
 
+// Status display mapping
+const STATUS_DISPLAY_MAP = {
+  [TaskStatus.OPEN]: "Open",
+  [TaskStatus.IN_PROGRESS]: "In progress", 
+  [TaskStatus.COMPLETED]: "Completed",
+  [TaskStatus.OVERDUE]: "Overdue"
+};
+
+// Reverse mapping for API calls
+const DISPLAY_TO_STATUS_MAP = Object.fromEntries(
+  Object.entries(STATUS_DISPLAY_MAP).map(([key, value]) => [value, key])
+);
+
+
 const titleOfTableColumns = [
-  "task",
-  "priority",
-  "status", 
-  "due date",
-  "assignees",
-  "actions",
+  "Task",
+  "Priority",
+  "Status", 
+  "Due date",
+  "Assignees",
+  "Actions",
 ];
 
 
 interface TasksTableProps {
   tasks: ITask[];
   users: User[];
-  onDelete: (taskId: number) => void;
+  onArchive: (taskId: number) => void;
   onEdit: (task: ITask) => void;
   onStatusChange: (taskId: number) => (newStatus: string) => Promise<boolean>;
   statusOptions: string[];
@@ -47,7 +61,7 @@ interface TasksTableProps {
 const TasksTable: React.FC<TasksTableProps> = ({
   tasks,
   users,
-  onDelete,
+  onArchive,
   onEdit,
   onStatusChange,
   statusOptions,
@@ -95,7 +109,10 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Task Name */}
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <Box>
-                    <Typography variant="body2">
+                    <Typography 
+                      variant="body2"
+                      sx={{ textTransform: 'capitalize' }}
+                    >
                       {task.title}
                     </Typography>
                     {task.categories && task.categories.length > 0 && (
@@ -138,8 +155,11 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Status */}
                 <TableCell sx={cellStyle}>
                   <CustomSelect
-                    currentValue={task.status}
-                    onValueChange={onStatusChange(task.id!)}
+                    currentValue={STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status}
+                    onValueChange={async (displayValue: string) => {
+                      const apiValue = DISPLAY_TO_STATUS_MAP[displayValue] || displayValue;
+                      return await onStatusChange(task.id!)(apiValue);
+                    }}
                     options={statusOptions}
                     disabled={isUpdateDisabled}
                     size="small"
@@ -149,13 +169,25 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Due Date */}
                 <TableCell sx={cellStyle}>
                   {task.due_date ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: 13 }}>
-                      {new Date(task.due_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontSize: 13,
+                          color: task.isOverdue ? '#dc2626' : 'text.secondary',
+                          fontWeight: task.isOverdue ? 500 : 400
+                        }}
+                      >
+                        {new Date(task.due_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </Typography>
+                      {task.isOverdue && (
+                        <RiskChip label="Overdue" />
+                      )}
+                    </Stack>
                   ) : (
                     <Typography variant="body2" color="text.disabled" sx={{ fontSize: 13 }}>
                       No due date
@@ -232,11 +264,11 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 >
                   <IconButton
                     id={task.id!}
-                    onDelete={() => onDelete(task.id!)}
+                    onDelete={() => onArchive(task.id!)}
                     onEdit={() => onEdit(task)}
                     onMouseEvent={() => {}}
-                    warningTitle="Delete this task?"
-                    warningMessage="When you delete this task, all data related to this task will be removed. This action is non-recoverable."
+                    warningTitle="Archive this task?"
+                    warningMessage="When you archive this task, it will be hidden from the active tasks list. You can restore it later using the 'Show all tasks' toggle."
                     type="Task"
                   />
                 </TableCell>
@@ -251,7 +283,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
       cellStyle,
       users,
       onEdit,
-      onDelete,
+      onArchive,
       onStatusChange,
       statusOptions,
       isUpdateDisabled,

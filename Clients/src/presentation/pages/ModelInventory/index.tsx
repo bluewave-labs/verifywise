@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
-import { Box, Stack, Typography, Fade } from "@mui/material";
+import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import { useSearchParams } from "react-router-dom";
@@ -21,8 +21,6 @@ import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelInventorySummary from "./ModelInventorySummary";
-import { vwhomeHeading } from "../Home/1.0Home/style";
-import singleTheme from "../../themes/v1SingleTheme";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
@@ -38,6 +36,7 @@ import {
   ModelInventorySummary as Summary,
 } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
+import PageHeader from "../../components/Layout/PageHeader";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -306,7 +305,10 @@ const ModelInventory: React.FC = () => {
 
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
-      <PageBreadcrumbs />
+      {/* <PageBreadcrumbs /> */}
+
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
+
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -333,20 +335,19 @@ const ModelInventory: React.FC = () => {
       )}
 
       <Stack sx={mainStackStyle}>
-        <Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>Model Inventory</Typography>
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          </Stack>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            This registry lists all AI/LLM models used within your organization
-            and their compliance status. You can view, add, and manage model
-            details here.
-          </Typography>
-        </Stack>
+            <PageHeader
+               title="Model Inventory"
+               description=" This registry lists all AI/LLM models used within your organization
+               and their compliance status. You can view, add, and manage model details here."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
 
         {/* Summary Cards */}
         <ModelInventorySummary summary={summary} />

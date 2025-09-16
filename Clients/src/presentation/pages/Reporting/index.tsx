@@ -21,7 +21,7 @@ const Reporting = () => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
-      <PageBreadcrumbs />
+     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -31,8 +31,6 @@ const Reporting = () => {
 
       <Suspense fallback={"loading..."}>
         <ReportingHeader
-          titlesx={styles.vwHeadingTitle}
-          subsx={styles.vwSubHeadingTitle}
           onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         />
       </Suspense>

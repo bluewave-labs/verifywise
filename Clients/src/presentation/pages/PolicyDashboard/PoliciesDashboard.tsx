@@ -10,8 +10,6 @@ import {
   useTheme,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { vwhomeHeading } from "../Home/1.0Home/style";
-import singleTheme from "../../themes/v1SingleTheme";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
@@ -31,6 +29,7 @@ import {
 import PolicyStatusCard from "./PolicyStatusCard";
 import { searchBoxStyle, inputStyle } from "./style";
 import Select from "../../components/Inputs/Select";
+import PageHeader from "../../components/Layout/PageHeader";
 
 const PolicyDashboard: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -112,26 +111,28 @@ const PolicyDashboard: React.FC = () => {
   return (
     <div>
       <Stack sx={{ gap: "15px" }}>
-        <PageBreadcrumbs />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 20 }} > <PageBreadcrumbs /> </Stack>
         <HelperDrawer
           isOpen={isHelperDrawerOpen}
           onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
           helpContent="<h3>Policy Manager</h3><p>Policy Manager lets you create and update company AI policies in one place to stay compliant and consistent.</p><h3>Features</h3><ul><li>Create new AI policies</li><li>Edit existing policies</li><li>Organize policies with tags</li><li>Maintain compliance standards</li></ul>"
           pageTitle="Policy Manager"
         />
-        <Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>Policy Manager</Typography>
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          </Stack>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            Policy Manager lets you create and update company AI policies in one
-            place to stay compliant and consistent.
-          </Typography>
-        </Stack>
+
+           <PageHeader
+               title="Policy Manager"
+               description="Policy Manager lets you create and update company AI policies in one
+               place to stay compliant and consistent."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                  />
+                 }
+             />
+
       </Stack>
 
       <Stack

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo, forwardRef } from "react";
-import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
+import React, { useState, useEffect, useMemo } from "react";
+import { Stack, Box, Typography } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
 import CustomizableSkeleton from "../../components/Skeletons";
-import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
@@ -15,6 +14,7 @@ import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import evidencesHelpContent from "../../../presentation/helpers/evidences-help.html?raw";
 import { Project } from "../../../domain/types/Project";
+import PageHeader from "../../components/Layout/PageHeader";
 
 const COLUMN_NAMES = [
   "File",
@@ -47,9 +47,8 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  const theme = useTheme();
   const [runFileTour, setRunFileTour] = useState(false);
-  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
+  const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
@@ -90,7 +89,7 @@ const FileManager: React.FC = (): JSX.Element => {
 
   return (
     <Stack className="vwhome" gap={"20px"}>
-      <PageBreadcrumbs />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
       <PageTour
         steps={FileSteps}
         run={runFileTour}
@@ -107,8 +106,6 @@ const FileManager: React.FC = (): JSX.Element => {
         pageTitle="Evidences & Documents"
       />
       <FileManagerHeader
-        theme={theme}
-        ref={refs[0]}
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
       />
       {/* Project filter dropdown */}
@@ -143,28 +140,21 @@ const FileManager: React.FC = (): JSX.Element => {
  * Header component for the FileManager.
  * Uses React.forwardRef to handle the ref passed from the parent component.
  */
-const FileManagerHeader = forwardRef<
-  HTMLDivElement,
-  { theme: Theme; onHelperClick?: () => void }
->(({ theme, onHelperClick }, ref) => (
-  <Stack
-    className="vwhome-header"
-    ref={ref}
-    data-joyride-id="file-manager-title"
-  >
-    <Stack direction="row" alignItems="center" spacing={1}>
-      <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
-      {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
-    </Stack>
-    <Typography
-      sx={{
-        color: theme.palette.text.secondary,
-        fontSize: theme.typography.fontSize,
-      }}
-    >
-      This table lists all the files uploaded to the system.
-    </Typography>
-  </Stack>
-));
+interface FileManagerHeaderProps {
+  onHelperClick?: () => void;
+}
+
+const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({ onHelperClick }) => (
+    <PageHeader
+      title="Evidences & documents"
+      description="This table lists all the files uploaded to the system."
+      rightContent={
+        onHelperClick && (
+          <HelperIcon onClick={onHelperClick} size="small" />
+        )
+      }
+    />
+);
+
 
 export default FileManager;

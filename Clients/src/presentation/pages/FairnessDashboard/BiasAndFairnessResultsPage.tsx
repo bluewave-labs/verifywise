@@ -164,7 +164,6 @@ export default function BiasAndFairnessResultsPage() {
   const performance: Record<string, number> = metrics?.results?.performance || {};
   const fairness_metrics: Record<string, MetricEntry> = metrics?.results?.fairness_metrics || {};
   const data_quality: DataQuality = metrics?.results?.data_quality || {};
-  const flagged = data_quality?.flagged_metrics || {};
   const metricsCfg: MetricsConfiguration = metrics?.results?.metadata?.metrics_configuration || {};
 
   // Get metrics to display based on user selection and compass recommendations

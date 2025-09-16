@@ -7,7 +7,7 @@ import {
   Divider,
   Box,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { HelperDrawerProps } from "./drawertype";
 import DOMPurify from "dompurify";
 
@@ -17,7 +17,6 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
   isOpen,
   onClose,
 }) => {
-
   const sanitizedContent = useMemo(
     () =>
       DOMPurify.sanitize(helpContent, {
@@ -54,123 +53,123 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
         },
       }}
     >
+      <Stack
+        sx={{
+          width: 600,
+        }}
+      >
         <Stack
           sx={{
             width: 600,
+            padding: "15px 20px",
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          <Stack
-            sx={{
-              width: 600,
-              padding: "15px 20px",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography fontSize={15} fontWeight={700}>
-              {pageTitle}
-            </Typography>
-            <IconButton onClick={onClose} size="small" disableRipple>
-              <CloseIcon />
-            </IconButton>
-          </Stack>
-
-          <Divider />
-
-          <Stack
-            sx={{
-              padding: "15px 20px",
-              gap: "20px",
-            }}
-          >
-            <Box
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(sanitizedContent),
-              }}
-              sx={{
-                maxWidth: "100%",
-                wordWrap: "break-word",
-                "& h3": {
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  mt: 4,
-                  mb: 2,
-                  color: "#344054",
-                },
-                "& p": {
-                  fontSize: "13px",
-                  lineHeight: 1.5,
-                  mb: 2,
-                  color: "#344054",
-                  mt: 0,
-                },
-                "& strong": {
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#344054",
-                },
-                "& div": {
-                  fontSize: "13px",
-                  color: "#344054",
-                },
-                "& ul": {
-                  fontSize: "13px",
-                  color: "#344054",
-                  pl: 10,
-                  mb: 2,
-                  mt: 0,
-                },
-                "& ol": {
-                  fontSize: "13px",
-                  color: "#344054",
-                  pl: 10,
-                  mb: 2,
-                  mt: 0,
-                },
-                "& li": {
-                  fontSize: "13px",
-                  color: "#344054",
-                  mb: 1,
-                  lineHeight: 1.5,
-                },
-                "& section": {
-                  mb: 6,
-                  "&:last-child": {
-                    mb: 0,
-                  },
-                },
-                "& section > h3": {
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  mb: 2,
-                  mt: 10,
-                  color: "#344054",
-                },
-                "& section > p": {
-                  fontSize: "13px",
-                  lineHeight: 1.5,
-                  mb: 2,
-                  color: "#344054",
-                },
-                "& section > ul, & section > ol": {
-                  fontSize: "13px",
-                  color: "#344054",
-                  pl: 10,
-                  mb: 2,
-                },
-                "& section > li": {
-                  fontSize: "13px",
-                  color: "#344054",
-                  mb: 1,
-                  lineHeight: 1.5,
-                },
-              }}
-            />
-          </Stack>
+          <Typography fontSize={15} fontWeight={700}>
+            {pageTitle}
+          </Typography>
+          <IconButton onClick={onClose} size="small" disableRipple>
+            <CloseIcon />
+          </IconButton>
         </Stack>
-      </Drawer>
+
+        <Divider />
+
+        <Stack
+          sx={{
+            padding: "15px 20px",
+            gap: "20px",
+          }}
+        >
+          <Box
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(sanitizedContent),
+            }}
+            sx={{
+              maxWidth: "100%",
+              wordWrap: "break-word",
+              "& h3": {
+                fontSize: "15px",
+                fontWeight: 600,
+                mt: 4,
+                mb: 2,
+                color: "#344054",
+              },
+              "& p": {
+                fontSize: "13px",
+                lineHeight: 1.5,
+                mb: 2,
+                color: "#344054",
+                mt: 0,
+              },
+              "& strong": {
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#344054",
+              },
+              "& div": {
+                fontSize: "13px",
+                color: "#344054",
+              },
+              "& ul": {
+                fontSize: "13px",
+                color: "#344054",
+                pl: 10,
+                mb: 2,
+                mt: 0,
+              },
+              "& ol": {
+                fontSize: "13px",
+                color: "#344054",
+                pl: 10,
+                mb: 2,
+                mt: 0,
+              },
+              "& li": {
+                fontSize: "13px",
+                color: "#344054",
+                mb: 1,
+                lineHeight: 1.5,
+              },
+              "& section": {
+                mb: 6,
+                "&:last-child": {
+                  mb: 0,
+                },
+              },
+              "& section > h3": {
+                fontSize: "15px",
+                fontWeight: 600,
+                mb: 2,
+                mt: 10,
+                color: "#344054",
+              },
+              "& section > p": {
+                fontSize: "13px",
+                lineHeight: 1.5,
+                mb: 2,
+                color: "#344054",
+              },
+              "& section > ul, & section > ol": {
+                fontSize: "13px",
+                color: "#344054",
+                pl: 10,
+                mb: 2,
+              },
+              "& section > li": {
+                fontSize: "13px",
+                color: "#344054",
+                mb: 1,
+                lineHeight: 1.5,
+              },
+            }}
+          />
+        </Stack>
+      </Stack>
+    </Drawer>
   );
 };
 

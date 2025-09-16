@@ -37,6 +37,7 @@ import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
+import slackWebhookRoutes from "./routes/slackWebhook.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
@@ -66,7 +67,7 @@ try {
   // })();
 
   const allowedOrigins = parseOrigins(
-    process.env.ALLOWED_ORIGINS || frontEndUrl
+    process.env.ALLOWED_ORIGINS || frontEndUrl,
   );
 
   app.use(
@@ -76,7 +77,7 @@ try {
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
-    })
+    }),
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
@@ -123,6 +124,7 @@ try {
   app.use("/api/tasks", taskRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
+  app.use("/api/slackWebhooks", slackWebhookRoutes);
 
   app.use("/api", (req, res) => {
     res.json("Welcome to  VerifyWise root directory.");

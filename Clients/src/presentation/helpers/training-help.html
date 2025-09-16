@@ -1,26 +1,265 @@
-<section>
+<div>
+  <h3>AI Training Registry</h3>
   <p>
-    Manage and track all AI-related training programs and certifications in your
-    organization.
+    The AI Training Registry serves as a comprehensive management system for all
+    AI-related training programs within your organization. This centralized
+    platform allows you to track, manage, and monitor training initiatives,
+    ensuring your team stays current with AI governance best practices and
+    compliance requirements.
   </p>
 
   <section>
-    <h3>Key Features</h3>
+    <h4>System Overview</h4>
+    <p>
+      The Training Registry provides a complete solution for managing AI
+      training programs, from initial planning through completion. It helps
+      organizations maintain compliance with AI governance frameworks, track
+      employee development, and ensure consistent training standards across
+      departments.
+    </p>
+  </section>
+
+  <section>
+    <h4>Training Management Features</h4>
+
+    <h5>Training Creation and Management</h5>
     <ul>
-      <li>Track employee training progress and completion status</li>
-      <li>Manage training certifications and expiration dates</li>
-      <li>Schedule and organize training sessions</li>
-      <li>Generate training compliance reports</li>
+      <li>
+        <strong>New Training Creation:</strong> Add comprehensive training
+        programs with detailed information
+      </li>
+      <li>
+        <strong>Training Editing:</strong> Update existing training details and
+        status
+      </li>
+      <li>
+        <strong>Training Deletion:</strong> Remove outdated or cancelled
+        training programs
+      </li>
+      <li>
+        <strong>Status Tracking:</strong> Monitor training progress through
+        different lifecycle stages
+      </li>
+    </ul>
+
+    <h5>Training Information Fields</h5>
+    <ul>
+      <li>
+        <strong>Training Name:</strong> Descriptive title of the training
+        program (required)
+      </li>
+      <li>
+        <strong>Duration:</strong> Length of the training program (required)
+      </li>
+      <li>
+        <strong>Provider:</strong> Organization or individual conducting the
+        training (required)
+      </li>
+      <li>
+        <strong>Department:</strong> Organizational unit responsible for the
+        training (required)
+      </li>
+      <li>
+        <strong>Status:</strong> Current state of the training program
+        (required)
+      </li>
+      <li>
+        <strong>Number of People:</strong> Expected or actual number of
+        participants (required, minimum 1)
+      </li>
+      <li>
+        <strong>Description:</strong> Detailed description of training content
+        and objectives (optional)
+      </li>
     </ul>
   </section>
 
   <section>
-    <h3>How to Use</h3>
+    <h4>Training Status Management</h4>
+    <p>
+      The system supports three distinct training statuses, each with specific
+      color coding for easy visual identification:
+    </p>
+
+    <ul>
+      <li>
+        <strong>Planned:</strong> Training programs that are scheduled but not
+        yet started (Blue badge)
+      </li>
+      <li>
+        <strong>In Progress:</strong> Training programs currently being
+        conducted (Yellow badge)
+      </li>
+      <li>
+        <strong>Completed:</strong> Training programs that have been finished
+        (Green badge)
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h4>Training Table Structure</h4>
+    <p>
+      The training table displays all training programs in a comprehensive,
+      sortable format with the following columns:
+    </p>
+
+    <ul>
+      <li><strong>Training Name:</strong> The title of the training program</li>
+      <li><strong>Duration:</strong> Length of the training program</li>
+      <li><strong>Provider:</strong> Organization conducting the training</li>
+      <li><strong>Department:</strong> Responsible organizational unit</li>
+      <li>
+        <strong>Status:</strong> Current training status with color-coded badges
+      </li>
+      <li><strong>People:</strong> Number of participants</li>
+      <li>
+        <strong>Actions:</strong> Edit and delete options (role-based access)
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h4>Step-by-Step Training Management</h4>
+
+    <h5>Adding a New Training Program</h5>
     <ol>
-      <li>Add new training programs using the 'Add Training' button</li>
-      <li>Assign training to team members</li>
-      <li>Monitor completion status in the training table</li>
-      <li>Download certificates and training records</li>
+      <li>Click the "New training" button in the top-right corner</li>
+      <li>
+        Fill in the required training information:
+        <ul>
+          <li>Enter a descriptive training name</li>
+          <li>Specify the training duration</li>
+          <li>Select or enter the training provider</li>
+          <li>Choose the responsible department</li>
+          <li>Set the initial status (typically "Planned")</li>
+          <li>Enter the expected number of participants</li>
+        </ul>
+      </li>
+      <li>Optionally add a detailed description of the training content</li>
+      <li>Click "Save" to add the training to your registry</li>
+    </ol>
+
+    <h5>Editing Existing Training</h5>
+    <ol>
+      <li>Click on any training row in the table to open the edit modal</li>
+      <li>Modify the training details as needed</li>
+      <li>Update the status to reflect current progress</li>
+      <li>Click "Save" to update the training information</li>
+    </ol>
+
+    <h5>Deleting Training Programs</h5>
+    <ol>
+      <li>Click the delete button (trash icon) in the Actions column</li>
+      <li>Confirm the deletion in the warning dialog</li>
+      <li>The training will be permanently removed from the registry</li>
     </ol>
   </section>
-</section>
+
+  <section>
+    <h4>User Permissions and Access Control</h4>
+    <p>
+      The Training Registry implements role-based access control to ensure
+      appropriate security and data integrity:
+    </p>
+
+    <ul>
+      <li>
+        <strong>Admin Users:</strong> Full access to create, edit, and delete
+        training programs
+      </li>
+      <li>
+        <strong>Editor Users:</strong> Limited access (typically view-only for
+        training management)
+      </li>
+      <li>
+        <strong>Auditor Users:</strong> Read-only access to view training
+        information
+      </li>
+    </ul>
+
+    <p>
+      <strong>Note:</strong> The "New training" button will be disabled for
+      users without appropriate permissions, and action buttons in the table
+      will only be visible to authorized users.
+    </p>
+  </section>
+
+  <section>
+    <h4>Training Registry Benefits</h4>
+    <ul>
+      <li>
+        <strong>Compliance Tracking:</strong> Maintain records of AI training
+        for audit purposes
+      </li>
+      <li>
+        <strong>Resource Planning:</strong> Track training capacity and resource
+        allocation
+      </li>
+      <li>
+        <strong>Progress Monitoring:</strong> Visual status tracking for
+        training programs
+      </li>
+      <li>
+        <strong>Department Coordination:</strong> Organize training by
+        organizational units
+      </li>
+      <li>
+        <strong>Provider Management:</strong> Track relationships with training
+        providers
+      </li>
+      <li>
+        <strong>Audit Trail:</strong> Complete history of training program
+        changes
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h4>Best Practices</h4>
+    <ul>
+      <li>
+        <strong>Regular Updates:</strong> Keep training status current to
+        maintain accurate records
+      </li>
+      <li>
+        <strong>Detailed Descriptions:</strong> Provide comprehensive training
+        descriptions for better tracking
+      </li>
+      <li>
+        <strong>Accurate Participant Counts:</strong> Update participant numbers
+        to reflect actual attendance
+      </li>
+      <li>
+        <strong>Status Management:</strong> Update training status promptly as
+        programs progress
+      </li>
+      <li>
+        <strong>Provider Information:</strong> Maintain accurate provider
+        details for future reference
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h4>Troubleshooting</h4>
+    <ul>
+      <li>
+        <strong>Permission Issues:</strong> Contact your administrator if you
+        cannot access training management features
+      </li>
+      <li>
+        <strong>Data Loading:</strong> Refresh the page if training data doesn't
+        load properly
+      </li>
+      <li>
+        <strong>Form Validation:</strong> Ensure all required fields are
+        completed before saving
+      </li>
+      <li>
+        <strong>Status Updates:</strong> Verify status changes are saved by
+        checking the table display
+      </li>
+    </ul>
+  </section>
+</div>

@@ -11,9 +11,10 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import policyManagerHelpContent from "../../../presentation/helpers/policy-manager-help.html?raw";
 import {
   deletePolicy,
   getAllPolicies,
@@ -111,28 +112,33 @@ const PolicyDashboard: React.FC = () => {
   return (
     <div>
       <Stack sx={{ gap: "15px" }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 20 }} > <PageBreadcrumbs /> </Stack>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ height: 20 }}
+        >
+          {" "}
+          <PageBreadcrumbs />{" "}
+        </Stack>
         <HelperDrawer
           isOpen={isHelperDrawerOpen}
           onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-          helpContent="<h3>Policy Manager</h3><p>Policy Manager lets you create and update company AI policies in one place to stay compliant and consistent.</p><h3>Features</h3><ul><li>Create new AI policies</li><li>Edit existing policies</li><li>Organize policies with tags</li><li>Maintain compliance standards</li></ul>"
+          helpContent={policyManagerHelpContent}
           pageTitle="Policy Manager"
         />
 
-           <PageHeader
-               title="Policy Manager"
-               description="Policy Manager lets you create and update company AI policies in one
+        <PageHeader
+          title="Policy Manager"
+          description="Policy Manager lets you create and update company AI policies in one
                place to stay compliant and consistent."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                  />
-                 }
-             />
-
+          rightContent={
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          }
+        />
       </Stack>
 
       <Stack
@@ -165,88 +171,88 @@ const PolicyDashboard: React.FC = () => {
         />
       </Stack>
 
-          {/* Filter + Search row */}
-          <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={4}
-              alignItems="center"
-              mb={8}
+      {/* Filter + Search row */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={4}
+        alignItems="center"
+        mb={8}
+      >
+        {/* Dropdown Filter */}
+        <Select
+          id="policy-status"
+          value={statusFilter}
+          items={statusOptions}
+          onChange={(e: any) => setStatusFilter(e.target.value)}
+          sx={{
+            minWidth: "180px",
+            height: "40px",
+            bgcolor: "#fff",
+          }}
+        />
+
+        {/* Expandable Search */}
+        <Box sx={searchBoxStyle(isSearchBarVisible)}>
+          <IconButton
+            disableRipple
+            disableFocusRipple
+            sx={{ "&:hover": { backgroundColor: "transparent" } }}
+            aria-label="Toggle policy search"
+            aria-expanded={isSearchBarVisible}
+            onClick={() => setIsSearchBarVisible((prev) => !prev)}
           >
-              {/* Dropdown Filter */}
-              <Select
-                  id="policy-status"
-                  value={statusFilter}
-                  items={statusOptions}
-                  onChange={(e: any) => setStatusFilter(e.target.value)}
-                  sx={{
-                      minWidth: "180px",
-                      height: "40px",
-                      bgcolor: "#fff",
-                  }}
-              />
+            <SearchIcon />
+          </IconButton>
 
-              {/* Expandable Search */}
-              <Box sx={searchBoxStyle(isSearchBarVisible)}>
-                  <IconButton
-                      disableRipple
-                      disableFocusRipple
-                      sx={{ "&:hover": { backgroundColor: "transparent" } }}
-                      aria-label="Toggle policy search"
-                      aria-expanded={isSearchBarVisible}
-                      onClick={() => setIsSearchBarVisible((prev) => !prev)}
-                  >
-                      <SearchIcon />
-                  </IconButton>
-
-                  {isSearchBarVisible && (
-                      <InputBase
-                          autoFocus
-                          placeholder="Search policies..."
-                          inputProps={{ "aria-label": "Search policies" }}
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          sx={inputStyle(isSearchBarVisible)}
-                      />
-                  )}
-              </Box>
-          </Stack>
-
-          {/* Table / Empty state */}
-          {filteredPolicies.length === 0 ? (
-              <Stack
-                  alignItems="center"
-                  justifyContent="center"
-                  sx={emptyStateContainerStyle(theme)}
-              >
-                  <img src={placeholderImage} alt="Placeholder" />
-                  <Typography sx={emptyStateTextStyle}>
-                      {
-                          searchTerm 
-                              ? "No matching policies found." // Search active
-                              : statusFilter !== "all"
-                              ? "No matching policies found." // Status filter active
-                              : "There is currently no data in this table." // Table empty
-                      }
-                  </Typography>
-              </Stack>
-          ) : (
-              <PolicyTable
-                  data={filteredPolicies}
-                  onOpen={handleOpen}
-                  onDelete={handleDelete}
-              />
+          {isSearchBarVisible && (
+            <InputBase
+              autoFocus
+              placeholder="Search policies..."
+              inputProps={{ "aria-label": "Search policies" }}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={inputStyle(isSearchBarVisible)}
+            />
           )}
+        </Box>
+      </Stack>
 
-          {/* Modal */}
-          {showModal && tags.length > 0 && (
-              <PolicyDetailModal
-                  policy={selectedPolicy}
-                  tags={tags}
-                  onClose={handleClose}
-                  onSaved={handleSaved}
-              />
-          )}
-      </div>
+      {/* Table / Empty state */}
+      {filteredPolicies.length === 0 ? (
+        <Stack
+          alignItems="center"
+          justifyContent="center"
+          sx={emptyStateContainerStyle(theme)}
+        >
+          <img src={placeholderImage} alt="Placeholder" />
+          <Typography sx={emptyStateTextStyle}>
+            {
+              searchTerm
+                ? "No matching policies found." // Search active
+                : statusFilter !== "all"
+                ? "No matching policies found." // Status filter active
+                : "There is currently no data in this table." // Table empty
+            }
+          </Typography>
+        </Stack>
+      ) : (
+        <PolicyTable
+          data={filteredPolicies}
+          onOpen={handleOpen}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {/* Modal */}
+      {showModal && tags.length > 0 && (
+        <PolicyDetailModal
+          policy={selectedPolicy}
+          tags={tags}
+          onClose={handleClose}
+          onSaved={handleSaved}
+        />
+      )}
+    </div>
   );
 };
 

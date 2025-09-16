@@ -2,13 +2,7 @@ import React, { useState, Suspense } from "react";
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
   TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Stack,
   CircularProgress,
   SxProps,
@@ -23,6 +17,7 @@ import { Modal, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
+import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 import Alert from "../../../components/Alert";
 import {
   useAITrustCentreOverviewQuery,
@@ -36,6 +31,7 @@ import {
 } from "../../../../application/hooks/useAITrustCentreSubprocessorsQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 
@@ -58,13 +54,12 @@ const SubprocessorTableRow: React.FC<{
   subprocessor: Subprocessor;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
-  isFlashing: boolean;
-}> = ({ subprocessor, onDelete, onEdit, isFlashing }) => {
+}> = ({ subprocessor, onDelete, onEdit }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
 
   return (
-    <TableRow sx={styles.tableRow(isFlashing)}>
+    <>
       <TableCell>
         <Typography sx={styles.tableDataCell}>{subprocessor.name}</Typography>
       </TableCell>
@@ -94,7 +89,7 @@ const SubprocessorTableRow: React.FC<{
           />
         </Box>
       </TableCell>
-    </TableRow>
+    </>
   );
 };
 
@@ -152,7 +147,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
     url: "",
     location: "",
   });
-  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
 
   // Success/Error states
   const [alert, setAlert] = useState<{
@@ -265,6 +259,17 @@ const AITrustCenterSubprocessors: React.FC = () => {
     setNewSubprocessor((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Add modal key handling for ESC key support
+  useModalKeyHandling({
+    isOpen: addModalOpen,
+    onClose: handleCloseAddModal,
+  });
+
+  useModalKeyHandling({
+    isOpen: editModalOpen,
+    onClose: handleCloseEditModal,
+  });
+
   // Subprocessor operations
   const handleAddSubprocessor = async () => {
     if (
@@ -328,9 +333,6 @@ const AITrustCenterSubprocessors: React.FC = () => {
       setEditId(null);
       setForm({ name: "", purpose: "", url: "", location: "" });
       setEditSubprocessorError(null);
-
-      setFlashingRowId(editId);
-      setTimeout(() => setFlashingRowId(null), 2000);
     } catch (error: any) {
       setEditSubprocessorError(
         error.message || "Failed to update subprocessor"
@@ -442,54 +444,35 @@ const AITrustCenterSubprocessors: React.FC = () => {
           </Box>
         </Box>
         <Box sx={styles.tableWrapper}>
-          <TableContainer
-            component={Paper}
-            sx={{
-              ...styles.tableContainer,
-              ...(formData?.info?.subprocessor_visible
-                ? {}
-                : { opacity: 0.9, pointerEvents: "none" }),
-            }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={styles.tableCell}>
-                      {col.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {subprocessors && subprocessors.length > 0 ? (
-                  subprocessors.map((sp) => (
-                    <SubprocessorTableRow
-                      key={sp.id}
-                      subprocessor={sp}
-                      onDelete={handleDelete}
-                      onEdit={handleEdit}
-                      isFlashing={flashingRowId === sp.id}
-                    />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      <Typography sx={styles.emptyStateText}>
-                        No subprocessors found. Add your first subprocessor to
-                        get started.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {!formData?.info?.subprocessor_visible && <Box sx={styles.overlay} />}
+          <AITrustCenterTable
+            data={subprocessors || []}
+            columns={TABLE_COLUMNS}
+            isLoading={subprocessorsLoading}
+            paginated={false}
+            disabled={!formData?.info?.subprocessor_visible}
+            emptyStateText="No subprocessors found. Add your first subprocessor to get started."
+            renderRow={(subprocessor) => (
+              <SubprocessorTableRow
+                key={subprocessor.id}
+                subprocessor={subprocessor}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
+            )}
+            tableId="subprocessors-table"
+          />
         </Box>
 
         {/* Edit Subprocessor Modal */}
-        <Modal open={editModalOpen} onClose={handleCloseEditModal}>
+        <Modal
+          open={editModalOpen}
+          onClose={(_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseEditModal();
+          }}
+        >
           <Box sx={styles.modal}>
             <Box sx={styles.modalHeader}>
               <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
@@ -547,7 +530,15 @@ const AITrustCenterSubprocessors: React.FC = () => {
         </Modal>
 
         {/* Add Subprocessor Modal */}
-        <Modal open={addModalOpen} onClose={handleCloseAddModal}>
+        <Modal
+          open={addModalOpen}
+          onClose={(_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseAddModal();
+          }}
+        >
           <Box sx={styles.modal}>
             <Box sx={styles.modalHeader}>
               <Typography sx={styles.modalTitle}>

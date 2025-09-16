@@ -12,6 +12,7 @@ import {
   Stack,
   Tooltip,
   Typography,
+  Badge,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +24,7 @@ import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
 import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
+import { ReactComponent as Tasks } from "../../assets/icons/tasks.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
@@ -52,6 +54,8 @@ import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
+import { TaskStatus } from "../../../domain/interfaces/i.task";
+import { getAllTasks } from "../../../application/repository/task.repository";
 
 interface MenuItem {
   name: string;
@@ -64,7 +68,7 @@ interface MenuItem {
   highlightPaths?: string[];
 }
 
-const menu: MenuItem[] = [
+const getMenuItems = (openTasksCount: number): MenuItem[] => [
   {
     name: "Dashboard",
     icon: <Dashboard />,
@@ -80,6 +84,27 @@ const menu: MenuItem[] = [
       },
     ],
     highlightPaths: ["/project-view"],
+  },
+  {
+    name: "Tasks",
+    icon: (
+      <Badge
+        badgeContent={openTasksCount > 0 ? openTasksCount : null}
+        color="error"
+        sx={{
+          '& .MuiBadge-badge': {
+            fontSize: '10px',
+            minWidth: '18px',
+            height: '18px',
+            backgroundColor: '#ef4444',
+            color: 'white',
+          }
+        }}
+      >
+        <Tasks />
+      </Badge>
+    ),
+    path: "/tasks",
   },
   {
     name: "Vendors",
@@ -195,6 +220,10 @@ const Sidebar = () => {
     Account: false,
   });
 
+  const [openTasksCount, setOpenTasksCount] = useState(0);
+
+  const menu = getMenuItems(openTasksCount);
+
   const openPopup = (event: any, id: any) => {
     setAnchorEl(event.currentTarget);
     setPopup(id);
@@ -218,6 +247,26 @@ const Sidebar = () => {
       changeComponentVisibility("sidebar", true);
     }
   }, [allVisible]);
+
+  // Fetch open tasks count
+  useEffect(() => {
+    const fetchOpenTasksCount = async () => {
+      try {
+        const response = await getAllTasks({
+          status: [TaskStatus.OPEN]
+        });
+        setOpenTasksCount(response?.data?.tasks?.length || 0);
+      } catch (error) {
+        console.error("Error fetching open tasks count:", error);
+        setOpenTasksCount(0);
+      }
+    };
+
+    fetchOpenTasksCount();
+    // Refresh count every 5 minutes
+    const interval = setInterval(fetchOpenTasksCount, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Stack
@@ -502,9 +551,20 @@ const Sidebar = () => {
                       {item.icon}
                     </Box>
                   </ListItemIcon>
-                  <ListItemText>{item.name}</ListItemText>
+                  <ListItemText
+                    sx={{
+                      "& .MuiListItemText-primary": {
+                        fontSize: "13px",
+                      },
+                    }}
+                  >
+                    {item.name}
+                  </ListItemText>
                 </ListItemButton>
-                <Collapse in={item.name === "Dashboard" ? true : open[`${item.name}`]} timeout="auto">
+                <Collapse
+                  in={item.name === "Dashboard" ? true : open[`${item.name}`]}
+                  timeout="auto"
+                >
                   <List
                     component="div"
                     disablePadding
@@ -515,11 +575,13 @@ const Sidebar = () => {
                       "&::before": {
                         content: '""',
                         position: "absolute",
-                        left: theme.spacing(3), // Position the line to align with parent icon center
+                        left: `calc(${theme.spacing(3)} + 12px)`, // Position the line to align with parent icon center + 12px offset
                         top: 0,
                         bottom: 0,
                         width: "1px",
                         backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                        zIndex: 1, // Ensure tree lines stay above background
+                        pointerEvents: "none", // Prevent interference with hover
                       },
                     }}
                   >
@@ -541,6 +603,7 @@ const Sidebar = () => {
                           gap: theme.spacing(4),
                           borderRadius: theme.shape.borderRadius,
                           px: theme.spacing(4),
+                          pl: `calc(${theme.spacing(4)} + 20px)`, // Add extra left padding to avoid tree overlap
                           my: theme.spacing(1),
                           position: "relative",
                           backgroundColor:
@@ -554,23 +617,27 @@ const Sidebar = () => {
                           "&::before": {
                             content: '""',
                             position: "absolute",
-                            left: theme.spacing(-5), // Start from the vertical line's position
+                            left: `calc(${theme.spacing(-5)} + 12px)`, // Start from the vertical line's position + 12px offset
                             top: "50%",
                             width: theme.spacing(5), // Extend to the item's padding start
                             height: "1px",
                             backgroundColor: "#D1D5DB", // Light gray color matching the reference
+                            zIndex: 1, // Ensure tree lines stay above background
+                            pointerEvents: "none", // Prevent interference with hover
                           },
                           // L-shaped corner for the last item
                           ...(index === item.children!.length - 1 && {
                             "&::after": {
                               content: '""',
                               position: "absolute",
-                              left: theme.spacing(-8), // Align with the main vertical line
+                              left: `calc(${theme.spacing(-8)} + 12px)`, // Align with the main vertical line + 12px offset
                               top: "50%",
                               bottom: "-200%", // Cover the area below the item to "erase" vertical line
                               width: "1px",
                               backgroundColor:
                                 theme.palette.background.main || "#ffffff",
+                              zIndex: 1, // Ensure tree lines stay above background
+                              pointerEvents: "none", // Prevent interference with hover
                             },
                           }),
                         }}
@@ -578,8 +645,9 @@ const Sidebar = () => {
                         <ListItemText
                           sx={{
                             "& .MuiListItemText-primary": {
-                              fontSize: "14px",
+                              fontSize: "13px",
                               color: theme.palette.text.secondary,
+                              fontWeight: 400, // Ensure consistent font weight
                             },
                           }}
                         >
@@ -646,7 +714,15 @@ const Sidebar = () => {
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-                <ListItemText>{item.name}</ListItemText>
+                <ListItemText
+                  sx={{
+                    "& .MuiListItemText-primary": {
+                      fontSize: "13px",
+                    },
+                  }}
+                >
+                  {item.name}
+                </ListItemText>
               </ListItemButton>
             </Tooltip>
           ) : null
@@ -710,7 +786,15 @@ const Sidebar = () => {
               }}
             >
               <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
-              <ListItemText>{item.name}</ListItemText>
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                  },
+                }}
+              >
+                {item.name}
+              </ListItemText>
             </ListItemButton>
           </Tooltip>
         ))}
@@ -847,10 +931,12 @@ const Sidebar = () => {
           {collapsed && (
             <MenuItem sx={{ cursor: "default", minWidth: "150px" }}>
               <Box mb={theme.spacing(2)}>
-                <Typography component="span" fontWeight={500} fontSize={13}>
+                <Typography component="span" fontWeight={500} fontSize="13px">
                   {user.name} {user.surname}
                 </Typography>
-                <Typography sx={{ textTransform: "capitalize", fontSize: 12 }}>
+                <Typography
+                  sx={{ textTransform: "capitalize", fontSize: "13px" }}
+                >
                   {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
               </Box>
@@ -865,7 +951,7 @@ const Sidebar = () => {
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },
-              fontSize: 13,
+              fontSize: "13px",
 
               "& .MuiTouchRipple-root": {
                 display: "none",

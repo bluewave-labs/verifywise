@@ -552,7 +552,6 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             setIsOpen();
           }
         }}
-        disableEscapeKeyDown
         sx={{ overflowY: "scroll" }}
       >
         <Stack

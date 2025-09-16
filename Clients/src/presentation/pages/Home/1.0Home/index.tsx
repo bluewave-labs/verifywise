@@ -7,8 +7,7 @@ import {
   vwhomeHeading,
 } from "./style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -27,6 +26,7 @@ import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
+
 
 const Home = () => {
   const {
@@ -239,7 +239,11 @@ const Home = () => {
 
       <Modal
         open={isProjectFormModalOpen}
-        onClose={handleProjectFormModalClose}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            handleProjectFormModalClose();
+          }
+        }}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >

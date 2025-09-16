@@ -8,9 +8,10 @@ import {
   SxProps,
   Theme,
 } from "@mui/material";
-import { NavigateNext } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping } from "./routeMapping";
+
+import { ReactComponent as ChevronRightGreyIcon } from "../../assets/icons/chevron-right-grey.svg";
 
 /**
  * Interface for individual breadcrumb item
@@ -68,7 +69,7 @@ export interface BreadcrumbsProps {
  */
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   items,
-  separator = <NavigateNext fontSize="small" />,
+  separator = <ChevronRightGreyIcon fontSize="small" />,
   maxItems = 8,
   sx,
   autoGenerate = false,
@@ -87,12 +88,15 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
    * Truncate text if it exceeds the maximum length
    * Memoized for performance optimization
    */
-  const truncateText = useCallback((text: string): string => {
-    if (!truncateLabels || text.length <= maxLabelLength) {
-      return text;
-    }
-    return `${text.substring(0, maxLabelLength)}...`;
-  }, [truncateLabels, maxLabelLength]);
+  const truncateText = useCallback(
+    (text: string): string => {
+      if (!truncateLabels || text.length <= maxLabelLength) {
+        return text;
+      }
+      return `${text.substring(0, maxLabelLength)}...`;
+    },
+    [truncateLabels, maxLabelLength]
+  );
 
   /**
    * Convert route path to readable label
@@ -149,110 +153,120 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
    * Handle breadcrumb item click
    * Enhanced with error handling
    */
-  const handleItemClick = useCallback((item: BreadcrumbItem, index: number) => {
-    if (item.disabled) return;
+  const handleItemClick = useCallback(
+    (item: BreadcrumbItem, index: number) => {
+      if (item.disabled) return;
 
-    try {
-      // Call custom click handler if provided
-      if (onItemClick) {
-        onItemClick(item, index);
-        return;
-      }
+      try {
+        // Call custom click handler if provided
+        if (onItemClick) {
+          onItemClick(item, index);
+          return;
+        }
 
-      // Default navigation behavior
-      if (item.onClick) {
-        item.onClick();
-      } else if (item.path) {
-        navigate(item.path);
+        // Default navigation behavior
+        if (item.onClick) {
+          item.onClick();
+        } else if (item.path) {
+          navigate(item.path);
+        }
+      } catch (error) {
+        console.error("Navigation error:", error);
       }
-    } catch (error) {
-      console.error('Navigation error:', error);
-    }
-  }, [navigate, onItemClick]);
+    },
+    [navigate, onItemClick]
+  );
 
   /**
    * Render breadcrumb item
    * Memoized for better performance
    */
-  const renderBreadcrumbItem = useCallback((item: BreadcrumbItem, index: number, totalItems: number) => {
-    const isLast = index === totalItems - 1;
-    const isDisabled = item.disabled || isLast;
-    const truncatedLabel = truncateText(item.label);
-    const isLabelTruncated = truncatedLabel !== item.label;
+  const renderBreadcrumbItem = useCallback(
+    (item: BreadcrumbItem, index: number, totalItems: number) => {
+      const isLast = index === totalItems - 1;
+      const isDisabled = item.disabled || isLast;
+      const truncatedLabel = truncateText(item.label);
+      const isLabelTruncated = truncatedLabel !== item.label;
 
-    const itemContent = (
-      <Typography
-        variant="body2"
-        component="span"
-        title={isLabelTruncated || item.tooltip ? (item.tooltip || item.label) : undefined}
-        sx={{
-          fontSize: "13px",
-          fontWeight: isLast ? 500 : 400,
-          color: isDisabled
-            ? theme.palette.text.disabled
-            : theme.palette.text.secondary,
-          cursor: isDisabled ? "default" : "pointer",
-          "&:hover": {
-            color: isDisabled 
-              ? theme.palette.text.disabled 
-              : theme.palette.primary.main,
-          },
-          transition: "color 0.2s ease",
-          marginY: 1,
-          textDecoration: "none",
-        }}
-      >
-        {truncatedLabel}
-      </Typography>
-    );
+      const itemContent = (
+        <Typography
+          variant="body2"
+          component="span"
+          title={
+            isLabelTruncated || item.tooltip
+              ? item.tooltip || item.label
+              : undefined
+          }
+          sx={{
+            fontSize: "13px",
+            fontWeight: isLast ? 500 : 400,
+            color: isDisabled
+              ? theme.palette.text.disabled
+              : theme.palette.text.secondary,
+            cursor: isDisabled ? "default" : "pointer",
+            "&:hover": {
+              color: isDisabled
+                ? theme.palette.text.disabled
+                : theme.palette.primary.main,
+            },
+            transition: "color 0.2s ease",
+            marginY: 1,
+            textDecoration: "none",
+          }}
+        >
+          {truncatedLabel}
+        </Typography>
+      );
 
-    if (isDisabled) {
+      if (isDisabled) {
+        return (
+          <span
+            key={item.id || `${item.label}-${index}`}
+            role="text"
+            aria-current={isLast ? "page" : undefined}
+          >
+            {itemContent}
+          </span>
+        );
+      }
+
       return (
-        <span 
+        <Link
           key={item.id || `${item.label}-${index}`}
-          role="text"
-          aria-current={isLast ? "page" : undefined}
+          component="button"
+          variant="body2"
+          onClick={() => handleItemClick(item, index)}
+          role="button"
+          tabIndex={0}
+          aria-label={`Navigate to ${item.label}`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleItemClick(item, index);
+            }
+          }}
+          sx={{
+            textDecoration: "none",
+            color: "inherit",
+            backgroundColor: "transparent",
+            border: "none",
+            padding: 0,
+            "&:hover": {
+              textDecoration: "none",
+            },
+            "&:focus": {
+              outline: `2px solid ${theme.palette.primary.main}`,
+              outlineOffset: "2px",
+              borderRadius: "2px",
+            },
+          }}
         >
           {itemContent}
-        </span>
+        </Link>
       );
-    }
-
-    return (
-      <Link
-        key={item.id || `${item.label}-${index}`}
-        component="button"
-        variant="body2"
-        onClick={() => handleItemClick(item, index)}
-        role="button"
-        tabIndex={0}
-        aria-label={`Navigate to ${item.label}`}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleItemClick(item, index);
-          }
-        }}
-        sx={{
-          textDecoration: "none",
-          color: "inherit",
-          backgroundColor: "transparent",
-          border: "none",
-          padding: 0,
-          "&:hover": {
-            textDecoration: "none",
-          },
-          "&:focus": {
-            outline: `2px solid ${theme.palette.primary.main}`,
-            outlineOffset: "2px",
-            borderRadius: "2px",
-          },
-        }}
-      >
-        {itemContent}
-      </Link>
-    );
-  }, [truncateText, handleItemClick, theme]);
+    },
+    [truncateText, handleItemClick, theme]
+  );
 
   const breadcrumbItems = items || generateBreadcrumbs;
 
@@ -285,7 +299,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
           },
         }}
       >
-        {breadcrumbItems.map((item, index) => 
+        {breadcrumbItems.map((item, index) =>
           renderBreadcrumbItem(item, index, breadcrumbItems.length)
         )}
       </MUIBreadcrumbs>
@@ -294,6 +308,6 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
 };
 
 // Set display name for better debugging
-Breadcrumbs.displayName = 'Breadcrumbs';
+Breadcrumbs.displayName = "Breadcrumbs";
 
 export default Breadcrumbs;

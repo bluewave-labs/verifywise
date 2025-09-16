@@ -13,9 +13,8 @@ import {
   Radio,
   Button,
   TextField,
-  IconButton,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as GreyCloseIconSVG } from "../../assets/icons/close-grey.svg";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import riskData from "../../assets/MITAIRISKDB.json";
 import { Likelihood, Severity } from "../RiskLevel/constants";
@@ -115,24 +114,26 @@ const mapLikelihood = (likelihood: string): Likelihood => {
 };
 
 const mapRiskCategories = (riskCategories: string): number[] => {
-  const categories = riskCategories.split(';').map(cat => cat.trim());
+  const categories = riskCategories.split(";").map((cat) => cat.trim());
   const mappedCategories: number[] = [];
-  
-  categories.forEach(category => {
+
+  categories.forEach((category) => {
     const matchedCategory = riskCategoryItems.find(
-      item => item.name.toLowerCase() === category.toLowerCase()
+      (item) => item.name.toLowerCase() === category.toLowerCase()
     );
     if (matchedCategory) {
       mappedCategories.push(matchedCategory._id);
     }
   });
-  
-  return mappedCategories.length > 0 ? mappedCategories : [DEFAULT_VALUES.DEFAULT_CATEGORY_ID];
+
+  return mappedCategories.length > 0
+    ? mappedCategories
+    : [DEFAULT_VALUES.DEFAULT_CATEGORY_ID];
 };
 
 const filterRisks = (risks: RiskData[], searchTerm: string): RiskData[] => {
   if (!searchTerm.trim()) return risks;
-  
+
   const lowercaseSearch = searchTerm.toLowerCase();
   return risks.filter(
     (risk) =>
@@ -164,23 +165,33 @@ const AddNewRiskMITModal = ({
     setSelectedId(null);
   }, [setIsOpen]);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  }, []);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearch(e.target.value);
+    },
+    []
+  );
 
-  const handleRowClick = useCallback((riskId: number) => {
-    setSelectedId(selectedId === riskId ? null : riskId);
-  }, [selectedId]);
+  const handleRowClick = useCallback(
+    (riskId: number) => {
+      setSelectedId(selectedId === riskId ? null : riskId);
+    },
+    [selectedId]
+  );
 
-  const handleRadioChange = useCallback((riskId: number) => {
-    setSelectedId(selectedId === riskId ? null : riskId);
-  }, [selectedId]);
-
+  const handleRadioChange = useCallback(
+    (riskId: number) => {
+      setSelectedId(selectedId === riskId ? null : riskId);
+    },
+    [selectedId]
+  );
 
   const handleUseSelectedRisk = useCallback(() => {
     if (selectedId === null) return;
 
-    const selectedRisk = (riskData as RiskData[]).find((risk) => risk.Id === selectedId);
+    const selectedRisk = (riskData as RiskData[]).find(
+      (risk) => risk.Id === selectedId
+    );
     if (!selectedRisk) {
       console.error(`Risk with ID ${selectedId} not found`);
       return;
@@ -205,12 +216,19 @@ const AddNewRiskMITModal = ({
       onRiskSelected?.(mappedRiskData);
       handleClose();
     } catch (error) {
-      console.error('Error mapping risk data:', error);
+      console.error("Error mapping risk data:", error);
     }
   }, [selectedId, onRiskSelected, handleClose]);
 
   return (
-    <Modal open={isOpen} onClose={handleClose}>
+    <Modal 
+      open={isOpen} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }}
+    >
       <Stack
         gap={theme.spacing(4)}
         sx={{
@@ -231,23 +249,17 @@ const AddNewRiskMITModal = ({
           justifyContent="space-between"
           alignItems="center"
         >
-          <Typography 
+          <Typography
             component="h2"
-            sx={{ 
-              fontSize: { xs: 14, md: 15 }, 
-              fontWeight: 700, 
-              color: theme.palette.text.primary 
+            sx={{
+              fontSize: { xs: 14, md: 15 },
+              fontWeight: 700,
+              color: theme.palette.text.primary,
             }}
           >
             Add a new risk from risk database
           </Typography>
-          <IconButton 
-            onClick={handleClose}
-            aria-label="Close dialog"
-            sx={{ color: theme.palette.text.secondary }}
-          >
-            <CloseIcon />
-          </IconButton>
+          <GreyCloseIconSVG onClick={handleClose} cursor={"pointer"} />
         </Stack>
         <Stack
           direction="row"
@@ -258,12 +270,12 @@ const AddNewRiskMITModal = ({
           <Typography
             component="label"
             htmlFor="risk-search-input"
-            sx={{ 
-              fontSize: 13, 
-              fontWeight: 400, 
-              color: theme.palette.text.secondary, 
+            sx={{
+              fontSize: 13,
+              fontWeight: 400,
+              color: theme.palette.text.secondary,
               mr: 4,
-              minWidth: "fit-content"
+              minWidth: "fit-content",
             }}
           >
             Search from the risk database:
@@ -293,156 +305,176 @@ const AddNewRiskMITModal = ({
             }}
           />
         </Stack>
-        <Stack sx={{ 
-          maxHeight: MODAL_CONFIG.MAX_HEIGHT, 
-          overflow: "auto",
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: theme.spacing(1),
-        }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {TITLE_OF_COLUMNS.map((column) => (
-                  <TableCell
-                    key={column}
-                    sx={{ 
-                      fontSize: 13, 
-                      fontWeight: 400, 
-                      color: theme.palette.text.secondary,
-                      bgcolor: theme.palette.grey[50],
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    {column}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            {filteredRisks.length === 0 && (
-              <TableBody>
+        <Stack
+          sx={{
+            maxHeight: MODAL_CONFIG.MAX_HEIGHT,
+            overflow: "auto",
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: theme.spacing(1),
+          }}
+        >
+          <TableContainer>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell
-                    colSpan={TITLE_OF_COLUMNS.length}
-                    align="center"
-                    sx={{
-                      padding: theme.spacing(15, 5),
-                      paddingBottom: theme.spacing(20),
-                    }}
-                  >
-                    <img 
-                      src={placeholderImage} 
-                      alt="No risks found" 
-                      style={{ maxWidth: "100%", height: "auto" }}
-                    />
-                    <Typography
-                      sx={{ 
-                        fontSize: 13, 
-                        fontWeight: 400, 
+                  {TITLE_OF_COLUMNS.map((column) => (
+                    <TableCell
+                      key={column}
+                      sx={{
+                        fontSize: 13,
+                        fontWeight: 400,
                         color: theme.palette.text.secondary,
-                        mt: 2
+                        bgcolor: theme.palette.grey[50],
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 1,
                       }}
                     >
-                      No risks found in database
-                    </Typography>
-                  </TableCell>
+                      {column}
+                    </TableCell>
+                  ))}
                 </TableRow>
+              </TableHead>
+              {filteredRisks.length === 0 && (
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={TITLE_OF_COLUMNS.length}
+                      align="center"
+                      sx={{
+                        padding: theme.spacing(15, 5),
+                        paddingBottom: theme.spacing(20),
+                      }}
+                    >
+                      <img
+                        src={placeholderImage}
+                        alt="No risks found"
+                        style={{ maxWidth: "100%", height: "auto" }}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 400,
+                          color: theme.palette.text.secondary,
+                          mt: 2,
+                        }}
+                      >
+                        No risks found in database
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              )}
+              <TableBody>
+                {filteredRisks.map((risk) => (
+                  <TableRow
+                    key={risk.Id}
+                    onClick={() => handleRowClick(risk.Id)}
+                    sx={{
+                      cursor: "pointer",
+                      backgroundColor:
+                        selectedId === risk.Id
+                          ? theme.palette.action.selected
+                          : "inherit",
+                      "&:hover": {
+                        backgroundColor: theme.palette.action.hover,
+                      },
+                      "&:focus": {
+                        backgroundColor: theme.palette.action.focus,
+                        outline: `2px solid ${theme.palette.primary.main}`,
+                        outlineOffset: -2,
+                      },
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Select risk: ${risk.Summary}`}
+                  >
+                    <TableCell>
+                      <Radio
+                        checked={selectedId === risk.Id}
+                        onChange={() => handleRadioChange(risk.Id)}
+                        slotProps={{
+                          input: {
+                            "aria-label": `Select risk ${risk.Id}: ${risk.Summary}`,
+                          },
+                        }}
+                        color="primary"
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 500 }}>{risk.Id}</TableCell>
+                    <TableCell
+                      sx={{
+                        maxWidth: 200,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {risk.Summary}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        maxWidth: 250,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {risk.Description}
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          bgcolor: theme.palette.warning.light,
+                          color: theme.palette.warning.contrastText,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          textAlign: "center",
+                        }}
+                      >
+                        {risk["Risk Severity"]}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          bgcolor: theme.palette.info.light,
+                          color: theme.palette.info.contrastText,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          textAlign: "center",
+                        }}
+                      >
+                        {risk.Likelihood}
+                      </Typography>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        maxWidth: 150,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {risk["Risk Category"]}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
-            )}
-            <TableBody>
-              {filteredRisks.map((risk) => (
-                <TableRow
-                  key={risk.Id}
-                  onClick={() => handleRowClick(risk.Id)}
-                  sx={{
-                    cursor: "pointer",
-                    backgroundColor:
-                      selectedId === risk.Id
-                        ? theme.palette.action.selected
-                        : "inherit",
-                    "&:hover": {
-                      backgroundColor: theme.palette.action.hover,
-                    },
-                    "&:focus": {
-                      backgroundColor: theme.palette.action.focus,
-                      outline: `2px solid ${theme.palette.primary.main}`,
-                      outlineOffset: -2,
-                    },
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Select risk: ${risk.Summary}`}
-                >
-                  <TableCell>
-                    <Radio
-                      checked={selectedId === risk.Id}
-                      onChange={() => handleRadioChange(risk.Id)}
-                      slotProps={{
-                        input: {
-                          'aria-label': `Select risk ${risk.Id}: ${risk.Summary}`,
-                        },
-                      }}
-                      color="primary"
-                    />
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 500 }}>{risk.Id}</TableCell>
-                  <TableCell sx={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {risk.Summary}
-                  </TableCell>
-                  <TableCell sx={{ maxWidth: 250, overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {risk.Description}
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        px: 1,
-                        py: 0.5,
-                        borderRadius: 1,
-                        bgcolor: theme.palette.warning.light,
-                        color: theme.palette.warning.contrastText,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        textAlign: "center",
-                      }}
-                    >
-                      {risk["Risk Severity"]}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        px: 1,
-                        py: 0.5,
-                        borderRadius: 1,
-                        bgcolor: theme.palette.info.light,
-                        color: theme.palette.info.contrastText,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        textAlign: "center",
-                      }}
-                    >
-                      {risk.Likelihood}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {risk["Risk Category"]}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </Table>
+          </TableContainer>
         </Stack>
         <Stack direction="row" justifyContent="flex-end" gap={2} mt={4}>
           <Button
             variant="outlined"
             onClick={handleClose}
-            sx={{ 
-              fontWeight: 400, 
+            sx={{
+              fontWeight: 400,
               fontSize: 13,
               minWidth: 120,
             }}
@@ -451,9 +483,9 @@ const AddNewRiskMITModal = ({
           </Button>
           <Button
             variant="contained"
-            sx={{ 
-              fontWeight: 400, 
-              fontSize: 13, 
+            sx={{
+              fontWeight: 400,
+              fontSize: 13,
               bgcolor: theme.palette.primary.main,
               minWidth: 200,
               "&:hover": {

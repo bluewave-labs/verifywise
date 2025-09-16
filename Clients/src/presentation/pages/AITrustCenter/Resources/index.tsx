@@ -4,13 +4,7 @@ import {
   Typography,
   IconButton,
   Dialog,
-  Table,
-  TableBody,
   TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   CircularProgress,
   DialogTitle,
   DialogContent,
@@ -41,6 +35,8 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
 import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
 import { useTheme } from "@mui/material/styles";
+import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface Resource {
   id: number;
@@ -56,20 +52,18 @@ const ResourceTableRow: React.FC<{
   onEdit: (id: number) => void;
   onMakeVisible: (id: number) => void;
   onDownload: (id: number) => void;
-  isFlashing: boolean;
 }> = ({
   resource,
   onDelete,
   onEdit,
   onMakeVisible,
   onDownload,
-  isFlashing,
 }) => {
   const theme = useTheme();
   const styles = useStyles(theme);
 
   return (
-    <TableRow sx={styles.tableRow(isFlashing)}>
+    <>
       <TableCell>
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
@@ -97,7 +91,7 @@ const ResourceTableRow: React.FC<{
           type="resource"
         />
       </TableCell>
-    </TableRow>
+    </>
   );
 };
 
@@ -155,7 +149,6 @@ const TrustCenterResources: React.FC = () => {
     filename: "",
     file_id: undefined,
   });
-  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
 
   // Success/Error states
   const [alert, setAlert] = useState<{
@@ -265,6 +258,17 @@ const TrustCenterResources: React.FC = () => {
     setEditResourceError(null);
   };
 
+  // Add modal key handling for ESC key support
+  useModalKeyHandling({
+    isOpen: addModalOpen,
+    onClose: handleCloseAddModal,
+  });
+
+  useModalKeyHandling({
+    isOpen: editModalOpen,
+    onClose: handleCloseEditModal,
+  });
+
   // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!formData?.info?.resources_visible) return;
@@ -364,9 +368,6 @@ const TrustCenterResources: React.FC = () => {
         file_id: undefined,
       });
       setEditResourceError(null);
-
-      setFlashingRowId(editResource.id);
-      setTimeout(() => setFlashingRowId(null), 2000);
     } catch (error: any) {
       setEditResourceError(error.message || "Failed to update resource");
     }
@@ -407,8 +408,6 @@ const TrustCenterResources: React.FC = () => {
           file: undefined,
           oldFileId: undefined,
         });
-        setFlashingRowId(resourceId);
-        setTimeout(() => setFlashingRowId(null), 2000);
       } catch (error: any) {
         setEditResourceError(
           error.message || "Failed to update resource visibility"
@@ -517,58 +516,36 @@ const TrustCenterResources: React.FC = () => {
         </Box>
 
         <Box sx={styles.tableWrapper}>
-          <TableContainer
-            component={Paper}
-            sx={{
-              ...styles.tableContainer,
-              ...(formData?.info?.resources_visible
-                ? {}
-                : { opacity: 0.9, pointerEvents: "none" }),
-            }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={styles.tableCell}>
-                      {col.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {resources && resources.length > 0 ? (
-                  resources.map((resource) => (
-                    <ResourceTableRow
-                      key={resource.id}
-                      resource={resource}
-                      onDelete={handleDeleteResource}
-                      onEdit={handleEditResource}
-                      onMakeVisible={handleMakeVisible}
-                      onDownload={handleDownload}
-                      isFlashing={flashingRowId === resource.id}
-                    />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Typography sx={styles.emptyStateText}>
-                        No resources found. Add your first resource to get
-                        started.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {!formData?.info?.resources_visible && <Box sx={styles.overlay} />}
+          <AITrustCenterTable
+            data={resources || []}
+            columns={TABLE_COLUMNS}
+            isLoading={resourcesLoading}
+            paginated={false}
+            disabled={!formData?.info?.resources_visible}
+            emptyStateText="No resources found. Add your first resource to get started."
+            renderRow={(resource) => (
+              <ResourceTableRow
+                key={resource.id}
+                resource={resource}
+                onDelete={handleDeleteResource}
+                onEdit={handleEditResource}
+                onMakeVisible={handleMakeVisible}
+                onDownload={handleDownload}
+              />
+            )}
+            tableId="resources-table"
+          />
         </Box>
 
         {/* Add Resource Modal */}
         <Dialog
           open={addModalOpen}
-          onClose={handleCloseAddModal}
+          onClose={async (_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseAddModal();
+          }}
           maxWidth="sm"
           fullWidth
           PaperProps={{
@@ -653,7 +630,12 @@ const TrustCenterResources: React.FC = () => {
         {/* Edit Resource Modal */}
         <Dialog
           open={editModalOpen}
-          onClose={handleCloseEditModal}
+          onClose={(_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseEditModal();
+          }}
           maxWidth="sm"
           fullWidth
           PaperProps={{

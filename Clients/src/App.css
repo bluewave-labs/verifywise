@@ -39,3 +39,22 @@ div.react-joyride > * {
   padding:0;
   box-sizing: border-box;
 }
+
+/* Global ripple effect disable for all MUI components */
+.MuiTouchRipple-root {
+  display: none !important;
+}
+
+.MuiButtonBase-root .MuiTouchRipple-root,
+.MuiButton-root .MuiTouchRipple-root,
+.MuiIconButton-root .MuiTouchRipple-root,
+.MuiMenuItem-root .MuiTouchRipple-root,
+.MuiListItemButton-root .MuiTouchRipple-root,
+.MuiTab-root .MuiTouchRipple-root,
+.MuiCheckbox-root .MuiTouchRipple-root,
+.MuiRadio-root .MuiTouchRipple-root,
+.MuiSwitch-root .MuiTouchRipple-root,
+.MuiFab-root .MuiTouchRipple-root,
+.MuiChip-root .MuiTouchRipple-root {
+  display: none !important;
+}

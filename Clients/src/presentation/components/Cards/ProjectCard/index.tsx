@@ -1,5 +1,5 @@
 import { Stack, Typography, Tooltip, Button } from "@mui/material";
-import NorthEastIcon from "@mui/icons-material/NorthEast";
+import { ReactComponent as WhiteUpRightArrowIcon } from "../../../assets/icons/up-right-arrow-white.svg";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import CustomizableButton from "../../Button/CustomizableButton";
 import {
@@ -142,7 +142,7 @@ const FrameworkButton = ({
           },
         }}
         size="small"
-        endIcon={<NorthEastIcon />}
+        endIcon={<WhiteUpRightArrowIcon />}
       >
         {label}
       </Button>

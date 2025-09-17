@@ -33,7 +33,7 @@ class EvalData:
     y_true: np.ndarray
     y_pred: np.ndarray
     y_prob: Optional[np.ndarray]
-    attributes_arr: np.ndarray
+    attributes_arr: pd.DataFrame
     meta: Meta
 
 

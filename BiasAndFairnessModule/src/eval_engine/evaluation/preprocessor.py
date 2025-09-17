@@ -1,9 +1,40 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import pandas as pd
 
 from ...core.config import ConfigManager
 from .utils import get_logger, safe_mkdirs, snapshot_config
 from .data_models import Meta, EvalData
+
+def build_encoding_notes(config_manager: ConfigManager) -> Dict[str, Any]:
+    """Build a dictionary describing encoding rules used in post-processing."""
+
+    pp_cfg = config_manager.get_post_processing_config()
+
+    fav = pp_cfg.binary_mapping.favorable_outcome
+    unfav = pp_cfg.binary_mapping.unfavorable_outcome
+
+    notes: Dict[str, Any] = {
+        "labels": {
+            "positive_label": fav,
+            "negative_label": unfav,
+            "encode": {fav: 1, unfav: 0},
+            "decode": {1: fav, 0: unfav},
+        },
+        "protected_attributes": {},
+    }
+
+    for attr, group in pp_cfg.attribute_groups.items():
+        enc_map = {**{v: 1 for v in group.privileged}, **{v: 0 for v in group.unprivileged}}
+        notes["protected_attributes"][attr] = {
+            "encode": enc_map,
+            "decode": {1: "privileged", 0: "unprivileged"},
+            "sets": {
+                "privileged": list(group.privileged),
+                "unprivileged": list(group.unprivileged),
+            },
+        }
+
+    return notes
 
 
 class Preprocessor:
@@ -89,9 +120,9 @@ class Preprocessor:
 
         # Attributes DataFrame (N x K) or empty with correct index
         if protected_attrs:
-            attributes_arr = df[protected_attrs].copy()
+            attributes_df = df[protected_attrs].copy()
         else:
-            attributes_arr = pd.DataFrame(index=df.index)
+            attributes_df = pd.DataFrame(index=df.index)
 
         # Build Meta
         pp_cfg = self.config_manager.get_post_processing_config()
@@ -99,12 +130,14 @@ class Preprocessor:
         config_snapshot = snapshot_config(
             self.config_manager.to_dict(), output_dir=output_dir, run_id=run_id
         )
+        notes: Dict[str, Any] = {"encodings": build_encoding_notes(self.config_manager)}
         meta = Meta(
             run_id=run_id,
             output_dir=output_dir,
             config_snapshot_path=config_snapshot,
             favourable_outcome=favourable_outcome_value,
             disparity_reference=None,
+            notes=notes,
         )
 
         return EvalData(
@@ -112,8 +145,10 @@ class Preprocessor:
             y_true=y_true,
             y_pred=y_pred,
             y_prob=y_prob,
-            attributes_arr=attributes_arr,
+            attributes_df=attributes_df,
             meta=meta,
         )
+
+
 
 

@@ -14,6 +14,7 @@ class Meta:
     config_snapshot_path: Optional[str] = None
     favourable_outcome: Optional[Union[int, str]] = None
     disparity_reference: Optional[str] = None  # e.g., "worst"
+    notes: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -33,7 +34,7 @@ class EvalData:
     y_true: np.ndarray
     y_pred: np.ndarray
     y_prob: Optional[np.ndarray]
-    attributes_arr: pd.DataFrame
+    attributes_df: pd.DataFrame
     meta: Meta
 
 

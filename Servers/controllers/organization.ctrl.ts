@@ -20,6 +20,7 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { generateUserTokens } from "../utils/auth.utils";
 
 /**
  * Get all organizations
@@ -204,6 +205,15 @@ export async function createOrganization(
         },
         transaction
       );
+
+      // Generate tokens for the newly created user
+      const { accessToken } = generateUserTokens({
+        id: user.id!,
+        email: body.userEmail,
+        roleName: "Admin", // roleId 1 corresponds to Admin
+        organizationId: organization_id,
+      }, res);
+
       await transaction.commit();
       logStructured(
         "successful",
@@ -215,7 +225,10 @@ export async function createOrganization(
         "Create",
         `Organization created: ${createdOrganization.name}`
       );
-      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+      return res.status(201).json(STATUS_CODE[201]({
+        user: user.toSafeJSON(),
+        token: accessToken
+      }));
     }
 
     logStructured(

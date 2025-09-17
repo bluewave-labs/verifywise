@@ -25,17 +25,21 @@ import IconButton from "../../IconButton";
 import RiskChip from "../../RiskLevel/RiskChip";
 
 // Status display mapping
-const STATUS_DISPLAY_MAP = {
+const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.OPEN]: "Open",
   [TaskStatus.IN_PROGRESS]: "In progress", 
   [TaskStatus.COMPLETED]: "Completed",
-  [TaskStatus.OVERDUE]: "Overdue"
+  [TaskStatus.OVERDUE]: "Overdue",
+  "In Progress": "In progress",  // Handle API response
 };
 
 // Reverse mapping for API calls
-const DISPLAY_TO_STATUS_MAP = Object.fromEntries(
-  Object.entries(STATUS_DISPLAY_MAP).map(([key, value]) => [value, key])
-);
+const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
+  "Open": "Open",
+  "In progress": "In Progress",
+  "Completed": "Completed", 
+  "Overdue": "Overdue"
+};
 
 
 const titleOfTableColumns = [
@@ -155,7 +159,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Status */}
                 <TableCell sx={cellStyle}>
                   <CustomSelect
-                    currentValue={STATUS_DISPLAY_MAP[task.status as TaskStatus] || task.status}
+                    currentValue={STATUS_DISPLAY_MAP[task.status] || task.status}
                     onValueChange={async (displayValue: string) => {
                       const apiValue = DISPLAY_TO_STATUS_MAP[displayValue] || displayValue;
                       return await onStatusChange(task.id!)(apiValue);
@@ -169,7 +173,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Due Date */}
                 <TableCell sx={cellStyle}>
                   {task.due_date ? (
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={3} alignItems="center">
                       <Typography 
                         variant="body2" 
                         sx={{ 

@@ -24,7 +24,7 @@ import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
 import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
-import { ReactComponent as Tasks } from "../../assets/icons/tasks.svg";
+import { ReactComponent as Tasks } from "../../assets/icons/flag-01.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";

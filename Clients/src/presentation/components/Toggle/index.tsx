@@ -101,6 +101,8 @@ const Toggle: React.FC<ToggleProps> = ({ checked, onChange, disabled = false }) 
         display: "inline-flex",
         alignItems: "center",
         transition: "opacity 0.2s ease",
+        zIndex: 10,
+        position: "relative",
         "&:hover": {
           opacity: disabled ? 0.6 : 0.8,
         },

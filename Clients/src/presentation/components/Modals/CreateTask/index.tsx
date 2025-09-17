@@ -23,7 +23,7 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { TaskPriority, ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
-import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps, teamMembersRenderInputStyle } from "../../Forms/ProjectForm/style";
+import { datePickerStyle, teamMembersSlotProps } from "../../Forms/ProjectForm/style";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import useUsers from "../../../../application/hooks/useUsers";
 
@@ -369,7 +369,7 @@ const CreateTask: FC<CreateTaskProps> = ({
               </Stack>
 
               {/* Row 2: Due Date and Categories */}
-              <Stack direction="row" sx={{ gap: 8 }}>
+              <Stack direction="row" sx={{ gap: 8, alignItems: "flex-start" }}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <DatePicker
                     label="Due Date"
@@ -385,75 +385,27 @@ const CreateTask: FC<CreateTaskProps> = ({
                   />
                 </Suspense>
 
-                <Stack
-                  gap={theme.spacing(2)}
-                >
-                  <Typography
-                    component="p"
-                    variant="body1"
-                    color={theme.palette.text.secondary}
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: '22px' }}
-                  >
-                    Categories
-                  </Typography>
-                  <Autocomplete
-                    multiple
-                    id="categories-input"
-                    size="small"
-                    value={values.categories.map(cat => ({ _id: cat, name: cat }))}
-                    options={[]}
-                    freeSolo
-                    onChange={(_, newValue) => {
-                      const categories = newValue.map(item => 
-                        typeof item === 'string' ? item : item.name
-                      );
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
+                    id="categories"
+                    label="Categories"
+                    width="350px"
+                    value={values.categories.join(', ')}
+                    onChange={(e) => {
+                      const categories = e.target.value.split(',').map(cat => cat.trim()).filter(cat => cat);
                       setValues(prev => ({ ...prev, categories }));
                     }}
-                    getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
-                    renderOption={(props, option) => (
-                      <Box component="li" {...props}>
-                        <Typography sx={{ fontSize: "13px" }}>
-                          {typeof option === 'string' ? option : option.name}
-                        </Typography>
-                      </Box>
-                    )}
-                    filterSelectedOptions
-                    popupIcon={<KeyboardArrowDown />}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="Press Enter to add categories"
-                        sx={{ fontSize: '13px' }}
-                      />
-                    )}
+                    error={errors.categories}
                     sx={{
                       backgroundColor: theme.palette.background.main,
-                      width: "350px",
-                      "& .MuiOutlinedInput-root": {
-                        minHeight: "34px !important",
-                        height: "34px !important",
-                        paddingY: "0px !important",
-                        paddingX: "10px !important",
-                        paddingTop: "0px !important",
-                        paddingBottom: "0px !important",
-                        alignItems: "center",
-                        flexWrap: "nowrap"
+                      "& input": {
+                        padding: "0 14px",
+                        height: "34px",
                       },
-                      "& .MuiInputBase-input": {
-                        padding: "0 !important",
-                        height: "34px !important",
-                        lineHeight: "34px !important"
-                      },
-                      "& .MuiAutocomplete-inputRoot": {
-                        paddingTop: "0px !important",
-                        paddingBottom: "0px !important"
-                      }
                     }}
-                    slotProps={teamMembersSlotProps}
+                    placeholder="Enter categories"
                   />
-                </Stack>
+                </Suspense>
               </Stack>
 
               {/* Row 3: Priority and Description */}
@@ -473,36 +425,21 @@ const CreateTask: FC<CreateTaskProps> = ({
                   placeholder="Select priority"
                 />
                 
-                <Stack
-                  gap={theme.spacing(2)}
-                >
-                  <Typography
-                    component="p"
-                    variant="body1"
-                    color={theme.palette.text.secondary}
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: '22px' }}
-                  >
-                    Description
-                  </Typography>
-                  <TextField
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
                     id="description"
+                    label="Description"
+                    width="350px"
+                    type="description"
                     value={values.description}
                     onChange={handleOnTextFieldChange("description")}
-                    error={!!errors.description}
-                    helperText={errors.description}
-                    multiline
-                    rows={3}
+                    error={errors.description}
                     sx={{
                       backgroundColor: theme.palette.background.main,
-                      width: "350px",
-                      "& input": {
-                        padding: "0 14px",
-                      },
                     }}
+                    placeholder="Enter description"
                   />
-                </Stack>
+                </Suspense>
               </Stack>
             </Stack>
 
@@ -513,21 +450,6 @@ const CreateTask: FC<CreateTaskProps> = ({
               spacing={2}
               sx={{ pt: 2, mt: 4 }}
             >
-              <CustomizableButton
-                variant="outlined"
-                text="Cancel"
-                onClick={handleClose}
-                sx={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #D0D5DD",
-                  color: "#344054",
-                  gap: 2,
-                  "&:hover": {
-                    backgroundColor: "#F9F9F9",
-                    border: "1px solid #D0D5DD",
-                  },
-                }}
-              />
               <CustomizableButton
                 variant="contained"
                 text={mode === 'edit' ? 'Update Task' : 'Create Task'}

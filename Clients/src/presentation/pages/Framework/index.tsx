@@ -15,7 +15,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as WhiteDownArrowIcon  } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import { vwhomeHeading } from "../Home/1.0Home/style";
@@ -102,6 +102,8 @@ const Framework = () => {
   const frameworkName = searchParams.get("frameworkName");
   const annexId = searchParams.get("annexId");
   const clauseId = searchParams.get("clauseId");
+  const [rotated, setRotated] = useState(false);
+
 
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
@@ -134,6 +136,7 @@ const Framework = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+    setRotated(false);
   };
 
   const handleManageFrameworksClick = () => {
@@ -556,8 +559,11 @@ const Framework = () => {
             <>
               <Button
                 variant="contained"
-                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: "18px" }} />}
-                onClick={handleManageProjectClick}
+                endIcon={<WhiteDownArrowIcon/>}
+                onClick={(event) => {
+                  setRotated((prev) => !prev);
+                  handleManageProjectClick(event);
+                }}
                 disableRipple
                 disabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&
@@ -580,9 +586,7 @@ const Framework = () => {
                   "& .MuiButton-endIcon": {
                     marginLeft: 1,
                     transition: "transform 0.2s ease",
-                  },
-                  "&:hover .MuiButton-endIcon": {
-                    transform: "rotate(180deg)",
+                    transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
                   },
                 }}
               >

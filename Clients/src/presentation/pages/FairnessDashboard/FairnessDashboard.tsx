@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
 import { styles } from "./styles";
@@ -421,7 +421,7 @@ export default function FairnessDashboard() {
                   </Typography>
                 </Box>
                 <IconButton onClick={resetForm}>
-                  <CloseIcon />
+                  <CloseGreyIcon />
                 </IconButton>
               </Box>
             </DialogTitle>
@@ -512,7 +512,7 @@ export default function FairnessDashboard() {
                               if (ref.current) ref.current.value = "";
                             }}
                           >
-                            {<CloseIcon fontSize="small" />}
+                            {<CloseGreyIcon fontSize="small" />}
                           </IconButton>
                         </Box>
                       )}

@@ -101,6 +101,8 @@ const Login: React.FC = () => {
             dispatch(setExpiration(null));
           }
 
+          localStorage.setItem('root_version', __APP_VERSION__);
+
           logEngine({
             type: "info",
             message: "Login successful.",
@@ -260,6 +262,8 @@ const Login: React.FC = () => {
                       const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
                       dispatch(setAuthToken(token));
                       dispatch(setExpiration(expirationDate));
+
+                      localStorage.setItem('root_version', __APP_VERSION__);
 
                       logEngine({
                         type: "info",

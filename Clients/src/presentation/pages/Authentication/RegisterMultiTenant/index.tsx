@@ -159,6 +159,7 @@ const RegisterMultiTenant: React.FC = () => {
       setTimeout(() => {
         setIsSubmitting(false);
         dispatch(setUserExists(true));
+        localStorage.setItem('root_version', __APP_VERSION__);
         navigate("/");
       }, 3000);
     } else if (response.status === 400) {
@@ -407,9 +408,10 @@ const RegisterMultiTenant: React.FC = () => {
                       const token = loginResponse.data.data.token;
 
                       // Always remember Google sign-in for 30 days
-                      // const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+                      const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
                       dispatch(setAuthToken(token));
-                      dispatch(setExpiration(null));
+                      dispatch(setExpiration(expirationDate));
+                      localStorage.setItem('root_version', __APP_VERSION__);
 
                       logEngine({
                         type: "info",

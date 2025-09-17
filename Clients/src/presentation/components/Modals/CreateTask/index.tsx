@@ -241,234 +241,268 @@ const CreateTask: FC<CreateTaskProps> = ({
         <form onSubmit={handleSubmit}>
             <Stack
               className="vwtask-form-body"
-              sx={{ display: "flex", flexDirection: "row", gap: 8 }}
+              sx={{ display: "flex", flexDirection: "column", gap: 8 }}
             >
-              <Stack className="vwtask-form-body-start" sx={{ gap: 8 }}>
-              {/* Title */}
-              <Suspense fallback={<div>Loading...</div>}>
-                <Field
-                  id="title"
-                  label="Task Title"
-                  width="350px"
-                  value={values.title}
-                  onChange={handleOnTextFieldChange("title")}
-                  error={errors.title}
-                  isRequired
-                  sx={{
-                    backgroundColor: theme.palette.background.main,
-                    "& input": {
-                      padding: "0 14px",
-                    },
-                  }}
-                  placeholder="Enter task title"
-                />
-              </Suspense>
-                        {/* Due Date */}
-              <Suspense fallback={<div>Loading...</div>}>
-                <DatePicker
-                  label="Due Date"
-                  date={values.due_date ? dayjs(values.due_date) : null}
-                  handleDateChange={handleDateChange}
-                  sx={{
-                    ...datePickerStyle,
-                    width: "350px",
-                    backgroundColor: theme.palette.background.main,
-                  }}
-                  isRequired
-                  error={errors.due_date}
-                />
-              </Suspense>
+              {/* Row 1: Task Title and Assignees */}
+              <Stack direction="row" sx={{ gap: 8 }}>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
+                    id="title"
+                    label="Task Title"
+                    width="350px"
+                    value={values.title}
+                    onChange={handleOnTextFieldChange("title")}
+                    error={errors.title}
+                    isRequired
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                      "& input": {
+                        padding: "0 14px",
+                      },
+                    }}
+                    placeholder="Enter task title"
+                  />
+                </Suspense>
 
-            
-              {/* Priority */}
-              <SelectComponent
-                items={priorityOptions}
-                value={values.priority}
-                error={errors.priority}
-                sx={{ 
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                id="priority"
-                label="Priority"
-                isRequired
-                onChange={handleOnSelectChange("priority")}
-                placeholder="Select priority"
-              />
-              
-    
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Stack
+                    gap={theme.spacing(2)}
+                  >
+                    <Typography
+                      component="p"
+                      variant="body1"
+                      color={theme.palette.text.secondary}
+                      fontWeight={500}
+                      fontSize={"13px"}
+                      sx={{ margin: 0, height: '22px' }}
+                    >
+                      Assignees
+                    </Typography>
+                    <Autocomplete
+                      multiple
+                      id="assignees-input"
+                      size="small"
+                      value={values.assignees.map((user) => ({
+                        _id: Number(user._id),
+                        name: user.name,
+                        surname: user.surname,
+                        email: user.email,
+                      }))}
+                      options={
+                        users
+                          ?.filter(
+                            (user) =>
+                              !values.assignees.some(
+                                (selectedUser) =>
+                                  String(selectedUser._id) === String(user.id)
+                              )
+                          )
+                          .map((user) => ({
+                            _id: user.id,
+                            name: user.name,
+                            surname: user.surname || '',
+                            email: user.email,
+                          })) || []
+                      }
+                      noOptionsText={
+                        values.assignees.length === users?.length
+                          ? "All users selected"
+                          : "No options"
+                      }
+                      onChange={handleAssigneesChange}
+                      getOptionLabel={(user) => `${user.name} ${user.surname}`.trim()}
+                      renderOption={(props, option) => {
+                        const { key, ...optionProps } = props;
+                        const userEmail =
+                          option.email.length > 30
+                            ? `${option.email.slice(0, 30)}...`
+                            : option.email;
+                        return (
+                          <Box key={key} component="li" {...optionProps}>
+                            <Typography sx={{ fontSize: "13px" }}>
+                              {option.name} {option.surname}
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: "11px",
+                                color: "rgb(157, 157, 157)",
+                                position: "absolute",
+                                right: "9px",
+                              }}
+                            >
+                              {userEmail}
+                            </Typography>
+                          </Box>
+                        );
+                      }}
+                      filterSelectedOptions
+                      popupIcon={<KeyboardArrowDown />}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Select assignees"
+                          error={!!errors.assignees}
+                          sx={{ fontSize: '13px' }}
+                        />
+                      )}
+                      sx={{
+                        backgroundColor: theme.palette.background.main,
+                        width: "350px",
+                        "& .MuiOutlinedInput-root": {
+                          minHeight: "34px",
+                          height: "34px",
+                          paddingY: "0px !important",
+                          paddingX: "10px !important",
+                          alignItems: "center",
+                          flexWrap: "nowrap"
+                        },
+                        "& .MuiInputBase-input": {
+                          padding: "0 !important",
+                          height: "34px",
+                          lineHeight: "34px"
+                        }
+                      }}
+                      slotProps={teamMembersSlotProps}
+                    />
+                  </Stack>
+                </Suspense>
               </Stack>
 
-              <Stack className="vwtask-form-body-end" sx={{ gap: 8 }}>
-
-              {/* Assignees */}
-              <Suspense fallback={<div>Loading...</div>}>
-                <Stack>
-                  <Typography
+              {/* Row 2: Due Date and Categories */}
+              <Stack direction="row" sx={{ gap: 8 }}>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <DatePicker
+                    label="Due Date"
+                    date={values.due_date ? dayjs(values.due_date) : null}
+                    handleDateChange={handleDateChange}
                     sx={{
-                      fontSize: theme.typography.fontSize,
-                      fontWeight: 500,
-                      mb: 2,
+                      ...datePickerStyle,
+                      width: "350px",
+                      backgroundColor: theme.palette.background.main,
                     }}
+                    isRequired
+                    error={errors.due_date}
+                  />
+                </Suspense>
+
+                <Stack
+                  gap={theme.spacing(2)}
+                >
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color={theme.palette.text.secondary}
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: '22px' }}
                   >
-                    Assignees
+                    Categories
                   </Typography>
                   <Autocomplete
                     multiple
-                    id="assignees-input"
+                    id="categories-input"
                     size="small"
-                    value={values.assignees.map((user) => ({
-                      _id: Number(user._id),
-                      name: user.name,
-                      surname: user.surname,
-                      email: user.email,
-                    }))}
-                    options={
-                      users
-                        ?.filter(
-                          (user) =>
-                            !values.assignees.some(
-                              (selectedUser) =>
-                                String(selectedUser._id) === String(user.id)
-                            )
-                        )
-                        .map((user) => ({
-                          _id: user.id,
-                          name: user.name,
-                          surname: user.surname || '',
-                          email: user.email,
-                        })) || []
-                    }
-                    noOptionsText={
-                      values.assignees.length === users?.length
-                        ? "All users selected"
-                        : "No options"
-                    }
-                    onChange={handleAssigneesChange}
-                    getOptionLabel={(user) => `${user.name} ${user.surname}`.trim()}
-                    renderOption={(props, option) => {
-                      const { key, ...optionProps } = props;
-                      const userEmail =
-                        option.email.length > 30
-                          ? `${option.email.slice(0, 30)}...`
-                          : option.email;
-                      return (
-                        <Box key={key} component="li" {...optionProps}>
-                          <Typography sx={{ fontSize: "13px" }}>
-                            {option.name} {option.surname}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: "11px",
-                              color: "rgb(157, 157, 157)",
-                              position: "absolute",
-                              right: "9px",
-                            }}
-                          >
-                            {userEmail}
-                          </Typography>
-                        </Box>
+                    value={values.categories.map(cat => ({ _id: cat, name: cat }))}
+                    options={[]}
+                    freeSolo
+                    onChange={(_, newValue) => {
+                      const categories = newValue.map(item => 
+                        typeof item === 'string' ? item : item.name
                       );
+                      setValues(prev => ({ ...prev, categories }));
                     }}
+                    getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props}>
+                        <Typography sx={{ fontSize: "13px" }}>
+                          {typeof option === 'string' ? option : option.name}
+                        </Typography>
+                      </Box>
+                    )}
                     filterSelectedOptions
                     popupIcon={<KeyboardArrowDown />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        placeholder="Select assignees"
-                        error={!!errors.assignees}
+                        placeholder="Press Enter to add categories"
                         sx={{ fontSize: '13px' }}
                       />
                     )}
                     sx={{
                       backgroundColor: theme.palette.background.main,
-                      ...teamMembersSxStyle,
                       width: "350px",
+                      "& .MuiOutlinedInput-root": {
+                        minHeight: "34px !important",
+                        height: "34px !important",
+                        paddingY: "0px !important",
+                        paddingX: "10px !important",
+                        paddingTop: "0px !important",
+                        paddingBottom: "0px !important",
+                        alignItems: "center",
+                        flexWrap: "nowrap"
+                      },
+                      "& .MuiInputBase-input": {
+                        padding: "0 !important",
+                        height: "34px !important",
+                        lineHeight: "34px !important"
+                      },
+                      "& .MuiAutocomplete-inputRoot": {
+                        paddingTop: "0px !important",
+                        paddingBottom: "0px !important"
+                      }
                     }}
                     slotProps={teamMembersSlotProps}
                   />
                 </Stack>
-              </Suspense>
-
-              {/* Categories */}
-              <Stack>
-                <Typography
-                  sx={{
-                    fontSize: theme.typography.fontSize,
-                    fontWeight: 500,
-                    mb: 2,
-                  }}
-                >
-                  Categories
-                </Typography>
-                <Autocomplete
-                  multiple
-                  id="categories-input"
-                  size="small"
-                  value={values.categories.map(cat => ({ _id: cat, name: cat }))}
-                  options={[]}
-                  freeSolo
-                  onChange={(_, newValue) => {
-                    const categories = newValue.map(item => 
-                      typeof item === 'string' ? item : item.name
-                    );
-                    setValues(prev => ({ ...prev, categories }));
-                  }}
-                  getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: "13px" }}>
-                        {typeof option === 'string' ? option : option.name}
-                      </Typography>
-                    </Box>
-                  )}
-                  filterSelectedOptions
-                  popupIcon={<KeyboardArrowDown />}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Press Enter to add categories"
-                      sx={teamMembersRenderInputStyle}
-                    />
-                  )}
-                  sx={{
-                    backgroundColor: theme.palette.background.main,
-                    ...teamMembersSxStyle,
-                    width: "350px",
-                  }}
-                  slotProps={teamMembersSlotProps}
-                />
-              </Stack>
-                {/* Description */}
-              <Stack>
-                <Typography
-                  sx={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    mb: theme.spacing(2),
-                    color: theme.palette.text.secondary,
-                  }}
-                >
-                  Description
-                </Typography>
-                <TextField
-                  id="description"
-                  value={values.description}
-                  onChange={handleOnTextFieldChange("description")}
-                  error={!!errors.description}
-                  helperText={errors.description}
-                  multiline
-                  rows={3}
-                  sx={{
-                    backgroundColor: theme.palette.background.main,
-                    width: "350px",
-                    "& input": {
-                      padding: "0 14px",
-                    },
-                  }}
-                />
               </Stack>
 
+              {/* Row 3: Priority and Description */}
+              <Stack direction="row" sx={{ gap: 8 }}>
+                <SelectComponent
+                  items={priorityOptions}
+                  value={values.priority}
+                  error={errors.priority}
+                  sx={{ 
+                    width: "350px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  id="priority"
+                  label="Priority"
+                  isRequired
+                  onChange={handleOnSelectChange("priority")}
+                  placeholder="Select priority"
+                />
+                
+                <Stack
+                  gap={theme.spacing(2)}
+                >
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color={theme.palette.text.secondary}
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: '22px' }}
+                  >
+                    Description
+                  </Typography>
+                  <TextField
+                    id="description"
+                    value={values.description}
+                    onChange={handleOnTextFieldChange("description")}
+                    error={!!errors.description}
+                    helperText={errors.description}
+                    multiline
+                    rows={3}
+                    sx={{
+                      backgroundColor: theme.palette.background.main,
+                      width: "350px",
+                      "& input": {
+                        padding: "0 14px",
+                      },
+                    }}
+                  />
+                </Stack>
               </Stack>
             </Stack>
 

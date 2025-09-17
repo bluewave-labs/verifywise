@@ -499,7 +499,16 @@ const Tasks: React.FC = () => {
 
                   {/* Categories */}
                   <Box sx={{ minWidth: 200 }}>
-                    <Typography variant="body2" mb={1} color="text.secondary" fontWeight={500}>Categories</Typography>
+                    <Typography 
+                      component="p"
+                      variant="body1"
+                      color="text.secondary"
+                      fontWeight={500}
+                      fontSize={"13px"}
+                      sx={{ margin: 0, height: '22px', mb: 2 }}
+                    >
+                      Categories
+                    </Typography>
                     <Autocomplete
                       multiple
                       id="category-filter"
@@ -537,7 +546,25 @@ const Tasks: React.FC = () => {
                       sx={{
                         ...teamMembersSxStyle,
                         width: "100%",
-                        minHeight: "34px"
+                        "& .MuiOutlinedInput-root": {
+                          minHeight: "34px !important",
+                          height: "34px !important",
+                          paddingY: "0px !important",
+                          paddingX: "10px !important",
+                          paddingTop: "0px !important",
+                          paddingBottom: "0px !important",
+                          alignItems: "center",
+                          flexWrap: "nowrap"
+                        },
+                        "& .MuiInputBase-input": {
+                          padding: "0 !important",
+                          height: "34px !important",
+                          lineHeight: "34px !important"
+                        },
+                        "& .MuiAutocomplete-inputRoot": {
+                          paddingTop: "0px !important",
+                          paddingBottom: "0px !important"
+                        }
                       }}
                       slotProps={teamMembersSlotProps}
                     />

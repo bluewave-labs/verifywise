@@ -563,8 +563,8 @@ const Tasks: React.FC = () => {
                   handleDateChange={handleDateFromChange}
                   sx={{ 
                     width: 140,
-                    "& .MuiOutlinedInput-root": {
-                      marginTop: "-2px"
+                    "& > p": {
+                      marginBottom: "-3px !important"
                     }
                   }}
                 />
@@ -575,8 +575,8 @@ const Tasks: React.FC = () => {
                   handleDateChange={handleDateToChange}
                   sx={{ 
                     width: 140,
-                    "& .MuiOutlinedInput-root": {
-                      marginTop: "-2px"
+                    "& > p": {
+                      marginBottom: "-3px !important"
                     }
                   }}
                 />

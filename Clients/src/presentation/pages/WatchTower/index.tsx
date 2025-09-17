@@ -8,6 +8,9 @@ import { Tab } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import WatchTowerEvents from "./Events";
 import WatchTowerLogs from "./Loggings";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
+import eventTrackerHelpContent from "../../helpers/event-tracker-help.html?raw";
 
 // Tab styles similar to Vendors page
 const tabStyle = {
@@ -30,6 +33,7 @@ const tabPanelStyle = {
 const WatchTower = () => {
   const theme = useTheme();
   const [value, setValue] = useState("1");
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -38,18 +42,30 @@ const WatchTower = () => {
   return (
     <div className="watch-tower-page">
       <PageBreadcrumbs />
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={eventTrackerHelpContent}
+        pageTitle="Event Tracker"
+      />
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
         <Stack>
-          <Typography
-            sx={{
-              color: "#1A1919",
-              fontSize: 16,
-              fontWeight: 600,
-              marginBottom: 8,
-            }}
-          >
-            Event Tracker
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography
+              sx={{
+                color: "#1A1919",
+                fontSize: 16,
+                fontWeight: 600,
+                marginBottom: 8,
+              }}
+            >
+              Event Tracker
+            </Typography>
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          </Stack>
           <Typography sx={singleTheme.textStyles.pageDescription}>
             Event Tracker gives you a live window into VerifyWise. It records
             every user action and system event, then lets you dive into the raw

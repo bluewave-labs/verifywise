@@ -156,6 +156,7 @@ const RegisterMultiTenant: React.FC = () => {
       setTimeout(() => {
         setIsSubmitting(false);
         dispatch(setUserExists(true));
+        localStorage.setItem('root_version', __APP_VERSION__);
         navigate("/");
       }, 3000);
     } else if (response.status === 400) {

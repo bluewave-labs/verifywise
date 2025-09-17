@@ -505,7 +505,7 @@ const Tasks: React.FC = () => {
                       color="text.secondary"
                       fontWeight={500}
                       fontSize={"13px"}
-                      sx={{ margin: 0, height: '22px', mb: 2 }}
+                      sx={{ margin: 0, height: '22px', mb: '1px' }}
                     >
                       Categories
                     </Typography>

@@ -24,10 +24,11 @@ import {
 } from "../../../../application/repository/aiTrustCentre.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
+import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
 
 const AITrustCenterSettings: React.FC = () => {
   const styles = useStyles();
+  const { fetchLogoAsBlobUrl } = useLogoFetch();
   const {
     data: overviewData,
     isLoading: loading,
@@ -64,55 +65,6 @@ const AITrustCenterSettings: React.FC = () => {
   const handleLogoLoad = React.useCallback(() => {
     setLogoLoadError(false);
   }, []);
-
-  // Function to fetch logo and convert Buffer to Blob URL
-  const fetchLogoAsBlobUrl = async (
-    tenantId: string
-  ): Promise<string | null> => {
-    try {
-      const response = await apiServices.get(
-        `/aiTrustCentre/${tenantId}/logo`,
-        {
-          responseType: "json",
-        }
-      );
-
-      const responseData = response.data as any;
-      if (responseData?.data?.logo?.content?.data) {
-        // Convert Buffer data to Uint8Array
-        const bufferData = new Uint8Array(responseData.data.logo.content.data);
-
-        // Determine the correct MIME type from the response or default to png
-        const mimeType =
-          responseData.data.logo.mimeType ||
-          responseData.data.logo.contentType ||
-          "image/png";
-
-        // Create Blob from the buffer data
-        const blob = new Blob([bufferData], { type: mimeType });
-        // Create object URL
-        const blobUrl = URL.createObjectURL(blob);
-
-        // Validate that the blob URL can be loaded as an image
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => {
-            resolve(blobUrl);
-          };
-          img.onerror = () => {
-            console.error("Failed to load logo image");
-            URL.revokeObjectURL(blobUrl);
-            resolve(null);
-          };
-          img.src = blobUrl;
-        });
-      }
-      return null;
-    } catch (error) {
-      console.error("Error fetching logo:", error);
-      return null;
-    }
-  };
 
   // Process overview data and fetch logo when data is available
   React.useEffect(() => {
@@ -239,17 +191,6 @@ const AITrustCenterSettings: React.FC = () => {
       // Validate file type first
       if (!file.type.startsWith("image/")) {
         setLogoError("Please select a valid image file");
-        return;
-      }
-
-      // Reject SVG files for security reasons
-      if (
-        file.type === "image/svg+xml" ||
-        file.name.toLowerCase().endsWith(".svg")
-      ) {
-        setLogoError(
-          "SVG files are not supported. Please use PNG, JPG, or GIF format."
-        );
         return;
       }
 
@@ -608,7 +549,7 @@ const AITrustCenterSettings: React.FC = () => {
                 )}
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
                   hidden
                   ref={fileInputRef}
                   onChange={handleLogoChange}
@@ -642,7 +583,7 @@ const AITrustCenterSettings: React.FC = () => {
                   lineHeight: 1.4,
                 }}
               >
-                Recommended: 240×120px • Max size: 5MB • Formats: PNG, JPG, GIF
+                Recommended: 240×120px • Max size: 5MB • Formats: PNG, JPG, GIF, SVG
               </Typography>
             </Stack>
           </Stack>

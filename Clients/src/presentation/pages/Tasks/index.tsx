@@ -1,10 +1,19 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
-import { 
-  Box, Stack, Typography, InputBase, TextField,
-  Collapse, Paper, Chip, 
+import {
+  Box,
+  Stack,
+  Typography,
+  InputBase,
+  TextField,
+  Collapse,
+  Paper,
+  Chip,
   IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
@@ -17,19 +26,40 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import taskManagementHelpContent from "../../helpers/task-management-help.html?raw";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { ITask, TaskStatus, TaskPriority, TaskSummary } from "../../../domain/interfaces/i.task";
-import { getAllTasks, createTask, updateTask, deleteTask, updateTaskStatus } from "../../../application/repository/task.repository";
+import {
+  ITask,
+  TaskStatus,
+  TaskPriority,
+  TaskSummary,
+} from "../../../domain/interfaces/i.task";
+import {
+  getAllTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  updateTaskStatus,
+} from "../../../application/repository/task.repository";
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
 import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
-import { vwhomeHeading, vwhomeHeaderCards, vwhomeBody, vwhomeBodyControls } from "../Home/1.0Home/style";
+import {
+  vwhomeHeading,
+  vwhomeHeaderCards,
+  vwhomeBody,
+  vwhomeBodyControls,
+} from "../Home/1.0Home/style";
 import { searchBoxStyle, searchInputStyle } from "./style";
 import singleTheme from "../../themes/v1SingleTheme";
 import DatePicker from "../../components/Inputs/Datepicker";
-import { datePickerStyle, teamMembersSxStyle, teamMembersSlotProps } from "../../components/Forms/ProjectForm/style";
+import {
+  datePickerStyle,
+  teamMembersSxStyle,
+  teamMembersSlotProps,
+} from "../../components/Forms/ProjectForm/style";
 import dayjs from "dayjs";
 import { Autocomplete } from "@mui/material";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
@@ -74,7 +104,7 @@ const Tasks: React.FC = () => {
 
   const handleDateFromChange = (newDate: dayjs.Dayjs | null) => {
     if (newDate?.isValid()) {
-      setDueDateFrom(newDate.format('YYYY-MM-DD'));
+      setDueDateFrom(newDate.format("YYYY-MM-DD"));
     } else {
       setDueDateFrom("");
     }
@@ -82,27 +112,30 @@ const Tasks: React.FC = () => {
 
   const handleDateToChange = (newDate: dayjs.Dayjs | null) => {
     if (newDate?.isValid()) {
-      setDueDateTo(newDate.format('YYYY-MM-DD'));
+      setDueDateTo(newDate.format("YYYY-MM-DD"));
     } else {
       setDueDateTo("");
     }
   };
-  
+
   // Filter expansion state (like RiskFilters)
   const getInitialExpandedState = (): boolean => {
-    const saved = localStorage.getItem('taskFilters_expanded');
+    const saved = localStorage.getItem("taskFilters_expanded");
     return saved !== null ? JSON.parse(saved) : false;
   };
-  const [filtersExpanded, setFiltersExpanded] = useState<boolean>(getInitialExpandedState());
-  
+  const [filtersExpanded, setFiltersExpanded] = useState<boolean>(
+    getInitialExpandedState()
+  );
+
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
-  const isCreatingDisabled = !userRoleName || !["Admin", "Editor"].includes(userRoleName);
+  const isCreatingDisabled =
+    !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
   // Handle expanded state changes and save to localStorage
   const handleExpandedChange = (newExpanded: boolean) => {
     setFiltersExpanded(newExpanded);
-    localStorage.setItem('taskFilters_expanded', JSON.stringify(newExpanded));
+    localStorage.setItem("taskFilters_expanded", JSON.stringify(newExpanded));
   };
 
   // Get active filter count (like RiskFilters)
@@ -129,7 +162,6 @@ const Tasks: React.FC = () => {
     setDueDateTo("");
     setIncludeArchived(false);
   };
-
 
   // Debounce search query
   useEffect(() => {
@@ -197,16 +229,15 @@ const Tasks: React.FC = () => {
     setIsCreateTaskModalOpen(true);
   };
 
-
   const handleTaskCreated = async (formData: any) => {
     try {
       const response = await createTask({ body: formData });
       if (response && response.data) {
         // Add the new task to the list
-        setTasks(prev => [response.data, ...prev]);
+        setTasks((prev) => [response.data, ...prev]);
       }
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error("Error creating task:", error);
     }
   };
 
@@ -215,7 +246,7 @@ const Tasks: React.FC = () => {
   };
 
   const handleDeleteTask = (taskId: number) => {
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId);
     if (task) {
       setTaskToDelete(task);
       setDeleteConfirmOpen(true);
@@ -224,50 +255,62 @@ const Tasks: React.FC = () => {
 
   const confirmDeleteTask = async () => {
     if (!taskToDelete) return;
-    
+
     try {
       await deleteTask({ id: taskToDelete.id! });
-      setTasks(prev => prev.filter(task => task.id !== taskToDelete.id));
+      setTasks((prev) => prev.filter((task) => task.id !== taskToDelete.id));
       setDeleteConfirmOpen(false);
       setTaskToDelete(null);
     } catch (error) {
-      console.error('Error deleting task:', error);
+      console.error("Error deleting task:", error);
     }
   };
 
   const handleUpdateTask = async (formData: any) => {
     if (!editingTask) return;
-    
+
     try {
-      const response = await updateTask({ id: editingTask.id!, body: formData });
+      const response = await updateTask({
+        id: editingTask.id!,
+        body: formData,
+      });
       if (response && response.data) {
-        setTasks(prev => prev.map(task => 
-          task.id === editingTask.id ? response.data : task
-        ));
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === editingTask.id ? response.data : task
+          )
+        );
         setEditingTask(null);
       }
     } catch (error) {
-      console.error('Error updating task:', error);
+      console.error("Error updating task:", error);
     }
   };
 
-
-  const handleTaskStatusChange = (taskId: number) => async (newStatus: string): Promise<boolean> => {
-    try {
-      const response = await updateTaskStatus({ id: taskId, status: newStatus as TaskStatus });
-      if (response && response.data) {
-        setTasks(prev => prev.map(task => 
-          task.id === taskId ? { ...task, status: newStatus as TaskStatus } : task
-        ));
-        return true;
+  const handleTaskStatusChange =
+    (taskId: number) =>
+    async (newStatus: string): Promise<boolean> => {
+      try {
+        const response = await updateTaskStatus({
+          id: taskId,
+          status: newStatus as TaskStatus,
+        });
+        if (response && response.data) {
+          setTasks((prev) =>
+            prev.map((task) =>
+              task.id === taskId
+                ? { ...task, status: newStatus as TaskStatus }
+                : task
+            )
+          );
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error updating task status:", error);
+        return false;
       }
-      return false;
-    } catch (error) {
-      console.error('Error updating task status:', error);
-      return false;
-    }
-  };
-
+    };
 
   return (
     <div className="tasks-page">
@@ -275,24 +318,24 @@ const Tasks: React.FC = () => {
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent="<h3>Task Management</h3><p>This page allows you to create, manage, and track tasks assigned to team members. You can filter tasks by status, priority, assignee, and due date.</p>"
+        helpContent={taskManagementHelpContent}
         pageTitle="Task Management"
       />
-      
+
       <Box sx={{ p: 3 }}>
         {/* Page Header */}
         <Stack sx={vwhomeBody}>
           <Stack>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography sx={vwhomeHeading}>Tasks list</Typography>
+              <Typography sx={vwhomeHeading}>Task Management</Typography>
               <HelperIcon
                 onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
                 size="small"
               />
             </Stack>
             <Typography sx={singleTheme.textStyles.pageDescription}>
-              This table includes a list of tasks assigned to team members. You can create and
-              manage all tasks here.
+              This table includes a list of tasks assigned to team members. You
+              can create and manage all tasks here.
             </Typography>
           </Stack>
           <Stack sx={vwhomeBodyControls}>
@@ -392,32 +435,32 @@ const Tasks: React.FC = () => {
               )}
             </Stack>
 
-            <Stack direction="row" alignItems="center" spacing={1}>
-              {activeFilterCount > 0 && (
-                <Button
-                  size="small"
-                  startIcon={<ClearIcon />}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearAllFilters();
-                  }}
-                  sx={{
-                    color: "#6B7280",
-                    textTransform: "none",
-                    fontSize: 12,
-                    "&:hover": {
-                      backgroundColor: "#F3F4F6",
-                    }
-                  }}
-                >
-                  Clear All
-                </Button>
-              )}
-              <IconButton size="small">
-                {filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </IconButton>
-            </Stack>
-          </Box>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                {activeFilterCount > 0 && (
+                  <Button
+                    size="small"
+                    startIcon={<ClearIcon />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearAllFilters();
+                    }}
+                    sx={{
+                      color: "#6B7280",
+                      textTransform: "none",
+                      fontSize: 12,
+                      "&:hover": {
+                        backgroundColor: "#F3F4F6",
+                      },
+                    }}
+                  >
+                    Clear All
+                  </Button>
+                )}
+                <IconButton size="small">
+                  {filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+              </Stack>
+            </Box>
 
           {/* Filter Content */}
           <Collapse in={filtersExpanded}>
@@ -450,52 +493,61 @@ const Tasks: React.FC = () => {
                     }}
                   />
 
-                  <Select
-                    id="priority-filter"
-                    label="Priority"
-                    value={priorityFilters.length > 0 ? priorityFilters[0] : "all"}
-                    items={[
-                      { _id: "all", name: "All Priorities" },
-                      ...Object.values(TaskPriority).map(priority => ({ _id: priority, name: priority }))
-                    ]}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "all") {
-                        setPriorityFilters([]);
-                      } else {
-                        setPriorityFilters([value as TaskPriority]);
+                    <Select
+                      id="priority-filter"
+                      label="Priority"
+                      value={
+                        priorityFilters.length > 0 ? priorityFilters[0] : "all"
                       }
-                    }}
-                    sx={{ 
-                      minWidth: 140,
-                      minHeight: "34px"
-                    }}
-                  />
-                  
-                  <Select
-                    id="assignee-filter"
-                    label="Assignee"
-                    value={assigneeFilters.length > 0 ? assigneeFilters[0].toString() : "all"}
-                    items={[
-                      { _id: "all", name: "All Assignees" },
-                      ...users.map(user => ({ 
-                        _id: user.id.toString(), 
-                        name: `${user.name} ${user.surname ?? ''}`.trim() 
-                      }))
-                    ]}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "all") {
-                        setAssigneeFilters([]);
-                      } else {
-                        setAssigneeFilters([Number(value)]);
+                      items={[
+                        { _id: "all", name: "All Priorities" },
+                        ...Object.values(TaskPriority).map((priority) => ({
+                          _id: priority,
+                          name: priority,
+                        })),
+                      ]}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "all") {
+                          setPriorityFilters([]);
+                        } else {
+                          setPriorityFilters([value as TaskPriority]);
+                        }
+                      }}
+                      sx={{
+                        minWidth: 140,
+                        minHeight: "34px",
+                      }}
+                    />
+
+                    <Select
+                      id="assignee-filter"
+                      label="Assignee"
+                      value={
+                        assigneeFilters.length > 0
+                          ? assigneeFilters[0].toString()
+                          : "all"
                       }
-                    }}
-                    sx={{ 
-                      minWidth: 160,
-                      minHeight: "34px"
-                    }}
-                  />
+                      items={[
+                        { _id: "all", name: "All Assignees" },
+                        ...users.map((user) => ({
+                          _id: user.id.toString(),
+                          name: `${user.name} ${user.surname ?? ""}`.trim(),
+                        })),
+                      ]}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "all") {
+                          setAssigneeFilters([]);
+                        } else {
+                          setAssigneeFilters([Number(value)]);
+                        }
+                      }}
+                      sx={{
+                        minWidth: 160,
+                        minHeight: "34px",
+                      }}
+                    />
 
                   {/* Categories */}
                   <Box sx={{ minWidth: 200 }}>
@@ -647,12 +699,12 @@ const Tasks: React.FC = () => {
         )}
       </Box>
 
-      {/* Create Task Modal */}
-      <CreateTask
-        isOpen={isCreateTaskModalOpen}
-        setIsOpen={setIsCreateTaskModalOpen}
-        onSuccess={handleTaskCreated}
-      />
+        {/* Create Task Modal */}
+        <CreateTask
+          isOpen={isCreateTaskModalOpen}
+          setIsOpen={setIsCreateTaskModalOpen}
+          onSuccess={handleTaskCreated}
+        />
 
       {/* Edit Task Modal */}
       {editingTask && (

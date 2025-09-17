@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import copy
 
 from pydantic import BaseModel, Field
 
@@ -219,6 +220,7 @@ class ConfigManager:
             config_path = str(module_root / "configs" / "config.yaml")
 
         self.config_path = config_path
+        self._cfg: Dict[str, Any] = {}
         self._load_config()
 
     def _load_config(self) -> None:
@@ -232,7 +234,13 @@ class ConfigManager:
             according to the schema.
         """
         yaml_config = read_yaml(self.config_path)
+        # Store the raw parsed YAML content for hashing and snapshotting
+        self._cfg = yaml_config
         self.config = Config(**yaml_config)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return an immutable copy of the raw configuration content as a dict."""
+        return copy.deepcopy(self._cfg)
 
     def get_dataset_config(self) -> DatasetConfig:
         """Get the complete dataset configuration.

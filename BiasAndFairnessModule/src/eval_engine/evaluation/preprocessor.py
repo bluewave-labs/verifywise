@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 import pandas as pd
 
 from ...core.config import ConfigManager
@@ -10,7 +10,7 @@ class Preprocessor:
 
     def __init__(
         self,
-        config_manager: Optional[ConfigManager] = None,
+        config_manager: ConfigManager,
     ) -> None:
         self.config_manager = config_manager
         self.logger = get_logger("eval.preprocessor")
@@ -23,10 +23,6 @@ class Preprocessor:
         """
 
         if results_path is None:
-            if self.config_manager is None:
-                raise ValueError(
-                    "results_path not provided and config_manager is None; cannot determine results path"
-                )
             results_path = str(
                 self.config_manager.get_artifacts_config().postprocessed_results_path
             )
@@ -36,5 +32,33 @@ class Preprocessor:
         if df.empty:
             raise ValueError("Post-processed results DataFrame is empty")
         return df
+
+    def get_protected_attributes(self, df: pd.DataFrame) -> List[str]:
+        """Return list of protected attribute columns present in the DataFrame.
+
+        Reads desired attributes from ConfigManager and logs warnings for any that
+        are missing from the provided DataFrame.
+        """
+
+        desired_attrs: List[str] = (
+            self.config_manager.get_dataset_config().protected_attributes or []
+        )
+        present_attrs: List[str] = []
+        missing_attrs: List[str] = []
+
+        df_cols = set(df.columns)
+        for attr in desired_attrs:
+            if attr in df_cols:
+                present_attrs.append(attr)
+            else:
+                missing_attrs.append(attr)
+
+        if missing_attrs:
+            self.logger.warning(
+                "Missing protected attributes in dataset: %s",
+                ", ".join(missing_attrs),
+            )
+
+        return present_attrs
 
 

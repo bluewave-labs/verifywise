@@ -140,7 +140,7 @@ const RegisterMultiTenant: React.FC = () => {
       userRoleId: values.roleId,
     };
 
-    const response = await apiServices.post("organizations", requestBody);
+    const response = await apiServices.post("organizations", requestBody) as any;
     setValues(initialState);
     setErrors({});
     setOrganizationValues(initialOrganizationState);
@@ -152,10 +152,14 @@ const RegisterMultiTenant: React.FC = () => {
         message: "Organization and account created successfully.",
         users,
       });
+      const token = response.data.data.token;
+      const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+      dispatch(setAuthToken(token));
+      dispatch(setExpiration(expirationDate));
       setTimeout(() => {
         setIsSubmitting(false);
         dispatch(setUserExists(true));
-        navigate("/login");
+        navigate("/");
       }, 3000);
     } else if (response.status === 400) {
       logEngine({
@@ -403,16 +407,17 @@ const RegisterMultiTenant: React.FC = () => {
                       const token = loginResponse.data.data.token;
 
                       // Always remember Google sign-in for 30 days
-                      const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
+                      // const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
                       dispatch(setAuthToken(token));
-                      dispatch(setExpiration(expirationDate));
+                      dispatch(setExpiration(null));
 
                       logEngine({
                         type: "info",
                         message: "Google Sign-In successful.",
                       });
-        
+
                       setTimeout(() => {
+                        dispatch(setUserExists(true));
                         setIsSubmitting(false);
                         navigate("/");
                       }, 2000);

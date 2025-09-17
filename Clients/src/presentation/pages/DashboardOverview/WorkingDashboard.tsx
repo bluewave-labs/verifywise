@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { 
   Box, 
   Card, 
@@ -14,11 +14,15 @@ import { useNavigate } from 'react-router-dom';
 import { useDashboard } from '../../../application/hooks/useDashboard';
 import { useDashboardMetrics } from '../../../application/hooks/useDashboardMetrics';
 import { cardStyles } from '../../themes';
+import { useAuth } from '../../../application/hooks/useAuth';
+import { getUserById } from '../../../application/repository/user.repository';
 
 import { ReactComponent as RightArrow } from '../../assets/icons/right-arrow.svg';
 import StatusDonutChart, { StatusData } from '../../components/Charts/StatusDonutChart';
 import { getDefaultStatusDistribution } from '../../utils/statusColors';
 import { getDistributionSummary, getQuickStats, hasCriticalItems, getPriorityLevel } from '../../utils/cardEnhancements';
+
+const Alert = lazy(() => import('../../components/Alert'));
 
 interface MetricCardProps {
   title: string;
@@ -261,10 +265,36 @@ const WorkingDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { dashboard, loading, fetchDashboard } = useDashboard();
   const { evidenceMetrics, vendorRiskMetrics, vendorMetrics, usersMetrics, policyMetrics } = useDashboardMetrics();
+  const { userToken } = useAuth();
+  
+  // State for password notification
+  const [showPasswordNotification, setShowPasswordNotification] = useState(false);
+
+  // Fetch user data to check pwd_set status
+  const checkPasswordStatus = useCallback(async () => {
+    if (!userToken || !userToken.id) return;
+
+    try {
+      const response = await getUserById({ userId: parseInt(userToken.id) });
+      const userData = response.data || response;
+      
+      // Check if user has Google auth but no password set
+      if (userData && userData.pwd_set === false) {
+        setShowPasswordNotification(true);
+      }
+    } catch (error) {
+      console.error('Error checking user password status:', error);
+    }
+  }, [userToken]);
 
   useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);
+
+  useEffect(() => {
+    // Check password status after component mounts
+    checkPasswordStatus();
+  }, []);
 
   if (loading) {
     return (
@@ -278,6 +308,21 @@ const WorkingDashboard: React.FC = () => {
   try {
     return (
       <Box sx={{ p: 3, minHeight: '100vh' }}>
+        {/* Password notification for Google auth users */}
+        {showPasswordNotification && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Alert
+              variant="warning"
+              title="Set Your Password"
+              body="You signed in with Google but haven't set a password yet. For account security, please set a password that you can use to access your account."
+              isToast={true}
+              onClick={() => {
+                setShowPasswordNotification(false);
+              }}
+            />
+          </Suspense>
+        )}
+
         {/* Header */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography 

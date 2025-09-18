@@ -23,6 +23,7 @@ import useSlackIntegrations, {
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import { singleTheme } from "../../../themes";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ENV_VARs } from "../../../../../env.vars";
 
 const SlackIntegration = () => {
   const { userId } = useAuth();
@@ -73,11 +74,7 @@ const SlackIntegration = () => {
     "users:read",
   ].join(",");
 
-  const url = `${import.meta.env.VITE_SLACK_URL}?client_id=${
-    import.meta.env.VITE_CLIENT_ID
-  }&scope=${scopes}&user_scope=&redirect_uri=${
-    window.location.origin
-  }/setting/?activeTab=4`;
+  const url = `${ENV_VARs.SLACK_URL}?client_id=${ENV_VARs.CLIENT_ID}&scope=${scopes}&user_scope=&redirect_uri=${window.location.origin}/setting/?activeTab=4`;
 
   // Handle the callback when user returns from Slack
   useEffect(() => {
@@ -92,7 +89,7 @@ const SlackIntegration = () => {
     if (code) {
       exchangeCodeForTokens(code);
     }
-  }, []);
+  }, [searchParams]);
 
   const exchangeCodeForTokens = async (code: string) => {
     setIsLoading(true);

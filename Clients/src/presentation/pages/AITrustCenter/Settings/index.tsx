@@ -12,7 +12,7 @@ import { useStyles } from "./styles";
 import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   useAITrustCentreOverviewQuery,
@@ -705,7 +705,7 @@ const AITrustCenterSettings: React.FC = () => {
             backgroundColor: hasUnsavedChanges ? "#13715B" : "#ccc",
             border: `1px solid ${hasUnsavedChanges ? "#13715B" : "#ccc"}`,
           }}
-          icon={<SaveIcon />}
+          icon={<SaveIconSVGWhite />}
           variant="contained"
           onClick={handleSave}
           isDisabled={!hasUnsavedChanges}

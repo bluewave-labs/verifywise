@@ -1,16 +1,16 @@
-import { Stack, Typography, useTheme, Box } from "@mui/material";
+import { Stack, useTheme, Box } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useState } from "react";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Tab } from "@mui/material";
-import singleTheme from "../../themes/v1SingleTheme";
 import WatchTowerEvents from "./Events";
 import WatchTowerLogs from "./Loggings";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import eventTrackerHelpContent from "../../helpers/event-tracker-help.html?raw";
+import PageHeader from "../../components/Layout/PageHeader";
 
 // Tab styles similar to Vendors page
 const tabStyle = {
@@ -41,38 +41,30 @@ const WatchTower = () => {
 
   return (
     <div className="watch-tower-page">
-      <PageBreadcrumbs />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         helpContent={eventTrackerHelpContent}
         pageTitle="Event Tracker"
       />
+    
       <Stack gap={theme.spacing(10)} maxWidth={1400}>
-        <Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography
-              sx={{
-                color: "#1A1919",
-                fontSize: 16,
-                fontWeight: 600,
-                marginBottom: 8,
-              }}
-            >
-              Event Tracker
-            </Typography>
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          </Stack>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            Event Tracker gives you a live window into VerifyWise. It records
-            every user action and system event, then lets you dive into the raw
-            logs for deeper troubleshooting. Use it to see who did what, spot
-            patterns, and keep your application healthy
-          </Typography>
-        </Stack>
+      <PageHeader
+               title="Event Tracker"
+               description="Event Tracker gives you a live window into VerifyWise. It records
+                every user action and system event, then lets you dive into the raw
+                logs for deeper troubleshooting. Use it to see who did what, spot
+                patterns, and keep your application healthy"
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
 
         <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>

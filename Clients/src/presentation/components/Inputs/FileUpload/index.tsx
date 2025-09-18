@@ -1,7 +1,7 @@
 import { Stack, useTheme, IconButton, Typography, Link } from "@mui/material";
 import Uppy from "@uppy/core";
 import { useState } from "react";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
@@ -81,7 +81,7 @@ const UppyUploadFile: React.FC<UppyUploadFileProps> = ({
     <Stack className="uppy-holder" sx={styles.container}>
       <Stack sx={styles.header}>
         <IconButton onClick={onClose}>
-          <CloseIcon sx={{ width: 24, height: 24 }} />
+          <CloseGreyIcon />
         </IconButton>
       </Stack>
 

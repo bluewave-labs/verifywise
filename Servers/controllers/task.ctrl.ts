@@ -141,6 +141,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       assignee,
       organization_id,
       search,
+      include_archived,
       sort_by = 'created_at',
       sort_order = 'DESC',
       page = '1',
@@ -156,6 +157,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     if (category) filters.category = Array.isArray(category) ? category : [category];
     if (assignee) filters.assignee = Array.isArray(assignee) ? assignee.map(Number) : [Number(assignee)];
     if (search) filters.search = search as string;
+    if (include_archived) filters.include_archived = include_archived === 'true';
     filters.organization_id = Number(req.organizationId);
 
     // Parse sorting

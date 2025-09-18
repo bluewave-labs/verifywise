@@ -35,6 +35,7 @@
       "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
       "Read(/A:\\VerifyWiseRepository\\verifywise\\Clients\\src\\presentation\\components\\AddNewRiskForm\\MitigationSection/**)",
       "WebFetch(domain:github.com)",
+      "Bash(gh pr checks:*)",
       "Bash(VITE_APP_PORT=8001 npm run dev)"
     ],
     "deny": [],

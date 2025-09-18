@@ -482,7 +482,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Box>
         </Stack>
-        <Stack sx={{ flex: 1 }} mt={theme.spacing(1)}>
+        <Stack sx={{ flex: 1 }}>
           <Stack>
             <Typography
               sx={{
@@ -667,6 +667,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           error={errors.vendorProvides}
           isRequired
           disabled={isEditingDisabled}
+          placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
+          rows={2}
         />
       </Stack>
       <Stack
@@ -734,6 +736,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
           isRequired
           disabled={isEditingDisabled}
+          placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
+          rows={2}
         />
       </Stack>
     </TabPanel>
@@ -805,8 +809,18 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
           </Stack>
+          {!existingVendor && (
+            <Typography
+              fontSize={13}
+              color={theme.palette.text.secondary}
+              marginBottom={theme.spacing(4)}
+              sx={{ lineHeight: 1.4 }}
+            >
+              Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements.
+            </Typography>
+          )}
           <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
+            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(4) }}
           >
             <TabContext value={value}>{vendorDetailsPanel}</TabContext>
           </Box>

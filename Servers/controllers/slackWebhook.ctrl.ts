@@ -33,7 +33,9 @@ export async function getAllSlackWebhooks(
   logger.debug("🔍 Fetching all slackWebhooks");
 
   try {
-    const slackWebhooks = await getAllSlackWebhooksQuery(req.tenantId!);
+    const slackWebhooks = await getAllSlackWebhooksQuery(
+      req.query.id as string,
+    );
 
     if (slackWebhooks && slackWebhooks.length > 0) {
       logStructured(
@@ -131,13 +133,43 @@ export async function getSlackWebhookById(
   }
 }
 
+async function validateSlackOAuth(code: string): Promise<any> {
+  try {
+    const url = process.env.SLACK_API_URL;
+    const searchParams = {
+      client_id: process.env.SLACK_CLIENT_ID || "",
+      client_secret: process.env.SLACK_CLIENT_SECRET || "",
+      code: code,
+      redirect_uri: `${process.env.FRONTEND_URL}/setting/?activeTab=4`,
+    };
+    if (!url) {
+      throw new Error("Slack API URL is not configured");
+    }
+    const tokenResponse = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams(searchParams),
+    });
+    const data = await tokenResponse.json();
+
+    if (data.ok) {
+      return data;
+    } else {
+      throw new Error(data.error || "Slack OAuth failed");
+    }
+  } catch (error) {
+    throw new Error("Failed to validate Slack OAuth code");
+  }
+}
+
 export async function createNewSlackWebhook(
   req: Request,
   res: Response,
 ): Promise<any> {
   const functionName = "createNewSlackWebhook";
   const transaction = await sequelize.transaction();
-  const slackWebhookData = req.body;
 
   logStructured(
     "processing",
@@ -148,18 +180,19 @@ export async function createNewSlackWebhook(
   logger.debug(`🛠️ Creating slackWebhook`);
 
   try {
+    const slackWebhookData = await validateSlackOAuth(req.body.code);
     // Create slackWebhook using the enhanced SlackWebhookModel method
     const slackWebhookModel = await SlackWebhookModel.createNewSlackWebhook(
       slackWebhookData.access_token,
       slackWebhookData.scope,
-      slackWebhookData.team_name,
-      slackWebhookData.team_id,
-      slackWebhookData.channel,
-      slackWebhookData.channel_id,
-      slackWebhookData.configuration_url,
-      slackWebhookData.url,
-      slackWebhookData.user_id,
-      slackWebhookData.is_active,
+      slackWebhookData.team.name,
+      slackWebhookData.team.id,
+      slackWebhookData.incoming_webhook.channel,
+      slackWebhookData.incoming_webhook.channel_id,
+      slackWebhookData.incoming_webhook.configuration_url,
+      slackWebhookData.incoming_webhook.url,
+      req.body.userId,
+      true,
     );
 
     // Validate slackWebhook data before saving
@@ -167,7 +200,6 @@ export async function createNewSlackWebhook(
 
     const newSlackWebhook = await createNewSlackWebhookQuery(
       slackWebhookModel,
-      req.tenantId!,
       transaction,
     );
 

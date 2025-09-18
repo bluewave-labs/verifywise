@@ -1,17 +1,15 @@
 import { sequelize } from "../database/db";
-import { UploadedFile } from "./question.utils";
-import { uploadFile } from "./fileUpload.utils";
-import { QueryTypes, Transaction } from "sequelize";
-import { FileType } from "../domain.layer/models/file/file.model";
+import { Transaction } from "sequelize";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
 
 export const getAllSlackWebhooksQuery = async (
-  tenant: string,
+  userId: string,
 ): Promise<ISlackWebhook[]> => {
   const slackWebhooks = await sequelize.query(
-    `SELECT * FROM public.slack_webhooks ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM public.slack_webhooks WHERE user_id = :userId ORDER BY created_at DESC, id ASC`,
     {
+      replacements: { userId },
       mapToModel: true,
       model: SlackWebhookModel,
     },
@@ -36,13 +34,8 @@ export const getSlackWebhookByIdQuery = async (
 
 export const createNewSlackWebhookQuery = async (
   data: Partial<ISlackWebhook>,
-  tenant: string,
   transaction: Transaction,
 ): Promise<SlackWebhookModel> => {
-  console.log(
-    "Creating new Slack Webhook with data:",
-    typeof data.access_token,
-  );
   const result = await sequelize.query(
     `INSERT INTO public.slack_webhooks (
       access_token, access_token_iv, scope, user_id, team_name, team_id, channel, channel_id,

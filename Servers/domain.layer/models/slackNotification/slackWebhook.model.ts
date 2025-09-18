@@ -94,11 +94,6 @@ export class SlackWebhookModel
   })
   is_active?: boolean;
 
-  @Column({
-    type: DataType.STRING,
-  })
-  iv?: string;
-
   /**
    * Create a new slack webhook with comprehensive validation
    */

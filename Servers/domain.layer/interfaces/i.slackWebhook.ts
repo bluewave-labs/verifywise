@@ -1,5 +1,3 @@
-import { EncryptedResult } from "../../tools/createSecureValue";
-
 export interface ISlackWebhook {
   id?: number;
   access_token_iv?: string;
@@ -15,5 +13,4 @@ export interface ISlackWebhook {
   url: string; // URL of the slack workspace
   created_at?: Date;
   is_active?: boolean;
-  iv?: string;
 }

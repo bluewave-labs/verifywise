@@ -4,15 +4,10 @@ import {
   Stack,
   Typography,
   InputBase,
-  TextField,
   Collapse,
   Paper,
   Chip,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Divider,
 } from "@mui/material";
@@ -45,8 +40,10 @@ import {
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
+import Field from "../../components/Inputs/Field";
 import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
+import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import {
   vwhomeHeading,
   vwhomeHeaderCards,
@@ -56,22 +53,25 @@ import {
 import { searchBoxStyle, searchInputStyle } from "./style";
 import singleTheme from "../../themes/v1SingleTheme";
 import DatePicker from "../../components/Inputs/Datepicker";
-import {
-  datePickerStyle,
-  teamMembersSxStyle,
-  teamMembersSlotProps,
-} from "../../components/Forms/ProjectForm/style";
 import dayjs from "dayjs";
-import { Autocomplete } from "@mui/material";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import Toggle from "../../components/Toggle";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
   TaskStatus.OPEN,
   TaskStatus.IN_PROGRESS,
   TaskStatus.COMPLETED,
-  TaskStatus.OVERDUE,
 ];
+
+// Status display mapping
+const STATUS_DISPLAY_MAP = {
+  [TaskStatus.OPEN]: "Open",
+  [TaskStatus.IN_PROGRESS]: "In progress",
+  [TaskStatus.COMPLETED]: "Completed",
+  [TaskStatus.OVERDUE]: "Overdue",
+};
+
+// Reverse mapping for API calls
 
 const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<ITask[]>([]);
@@ -83,13 +83,14 @@ const Tasks: React.FC = () => {
   const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("Newest");
   const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
   const [priorityFilters, setPriorityFilters] = useState<TaskPriority[]>([]);
   const [assigneeFilters, setAssigneeFilters] = useState<number[]>([]);
   const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [dueDateFrom, setDueDateFrom] = useState("");
   const [dueDateTo, setDueDateTo] = useState("");
+  const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const handleDateFromChange = (newDate: dayjs.Dayjs | null) => {
@@ -136,6 +137,7 @@ const Tasks: React.FC = () => {
     if (assigneeFilters.length > 0) count++;
     if (categoryFilters.length > 0) count++;
     if (dueDateFrom !== "" || dueDateTo !== "") count++;
+    if (includeArchived) count++;
     return count;
   };
 
@@ -149,6 +151,7 @@ const Tasks: React.FC = () => {
     setCategoryFilters([]);
     setDueDateFrom("");
     setDueDateTo("");
+    setIncludeArchived(false);
   };
 
   // Debounce search query
@@ -164,13 +167,14 @@ const Tasks: React.FC = () => {
   const summary: TaskSummary = useMemo(
     () => ({
       total: tasks.length,
-      open: tasks.filter((task) => task.status === TaskStatus.OPEN).length,
-      inProgress: tasks.filter((task) => task.status === TaskStatus.IN_PROGRESS)
-        .length,
-      completed: tasks.filter((task) => task.status === TaskStatus.COMPLETED)
-        .length,
-      overdue: tasks.filter((task) => task.status === TaskStatus.OVERDUE)
-        .length,
+      open: tasks.filter((task) => task.status === "Open").length,
+      inProgress: tasks.filter(
+        (task) =>
+          (task.status as string) === "In progress" ||
+          (task.status as string) === "In Progress"
+      ).length,
+      completed: tasks.filter((task) => task.status === "Completed").length,
+      overdue: tasks.filter((task) => task.isOverdue === true).length,
     }),
     [tasks]
   );
@@ -181,24 +185,65 @@ const Tasks: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null); // Clear previous errors
+        // Filter out "Overdue" from status filters for API call since it's computed
+        const apiStatusFilters = statusFilters
+          .filter((status) => status !== TaskStatus.OVERDUE)
+          .map((status) => {
+            // Convert display values to API values
+            if (status === "In progress") return "In Progress";
+            return status;
+          }) as string[];
+
         const response = await getAllTasks({
           search: debouncedSearchQuery || undefined,
-          status: statusFilters.length > 0 ? statusFilters : undefined,
+          status:
+            apiStatusFilters.length > 0 ? (apiStatusFilters as any) : undefined,
           priority: priorityFilters.length > 0 ? priorityFilters : undefined,
           assignee: assigneeFilters.length > 0 ? assigneeFilters : undefined,
           category: categoryFilters.length > 0 ? categoryFilters : undefined,
           due_date_start: dueDateFrom || undefined,
           due_date_end: dueDateTo || undefined,
-          sort_by:
-            sortBy === "newest"
-              ? "created_at"
-              : sortBy === "oldest"
-              ? "created_at"
-              : (sortBy as any),
-          sort_order: sortBy === "oldest" ? "ASC" : "DESC",
+          include_archived: includeArchived || undefined,
+          ...(sortBy !== "Priority" && {
+            sort_by:
+              sortBy === "Newest"
+                ? "created_at"
+                : sortBy === "Oldest"
+                ? "created_at"
+                : sortBy === "Due date"
+                ? "due_date"
+                : "created_at",
+            sort_order:
+              sortBy === "Oldest"
+                ? "ASC"
+                : sortBy === "Due date"
+                ? "ASC"
+                : "DESC",
+          }),
         });
 
-        setTasks(response?.data?.tasks || []);
+        let filteredTasks = response?.data?.tasks || [];
+
+        // Apply frontend filtering for "Overdue" status
+        if (statusFilters.includes(TaskStatus.OVERDUE)) {
+          filteredTasks = filteredTasks.filter(
+            (task: ITask) => task.isOverdue === true
+          );
+        }
+
+        // Handle priority sorting on frontend to avoid SQL error
+        if (sortBy === "Priority") {
+          const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+          filteredTasks = filteredTasks.sort((a: ITask, b: ITask) => {
+            const priorityA =
+              priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+            const priorityB =
+              priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+            return priorityB - priorityA; // DESC order (High to Low)
+          });
+        }
+
+        setTasks(filteredTasks);
       } catch (err: any) {
         console.error("Error fetching tasks:", err);
         setError("Failed to load tasks. Please try again later.");
@@ -216,6 +261,7 @@ const Tasks: React.FC = () => {
     categoryFilters,
     dueDateFrom,
     dueDateTo,
+    includeArchived,
     sortBy,
   ]);
 
@@ -356,7 +402,7 @@ const Tasks: React.FC = () => {
         <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
           <HeaderCard title="Tasks" count={summary.total} />
           <HeaderCard title="Overdue" count={summary.overdue} />
-          <HeaderCard title="In Progress" count={summary.inProgress} />
+          <HeaderCard title="In progress" count={summary.inProgress} />
           <HeaderCard title="Completed" count={summary.completed} />
         </Stack>
 
@@ -386,7 +432,7 @@ const Tasks: React.FC = () => {
                   setSortBy(newSort);
                   return true;
                 }}
-                options={["newest", "oldest", "priority", "due_date"]}
+                options={["Newest", "Oldest", "Priority", "Due date"]}
                 sx={{ minWidth: 150 }}
               />
             </Stack>
@@ -396,6 +442,7 @@ const Tasks: React.FC = () => {
             elevation={0}
             sx={{
               mb: 2,
+              mt: 6,
               border: "1px solid #E5E7EB",
               borderRadius: 2,
               backgroundColor: "transparent",
@@ -448,7 +495,7 @@ const Tasks: React.FC = () => {
                   <Button
                     size="small"
                     startIcon={<ClearIcon />}
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       clearAllFilters();
                     }}
@@ -474,193 +521,156 @@ const Tasks: React.FC = () => {
             <Collapse in={filtersExpanded}>
               <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
                 {/* All Filters in One Row */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                  }}
+                <Stack
+                  direction="row"
+                  justifyContent="flex-start"
+                  spacing={3}
+                  sx={{ ml: "12px", width: "100%" }}
                 >
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing="16px"
-                    sx={{ ml: "12px", width: "100%" }}
-                  >
-                    <Select
-                      id="status-filter"
-                      label="Status"
-                      value={
-                        statusFilters.length > 0 ? statusFilters[0] : "all"
+                  <Select
+                    id="status-filter"
+                    label="Status"
+                    value={statusFilters.length > 0 ? statusFilters[0] : "all"}
+                    items={[
+                      { _id: "all", name: "All Statuses" },
+                      ...Object.values(TaskStatus).map((status) => ({
+                        _id: status,
+                        name:
+                          STATUS_DISPLAY_MAP[status as TaskStatus] || status,
+                      })),
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setStatusFilters([]);
+                      } else {
+                        setStatusFilters([value as TaskStatus]);
                       }
-                      items={[
-                        { _id: "all", name: "All Statuses" },
-                        ...Object.values(TaskStatus).map((status) => ({
-                          _id: status,
-                          name: status,
-                        })),
-                      ]}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "all") {
-                          setStatusFilters([]);
-                        } else {
-                          setStatusFilters([value as TaskStatus]);
-                        }
-                      }}
+                    }}
+                    sx={{ width: 140 }}
+                  />
+
+                  <Select
+                    id="priority-filter"
+                    label="Priority"
+                    value={
+                      priorityFilters.length > 0 ? priorityFilters[0] : "all"
+                    }
+                    items={[
+                      { _id: "all", name: "All Priorities" },
+                      ...Object.values(TaskPriority).map((priority) => ({
+                        _id: priority,
+                        name: priority,
+                      })),
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setPriorityFilters([]);
+                      } else {
+                        setPriorityFilters([value as TaskPriority]);
+                      }
+                    }}
+                    sx={{ width: 140 }}
+                  />
+
+                  <Select
+                    id="assignee-filter"
+                    label="Assignee"
+                    value={
+                      assigneeFilters.length > 0
+                        ? assigneeFilters[0].toString()
+                        : "all"
+                    }
+                    items={[
+                      { _id: "all", name: "All Assignees" },
+                      ...users.map((user) => ({
+                        _id: user.id.toString(),
+                        name: `${user.name} ${user.surname ?? ""}`.trim(),
+                      })),
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setAssigneeFilters([]);
+                      } else {
+                        setAssigneeFilters([Number(value)]);
+                      }
+                    }}
+                    sx={{ width: 160 }}
+                  />
+
+                  <Field
+                    id="category-filter"
+                    label="Categories"
+                    width="160px"
+                    value={categoryFilters.join(", ")}
+                    onChange={(e) => {
+                      const categories = e.target.value
+                        .split(",")
+                        .map((cat) => cat.trim())
+                        .filter((cat) => cat);
+                      setCategoryFilters(categories);
+                    }}
+                    placeholder="Enter categories"
+                  />
+
+                  <DatePicker
+                    label="From"
+                    date={dueDateFrom ? dayjs(dueDateFrom) : null}
+                    handleDateChange={handleDateFromChange}
+                    sx={{
+                      width: 140,
+                      "& > p": {
+                        marginBottom: "-3px !important",
+                      },
+                    }}
+                  />
+
+                  <DatePicker
+                    label="To"
+                    date={dueDateTo ? dayjs(dueDateTo) : null}
+                    handleDateChange={handleDateToChange}
+                    sx={{
+                      width: 140,
+                      "& > p": {
+                        marginBottom: "-3px !important",
+                      },
+                    }}
+                  />
+
+                  <Stack direction="column" spacing={1}>
+                    <Typography
+                      component="p"
+                      variant="body1"
+                      color="text.secondary"
+                      fontWeight={500}
+                      fontSize={"13px"}
+                      sx={{ margin: 0, height: "22px", mb: 2 }}
+                    >
+                      Include archived
+                    </Typography>
+                    <Box
                       sx={{
-                        minWidth: 140,
+                        display: "flex",
+                        alignItems: "center",
                         minHeight: "34px",
                       }}
-                    />
-
-                    <Select
-                      id="priority-filter"
-                      label="Priority"
-                      value={
-                        priorityFilters.length > 0 ? priorityFilters[0] : "all"
-                      }
-                      items={[
-                        { _id: "all", name: "All Priorities" },
-                        ...Object.values(TaskPriority).map((priority) => ({
-                          _id: priority,
-                          name: priority,
-                        })),
-                      ]}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "all") {
-                          setPriorityFilters([]);
-                        } else {
-                          setPriorityFilters([value as TaskPriority]);
-                        }
-                      }}
-                      sx={{
-                        minWidth: 140,
-                        minHeight: "34px",
-                      }}
-                    />
-
-                    <Select
-                      id="assignee-filter"
-                      label="Assignee"
-                      value={
-                        assigneeFilters.length > 0
-                          ? assigneeFilters[0].toString()
-                          : "all"
-                      }
-                      items={[
-                        { _id: "all", name: "All Assignees" },
-                        ...users.map((user) => ({
-                          _id: user.id.toString(),
-                          name: `${user.name} ${user.surname ?? ""}`.trim(),
-                        })),
-                      ]}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "all") {
-                          setAssigneeFilters([]);
-                        } else {
-                          setAssigneeFilters([Number(value)]);
-                        }
-                      }}
-                      sx={{
-                        minWidth: 160,
-                        minHeight: "34px",
-                      }}
-                    />
-
-                    {/* Categories */}
-                    <Box sx={{ minWidth: 200 }}>
-                      <Typography
-                        variant="body2"
-                        mb={1}
-                        color="text.secondary"
-                        fontWeight={500}
-                      >
-                        Categories
-                      </Typography>
-                      <Autocomplete
-                        multiple
-                        id="category-filter"
-                        size="small"
-                        value={categoryFilters.map((cat) => ({
-                          _id: cat,
-                          name: cat,
-                        }))}
-                        options={[]}
-                        freeSolo
-                        onChange={(_, newValue) => {
-                          const categories = newValue.map((item) =>
-                            typeof item === "string" ? item : item.name
-                          );
-                          setCategoryFilters(categories);
-                        }}
-                        getOptionLabel={(option) =>
-                          typeof option === "string" ? option : option.name
-                        }
-                        renderOption={(props, option) => (
-                          <Box component="li" {...props}>
-                            <Typography sx={{ fontSize: "13px" }}>
-                              {typeof option === "string"
-                                ? option
-                                : option.name}
-                            </Typography>
-                          </Box>
-                        )}
-                        filterSelectedOptions
-                        popupIcon={<KeyboardArrowDown />}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            placeholder="Enter categories..."
-                            sx={{
-                              "& ::placeholder": {
-                                fontSize: "13px",
-                              },
-                            }}
-                          />
-                        )}
-                        sx={{
-                          ...teamMembersSxStyle,
-                          width: "100%",
-                          minHeight: "34px",
-                        }}
-                        slotProps={teamMembersSlotProps}
+                    >
+                      <Toggle
+                        checked={includeArchived}
+                        onChange={(checked) => setIncludeArchived(checked)}
                       />
                     </Box>
-
-                    {/* Due Date Range */}
-                    <Box sx={{ minWidth: 280 }}>
-                      <Stack direction="row" spacing={2}>
-                        <DatePicker
-                          label="From"
-                          date={dueDateFrom ? dayjs(dueDateFrom) : null}
-                          handleDateChange={handleDateFromChange}
-                          sx={{
-                            ...datePickerStyle,
-                            minHeight: "34px",
-                          }}
-                        />
-                        <DatePicker
-                          label="To"
-                          date={dueDateTo ? dayjs(dueDateTo) : null}
-                          handleDateChange={handleDateToChange}
-                          sx={{
-                            ...datePickerStyle,
-                            minHeight: "34px",
-                          }}
-                        />
-                      </Stack>
-                    </Box>
                   </Stack>
-                </Box>
+                </Stack>
               </Box>
             </Collapse>
           </Paper>
         </Box>
 
         {/* Content Area */}
-        <Box sx={{ mt: 5 }}>
+        <Box sx={{ mt: 6 }}>
           {isLoading && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <Typography>Loading tasks...</Typography>
@@ -677,10 +687,12 @@ const Tasks: React.FC = () => {
             <TasksTable
               tasks={tasks}
               users={users}
-              onDelete={handleDeleteTask}
+              onArchive={handleDeleteTask}
               onEdit={handleEditTask}
               onStatusChange={handleTaskStatusChange}
-              statusOptions={TASK_STATUS_OPTIONS}
+              statusOptions={TASK_STATUS_OPTIONS.map(
+                (status) => STATUS_DISPLAY_MAP[status as TaskStatus] || status
+              )}
               isUpdateDisabled={isCreatingDisabled}
             />
           )}
@@ -705,32 +717,23 @@ const Tasks: React.FC = () => {
         )}
 
         {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={deleteConfirmOpen}
-          onClose={() => setDeleteConfirmOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Delete Task</DialogTitle>
-          <DialogContent>
-            <Typography>
-              Are you sure you want to delete "{taskToDelete?.title}"? This
-              action cannot be undone.
+        <DualButtonModal
+          title="Archive Task"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to archive "{taskToDelete?.title}"? You can
+              restore it later by using the "Show all tasks" toggle.
             </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteConfirmOpen(false)} color="inherit">
-              Cancel
-            </Button>
-            <Button
-              onClick={confirmDeleteTask}
-              color="error"
-              variant="contained"
-            >
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+          }
+          cancelText="Cancel"
+          proceedText="Archive"
+          onCancel={() => setDeleteConfirmOpen(false)}
+          onProceed={confirmDeleteTask}
+          proceedButtonColor="warning"
+          proceedButtonVariant="contained"
+          isOpen={deleteConfirmOpen}
+          TitleFontSize={0}
+        />
       </Box>
     </div>
   );

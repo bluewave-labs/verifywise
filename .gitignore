@@ -14,7 +14,6 @@ express.log
 fastapi.log
 react.log
 .idea/
-.claude
 .github
 .kombai
 .vscode

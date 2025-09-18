@@ -386,6 +386,51 @@ const Subscription: React.FC = () => {
           </Typography>
         </Typography>
 
+        <Box sx={{ display: 'flex', gap: 3, justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 4 }}>
+          <Box
+            sx={{
+              backgroundColor: '#EAF3EC',
+              border: '1px solid #A3B18A',
+              borderRadius: 2,
+              width: 'fit-content',
+              px: 2,
+              py: 1.5,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1.5,
+            }}
+          >
+            <Typography sx={{ fontWeight: 600, color: '#344E41' }}>
+              Current Plan:
+            </Typography>
+            <Typography sx={{ fontWeight: 600, color: '#344E41' }}>
+              {allTiers.find(tier => tier.id === organizationTierId)?.name || '—'}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 6 }}>
+            <Typography
+              component="a" 
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                window.open('https://billing.stripe.com/p/login/bIY8yAdHWcJpchifYY', '_blank');
+              }}
+              sx={{ 
+                color: 'primary.main',
+                textDecoration: 'underline',
+                fontSize: '13px', 
+                cursor: 'pointer', 
+                '&:hover': {
+                  textDecoration: 'none'
+                }
+              }}
+            >
+              Manage Subscription
+            </Typography>
+          </Box>
+        </Box>
+
         {/* Unified Pricing and Features Table */}
         <Card variant="outlined" sx={{ borderRadius: '8px' }}>
             <TableContainer>
@@ -450,37 +495,40 @@ const Subscription: React.FC = () => {
                     </TableCell>
                     {allTiers?.map((tier: Tier) => (
                       <TableCell key={`cta-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
-                        <Tooltip 
-                          title={
-                            organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)
-                              ? 'To cancel your subscription head over to stripe' 
-                              : ''
-                          }
-                          arrow
-                          placement="bottom"
-                        >
-                          <span style={{ width: '100%', display: 'block' }}>
-                            <Button
-                              variant="contained"
-                              fullWidth
-                              size="medium"
-                              onClick={() => handleSubscribe(tier.id)}
-                              disabled={organizationTierId === tier.id || (tier.id === 1 && organizationTierId !== 1)}
-                              endIcon={<ArrowForwardIcon />}
-                              disableRipple={true}
-                              sx={{
-                                bgcolor: 'primary.main',
-                                '&:hover': {
-                                  bgcolor: 'primary.dark',
-                                  transform: 'scale(1.02)',
-                                },
-                                transition: 'all 0.15s ease-in-out',
-                              }}
-                            >
-                              {organizationTierId === tier.id ? 'Current Plan' : (tier.id === 1 && organizationTierId !== 1) ? 'Not Available' : 'Subscribe'}
-                            </Button>
-                          </span>
-                        </Tooltip>
+                        {/* Hide button for Free tier if organizationTierId is not 1 */}
+                        {tier.id === 1 && organizationTierId !== 1 ? null : (
+                          <Tooltip 
+                            title={
+                              organizationTierId === tier.id
+                                ? 'To cancel your subscription head over to stripe' 
+                                : ''
+                            }
+                            arrow
+                            placement="bottom"
+                          >
+                            <span style={{ width: '100%', display: 'block' }}>
+                              <Button
+                                variant="contained"
+                                fullWidth
+                                size="medium"
+                                onClick={() => handleSubscribe(tier.id)}
+                                disabled={organizationTierId === tier.id}
+                                endIcon={<ArrowForwardIcon />}
+                                disableRipple={true}
+                                sx={{
+                                  bgcolor: 'primary.main',
+                                  '&:hover': {
+                                    bgcolor: 'primary.dark',
+                                    transform: 'scale(1.02)',
+                                  },
+                                  transition: 'all 0.15s ease-in-out',
+                                }}
+                              >
+                                {organizationTierId === tier.id ? 'Current Plan' : 'Subscribe'}
+                              </Button>
+                            </span>
+                          </Tooltip>
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>

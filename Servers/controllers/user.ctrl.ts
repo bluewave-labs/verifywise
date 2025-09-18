@@ -38,6 +38,7 @@ import { logEvent } from "../utils/logger/dbLogger";
 import { OAuth2Client } from "google-auth-library";
 import { generateUserTokens } from "../utils/auth.utils";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { generateUserTokens } from "../utils/auth.utils";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');

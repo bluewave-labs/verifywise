@@ -30,7 +30,7 @@ export enum TaskPriority {
 
 export enum TaskStatus {
   OPEN = "Open",
-  IN_PROGRESS = "In Progress",
+  IN_PROGRESS = "In progress",
   COMPLETED = "Completed",
   OVERDUE = "Overdue",
 }

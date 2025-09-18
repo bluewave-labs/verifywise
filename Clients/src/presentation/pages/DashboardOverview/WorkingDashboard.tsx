@@ -21,6 +21,9 @@ import { ReactComponent as RightArrow } from '../../assets/icons/right-arrow.svg
 import StatusDonutChart, { StatusData } from '../../components/Charts/StatusDonutChart';
 import { getDefaultStatusDistribution } from '../../utils/statusColors';
 import { getDistributionSummary, getQuickStats, hasCriticalItems, getPriorityLevel } from '../../utils/cardEnhancements';
+import PageHeader from '../../components/Layout/PageHeader';
+
+const Alert = lazy(() => import('../../components/Alert'));
 
 const Alert = lazy(() => import('../../components/Alert'));
 
@@ -347,7 +350,11 @@ const WorkingDashboard: React.FC = () => {
           </Typography>
         </Stack>
 
-        <Grid container spacing={3}>
+           <PageHeader
+                title=""
+                description=""
+            />
+        <Grid container spacing={3} pt={4}>    
           {/* Key Metrics Cards */}
           <Grid item xs={12}>
             <Typography 

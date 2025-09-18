@@ -24,7 +24,7 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
 import { SelectProps } from "../../../../domain/interfaces/iWidget";
 
 const Select: React.FC<SelectProps> = ({
@@ -92,10 +92,14 @@ const Select: React.FC<SelectProps> = ({
     >
       {label && (
         <Typography
+          component="p"
+          variant="body1"
           color={theme.palette.text.secondary}
           fontWeight={500}
-          fontSize={13}
+          fontSize={"13px"}
           sx={{
+            margin: 0,
+            height: '22px',
             display: "flex",
             alignItems: "center",
           }}
@@ -119,7 +123,7 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         renderValue={renderValue}
-        IconComponent={KeyboardArrowDownIcon}
+        IconComponent={GreyDownArrowIcon}
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
@@ -156,9 +160,6 @@ const Select: React.FC<SelectProps> = ({
           },
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,
-          },
-          "& svg path": {
-            fill: theme.palette.other.icon,
           },
           ...sx,
         }}

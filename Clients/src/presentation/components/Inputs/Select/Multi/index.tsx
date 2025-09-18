@@ -11,7 +11,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import "./index.css";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+
 
 interface CustomizableMultiSelectProps {
   label: string;
@@ -112,7 +113,7 @@ const CustomizableMultiSelect = ({
         multiple
         displayEmpty
         renderValue={renderValue}
-        IconComponent={KeyboardArrowDownIcon}
+        IconComponent={GreyDownArrowIcon}
         error={!!error}
         MenuProps={{
           disableScrollLock: true,

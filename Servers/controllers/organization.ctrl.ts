@@ -25,6 +25,7 @@ import { OAuth2Client } from "google-auth-library";
 import { generateUserTokens } from "../utils/auth.utils";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { generateUserTokens } from "../utils/auth.utils";
 
 /**
  * Get all organizations

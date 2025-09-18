@@ -20,6 +20,7 @@ import allowedRoles from "../../../application/constants/permissions";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import { useAuth } from "../../../application/hooks/useAuth";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
 
 //const Alert = lazy(() => import("../../../components/Alert"));
 
@@ -53,7 +54,7 @@ interface TrainingTableProps {
   paginated?: boolean;
 }
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 const StatusBadge: React.FC<{ status: IAITraining["status"] }> = ({
   status,
@@ -94,7 +95,9 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('trainingRegistry', DEFAULT_ROWS_PER_PAGE)
+  );
 
   const isDeletingAllowed =
     allowedRoles.training?.delete?.includes(userRoleName);
@@ -105,7 +108,9 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('trainingRegistry', newRowsPerPage);
       setPage(0);
     },
     []

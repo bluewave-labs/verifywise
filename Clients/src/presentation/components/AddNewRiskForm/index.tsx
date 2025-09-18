@@ -84,6 +84,8 @@ const riskInitialState: RiskFormValues = {
   riskSeverity: 1 as Severity,
   riskLevel: 0,
   reviewNotes: "",
+  applicableProjects: [],
+  applicableFrameworks: [],
 };
 
 const mitigationInitialState: MitigationFormValues = {

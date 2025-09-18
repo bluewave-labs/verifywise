@@ -24,6 +24,8 @@ import { RiskFormValues, RiskFormErrors } from "../interface";
 import { aiLifecyclePhase, riskCategoryItems } from "../projectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
 import useUsers from "../../../../application/hooks/useUsers";
+import useProjects from "../../../../application/hooks/useProjects";
+import useFrameworks from "../../../../application/hooks/useFrameworks";
 import allowedRoles from "../../../../application/constants/permissions";
 import styles from "../styles.module.css";
 
@@ -116,6 +118,8 @@ const RiskSection: FC<RiskSectionProps> = ({
 
   const [alert, setAlert] = useState<alertState | null>(null);
   const { users, loading: usersLoading } = useUsers();
+  const { projects, loading: projectsLoading } = useProjects();
+  const { frameworks, loading: frameworksLoading } = useFrameworks();
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -366,6 +370,228 @@ const RiskSection: FC<RiskSectionProps> = ({
                 }}
                 disabled={isEditingDisabled}
               />
+            </Stack>
+          </Stack>
+        </Stack>
+
+        <Divider />
+        {/* Risk Scope & Frameworks Section */}
+        <Stack
+          sx={{
+            mt: 6.5,
+            p: 3,
+            backgroundColor: "#f8f9fa",
+            borderRadius: "8px",
+            border: "1px solid #e9ecef",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: 16,
+              fontWeight: 600,
+              mb: 3,
+              color: "#495057",
+            }}
+          >
+            Risk Scope & Frameworks
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: theme.typography.fontSize,
+              mb: 3,
+              color: "#6c757d",
+            }}
+          >
+            Define the scope of this risk by selecting applicable projects and frameworks.
+          </Typography>
+
+          <Stack sx={{ gap: 8.5 }}>
+            {/* Applicable Projects */}
+            <Stack>
+              <Typography
+                sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
+              >
+                Applicable Projects
+              </Typography>
+              <Autocomplete
+                multiple
+                readOnly={isEditingDisabled}
+                id="applicable-projects-input"
+                size="small"
+                value={
+                  projectsLoading || !projects?.length
+                    ? []
+                    : projects.filter((project) =>
+                        riskValues.applicableProjects.includes(project.id)
+                      )
+                }
+                options={projects || []}
+                getOptionLabel={(project) => project.name}
+                renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
+                  return (
+                    <Box key={key} component="li" {...optionProps}>
+                      <Typography sx={{ fontSize: FORM_STYLES.fontSize }}>
+                        {option.name}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                popupIcon={<GreyDownArrowIcon />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select Applicable Projects"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        paddingTop: `${FORM_STYLES.chipPadding} !important`,
+                        paddingBottom: `${FORM_STYLES.chipPadding} !important`,
+                      },
+                      "& ::placeholder": {
+                        fontSize: FORM_STYLES.fontSize,
+                      },
+                    }}
+                  />
+                )}
+                onChange={handleOnMultiselectChange("applicableProjects")}
+                sx={{
+                  ...autocompleteStyles,
+                  "& .MuiChip-root": {
+                    "& .MuiChip-deleteIcon": {
+                      display: "flex",
+                    },
+                  },
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      "& .MuiAutocomplete-listbox": {
+                        "& .MuiAutocomplete-option": {
+                          fontSize: FORM_STYLES.fontSize,
+                          color: FORM_STYLES.textColor,
+                          paddingLeft: FORM_STYLES.padding,
+                          paddingRight: FORM_STYLES.padding,
+                        },
+                        "& .MuiAutocomplete-option.Mui-focused": {
+                          background: FORM_STYLES.focusedBackground,
+                        },
+                      },
+                      "& .MuiAutocomplete-noOptions": {
+                        fontSize: FORM_STYLES.fontSize,
+                        paddingLeft: FORM_STYLES.padding,
+                        paddingRight: FORM_STYLES.padding,
+                      },
+                    },
+                  },
+                }}
+                disabled={projectsLoading}
+              />
+              {riskErrors.applicableProjects && (
+                <Typography
+                  sx={{
+                    color: theme.palette.error.main,
+                    fontSize: "12px",
+                    mt: 0.5,
+                    ml: 1.75,
+                  }}
+                >
+                  {riskErrors.applicableProjects}
+                </Typography>
+              )}
+            </Stack>
+
+            {/* Applicable Frameworks */}
+            <Stack>
+              <Typography
+                sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
+              >
+                Applicable Frameworks
+              </Typography>
+              <Autocomplete
+                multiple
+                readOnly={isEditingDisabled}
+                id="applicable-frameworks-input"
+                size="small"
+                value={
+                  frameworksLoading || !frameworks?.length
+                    ? []
+                    : frameworks.filter((framework) =>
+                        riskValues.applicableFrameworks.includes(framework.id)
+                      )
+                }
+                options={frameworks || []}
+                getOptionLabel={(framework) => framework.name}
+                renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
+                  return (
+                    <Box key={key} component="li" {...optionProps}>
+                      <Typography sx={{ fontSize: FORM_STYLES.fontSize }}>
+                        {option.name}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                popupIcon={<GreyDownArrowIcon />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select Applicable Frameworks"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        paddingTop: `${FORM_STYLES.chipPadding} !important`,
+                        paddingBottom: `${FORM_STYLES.chipPadding} !important`,
+                      },
+                      "& ::placeholder": {
+                        fontSize: FORM_STYLES.fontSize,
+                      },
+                    }}
+                  />
+                )}
+                onChange={handleOnMultiselectChange("applicableFrameworks")}
+                sx={{
+                  ...autocompleteStyles,
+                  "& .MuiChip-root": {
+                    "& .MuiChip-deleteIcon": {
+                      display: "flex",
+                    },
+                  },
+                }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      "& .MuiAutocomplete-listbox": {
+                        "& .MuiAutocomplete-option": {
+                          fontSize: FORM_STYLES.fontSize,
+                          color: FORM_STYLES.textColor,
+                          paddingLeft: FORM_STYLES.padding,
+                          paddingRight: FORM_STYLES.padding,
+                        },
+                        "& .MuiAutocomplete-option.Mui-focused": {
+                          background: FORM_STYLES.focusedBackground,
+                        },
+                      },
+                      "& .MuiAutocomplete-noOptions": {
+                        fontSize: FORM_STYLES.fontSize,
+                        paddingLeft: FORM_STYLES.padding,
+                        paddingRight: FORM_STYLES.padding,
+                      },
+                    },
+                  },
+                }}
+                disabled={frameworksLoading}
+              />
+              {riskErrors.applicableFrameworks && (
+                <Typography
+                  sx={{
+                    color: theme.palette.error.main,
+                    fontSize: "12px",
+                    mt: 0.5,
+                    ml: 1.75,
+                  }}
+                >
+                  {riskErrors.applicableFrameworks}
+                </Typography>
+              )}
             </Stack>
           </Stack>
         </Stack>

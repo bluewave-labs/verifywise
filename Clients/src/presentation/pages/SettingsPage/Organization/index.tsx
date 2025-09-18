@@ -420,13 +420,13 @@ const Organization = () => {
               sx={{
                 width: 90,
                 backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                border: "1px solid",
                 gap: 2,
                 mt: 3,
               }}
               icon={
                 isLoading ? (
-                  <CircularProgress size={20} sx={{ color: "#13715B" }} />
+                  <CircularProgress size={20} />
                 ) : (
                   <SaveIconSVGWhite />
                 )

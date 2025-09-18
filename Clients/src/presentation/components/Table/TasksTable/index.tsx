@@ -27,30 +27,28 @@ import RiskChip from "../../RiskLevel/RiskChip";
 // Status display mapping
 const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.OPEN]: "Open",
-  [TaskStatus.IN_PROGRESS]: "In progress", 
+  [TaskStatus.IN_PROGRESS]: "In progress",
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
-  "In Progress": "In progress",  // Handle API response
+  "In Progress": "In progress", // Handle API response
 };
 
 // Reverse mapping for API calls
 const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
-  "Open": "Open",
+  Open: "Open",
   "In progress": "In Progress",
-  "Completed": "Completed", 
-  "Overdue": "Overdue"
+  Completed: "Completed",
+  Overdue: "Overdue",
 };
-
 
 const titleOfTableColumns = [
   "Task",
   "Priority",
-  "Status", 
+  "Status",
   "Due date",
   "Assignees",
   "Actions",
 ];
-
 
 interface TasksTableProps {
   tasks: ITask[];
@@ -91,13 +89,9 @@ const TasksTable: React.FC<TasksTableProps> = ({
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
-    const end = Math.min(
-      page * rowsPerPage + rowsPerPage,
-      tasks?.length ?? 0
-    );
+    const end = Math.min(page * rowsPerPage + rowsPerPage, tasks?.length ?? 0);
     return `${start} - ${end}`;
   }, [page, rowsPerPage, tasks?.length ?? 0]);
-
 
   const tableBody = useMemo(
     () => (
@@ -113,9 +107,9 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Task Name */}
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <Box>
-                    <Typography 
+                    <Typography
                       variant="body2"
-                      sx={{ textTransform: 'capitalize' }}
+                      sx={{ textTransform: "capitalize" }}
                     >
                       {task.title}
                     </Typography>
@@ -126,11 +120,11 @@ const TasksTable: React.FC<TasksTableProps> = ({
                             key={category}
                             label={category}
                             size="small"
-                            sx={{ 
-                              fontSize: 10, 
+                            sx={{
+                              fontSize: 10,
                               height: 20,
-                              backgroundColor: '#f0f9ff',
-                              color: '#0369a1'
+                              backgroundColor: "#f0f9ff",
+                              color: "#0369a1",
                             }}
                           />
                         ))}
@@ -138,11 +132,11 @@ const TasksTable: React.FC<TasksTableProps> = ({
                           <Chip
                             label={`+${task.categories.length - 2}`}
                             size="small"
-                            sx={{ 
-                              fontSize: 10, 
+                            sx={{
+                              fontSize: 10,
                               height: 20,
-                              backgroundColor: '#f3f4f6',
-                              color: '#6b7280'
+                              backgroundColor: "#f3f4f6",
+                              color: "#6b7280",
                             }}
                           />
                         )}
@@ -159,9 +153,12 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 {/* Status */}
                 <TableCell sx={cellStyle}>
                   <CustomSelect
-                    currentValue={STATUS_DISPLAY_MAP[task.status] || task.status}
+                    currentValue={
+                      STATUS_DISPLAY_MAP[task.status] || task.status
+                    }
                     onValueChange={async (displayValue: string) => {
-                      const apiValue = DISPLAY_TO_STATUS_MAP[displayValue] || displayValue;
+                      const apiValue =
+                        DISPLAY_TO_STATUS_MAP[displayValue] || displayValue;
                       return await onStatusChange(task.id!)(apiValue);
                     }}
                     options={statusOptions}
@@ -174,26 +171,28 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 <TableCell sx={cellStyle}>
                   {task.due_date ? (
                     <Stack direction="row" spacing={3} alignItems="center">
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
+                      <Typography
+                        variant="body2"
+                        sx={{
                           fontSize: 13,
-                          color: task.isOverdue ? '#dc2626' : 'text.secondary',
-                          fontWeight: task.isOverdue ? 500 : 400
+                          color: task.isOverdue ? "#dc2626" : "text.secondary",
+                          fontWeight: task.isOverdue ? 500 : 400,
                         }}
                       >
-                        {new Date(task.due_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
+                        {new Date(task.due_date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
                         })}
                       </Typography>
-                      {task.isOverdue && (
-                        <RiskChip label="Overdue" />
-                      )}
+                      {task.isOverdue && <RiskChip label="Overdue" />}
                     </Stack>
                   ) : (
-                    <Typography variant="body2" color="text.disabled" sx={{ fontSize: 13 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.disabled"
+                      sx={{ fontSize: 13 }}
+                    >
                       No due date
                     </Typography>
                   )}
@@ -204,26 +203,30 @@ const TasksTable: React.FC<TasksTableProps> = ({
                   {task.assignees && task.assignees.length > 0 ? (
                     <Stack direction="row" spacing={0.5}>
                       {task.assignees.slice(0, 3).map((assigneeId, idx) => {
-                        const user = users.find(u => u.id === Number(assigneeId));
-                        const initials = user 
-                          ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
-                          : '?';
-                        
+                        const user = users.find(
+                          (u) => u.id === Number(assigneeId)
+                        );
+                        const initials = user
+                          ? `${user.name.charAt(0)}${user.surname.charAt(
+                              0
+                            )}`.toUpperCase()
+                          : "?";
+
                         return (
                           <Box
                             key={idx}
                             sx={{
                               width: 28,
                               height: 28,
-                              borderRadius: '50%',
-                              backgroundColor: '#f3f4f6',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
+                              borderRadius: "50%",
+                              backgroundColor: "#f3f4f6",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                               fontSize: 11,
                               fontWeight: 500,
-                              color: '#374151',
-                              border: '2px solid #fff'
+                              color: "#374151",
+                              border: "2px solid #fff",
                             }}
                           >
                             {initials}
@@ -235,15 +238,15 @@ const TasksTable: React.FC<TasksTableProps> = ({
                           sx={{
                             width: 28,
                             height: 28,
-                            borderRadius: '50%',
-                            backgroundColor: '#e5e7eb',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            borderRadius: "50%",
+                            backgroundColor: "#e5e7eb",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             fontSize: 10,
                             fontWeight: 500,
-                            color: '#6b7280',
-                            border: '2px solid #fff'
+                            color: "#6b7280",
+                            border: "2px solid #fff",
                           }}
                         >
                           +{task.assignees.length - 3}
@@ -251,7 +254,11 @@ const TasksTable: React.FC<TasksTableProps> = ({
                       )}
                     </Stack>
                   ) : (
-                    <Typography variant="body2" color="text.disabled" sx={{ fontSize: 13 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.disabled"
+                      sx={{ fontSize: 13 }}
+                    >
                       Unassigned
                     </Typography>
                   )}
@@ -316,25 +323,25 @@ const TasksTable: React.FC<TasksTableProps> = ({
         </Stack>
       ) : (
         <TableContainer>
-          <Table
-            sx={
-              singleTheme.tableStyles.primary.frame
-            }
-          >
+          <Table sx={singleTheme.tableStyles.primary.frame}>
             <TableHeader columns={titleOfTableColumns} />
             {tableBody}
             <TableFooter>
-              <TableRow sx={{
-                  '& .MuiTableCell-root.MuiTableCell-footer': {
+              <TableRow
+                sx={{
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
                     paddingX: theme.spacing(8),
                     paddingY: theme.spacing(4),
-                  }}}>
+                  },
+                }}
+              >
                 <TableCell
-                  sx={{ 
+                  sx={{
                     paddingX: theme.spacing(2),
                     fontSize: 13,
-                    opacity: 0.7 }}
-                  >
+                    opacity: 0.7,
+                  }}
+                >
                   Showing {getRange} of {tasks?.length} task(s)
                 </TableCell>
                 <TablePagination

@@ -8,13 +8,10 @@ import {
   Paper,
   Chip,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   TextField,
   Autocomplete,
+  Divider,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
@@ -47,6 +44,7 @@ import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
 import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
+import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import {
   vwhomeHeading,
   vwhomeHeaderCards,
@@ -69,9 +67,9 @@ const TASK_STATUS_OPTIONS = [
 // Status display mapping
 const STATUS_DISPLAY_MAP = {
   [TaskStatus.OPEN]: "Open",
-  [TaskStatus.IN_PROGRESS]: "In progress", 
+  [TaskStatus.IN_PROGRESS]: "In progress",
   [TaskStatus.COMPLETED]: "Completed",
-  [TaskStatus.OVERDUE]: "Overdue"
+  [TaskStatus.OVERDUE]: "Overdue",
 };
 
 // Reverse mapping for API calls
@@ -167,13 +165,20 @@ const Tasks: React.FC = () => {
   }, [searchQuery]);
 
   // Calculate summary from tasks data
-  const summary: TaskSummary = useMemo(() => ({
-    total: tasks.length,
-    open: tasks.filter(task => task.status === "Open").length,
-    inProgress: tasks.filter(task => (task.status as string) === "In progress" || (task.status as string) === "In Progress").length,
-    completed: tasks.filter(task => task.status === "Completed").length,
-    overdue: tasks.filter(task => task.isOverdue === true).length,
-  }), [tasks]);
+  const summary: TaskSummary = useMemo(
+    () => ({
+      total: tasks.length,
+      open: tasks.filter((task) => task.status === "Open").length,
+      inProgress: tasks.filter(
+        (task) =>
+          (task.status as string) === "In progress" ||
+          (task.status as string) === "In Progress"
+      ).length,
+      completed: tasks.filter((task) => task.status === "Completed").length,
+      overdue: tasks.filter((task) => task.isOverdue === true).length,
+    }),
+    [tasks]
+  );
 
   // Fetch tasks when component mounts or any filter changes
   useEffect(() => {
@@ -183,41 +188,58 @@ const Tasks: React.FC = () => {
         setError(null); // Clear previous errors
         // Filter out "Overdue" from status filters for API call since it's computed
         const apiStatusFilters = statusFilters
-          .filter(status => status !== TaskStatus.OVERDUE)
-          .map(status => {
+          .filter((status) => status !== TaskStatus.OVERDUE)
+          .map((status) => {
             // Convert display values to API values
             if (status === "In progress") return "In Progress";
             return status;
           }) as string[];
-        
+
         const response = await getAllTasks({
           search: debouncedSearchQuery || undefined,
-          status: apiStatusFilters.length > 0 ? (apiStatusFilters as any) : undefined,
+          status:
+            apiStatusFilters.length > 0 ? (apiStatusFilters as any) : undefined,
           priority: priorityFilters.length > 0 ? priorityFilters : undefined,
           assignee: assigneeFilters.length > 0 ? assigneeFilters : undefined,
           category: categoryFilters.length > 0 ? categoryFilters : undefined,
           due_date_start: dueDateFrom || undefined,
           due_date_end: dueDateTo || undefined,
           include_archived: includeArchived || undefined,
-          ...(sortBy !== 'Priority' && {
-            sort_by: sortBy === 'Newest' ? 'created_at' : sortBy === 'Oldest' ? 'created_at' : sortBy === 'Due date' ? 'due_date' : 'created_at',
-            sort_order: sortBy === 'Oldest' ? 'ASC' : sortBy === 'Due date' ? 'ASC' : 'DESC'
-          })
+          ...(sortBy !== "Priority" && {
+            sort_by:
+              sortBy === "Newest"
+                ? "created_at"
+                : sortBy === "Oldest"
+                ? "created_at"
+                : sortBy === "Due date"
+                ? "due_date"
+                : "created_at",
+            sort_order:
+              sortBy === "Oldest"
+                ? "ASC"
+                : sortBy === "Due date"
+                ? "ASC"
+                : "DESC",
+          }),
         });
 
         let filteredTasks = response?.data?.tasks || [];
-        
+
         // Apply frontend filtering for "Overdue" status
         if (statusFilters.includes(TaskStatus.OVERDUE)) {
-          filteredTasks = filteredTasks.filter((task: ITask) => task.isOverdue === true);
+          filteredTasks = filteredTasks.filter(
+            (task: ITask) => task.isOverdue === true
+          );
         }
 
         // Handle priority sorting on frontend to avoid SQL error
-        if (sortBy === 'Priority') {
-          const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+        if (sortBy === "Priority") {
+          const priorityOrder = { High: 3, Medium: 2, Low: 1 };
           filteredTasks = filteredTasks.sort((a: ITask, b: ITask) => {
-            const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
-            const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+            const priorityA =
+              priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+            const priorityB =
+              priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
             return priorityB - priorityA; // DESC order (High to Low)
           });
         }
@@ -232,7 +254,17 @@ const Tasks: React.FC = () => {
       }
     };
     fetchTasks();
-  }, [debouncedSearchQuery, statusFilters, priorityFilters, assigneeFilters, categoryFilters, dueDateFrom, dueDateTo, includeArchived, sortBy]);
+  }, [
+    debouncedSearchQuery,
+    statusFilters,
+    priorityFilters,
+    assigneeFilters,
+    categoryFilters,
+    dueDateFrom,
+    dueDateTo,
+    includeArchived,
+    sortBy,
+  ]);
 
   const handleCreateTask = () => {
     if (isCreatingDisabled) {
@@ -326,7 +358,8 @@ const Tasks: React.FC = () => {
 
   return (
     <div className="tasks-page">
-      <PageBreadcrumbs />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45, ml: 3 }} > <PageBreadcrumbs /> </Stack>
+      <Divider sx={{ mb: 2, ml: 3, mr: 5}}/>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -366,94 +399,104 @@ const Tasks: React.FC = () => {
           </Stack>
         </Stack>
 
-      {/* Header Cards */}
-      <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
-        <HeaderCard title="Tasks" count={summary.total} />
-        <HeaderCard title="Overdue" count={summary.overdue} />
-        <HeaderCard title="In progress" count={summary.inProgress} />
-        <HeaderCard title="Completed" count={summary.completed} />
-      </Stack>
-
-      {/* Search, Filter, and Sort Controls  */}
-      <Box sx={{ mt: 6, mb: 6 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box sx={searchBoxStyle}>
-            <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
-            <InputBase
-              placeholder="Search tasks by title or description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={searchInputStyle}
-              inputProps={{ "aria-label": "Search tasks" }}
-            />
-          </Box>
-          
-          <Stack direction="row" spacing={3} alignItems="center">
-            <CustomSelect
-              currentValue={sortBy}
-              onValueChange={async (newSort: string) => {
-                setSortBy(newSort);
-                return true;
-              }}
-              options={["Newest", "Oldest", "Priority", "Due date"]}
-              sx={{ minWidth: 150 }}
-            />
-          </Stack>
+        {/* Header Cards */}
+        <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
+          <HeaderCard title="Tasks" count={summary.total} />
+          <HeaderCard title="Overdue" count={summary.overdue} />
+          <HeaderCard title="In progress" count={summary.inProgress} />
+          <HeaderCard title="Completed" count={summary.completed} />
         </Stack>
-        
-        <Paper 
-          elevation={0}
-          sx={{ 
-            mb: 2,
-            mt: 6,
-            border: "1px solid #E5E7EB",
-            borderRadius: 2,
-            backgroundColor: "transparent",
-            boxShadow: "none",
-          }}
-        >
-          {/* Filter Header */}
-          <Box 
-            sx={{ 
-              p: 2, 
-              borderBottom: filtersExpanded ? "1px solid #E5E7EB" : "none",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              cursor: "pointer",
-            }}
-            onClick={() => handleExpandedChange(!filtersExpanded)}
+
+        {/* Search, Filter, and Sort Controls  */}
+        <Box sx={{ mt: 6, mb: 6 }}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
           >
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <FilterIcon style={{ color: "#13715B", width: "20px", height: "20px" }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
-                Filters
-              </Typography>
-              {activeFilterCount > 0 && (
-                <Chip
-                  label={activeFilterCount}
-                  size="small"
-                  sx={{
-                    backgroundColor: "#13715B",
-                    color: "white",
-                    fontWeight: 600,
-                    minWidth: 20,
-                    height: 20,
-                    "& .MuiChip-label": {
-                      px: 1,
-                      fontSize: 11,
-                    },
-                  }}
-                />
-              )}
+            <Box sx={searchBoxStyle}>
+              <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
+              <InputBase
+                placeholder="Search tasks by title or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={searchInputStyle}
+                inputProps={{ "aria-label": "Search tasks" }}
+              />
+            </Box>
+
+            <Stack direction="row" spacing={3} alignItems="center">
+              <CustomSelect
+                currentValue={sortBy}
+                onValueChange={async (newSort: string) => {
+                  setSortBy(newSort);
+                  return true;
+                }}
+                options={["Newest", "Oldest", "Priority", "Due date"]}
+                sx={{ minWidth: 150 }}
+              />
             </Stack>
+          </Stack>
+
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 2,
+              mt: 6,
+              border: "1px solid #E5E7EB",
+              borderRadius: 2,
+              backgroundColor: "transparent",
+              boxShadow: "none",
+            }}
+          >
+            {/* Filter Header */}
+            <Box
+              sx={{
+                p: 2,
+                borderBottom: filtersExpanded ? "1px solid #E5E7EB" : "none",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+              onClick={() => handleExpandedChange(!filtersExpanded)}
+            >
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <FilterIcon
+                  style={{ color: "#13715B", width: "20px", height: "20px" }}
+                />
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 600, color: "#1A1919" }}
+                >
+                  Filters
+                </Typography>
+                {activeFilterCount > 0 && (
+                  <Chip
+                    label={activeFilterCount}
+                    size="small"
+                    sx={{
+                      backgroundColor: "#13715B",
+                      color: "white",
+                      fontWeight: 600,
+                      minWidth: 20,
+                      height: 20,
+                      "& .MuiChip-label": {
+                        px: 1,
+                        fontSize: 11,
+                      },
+                    }}
+                  />
+                )}
+              </Stack>
 
               <Stack direction="row" alignItems="center" spacing={1}>
                 {activeFilterCount > 0 && (
                   <Button
                     size="small"
                     startIcon={<ClearIcon />}
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       clearAllFilters();
                     }}
@@ -502,49 +545,55 @@ const Tasks: React.FC = () => {
                   sx={{ width: 140 }}
                 />
 
-                <Select
-                  id="priority-filter"
-                  label="Priority"
-                  value={priorityFilters.length > 0 ? priorityFilters[0] : "all"}
-                  items={[
-                    { _id: "all", name: "All Priorities" },
-                    ...Object.values(TaskPriority).map((priority) => ({
-                      _id: priority,
-                      name: priority,
-                    })),
-                  ]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "all") {
-                      setPriorityFilters([]);
-                    } else {
-                      setPriorityFilters([value as TaskPriority]);
+                  <Select
+                    id="priority-filter"
+                    label="Priority"
+                    value={
+                      priorityFilters.length > 0 ? priorityFilters[0] : "all"
                     }
-                  }}
-                  sx={{ width: 140 }}
-                />
+                    items={[
+                      { _id: "all", name: "All Priorities" },
+                      ...Object.values(TaskPriority).map((priority) => ({
+                        _id: priority,
+                        name: priority,
+                      })),
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setPriorityFilters([]);
+                      } else {
+                        setPriorityFilters([value as TaskPriority]);
+                      }
+                    }}
+                    sx={{ width: 140 }}
+                  />
 
-                <Select
-                  id="assignee-filter"
-                  label="Assignee"
-                  value={assigneeFilters.length > 0 ? assigneeFilters[0].toString() : "all"}
-                  items={[
-                    { _id: "all", name: "All Assignees" },
-                    ...users.map((user) => ({
-                      _id: user.id.toString(),
-                      name: `${user.name} ${user.surname ?? ""}`.trim(),
-                    })),
-                  ]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "all") {
-                      setAssigneeFilters([]);
-                    } else {
-                      setAssigneeFilters([Number(value)]);
+                  <Select
+                    id="assignee-filter"
+                    label="Assignee"
+                    value={
+                      assigneeFilters.length > 0
+                        ? assigneeFilters[0].toString()
+                        : "all"
                     }
-                  }}
-                  sx={{ width: 160 }}
-                />
+                    items={[
+                      { _id: "all", name: "All Assignees" },
+                      ...users.map((user) => ({
+                        _id: user.id.toString(),
+                        name: `${user.name} ${user.surname ?? ""}`.trim(),
+                      })),
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setAssigneeFilters([]);
+                      } else {
+                        setAssigneeFilters([Number(value)]);
+                      }
+                    }}
+                    sx={{ width: 160 }}
+                  />
 
                 <Stack
                   gap={2}
@@ -647,84 +696,88 @@ const Tasks: React.FC = () => {
                   />
                 </Stack>
 
-                <DatePicker
-                  label="From"
-                  date={dueDateFrom ? dayjs(dueDateFrom) : null}
-                  handleDateChange={handleDateFromChange}
-                  sx={{ 
-                    width: 140,
-                    "& > p": {
-                      marginBottom: "-3px !important"
-                    }
-                  }}
-                />
-                
-                <DatePicker
-                  label="To"
-                  date={dueDateTo ? dayjs(dueDateTo) : null}
-                  handleDateChange={handleDateToChange}
-                  sx={{ 
-                    width: 140,
-                    "& > p": {
-                      marginBottom: "-3px !important"
-                    }
-                  }}
-                />
+                  <DatePicker
+                    label="From"
+                    date={dueDateFrom ? dayjs(dueDateFrom) : null}
+                    handleDateChange={handleDateFromChange}
+                    sx={{
+                      width: 140,
+                      "& > p": {
+                        marginBottom: "-3px !important",
+                      },
+                    }}
+                  />
 
-                <Stack direction="column" spacing={1}>
-                  <Typography 
-                    component="p"
-                    variant="body1"
-                    color="text.secondary"
-                    fontWeight={500}
-                    fontSize={"13px"}
-                    sx={{ margin: 0, height: '22px', mb: 2 }}
-                  >
-                    Include archived
-                  </Typography>
-                  <Box sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    minHeight: "34px"
-                  }}>
-                    <Toggle
-                      checked={includeArchived}
-                      onChange={(checked) => setIncludeArchived(checked)}
-                    />
-                  </Box>
+                  <DatePicker
+                    label="To"
+                    date={dueDateTo ? dayjs(dueDateTo) : null}
+                    handleDateChange={handleDateToChange}
+                    sx={{
+                      width: 140,
+                      "& > p": {
+                        marginBottom: "-3px !important",
+                      },
+                    }}
+                  />
+
+                  <Stack direction="column" spacing={1}>
+                    <Typography
+                      component="p"
+                      variant="body1"
+                      color="text.secondary"
+                      fontWeight={500}
+                      fontSize={"13px"}
+                      sx={{ margin: 0, height: "22px", mb: 2 }}
+                    >
+                      Include archived
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        minHeight: "34px",
+                      }}
+                    >
+                      <Toggle
+                        checked={includeArchived}
+                        onChange={(checked) => setIncludeArchived(checked)}
+                      />
+                    </Box>
+                  </Stack>
                 </Stack>
-              </Stack>
-            </Box>
-          </Collapse>
-        </Paper>
-      </Box>
+              </Box>
+            </Collapse>
+          </Paper>
+        </Box>
 
-      {/* Content Area */}
-      <Box sx={{ mt: 6 }}>
-        {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <Typography>Loading tasks...</Typography>
-          </Box>
-        )}
-        
-        {error && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <Typography color="error">{error}</Typography>
-          </Box>
-        )}
-        
-        {!isLoading && !error && (
-          <TasksTable
-            tasks={tasks}
-            users={users}
-            onArchive={handleDeleteTask}
-            onEdit={handleEditTask}
-            onStatusChange={handleTaskStatusChange}
-            statusOptions={TASK_STATUS_OPTIONS.map(status => STATUS_DISPLAY_MAP[status as TaskStatus] || status)}
-            isUpdateDisabled={isCreatingDisabled}
-          />
-        )}
-      </Box>
+        {/* Content Area */}
+        <Box sx={{ mt: 6 }}>
+          {isLoading && (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <Typography>Loading tasks...</Typography>
+            </Box>
+          )}
+
+          {error && (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <Typography color="error">{error}</Typography>
+            </Box>
+          )}
+
+          {!isLoading && !error && (
+            <TasksTable
+              tasks={tasks}
+              users={users}
+              onArchive={handleDeleteTask}
+              onEdit={handleEditTask}
+              onStatusChange={handleTaskStatusChange}
+              statusOptions={TASK_STATUS_OPTIONS.map(
+                (status) => STATUS_DISPLAY_MAP[status as TaskStatus] || status
+              )}
+              isUpdateDisabled={isCreatingDisabled}
+            />
+          )}
+        </Box>
 
         {/* Create Task Modal */}
         <CreateTask
@@ -733,48 +786,35 @@ const Tasks: React.FC = () => {
           onSuccess={handleTaskCreated}
         />
 
-      {/* Edit Task Modal */}
-      {editingTask && (
-        <CreateTask
-          isOpen={!!editingTask}
-          setIsOpen={(open) => !open && setEditingTask(null)}
-          onSuccess={handleUpdateTask}
-          initialData={editingTask}
-          mode="edit"
+        {/* Edit Task Modal */}
+        {editingTask && (
+          <CreateTask
+            isOpen={!!editingTask}
+            setIsOpen={(open) => !open && setEditingTask(null)}
+            onSuccess={handleUpdateTask}
+            initialData={editingTask}
+            mode="edit"
+          />
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        <DualButtonModal
+          title="Archive Task"
+          body={
+            <Typography fontSize={13}>
+              Are you sure you want to archive "{taskToDelete?.title}"? You can
+              restore it later by using the "Include archived" toggle.
+            </Typography>
+          }
+          cancelText="Cancel"
+          proceedText="Archive"
+          onCancel={() => setDeleteConfirmOpen(false)}
+          onProceed={confirmDeleteTask}
+          proceedButtonColor="warning"
+          proceedButtonVariant="contained"
+          isOpen={deleteConfirmOpen}
+          TitleFontSize={0}
         />
-      )}
-
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Archive Task</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to archive "{taskToDelete?.title}"? You can restore it later by using the "Show all tasks" toggle.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setDeleteConfirmOpen(false)}
-            color="inherit"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={confirmDeleteTask}
-            color="warning"
-            variant="contained"
-          >
-            Archive
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       </Box>
     </div>
   );

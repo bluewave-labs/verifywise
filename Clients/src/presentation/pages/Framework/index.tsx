@@ -21,7 +21,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
-import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import useFrameworks from "../../../application/hooks/useFrameworks";
 import TabContext from "@mui/lab/TabContext";
@@ -41,6 +40,8 @@ import { deleteProject } from "../../../application/repository/project.repositor
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useSearchParams } from "react-router-dom";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageHeader from "../../components/Layout/PageHeader";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -554,20 +555,22 @@ const Framework = () => {
         helpContent={organizationalFrameworksHelpContent}
         pageTitle="Organizational Frameworks"
       />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
       <Stack>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={vwhomeHeading}>Framework</Typography>
-          <HelperIcon
-            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-            size="small"
-          />
-        </Stack>
-        <Typography sx={singleTheme.textStyles.pageDescription}>
-          This page provides an overview of available AI compliance frameworks.
-          Explore different frameworks to understand their requirements and
-          implementation guidelines.
-        </Typography>
-
+      <PageHeader
+               title="Framework"
+               description="This page provides an overview of available AI compliance frameworks.
+              Explore different frameworks to understand their requirements and
+              implementation guidelines."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+       />
         {/* Conditional Button Section */}
         <Box
           sx={{

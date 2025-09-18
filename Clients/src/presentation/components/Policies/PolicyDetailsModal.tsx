@@ -22,6 +22,21 @@ import {
   LooksOne,
   LooksTwo,
   Looks3,
+  StrikethroughS,
+  FormatListNumbered,
+  Code,
+  FormatListBulleted,
+  CodeOff,
+  CheckBox,
+  FormatAlignLeft,
+  FormatAlignCenter,
+  FormatClear,
+  HorizontalRule,
+  Link,
+  FormatAlignRight,
+  Image,
+  Redo,
+  Undo,
 } from "@mui/icons-material";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
@@ -63,25 +78,54 @@ const PolicyDetailModal: React.FC<Props> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   // const [isSubmitting, setIsSubmitting] = useState(false);
   // Track toggle state for toolbar buttons
-  type ToolbarKey =
-    | "bold"
-    | "italic"
-    | "underline"
-    | "h1"
-    | "h2"
-    | "h3"
-    | "blockquote";
-  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>(
-    {
-      bold: false,
-      italic: false,
-      underline: false,
-      h1: false,
-      h2: false,
-      h3: false,
-      blockquote: false,
-    }
-  );
+type ToolbarKey =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "h1"
+  | "h2"
+  | "h3"
+  | "blockquote"
+  | "undo"
+  | "redo"
+  | "strike"
+  | "code"
+  | "codeblock"
+  | "ol"
+  | "ul"
+  | "checklist"
+  | "align-left"
+  | "align-center"
+  | "align-right"
+  | "link"
+  | "image"
+  | "divider"
+  | "clear";
+
+const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
+  bold: false,
+  italic: false,
+  underline: false,
+  h1: false,
+  h2: false,
+  h3: false,
+  blockquote: false,
+  undo: false,
+  redo: false,
+  strike: false,
+  code: false,
+  codeblock: false,
+  ol: false,
+  ul: false,
+  checklist: false,
+  "align-left": false,
+  "align-center": false,
+  "align-right": false,
+  link: false,
+  image: false,
+  divider: false,
+  clear: false,
+});
 
   useModalKeyHandling({
     isOpen: true,
@@ -178,6 +222,37 @@ const PolicyDetailModal: React.FC<Props> = ({
     ],
     value: formData.content || "<p></p>",
   }) as any;
+
+  const toolbarConfig: Array<{
+  key: ToolbarKey;
+  title: string;
+  icon: React.ReactNode;
+  action: () => void;
+}>  = [
+  { key: "undo", title: "Undo", icon: <Undo />, action: () => editor.tf.undo() },
+  { key: "redo", title: "Redo", icon: <Redo />, action: () => editor.tf.redo() },
+  { key: "h1", title: "Heading 1", icon: <LooksOne />, action: () => editor.tf.h1.toggle() },
+  { key: "h2", title: "Heading 2", icon: <LooksTwo />, action: () => editor.tf.h2.toggle() },
+  { key: "h3", title: "Heading 3", icon: <Looks3 />, action: () => editor.tf.h3.toggle() },
+  { key: "bold", title: "Bold", icon: <FormatBold />, action: () => editor.tf.bold.toggle() },
+  { key: "italic", title: "Italic", icon: <FormatItalic />, action: () => editor.tf.italic.toggle() },
+  { key: "underline", title: "Underline", icon: <FormatUnderlined />, action: () => editor.tf.underline.toggle() },
+  { key: "strike", title: "Strikethrough", icon: <StrikethroughS />, action: () => editor.tf.strikethrough.toggle() },
+  { key: "code", title: "Code Inline", icon: <Code />, action: () => editor.tf.code.toggle() },
+  { key: "codeblock", title: "Code Block", icon: <CodeOff />, action: () => editor.tf.code_block.toggle() },
+  { key: "blockquote", title: "Blockquote", icon: <FormatQuote />, action: () => editor.tf.blockquote.toggle() },
+  { key: "ol", title: "Numbered List", icon: <FormatListNumbered />, action: () => editor.tf.ol.toggle() },
+  { key: "ul", title: "Bulleted List", icon: <FormatListBulleted />, action: () => editor.tf.ul.toggle() },
+  { key: "checklist", title: "Checklist", icon: <CheckBox />, action: () => editor.tf.todo.toggle() },
+  { key: "align-left", title: "Align Left", icon: <FormatAlignLeft />, action: () => editor.tf.align.set("left") },
+  { key: "align-center", title: "Align Center", icon: <FormatAlignCenter />, action: () => editor.tf.align.set("center") },
+  { key: "align-right", title: "Align Right", icon: <FormatAlignRight />, action: () => editor.tf.align.set("right") },
+  { key: "link", title: "Insert Link", icon: <Link />, action: () => editor.tf.link.insert() },
+  { key: "image", title: "Insert Image", icon: <Image />, action: () => editor.tf.image.insert() },
+  { key: "divider", title: "Insert Divider", icon: <HorizontalRule />, action: () => editor.tf.hr.insert() },
+  { key: "clear", title: "Clear Formatting", icon: <FormatClear />, action: () => editor.tf.clear() },
+];
+
 
   useEffect(() => {
     if (policy && editor) {
@@ -305,133 +380,36 @@ const PolicyDetailModal: React.FC<Props> = ({
             >
               Content
             </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 1,
-                mb: 2,
-              }}
-            >
-              {/* Toolbar */}
-              {(
-                [
-                  {
-                    key: "bold",
-                    title: "Bold",
-                    icon: <FormatBold />,
-                    action: () => {
-                      editor.tf.bold.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        bold: !prev.bold,
-                      }));
-                    },
-                  },
-                  {
-                    key: "italic",
-                    title: "Italic",
-                    icon: <FormatItalic />,
-                    action: () => {
-                      editor.tf.italic.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        italic: !prev.italic,
-                      }));
-                    },
-                  },
-                  {
-                    key: "underline",
-                    title: "Underline",
-                    icon: <FormatUnderlined />,
-                    action: () => {
-                      editor.tf.underline.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        underline: !prev.underline,
-                      }));
-                    },
-                  },
-                  {
-                    key: "h1",
-                    title: "Heading 1",
-                    icon: <LooksOne />,
-                    action: () => {
-                      editor.tf.h1.toggle();
-                      setToolbarState((prev) => ({ ...prev, h1: !prev.h1 }));
-                    },
-                  },
-                  {
-                    key: "h2",
-                    title: "Heading 2",
-                    icon: <LooksTwo />,
-                    action: () => {
-                      editor.tf.h2.toggle();
-                      setToolbarState((prev) => ({ ...prev, h2: !prev.h2 }));
-                    },
-                  },
-                  {
-                    key: "h3",
-                    title: "Heading 3",
-                    icon: <Looks3 />,
-                    action: () => {
-                      editor.tf.h3.toggle();
-                      setToolbarState((prev) => ({ ...prev, h3: !prev.h3 }));
-                    },
-                  },
-                  {
-                    key: "blockquote",
-                    title: "Blockquote",
-                    icon: <FormatQuote />,
-                    action: () => {
-                      editor.tf.blockquote.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        blockquote: !prev.blockquote,
-                      }));
-                    },
-                  },
-                ] as Array<{
-                  key: ToolbarKey;
-                  title: string;
-                  icon: JSX.Element;
-                  action: () => void;
-                }>
-              ).map(({ key, title, icon, action }) => (
-                <Tooltip key={title} title={title}>
-                  <IconButton
-                    onClick={action}
-                    disableRipple
-                    size="small"
-                    sx={{
-                      padding: "6px",
-                      borderRadius: "3px",
-                      backgroundColor: toolbarState[key]
-                        ? "#E0F7FA"
-                        : "#FFFFFF",
-                      boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
-                      border: "1px solid",
-                      borderColor: toolbarState[key]
-                        ? "#13715B"
-                        : "transparent",
-                      outline: toolbarState[key] ? "1px solid #13715B" : "none",
-                      mr: 1,
-                      transition:
-                        "border-color 0.2s ease, outline 0.2s ease, background-color 0.2s ease",
-                      "&:hover": {
-                        backgroundColor: theme.palette.background.main,
-                        borderColor: toolbarState[key] ? "#13715B" : "#888", // preserve selection color
-                        outline: "1px solid rgba(0, 0, 0, 0.08)", // subtle hover outline
-                      },
-                    }}
-                  >
-                    {icon}
-                    {toolbarState[key]}
-                  </IconButton>
-                </Tooltip>
-              ))}
-            </Box>
+<Box
+  sx={{
+    display: "flex",
+    flexWrap: "wrap", // allow multiple lines
+    gap: 1,
+    mb: 2,
+  }}
+>
+  {toolbarConfig.map(({ key, title, icon, action }) => (
+    <Tooltip key={title} title={title}>
+      <IconButton
+        onClick={action}
+        size="small"
+        sx={{
+          padding: "6px",
+          borderRadius: "3px",
+          backgroundColor: toolbarState[key] ? "#E0F7FA" : "#FFFFFF",
+          border: "1px solid",
+          borderColor: toolbarState[key] ? "#13715B" : "transparent",
+          "&:hover": {
+            backgroundColor: "#F5F5F5",
+          },
+        }}
+      >
+        {icon}
+      </IconButton>
+    </Tooltip>
+  ))}
+</Box>
+
             <Plate
               editor={editor}
               onChange={({ value }) =>

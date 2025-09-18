@@ -27,6 +27,7 @@ interface TaskFilters {
   assignee?: number[];
   organization_id?: number;
   search?: string;
+  include_archived?: boolean;
 }
 
 interface TaskSortOptions {
@@ -147,10 +148,14 @@ export const getTasksQuery = async (
         ? "LIMIT :limit"
         : "";
 
-  const whereConditions: string[] = ["t.status != :deletedStatus"];
-  const replacements: QueryReplacements = {
-    deletedStatus: TaskStatus.DELETED,
-  };
+  const whereConditions: string[] = [];
+  const replacements: QueryReplacements = {};
+
+  // Only exclude deleted tasks if include_archived is not true
+  if (!filters.include_archived) {
+    whereConditions.push("t.status != :deletedStatus");
+    replacements.deletedStatus = TaskStatus.DELETED;
+  }
 
   // Enforce visibility rules: admins see all, others see tasks where they're creator or assignee
   addVisibilityLogic(baseQueryParts, whereConditions, replacements, { userId, role }, tenant, filters.organization_id!);

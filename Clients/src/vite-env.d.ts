@@ -8,3 +8,5 @@ interface ImportMetaEnv {
   readonly VITE_IS_DEMO_APP: string;
   readonly VITE_IS_MULTI_TENANT: string;
 }
+
+declare const __APP_VERSION__: string;

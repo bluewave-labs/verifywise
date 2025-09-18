@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  Divider,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
@@ -310,7 +311,8 @@ const Tasks: React.FC = () => {
 
   return (
     <div className="tasks-page">
-      <PageBreadcrumbs />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45, ml: 3 }} > <PageBreadcrumbs /> </Stack>
+      <Divider sx={{ mb: 2, ml: 3, mr: 5}}/>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

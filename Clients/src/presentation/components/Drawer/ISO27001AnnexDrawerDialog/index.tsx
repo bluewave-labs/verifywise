@@ -18,7 +18,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
@@ -785,7 +785,7 @@ const VWISO27001AnnexDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

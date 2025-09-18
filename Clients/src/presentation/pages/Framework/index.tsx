@@ -10,15 +10,17 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
+import organizationalFrameworksHelpContent from "../../helpers/organizational-frameworks-help.html?raw";
 import { useContext, useEffect, useState, useMemo } from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
-import { vwhomeHeading } from "../Home/1.0Home/style";
 import singleTheme from "../../themes/v1SingleTheme";
 import useFrameworks from "../../../application/hooks/useFrameworks";
 import TabContext from "@mui/lab/TabContext";
@@ -38,6 +40,8 @@ import { deleteProject } from "../../../application/repository/project.repositor
 import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useSearchParams } from "react-router-dom";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageHeader from "../../components/Layout/PageHeader";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -102,6 +106,8 @@ const Framework = () => {
   const frameworkName = searchParams.get("frameworkName");
   const annexId = searchParams.get("annexId");
   const clauseId = searchParams.get("clauseId");
+  const [rotated, setRotated] = useState(false);
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const { changeComponentVisibility, projects, userRoleName, setProjects } =
     useContext(VerifyWiseContext);
@@ -127,13 +133,14 @@ const Framework = () => {
 
   // Handle dropdown menu
   const handleManageProjectClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
+    event: React.MouseEvent<HTMLButtonElement>
   ) => {
     setAnchorEl(event.currentTarget);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+    setRotated(false);
   };
 
   const handleManageFrameworksClick = () => {
@@ -180,8 +187,8 @@ const Framework = () => {
         // Remove the project from context
         setProjects((prevProjects) =>
           prevProjects.filter(
-            (project) => project.id !== organizationalProject.id,
-          ),
+            (project) => project.id !== organizationalProject.id
+          )
         );
         // Stay on the Framework page - the UI will automatically show "No Organizational Project Found"
       } else {
@@ -208,7 +215,7 @@ const Framework = () => {
 
     // Get framework IDs from the organizational project
     const projectFrameworkIds = organizationalProject.framework.map((f) =>
-      Number(f.framework_id),
+      Number(f.framework_id)
     );
 
     // Filter frameworks to only include those assigned to the project and exclude EU AI Act
@@ -229,7 +236,7 @@ const Framework = () => {
     if (!organizationalProject?.framework) return null;
 
     const projectFramework = organizationalProject.framework.find(
-      (f) => f.framework_id === Number(frameworkId),
+      (f) => f.framework_id === Number(frameworkId)
     );
 
     return projectFramework?.project_framework_id || null;
@@ -310,14 +317,14 @@ const Framework = () => {
 
   const handleIso27001TabChange = (
     _: React.SyntheticEvent,
-    newValue: string,
+    newValue: string
   ) => {
     setIso27001TabValue(newValue);
   };
 
   const handleIso42001TabChange = (
     _: React.SyntheticEvent,
-    newValue: string,
+    newValue: string
   ) => {
     setIso42001TabValue(newValue);
   };
@@ -418,7 +425,9 @@ const Framework = () => {
             <TabPanel value="clause" sx={tabPanelStyle}>
               <ISO27001Clause
                 project={organizationalProject}
-                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
+                projectFrameworkId={
+                  getProjectFrameworkId(framework.id) || framework.id
+                }
                 statusFilter={statusFilter}
               />
             </TabPanel>
@@ -426,7 +435,9 @@ const Framework = () => {
             <TabPanel value="annex" sx={tabPanelStyle}>
               <ISO27001Annex
                 project={organizationalProject}
-                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
+                projectFrameworkId={
+                  getProjectFrameworkId(framework.id) || framework.id
+                }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
               />
@@ -477,7 +488,9 @@ const Framework = () => {
             <TabPanel value="clauses" sx={tabPanelStyle}>
               <ISO42001Clause
                 project={organizationalProject}
-                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
+                projectFrameworkId={
+                  getProjectFrameworkId(framework.id) || framework.id
+                }
                 statusFilter={statusFilter}
               />
             </TabPanel>
@@ -485,7 +498,9 @@ const Framework = () => {
             <TabPanel value="annexes" sx={tabPanelStyle}>
               <ISO42001Annex
                 project={organizationalProject}
-                projectFrameworkId={getProjectFrameworkId(framework.id) || framework.id}
+                projectFrameworkId={
+                  getProjectFrameworkId(framework.id) || framework.id
+                }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
               />
@@ -534,14 +549,28 @@ const Framework = () => {
       }}
       ref={refs[0]}
     >
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={organizationalFrameworksHelpContent}
+        pageTitle="Organizational Frameworks"
+      />
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
       <Stack>
-        <Typography sx={vwhomeHeading}>Framework</Typography>
-        <Typography sx={singleTheme.textStyles.pageDescription}>
-          This page provides an overview of available AI compliance frameworks.
-          Explore different frameworks to understand their requirements and
-          implementation guidelines.
-        </Typography>
-
+      <PageHeader
+               title="Framework"
+               description="This page provides an overview of available AI compliance frameworks.
+              Explore different frameworks to understand their requirements and
+              implementation guidelines."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+       />
         {/* Conditional Button Section */}
         <Box
           sx={{
@@ -556,8 +585,11 @@ const Framework = () => {
             <>
               <Button
                 variant="contained"
-                endIcon={<KeyboardArrowDownIcon sx={{ fontSize: "18px" }} />}
-                onClick={handleManageProjectClick}
+                endIcon={<WhiteDownArrowIcon />}
+                onClick={(event) => {
+                  setRotated((prev) => !prev);
+                  handleManageProjectClick(event);
+                }}
                 disableRipple
                 disabled={
                   !allowedRoles.frameworks.manage.includes(userRoleName) &&
@@ -580,9 +612,7 @@ const Framework = () => {
                   "& .MuiButton-endIcon": {
                     marginLeft: 1,
                     transition: "transform 0.2s ease",
-                  },
-                  "&:hover .MuiButton-endIcon": {
-                    transform: "rotate(180deg)",
+                    transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
                   },
                 }}
               >
@@ -720,7 +750,7 @@ const Framework = () => {
                   onClick={() => handleFrameworkSelect(index)}
                   sx={getFrameworkTabStyle(
                     selectedFramework === index,
-                    index === filteredFrameworks.length - 1,
+                    index === filteredFrameworks.length - 1
                   )}
                 >
                   {framework.name}

@@ -18,7 +18,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -819,7 +819,7 @@ const VWISO27001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

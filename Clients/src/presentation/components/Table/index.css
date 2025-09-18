@@ -114,7 +114,6 @@
   height: 21px;
   top: 50%;
   right: 8%;
-  transform: translateY(-50%);
 }
 .MuiTablePagination-root button.Mui-disabled {
   opacity: 0.4;

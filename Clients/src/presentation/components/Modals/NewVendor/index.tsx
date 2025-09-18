@@ -38,7 +38,7 @@ import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
 import SaveIcon from "@mui/icons-material/Save";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,
@@ -530,7 +530,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 );
               }}
               filterSelectedOptions
-              popupIcon={<KeyboardArrowDown />}
+              popupIcon={<GreyDownArrowIcon />}
               renderInput={(params: AutocompleteRenderInputParams) => (
                 <TextField
                   {...params}

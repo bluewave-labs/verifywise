@@ -8,12 +8,17 @@ import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
+import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
+import settingsHelpContent from "../../helpers/settings-help.html?raw";
+import PageHeader from "../../components/Layout/PageHeader";
 
 export default function ProfilePage() {
   const { userRoleName } = useAuth();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const [activeTab, setActiveTab] = useState(0);
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -21,7 +26,25 @@ export default function ProfilePage() {
 
   return (
     <Stack className="vwhome">
-      <PageBreadcrumbs />
+     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+      <HelperDrawer
+        isOpen={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        helpContent={settingsHelpContent}
+        pageTitle="Settings"
+      />
+       <PageHeader
+               title="Settings"
+               description=""
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
       <Tabs
         value={activeTab}
         onChange={handleTabChange}

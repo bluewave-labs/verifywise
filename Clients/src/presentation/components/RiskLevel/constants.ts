@@ -38,6 +38,10 @@ export const RISK_LABELS = {
   catastrophic: {
     text: "Catastrophic",
     color: "#B71C1C",
+  },
+  overdue: {
+    text: "Overdue",
+    color: "#B71C1C",   // use same color as critical/catastrophic
   }
 };
 

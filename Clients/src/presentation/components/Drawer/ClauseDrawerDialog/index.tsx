@@ -18,7 +18,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -44,7 +44,7 @@ export const inputStyles = {
 
 interface VWISO42001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (event?: any, reason?: string) => void;
   subClause: any;
   clause: any;
   evidenceFiles?: FileData[];
@@ -823,7 +823,7 @@ const VWISO42001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

@@ -24,6 +24,7 @@ import { updateISO27001ClauseStatus } from "../../../../components/StatusDropdow
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
+import { useModalKeyHandling } from "../../../../../application/hooks/useModalKeyHandling";
 
 const ISO27001Clause = ({
   project,
@@ -144,6 +145,12 @@ const ISO27001Clause = ({
       setSearchParams(searchParams);
     }
   };
+
+  // Add modal key handling for ESC key support
+  useModalKeyHandling({
+    isOpen: drawerOpen,
+    onClose: handleDrawerClose,
+  });
 
   const handleSaveSuccess = async (
     success: boolean,
@@ -326,7 +333,12 @@ const ISO27001Clause = ({
       {drawerOpen && (
         <VWISO27001ClauseDrawerDialog
           open={drawerOpen}
-          onClose={handleDrawerClose}
+          onClose={(_event?: any, reason?: string) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleDrawerClose();
+          }}
           project_id={Number(project.id)}
           subClause={selectedSubClause}
           clause={selectedClause}

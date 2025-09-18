@@ -12,6 +12,7 @@ import {
   Stack,
   Tooltip,
   Typography,
+  Badge,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +24,7 @@ import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
 import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
+import { ReactComponent as Tasks } from "../../assets/icons/flag-grey.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
@@ -52,6 +54,8 @@ import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
+import { TaskStatus } from "../../../domain/interfaces/i.task";
+import { getAllTasks } from "../../../application/repository/task.repository";
 
 interface MenuItem {
   name: string;
@@ -64,7 +68,7 @@ interface MenuItem {
   highlightPaths?: string[];
 }
 
-const menu: MenuItem[] = [
+const getMenuItems = (openTasksCount: number): MenuItem[] => [
   {
     name: "Dashboard",
     icon: <Dashboard />,
@@ -80,6 +84,27 @@ const menu: MenuItem[] = [
       },
     ],
     highlightPaths: ["/project-view"],
+  },
+  {
+    name: "Tasks",
+    icon: (
+      <Badge
+        badgeContent={openTasksCount > 0 ? openTasksCount : null}
+        color="error"
+        sx={{
+          "& .MuiBadge-badge": {
+            fontSize: "10px",
+            minWidth: "18px",
+            height: "18px",
+            backgroundColor: "#ef4444",
+            color: "white",
+          },
+        }}
+      >
+        <Tasks />
+      </Badge>
+    ),
+    path: "/tasks",
   },
   {
     name: "Vendors",
@@ -195,6 +220,10 @@ const Sidebar = () => {
     Account: false,
   });
 
+  const [openTasksCount, setOpenTasksCount] = useState(0);
+
+  const menu = getMenuItems(openTasksCount);
+
   const openPopup = (event: any, id: any) => {
     setAnchorEl(event.currentTarget);
     setPopup(id);
@@ -218,6 +247,26 @@ const Sidebar = () => {
       changeComponentVisibility("sidebar", true);
     }
   }, [allVisible]);
+
+  // Fetch open tasks count
+  useEffect(() => {
+    const fetchOpenTasksCount = async () => {
+      try {
+        const response = await getAllTasks({
+          status: [TaskStatus.OPEN],
+        });
+        setOpenTasksCount(response?.data?.tasks?.length || 0);
+      } catch (error) {
+        console.error("Error fetching open tasks count:", error);
+        setOpenTasksCount(0);
+      }
+    };
+
+    fetchOpenTasksCount();
+    // Refresh count every 5 minutes
+    const interval = setInterval(fetchOpenTasksCount, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Stack
@@ -528,7 +577,7 @@ const Sidebar = () => {
                         position: "absolute",
                         left: `calc(${theme.spacing(3)} + 12px)`, // Position the line to align with parent icon center + 12px offset
                         top: 0,
-                        bottom: 0,
+                        height: "calc(100% - 18.5px)", // Extend to cover both items but stop before the last item's bottom
                         width: "1px",
                         backgroundColor: "#D1D5DB", // Light gray color matching the reference
                         zIndex: 1, // Ensure tree lines stay above background
@@ -536,7 +585,7 @@ const Sidebar = () => {
                       },
                     }}
                   >
-                    {item.children.map((child, index) => (
+                    {item.children.map((child) => (
                       <ListItemButton
                         key={child.path}
                         disableRipple={
@@ -576,21 +625,6 @@ const Sidebar = () => {
                             zIndex: 1, // Ensure tree lines stay above background
                             pointerEvents: "none", // Prevent interference with hover
                           },
-                          // L-shaped corner for the last item
-                          ...(index === item.children!.length - 1 && {
-                            "&::after": {
-                              content: '""',
-                              position: "absolute",
-                              left: `calc(${theme.spacing(-8)} + 12px)`, // Align with the main vertical line + 12px offset
-                              top: "50%",
-                              bottom: "-200%", // Cover the area below the item to "erase" vertical line
-                              width: "1px",
-                              backgroundColor:
-                                theme.palette.background.main || "#ffffff",
-                              zIndex: 1, // Ensure tree lines stay above background
-                              pointerEvents: "none", // Prevent interference with hover
-                            },
-                          }),
                         }}
                       >
                         <ListItemText

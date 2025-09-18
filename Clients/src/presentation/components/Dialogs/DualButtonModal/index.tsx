@@ -1,6 +1,7 @@
 import CustomizableButton from "../../Button/CustomizableButton";
 import "./index.css";
 import { Stack, SxProps, Theme, Typography } from "@mui/material";
+import {useModalKeyHandling} from "../../../../application/hooks/useModalKeyHandling";
 
 interface DualButtonModalProps {
   title: string;
@@ -19,6 +20,7 @@ interface DualButtonModalProps {
   proceedButtonVariant: "contained" | "outlined" | "text";
   TitleFontSize?: number;
   confirmBtnSx?: SxProps<Theme> | undefined;
+  isOpen?: boolean;
 }
 
 const DualButtonModal: React.FC<DualButtonModalProps> = ({
@@ -32,7 +34,15 @@ const DualButtonModal: React.FC<DualButtonModalProps> = ({
   proceedButtonVariant,
   TitleFontSize,
   confirmBtnSx,
+  isOpen = true,
 }) => {
+  useModalKeyHandling({
+    isOpen,
+    onClose: onCancel,
+  });
+
+  if (!isOpen) return null;
+
   return (
     <>
       <Stack

@@ -1,5 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import { IBannerProps } from "../../../../domain/interfaces/iWidget";
 import {
   bannerBoxStyle,
@@ -19,7 +19,7 @@ const index = ({ onClose, bannerText, bannerWidth }: IBannerProps) => {
       >
         <Typography sx={bannerTextStyle}>
           {bannerText}
-          <CloseIcon onClick={onClose} style={closeIconStyle} />
+          <CloseGreyIcon onClick={onClose} style={closeIconStyle} />
         </Typography>
       </Paper>
     </Box>

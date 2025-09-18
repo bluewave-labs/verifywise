@@ -40,7 +40,11 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
     <Drawer
       anchor="right"
       open={isOpen}
-      onClose={onClose}
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          onClose();
+        }
+      }}
       variant="temporary"
       sx={{
         width: 600,

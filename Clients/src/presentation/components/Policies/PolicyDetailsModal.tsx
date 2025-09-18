@@ -25,7 +25,7 @@ import {
 } from "@mui/icons-material";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
 import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
@@ -276,8 +276,8 @@ const PolicyDetailModal: React.FC<Props> = ({
               {isNew ? "Create new policy" : formData.title}
             </Typography>
           </Stack>
-          <CloseIcon
-            sx={{ color: "#98A2B3", cursor: "pointer" }}
+          <CloseGreyIcon
+            style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={onClose}
           />
         </Stack>

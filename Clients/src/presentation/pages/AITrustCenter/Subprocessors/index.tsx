@@ -14,7 +14,7 @@ import { useStyles } from "./styles";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Modal, IconButton } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
@@ -477,7 +477,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
             <Box sx={styles.modalHeader}>
               <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
               <IconButton onClick={handleCloseEditModal} sx={{ p: 0 }}>
-                <CloseIcon />
+                <CloseGreyIcon />
               </IconButton>
             </Box>
             <Stack spacing={3}>
@@ -545,7 +545,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 Add new subprocessor
               </Typography>
               <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
-                <CloseIcon />
+                <CloseGreyIcon />
               </IconButton>
             </Box>
             <Stack spacing={3}>

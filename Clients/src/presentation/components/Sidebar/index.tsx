@@ -24,7 +24,7 @@ import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
 import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
 import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
-import { ReactComponent as Tasks } from "../../assets/icons/flag-01.svg";
+import { ReactComponent as Tasks } from "../../assets/icons/flag-grey.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
@@ -92,13 +92,13 @@ const getMenuItems = (openTasksCount: number): MenuItem[] => [
         badgeContent={openTasksCount > 0 ? openTasksCount : null}
         color="error"
         sx={{
-          '& .MuiBadge-badge': {
-            fontSize: '10px',
-            minWidth: '18px',
-            height: '18px',
-            backgroundColor: '#ef4444',
-            color: 'white',
-          }
+          "& .MuiBadge-badge": {
+            fontSize: "10px",
+            minWidth: "18px",
+            height: "18px",
+            backgroundColor: "#ef4444",
+            color: "white",
+          },
         }}
       >
         <Tasks />
@@ -253,7 +253,7 @@ const Sidebar = () => {
     const fetchOpenTasksCount = async () => {
       try {
         const response = await getAllTasks({
-          status: [TaskStatus.OPEN]
+          status: [TaskStatus.OPEN],
         });
         setOpenTasksCount(response?.data?.tasks?.length || 0);
       } catch (error) {

@@ -17,8 +17,9 @@ import IconButton from "../../IconButton";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 interface Column {
   id: number;
@@ -47,7 +48,9 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('evidences', DEFAULT_ROWS_PER_PAGE)
+  );
 
   useEffect(() => setPage(0), [data]);
 
@@ -57,7 +60,9 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('evidences', newRowsPerPage);
       setPage(0);
     },
     [],

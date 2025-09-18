@@ -16,7 +16,7 @@ import {
   Box,
   TextField,
 } from "@mui/material";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import Alert from "../../Alert";
@@ -285,7 +285,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                       </Box>
                     );
                   }}
-                  popupIcon={<KeyboardArrowDown />}
+                  popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
                     <TextField
                       {...params}

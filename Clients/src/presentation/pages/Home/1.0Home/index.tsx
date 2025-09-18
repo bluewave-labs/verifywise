@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box } from "@mui/material";
+import { Stack, Typography, Modal, Box, Divider } from "@mui/material";
 import {
   vwhomeBody,
   vwhomeBodyControls,
@@ -26,6 +26,7 @@ import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
+import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 
 
 const Home = () => {
@@ -154,6 +155,8 @@ const Home = () => {
 
   return (
     <Stack className="vwhome">
+      <PageBreadcrumbs/>
+      <Divider sx={{ pt: 4, mb: 6 }}/>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

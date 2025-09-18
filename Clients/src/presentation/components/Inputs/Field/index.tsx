@@ -97,9 +97,12 @@ const Field = forwardRef(
       >
         {label && (
           <Typography
+            component="p"
+            variant="body1"
             color={theme.palette.text.secondary}
             fontWeight={500}
             fontSize={"13px"}
+            sx={{ margin: 0, height: '22px' }}
           >
             {label}
             {isRequired ? (

@@ -24,6 +24,7 @@ import { UserModel } from "../domain.layer/models/user/user.model";
 import { OAuth2Client } from "google-auth-library";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { generateUserTokens } from "../utils/auth.utils";
 
 /**
  * Get all organizations
@@ -212,6 +213,15 @@ export async function createOrganization(
         },
         transaction
       );
+
+      // Generate tokens for the newly created user
+      const { accessToken } = generateUserTokens({
+        id: user.id!,
+        email: body.userEmail,
+        roleName: "Admin", // roleId 1 corresponds to Admin
+        organizationId: organization_id,
+      }, res);
+
       await transaction.commit();
       logStructured(
         "successful",
@@ -225,7 +235,10 @@ export async function createOrganization(
         user.id!,
         req.tenantId!
       );
-      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+      return res.status(201).json(STATUS_CODE[201]({
+        user: user.toSafeJSON(),
+        token: accessToken
+      }));
     }
 
     logStructured(

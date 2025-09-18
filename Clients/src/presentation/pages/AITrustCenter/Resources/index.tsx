@@ -14,7 +14,8 @@ import Alert from "../../../components/Alert";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import AddIcon from "@mui/icons-material/Add";
-import CloseIcon from "@mui/icons-material/Close";
+
+import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -555,7 +556,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Add a new resource
             <IconButton onClick={handleCloseAddModal} sx={styles.closeButton}>
-              <CloseIcon />
+              <CloseGreyIcon />
             </IconButton>
           </DialogTitle>
 
@@ -645,7 +646,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Edit resource
             <IconButton onClick={handleCloseEditModal} sx={styles.closeButton}>
-              <CloseIcon />
+              <CloseGreyIcon />
             </IconButton>
           </DialogTitle>
 

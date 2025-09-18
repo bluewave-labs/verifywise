@@ -37,6 +37,7 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { OAuth2Client } from "google-auth-library";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { generateUserTokens } from "../utils/auth.utils";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');
@@ -332,36 +333,19 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       if (passwordIsMatched) {
         user.updateLastLogin();
 
-        const token = generateToken({
-          id: user.id,
+        const { accessToken } = generateUserTokens({
+          id: user.id!,
           email: email,
           roleName: (userData as any).role_name,
-          tenantId: getTenantHash((userData as any).organization_id.toString()),
           organizationId: (userData as any).organization_id,
-        });
-
-        const refreshToken = generateRefreshToken({
-          id: user.id,
-          email: email,
-          roleName: (userData as any).role_name,
-          tenantId: getTenantHash((userData as any).organization_id.toString()),
-          organizationId: (userData as any).organization_id,
-        });
-
-        res.cookie('refresh_token', refreshToken, {
-          httpOnly: true,
-          path: '/api/users',
-          expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30),
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        });
+        }, res);
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
 
 
         return res.status(202).json(
           STATUS_CODE[202]({
-            token,
+            token: accessToken,
           })
         );
       } else {

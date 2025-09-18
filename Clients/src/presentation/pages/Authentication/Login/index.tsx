@@ -101,6 +101,8 @@ const Login: React.FC = () => {
             dispatch(setExpiration(null));
           }
 
+          localStorage.setItem('root_version', __APP_VERSION__);
+
           logEngine({
             type: "info",
             message: "Login successful.",

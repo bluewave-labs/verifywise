@@ -6,7 +6,7 @@ import authReducer from "./auth/authSlice";
 import fileReducer from "./file/fileSlice";
 
 // Version tracking for cache invalidation
-const APP_VERSION = "1.0.0"; // Update this when making breaking changes
+const APP_VERSION = __APP_VERSION__;
 const STORAGE_KEY = "root";
 
 // Check if stored version matches current version
@@ -35,7 +35,6 @@ const persistConfig = {
   key: "root",
   storage,
   whitelist: ["auth", "ui"], // Persist both auth and ui state
-  version: 1, // Redux persist version
 };
 
 const rootReducer = combineReducers({

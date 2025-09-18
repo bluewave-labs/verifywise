@@ -140,7 +140,7 @@ const RegisterMultiTenant: React.FC = () => {
       userRoleId: values.roleId,
     };
 
-    const response = await apiServices.post("organizations", requestBody);
+    const response = await apiServices.post("organizations", requestBody) as any;
     setValues(initialState);
     setErrors({});
     setOrganizationValues(initialOrganizationState);
@@ -152,10 +152,15 @@ const RegisterMultiTenant: React.FC = () => {
         message: "Organization and account created successfully.",
         users,
       });
+      const token = response.data.data.token;
+      const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+      dispatch(setAuthToken(token));
+      dispatch(setExpiration(expirationDate));
       setTimeout(() => {
         setIsSubmitting(false);
         dispatch(setUserExists(true));
-        navigate("/login");
+        localStorage.setItem('root_version', __APP_VERSION__);
+        navigate("/");
       }, 3000);
     } else if (response.status === 400) {
       logEngine({

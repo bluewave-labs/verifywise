@@ -19,6 +19,7 @@ import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
 import { User } from "../../../../domain/types/User";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
 
 const TABLE_COLUMNS = [
   { id: "id", label: "ID" },
@@ -35,7 +36,7 @@ interface EventsTableProps {
   paginated?: boolean;
 }
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
   eventType,
@@ -76,7 +77,9 @@ const EventsTable: React.FC<EventsTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('eventTracker', DEFAULT_ROWS_PER_PAGE)
+  );
 
   // Format users data like other tables do
   const formattedUsers = useMemo(() => {
@@ -92,7 +95,9 @@ const EventsTable: React.FC<EventsTableProps> = ({
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('eventTracker', newRowsPerPage);
       setPage(0);
     },
     []

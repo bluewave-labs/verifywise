@@ -17,10 +17,12 @@ import { useSearchParams } from "react-router-dom";
 
 interface ReportsProps {
   refreshKey?: number;
+  generateReportButton?: React.ReactNode;
 }
 
 const Reports: React.FC<ReportsProps> = ({
   refreshKey: externalRefreshKey = 0,
+  generateReportButton,
 }) => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId") ?? "1";
@@ -140,15 +142,22 @@ const Reports: React.FC<ReportsProps> = ({
         </>
       ) : (
         <>
-          <ProjectFilterDropdown
-            projects={projects.map((project: Project) => ({
-              id: project.id.toString(),
-              name: project.project_title,
-            }))}
-            selectedProject={selectedProject}
-            onChange={setSelectedProject}
-            sx={{ marginBottom: "20px" }}
-          />
+          <Stack 
+            direction="row" 
+            justifyContent="space-between" 
+            alignItems="center" 
+            sx={{ marginBottom: "7px" }}
+          >
+            <ProjectFilterDropdown
+              projects={projects.map((project: Project) => ({
+                id: project.id.toString(),
+                name: project.project_title,
+              }))}
+              selectedProject={selectedProject}
+              onChange={setSelectedProject}
+            />
+            {generateReportButton}
+          </Stack>
           <Suspense fallback={<div>Loading...</div>}>
             <ReportTable
               columns={TITLE_OF_COLUMNS}

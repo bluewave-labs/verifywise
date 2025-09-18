@@ -25,8 +25,6 @@ import PageHeader from '../../components/Layout/PageHeader';
 
 const Alert = lazy(() => import('../../components/Alert'));
 
-const Alert = lazy(() => import('../../components/Alert'));
-
 interface MetricCardProps {
   title: string;
   value: number | string;

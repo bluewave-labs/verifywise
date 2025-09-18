@@ -22,7 +22,6 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { UserModel } from "../domain.layer/models/user/user.model";
 import { OAuth2Client } from "google-auth-library";
-import { generateUserTokens } from "../utils/auth.utils";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 import { generateUserTokens } from "../utils/auth.utils";

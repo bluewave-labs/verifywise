@@ -470,6 +470,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               disabled={isEditingDisabled}
               type="description"
               rows={7}
+              placeholder="Describe the specific risk related to this vendor (e.g., data breach, service outage, compliance gap)."
             />
           </Box>
         </Stack>
@@ -485,6 +486,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               isRequired
               disabled={isEditingDisabled}
               rows={4}
+              placeholder="Outline the steps or controls you will take to reduce or eliminate this risk."
             />
           </Box>
           <Box>
@@ -500,6 +502,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               disabled={isEditingDisabled}
               type="description"
               rows={4}
+              placeholder="Explain the potential consequences if this risk occurs (e.g., financial, reputational, regulatory)."
             />
           </Box>
         </Stack>
@@ -592,6 +595,16 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             </Typography>
             <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
+          {!existingRisk && (
+            <Typography
+              fontSize={13}
+              color={theme.palette.text.secondary}
+              marginBottom={theme.spacing(2)}
+              sx={{ lineHeight: 1.4 }}
+            >
+              Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan.
+            </Typography>
+          )}
           <TabContext value={value}>
             {risksPanel}
             <Stack

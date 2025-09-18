@@ -31,7 +31,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   onMakeVisible,
   onDownload,
   isVisible,
-  canDelete
+  canDelete,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -76,7 +76,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       closeDropDownMenu(e);
     }
   };
-  
+
   const handleEdit = (e?: React.SyntheticEvent) => {
     onEdit();
     if (e) {
@@ -184,8 +184,13 @@ const IconButton: React.FC<IconButtonProps> = ({
             } else if (item === "make visible") {
               handleMakeVisible(e);
             } else if (item === "remove") {
-              setIsOpenRemoveModal(true);
-              if (e) closeDropDownMenu(e);
+              if (warningTitle && warningMessage) {
+                setIsOpenRemoveModal(true);
+                if (e) closeDropDownMenu(e);
+              } else {
+                onDelete();
+                if (e) closeDropDownMenu(e);
+              }
             }
           }}
           sx={item === "remove" ? { color: "#d32f2f" } : {}}
@@ -231,15 +236,17 @@ const IconButton: React.FC<IconButtonProps> = ({
     <>
       {customIconButtonAsSettings}
       {dropDownListOfOptions}
-      <BasicModal
-        isOpen={isOpenRemoveModal}
-        setIsOpen={() => setIsOpenRemoveModal(false)}
-        onDelete={(e) => handleDelete(e)}
-        warningTitle={warningTitle}
-        warningMessage={warningMessage}
-        onCancel={(e) => handleCancle(e)}
-        type={type}
-      />
+      {warningTitle && warningMessage && (
+        <BasicModal
+          isOpen={isOpenRemoveModal}
+          setIsOpen={() => setIsOpenRemoveModal(false)}
+          onDelete={(e) => handleDelete(e)}
+          warningTitle={warningTitle}
+          warningMessage={warningMessage}
+          onCancel={(e) => handleCancle(e)}
+          type={type}
+        />
+      )}
       {alert && (
         <Alert
           variant={alert.variant}

@@ -36,14 +36,13 @@ const Reporting = () => {
       </Suspense>
 
       <Stack>
-        <Box sx={styles.reportButtonContainer}>
-          <Suspense fallback={"loading..."}>
-            <GenerateReport onReportGenerated={handleReportGenerated} />
-          </Suspense>
-        </Box>
-
         <Suspense fallback={"loading..."}>
-          <ReportLists refreshKey={refreshKey} />
+          <ReportLists 
+            refreshKey={refreshKey}
+            generateReportButton={
+              <GenerateReport onReportGenerated={handleReportGenerated} />
+            }
+          />
         </Suspense>
       </Stack>
     </Stack>

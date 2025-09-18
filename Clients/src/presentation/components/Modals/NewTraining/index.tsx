@@ -6,6 +6,7 @@ import {
   DialogContent,
   Stack,
   Box,
+  Typography,
 } from "@mui/material";
 import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
@@ -194,7 +195,7 @@ const NewTraining: FC<NewTrainingProps> = ({
               handleClose();
           }
       }}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       PaperProps={{
         sx: {
@@ -228,7 +229,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                 padding: 0,
               }}
             >
-              {isEdit ? "Edit Training" : "New Training"}
+              {isEdit ? "Edit training" : "New training"}
             </DialogTitle>
             <Box
               component="span"
@@ -252,8 +253,18 @@ const NewTraining: FC<NewTrainingProps> = ({
               <CloseIcon />
             </Box>
           </Stack>
+          <Typography 
+            sx={{ 
+              fontSize: 13, 
+              color: theme.palette.text.secondary,
+              mt: 1,
+              mb: 18
+            }}
+          >
+            Record and manage your organization's AI literacy and compliance trainings. Enter training details such as name, provider, duration, department, participants, and status to keep a clear history of all AI-related education initiatives.
+          </Typography>
           <DialogContent sx={{ p: 0 }}>
-            <Stack sx={{ gap: "16px" }}>
+            <Stack sx={{ gap: "16px", mt: 4 }}>
               <Stack direction="row" spacing={2} sx={{ gap: "16px" }}>
                 <Box sx={{ width: "50%" }}>
                   <Suspense fallback={<div>Loading...</div>}>
@@ -265,7 +276,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                       error={errors.training_name}
                       isRequired
                       sx={fieldStyle}
-                      placeholder="Enter training name"
+                      placeholder="e.g., Introduction to AI Ethics"
                     />
                   </Suspense>
                 </Box>
@@ -280,7 +291,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                       isRequired
                       sx={fieldStyle}
                       type="text"
-                      placeholder="e.g., 2 hours, 3 days"
+                      placeholder="e.g., 2 hours, 3 days, 6 weeks"
                     />
                   </Suspense>
                 </Box>
@@ -296,7 +307,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                       error={errors.provider}
                       isRequired
                       sx={fieldStyle}
-                      placeholder="Enter provider name"
+                      placeholder="e.g., VerifyWise, External Vendor, Internal Team"
                     />
                   </Suspense>
                 </Box>
@@ -310,7 +321,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                       error={errors.department}
                       isRequired
                       sx={fieldStyle}
-                      placeholder="Enter department name"
+                      placeholder="e.g., Compliance, Engineering, HR"
                     />
                   </Suspense>
                 </Box>
@@ -342,7 +353,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                       isRequired
                       sx={fieldStyle}
                       type="number"
-                      placeholder="Enter number of people"
+                      placeholder="Enter total participants (e.g., 25)"
                     />
                   </Suspense>
                 </Box>
@@ -357,7 +368,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                     onChange={handleOnTextFieldChange("description")}
                     error={errors.description}
                     sx={fieldStyle}
-                    placeholder="Description of the AI training"
+                    placeholder="Provide a short overview of the training goals and content"
                   />
                 </Suspense>
               </Box>
@@ -372,7 +383,7 @@ const NewTraining: FC<NewTrainingProps> = ({
           >
             <CustomizableButton
               variant="contained"
-              text={isEdit ? "Update Training" : "Create Training"}
+              text={isEdit ? "Update training" : "Create training"}
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",

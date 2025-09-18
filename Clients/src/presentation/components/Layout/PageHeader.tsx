@@ -13,12 +13,14 @@ const PageHeader = ({ title, description, rightContent }: PageHeaderProps) => {
             <Divider/>
 
             {/* Title + description */}
-            <Stack direction="row" alignItems="center" spacing={1} pt={5}>
+            {title && (
+              <Stack direction="row" alignItems="center" spacing={1} pt={5}>
                 <Typography variant="h5" fontWeight="600" fontSize={16}>
                     {title}
                 </Typography>
                 {rightContent}
-            </Stack>
+               </Stack>
+            )}
 
             {description && (
                 <Typography variant="body2" color="text.secondary"  sx={{ mb: 3 }}>

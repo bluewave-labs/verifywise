@@ -13,6 +13,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  TextField,
+  Autocomplete,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
@@ -43,7 +45,6 @@ import {
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
-import Field from "../../components/Inputs/Field";
 import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
 import {
@@ -478,7 +479,7 @@ const Tasks: React.FC = () => {
           <Collapse in={filtersExpanded}>
             <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
               {/* All Filters in One Row */}
-              <Stack direction="row" justifyContent="flex-start" spacing={3} sx={{ ml: "12px", width: "100%" }}>
+              <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}>
                 <Select
                   id="status-filter"
                   label="Status"
@@ -545,17 +546,106 @@ const Tasks: React.FC = () => {
                   sx={{ width: 160 }}
                 />
 
-                <Field
-                  id="category-filter"
-                  label="Categories"
-                  width="160px"
-                  value={categoryFilters.join(', ')}
-                  onChange={(e) => {
-                    const categories = e.target.value.split(',').map(cat => cat.trim()).filter(cat => cat);
-                    setCategoryFilters(categories);
-                  }}
-                  placeholder="Enter categories"
-                />
+                <Stack
+                  gap={2}
+                  sx={{ width: "160px" }}
+                >
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color="text.secondary"
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: '22px' }}
+                  >
+                    Categories
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    id="category-filter"
+                    size="small"
+                    freeSolo
+                    value={categoryFilters}
+                    options={[]}
+                    onChange={(_event, newValue: string[]) => {
+                      setCategoryFilters(newValue);
+                    }}
+                    getOptionLabel={(option: string) => option}
+                    filterSelectedOptions
+                    popupIcon={<ExpandMoreIcon />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter categories"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            minHeight: "34px",
+                            height: "auto",
+                            alignItems: "flex-start",
+                            paddingY: "3px !important",
+                            flexWrap: "wrap",
+                            gap: "2px",
+                          },
+                          "& ::placeholder": {
+                            fontSize: "13px",
+                          },
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value && !categoryFilters.includes(value)) {
+                              setCategoryFilters(prev => [...prev, value]);
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                    sx={{
+                      width: "100%",
+                      backgroundColor: "background.main",
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "3px",
+                        overflowY: "auto",
+                        flexWrap: "wrap",
+                        maxHeight: "115px",
+                        alignItems: "flex-start",
+                        border: "1px solid #D1D5DB",
+                        "&:hover": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
+                          },
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          border: "none",
+                        },
+                        "&.Mui-focused": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
+                          },
+                        },
+                      },
+                      "& .MuiAutocomplete-tag": {
+                        margin: "2px",
+                        maxWidth: "calc(100% - 25px)",
+                        "& .MuiChip-label": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        },
+                      },
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          display: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Stack>
 
                 <DatePicker
                   label="From"

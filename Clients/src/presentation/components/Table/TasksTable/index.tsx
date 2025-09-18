@@ -272,8 +272,8 @@ const TasksTable: React.FC<TasksTableProps> = ({
                     onEdit={() => onEdit(task)}
                     onMouseEvent={() => {}}
                     warningTitle="Archive this task?"
-                    warningMessage="When you archive this task, it will be hidden from the active tasks list. You can restore it later using the 'Show all tasks' toggle."
-                    type="Task"
+                    warningMessage="When you archive this task, it will be hidden from the active tasks list. You can restore it later using the 'include archived' toggle."
+                    type="task"
                   />
                 </TableCell>
               </TableRow>

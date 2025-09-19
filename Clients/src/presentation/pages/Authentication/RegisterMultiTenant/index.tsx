@@ -411,13 +411,15 @@ const RegisterMultiTenant: React.FC = () => {
                       const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;
                       dispatch(setAuthToken(token));
                       dispatch(setExpiration(expirationDate));
+                      localStorage.setItem('root_version', __APP_VERSION__);
 
                       logEngine({
                         type: "info",
                         message: "Google Sign-In successful.",
                       });
-        
+
                       setTimeout(() => {
+                        dispatch(setUserExists(true));
                         setIsSubmitting(false);
                         navigate("/");
                       }, 2000);

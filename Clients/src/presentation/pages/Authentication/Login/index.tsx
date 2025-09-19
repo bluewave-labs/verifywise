@@ -263,6 +263,8 @@ const Login: React.FC = () => {
                       dispatch(setAuthToken(token));
                       dispatch(setExpiration(expirationDate));
 
+                      localStorage.setItem('root_version', __APP_VERSION__);
+
                       logEngine({
                         type: "info",
                         message: "Google Sign-In successful.",

@@ -389,10 +389,21 @@ export async function createOrganizationWithGoogle(
       const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
 
       if (user) {
+        // Generate tokens for the newly created user
+        const { accessToken } = generateUserTokens({
+          id: user.id!,
+          email: email!,
+          roleName: "Admin", // roleId 1 corresponds to Admin
+          organizationId: organization_id,
+        }, res);
+
         await transaction.commit();
         logStructured('successful', `user created: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
         await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
-        return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+        return res.status(201).json(STATUS_CODE[201]({
+          user: user.toSafeJSON(),
+          token: accessToken
+        }));
       }
       logStructured('error', `failed to create user: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
       await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);

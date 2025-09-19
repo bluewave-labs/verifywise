@@ -25,15 +25,18 @@ const PasswordForm: React.FC = () => {
   const { id } = userData || {};
   const [pwdSet, setPwdSet] = useState(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {try {
+  const fetchUserData = useCallback(async () => {
+    try {
       const response = await getUserById({ userId: id });
       setPwdSet(response.data.pwd_set ?? true);
     } catch (error) {
       console.log(error);
-    }}
+    }
+  }, [id]);
+
+  useEffect(() => {
     fetchUserData();
-  }, [])
+  }, [fetchUserData])
 
   // State management
   const [currentPassword, setCurrentPassword] = useState<string>("");
@@ -169,6 +172,8 @@ const PasswordForm: React.FC = () => {
           isToast: true,
           visible: true,
         });
+        // Refresh user data after successful password update
+        await fetchUserData();
       } else {
         setAlert({
           variant: "error",
@@ -195,7 +200,7 @@ const PasswordForm: React.FC = () => {
         setAlert((prev) => ({ ...prev, visible: false }));
       }, 3000); // Alert will disappear after 3 seconds
     }
-  }, [currentPassword, newPassword, confirmPassword]);
+  }, [currentPassword, newPassword, confirmPassword, fetchUserData]);
 
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);

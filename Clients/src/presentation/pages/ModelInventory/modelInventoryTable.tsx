@@ -27,6 +27,7 @@ import {
 } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
 import {
   statusBadgeStyle,
   securityAssessmentBadgeStyle,
@@ -67,7 +68,7 @@ interface ModelInventoryTableProps {
   deletingId?: string | null;
 }
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
   status,
@@ -120,7 +121,9 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('modelInventory', DEFAULT_ROWS_PER_PAGE)
+  );
   const [users, setUsers] = useState<User[]>([]);
 
   // Fetch users when component mounts
@@ -157,7 +160,9 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('modelInventory', newRowsPerPage);
       setPage(0);
     },
     []

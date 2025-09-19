@@ -17,6 +17,7 @@ import TablePaginationActions from '../../TablePagination';
 import TableHeader from '../TableHead';
 const ReportTableBody = lazy(() => import("./TableBody"))
 import {styles, tableWrapper, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
+import { getPaginationRowCount, setPaginationRowCount } from '../../../../application/utils/paginationStorage';
 
 interface ReportTableProps {
   columns: any[];
@@ -34,7 +35,9 @@ const ReportTable: React.FC<ReportTableProps> = ({
     setCurrentPagingation
   }) => {
   const theme = useTheme();
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('reporting', 10)
+  );
 
   const getRange = useMemo(() => {
     const start = page * rowsPerPage + 1;
@@ -48,7 +51,9 @@ const ReportTable: React.FC<ReportTableProps> = ({
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('reporting', newRowsPerPage);
       setCurrentPagingation(0);
     },
     [setRowsPerPage, setCurrentPagingation]

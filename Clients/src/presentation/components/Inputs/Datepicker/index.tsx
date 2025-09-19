@@ -22,6 +22,7 @@ const DatePicker = ({
 
   return (
     <Stack
+      gap={theme.spacing(2)}
       sx={{
         "& fieldset": {
           borderColor: theme.palette.border.dark,
@@ -43,10 +44,12 @@ const DatePicker = ({
     >
       {label && (
         <Typography
+          component="p"
+          variant="body1"
           color={theme.palette.text.secondary}
-          fontSize={13}
           fontWeight={500}
-          marginBottom={theme.spacing(2)}
+          fontSize={"13px"}
+          sx={{ margin: 0, height: '22px' }}
         >
           {label}
           {isRequired ? (

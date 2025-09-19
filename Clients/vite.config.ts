@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import svgr from "@svgr/rollup";
+import { version } from "./package.json"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -26,5 +27,5 @@ export default defineConfig({
       }
     }
   },
-  define: { global: "globalThis" },
+  define: { global: "globalThis", __APP_VERSION__: JSON.stringify(version) },
 });

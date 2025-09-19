@@ -43,6 +43,8 @@ interface SelectedRiskData {
   riskSeverity: number;
   riskLevel: number;
   reviewNotes: string;
+  applicableProjects: number[];
+  applicableFrameworks: number[];
 }
 
 // Constants
@@ -211,6 +213,8 @@ const AddNewRiskMITModal = ({
         riskSeverity: mapSeverity(selectedRisk["Risk Severity"]),
         riskLevel: DEFAULT_VALUES.RISK_LEVEL,
         reviewNotes: `Imported from MIT AI Risk Database - Category: ${selectedRisk["Risk Category"]}`,
+        applicableProjects: [],
+        applicableFrameworks: [],
       };
 
       onRiskSelected?.(mappedRiskData);

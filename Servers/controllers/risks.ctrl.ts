@@ -2,14 +2,15 @@ import { Request, Response } from "express";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
-  createProjectRiskQuery,
-  deleteProjectRiskByIdQuery,
-  getAllProjectRisksQuery,
-  getNonMitigatedProjectRisksQuery,
-  getProjectRiskByIdQuery,
-  updateProjectRiskByIdQuery,
-} from "../utils/projectRisk.utils";
-import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
+  createRiskQuery,
+  deleteRiskByIdQuery,
+  getAllRisksQuery,
+  getRiskByIdQuery,
+  getRisksByFrameworkQuery,
+  getRisksByProjectQuery,
+  updateRiskByIdQuery,
+} from "../utils/risk.utils";
+import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { sequelize } from "../database/db";
 import {
   ValidationException,
@@ -18,28 +19,24 @@ import {
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 
-export async function getAllProjectRisks(
+export async function getAllRisks(
   req: Request,
   res: Response
 ): Promise<any> {
-  const projectId = parseInt(req.params.id);
   logStructured(
     "processing",
-    `fetching all project risks for project ID: ${projectId}`,
+    `fetching all project risks`,
     "getAllProjectRisks",
     "projectRisks.ctrl.ts"
   );
-  logger.debug(`🔍 Fetching all project risks for project ID: ${projectId}`);
+  logger.debug(`🔍 Fetching all project risks`);
   try {
-    const projectRisks = await getAllProjectRisksQuery(
-      projectId,
-      req.tenantId!
-    );
+    const projectRisks = await getAllRisksQuery(req.tenantId!);
 
     if (projectRisks) {
       logStructured(
         "successful",
-        `project risks found for project ID: ${projectId}`,
+        `project risks found`,
         "getAllProjectRisks",
         "projectRisks.ctrl.ts"
       );
@@ -48,7 +45,7 @@ export async function getAllProjectRisks(
 
     logStructured(
       "successful",
-      `no project risks found for project ID: ${projectId}`,
+      `no project risks found`,
       "getAllProjectRisks",
       "projectRisks.ctrl.ts"
     );
@@ -56,20 +53,122 @@ export async function getAllProjectRisks(
   } catch (error) {
     logStructured(
       "error",
-      `failed to fetch project risks for project ID: ${projectId}`,
+      `failed to fetch project risks`,
       "getAllProjectRisks",
       "projectRisks.ctrl.ts"
     );
     await logEvent(
       "Error",
-      `Failed to retrieve project risks for project ID: ${projectId}`
+      `Failed to retrieve project risks`
     );
     logger.error("❌ Error in getAllProjectRisks:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
-export async function getProjectRiskById(
+export async function getRisksByProject(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectId = parseInt(req.params.id as string);
+  logStructured(
+    "processing",
+    `fetching risks for project ID: ${projectId}`,
+    "getRisksByProject",
+    "risks.ctrl.ts"
+  );
+  logger.debug(`🔍 Fetching risks for project ID: ${projectId}`);
+  try {
+    const risks = await getRisksByProjectQuery(
+      projectId,
+      req.tenantId!
+    );
+
+    if (risks) {
+      logStructured(
+        "successful",
+        `risks found for project ID: ${projectId}`,
+        "getRisksByProject",
+        "risks.ctrl.ts"
+      );
+      return res.status(200).json(STATUS_CODE[200](risks));
+    }
+
+    logStructured(
+      "successful",
+      `no risks found for project ID: ${projectId}`,
+      "getRisksByProject",
+      "risks.ctrl.ts"
+    );
+    return res.status(204).json(STATUS_CODE[204](risks));
+  } catch (error) {
+    logStructured(
+      "error",
+      `failed to fetch risks for project ID: ${projectId}`,
+      "getRisksByProject",
+      "risks.ctrl.ts"
+    );
+    await logEvent(
+      "Error",
+      `Failed to retrieve risks for project ID: ${projectId}`
+    );
+    logger.error("❌ Error in getRisksByProject:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getRisksByFramework(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const frameworkId = parseInt(req.params.id as string);
+  logStructured(
+    "processing",
+    `fetching risks for framework ID: ${frameworkId}`,
+    "getRisksByFramework",
+    "risks.ctrl.ts"
+  );
+  logger.debug(`🔍 Fetching risks for framework ID: ${frameworkId}`);
+  try {
+    const risks = await getRisksByFrameworkQuery(
+      frameworkId,
+      req.tenantId!
+    );
+
+    if (risks) {
+      logStructured(
+        "successful",
+        `risks found for framework ID: ${frameworkId}`,
+        "getRisksByFramework",
+        "risks.ctrl.ts"
+      );
+      return res.status(200).json(STATUS_CODE[200](risks));
+    }
+
+    logStructured(
+      "successful",
+      `no risks found for framework ID: ${frameworkId}`,
+      "getRisksByFramework",
+      "risks.ctrl.ts"
+    );
+    return res.status(204).json(STATUS_CODE[204](risks));
+  } catch (error) {
+    logStructured(
+      "error",
+      `failed to fetch risks for framework ID: ${frameworkId}`,
+      "getRisksByFramework",
+      "risks.ctrl.ts"
+    );
+    await logEvent(
+      "Error",
+      `Failed to retrieve risks for framework ID: ${frameworkId}`
+    );
+    logger.error("❌ Error in getRisksByFramework:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getRiskById(
   req: Request,
   res: Response
 ): Promise<any> {
@@ -82,7 +181,7 @@ export async function getProjectRiskById(
   );
   logger.debug(`🔍 Looking up project risk with ID: ${projectRiskId}`);
   try {
-    const projectRisk = await getProjectRiskByIdQuery(
+    const projectRisk = await getRiskByIdQuery(
       projectRiskId,
       req.tenantId!
     );
@@ -120,49 +219,7 @@ export async function getProjectRiskById(
   }
 }
 
-export async function getNonMitigatedProjectRisks(
-  req: Request,
-  res: Response
-): Promise<any> {
-  const projectId = parseInt(req.params.id);
-  logStructured(
-    "processing",
-    `fetching non-mitigated project risks for project ID: ${projectId}`,
-    "getNonMitigatedProjectRisks",
-    "projectRisks.ctrl.ts"
-  );
-  logger.debug(
-    `🔍 Fetching non-mitigated project risks for project ID: ${projectId}`
-  );
-  try {
-    const projectRisks = await getNonMitigatedProjectRisksQuery(
-      projectId,
-      req.tenantId!
-    );
-    logStructured(
-      "successful",
-      `non-mitigated project risks fetched for project ID: ${projectId}`,
-      "getNonMitigatedProjectRisks",
-      "projectRisks.ctrl.ts"
-    );
-    return res.status(200).json(STATUS_CODE[200](projectRisks));
-  } catch (error) {
-    logStructured(
-      "error",
-      `failed to fetch non-mitigated project risks for project ID: ${projectId}`,
-      "getNonMitigatedProjectRisks",
-      "projectRisks.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Failed to retrieve non-mitigated project risks for project ID: ${projectId}`
-    );
-    logger.error("❌ Error in getNonMitigatedProjectRisks:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
-  }
-}
-
-export async function createProjectRisk(
+export async function createRisk(
   req: Request,
   res: Response
 ): Promise<any> {
@@ -175,20 +232,10 @@ export async function createProjectRisk(
   );
   logger.debug("🛠️ Creating new project risk");
   try {
-    const projectRiskData = req.body;
-    const is_demo = projectRiskData.is_demo || false;
+    const projectRiskData = req.body as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
 
-    // Use the ProjectRiskModel's createProjectRisk method with validation
-    const projectRiskModel = await ProjectRiskModel.createProjectRisk(
-      projectRiskData,
-      is_demo
-    );
-
-    // Validate the project risk data before saving
-    await projectRiskModel.validateProjectRiskData();
-
-    const newProjectRisk = await createProjectRiskQuery(
-      projectRiskModel,
+    const newProjectRisk = await createRiskQuery(
+      { ...projectRiskData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
       req.tenantId!,
       transaction
     );
@@ -197,13 +244,13 @@ export async function createProjectRisk(
       await transaction.commit();
       logStructured(
         "successful",
-        `project risk created: ${projectRiskModel.risk_name}`,
+        `project risk created: ${newProjectRisk.risk_name}`,
         "createProjectRisk",
         "projectRisks.ctrl.ts"
       );
       await logEvent(
         "Create",
-        `Project risk created: ${projectRiskModel.risk_name}`
+        `Project risk created: ${newProjectRisk.risk_name}`
       );
       return res.status(201).json(STATUS_CODE[201](newProjectRisk));
     }
@@ -259,8 +306,7 @@ export async function createProjectRisk(
     );
     await logEvent(
       "Error",
-      `Unexpected error during project risk creation: ${
-        (error as Error).message
+      `Unexpected error during project risk creation: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in createProjectRisk:", error);
@@ -268,7 +314,7 @@ export async function createProjectRisk(
   }
 }
 
-export async function updateProjectRiskById(
+export async function updateRiskById(
   req: Request,
   res: Response
 ): Promise<any> {
@@ -282,39 +328,33 @@ export async function updateProjectRiskById(
   );
   logger.debug(`✏️ Update requested for project risk ID: ${projectRiskId}`);
   try {
-    const updateData = req.body;
+    const updateData = req.body as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
 
-    // First, get the existing project risk to update
-    const existingProjectRisk = await getProjectRiskByIdQuery(
+    // if (!existingProjectRisk) {
+    //   logStructured(
+    //     "error",
+    //     `project risk not found: ID ${projectRiskId}`,
+    //     "updateProjectRiskById",
+    //     "projectRisks.ctrl.ts"
+    //   );
+    //   await logEvent(
+    //     "Error",
+    //     `Project risk not found for update: ID ${projectRiskId}`
+    //   );
+    //   await transaction.rollback();
+    //   return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
+    // }
+
+    // // Create a RiskModel instance with the existing data and update it
+    // const riskModel = new RiskModel(existingProjectRisk);
+    // await riskModel.updateProjectRisk(updateData);
+
+    // // Validate the updated project risk data
+    // await riskModel.validateProjectRiskData();
+
+    const updatedProjectRisk = await updateRiskByIdQuery(
       projectRiskId,
-      req.tenantId!
-    );
-
-    if (!existingProjectRisk) {
-      logStructured(
-        "error",
-        `project risk not found: ID ${projectRiskId}`,
-        "updateProjectRiskById",
-        "projectRisks.ctrl.ts"
-      );
-      await logEvent(
-        "Error",
-        `Project risk not found for update: ID ${projectRiskId}`
-      );
-      await transaction.rollback();
-      return res.status(404).json(STATUS_CODE[404]("Project risk not found"));
-    }
-
-    // Create a ProjectRiskModel instance with the existing data and update it
-    const projectRiskModel = new ProjectRiskModel(existingProjectRisk);
-    await projectRiskModel.updateProjectRisk(updateData);
-
-    // Validate the updated project risk data
-    await projectRiskModel.validateProjectRiskData();
-
-    const updatedProjectRisk = await updateProjectRiskByIdQuery(
-      projectRiskId,
-      projectRiskModel,
+      { ...updateData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
       req.tenantId!,
       transaction
     );
@@ -380,8 +420,7 @@ export async function updateProjectRiskById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for project risk ID ${projectRiskId}: ${
-        (error as Error).message
+      `Unexpected error during update for project risk ID ${projectRiskId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in updateProjectRiskById:", error);
@@ -389,7 +428,7 @@ export async function updateProjectRiskById(
   }
 }
 
-export async function deleteProjectRiskById(
+export async function deleteRiskById(
   req: Request,
   res: Response
 ): Promise<any> {
@@ -403,7 +442,7 @@ export async function deleteProjectRiskById(
   );
   logger.debug(`🗑️ Delete request for project risk ID ${projectRiskId}`);
   try {
-    const deletedProjectRisk = await deleteProjectRiskByIdQuery(
+    const deletedProjectRisk = await deleteRiskByIdQuery(
       projectRiskId,
       req.tenantId!,
       transaction
@@ -443,8 +482,7 @@ export async function deleteProjectRiskById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for project risk ID ${projectRiskId}: ${
-        (error as Error).message
+      `Unexpected error during delete for project risk ID ${projectRiskId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in deleteProjectRiskById:", error);

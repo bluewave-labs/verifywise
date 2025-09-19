@@ -1,16 +1,15 @@
-import { IProjectRisk } from "../../interfaces/I.projectRisk";
+import { IRisk } from "../../interfaces/I.risk";
 
 // Sample mock data for ProjectRisk
 const mockProjectRisks = (
   projectId1: number,
   userId1: number,
   userId2: number
-): IProjectRisk[] => {
+): IRisk[] => {
   return [
     // Project risk for the first project
     {
       id: 1,
-      project_id: projectId1, // Refers to the project with id 1
       risk_name: "Data Privacy Compliance",
       risk_owner: userId1,
       ai_lifecycle_phase: "Monitoring & maintenance",
@@ -39,7 +38,6 @@ const mockProjectRisks = (
     },
     {
       id: 2,
-      project_id: projectId1, // Refers to the project with id 2
       risk_name: "Algorithm Bias",
       risk_owner: userId2,
       ai_lifecycle_phase: "Data collection & processing",

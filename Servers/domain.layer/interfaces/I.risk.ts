@@ -1,6 +1,5 @@
-export interface IProjectRisk {
+export interface IRisk {
   id?: number;
-  project_id: number; // Foreign key to refer to the project
   risk_name: string;
   risk_owner: number;
   ai_lifecycle_phase:
@@ -57,4 +56,6 @@ export interface IProjectRisk {
   date_of_assessment: Date;
   created_at?: Date;
   recommendations?: string;
+  deletedLinkedProject?: boolean;
+  deletedLinkedFrameworks?: boolean;
 }

@@ -1,14 +1,11 @@
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { Project } from "../../../../../domain/types/Project";
 import { useSearchParams } from "react-router-dom";
-import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import RisksCard from "../../../../components/Cards/RisksCard";
 import RiskVisualizationTabs from "../../../../components/RiskVisualization/RiskVisualizationTabs";
 import RiskFilters from "../../../../components/RiskVisualization/RiskFilters";
 import { rowStyle } from "./style";
-import CustomizableButton from "../../../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../../assets/icons/plus-circle-white.svg"
 import VWProjectRisksTable from "../../../../components/Table/VWProjectRisksTable";
 import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../../../components/AddNewRiskForm";
@@ -18,10 +15,8 @@ import Alert from "../../../../components/Alert";
 import { deleteEntityById } from "../../../../../application/repository/entity.repository";
 import CustomizableToast from "../../../../components/Toast";
 import CustomizableSkeleton from "../../../../components/Skeletons";
-import allowedRoles from "../../../../../application/constants/permissions";
-import AddNewRiskMITModal from "../../../../components/AddNewRiskMITForm";
+import useUsers from "../../../../../application/hooks/useUsers";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
-import { useAuth } from "../../../../../application/hooks/useAuth";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -49,18 +44,14 @@ const initialLoadingState: LoadingStatus = {
 };
 
 const VWProjectRisks = ({ project }: { project?: Project }) => {
-  const { userRoleName } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { users, loading: usersLoading } = useUsers();
+  const [searchParams] = useSearchParams();
   const projectId =
     parseInt(searchParams.get("projectId") ?? "0") || project!.id;
-  const riskId = searchParams.get("riskId");
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
-  const { projectRisksSummary } = useProjectRisks({
-    projectId,
-    refreshKey,
-  });
   const [projectRisks, setProjectRisks] = useState<ProjectRisk[]>([]);
   const [selectedRow, setSelectedRow] = useState<ProjectRisk[]>([]);
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -71,29 +62,43 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     useState<LoadingStatus>(initialLoadingState);
   const [showCustomizableSkeleton, setShowCustomizableSkeleton] =
     useState<boolean>(false);
-  const [currentRow, setCurrentRow] = useState<number | null>(null);
-  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-  const [aiRiskAnchor, setAiRiskAnchor] = useState<null | HTMLElement>(null);
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-  const [selectedRiskData, setSelectedRiskData] = useState<{
-    riskName: string;
-    actionOwner: number;
-    aiLifecyclePhase: number;
-    riskDescription: string;
-    riskCategory: number[];
-    potentialImpact: string;
-    assessmentMapping: number;
-    controlsMapping: number;
-    likelihood: number;
-    riskSeverity: number;
-    riskLevel: number;
-    reviewNotes: string;
-  } | null>(null);
 
   // New state for enhanced risk visualization
   const [selectedRisk, setSelectedRisk] = useState<ProjectRisk | null>(null);
   const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
   const [, setActiveFilters] = useState<any>(null);
+
+  // Compute risk summary from fetched data
+  const risksSummary = useMemo(() => {
+    const veryHighRisks = projectRisks.filter(risk => {
+      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+      return riskLevel.includes("very high");
+    }).length;
+    const highRisks = projectRisks.filter(risk => {
+      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+      return riskLevel.includes("high") && !riskLevel.includes("very high");
+    }).length;
+    const mediumRisks = projectRisks.filter(risk => {
+      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+      return riskLevel.includes("medium");
+    }).length;
+    const lowRisks = projectRisks.filter(risk => {
+      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+      return riskLevel.includes("low") && !riskLevel.includes("very low");
+    }).length;
+    const veryLowRisks = projectRisks.filter(risk => {
+      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+      return riskLevel.includes("very low") || riskLevel.includes("no risk");
+    }).length;
+
+    return {
+      veryHighRisks,
+      highRisks,
+      mediumRisks,
+      lowRisks,
+      veryLowRisks,
+    };
+  }, [projectRisks]);
 
   const fetchProjectRisks = useCallback(async () => {
     try {
@@ -126,45 +131,25 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
    *
    */
 
-  const handleOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchor(anchor ? null : event.currentTarget);
-    setSelectedRow([]);
-    if (riskId) {
-      searchParams.delete("riskId");
-      setSearchParams(searchParams);
-    }
-  };
-
-  const handleAIModalOpen = () => {
-    setIsAIModalOpen(true);
-  };
-
-  const handleAiRiskOpenOrClose = (event: React.MouseEvent<HTMLElement>) => {
-    setAiRiskAnchor(aiRiskAnchor ? null : event.currentTarget);
-  };
-
-  const handleRiskSelected = (riskData: {
-    riskName: string;
-    actionOwner: number;
-    aiLifecyclePhase: number;
-    riskDescription: string;
-    riskCategory: number[];
-    potentialImpact: string;
-    assessmentMapping: number;
-    controlsMapping: number;
-    likelihood: number;
-    riskSeverity: number;
-    riskLevel: number;
-    reviewNotes: string;
-  }) => {
-    setSelectedRiskData(riskData);
-    // Created a dummy anchor element to trigger the popup
-    const dummyElement = document.createElement("div");
-    setAiRiskAnchor(dummyElement);
-  };
 
   const handleLoading = (message: string) => {
     setIsLoading((prev) => ({ ...prev, loading: true, message: message }));
+  };
+
+  const handleUpdate = () => {
+    setTimeout(() => {
+      setIsLoading(initialLoadingState);
+      handleToast("success", "Risk updated successfully");
+    }, 1000);
+
+    fetchProjectRisks();
+    setRefreshKey((prevKey) => prevKey + 1);
+    setAnchor(null); // Close the popup
+  };
+
+  const handleError = (errorMessage: any) => {
+    setIsLoading(initialLoadingState);
+    handleToast("error", errorMessage);
   };
 
   const handleToast = (type: any, message: string) => {
@@ -178,38 +163,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     }, 3000);
   };
 
-  const handleSuccess = () => {
-    setTimeout(() => {
-      setIsLoading(initialLoadingState);
-      handleToast("success", "Risk created successfully");
-    }, 1000);
-
-    // set pagination for FIFO risk listing after adding a new risk
-    let rowsPerPage = 5;
-    let pageCount = Math.floor(projectRisks.length / rowsPerPage);
-    setCurrentPage(pageCount);
-
-    fetchProjectRisks();
-    setRefreshKey((prevKey) => prevKey + 1);
-  };
-
-  const handleUpdate = () => {
-    setTimeout(() => {
-      setIsLoading(initialLoadingState);
-      setCurrentRow(selectedRow[0].id); // set current row to trigger flash-feedback
-      handleToast("success", "Risk updated successfully");
-    }, 1000);
-
-    setTimeout(() => {
-      setCurrentRow(null);
-    }, 2000);
-    fetchProjectRisks();
-    setRefreshKey((prevKey) => prevKey + 1); // Update refreshKey to trigger re-render
-  };
-
-  const handleError = (errorMessage: any) => {
-    handleToast("error", errorMessage);
-  };
 
   const handleDelete = async (riskId: number) => {
     handleLoading("Deleting the risk. Please wait...");
@@ -278,7 +231,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
       <Stack className="vw-project-risks-row" sx={rowStyle}>
-        <RisksCard risksSummary={projectRisksSummary} />
+        <RisksCard risksSummary={risksSummary} />
       </Stack>
       <br />
 
@@ -287,6 +240,8 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         <RiskFilters
           risks={projectRisks}
           onFilterChange={handleRiskFilterChange}
+          hideProjectFilter={true}
+          hideFrameworkFilter={true}
         />
 
         {/* Risk Visualization Section */}
@@ -304,82 +259,10 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
           mb: 10,
         }}
       >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>
-            Project risks
-          </Typography>
-          <Stack direction="row" gap={10}>
-            <CustomizableButton
-              variant="contained"
-              text="Insert from AI risks database"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Add new risk"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-          </Stack>
-        </Stack>
+        <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>
+          Project risks
+        </Typography>
 
-        {selectedRow.length > 0 && anchor ? (
-          <Popup
-            popupId="edit-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchor(null)}
-                popupStatus="edit"
-                onSuccess={handleUpdate}
-                onError={handleError}
-                onLoading={handleLoading}
-              />
-            }
-            openPopupButtonName="Edit risk"
-            popupTitle="Edit project risk"
-            handleOpenOrClose={handleOpenOrClose}
-            anchor={anchor}
-          />
-        ) : (
-          <Popup
-            popupId="add-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchor(null)}
-                popupStatus="new"
-                onSuccess={handleSuccess}
-                onError={handleError}
-                onLoading={handleLoading}
-              />
-            }
-            openPopupButtonName="Add new risk"
-            popupTitle="Add a new risk"
-            popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
-            handleOpenOrClose={handleOpenOrClose}
-            anchor={anchor}
-          />
-        )}
         {showCustomizableSkeleton ? (
           <CustomizableSkeleton
             variant="rectangular"
@@ -395,36 +278,30 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
             setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
             setAnchor={setAnchor}
             deleteRisk={handleDelete}
-            flashRow={currentRow}
+            flashRow={null}
           />
         )}
       </Stack>
-      <AddNewRiskMITModal
-        isOpen={isAIModalOpen}
-        setIsOpen={setIsAIModalOpen}
-        onRiskSelected={handleRiskSelected}
-      />
-      {selectedRiskData && aiRiskAnchor && (
+
+      {/* Edit Risk Popup */}
+      {selectedRow.length > 0 && anchor && (
         <Popup
-          popupId="add-risk-from-ai-popup"
+          popupId="edit-risk-popup"
           popupContent={
             <AddNewRiskForm
-              closePopup={() => {
-                setAiRiskAnchor(null);
-                setSelectedRiskData(null);
-              }}
-              popupStatus="new"
-              onSuccess={handleSuccess}
+              closePopup={() => setAnchor(null)}
+              popupStatus="edit"
+              onSuccess={handleUpdate}
               onError={handleError}
               onLoading={handleLoading}
-              initialRiskValues={selectedRiskData}
+              users={users}
+              usersLoading={usersLoading}
             />
           }
-          openPopupButtonName="Add risk from AI database"
-          popupTitle="Add a new risk from AI database"
-          popupSubtitle="Review and edit the selected risk from the AI database before saving."
-          handleOpenOrClose={handleAiRiskOpenOrClose}
-          anchor={aiRiskAnchor}
+          openPopupButtonName="Edit risk"
+          popupTitle="Edit project risk"
+          handleOpenOrClose={() => setAnchor(null)}
+          anchor={anchor}
         />
       )}
     </Stack>

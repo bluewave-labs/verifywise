@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 
 import {
@@ -487,7 +487,7 @@ const PolicyDetailModal: React.FC<Props> = ({
               },
             }}
             onClick={save}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Box>
       </Drawer>

@@ -16,7 +16,7 @@ import organizationalFrameworksHelpContent from "../../helpers/organizational-fr
 import { useContext, useEffect, useState, useMemo } from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
 import EditIcon from "@mui/icons-material/Edit";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -694,9 +694,9 @@ const Framework = () => {
                   }
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <DeleteIcon
+                    <DeleteIconRed
                       fontSize="small"
-                      sx={{
+                      style={{
                         color: "error.main",
                         fontSize: "16px",
                       }}

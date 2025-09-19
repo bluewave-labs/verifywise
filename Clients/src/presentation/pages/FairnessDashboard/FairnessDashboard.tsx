@@ -49,7 +49,14 @@ export type FairnessModel = {
 };
 
 export default function FairnessDashboard() {
-  const [tab, setTab] = useState("uploads");
+  const [tab, setTab] = useState(() => {
+    // Check URL hash to determine initial tab
+    const hash = window.location.hash;
+    if (hash === "#biasModule") {
+      return "biasModule";
+    }
+    return "uploads";
+  });
   const [anchorEl, setAnchorEl] = useState(null);
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);

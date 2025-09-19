@@ -16,6 +16,8 @@ import { decryptText, encryptText } from "../../../tools/createSecureValue";
 
 @Table({
   tableName: "slack_webhooks",
+  timestamps: true,
+  underscored: true, // This makes Sequelize use snake_case for timestamp fields
 })
 export class SlackWebhookModel
   extends Model<SlackWebhookModel>
@@ -88,6 +90,11 @@ export class SlackWebhookModel
     type: DataType.DATE,
   })
   created_at?: Date;
+
+  @Column({
+    type: DataType.DATE,
+  })
+  updated_at?: Date;
 
   @Column({
     type: DataType.BOOLEAN,
@@ -422,7 +429,7 @@ export class SlackWebhookModel
       channel_id: this.channel_id,
       configuration_url: this.configuration_url,
       url: this.url,
-      created_at: this.created_at,
+      created_at: this.createdAt,
       is_active: this.is_active,
     };
   }

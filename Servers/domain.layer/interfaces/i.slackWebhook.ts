@@ -12,5 +12,6 @@ export interface ISlackWebhook {
   url_iv?: string;
   url: string; // URL of the slack workspace
   created_at?: Date;
+  updated_at?: Date;
   is_active?: boolean;
 }

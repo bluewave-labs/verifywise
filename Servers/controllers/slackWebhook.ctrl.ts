@@ -11,11 +11,13 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import {
   getAllSlackWebhooksQuery,
-  getSlackWebhookByIdQuery,
   createNewSlackWebhookQuery,
   updateSlackWebhookByIdQuery,
+  getSlackWebhookByIdAndChannelQuery,
 } from "../utils/slackWebhook.utils";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
+import { sendImmediateMessage } from "../services/slackNotificationService";
+import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 
 const fileName = "slackWebhook.ctrl.ts";
 
@@ -31,13 +33,32 @@ export async function getAllSlackWebhooks(
     fileName,
   );
   logger.debug("🔍 Fetching all slackWebhooks");
-
-  try {
-    const slackWebhooks = await getAllSlackWebhooksQuery(
-      req.query.id as string,
+  const userId = req.query.userId as string;
+  const channel = req.query.channel as string;
+  if (!userId) {
+    logStructured(
+      "error",
+      "userId query parameter is required",
+      functionName,
+      fileName,
     );
+    return res
+      .status(400)
+      .json(STATUS_CODE[400]("userId query parameter is required"));
+  }
+  try {
+    let slackWebhooks: ISlackWebhook[] = [];
 
-    if (slackWebhooks && slackWebhooks.length > 0) {
+    if (channel) {
+      slackWebhooks = await getSlackWebhookByIdAndChannelQuery(
+        parseInt(userId),
+        channel,
+      );
+    } else {
+      slackWebhooks = await getAllSlackWebhooksQuery(userId);
+    }
+
+    if (slackWebhooks) {
       logStructured(
         "successful",
         `${slackWebhooks.length} slackWebhooks found`,
@@ -46,14 +67,6 @@ export async function getAllSlackWebhooks(
       );
       return res.status(200).json(STATUS_CODE[200](slackWebhooks));
     }
-
-    logStructured(
-      "successful",
-      "no slackWebhooks found",
-      functionName,
-      fileName,
-    );
-    return res.status(204).json(STATUS_CODE[204](slackWebhooks));
   } catch (error) {
     logStructured(
       "error",
@@ -419,6 +432,69 @@ export async function updateSlackWebhookById(
       `Unexpected error during slackWebhook update for ID ${slackWebhookId}: ${(error as Error).message}`,
     );
     logger.error("❌ Error in updateSlackWebhookById:", error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function sendSlackMessage(
+  req: Request,
+  res: Response,
+): Promise<any> {
+  const functionName = "sendSlackMessage";
+  const requestId = parseInt(req.params.id);
+  const requestBody = req.body;
+
+  logStructured(
+    "processing",
+    `sending slack message to ID ${requestId}`,
+    functionName,
+    fileName,
+  );
+  logger.debug(`✏️ Sending message to slack ID ${requestId}`);
+
+  try {
+    const slackWebhook =
+      await SlackWebhookModel.findByIdWithValidation(requestId);
+
+    const slackMsgSent = await sendImmediateMessage(slackWebhook!, requestBody);
+
+    if (slackMsgSent.success) {
+      logStructured(
+        "successful",
+        `slackWebhook found: ID ${requestId}`,
+        functionName,
+        fileName,
+      );
+      return res.status(200).json(STATUS_CODE[200](slackMsgSent));
+    }
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      logStructured(
+        "error",
+        `validation error: ${error.message}`,
+        functionName,
+        fileName,
+      );
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof NotFoundException) {
+      logStructured(
+        "error",
+        `SlackWebhook not found: ID ${requestId}`,
+        functionName,
+        fileName,
+      );
+      return res.status(404).json(STATUS_CODE[404](error.message));
+    }
+
+    logStructured(
+      "error",
+      `Failed to send slack message: ID ${requestId}`,
+      functionName,
+      fileName,
+    );
+    logger.error("❌ Error in sendSlackMessage:", error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

@@ -52,3 +52,14 @@ export async function updateSlackIntegration({
   const response = await apiServices.patch(`/slackWebhooks/${id}`, body);
   return response;
 }
+
+export async function sendSlackMessage({
+  id,
+  body,
+}: {
+  id: number;
+  body: { title: string; message: string };
+}): Promise<any> {
+  const response = await apiServices.post(`/slackWebhooks/${id}/send`, body);
+  return response.data;
+}

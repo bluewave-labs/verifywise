@@ -17,19 +17,19 @@ export const getAllSlackWebhooksQuery = async (
   return slackWebhooks;
 };
 
-export const getSlackWebhookByIdQuery = async (
+export const getSlackWebhookByIdAndChannelQuery = async (
   id: number,
-  tenant: string,
-): Promise<ISlackWebhook | null> => {
+  channel: string,
+): Promise<ISlackWebhook[]> => {
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".slack_webhooks WHERE id = :id`,
+    `SELECT * FROM public.slack_webhooks WHERE user_id = :id AND channel = :channel`,
     {
-      replacements: { id },
+      replacements: { id, channel: `${channel}` },
       mapToModel: true,
       model: SlackWebhookModel,
     },
   );
-  return result[0];
+  return result;
 };
 
 export const createNewSlackWebhookQuery = async (
@@ -65,7 +65,6 @@ export const createNewSlackWebhookQuery = async (
       transaction,
     },
   );
-  console.log("Created Slack Webhook:", result[0]);
   return result[0];
 };
 

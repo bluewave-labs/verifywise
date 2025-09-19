@@ -328,9 +328,9 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
         }}
         anchor="right"
         sx={{
-          width: 800,
+          width: 900,
           "& .MuiDrawer-paper": {
-            width: 800,
+            width: 900,
             borderRadius: 0,
             padding: "15px 20px",
             marginTop: "0",
@@ -370,7 +370,7 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
             setErrors={setErrors}
           />
           <Divider sx={{ my: 2 }} />
-          <Stack sx={{ width: "100%" }}>
+          <Stack sx={{ width: "100%", height: "100%" }}>
             <Typography
               sx={{
                 fontSize: theme.typography.fontSize,
@@ -421,8 +421,7 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
             >
               <PlateContent
                 style={{
-                  minHeight: "400px",
-                  maxHeight: "400px",
+                  height: "58vh",
                   overflowY: "auto",
                   padding: "16px",
                   border: "1px solid #E0E0E0",
@@ -446,7 +445,6 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
             width: 800,                     // same width as Drawer
             p: 2,
             backgroundColor: "#fff",        // give it a background to overlap content
-            borderTop: "1px solid #E0E0E0", 
             display: "flex",
             justifyContent: "flex-end",
             zIndex: 1201,                   // above Drawer content

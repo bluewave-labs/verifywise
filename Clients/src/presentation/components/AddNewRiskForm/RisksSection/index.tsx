@@ -193,23 +193,12 @@ const RiskSection: FC<RiskSectionProps> = ({
         {/* Risk Scope & Frameworks Section - Moved to top */}
         <Stack
           sx={{
-            p: 3,
+            p: 4,
             backgroundColor: theme.palette.background.accent,
             borderRadius: 2,
             border: `1px solid ${theme.palette.border?.light}`,
-            boxShadow: "0px 1px 3px rgba(16, 24, 40, 0.1)",
           }}
         >
-          <Typography
-            sx={{
-              fontSize: 16,
-              fontWeight: 600,
-              mb: 2,
-              color: theme.palette.text.primary,
-            }}
-          >
-            Risk Scope & Frameworks
-          </Typography>
           <Typography
             sx={{
               fontSize: theme.typography.fontSize,
@@ -228,7 +217,7 @@ const RiskSection: FC<RiskSectionProps> = ({
               <Typography
                 sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
               >
-                Applicable Projects
+                Applicable projects
               </Typography>
               <Autocomplete
                 multiple
@@ -333,7 +322,7 @@ const RiskSection: FC<RiskSectionProps> = ({
               <Typography
                 sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
               >
-                Applicable Frameworks
+                Applicable frameworks
               </Typography>
               <Autocomplete
                 multiple
@@ -435,9 +424,7 @@ const RiskSection: FC<RiskSectionProps> = ({
           </Stack>
         </Stack>
 
-        <Divider sx={{ borderColor: theme.palette.border?.light, my: 2 }} />
-
-        <Stack sx={{ width: "100%", gap: 3 }}>
+        <Stack sx={{ width: "100%", gap: 3, mt: 9 }}>
           <Stack sx={{ gap: 3 }}>
             {/* Row 1 */}
             <Stack sx={formRowStyles}>
@@ -500,7 +487,7 @@ const RiskSection: FC<RiskSectionProps> = ({
             </Stack>
 
             {/* Row 2 */}
-            <Stack sx={formRowStyles}>
+            <Stack sx={{ ...formRowStyles, mt: 9 }}>
               <Stack>
                 <Stack>
                   <Field
@@ -614,7 +601,7 @@ const RiskSection: FC<RiskSectionProps> = ({
               </Stack>
               <Field
                 id="potential-impact-input"
-                label="Potential Impact"
+                label="Potential impact"
                 type="description"
                 placeholder="Describe potential impact"
                 value={riskValues.potentialImpact}
@@ -633,9 +620,7 @@ const RiskSection: FC<RiskSectionProps> = ({
           </Stack>
         </Stack>
 
-        <Divider sx={{ borderColor: theme.palette.border?.light, my: 3 }} />
-
-        <Stack sx={{ gap: 2 }}>
+        <Stack sx={{ gap: 2, mt: 9 }}>
           <Typography sx={{ fontSize: 16, fontWeight: 600, color: theme.palette.text.primary }}>
             Calculate inherent risk level
           </Typography>
@@ -645,16 +630,16 @@ const RiskSection: FC<RiskSectionProps> = ({
             determined based on your inputs.
           </Typography>
         </Stack>
-        <Suspense fallback={<div>Loading...</div>}>
-          <RiskLevel
-            likelihood={riskValues.likelihood}
-            riskSeverity={riskValues.riskSeverity}
-            handleOnSelectChange={handleOnSelectChange}
-            disabled={isEditingDisabled}
-          />
-        </Suspense>
-        <Divider sx={{ borderColor: theme.palette.border?.light, my: 3 }} />
-
+        <Stack sx={{ mt: 9 }}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <RiskLevel
+              likelihood={riskValues.likelihood}
+              riskSeverity={riskValues.riskSeverity}
+              handleOnSelectChange={handleOnSelectChange}
+              disabled={isEditingDisabled}
+            />
+          </Suspense>
+        </Stack>
         <Stack>
           <Field
             id="review-notes-input"

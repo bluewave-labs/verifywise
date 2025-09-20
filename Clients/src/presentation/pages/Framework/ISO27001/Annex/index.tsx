@@ -240,7 +240,9 @@ const ISO27001Annex = ({
                     <RightArrowBlack
                       style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
                     />
-                    {annex.arrangement}.{annex.order_no} {annex.title}
+                    <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
+                      {annex.arrangement}.{annex.order_no} {annex.title}
+                    </Typography>
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
                     {(() => {

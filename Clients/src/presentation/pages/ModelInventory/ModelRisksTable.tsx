@@ -199,7 +199,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                     onMouseEvent={() => {}}
                     warningTitle="Delete this model risk?"
                     warningMessage="This action is non-recoverable."
-                    type="Model Risk"
+                    type="model risk"
                   />
                 </TableCell>
               </TableRow>

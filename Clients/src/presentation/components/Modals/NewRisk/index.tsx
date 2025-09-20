@@ -567,7 +567,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 1000,
-            bgcolor: theme.palette.background.main,
+            bgcolor: theme.palette.background.modal,
             border: 1,
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,

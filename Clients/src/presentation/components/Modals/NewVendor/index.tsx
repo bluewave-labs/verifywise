@@ -583,6 +583,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     whiteSpace: "nowrap",
                   },
                 },
+                "& .MuiChip-root": {
+                  borderRadius: "4px",
+                },
                 border: errors.projectIds
                   ? `1px solid #f04438`
                   : `1px solid ${theme.palette.border.dark}`,
@@ -783,7 +786,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             maxHeight: "80vh",
             display: "flex",
             flexDirection: "column",
-            bgcolor: theme.palette.background.main,
+            bgcolor: theme.palette.background.modal,
             border: 1,
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,

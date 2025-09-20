@@ -544,7 +544,7 @@ const NewControlPane = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (

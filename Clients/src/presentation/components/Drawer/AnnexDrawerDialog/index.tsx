@@ -528,6 +528,10 @@ const VWISO42001AnnexDrawerDialog = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -654,7 +658,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (

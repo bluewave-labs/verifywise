@@ -162,6 +162,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
                   borderWidth: "1px",
                 },
               },
+              "& .MuiChip-root": {
+                borderRadius: "4px",
+              },
             }}
             slotProps={{
               paper: {
@@ -241,6 +244,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
                   borderColor: "#888",
                   borderWidth: "1px",
                 },
+              },
+              "& .MuiChip-root": {
+                borderRadius: "4px",
               },
             }}
             slotProps={{

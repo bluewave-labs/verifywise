@@ -154,6 +154,10 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
             border: "1px solid #D0D5DD",
             backgroundColor: "white",
             color: "#344054",
+            "&:hover": {
+              backgroundColor: "#F9FAFB",
+              border: "1px solid #D0D5DD",
+            },
           }}
           disableRipple={
             theme.components?.MuiButton?.defaultProps?.disableRipple

@@ -269,17 +269,21 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     () => ({
       backgroundColor: theme.palette.background.main,
       "& .MuiOutlinedInput-root": {
-        borderRadius: "3px",
+        borderRadius: theme.shape.borderRadius,
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: theme.palette.border.dark,
+          borderWidth: "1px",
+        },
         "&:hover .MuiOutlinedInput-notchedOutline": {
-          borderColor: "none",
+          borderColor: theme.palette.border.dark,
         },
         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-          borderColor: "#888",
+          borderColor: theme.palette.border.dark,
           borderWidth: "1px",
         },
       },
     }),
-    [theme.palette.background.main]
+    [theme.palette.background.main, theme.shape.borderRadius, theme.palette.border.dark]
   );
 
   return (
@@ -305,7 +309,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
           maxHeight: "80vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: theme.palette.background.main,
+          bgcolor: theme.palette.background.modal,
           border: 1,
           borderColor: theme.palette.border,
           borderRadius: theme.shape.borderRadius,

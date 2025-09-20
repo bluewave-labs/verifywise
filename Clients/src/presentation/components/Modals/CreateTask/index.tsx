@@ -301,7 +301,7 @@ const CreateTask: FC<CreateTaskProps> = ({
           width: "fit-content",
           maxWidth: "760px",
           maxHeight: "90vh",
-          backgroundColor: theme.palette.background.main,
+          backgroundColor: theme.palette.background.modal,
           borderRadius: theme.shape.borderRadius,
           boxShadow: 24,
           padding: theme.spacing(10),
@@ -466,6 +466,9 @@ const CreateTask: FC<CreateTaskProps> = ({
                           borderColor: "#888",
                           borderWidth: "1px",
                         },
+                      },
+                      "& .MuiChip-root": {
+                        borderRadius: "4px",
                       },
                     }}
                     slotProps={{

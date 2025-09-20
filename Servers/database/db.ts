@@ -18,6 +18,7 @@ import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
+import { ModelRiskModel } from "../domain.layer/models/modelRisk/modelRisk.model";
 import dbConfig from "./config/config";
 import { Dialect } from "sequelize";
 import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
@@ -90,6 +91,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     VendorRiskModel,
     VendorsProjectsModel,
     ModelInventoryModel,
+    ModelRiskModel,
     FrameworkModel,
     ProjectFrameworksModel,
     AssessmentEUModel,

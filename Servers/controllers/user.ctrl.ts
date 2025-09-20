@@ -46,13 +46,15 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
       req.organizationId!
     )) as UserModel[];
 
-    if (users && users.length > 0) {   
+    if (users && users.length > 0) {
+      logStructured('successful', `found ${users.length} users`, 'getAllUsers', 'user.ctrl.ts');
+      console.log('✅ Sending successful response with users:', users.map((user) => user.toSafeJSON()));
       return res
         .status(200)
         .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
-    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts'); 
+    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts');
     return res.status(204).json(STATUS_CODE[204](users));
   } catch (error) {
     logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');  

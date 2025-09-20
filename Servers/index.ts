@@ -33,6 +33,7 @@ import loggerRoutes from "./routes/logger.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
+import modelRiskRoutes from "./routes/modelRisk.route";
 import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
@@ -116,6 +117,7 @@ try {
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
+  app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/tiers", tiersRoutes);
@@ -123,10 +125,6 @@ try {
   app.use("/api/tasks", taskRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
-
-  app.use("/api", (req, res) => {
-    res.json("Welcome to  VerifyWise root directory.");
-  });
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

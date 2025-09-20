@@ -47,6 +47,7 @@ declare module "@mui/material/styles" {
     alt: string;
     fill: string;
     accent: string;
+    modal: string;
   }
   interface TypeText {
     primary: string;

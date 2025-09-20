@@ -17,7 +17,6 @@ import {
   paginationStyle,
 } from "../styles";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { useSearchParams } from "react-router-dom";
 
 interface ProjectRiskMitigationTableBodyProps {
   rows: ProjectRiskMitigation[];
@@ -35,7 +34,6 @@ export const ProjectRiskMitigationTableBody: React.FC<
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const theme = useTheme();
-  const [searchParams] = useSearchParams();
 
   const handleChangePage = useCallback(
     (_: unknown, newPage: number) => {

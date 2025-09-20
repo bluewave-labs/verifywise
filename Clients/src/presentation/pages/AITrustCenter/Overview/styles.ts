@@ -9,7 +9,7 @@ export const SectionPaper = styled(Box)(({ theme }) => ({
   border: `1.5px solid ${theme.palette.border.light}`,
 }));
 
-export const CardActive = styled(Card)(({ theme }) => ({
+export const CardActive = styled(Card)(() => ({
   padding: 0,
   borderRadius: 0,
   background: 'transparent',
@@ -19,7 +19,7 @@ export const CardActive = styled(Card)(({ theme }) => ({
   boxShadow: 'none',
 }));
 
-export const CardDisabled = styled(Card)(({ theme }) => ({
+export const CardDisabled = styled(Card)(() => ({
   padding: 0,
   borderRadius: 0,
   background: 'transparent',

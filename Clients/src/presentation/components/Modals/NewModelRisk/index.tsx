@@ -502,7 +502,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 </Typography>
                 <TextField
                   multiline
-                  rows={3}
+                  rows={2}
                   value={values.description}
                   onChange={handleOnTextFieldChange("description")}
                   placeholder="Describe the risk in detail"
@@ -526,7 +526,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 </Typography>
                 <TextField
                   multiline
-                  rows={3}
+                  rows={2}
                   value={values.impact}
                   onChange={handleOnTextFieldChange("impact")}
                   placeholder="Describe the potential impact of this risk"
@@ -550,7 +550,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 </Typography>
                 <TextField
                   multiline
-                  rows={3}
+                  rows={2}
                   value={values.mitigationPlan}
                   onChange={handleOnTextFieldChange("mitigationPlan")}
                   placeholder="Describe the plan to mitigate this risk"

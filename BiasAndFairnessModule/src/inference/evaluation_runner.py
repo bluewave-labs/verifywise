@@ -4,15 +4,22 @@ Evaluation runner script for the Bias and Fairness Module.
 This script runs the complete evaluation pipeline and provides comprehensive results.
 """
 
+import sys
+import os
+from pathlib import Path
+
+# Add the project root directory to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 import pandas as pd
 import numpy as np
 import json
-from pathlib import Path
 from typing import Dict, Any
 
-from ..eval_engine.evaluator import FairnessEvaluator
-from ..core.config import ConfigManager
-from ..eval_engine.metric_registry import get_metric, list_metrics
+from src.eval_engine.evaluator import FairnessEvaluator
+from src.core.config import ConfigManager
+from src.eval_engine.metric_registry import get_metric, list_metrics
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def run_comprehensive_evaluation() -> Dict[str, Any]:
     """Run comprehensive evaluation using the integrated system."""
@@ -106,7 +113,6 @@ def run_comprehensive_evaluation() -> Dict[str, Any]:
     
     # Calculate basic performance metrics
     print("\n📊 Calculating Performance Metrics...")
-    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
     
     performance_results = {
         'accuracy': accuracy_score(y_true, y_pred),

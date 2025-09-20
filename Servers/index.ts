@@ -80,7 +80,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.includes("/upload")) {
+    if (req.url.includes("/api/bias_and_fairness/")) {
       // Let the proxy handle the raw body
       return next();
     }

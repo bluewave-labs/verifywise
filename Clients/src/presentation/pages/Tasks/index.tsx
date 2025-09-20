@@ -9,6 +9,8 @@ import {
   Chip,
   IconButton,
   Button,
+  TextField,
+  Autocomplete,
   Divider,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
@@ -517,23 +519,17 @@ const Tasks: React.FC = () => {
             <Collapse in={filtersExpanded}>
               <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
                 {/* All Filters in One Row */}
-                <Stack
-                  direction="row"
-                  justifyContent="flex-start"
-                  spacing={8}
-                  sx={{ ml: "12px", width: "100%" }}
-                >
+                <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}>
                   <Select
                     id="status-filter"
                     label="Status"
                     value={statusFilters.length > 0 ? statusFilters[0] : "all"}
                     items={[
                       { _id: "all", name: "All Statuses" },
-                      ...Object.values(TaskStatus).map((status) => ({
+                      ...Object.values(TaskStatus).map(status => ({
                         _id: status,
-                        name:
-                          STATUS_DISPLAY_MAP[status as TaskStatus] || status,
-                      })),
+                        name: STATUS_DISPLAY_MAP[status as TaskStatus] || status
+                      }))
                     ]}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -596,20 +592,106 @@ const Tasks: React.FC = () => {
                     sx={{ width: 160 }}
                   />
 
-                  <Field
+                <Stack
+                  gap={2}
+                  sx={{ width: "160px" }}
+                >
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color="text.secondary"
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: '22px' }}
+                  >
+                    Categories
+                  </Typography>
+                  <Autocomplete
+                    multiple
                     id="category-filter"
-                    label="Categories"
-                    width="160px"
-                    value={categoryFilters.join(", ")}
-                    onChange={(e) => {
-                      const categories = e.target.value
-                        .split(",")
-                        .map((cat) => cat.trim())
-                        .filter((cat) => cat);
-                      setCategoryFilters(categories);
+                    size="small"
+                    freeSolo
+                    value={categoryFilters}
+                    options={[]}
+                    onChange={(_event, newValue: string[]) => {
+                      setCategoryFilters(newValue);
                     }}
-                    placeholder="Enter categories"
+                    getOptionLabel={(option: string) => option}
+                    filterSelectedOptions
+                    popupIcon={<ExpandMoreIcon />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter categories"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            minHeight: "34px",
+                            height: "auto",
+                            alignItems: "flex-start",
+                            paddingY: "3px !important",
+                            flexWrap: "wrap",
+                            gap: "2px",
+                          },
+                          "& ::placeholder": {
+                            fontSize: "13px",
+                          },
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value && !categoryFilters.includes(value)) {
+                              setCategoryFilters(prev => [...prev, value]);
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                    sx={{
+                      width: "100%",
+                      backgroundColor: "background.main",
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "3px",
+                        overflowY: "auto",
+                        flexWrap: "wrap",
+                        maxHeight: "115px",
+                        alignItems: "flex-start",
+                        border: "1px solid #D1D5DB",
+                        "&:hover": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
+                          },
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          border: "none",
+                        },
+                        "&.Mui-focused": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
+                          },
+                        },
+                      },
+                      "& .MuiAutocomplete-tag": {
+                        margin: "2px",
+                        maxWidth: "calc(100% - 25px)",
+                        "& .MuiChip-label": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        },
+                      },
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          display: 'none'
+                        }
+                      }
+                    }}
                   />
+                </Stack>
 
                   <DatePicker
                     label="From"
@@ -718,7 +800,7 @@ const Tasks: React.FC = () => {
           body={
             <Typography fontSize={13}>
               Are you sure you want to archive "{taskToDelete?.title}"? You can
-              restore it later by using the "Show all tasks" toggle.
+              restore it later by using the "Include archived" toggle.
             </Typography>
           }
           cancelText="Cancel"

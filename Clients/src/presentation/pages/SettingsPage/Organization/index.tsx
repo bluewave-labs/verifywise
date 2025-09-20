@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
@@ -420,15 +420,15 @@ const Organization = () => {
               sx={{
                 width: 90,
                 backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                border: "1px solid",
                 gap: 2,
                 mt: 3,
               }}
               icon={
                 isLoading ? (
-                  <CircularProgress size={20} sx={{ color: "#13715B" }} />
+                  <CircularProgress size={20} />
                 ) : (
-                  <SaveIcon />
+                  <SaveIconSVGWhite />
                 )
               }
               onClick={organizationExists ? handleUpdate : handleCreate}

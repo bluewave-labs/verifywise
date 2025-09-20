@@ -17,7 +17,7 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast";
@@ -486,7 +486,7 @@ const ProfileForm: React.FC = () => {
                 : "1px solid #13715B",
               gap: 2,
             }}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
             onClick={handleSave}
             isDisabled={isSaveDisabled}
           />

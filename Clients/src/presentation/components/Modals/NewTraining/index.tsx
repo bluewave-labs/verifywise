@@ -11,7 +11,7 @@ import {
 import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 import Select from "../../Inputs/Select";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
@@ -391,7 +391,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                 mt: "16px",
               }}
               onClick={handleSubmit}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite />}
             />
           </Stack>
         </Stack>

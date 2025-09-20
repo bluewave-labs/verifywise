@@ -34,7 +34,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
@@ -1179,7 +1179,7 @@ const ProjectSettings = React.memo(
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIcon />}
+                icon={<SaveIconSVGWhite />}
                 variant="contained"
                 onClick={(event: any) => {
                   handleSubmit(event);

@@ -278,7 +278,9 @@ const TasksTable: React.FC<TasksTableProps> = ({
                     onDelete={() => onArchive(task.id!)}
                     onEdit={() => onEdit(task)}
                     onMouseEvent={() => {}}
-                    type="Task"
+                    warningTitle="Archive this task?"
+                    warningMessage="When you archive this task, it will be hidden from the active tasks list. You can restore it later using the 'include archived' toggle."
+                    type="task"
                   />
                 </TableCell>
               </TableRow>

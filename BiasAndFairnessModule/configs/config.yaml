@@ -1,61 +1,55 @@
-# Dataset Configuration
+artifacts:
+  inference_results_path: artifacts/cleaned_inference_results.csv
+  postprocessed_results_path: artifacts/postprocessed_results.csv
 dataset:
-  name: "adult-census-income"
-  source: "scikit-learn/adult-census-income"
-  split: "train"
-  platform: "huggingface"
+  name: adult-census-income
+  platform: huggingface
   protected_attributes:
-    - "sex"
-    - "race"
-  target_column: "income"
+    - sex
+    - race
   sampling:
     enabled: true
-    n_samples: 50 # Increased for more meaningful evaluation
+    n_samples: 50
     random_seed: 42
-
-# Post-processing Configuration
-post_processing:
-  binary_mapping:
-    favorable_outcome: ">50K"
-    unfavorable_outcome: "<=50K"
-
-  attribute_groups:
-    sex:
-      privileged: ["Male"]
-      unprivileged: ["Female"]
-    race:
-      privileged: ["White"]
-      unprivileged: ["Black", "Other"]
-
-# Model Configuration
-model:
-  # Hugging Face model configuration
-  huggingface:
-    enabled: true
-    model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-    device: "cuda" # or "cpu" for CPU-only inference
-    max_new_tokens: 50
-    temperature: 0.7
-    top_p: 0.9
-    system_prompt: "You are a strict classifier. You must answer with exactly one of these two strings: '>50K' or '<=50K'. No explanation. No formatting."
-
-# Metrics Configuration
+  source: scikit-learn/adult-census-income
+  split: train
+  target_column: income
 metrics:
-  # Fairness metrics for evaluation
   fairness:
     enabled: true
     metrics:
-      - "demographic_parity"
-      - "equalized_odds"
-      - "predictive_parity"
-
-  # Performance metrics
+      - demographic_parity
+      - equalized_odds
   performance:
-    enabled: false
+    enabled: true
     metrics:
-      - "accuracy"
-      - "precision"
-
-artifacts:
-  inference_results_path: "artifacts/cleaned_inference_results.csv"
-  postprocessed_results_path: "artifacts/postprocessed_results.csv"
+      - accuracy
+model:
+  huggingface:
+    device: cpu
+    enabled: true
+    max_new_tokens: 50
+    model_id: TinyLlama/TinyLlama-1.1B-Chat-v1.0
+    system_prompt:
+      "You are a strict classifier. You must answer with exactly one
+      of these two strings: '>50K' or '<=50K'. No explanation. No formatting."
+    temperature: 0.7
+    top_p: 0.9
+  label_behavior: binary
+  model_task: binary_classification
+post_processing:
+  attribute_groups:
+    race:
+      privileged:
+        - White
+      unprivileged:
+        - Black
+        - Other
+    sex:
+      privileged:
+        - Male
+      unprivileged:
+        - Female
+  binary_mapping:
+    favorable_outcome: ">50K"
+    unfavorable_outcome: <=50K

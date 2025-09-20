@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import { Box, Card, Theme } from "@mui/material";
 
 export const SectionPaper = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(5),
+  marginBottom: theme.spacing(8),
   padding: theme.spacing(8),
   borderRadius: theme.shape.borderRadius,
   background: theme.palette.background.paper,

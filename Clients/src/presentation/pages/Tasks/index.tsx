@@ -21,6 +21,7 @@ import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.s
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageHeader from "../../components/Layout/PageHeader";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import taskManagementHelpContent from "../../helpers/task-management-help.html?raw";
@@ -45,13 +46,11 @@ import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
 import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import {
-  vwhomeHeading,
   vwhomeHeaderCards,
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
 import { searchBoxStyle, searchInputStyle } from "./style";
-import singleTheme from "../../themes/v1SingleTheme";
 import DatePicker from "../../components/Inputs/Datepicker";
 import dayjs from "dayjs";
 import Toggle from "../../components/Toggle";
@@ -364,21 +363,19 @@ const Tasks: React.FC = () => {
         helpContent={taskManagementHelpContent}
         pageTitle="Task Management"
       />
+
         {/* Page Header */}
         <Stack sx={vwhomeBody}>
-          <Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography sx={vwhomeHeading}>Task Management</Typography>
+          <PageHeader
+            title="Task Management"
+            description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
+            rightContent={
               <HelperIcon
                 onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
                 size="small"
               />
-            </Stack>
-            <Typography sx={singleTheme.textStyles.pageDescription}>
-              This table includes a list of tasks assigned to team members. You
-              can create and manage all tasks here.
-            </Typography>
-          </Stack>
+            }
+          />
           <Stack sx={vwhomeBodyControls}>
             <CustomizableButton
               variant="contained"
@@ -514,32 +511,32 @@ const Tasks: React.FC = () => {
               </Stack>
             </Box>
 
-          {/* Filter Content */}
-          <Collapse in={filtersExpanded}>
-            <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
-              {/* All Filters in One Row */}
-              <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}>
-                <Select
-                  id="status-filter"
-                  label="Status"
-                  value={statusFilters.length > 0 ? statusFilters[0] : "all"}
-                  items={[
-                    { _id: "all", name: "All Statuses" },
-                    ...Object.values(TaskStatus).map(status => ({ 
-                      _id: status, 
-                      name: STATUS_DISPLAY_MAP[status as TaskStatus] || status
-                    }))
-                  ]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "all") {
-                      setStatusFilters([]);
-                    } else {
-                      setStatusFilters([value as TaskStatus]);
-                    }
-                  }}
-                  sx={{ width: 140 }}
-                />
+            {/* Filter Content */}
+            <Collapse in={filtersExpanded}>
+              <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
+                {/* All Filters in One Row */}
+                <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}>
+                  <Select
+                    id="status-filter"
+                    label="Status"
+                    value={statusFilters.length > 0 ? statusFilters[0] : "all"}
+                    items={[
+                      { _id: "all", name: "All Statuses" },
+                      ...Object.values(TaskStatus).map(status => ({
+                        _id: status,
+                        name: STATUS_DISPLAY_MAP[status as TaskStatus] || status
+                      }))
+                    ]}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "all") {
+                        setStatusFilters([]);
+                      } else {
+                        setStatusFilters([value as TaskStatus]);
+                      }
+                    }}
+                    sx={{ width: 140 }}
+                  />
 
                   <Select
                     id="priority-filter"

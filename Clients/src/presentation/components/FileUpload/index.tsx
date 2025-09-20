@@ -18,7 +18,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
 
 const FileUploadComponent = ({
   onClose,
@@ -160,7 +160,7 @@ const FileUploadComponent = ({
                       size="small"
                       sx={{ padding: "4px" }}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteIconGrey fontSize="small" />
                     </IconButton>
                   </ListItem>
                 ))}

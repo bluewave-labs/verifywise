@@ -30,26 +30,7 @@ import {
 
 import { COMPLIANCE_BADGES, SUCCESS_MESSAGE } from "./constants";
 
-// Helper component for TextField with consistent styling
-const StyledTextField: React.FC<{
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  disabled: boolean;
-}> = ({ value, onChange, placeholder, disabled }) => (
-  <TextField
-    multiline
-    minRows={3}
-    maxRows={8}
-    placeholder={placeholder}
-    value={value || ""}
-    onChange={(e) => onChange(e.target.value)}
-    disabled={disabled}
-    sx={styles.textField}
-    variant="outlined"
-    size="small"
-  />
-);
+// Using standard TextField with theme styling for consistency
 
 // Helper component for Section Header
 const SectionHeader: React.FC<{
@@ -231,18 +212,38 @@ const AITrustCenterOverview: React.FC = () => {
             }
             disabled={!localFormData.info?.intro_visible}
           >
-            <StyledTextField
+            <TextField
+              multiline
+              minRows={3}
+              maxRows={8}
+              fullWidth
+              placeholder="Include a section to summarize the purpose of the Trust Center. Clearly communicate the company's commitment to responsible AI use, data privacy, and ethical AI practices."
               value={localFormData.intro?.purpose_text || ""}
-              onChange={(value) =>
+              onChange={(e) =>
                 localFormData.info?.intro_visible &&
                 localFormData.intro?.purpose_visible &&
-                handleFieldChange("intro", "purpose_text", value)
+                handleFieldChange("intro", "purpose_text", e.target.value)
               }
-              placeholder="Include a section to summarize the purpose of the Trust Center. Clearly communicate the company's commitment to responsible AI use, data privacy, and ethical AI practices."
               disabled={
                 !localFormData.info?.intro_visible ||
                 !localFormData.intro?.purpose_visible
               }
+              variant="standard"
+              size="small"
+              sx={{
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInputBase-input': {
+                  fontSize: '13px',
+                },
+              }}
             />
           </ToggleCard>
           <ToggleCard
@@ -253,18 +254,38 @@ const AITrustCenterOverview: React.FC = () => {
             }
             disabled={!localFormData.info?.intro_visible}
           >
-            <StyledTextField
+            <TextField
+              multiline
+              minRows={3}
+              maxRows={8}
+              fullWidth
+              placeholder="Provide a brief statement about the company's AI applications and their significance. Mention the main objectives, like data security, ethical AI, and trust-building with customers."
               value={localFormData.intro?.our_statement_text || ""}
-              onChange={(value) =>
+              onChange={(e) =>
                 localFormData.info?.intro_visible &&
                 localFormData.intro?.our_statement_visible &&
-                handleFieldChange("intro", "our_statement_text", value)
+                handleFieldChange("intro", "our_statement_text", e.target.value)
               }
-              placeholder="Provide a brief statement about the company's AI applications and their significance. Mention the main objectives, like data security, ethical AI, and trust-building with customers."
               disabled={
                 !localFormData.info?.intro_visible ||
                 !localFormData.intro?.our_statement_visible
               }
+              variant="standard"
+              size="small"
+              sx={{
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInputBase-input': {
+                  fontSize: '13px',
+                },
+              }}
             />
           </ToggleCard>
           <ToggleCard
@@ -275,18 +296,38 @@ const AITrustCenterOverview: React.FC = () => {
             }
             disabled={!localFormData.info?.intro_visible}
           >
-            <StyledTextField
+            <TextField
+              multiline
+              minRows={3}
+              maxRows={8}
+              fullWidth
+              placeholder="Input a mission statement reflecting your values related to AI governance and ethics."
               value={localFormData.intro?.our_mission_text || ""}
-              onChange={(value) =>
+              onChange={(e) =>
                 localFormData.info?.intro_visible &&
                 localFormData.intro?.our_mission_visible &&
-                handleFieldChange("intro", "our_mission_text", value)
+                handleFieldChange("intro", "our_mission_text", e.target.value)
               }
-              placeholder="Input a mission statement reflecting your values related to AI governance and ethics."
               disabled={
                 !localFormData.info?.intro_visible ||
                 !localFormData.intro?.our_mission_visible
               }
+              variant="standard"
+              size="small"
+              sx={{
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInputBase-input': {
+                  fontSize: '13px',
+                },
+              }}
             />
           </ToggleCard>
         </Box>
@@ -358,22 +399,42 @@ const AITrustCenterOverview: React.FC = () => {
             }
             disabled={!localFormData.info?.company_description_visible}
           >
-            <StyledTextField
+            <TextField
+              multiline
+              minRows={3}
+              maxRows={8}
+              fullWidth
+              placeholder="Explain your company, what you do, and why trust in AI is essential to you."
               value={localFormData.company_description?.background_text || ""}
-              onChange={(value) =>
+              onChange={(e) =>
                 localFormData.info?.company_description_visible &&
                 localFormData.company_description?.background_visible &&
                 handleFieldChange(
                   "company_description",
                   "background_text",
-                  value
+                  e.target.value
                 )
               }
-              placeholder="Explain your company, what you do, and why trust in AI is essential to you."
               disabled={
                 !localFormData.info?.company_description_visible ||
                 !localFormData.company_description?.background_visible
               }
+              variant="standard"
+              size="small"
+              sx={{
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInputBase-input': {
+                  fontSize: '13px',
+                },
+              }}
             />
           </ToggleCard>
           <ToggleCard
@@ -390,24 +451,44 @@ const AITrustCenterOverview: React.FC = () => {
             }
             disabled={!localFormData.info?.company_description_visible}
           >
-            <StyledTextField
+            <TextField
+              multiline
+              minRows={3}
+              maxRows={8}
+              fullWidth
+              placeholder="Explain key benefits like efficiency, security, customer support, and ethical AI practices. You can also detail your AI offering functionality, use cases, and benefits to users."
               value={
                 localFormData.company_description?.core_benefits_text || ""
               }
-              placeholder="Explain key benefits like efficiency, security, customer support, and ethical AI practices. You can also detail your AI offering functionality, use cases, and benefits to users."
-              onChange={(value) =>
+              onChange={(e) =>
                 localFormData.info?.company_description_visible &&
                 localFormData.company_description?.core_benefits_visible &&
                 handleFieldChange(
                   "company_description",
                   "core_benefits_text",
-                  value
+                  e.target.value
                 )
               }
               disabled={
                 !localFormData.info?.company_description_visible ||
                 !localFormData.company_description?.core_benefits_visible
               }
+              variant="standard"
+              size="small"
+              sx={{
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInputBase-input': {
+                  fontSize: '13px',
+                },
+              }}
             />
           </ToggleCard>
           <ToggleCard
@@ -424,17 +505,21 @@ const AITrustCenterOverview: React.FC = () => {
             }
             disabled={!localFormData.info?.company_description_visible}
           >
-            <StyledTextField
+            <TextField
+              multiline
+              minRows={3}
+              maxRows={8}
+              fullWidth
               value={
                 localFormData.company_description?.compliance_doc_text || ""
               }
-              onChange={(value) =>
+              onChange={(e) =>
                 localFormData.info?.company_description_visible &&
                 localFormData.company_description?.compliance_doc_visible &&
                 handleFieldChange(
                   "company_description",
                   "compliance_doc_text",
-                  value
+                  e.target.value
                 )
               }
               placeholder="Access our comprehensive compliance documentation and certifications."
@@ -442,6 +527,22 @@ const AITrustCenterOverview: React.FC = () => {
                 !localFormData.info?.company_description_visible ||
                 !localFormData.company_description?.compliance_doc_visible
               }
+              variant="standard"
+              size="small"
+              sx={{
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInputBase-input': {
+                  fontSize: '13px',
+                },
+              }}
             />
           </ToggleCard>
         </Box>

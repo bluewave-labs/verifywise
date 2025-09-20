@@ -40,8 +40,8 @@ const WatchTower = () => {
   };
 
   return (
-    <div className="watch-tower-page">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+    <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -93,7 +93,7 @@ const WatchTower = () => {
           </TabPanel>
         </TabContext>
       </Stack>
-    </div>
+    </Stack>
   );
 };
 

@@ -80,6 +80,14 @@ class HuggingFaceModelConfig(BaseModel):
 class ModelConfig(BaseModel):
     """Configuration for model settings."""
 
+    model_task: str = Field(
+        default="binary_classification",
+        description="Model task type for Fairness Compass routing (binary_classification, multiclass_classification, regression, generation, ranking)"
+    )
+    label_behavior: str = Field(
+        default="binary",
+        description="Label behavior type for Fairness Compass routing (binary, categorical, continuous)"
+    )
     huggingface: HuggingFaceModelConfig = Field(
         default_factory=lambda: HuggingFaceModelConfig(),
         description="Hugging Face model configuration",

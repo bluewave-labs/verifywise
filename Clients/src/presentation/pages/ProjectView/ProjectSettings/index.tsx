@@ -35,7 +35,7 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as DeleteIconWhite }from "../../../assets/icons/trash-filled-white.svg";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -929,6 +929,7 @@ const ProjectSettings = React.memo(
                       },
                     },
                     "& .MuiChip-root": {
+                      borderRadius: "4px",
                       "& .MuiChip-deleteIcon": {
                         display:
                           values.monitoredRegulationsAndStandards.length === 1
@@ -1079,6 +1080,9 @@ const ProjectSettings = React.memo(
                     borderWidth: "1px",
                   },
                 },
+                "& .MuiChip-root": {
+                  borderRadius: "4px",
+                },
               }}
               slotProps={{
                 paper: {
@@ -1215,7 +1219,7 @@ const ProjectSettings = React.memo(
                   border: "1px solid #DB504A",
                   gap: 2,
                 }}
-                icon={<DeleteIcon />}
+                icon={<DeleteIconWhite />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete project"

@@ -13,5 +13,5 @@ export const tabStyle = {
   
   export const tabPanelStyle = {
     padding: 0,
-    pt: 10,
+    pt: 4,
   }

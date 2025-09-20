@@ -1,7 +1,13 @@
-import React, { useState, useEffect, useCallback, Suspense } from "react";
-import { Box, Stack, Fade } from "@mui/material";
+import React, { useState, useEffect, useCallback, Suspense, useMemo } from "react";
+import {
+  Box,
+  Stack,
+  Fade,
+  IconButton,
+  InputBase,
+} from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
 import {
@@ -20,6 +26,10 @@ import HelperIcon from "../../components/HelperIcon";
 import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
+
+import SearchIcon from "@mui/icons-material/Search";
+import Select from "../../components/Inputs/Select";
+import { searchBoxStyle, inputStyle } from "./style";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -41,7 +51,6 @@ const Training: React.FC = () => {
   // Assuming a similar permission structure for 'training' as 'vendors'
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName); // Example permission check
-
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -50,11 +59,22 @@ const Training: React.FC = () => {
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  // Function to simulate fetching training data
+  // ✅ Filter + search state
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+
+  // ✅ Status options
+  const statusOptions = [
+    { _id: "all", name: "All Trainings" },
+    { _id: "Planned", name: "Planned" },
+    { _id: "In Progress", name: "In Progress" },
+    { _id: "Completed", name: "Completed" },
+  ];
+
   const fetchTrainingData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Simulate API call to fetch training data
       const response = await getAllEntities({ routeUrl: "/training" });
       if (response?.data) {
         setTrainingData(response.data);
@@ -98,7 +118,6 @@ const Training: React.FC = () => {
     setSelectedTrainingId(id);
     setIsNewTrainingModalOpen(true);
   };
-
   // Fetch training data when modal opens with an ID
   useEffect(() => {
     const fetchTrainingDetails = async () => {
@@ -192,9 +211,20 @@ const Training: React.FC = () => {
     }
   };
 
+  // Filtered trainings
+  const filteredTraining = useMemo(() => {
+    return trainingData.filter((t) => {
+      const matchesStatus = statusFilter === "all" ? true : t.status === statusFilter;
+      const matchesSearch = t.training_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [trainingData, statusFilter, searchTerm]);
+
   return (
     <Stack className="vwhome" gap={"20px"}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -246,29 +276,82 @@ const Training: React.FC = () => {
                  }
              />
 
-        <Stack direction="row" justifyContent="flex-end" alignItems="center">
-          <CustomizableButton
-            variant="contained"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            text="New training"
-            icon={<AddCircleOutlineIcon />}
-            onClick={handleNewTrainingClick}
-            isDisabled={isCreatingDisabled}
-          />
-        </Stack>
+           {/* Filter + Search row */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={4}
+            mb={4}
+            mt={7}
+            sx={{ width: "100%" }}
+          >
+            {/* Left side: Dropdown + Search together */}
+            <Stack direction="row" spacing={6} alignItems="center">
+              {/* Dropdown Filter */}
+              <Select
+                id="training-status"
+                value={statusFilter}
+                items={statusOptions}
+                onChange={(e: any) => setStatusFilter(e.target.value)}
+                sx={{
+                  minWidth: "180px",
+                  height: "40px",
+                  bgcolor: "#fff",
+                }}
+              />
 
+              {/* Expandable Search */}
+              <Box sx={searchBoxStyle(isSearchBarVisible)}>
+                <IconButton
+                  disableRipple
+                  disableFocusRipple
+                  sx={{ "&:hover": { backgroundColor: "transparent" } }}
+                  aria-label="Toggle training search"
+                  aria-expanded={isSearchBarVisible}
+                  onClick={() => setIsSearchBarVisible((prev) => !prev)}
+                >
+                  <SearchIcon />
+                </IconButton>
+
+                {isSearchBarVisible && (
+                  <InputBase
+                    autoFocus
+                    placeholder="Search trainings..."
+                    inputProps={{ "aria-label": "Search trainings" }}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={inputStyle(isSearchBarVisible)}
+                  />
+                )}
+              </Box>
+            </Stack>
+
+            {/* Right side: Customize Button */}
+            <CustomizableButton
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#13715B",
+                        border: "1px solid #13715B",
+                        gap: 2,
+                        mt: 5
+                      }}
+                      text="New training"
+                      icon={<AddCircleOutlineIcon />}
+                      onClick={handleNewTrainingClick}
+                      isDisabled={isCreatingDisabled}
+                    />
+          </Stack>
+        {/* Table */}
         <TrainingTable
-          data={trainingData}
+          data={filteredTraining}
           isLoading={isLoading}
           onEdit={handleEditTraining}
           onDelete={handleDeleteTraining}
         />
       </Stack>
 
+      {/* Modal */}
       <NewTraining
         isOpen={isNewTrainingModalOpen}
         setIsOpen={handleCloseModal}

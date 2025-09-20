@@ -27,5 +27,6 @@ dist-ssr
 # *.dev
 *.prod
 
+*.tsbuildinfo
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo

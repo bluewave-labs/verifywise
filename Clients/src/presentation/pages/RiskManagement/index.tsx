@@ -292,10 +292,8 @@ const RiskManagement = () => {
   };
 
   return (
-    <div className="risk-management">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }}>
-        <PageBreadcrumbs />
-      </Stack>
+    <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
 
       <Stack gap={theme.spacing(2)} maxWidth={1400} key={refreshKey}>
         <PageHeader
@@ -465,7 +463,7 @@ const RiskManagement = () => {
         />
       )}
       </Stack>
-    </div>
+    </Stack>
   );
 };
 

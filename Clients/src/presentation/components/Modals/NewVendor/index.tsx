@@ -37,7 +37,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
@@ -842,7 +842,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 gap: 2,
               }}
               onClick={handleSave}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite />}
               isDisabled={isEditingDisabled}
             />
           </Stack>

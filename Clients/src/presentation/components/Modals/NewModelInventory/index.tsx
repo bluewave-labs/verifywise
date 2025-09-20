@@ -21,7 +21,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";
@@ -608,7 +608,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 gap: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite />}
             />
           </Stack>
         </form>

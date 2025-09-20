@@ -443,18 +443,17 @@ const Sidebar = () => {
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 0 }}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "fit-content",
-                          height: "fit-content",
-                        }}
-                      >
-                        {item.icon}
-                      </Box>
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-start",
+                        width: "32px",
+                        mr: 0,
+                      }}
+                    >
+                      {item.icon}
                     </ListItemIcon>
                     <ListItemText>{item.name}</ListItemText>
                   </ListItemButton>
@@ -544,18 +543,17 @@ const Sidebar = () => {
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 0 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "fit-content",
-                        height: "fit-content",
-                      }}
-                    >
-                      {item.icon}
-                    </Box>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      width: "32px",
+                      mr: 0,
+                    }}
+                  >
+                    {item.icon}
                   </ListItemIcon>
                   <ListItemText
                     sx={{
@@ -704,7 +702,18 @@ const Sidebar = () => {
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    width: "32px",
+                    mr: 0,
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
                 <ListItemText
                   sx={{
                     "& .MuiListItemText-primary": {
@@ -776,7 +785,18 @@ const Sidebar = () => {
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  width: "32px",
+                  mr: 0,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
               <ListItemText
                 sx={{
                   "& .MuiListItemText-primary": {

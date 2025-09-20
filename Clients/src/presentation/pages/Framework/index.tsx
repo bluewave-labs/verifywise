@@ -595,22 +595,14 @@ const Framework = () => {
   };
 
   return (
-    <Stack
-      className="framework-page"
-      sx={{
-        minHeight: "100vh",
-        padding: 3,
-        backgroundColor: "#FCFCFD",
-      }}
-      ref={refs[0]}
-    >
+    <Stack className="vwhome" gap={"20px"} ref={refs[0]}>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         helpContent={organizationalFrameworksHelpContent}
         pageTitle="Organizational Frameworks"
       />
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+      <PageBreadcrumbs />
       <Stack>
       <PageHeader
                title="Framework"

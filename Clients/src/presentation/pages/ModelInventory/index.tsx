@@ -495,7 +495,7 @@ const ModelInventory: React.FC = () => {
     <Stack className="vwhome" sx={mainStackStyle}>
       {/* <PageBreadcrumbs /> */}
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
+      <PageBreadcrumbs />
 
       <HelperDrawer
         isOpen={isHelperDrawerOpen}

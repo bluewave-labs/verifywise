@@ -20,6 +20,7 @@ import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.s
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageHeader from "../../components/Layout/PageHeader";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import taskManagementHelpContent from "../../helpers/task-management-help.html?raw";
@@ -356,9 +357,8 @@ const Tasks: React.FC = () => {
     };
 
   return (
-    <div className="tasks-page">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45, ml: 3 }} > <PageBreadcrumbs /> </Stack>
-      <Divider sx={{ mb: 2, ml: 3, mr: 5}}/>
+    <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -366,22 +366,18 @@ const Tasks: React.FC = () => {
         pageTitle="Task Management"
       />
 
-      <Box sx={{ p: 3 }}>
         {/* Page Header */}
         <Stack sx={vwhomeBody}>
-          <Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography sx={vwhomeHeading}>Task Management</Typography>
+          <PageHeader
+            title="Task Management"
+            description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
+            rightContent={
               <HelperIcon
                 onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
                 size="small"
               />
-            </Stack>
-            <Typography sx={singleTheme.textStyles.pageDescription}>
-              This table includes a list of tasks assigned to team members. You
-              can create and manage all tasks here.
-            </Typography>
-          </Stack>
+            }
+          />
           <Stack sx={vwhomeBodyControls}>
             <CustomizableButton
               variant="contained"
@@ -399,7 +395,7 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Header Cards */}
-        <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
+        <Stack sx={{ ...vwhomeHeaderCards, mt: 8 }}>
           <HeaderCard title="Tasks" count={summary.total} />
           <HeaderCard title="Overdue" count={summary.overdue} />
           <HeaderCard title="In progress" count={summary.inProgress} />
@@ -407,7 +403,7 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Search, Filter, and Sort Controls  */}
-        <Box sx={{ mt: 6, mb: 6 }}>
+        <Box sx={{ mt: 8, mb: 8 }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -442,7 +438,7 @@ const Tasks: React.FC = () => {
             elevation={0}
             sx={{
               mb: 2,
-              mt: 6,
+              mt: 8,
               border: "1px solid #E5E7EB",
               borderRadius: 2,
               backgroundColor: "transparent",
@@ -524,7 +520,7 @@ const Tasks: React.FC = () => {
                 <Stack
                   direction="row"
                   justifyContent="flex-start"
-                  spacing={3}
+                  spacing={8}
                   sx={{ ml: "12px", width: "100%" }}
                 >
                   <Select
@@ -670,7 +666,7 @@ const Tasks: React.FC = () => {
         </Box>
 
         {/* Content Area */}
-        <Box sx={{ mt: 6 }}>
+        <Box sx={{ mt: 8 }}>
           {isLoading && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <Typography>Loading tasks...</Typography>
@@ -734,8 +730,7 @@ const Tasks: React.FC = () => {
           isOpen={deleteConfirmOpen}
           TitleFontSize={0}
         />
-      </Box>
-    </div>
+    </Stack>
   );
 };
 

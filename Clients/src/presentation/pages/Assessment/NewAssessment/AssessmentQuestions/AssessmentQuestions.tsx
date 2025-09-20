@@ -93,7 +93,17 @@ const AssessmentQuestions = ({
                   {question.questionText}
                   {question.hint && (
                     <Box component="span" ml={2}>
-                      <Tooltip title={question.hint} sx={{ fontSize: 13 }}>
+                      <Tooltip
+                        title={question.hint}
+                        sx={{ fontSize: 13 }}
+                        componentsProps={{
+                          tooltip: {
+                            sx: {
+                              fontSize: 12,
+                            },
+                          },
+                        }}
+                      >
                         <InfoOutlinedIcon fontSize="inherit" />
                       </Tooltip>
                     </Box>
@@ -156,6 +166,10 @@ const AssessmentQuestions = ({
                     border: "1px solid #D0D5DD",
                     backgroundColor: "white",
                     color: "#344054",
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
+                      border: "1px solid #D0D5DD",
+                    },
                   }}
                   disableRipple={
                     theme.components?.MuiButton?.defaultProps?.disableRipple

@@ -356,8 +356,8 @@ const Vendors = () => {
   }, [selectedProjectId, vendorOptions, selectedVendorId]);
 
   return (
-    <div className="vendors-page">
-     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+    <Stack className="vwhome" gap={"20px"}>
+     <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -457,7 +457,6 @@ const Vendors = () => {
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
-                mb={2}
               >
                 <Select
                   id="projects"
@@ -510,7 +509,6 @@ const Vendors = () => {
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
-                mb={2}
               >
                 <Stack direction="row" gap={8} alignItems="center">
                   <Select
@@ -630,7 +628,7 @@ const Vendors = () => {
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-    </div>
+    </Stack>
   );
 };
 

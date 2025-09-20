@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Stack, useTheme, SxProps, Theme } from "@mui/material";
+import { Stack, useTheme, SxProps, Theme, Divider } from "@mui/material";
 import Breadcrumbs, { BreadcrumbItem } from "./index";
 
 /**
@@ -74,7 +74,8 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = memo(
         role="navigation"
         aria-label="Page breadcrumb navigation"
         sx={{
-          mt: 1,
+          mt: 2,
+          mb: 3,
           width: "100%",
           ...sx,
         }}
@@ -91,6 +92,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = memo(
           sx={{
             py: 0.5,
             px: 0,
+            mb: 2,
             "& .MuiBreadcrumbs-separator": {
               color: theme.palette.text.disabled,
               mx: 0.5,
@@ -101,8 +103,9 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = memo(
             },
           }}
         />
+        <Divider sx={{ mb: 2 }} />
       </Stack>
-    );
+    )
   }
 );
 

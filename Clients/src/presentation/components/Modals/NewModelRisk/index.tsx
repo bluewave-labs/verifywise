@@ -388,7 +388,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="riskName"
-                    label="Risk Name"
+                    label="Risk name"
                     width={220}
                     value={values.riskName}
                     onChange={handleOnTextFieldChange("riskName")}
@@ -453,7 +453,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 />
                 <Suspense fallback={<div>Loading...</div>}>
                   <DatePicker
-                    label="Target Date"
+                    label="Target date"
                     date={
                       values.targetDate
                         ? dayjs(values.targetDate)
@@ -478,7 +478,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
               >
                 <SelectComponent
                   id="modelId"
-                  label="Associated Model (Optional)"
+                  label="Associated model (optional)"
                   value={values.modelId || ""}
                   sx={{ width: 220 }}
                   items={modelOptions}
@@ -546,7 +546,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  Mitigation Plan
+                  Mitigation plan
                 </Typography>
                 <TextField
                   multiline

@@ -48,7 +48,6 @@ import {
   updateProject,
 } from "../../../../application/repository/project.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
-import EUAIActAssessmentModal from "../../../components/EUAIActAssessmentModal";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -131,7 +130,6 @@ const ProjectSettings = React.memo(
     const theme = useTheme();
     const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
     const [pendingOwnerId, setPendingOwnerId] = useState<User | null>(null);
-    const [assessmentModalOpen, setAssessmentModalOpen] = useState(false);
     const [removedOwner, setRemovedOwner] = useState<User | null>(null);
 
     const { project } = useProjectData({ projectId });
@@ -1119,11 +1117,10 @@ const ProjectSettings = React.memo(
               <Typography sx={{ fontSize: theme.typography.fontSize }}>
                 To define the AI risk classification,&nbsp;
                 <Link
-                  component="button"
-                  variant="body1"
-                  onClick={() => setAssessmentModalOpen(true)}
+                  href="https://artificialintelligenceact.eu/high-level-summary/"
+                  target="_blank"
+                  rel="noopener"
                   color={theme.palette.text.secondary}
-                  sx={{ textDecoration: "underline", cursor: "pointer" }}
                 >
                   please see this link
                 </Link>
@@ -1150,11 +1147,10 @@ const ProjectSettings = React.memo(
               <Typography sx={{ fontSize: theme.typography.fontSize }}>
                 If you are not sure about the high risk role,&nbsp;
                 <Link
-                  component="button"
-                  variant="body1"
-                  onClick={() => setAssessmentModalOpen(true)}
+                  href="https://artificialintelligenceact.eu/high-level-summary/"
+                  target="_blank"
+                  rel="noopener"
                   color={theme.palette.text.secondary}
-                  sx={{ textDecoration: "underline", cursor: "pointer" }}
                 >
                   please see this link
                 </Link>
@@ -1272,10 +1268,6 @@ const ProjectSettings = React.memo(
           />
         )}
 
-        <EUAIActAssessmentModal
-          isOpen={assessmentModalOpen}
-          onClose={() => setAssessmentModalOpen(false)}
-        />
       </Stack>
     );
   }

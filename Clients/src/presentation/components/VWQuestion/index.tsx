@@ -250,7 +250,17 @@ const QuestionFrame = ({
           {question.question || ""}
           {question.hint && (
             <Box component="span" ml={2}>
-              <Tooltip title={question.hint || ""} sx={{ fontSize: 13 }}>
+              <Tooltip
+                title={question.hint || ""}
+                sx={{ fontSize: 13 }}
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      fontSize: 12,
+                    },
+                  },
+                }}
+              >
                 <InfoOutlinedIcon fontSize="inherit" />
               </Tooltip>
             </Box>
@@ -334,6 +344,10 @@ const QuestionFrame = ({
               backgroundColor: "white",
               color: "#344054",
               flexShrink: 0, //  prevent shrinking in flex layouts
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+                border: "1px solid #D0D5DD",
+              },
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}
@@ -356,7 +370,7 @@ const QuestionFrame = ({
             {`${values?.evidence_files?.length || 0} evidence files attached`}
           </Typography>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} sx={{ ml: "36px" }}>
             <Button
               variant="contained"
               sx={{
@@ -368,6 +382,10 @@ const QuestionFrame = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple
               onClick={() => setIsLinkedRisksModalOpen(true)}
@@ -405,7 +423,7 @@ const QuestionFrame = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (

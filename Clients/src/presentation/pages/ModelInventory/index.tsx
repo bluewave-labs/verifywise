@@ -560,8 +560,7 @@ const ModelInventory: React.FC = () => {
       <Stack sx={mainStackStyle}>
             <PageHeader
                title="Model Inventory"
-               description=" This registry lists all AI/LLM models used within your organization
-               and their compliance status. You can view, add, and manage model details here."
+               description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
                rightContent={
                   <HelperIcon
                      onClick={() =>

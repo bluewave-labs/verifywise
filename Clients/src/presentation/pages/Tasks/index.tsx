@@ -9,6 +9,9 @@ import {
   Chip,
   IconButton,
   Button,
+  TextField,
+  Autocomplete,
+  Divider,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
@@ -44,11 +47,13 @@ import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
 import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import {
+  vwhomeHeading,
   vwhomeHeaderCards,
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
 import { searchBoxStyle, searchInputStyle } from "./style";
+import singleTheme from "../../themes/v1SingleTheme";
 import DatePicker from "../../components/Inputs/Datepicker";
 import dayjs from "dayjs";
 import Toggle from "../../components/Toggle";
@@ -353,17 +358,14 @@ const Tasks: React.FC = () => {
     };
 
   return (
-    <div className="tasks-page">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45, ml: 3 }} > <PageBreadcrumbs /> </Stack>
-      <Divider sx={{ mb: 2, ml: 3, mr: 5}}/>
+    <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         helpContent={taskManagementHelpContent}
         pageTitle="Task Management"
       />
-
-      <Box sx={{ p: 3 }}>
         {/* Page Header */}
         <Stack sx={vwhomeBody}>
           <Stack>
@@ -396,7 +398,7 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Header Cards */}
-        <Stack sx={{ ...vwhomeHeaderCards, mt: 4 }}>
+        <Stack sx={{ ...vwhomeHeaderCards, mt: 8 }}>
           <HeaderCard title="Tasks" count={summary.total} />
           <HeaderCard title="Overdue" count={summary.overdue} />
           <HeaderCard title="In progress" count={summary.inProgress} />
@@ -404,7 +406,7 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Search, Filter, and Sort Controls  */}
-        <Box sx={{ mt: 6, mb: 6 }}>
+        <Box sx={{ mt: 8, mb: 8 }}>
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -439,7 +441,7 @@ const Tasks: React.FC = () => {
             elevation={0}
             sx={{
               mb: 2,
-              mt: 6,
+              mt: 8,
               border: "1px solid #E5E7EB",
               borderRadius: 2,
               backgroundColor: "transparent",
@@ -514,38 +516,32 @@ const Tasks: React.FC = () => {
               </Stack>
             </Box>
 
-            {/* Filter Content */}
-            <Collapse in={filtersExpanded}>
-              <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
-                {/* All Filters in One Row */}
-                <Stack
-                  direction="row"
-                  justifyContent="flex-start"
-                  spacing={3}
-                  sx={{ ml: "12px", width: "100%" }}
-                >
-                  <Select
-                    id="status-filter"
-                    label="Status"
-                    value={statusFilters.length > 0 ? statusFilters[0] : "all"}
-                    items={[
-                      { _id: "all", name: "All Statuses" },
-                      ...Object.values(TaskStatus).map((status) => ({
-                        _id: status,
-                        name:
-                          STATUS_DISPLAY_MAP[status as TaskStatus] || status,
-                      })),
-                    ]}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "all") {
-                        setStatusFilters([]);
-                      } else {
-                        setStatusFilters([value as TaskStatus]);
-                      }
-                    }}
-                    sx={{ width: 140 }}
-                  />
+          {/* Filter Content */}
+          <Collapse in={filtersExpanded}>
+            <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
+              {/* All Filters in One Row */}
+              <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}>
+                <Select
+                  id="status-filter"
+                  label="Status"
+                  value={statusFilters.length > 0 ? statusFilters[0] : "all"}
+                  items={[
+                    { _id: "all", name: "All Statuses" },
+                    ...Object.values(TaskStatus).map(status => ({ 
+                      _id: status, 
+                      name: STATUS_DISPLAY_MAP[status as TaskStatus] || status
+                    }))
+                  ]}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "all") {
+                      setStatusFilters([]);
+                    } else {
+                      setStatusFilters([value as TaskStatus]);
+                    }
+                  }}
+                  sx={{ width: 140 }}
+                />
 
                   <Select
                     id="priority-filter"
@@ -597,20 +593,106 @@ const Tasks: React.FC = () => {
                     sx={{ width: 160 }}
                   />
 
-                  <Field
+                <Stack
+                  gap={2}
+                  sx={{ width: "160px" }}
+                >
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color="text.secondary"
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: '22px' }}
+                  >
+                    Categories
+                  </Typography>
+                  <Autocomplete
+                    multiple
                     id="category-filter"
-                    label="Categories"
-                    width="160px"
-                    value={categoryFilters.join(", ")}
-                    onChange={(e) => {
-                      const categories = e.target.value
-                        .split(",")
-                        .map((cat) => cat.trim())
-                        .filter((cat) => cat);
-                      setCategoryFilters(categories);
+                    size="small"
+                    freeSolo
+                    value={categoryFilters}
+                    options={[]}
+                    onChange={(_event, newValue: string[]) => {
+                      setCategoryFilters(newValue);
                     }}
-                    placeholder="Enter categories"
+                    getOptionLabel={(option: string) => option}
+                    filterSelectedOptions
+                    popupIcon={<ExpandMoreIcon />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter categories"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            minHeight: "34px",
+                            height: "auto",
+                            alignItems: "flex-start",
+                            paddingY: "3px !important",
+                            flexWrap: "wrap",
+                            gap: "2px",
+                          },
+                          "& ::placeholder": {
+                            fontSize: "13px",
+                          },
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value && !categoryFilters.includes(value)) {
+                              setCategoryFilters(prev => [...prev, value]);
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                    sx={{
+                      width: "100%",
+                      backgroundColor: "background.main",
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "3px",
+                        overflowY: "auto",
+                        flexWrap: "wrap",
+                        maxHeight: "115px",
+                        alignItems: "flex-start",
+                        border: "1px solid #D1D5DB",
+                        "&:hover": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
+                          },
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          border: "none",
+                        },
+                        "&.Mui-focused": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
+                          },
+                        },
+                      },
+                      "& .MuiAutocomplete-tag": {
+                        margin: "2px",
+                        maxWidth: "calc(100% - 25px)",
+                        "& .MuiChip-label": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        },
+                      },
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          display: 'none'
+                        }
+                      }
+                    }}
                   />
+                </Stack>
 
                   <DatePicker
                     label="From"
@@ -667,7 +749,7 @@ const Tasks: React.FC = () => {
         </Box>
 
         {/* Content Area */}
-        <Box sx={{ mt: 6 }}>
+        <Box sx={{ mt: 8 }}>
           {isLoading && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <Typography>Loading tasks...</Typography>
@@ -719,7 +801,7 @@ const Tasks: React.FC = () => {
           body={
             <Typography fontSize={13}>
               Are you sure you want to archive "{taskToDelete?.title}"? You can
-              restore it later by using the "Show all tasks" toggle.
+              restore it later by using the "Include archived" toggle.
             </Typography>
           }
           cancelText="Cancel"
@@ -731,8 +813,7 @@ const Tasks: React.FC = () => {
           isOpen={deleteConfirmOpen}
           TitleFontSize={0}
         />
-      </Box>
-    </div>
+    </Stack>
   );
 };
 

@@ -1746,6 +1746,214 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
+  # Model Risks
+  /modelRisks:
+    get:
+      summary: Get all model risks
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: List of model risks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModelRisk'
+        '204':
+          description: No model risks found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    post:
+      summary: Create model risk
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRiskInput'
+      responses:
+        '201':
+          description: Model risk created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /modelRisks/{id}:
+    get:
+      summary: Get model risk by ID
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      responses:
+        '200':
+          description: Model risk found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    put:
+      summary: Update model risk
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRiskInput'
+      responses:
+        '200':
+          description: Model risk updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    patch:
+      summary: Update model risk (partial)
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRiskInput'
+      responses:
+        '200':
+          description: Model risk updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    delete:
+      summary: Delete model risk
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      responses:
+        '200':
+          description: Model risk deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
   # Model Inventory
   /model-inventory:
     get:
@@ -3544,3 +3752,162 @@ components:
         status:
           type: string
           enum: [In Progress, Completed, Failed]
+
+    ModelRisk:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the model risk
+        riskName:
+          type: string
+          description: Name of the model risk
+        riskCategory:
+          $ref: '#/components/schemas/ModelRiskCategory'
+        riskLevel:
+          $ref: '#/components/schemas/ModelRiskLevel'
+        status:
+          $ref: '#/components/schemas/ModelRiskStatus'
+        owner:
+          type: string
+          description: Person responsible for managing the risk
+        targetDate:
+          type: string
+          format: date
+          description: Target date for risk resolution
+        description:
+          type: string
+          description: Detailed description of the risk
+        mitigationPlan:
+          type: string
+          description: Plan to mitigate or manage the risk
+        impact:
+          type: string
+          description: Potential impact of the risk
+        likelihood:
+          type: string
+          description: Likelihood of the risk occurring
+        keyMetrics:
+          type: string
+          description: Key performance metrics related to the risk
+        currentValues:
+          type: string
+          description: Current values of the key metrics
+        threshold:
+          type: string
+          description: Threshold values that trigger risk alerts
+        modelId:
+          type: integer
+          description: Associated model inventory ID (optional)
+        modelName:
+          type: string
+          description: Name of the associated model (optional)
+        createdDate:
+          type: string
+          format: date-time
+          description: Date when the risk was created
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Date when the risk was last updated
+        created_at:
+          type: string
+          format: date-time
+          description: Database creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Database update timestamp
+
+    ModelRiskInput:
+      type: object
+      required: [riskName, riskCategory, riskLevel, status, owner, targetDate]
+      properties:
+        riskName:
+          type: string
+          minLength: 1
+          description: Name of the model risk
+          example: "Model accuracy decline"
+        riskCategory:
+          $ref: '#/components/schemas/ModelRiskCategory'
+        riskLevel:
+          $ref: '#/components/schemas/ModelRiskLevel'
+        status:
+          $ref: '#/components/schemas/ModelRiskStatus'
+        owner:
+          type: string
+          minLength: 1
+          description: Person responsible for managing the risk
+          example: "John Doe"
+        targetDate:
+          type: string
+          format: date
+          description: Target date for risk resolution
+          example: "2024-12-31"
+        description:
+          type: string
+          description: Detailed description of the risk
+          example: "The model's accuracy has been declining over the past month"
+        mitigationPlan:
+          type: string
+          description: Plan to mitigate or manage the risk
+          example: "Retrain the model with recent data and implement monitoring"
+        impact:
+          type: string
+          description: Potential impact of the risk
+          example: "Reduced prediction accuracy may affect business decisions"
+        likelihood:
+          type: string
+          description: Likelihood of the risk occurring
+          example: "High"
+        keyMetrics:
+          type: string
+          description: Key performance metrics related to the risk
+          example: "Model accuracy, precision, recall"
+        currentValues:
+          type: string
+          description: Current values of the key metrics
+          example: "Accuracy: 85%, Precision: 80%, Recall: 78%"
+        threshold:
+          type: string
+          description: Threshold values that trigger risk alerts
+          example: "Accuracy below 90%"
+        modelId:
+          type: integer
+          description: Associated model inventory ID (optional)
+          example: 123
+        modelName:
+          type: string
+          description: Name of the associated model (optional)
+          example: "Customer Segmentation Model v2.1"
+
+    ModelRiskCategory:
+      type: string
+      enum:
+        - "Performance"
+        - "Bias & Fairness"
+        - "Security"
+        - "Data Quality"
+        - "Compliance"
+      description: Category classification for model risks
+      example: "Performance"
+
+    ModelRiskLevel:
+      type: string
+      enum:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
+      description: Severity level of the model risk
+      example: "Medium"
+
+    ModelRiskStatus:
+      type: string
+      enum:
+        - "Open"
+        - "In Progress"
+        - "Resolved"
+        - "Accepted"
+      description: Current status of the model risk
+      example: "Open"

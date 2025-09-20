@@ -1267,6 +1267,7 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
+
       </Stack>
     );
   }

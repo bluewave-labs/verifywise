@@ -9,9 +9,16 @@ dependencies = [
     "black>=25.1.0",
     "fairlearn>=0.12.0",
     "flake8>=7.3.0",
+    "ipykernel>=6.30.1",
     "isort>=6.0.1",
+    "langfair>=0.6.7",
     "mypy>=1.16.1",
+    "nbformat>=5.10.4",
+    "plotly>=6.3.0",
     "pylint>=3.3.7",
+    "pytest>=8.4.1",
+    "seaborn>=0.13.2",
+    "textblob>=0.19.0",
     "types-pyyaml>=6.0.12.20250516",
 ]
 

@@ -30,10 +30,14 @@ const ISO27001Clause = ({
   project,
   projectFrameworkId,
   statusFilter,
+  initialClauseId,
+  initialSubClauseId,
 }: {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  initialClauseId?: string | null;
+  initialSubClauseId?: string | null;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
@@ -56,8 +60,8 @@ const ISO27001Clause = ({
     doneSubclauses: number;
   }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const clauseId = searchParams.get("clauseId");
-  const subClauseId = searchParams.get("subClauseId");
+  const clauseId = initialClauseId;
+  const subClauseId = initialSubClauseId;
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -139,9 +143,9 @@ const ISO27001Clause = ({
     setSelectedSubClause(null);
     setSelectedClause(null);
     if (clauseId && subClauseId) {
-      searchParams.delete("clauseId");
-      searchParams.delete("subClauseId");
-      searchParams.delete("frameworkName");
+      searchParams.delete("clause27001Id");
+      searchParams.delete("subClause27001Id");
+      searchParams.delete("framework");
       setSearchParams(searchParams);
     }
   };
@@ -273,27 +277,12 @@ const ISO27001Clause = ({
   useEffect(() => {
     if (clauseId && subClauseId && clauses.length > 0) {
       const clause = clauses.find((c) => c.id === parseInt(clauseId));
-      async function fetchSubClause() {
-        try {
-          const response = await getEntityById({
-            routeUrl: `/iso-27001/subClause/byId/${subClauseId}?projectFrameworkId=${projectFrameworkId}`,
-          });
-          setSelectedSubClause(response.data);
-          if (clause && response.data && clauseId) {
-            const idx = Array.isArray(clause.subClauses)
-              ? clause.subClauses.findIndex(
-                  (sc: any) => sc.id === response.data.id,
-                )
-              : 0;
-            handleSubClauseClick(clause, response.data, idx >= 0 ? idx : 0);
-          }
-        } catch (error) {
-          console.error("Error fetching subclause:", error);
-        }
-      }
-      fetchSubClause();
+      const idx = clause?.subClauses.findIndex(
+        (sc: any) => sc.id === parseInt(subClauseId),
+      );
+      handleSubClauseClick(clause, {id: parseInt(subClauseId)}, idx ?? 0);
     }
-  }, [clauseId, subClauseId, clauses]);
+  }, [clauseId, subClauseId, initialClauseId, initialSubClauseId, clauses, projectFrameworkId, handleSubClauseClick]);
 
   return (
     <Stack className="iso-27001-clauses">

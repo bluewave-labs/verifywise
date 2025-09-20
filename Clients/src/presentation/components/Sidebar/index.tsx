@@ -28,6 +28,7 @@ import { ReactComponent as Tasks } from "../../assets/icons/flag-grey.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
+import { ReactComponent as RiskManagementIcon } from "../../assets/icons/warning-triangle.svg";
 
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
@@ -84,6 +85,11 @@ const getMenuItems = (openTasksCount: number): MenuItem[] => [
       },
     ],
     highlightPaths: ["/project-view"],
+  },
+  {
+    name: "Risk Management",
+    icon: <RiskManagementIcon />,
+    path: "/risk-management",
   },
   {
     name: "Tasks",

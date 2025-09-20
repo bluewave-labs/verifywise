@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import assessmentRoutes from "./routes/assessment.route";
 import controlRoutes from "./routes/control.route";
 import projectRoutes from "./routes/project.route";
-import projectRisksRoutes from "./routes/projectRisks.route";
+import risksRoutes from "./routes/risks.route";
 import projectScopeRoutes from "./routes/projectScope.route";
 import questionRoutes from "./routes/question.route";
 import subcontrolRoutes from "./routes/subcontrol.route";
@@ -81,7 +81,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.includes("/upload")) {
+    if (req.url.includes("/api/bias_and_fairness/")) {
       // Let the proxy handle the raw body
       return next();
     }
@@ -98,7 +98,7 @@ try {
   app.use("/api/autoDrivers", autoDriverRoutes);
   app.use("/api/assessments", assessmentRoutes);
   app.use("/api/controls", controlRoutes);
-  app.use("/api/projectRisks", projectRisksRoutes);
+  app.use("/api/projectRisks", risksRoutes);
   app.use("/api/projectScopes", projectScopeRoutes);
   app.use("/api/subcontrols", subcontrolRoutes);
   app.use("/api/subtopics", subtopicRoutes);

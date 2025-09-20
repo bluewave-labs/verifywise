@@ -156,11 +156,6 @@ const VWISO42001ClauseDrawerDialog = ({
             if (response.data.due_date) {
               setDate(response.data.due_date);
             }
-
-            // Set risks in state
-            if (response.data.risks) {
-              setSelectedRisks(response.data.risks);
-            }
           }
 
           // On subclause fetch, set evidence files if available
@@ -693,6 +688,8 @@ const VWISO42001ClauseDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={2}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>

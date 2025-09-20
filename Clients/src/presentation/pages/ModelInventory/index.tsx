@@ -49,6 +49,9 @@ import PageHeader from "../../components/Layout/PageHeader";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import Tab from "@mui/material/Tab";
+import { IconButton, InputBase } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import { searchBoxStyle, inputStyle } from "./style";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -97,6 +100,10 @@ const ModelInventory: React.FC = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("models"); // "models" = Models, "model-risks" = Model Risks
 
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+
   // Calculate summary from data
   const summary: Summary = {
     approved: modelInventoryData.filter(
@@ -116,12 +123,21 @@ const ModelInventory: React.FC = () => {
 
   // Filter data based on status
   const filteredData = useMemo(() => {
-    if (statusFilter === "all") {
-      return modelInventoryData;
+    let data = statusFilter === "all"
+      ? modelInventoryData
+      : modelInventoryData.filter((item) => item.status === statusFilter);
+  
+    if (searchTerm) {
+      data = data.filter((item) =>
+        item.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.provider?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.version?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-
-    return modelInventoryData.filter((item) => item.status === statusFilter);
-  }, [modelInventoryData, statusFilter]);
+  
+    return data;
+  }, [modelInventoryData, statusFilter, searchTerm]);
+  
 
   // Function to fetch model inventory data
   const fetchModelInventoryData = async (showLoading = true) => {
@@ -530,7 +546,7 @@ const ModelInventory: React.FC = () => {
     <Stack className="vwhome" sx={mainStackStyle}>
       {/* <PageBreadcrumbs /> */}
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
+      <PageBreadcrumbs />
 
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
@@ -607,19 +623,49 @@ const ModelInventory: React.FC = () => {
               alignItems="center"
               sx={filterButtonRowStyle}
             >
-              <SelectComponent
-                id="status-filter"
-                value={statusFilter}
-                items={statusFilterOptions}
-                onChange={handleStatusFilterChange}
-                sx={statusFilterSelectStyle}
-                customRenderValue={(value, selectedItem) => {
-                  if (value === "all") {
-                    return selectedItem.name;
-                  }
-                  return `Status: ${selectedItem.name.toLowerCase()}`;
-                }}
-              />
+              {/* Left side: Status dropdown + Search */}
+              <Stack direction="row" spacing={4} alignItems="center">
+                <SelectComponent
+                  id="status-filter"
+                  value={statusFilter}
+                  items={statusFilterOptions}
+                  onChange={handleStatusFilterChange}
+                  sx={statusFilterSelectStyle}
+                  customRenderValue={(value, selectedItem) => {
+                    if (value === "all") {
+                      return selectedItem.name;
+                    }
+                    return `Status: ${selectedItem.name.toLowerCase()}`;
+                  }}
+                />
+
+                {/* Expandable Search */}
+                <Box sx={searchBoxStyle(isSearchBarVisible)}>
+                  <IconButton
+                    disableRipple
+                    disableFocusRipple
+                    sx={{ "&:hover": { backgroundColor: "transparent" } }}
+                    aria-label="Toggle search"
+                    aria-expanded={isSearchBarVisible}
+                    onClick={() => setIsSearchBarVisible((prev) => !prev)}
+                  >
+                    <SearchIcon sx={{ml: 2}}/>
+                  </IconButton>
+
+                  {isSearchBarVisible && (
+                    <InputBase
+                      autoFocus
+                      placeholder="Search models..."
+                      inputProps={{ "aria-label": "Search models" }}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      sx={inputStyle(isSearchBarVisible)}
+                    />
+                  )}
+                </Box>
+              </Stack>
+
+              {/* Right side: Add Model button */}
               <CustomizableButton
                 variant="contained"
                 sx={addNewModelButtonStyle}

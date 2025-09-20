@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectRiskModel } from "../../models/projectRisks/projectRisk.model";
+import { RiskModel } from "../../models/risks/risk.model";
 import { ISO27001SubClauseModel } from "./ISO27001SubClause.model";
 import { ISO27001SubClauseRisks } from "../../interfaces/i.ISO27001SubClauseRisks";
 
@@ -20,7 +20,7 @@ export class ISO27001SubClauseRisksModel extends Model<ISO27001SubClauseRisks> {
   })
   subclause_id?: number;
 
-  @ForeignKey(() => ProjectRiskModel)
+  @ForeignKey(() => RiskModel)
   @Column({
     type: DataType.INTEGER,
     primaryKey: true,

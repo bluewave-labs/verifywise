@@ -2,7 +2,7 @@ import { Stack, useTheme, IconButton, Typography, Link } from "@mui/material";
 import Uppy from "@uppy/core";
 import { useState } from "react";
 import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as DeleteIconGrey } from "../../../assets/icons/trash-grey.svg";
 import DeleteFileModal from "./DeleteFileModal";
 import getStyles from "./getStyles";
 import { FileData } from "../../../../domain/types/File";
@@ -40,7 +40,7 @@ const FileListItem: React.FC<{
       </Typography>
     </Link>
     <IconButton onClick={() => onDeleteClick(file.id, file.fileName)}>
-      <DeleteIcon />
+      <DeleteIconGrey />
     </IconButton>
   </Stack>
 );

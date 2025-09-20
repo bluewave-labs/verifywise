@@ -718,6 +718,8 @@ const VWISO42001AnnexDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={2}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>

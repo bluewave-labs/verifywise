@@ -7,7 +7,7 @@ import {
 } from "sequelize-typescript";
 import { ProjectModel } from "../project/project.model";
 import { UserModel } from "../user/user.model";
-import { IProjectRisk } from "../../interfaces/I.projectRisk";
+import { IRisk } from "../../interfaces/I.risk";
 import {
   ValidationException,
   NotFoundException,
@@ -16,22 +16,15 @@ import {
 @Table({
   tableName: "project_risks",
 })
-export class ProjectRiskModel
-  extends Model<ProjectRiskModel>
-  implements IProjectRisk
-{
+export class RiskModel
+  extends Model<RiskModel>
+  implements IRisk {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   })
   id?: number;
-
-  @ForeignKey(() => ProjectModel)
-  @Column({
-    type: DataType.INTEGER,
-  })
-  project_id!: number;
 
   @Column({
     type: DataType.STRING,
@@ -248,18 +241,9 @@ export class ProjectRiskModel
    * Create a new project risk with validation
    */
   static async createProjectRisk(
-    projectRiskData: Partial<IProjectRisk>,
+    projectRiskData: Partial<IRisk>,
     is_demo: boolean = false
-  ): Promise<ProjectRiskModel> {
-    // Validate required fields
-    if (!projectRiskData.project_id || projectRiskData.project_id < 1) {
-      throw new ValidationException(
-        "Valid project ID is required (must be >= 1)",
-        "project_id",
-        projectRiskData.project_id
-      );
-    }
-
+  ): Promise<RiskModel> {
     if (
       !projectRiskData.risk_name ||
       projectRiskData.risk_name.trim().length === 0
@@ -291,7 +275,7 @@ export class ProjectRiskModel
     }
 
     // Create and return the project risk model instance
-    const projectRisk = new ProjectRiskModel();
+    const projectRisk = new RiskModel();
     Object.assign(projectRisk, projectRiskData);
     projectRisk.is_demo = is_demo;
     projectRisk.created_at = new Date();
@@ -302,19 +286,7 @@ export class ProjectRiskModel
   /**
    * Update project risk with validation
    */
-  async updateProjectRisk(updateData: Partial<IProjectRisk>): Promise<void> {
-    // Validate project_id if provided
-    if (updateData.project_id !== undefined) {
-      if (!updateData.project_id || updateData.project_id < 1) {
-        throw new ValidationException(
-          "Valid project ID is required (must be >= 1)",
-          "project_id",
-          updateData.project_id
-        );
-      }
-      this.project_id = updateData.project_id;
-    }
-
+  async updateProjectRisk(updateData: Partial<IRisk>): Promise<void> {
     // Validate risk_name if provided
     if (updateData.risk_name !== undefined) {
       if (!updateData.risk_name || updateData.risk_name.trim().length === 0) {
@@ -445,14 +417,6 @@ export class ProjectRiskModel
    * Validate project risk data before saving
    */
   async validateProjectRiskData(): Promise<void> {
-    if (!this.project_id || this.project_id < 1) {
-      throw new ValidationException(
-        "Valid project ID is required (must be >= 1)",
-        "project_id",
-        this.project_id
-      );
-    }
-
     if (!this.risk_name || this.risk_name.trim().length === 0) {
       throw new ValidationException(
         "Risk name is required",
@@ -491,7 +455,6 @@ export class ProjectRiskModel
   toJSON(): any {
     return {
       id: this.id,
-      project_id: this.project_id,
       risk_name: this.risk_name,
       risk_owner: this.risk_owner,
       ai_lifecycle_phase: this.ai_lifecycle_phase,
@@ -524,7 +487,7 @@ export class ProjectRiskModel
   /**
    * Static method to find project risk by ID with validation
    */
-  static async findByIdWithValidation(id: number): Promise<ProjectRiskModel> {
+  static async findByIdWithValidation(id: number): Promise<RiskModel> {
     if (!id || id < 1) {
       throw new ValidationException(
         "Valid ID is required (must be >= 1)",
@@ -533,7 +496,7 @@ export class ProjectRiskModel
       );
     }
 
-    const projectRisk = await ProjectRiskModel.findByPk(id);
+    const projectRisk = await RiskModel.findByPk(id);
     if (!projectRisk) {
       throw new NotFoundException("Project risk not found", "ProjectRisk", id);
     }
@@ -542,29 +505,11 @@ export class ProjectRiskModel
   }
 
   /**
-   * Static method to find project risks by project ID
-   */
-  static async findByProjectId(projectId: number): Promise<ProjectRiskModel[]> {
-    if (!projectId || projectId < 1) {
-      throw new ValidationException(
-        "Valid project ID is required (must be >= 1)",
-        "projectId",
-        projectId
-      );
-    }
-
-    return await ProjectRiskModel.findAll({
-      where: { project_id: projectId },
-      order: [["created_at", "DESC"]],
-    });
-  }
-
-  /**
    * Static method to find project risks by risk owner
    */
   static async findByRiskOwner(
     riskOwnerId: number
-  ): Promise<ProjectRiskModel[]> {
+  ): Promise<RiskModel[]> {
     if (!riskOwnerId || riskOwnerId < 1) {
       throw new ValidationException(
         "Valid risk owner ID is required (must be >= 1)",
@@ -573,7 +518,7 @@ export class ProjectRiskModel
       );
     }
 
-    return await ProjectRiskModel.findAll({
+    return await RiskModel.findAll({
       where: { risk_owner: riskOwnerId },
       order: [["created_at", "DESC"]],
     });
@@ -584,8 +529,8 @@ export class ProjectRiskModel
    */
   static async updateProjectRiskById(
     id: number,
-    updateData: Partial<IProjectRisk>
-  ): Promise<[number, ProjectRiskModel[]]> {
+    updateData: Partial<IRisk>
+  ): Promise<[number, RiskModel[]]> {
     if (!id || id < 1) {
       throw new ValidationException(
         "Valid ID is required (must be >= 1)",
@@ -594,7 +539,7 @@ export class ProjectRiskModel
       );
     }
 
-    return await ProjectRiskModel.update(updateData, {
+    return await RiskModel.update(updateData, {
       where: { id },
       returning: true,
     });
@@ -612,12 +557,12 @@ export class ProjectRiskModel
       );
     }
 
-    return await ProjectRiskModel.destroy({
+    return await RiskModel.destroy({
       where: { id },
     });
   }
 
-  constructor(init?: Partial<IProjectRisk>) {
+  constructor(init?: Partial<IRisk>) {
     super();
     Object.assign(this, init);
   }

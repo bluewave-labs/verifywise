@@ -60,12 +60,7 @@ const useProjectRisks = ({ projectId, refreshKey }: { projectId: number, refresh
         signal,
       });
         if (response.data) {
-          const filteredProjectRisks = projectId
-            ? response.data.filter(
-                (risk: ProjectRisk) => risk.project_id === Number(projectId)
-              )
-            : response.data;
-          setProjectRisks(filteredProjectRisks);
+          setProjectRisks(response.data);
         }
       } catch (err) {
         if (err instanceof Error) {

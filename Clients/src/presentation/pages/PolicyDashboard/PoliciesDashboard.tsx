@@ -110,17 +110,8 @@ const PolicyDashboard: React.FC = () => {
   }, [policies, statusFilter, searchTerm]);
 
   return (
-    <div>
-      <Stack sx={{ gap: "15px" }}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{ height: 20 }}
-        >
-          {" "}
-          <PageBreadcrumbs />{" "}
-        </Stack>
+    <Stack className="vwhome" gap={"20px"}>
+      <PageBreadcrumbs />
         <HelperDrawer
           isOpen={isHelperDrawerOpen}
           onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -139,9 +130,8 @@ const PolicyDashboard: React.FC = () => {
             />
           }
         />
-      </Stack>
 
-      <Stack
+        <Stack
         direction={{ xs: "column", md: "row" }}
         justifyContent="space-between"
         alignItems="flex-end" // ✅ bottom alignment
@@ -252,7 +242,7 @@ const PolicyDashboard: React.FC = () => {
           onSaved={handleSaved}
         />
       )}
-    </div>
+    </Stack>
   );
 };
 

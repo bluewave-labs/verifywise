@@ -929,6 +929,7 @@ const ProjectSettings = React.memo(
                       },
                     },
                     "& .MuiChip-root": {
+                      borderRadius: "4px",
                       "& .MuiChip-deleteIcon": {
                         display:
                           values.monitoredRegulationsAndStandards.length === 1
@@ -1078,6 +1079,9 @@ const ProjectSettings = React.memo(
                     borderColor: "#888",
                     borderWidth: "1px",
                   },
+                },
+                "& .MuiChip-root": {
+                  borderRadius: "4px",
                 },
               }}
               slotProps={{

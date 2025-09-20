@@ -33,6 +33,7 @@ import ModelInventory from "../../presentation/pages/ModelInventory";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import WorkingDashboard from "../../presentation/pages/DashboardOverview/WorkingDashboard";
+import RiskManagement from "../../presentation/pages/RiskManagement";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -68,6 +69,7 @@ export const createRoutes = (
     <Route path="/policies" element={<PolicyDashboard/>}/>
     <Route path="/event-tracker" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
+    <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
   </Route>,
   <Route

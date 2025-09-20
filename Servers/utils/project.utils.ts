@@ -5,7 +5,7 @@ import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
-import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
+import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
@@ -89,9 +89,9 @@ export const getAllProjectsQuery = async (
         replacements: { project_id: project.id },
       }
     )) as [
-      { project_framework_id: number; framework_id: number; name: string }[],
-      number,
-    ];
+        { project_framework_id: number; framework_id: number; name: string }[],
+        number,
+      ];
     (project.dataValues as any)["framework"] = [];
     for (let pf of projectFramework[0]) {
       (project.dataValues as any)["framework"].push(pf);
@@ -137,9 +137,9 @@ export const getProjectByIdQuery = async (
       replacements: { project_id: project.id },
     }
   )) as [
-    { project_framework_id: number; framework_id: number; name: string }[],
-    number,
-  ];
+      { project_framework_id: number; framework_id: number; name: string }[],
+      number,
+    ];
   (project.dataValues as any)["framework"] = [];
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf);
@@ -438,9 +438,9 @@ export const updateProjectByIdQuery = async (
   );
   return result.length
     ? {
-        ...result[0].dataValues,
-        members: updatedMembers.map((m) => m.user_id),
-      }
+      ...result[0].dataValues,
+      members: updatedMembers.map((m) => m.user_id),
+    }
     : null;
 };
 
@@ -555,7 +555,7 @@ export const deleteProjectByIdQuery = async (
       },
     },
     { files: { foreignKey: "project_id", model: FileModel } },
-    { projectrisks: { foreignKey: "project_id", model: ProjectRiskModel } },
+    { projectrisks: { foreignKey: "project_id", model: RiskModel } },
     {
       projects_members: {
         foreignKey: "project_id",

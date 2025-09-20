@@ -103,9 +103,20 @@ const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
+  const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
-  const annexId = searchParams.get("annexId");
+
+  // ISO 42001 parameters
   const clauseId = searchParams.get("clauseId");
+  const subClauseId = searchParams.get("subClauseId");
+  const annexId = searchParams.get("annexId");
+  const annexCategoryId = searchParams.get("annexCategoryId");
+
+  // ISO 27001 parameters
+  const clause27001Id = searchParams.get("clause27001Id");
+  const subClause27001Id = searchParams.get("subClause27001Id");
+  const annex27001Id = searchParams.get("annex27001Id");
+  const annexControl27001Id = searchParams.get("annexControl27001Id");
   const [rotated, setRotated] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
@@ -292,14 +303,50 @@ const Framework = () => {
   }, [filteredFrameworks, selectedFramework, frameworkName]);
 
   useEffect(() => {
-    if (frameworkName === "iso-42001") {
-      setSelectedFramework(1);
-      setIso42001TabValue(annexId ? "annexes" : "clauses");
-    } else if (frameworkName === "iso-27001") {
-      setSelectedFramework(0);
-      setIso27001TabValue(annexId ? "annex" : "clause");
+    if (framework === "iso-42001" || frameworkName === "iso-42001") {
+      // Find ISO 42001 framework in filtered frameworks
+      const iso42001Index = filteredFrameworks.findIndex(fw =>
+        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("42001")
+      );
+      if (iso42001Index !== -1) {
+        setSelectedFramework(iso42001Index);
+      }
+
+      // Set tab based on parameters
+      if (annexId || annexCategoryId) {
+        setIso42001TabValue("annexes");
+      } else if (clauseId || subClauseId) {
+        setIso42001TabValue("clauses");
+      }
+    } else if (framework === "iso-27001" || frameworkName === "iso-27001") {
+      // Find ISO 27001 framework in filtered frameworks
+      const iso27001Index = filteredFrameworks.findIndex(fw =>
+        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("27001")
+      );
+      if (iso27001Index !== -1) {
+        setSelectedFramework(iso27001Index);
+      }
+
+      // Set tab based on parameters
+      if (annex27001Id || annexControl27001Id) {
+        setIso27001TabValue("annex");
+      } else if (clause27001Id || subClause27001Id) {
+        setIso27001TabValue("clause");
+      }
     }
-  }, [frameworkName, annexId, clauseId]);
+  }, [
+    framework,
+    frameworkName,
+    filteredFrameworks,
+    clauseId,
+    subClauseId,
+    annexId,
+    annexCategoryId,
+    clause27001Id,
+    subClause27001Id,
+    annex27001Id,
+    annexControl27001Id
+  ]);
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
   useEffect(() => {
@@ -429,6 +476,8 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                initialClauseId={clause27001Id}
+                initialSubClauseId={subClause27001Id}
               />
             </TabPanel>
 
@@ -440,6 +489,8 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                initialAnnexId={annex27001Id}
+                initialAnnexControlId={annexControl27001Id}
               />
             </TabPanel>
           </TabContext>
@@ -492,6 +543,8 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                initialClauseId={clauseId}
+                initialSubClauseId={subClauseId}
               />
             </TabPanel>
 
@@ -503,6 +556,8 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                initialAnnexId={annexId}
+                initialAnnexCategoryId={annexCategoryId}
               />
             </TabPanel>
           </TabContext>
@@ -540,22 +595,14 @@ const Framework = () => {
   };
 
   return (
-    <Stack
-      className="framework-page"
-      sx={{
-        minHeight: "100vh",
-        padding: 3,
-        backgroundColor: "#FCFCFD",
-      }}
-      ref={refs[0]}
-    >
+    <Stack className="vwhome" gap={"20px"} ref={refs[0]}>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         helpContent={organizationalFrameworksHelpContent}
         pageTitle="Organizational Frameworks"
       />
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+      <PageBreadcrumbs />
       <Stack>
       <PageHeader
                title="Framework"

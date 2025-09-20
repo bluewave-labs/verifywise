@@ -777,6 +777,7 @@ const NewControlPane = ({
               .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
+            projectId={projectId}
           />
         </Suspense>
       </Dialog>

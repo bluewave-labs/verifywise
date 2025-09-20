@@ -38,6 +38,8 @@ export interface RiskFormValues {
   riskSeverity: Severity;
   riskLevel: number;
   reviewNotes: string;
+  applicableProjects: number[];
+  applicableFrameworks: number[];
 }
 
 export interface RiskFormErrors {
@@ -50,6 +52,8 @@ export interface RiskFormErrors {
   assessmentMapping?: string;
   controlsMapping?: string;
   reviewNotes?: string;
+  applicableProjects?: string;
+  applicableFrameworks?: string;
 }
 
 export interface MitigationFormValues {

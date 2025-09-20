@@ -292,6 +292,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
       backgroundColor: theme.palette.background.main,
       "& .MuiOutlinedInput-root": {
         borderRadius: "3px",
+        fontSize: "13px",
         "&:hover .MuiOutlinedInput-notchedOutline": {
           borderColor: "none",
         },
@@ -299,6 +300,9 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
           borderColor: "#888",
           borderWidth: "1px",
         },
+      },
+      "& .MuiOutlinedInput-input::placeholder": {
+        fontSize: "13px",
       },
     }),
     [theme.palette.background.main]
@@ -501,7 +505,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                   rows={3}
                   value={values.description}
                   onChange={handleOnTextFieldChange("description")}
-                  placeholder="Describe the risk in detail..."
+                  placeholder="Describe the risk in detail"
                   error={!!errors.description}
                   helperText={errors.description}
                   sx={textAreaStyle}
@@ -525,7 +529,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                   rows={3}
                   value={values.impact}
                   onChange={handleOnTextFieldChange("impact")}
-                  placeholder="Describe the potential impact of this risk..."
+                  placeholder="Describe the potential impact of this risk"
                   error={!!errors.impact}
                   helperText={errors.impact}
                   sx={textAreaStyle}
@@ -549,7 +553,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                   rows={3}
                   value={values.mitigationPlan}
                   onChange={handleOnTextFieldChange("mitigationPlan")}
-                  placeholder="Describe the plan to mitigate this risk..."
+                  placeholder="Describe the plan to mitigate this risk"
                   error={!!errors.mitigationPlan}
                   helperText={errors.mitigationPlan}
                   sx={textAreaStyle}

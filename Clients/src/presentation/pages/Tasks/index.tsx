@@ -11,7 +11,6 @@ import {
   Button,
   TextField,
   Autocomplete,
-  Divider,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
@@ -42,7 +41,6 @@ import {
 import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
-import Field from "../../components/Inputs/Field";
 import useUsers from "../../../application/hooks/useUsers";
 import CustomSelect from "../../components/CustomSelect";
 import DualButtonModal from "../../components/Dialogs/DualButtonModal";

@@ -9,7 +9,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ReactComponent as GreyDownArrowIcon } from "../../assets/icons/chevron-down-grey.svg";
 import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";

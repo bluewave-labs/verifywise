@@ -51,7 +51,7 @@ const AITrustCenter: React.FC = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"24px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}

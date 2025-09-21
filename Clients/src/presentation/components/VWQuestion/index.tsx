@@ -242,7 +242,7 @@ const QuestionFrame = ({
           backgroundColor: "#FBFAFA",
           border: "1px solid #D0D5DD",
           borderBottom: "none",
-          borderRadius: "4px 4px 0 0",
+          borderRadius: `${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0`,
           gap: 4,
         }}
       >
@@ -288,7 +288,7 @@ const QuestionFrame = ({
                   (question.priority_level || "low priority") as PriorityLevel
                 ]?.color || "#666",
               color: "#FFFFFF",
-              borderRadius: "4px",
+              borderRadius: theme.shape.borderRadius,
             }}
             size="small"
           />
@@ -304,7 +304,7 @@ const QuestionFrame = ({
         }}
         bodySx={{
           borderColor: "#D0D5DD",
-          borderRadius: "0 0 4px 4px",
+          borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
           "& .ProseMirror > p": {
             margin: 0,
           },

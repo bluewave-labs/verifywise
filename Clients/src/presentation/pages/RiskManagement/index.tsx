@@ -292,10 +292,10 @@ const RiskManagement = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"24px"}>
       <PageBreadcrumbs />
 
-      <Stack gap={theme.spacing(2)} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"24px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"
@@ -325,22 +325,19 @@ const RiskManagement = () => {
           onFilterChange={handleRiskFilterChange}
         />
       </Stack>
-      <br />
       <Stack
         className="risk-management-row"
         sx={{
           gap: 10,
-          mb: 10,
+          mb: 1,
+          mt: 2,
         }}
       >
         <Stack
           direction="row"
-          justifyContent="space-between"
+          justifyContent="flex-end"
           alignItems="center"
         >
-          <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>
-            All Risks
-          </Typography>
           <Stack direction="row" gap={10}>
             <CustomizableButton
               variant="contained"

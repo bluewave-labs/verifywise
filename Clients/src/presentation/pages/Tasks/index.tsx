@@ -355,7 +355,7 @@ const Tasks: React.FC = () => {
     };
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
@@ -393,56 +393,53 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Header Cards */}
-        <Stack sx={{ ...vwhomeHeaderCards, mt: 8 }}>
+        <Stack sx={vwhomeHeaderCards}>
           <HeaderCard title="Tasks" count={summary.total} />
           <HeaderCard title="Overdue" count={summary.overdue} />
           <HeaderCard title="In progress" count={summary.inProgress} />
           <HeaderCard title="Completed" count={summary.completed} />
         </Stack>
 
-        {/* Search, Filter, and Sort Controls  */}
-        <Box sx={{ mt: 8, mb: 8 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Box sx={searchBoxStyle}>
-              <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
-              <InputBase
-                placeholder="Search tasks by title or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={searchInputStyle}
-                inputProps={{ "aria-label": "Search tasks" }}
-              />
-            </Box>
+        {/* Search and Sort Controls */}
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box sx={searchBoxStyle}>
+            <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
+            <InputBase
+              placeholder="Search tasks by title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={searchInputStyle}
+              inputProps={{ "aria-label": "Search tasks" }}
+            />
+          </Box>
 
-            <Stack direction="row" spacing={3} alignItems="center">
-              <CustomSelect
-                currentValue={sortBy}
-                onValueChange={async (newSort: string) => {
-                  setSortBy(newSort);
-                  return true;
-                }}
-                options={["Newest", "Oldest", "Priority", "Due date"]}
-                sx={{ minWidth: 150 }}
-              />
-            </Stack>
+          <Stack direction="row" spacing={3} alignItems="center">
+            <CustomSelect
+              currentValue={sortBy}
+              onValueChange={async (newSort: string) => {
+                setSortBy(newSort);
+                return true;
+              }}
+              options={["Newest", "Oldest", "Priority", "Due date"]}
+              sx={{ minWidth: 150 }}
+            />
           </Stack>
+        </Stack>
 
-          <Paper
-            elevation={0}
-            sx={{
-              mb: 2,
-              mt: 8,
-              border: "1px solid #E5E7EB",
-              borderRadius: 2,
-              backgroundColor: "transparent",
-              boxShadow: "none",
-            }}
-          >
+        {/* Filter Block */}
+        <Paper
+          elevation={0}
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            backgroundColor: "transparent",
+            boxShadow: "none",
+          }}
+        >
             {/* Filter Header */}
             <Box
               sx={{
@@ -741,10 +738,9 @@ const Tasks: React.FC = () => {
               </Box>
             </Collapse>
           </Paper>
-        </Box>
 
         {/* Content Area */}
-        <Box sx={{ mt: 8 }}>
+        <Box>
           {isLoading && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <Typography>Loading tasks...</Typography>
@@ -768,6 +764,7 @@ const Tasks: React.FC = () => {
                 (status) => STATUS_DISPLAY_MAP[status as TaskStatus] || status
               )}
               isUpdateDisabled={isCreatingDisabled}
+              onRowClick={handleEditTask}
             />
           )}
         </Box>

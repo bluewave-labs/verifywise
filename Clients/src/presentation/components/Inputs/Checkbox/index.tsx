@@ -57,7 +57,7 @@ const Checkbox: FC<CheckboxProps> = ({
             id: id,
           }}
           sx={{
-            borderRadius: "4px",
+            borderRadius: theme.shape.borderRadius,
             "&:hover": { backgroundColor: "transparent" },
             "& svg": { width: sizes[size], height: sizes[size] },
             "& .MuiTouchRipple-root": {

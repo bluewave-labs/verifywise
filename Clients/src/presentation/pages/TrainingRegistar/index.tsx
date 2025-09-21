@@ -223,7 +223,7 @@ const Training: React.FC = () => {
   }, [trainingData, statusFilter, searchTerm]);
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
@@ -260,8 +260,6 @@ const Training: React.FC = () => {
         </Suspense>
       )}
 
-      <Stack gap={4}>
-
         <PageHeader
                title="AI training registry"
                description=" This registry lists all AI-related training programs available to
@@ -282,8 +280,6 @@ const Training: React.FC = () => {
             alignItems="center"
             justifyContent="space-between"
             spacing={4}
-            mb={4}
-            mt={7}
             sx={{ width: "100%" }}
           >
             {/* Left side: Dropdown + Search together */}
@@ -296,7 +292,7 @@ const Training: React.FC = () => {
                 onChange={(e: any) => setStatusFilter(e.target.value)}
                 sx={{
                   minWidth: "180px",
-                  height: "40px",
+                  height: "34px",
                   bgcolor: "#fff",
                 }}
               />
@@ -334,7 +330,6 @@ const Training: React.FC = () => {
                         backgroundColor: "#13715B",
                         border: "1px solid #13715B",
                         gap: 2,
-                        mt: 5
                       }}
                       text="New training"
                       icon={<AddCircleOutlineIcon />}
@@ -342,14 +337,16 @@ const Training: React.FC = () => {
                       isDisabled={isCreatingDisabled}
                     />
           </Stack>
+
         {/* Table */}
-        <TrainingTable
-          data={filteredTraining}
-          isLoading={isLoading}
-          onEdit={handleEditTraining}
-          onDelete={handleDeleteTraining}
-        />
-      </Stack>
+        <Box sx={{ mt: 1 }}>
+          <TrainingTable
+            data={filteredTraining}
+            isLoading={isLoading}
+            onEdit={handleEditTraining}
+            onDelete={handleDeleteTraining}
+          />
+        </Box>
 
       {/* Modal */}
       <NewTraining

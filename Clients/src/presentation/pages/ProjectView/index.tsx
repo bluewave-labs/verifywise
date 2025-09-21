@@ -91,7 +91,7 @@ const ProjectView = () => {
 
   return (
     <Stack>
-      <PageBreadcrumbs />
+      <PageBreadcrumbs showDivider={false} />
       {noProject ? (
         //no project found template
         <Box sx={noProjectContainerStyle}>

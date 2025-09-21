@@ -77,7 +77,6 @@ const frameworkTabsContainerStyle = {
   overflow: "hidden",
   height: 43,
   bgcolor: "background.paper",
-  mb: 4,
   width: "fit-content",
 };
 
@@ -595,7 +594,7 @@ const Framework = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"20px"} ref={refs[0]}>
+    <Stack className="vwhome" gap={"24px"} ref={refs[0]}>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -618,16 +617,36 @@ const Framework = () => {
                     />
                  }
        />
-        {/* Conditional Button Section */}
+        {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
         <Box
           sx={{
-            mt: 4,
-            mb: 4,
+            mt: "24px",
+            mb: "0px",
             display: "flex",
             gap: 2,
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
+          {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
+          {organizationalProject && filteredFrameworks.length > 0 && (
+            <Box sx={frameworkTabsContainerStyle}>
+              {filteredFrameworks.map((framework, index) => (
+                <Box
+                  key={framework.id}
+                  onClick={() => handleFrameworkSelect(index)}
+                  sx={getFrameworkTabStyle(
+                    selectedFramework === index,
+                    index === filteredFrameworks.length - 1
+                  )}
+                >
+                  {framework.name}
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          {/* Manage Project Button */}
           {organizationalProject ? (
             <>
               <Button
@@ -787,25 +806,7 @@ const Framework = () => {
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
-        <Stack className="frameworks-switch" sx={{ mt: 6 }}>
-          {/* Framework toggle following ProjectFrameworks pattern - only show if frameworks are available */}
-          {filteredFrameworks.length > 0 && (
-            <Box sx={frameworkTabsContainerStyle}>
-              {filteredFrameworks.map((framework, index) => (
-                <Box
-                  key={framework.id}
-                  onClick={() => handleFrameworkSelect(index)}
-                  sx={getFrameworkTabStyle(
-                    selectedFramework === index,
-                    index === filteredFrameworks.length - 1
-                  )}
-                >
-                  {framework.name}
-                </Box>
-              ))}
-            </Box>
-          )}
-
+        <Stack className="frameworks-switch" sx={{ mt: 0 }}>
           {/* Content that changes based on selected framework */}
           {renderFrameworkContent()}
         </Stack>

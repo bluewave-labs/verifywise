@@ -462,7 +462,7 @@ const VWISO42001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Stack>
             <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
@@ -703,7 +703,7 @@ const VWISO42001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"

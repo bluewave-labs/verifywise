@@ -669,7 +669,7 @@ const VWISO27001AnnexDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"

@@ -77,7 +77,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           border: "1px solid",
           borderColor: "#c4c4c4",
           borderBottom: "none",
-          borderRadius: "4px",
+          borderRadius: theme.shape.borderRadius,
           ...headerSx,
         }}
       >

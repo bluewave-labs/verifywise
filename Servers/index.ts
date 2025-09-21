@@ -37,10 +37,16 @@ import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
+import healthRoutes from "./routes/health.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 import { frontEndUrl } from "./config/constants";
+import {
+  correlationMiddleware,
+  correlationErrorHandler,
+  cleanupMiddleware
+} from "./middleware/correlation.middleware";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -79,6 +85,7 @@ try {
     })
   );
   app.use(helmet()); // Use helmet for security headers
+  app.use(correlationMiddleware("verifywise-backend")); // Add correlation tracking
   app.use((req, res, next) => {
     if (req.url.includes("/api/bias_and_fairness/")) {
       // Let the proxy handle the raw body
@@ -89,6 +96,7 @@ try {
   app.use(cookieParser());
 
   // Routes
+  app.use("/health", healthRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/vendorRisks", vendorRiskRoutes);
   app.use("/api/vendors", vendorRoutes);
@@ -127,6 +135,12 @@ try {
   app.use("/api", (req, res) => {
     res.json("Welcome to  VerifyWise root directory.");
   });
+
+  // Add correlation error handler as the last middleware
+  app.use(correlationErrorHandler);
+
+  // Start cleanup process for correlation contexts
+  cleanupMiddleware();
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

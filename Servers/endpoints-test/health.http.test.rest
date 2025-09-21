@@ -1,0 +1,13 @@
+GET http://localhost:3000/health
+
+### get health deep
+
+GET http://localhost:3000/health/deep
+
+### get health components
+
+GET http://localhost:3000/health/components
+
+### get health circuit breakers
+
+GET http://localhost:3000/health/circuit-breakers

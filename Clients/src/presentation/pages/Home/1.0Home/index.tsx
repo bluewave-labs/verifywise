@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box, Divider } from "@mui/material";
+import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
   vwhomeBodyControls,

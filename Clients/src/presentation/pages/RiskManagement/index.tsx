@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
-import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -54,7 +54,6 @@ const rowStyle = {
 };
 
 const RiskManagement = () => {
-  const theme = useTheme();
   const { userRoleName } = useAuth();
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state

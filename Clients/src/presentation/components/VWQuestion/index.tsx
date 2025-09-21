@@ -1,4 +1,4 @@
-import { Box, Chip, Stack, Tooltip, Typography, Dialog } from "@mui/material";
+import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
 import { Question } from "../../../domain/types/Question";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
@@ -49,6 +49,7 @@ const QuestionFrame = ({
   setRefreshKey,
   currentProjectId,
 }: QuestionProps) => {
+  const theme = useTheme();
   const { userRoleName, userId } = useAuth();
   const [values, setValues] = useState<Question>({
     ...question,

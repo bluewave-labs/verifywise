@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Tooltip, IconButton, Stack } from "@mui/material";
+import { Box, Tooltip, IconButton, Stack, useTheme } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -24,6 +24,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   initialContent = "",
   isEditable = true,
 }) => {
+  const theme = useTheme();
   const [activeList, setActiveList] = useState<"bulleted" | "numbered" | null>(
     null
   );

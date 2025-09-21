@@ -1,4 +1,4 @@
-import { Stack, useTheme, Box } from "@mui/material";
+import { Stack, Box } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useState } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -31,7 +31,6 @@ const tabPanelStyle = {
 };
 
 const WatchTower = () => {
-  const theme = useTheme();
   const [value, setValue] = useState("1");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 

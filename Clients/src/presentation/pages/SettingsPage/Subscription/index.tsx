@@ -17,14 +17,13 @@ import { getAllTiers } from "../../../../application/repository/tiers.repository
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 
 const pricingUrlMap = {
-  Team: 'https://buy.stripe.com/6oU7sK74p75f6kyfB5a7C09',
-  Business: 'https://buy.stripe.com/eVq00i4Wh61b6kybkPa7C0a',
+  Business: 'https://buy.stripe.com/eVq00i4Wh61b6kybkPa7C0a', // This maps to "Growth" in UI
   Enterprise: 'https://buy.stripe.com/cNidR8fAVfBL10e9cHa7C0b',
 };
 
 // Enhanced pricing plans with detailed features for comparison table
 const ENHANCED_PLAN_FEATURES = {
-  'Free': {
+  'Starter': {
     description: 'Perfect for getting started',
     popular: false,
     features: {
@@ -50,39 +49,8 @@ const ENHANCED_PLAN_FEATURES = {
       'Support & Training': {
         'Support': 'Email support',
         'Private Discord channel': false,
-        'Response SLA': '24 hours',
-        'Training': false
-      }
-    }
-  },
-  'Team': {
-    description: 'Ideal for small teams',
-    popular: false,
-    features: {
-      'Core Features': {
-        'Seats': 'Unlimited seats',
-        'Projects': '10 projects',
-        'Frameworks': 'All frameworks'
-      },
-      'AI Governance Features': {
-        'Project risks': true,
-        'Reports': true,
-        'Evidence center': true,
-        'Vendor & risk module': true,
-        'Bias & fairness check': true,
-        'AI policy manager': true,
-        'Model inventory': true,
-        'Tasks': true,
-        'MIT AI risk inventory': true,
-        'AI trust center': true,
-        'Audit logs': true,
-        'AI training register': true
-      },
-      'Support & Training': {
-        'Support': 'Email support',
-        'Private Discord channel': false,
-        'Response SLA': '12 hours',
-        'Training': false
+        'Response SLA': '48 hours',
+        'Training': 'None'
       }
     }
   },
@@ -92,39 +60,8 @@ const ENHANCED_PLAN_FEATURES = {
     features: {
       'Core Features': {
         'Seats': 'Unlimited seats',
-        'Projects': '50 projects',
-        'Frameworks': 'All frameworks'
-      },
-      'AI Governance Features': {
-        'Project risks': true,
-        'Reports': true,
-        'Evidence center': true,
-        'Vendor & risk module': true,
-        'Bias & fairness check': true,
-        'AI policy manager': true,
-        'Model inventory': true,
-        'Tasks': true,
-        'MIT AI risk inventory': true,
-        'AI trust center': true,
-        'Audit logs': true,
-        'AI training register': true
-      },
-      'Support & Training': {
-        'Support': 'Priority email support',
-        'Private Discord channel': true,
-        'Response SLA': '4 hours',
-        'Training': false
-      }
-    }
-  },
-  'Business': {
-    description: 'Best for growing organizations',
-    popular: true,
-    features: {
-      'Core Features': {
-        'Seats': 'Unlimited seats',
-        'Projects': '50 projects',
-        'Frameworks': 'All frameworks'
+        'Projects': '5 projects',
+        'Frameworks': '2 frameworks'
       },
       'AI Governance Features': {
         'Project risks': true,
@@ -143,8 +80,8 @@ const ENHANCED_PLAN_FEATURES = {
       'Support & Training': {
         'Support': 'Email support',
         'Private Discord channel': true,
-        'Response SLA': '8 hours',
-        'Training': 'Two onboarding workshops'
+        'Response SLA': '24 hours',
+        'Training': 'Remote training'
       }
     }
   },
@@ -169,13 +106,14 @@ const ENHANCED_PLAN_FEATURES = {
         'MIT AI risk inventory': true,
         'AI trust center': true,
         'Audit logs': true,
-        'AI training register': true
+        'AI training register': true,
+        'Secure authentication with OpenID Connect': true
       },
       'Support & Training': {
         'Support': 'Phone + email support',
         'Private Discord channel': true,
-        'Response SLA': '4 hours',
-        'Training': 'Two onboarding workshops'
+        'Response SLA': '12 hours',
+        'Training': 'Custom training'
       }
     }
   }
@@ -255,15 +193,29 @@ const Subscription: React.FC = () => {
 
   const handleSubscribe = (tierId: number) => {
     const selectedTier = allTiers?.find((tier: Tier) => tier.id === tierId);
-    const projectLimit = Number(selectedTier?.features?.projects);
-    
+    if (!selectedTier) return;
+
+    // Get project limit from enhanced features for accurate validation
+    const planKey = selectedTier.name === 'Free' ? 'Starter' :
+                  selectedTier.name === 'Business' ? 'Growth' :
+                  selectedTier.name;
+    const enhancedPlan = ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES];
+    const projectLimitStr = enhancedPlan?.features['Core Features']?.['Projects'] as string;
+
+    // Parse project limit (handle "Unlimited projects", "5 projects", etc.)
+    let projectLimit = 0;
+    if (projectLimitStr && !projectLimitStr.toLowerCase().includes('unlimited')) {
+      const match = projectLimitStr.match(/\d+/);
+      projectLimit = match ? parseInt(match[0]) : 0;
+    }
+
     // If project limit is 0, it means unlimited projects (Enterprise tier)
     // Only show warning if tier has a project limit > 0 and current projects exceed that limit
     if (projectLimit > 0 && ((dashboard?.projects ?? 0) >= projectLimit)) {
       setAlertMessage("You can't subscribe to this tier since the project exceeds the limit. Doing so will make you unable to use VerifyWise.");
       return;
     } else {
-      const url = `${pricingUrlMap[selectedTier?.name as keyof typeof pricingUrlMap]}`;
+      const url = `${pricingUrlMap[selectedTier.name as keyof typeof pricingUrlMap]}`;
       window.location.href = url;
     }
   };
@@ -295,21 +247,39 @@ const Subscription: React.FC = () => {
   // Get feature categories for comparison table
   const getFeatureCategories = () => {
     if (!allTiers.length) return [];
-    
-    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES]);
+
+    // Map tier name and find in enhanced features
+    const sampleTier = allTiers.find(tier => {
+      const planKey = tier.name === 'Free' ? 'Starter' :
+                    tier.name === 'Business' ? 'Growth' :
+                    tier.name;
+      return ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES];
+    });
     if (!sampleTier) return [];
 
-    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name as keyof typeof ENHANCED_PLAN_FEATURES].features;
+    const planKey = sampleTier.name === 'Free' ? 'Starter' :
+                  sampleTier.name === 'Business' ? 'Growth' :
+                  sampleTier.name;
+    const enhancedFeatures = ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES].features;
     return Object.keys(enhancedFeatures);
   };
 
   const getFeaturesByCategory = (category: string) => {
     if (!allTiers.length) return [];
-    
-    const sampleTier = allTiers.find(tier => ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES]);
+
+    // Map tier name and find in enhanced features
+    const sampleTier = allTiers.find(tier => {
+      const planKey = tier.name === 'Free' ? 'Starter' :
+                    tier.name === 'Business' ? 'Growth' :
+                    tier.name;
+      return ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES];
+    });
     if (!sampleTier) return [];
-    
-    const enhancedFeatures = ENHANCED_PLAN_FEATURES[sampleTier.name as keyof typeof ENHANCED_PLAN_FEATURES].features;
+
+    const planKey = sampleTier.name === 'Free' ? 'Starter' :
+                  sampleTier.name === 'Business' ? 'Growth' :
+                  sampleTier.name;
+    const enhancedFeatures = ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES].features;
     return Object.keys(
       enhancedFeatures[category as keyof typeof enhancedFeatures] || {}
     );
@@ -404,7 +374,14 @@ const Subscription: React.FC = () => {
               Current Plan:
             </Typography>
             <Typography sx={{ fontWeight: 600, color: '#344E41' }}>
-              {allTiers.find(tier => tier.id === organizationTierId)?.name || '—'}
+              {(() => {
+                const currentTier = allTiers.find(tier => tier.id === organizationTierId);
+                if (!currentTier) return '—';
+                // Map tier name for display
+                return currentTier.name === 'Free' ? 'Starter' :
+                       currentTier.name === 'Business' ? 'Growth' :
+                       currentTier.name;
+              })()}
             </Typography>
           </Box>
 
@@ -443,13 +420,19 @@ const Subscription: React.FC = () => {
                     <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
                       {/* Empty cell for feature column */}
                     </TableCell>
-                    {allTiers?.map((tier: Tier) => (
-                        <TableCell key={`name-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                    {allTiers?.filter(tier => tier.name !== 'Team').map((tier: Tier, index: number, filteredTiers: Tier[]) => {
+                      // Map tier names for display
+                      const displayName = tier.name === 'Free' ? 'Starter' :
+                                        tier.name === 'Business' ? 'Growth' :
+                                        tier.name;
+                      return (
+                        <TableCell key={`name-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: index !== filteredTiers.length - 1 ? 1 : 0, borderColor: 'grey.200' }}>
                           <Typography variant="h6" fontWeight="bold">
-                            {tier.name}
+                            {displayName}
                           </Typography>
                         </TableCell>
-                    ))}
+                      );
+                    })}
                   </TableRow>
 
                   {/* Price Row */}
@@ -457,18 +440,24 @@ const Subscription: React.FC = () => {
                     <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
                       {/* Empty cell for feature column */}
                     </TableCell>
-                    {allTiers?.map((tier: Tier) => (
-                      <TableCell key={`price-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
-                        <Typography variant="h5" fontWeight="bold" color="primary.main">
-                          {tier.price === null ? 'Contact Us' : `$${tier.price}`}
-                          {tier.price !== null && (
-                            <Typography component="span" variant="body2" color="text.secondary">
-                              /month
-                            </Typography>
-                          )}
-                        </Typography>
-                      </TableCell>
-                    ))}
+                    {allTiers?.filter(tier => tier.name !== 'Team').map((tier: Tier, index: number, filteredTiers: Tier[]) => {
+                      // Override pricing for display
+                      const displayPrice = tier.name === 'Business' ? 799 :
+                                         tier.name === 'Enterprise' ? null :
+                                         tier.price;
+                      return (
+                        <TableCell key={`price-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: index !== filteredTiers.length - 1 ? 1 : 0, borderColor: 'grey.200' }}>
+                          <Typography variant="h5" fontWeight="bold" color="primary.main">
+                            {displayPrice === null ? 'Custom' : `$${displayPrice}`}
+                            {displayPrice !== null && (
+                              <Typography component="span" variant="body2" color="text.secondary">
+                                /month
+                              </Typography>
+                            )}
+                          </Typography>
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
 
                   {/* Description Row */}
@@ -476,10 +465,14 @@ const Subscription: React.FC = () => {
                     <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
                       {/* Empty cell for feature column */}
                     </TableCell>
-                    {allTiers?.map((tier: Tier) => {
-                      const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES];
+                    {allTiers?.filter(tier => tier.name !== 'Team').map((tier: Tier, index: number, filteredTiers: Tier[]) => {
+                      // Map tier names for enhanced plan lookup
+                      const planKey = tier.name === 'Free' ? 'Starter' :
+                                    tier.name === 'Business' ? 'Growth' :
+                                    tier.name;
+                      const enhancedPlan = ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES];
                       return (
-                        <TableCell key={`desc-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                        <TableCell key={`desc-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: index !== filteredTiers.length - 1 ? 1 : 0, borderColor: 'grey.200' }}>
                           <Typography variant="body2" color="text.secondary">
                             {enhancedPlan?.description || 'Choose this plan for your needs'}
                           </Typography>
@@ -493,14 +486,14 @@ const Subscription: React.FC = () => {
                     <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
                       {/* Empty cell for feature column */}
                     </TableCell>
-                    {allTiers?.map((tier: Tier) => (
-                      <TableCell key={`cta-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                    {allTiers?.filter(tier => tier.name !== 'Team').map((tier: Tier, index: number, filteredTiers: Tier[]) => (
+                      <TableCell key={`cta-${tier.id}`} align="center" sx={{ width: '18.75%', py: 2, borderRight: index !== filteredTiers.length - 1 ? 1 : 0, borderColor: 'grey.200' }}>
                         {/* Hide button for Free tier if organizationTierId is not 1 */}
                         {tier.id === 1 && organizationTierId !== 1 ? null : (
-                          <Tooltip 
+                          <Tooltip
                             title={
                               organizationTierId === tier.id
-                                ? 'To cancel your subscription head over to stripe' 
+                                ? 'To cancel your subscription head over to stripe'
                                 : ''
                             }
                             arrow
@@ -538,7 +531,7 @@ const Subscription: React.FC = () => {
                     <React.Fragment key={category}>
                       {/* Category Header */}
                       <TableRow sx={{ bgcolor: 'grey.50' }}>
-                        <TableCell colSpan={allTiers.length + 1} sx={{ py: 2, borderBottom: 1, borderColor: 'grey.200' }}>
+                        <TableCell colSpan={allTiers.filter(tier => tier.name !== 'Team').length + 1} sx={{ py: 2, borderBottom: 1, borderColor: 'grey.200' }}>
                           <Typography variant="h6" fontWeight="semibold" color="text.primary">
                             {category}
                           </Typography>
@@ -554,13 +547,17 @@ const Subscription: React.FC = () => {
                             </Typography>
                           </TableCell>
                           
-                          {allTiers.map((tier: Tier) => {
-                            const enhancedPlan = ENHANCED_PLAN_FEATURES[tier.name as keyof typeof ENHANCED_PLAN_FEATURES];
+                          {allTiers.filter(tier => tier.name !== 'Team').map((tier: Tier, index: number, filteredTiers: Tier[]) => {
+                            // Map tier names for enhanced plan lookup
+                            const planKey = tier.name === 'Free' ? 'Starter' :
+                                          tier.name === 'Business' ? 'Growth' :
+                                          tier.name;
+                            const enhancedPlan = ENHANCED_PLAN_FEATURES[planKey as keyof typeof ENHANCED_PLAN_FEATURES];
                             const featureCategory = enhancedPlan?.features[category as keyof typeof enhancedPlan.features] as Record<string, boolean | string> | undefined;
                             const featureValue = featureCategory ? featureCategory[feature] : false;
-                            
+
                             return (
-                              <TableCell key={tier.id} align="center" sx={{ width: '18.75%', py: 2, borderRight: tier.id !== allTiers[allTiers.length - 1]?.id ? 1 : 0, borderColor: 'grey.200' }}>
+                              <TableCell key={tier.id} align="center" sx={{ width: '18.75%', py: 2, borderRight: index !== filteredTiers.length - 1 ? 1 : 0, borderColor: 'grey.200' }}>
                                 {renderFeatureValue(featureValue || false)}
                               </TableCell>
                             );

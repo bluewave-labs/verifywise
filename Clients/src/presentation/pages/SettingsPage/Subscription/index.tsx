@@ -17,8 +17,8 @@ import { getAllTiers } from "../../../../application/repository/tiers.repository
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 
 const pricingUrlMap = {
-  Business: 'https://buy.stripe.com/eVq00i4Wh61b6kybkPa7C0a', // This maps to "Growth" in UI
-  Enterprise: 'https://buy.stripe.com/cNidR8fAVfBL10e9cHa7C0b',
+  Business: 'https://buy.stripe.com/00w7sKgEZ75ffV8coTa7C0c', // Growth tier $799/mo
+  Enterprise: 'https://verifywise.ai/contact', // Redirect to contact page for custom pricing
 };
 
 // Enhanced pricing plans with detailed features for comparison table
@@ -379,6 +379,7 @@ const Subscription: React.FC = () => {
                 if (!currentTier) return '—';
                 // Map tier name for display
                 return currentTier.name === 'Free' ? 'Starter' :
+                       currentTier.name === 'Team' ? 'Team (Legacy)' :
                        currentTier.name === 'Business' ? 'Growth' :
                        currentTier.name;
               })()}
@@ -517,7 +518,8 @@ const Subscription: React.FC = () => {
                                   transition: 'all 0.15s ease-in-out',
                                 }}
                               >
-                                {organizationTierId === tier.id ? 'Current Plan' : 'Subscribe'}
+                                {organizationTierId === tier.id ? 'Current Plan' :
+                                 tier.name === 'Enterprise' ? 'Contact Sales' : 'Subscribe'}
                               </Button>
                             </span>
                           </Tooltip>

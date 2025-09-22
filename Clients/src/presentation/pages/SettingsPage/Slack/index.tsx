@@ -9,11 +9,12 @@ import useSlackIntegrations, {
 import { ENV_VARs } from "../../../../../env.vars";
 import Alert from "../../../components/Alert";
 import { vwhomeHeading } from "../../Home/1.0Home/style";
+import allowedRoles from "../../../../application/constants/permissions";
 
 const SlackIntegrations = lazy(() => import("./SlackIntegrations"));
 
 const Slack = () => {
-  const { userId } = useAuth();
+  const { userId, userRoleName } = useAuth();
   const {
     loading: loadingData,
     error: slackError,
@@ -37,6 +38,7 @@ const Slack = () => {
     isToast: true,
     visible: false,
   });
+
   useEffect(() => {
     if (slackIntegrations) {
       setIntegrationData(slackIntegrations);
@@ -125,6 +127,16 @@ const Slack = () => {
     },
     [],
   );
+
+  const isPermissionDenied = !allowedRoles.slack.view.includes(userRoleName);
+
+  if (isPermissionDenied) {
+    return (
+      <Typography sx={{ mt: 20 }} variant="h6" color="error">
+        You are not authorized to view this section.
+      </Typography>
+    );
+  }
 
   if (isLoading || loadingData) {
     return (

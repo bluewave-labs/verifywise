@@ -3,7 +3,6 @@ import { singleTheme } from "../../../themes";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import {
   Box,
-  Button,
   Table,
   TableBody,
   TableCell,
@@ -20,6 +19,8 @@ import { useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import { SlackWebhook } from "../../../../application/hooks/useSlackIntegrations";
 import { vwhomeHeading } from "../../Home/1.0Home/style";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/style";
 
 interface SlackIntegrationsProps {
   integrationData: SlackWebhook[];
@@ -143,13 +144,13 @@ const SlackIntegrations = ({ integrationData }: SlackIntegrationsProps) => {
                         right: 0,
                       }}
                     >
-                      <Button
+                      <CustomizableButton
                         variant="outlined"
-                        size="small"
                         onClick={handleSlackTestClick(item.id)}
-                      >
-                        Test
-                      </Button>
+                        size="small"
+                        text="Send Test"
+                        sx={viewProjectButtonStyle}
+                      />
                     </TableCell>
                   </TableRow>
                 ))

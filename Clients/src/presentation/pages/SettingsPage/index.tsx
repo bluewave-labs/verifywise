@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const { userRoleName } = useAuth();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
+  const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
   const [activeTab, setActiveTab] = useState(0);
   const [searchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab");
@@ -76,7 +77,12 @@ export default function ProfilePage() {
           disabled={isTeamManagementDisabled}
         />
         <Tab label="Organization" disableRipple sx={settingTabStyle} />
-        <Tab label="Slack" disableRipple sx={settingTabStyle} />
+        <Tab
+          label="Slack"
+          disableRipple
+          sx={settingTabStyle}
+          disabled={isSlackTabDisabled}
+        />
       </Tabs>
 
       {activeTab === 0 && <Profile />}

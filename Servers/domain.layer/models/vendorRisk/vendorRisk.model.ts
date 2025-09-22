@@ -120,6 +120,7 @@ export class VendorRiskModel
   }
 
   async updateVendorRisk(updateData: {
+    vendor_id?: number;
     risk_description?: string;
     impact_description?: string;
     action_owner?: number;
@@ -133,6 +134,9 @@ export class VendorRiskModel
     risk_level?: string;
     likelihood?: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
   }): Promise<void> {
+    if (updateData.vendor_id !== undefined) {
+      this.vendor_id = updateData.vendor_id;
+    }
     if (updateData.risk_description !== undefined) {
       this.risk_description = updateData.risk_description;
     }

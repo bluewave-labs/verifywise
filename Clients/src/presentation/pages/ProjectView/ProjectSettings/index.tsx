@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import React, {
   useState,
   useCallback,
@@ -34,8 +34,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { ReactComponent as DeleteIconWhite }from "../../../assets/icons/trash-filled-white.svg";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -896,7 +896,7 @@ const ProjectSettings = React.memo(
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<KeyboardArrowDown />}
+                  popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -929,6 +929,7 @@ const ProjectSettings = React.memo(
                       },
                     },
                     "& .MuiChip-root": {
+                      borderRadius: "4px",
                       "& .MuiChip-deleteIcon": {
                         display:
                           values.monitoredRegulationsAndStandards.length === 1
@@ -1050,7 +1051,7 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<KeyboardArrowDown />}
+              popupIcon={<GreyDownArrowIcon />}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -1078,6 +1079,9 @@ const ProjectSettings = React.memo(
                     borderColor: "#888",
                     borderWidth: "1px",
                   },
+                },
+                "& .MuiChip-root": {
+                  borderRadius: "4px",
                 },
               }}
               slotProps={{
@@ -1175,7 +1179,7 @@ const ProjectSettings = React.memo(
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIcon />}
+                icon={<SaveIconSVGWhite />}
                 variant="contained"
                 onClick={(event: any) => {
                   handleSubmit(event);
@@ -1215,7 +1219,7 @@ const ProjectSettings = React.memo(
                   border: "1px solid #DB504A",
                   gap: 2,
                 }}
-                icon={<DeleteIcon />}
+                icon={<DeleteIconWhite />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete project"
@@ -1263,6 +1267,7 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
+
       </Stack>
     );
   }

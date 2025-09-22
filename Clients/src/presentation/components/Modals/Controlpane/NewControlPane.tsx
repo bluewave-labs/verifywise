@@ -19,7 +19,7 @@ import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 
 import {
@@ -544,7 +544,7 @@ const NewControlPane = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -754,7 +754,7 @@ const NewControlPane = ({
                 gap: 2,
               }}
               onClick={confirmSave}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite />}
             />
           </Stack>
         </Stack>
@@ -777,6 +777,7 @@ const NewControlPane = ({
               .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
+            projectId={projectId}
           />
         </Suspense>
       </Dialog>

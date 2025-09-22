@@ -58,6 +58,7 @@ interface TasksTableProps {
   onStatusChange: (taskId: number) => (newStatus: string) => Promise<boolean>;
   statusOptions: string[];
   isUpdateDisabled?: boolean;
+  onRowClick?: (task: ITask) => void;
 }
 
 const TasksTable: React.FC<TasksTableProps> = ({
@@ -68,6 +69,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
   onStatusChange,
   statusOptions,
   isUpdateDisabled = false,
+  onRowClick,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -102,7 +104,14 @@ const TasksTable: React.FC<TasksTableProps> = ({
             .map((task: ITask) => (
               <TableRow
                 key={task.id}
-                sx={singleTheme.tableStyles.primary.body.row}
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
+                  },
+                }}
+                onClick={() => onRowClick?.(task)}
               >
                 {/* Task Name */}
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
@@ -151,7 +160,7 @@ const TasksTable: React.FC<TasksTableProps> = ({
                 </TableCell>
 
                 {/* Status */}
-                <TableCell sx={cellStyle}>
+                <TableCell sx={cellStyle} onClick={(e) => e.stopPropagation()}>
                   <CustomSelect
                     currentValue={
                       STATUS_DISPLAY_MAP[task.status] || task.status
@@ -272,13 +281,16 @@ const TasksTable: React.FC<TasksTableProps> = ({
                     right: 0,
                     zIndex: 10,
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <IconButton
                     id={task.id!}
                     onDelete={() => onArchive(task.id!)}
                     onEdit={() => onEdit(task)}
                     onMouseEvent={() => {}}
-                    type="Task"
+                    warningTitle="Archive this task?"
+                    warningMessage="When you archive this task, it will be hidden from the active tasks list. You can restore it later using the 'include archived' toggle."
+                    type="task"
                   />
                 </TableCell>
               </TableRow>

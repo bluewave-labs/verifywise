@@ -21,6 +21,7 @@ pyarrow>=21.0.0
 
 # Utilities
 tqdm>=4.67.0
+textblob>=0.17.1
 
 # Optional: GPU support (uncomment if using CUDA)
 # torch>=2.7.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118

@@ -6,7 +6,7 @@ import { ControlModel } from "../domain.layer/models/control/control.model";
 import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectModel } from "../domain.layer/models/project/project.model";
-import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
+import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { ProjectScopeModel } from "../domain.layer/models/projectScope/projectScope.model";
 import { ProjectsMembersModel } from "../domain.layer/models/projectsMembers/projectsMembers.model";
 import { QuestionModel } from "../domain.layer/models/question/question.model";
@@ -18,6 +18,7 @@ import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
 import { ModelInventoryModel } from "../domain.layer/models/modelInventory/modelInventory.model";
+import { ModelRiskModel } from "../domain.layer/models/modelRisk/modelRisk.model";
 import dbConfig from "./config/config";
 import { Dialect } from "sequelize";
 import { FrameworkModel } from "../domain.layer/models/frameworks/frameworks.model";
@@ -78,7 +79,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     ControlCategoryModel,
     FileModel,
     ProjectModel,
-    ProjectRiskModel,
+    RiskModel,
     ProjectScopeModel,
     ProjectsMembersModel,
     QuestionModel,
@@ -90,6 +91,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     VendorRiskModel,
     VendorsProjectsModel,
     ModelInventoryModel,
+    ModelRiskModel,
     FrameworkModel,
     ProjectFrameworksModel,
     AssessmentEUModel,

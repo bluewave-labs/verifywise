@@ -5,7 +5,7 @@ import {
   createNewProjectQuery,
   deleteProjectByIdQuery,
 } from "../utils/project.utils";
-import { createProjectRiskQuery } from "../utils/projectRisk.utils";
+import { createRiskQuery } from "../utils/risk.utils";
 import { createNewVendorQuery } from "../utils/vendor.utils";
 import { createNewVendorRiskQuery } from "../utils/vendorRisk.utils";
 import { createNewUserQuery } from "../utils/user.utils";
@@ -135,9 +135,8 @@ export async function insertMockData(
 
       // ---- no need of is demo
       // create project risks
-      await createProjectRiskQuery(
+      await createRiskQuery(
         {
-          project_id: project.id,
           risk_name: "Data Privacy Compliance",
           risk_owner: users[0].id!,
           ai_lifecycle_phase: "Monitoring & maintenance",

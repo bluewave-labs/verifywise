@@ -10,7 +10,7 @@ import { GetClausesByProjectFrameworkId } from "../../../../../application/repos
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
 import { useCallback, useEffect, useState } from "react";
 import { styles } from "../../ISO27001/Clause/style";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
 import { GetSubClausesById } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
@@ -29,10 +29,14 @@ const ISO42001Clause = ({
   project,
   projectFrameworkId,
   statusFilter,
+  initialClauseId,
+  initialSubClauseId
 }: {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  initialClauseId?: string | null;
+  initialSubClauseId?: string | null;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
@@ -55,8 +59,8 @@ const ISO42001Clause = ({
     doneSubclauses: number;
   }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const clauseId = searchParams.get("clauseId");
-  const subClauseId = searchParams.get("subClauseId");
+  const clauseId = initialClauseId;
+  const subClauseId = initialSubClauseId;
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -140,7 +144,7 @@ const ISO42001Clause = ({
     if (clauseId && subClauseId) {
       searchParams.delete("clauseId");
       searchParams.delete("subClauseId");
-      searchParams.delete("frameworkName");
+      searchParams.delete("framework");
       setSearchParams(searchParams);
     }
   };
@@ -266,25 +270,10 @@ const ISO42001Clause = ({
   useEffect(() => {
     if (clauseId && subClauseId && clauses.length > 0) {
       const clause = clauses.find((c) => c.id === parseInt(clauseId));
-      async function fetchSubClause() {
-        try {
-          const response = await getEntityById({
-            routeUrl: `/iso-42001/subClause/byId/${subClauseId}?projectFrameworkId=${projectFrameworkId}`,
-          });
-          setSelectedSubClause(response.data);
-          if (clause && response.data && clauseId) {
-            const idx = Array.isArray(clause.subClauses)
-              ? clause.subClauses.findIndex(
-                  (sc: any) => sc.id === response.data.id,
-                )
-              : 0;
-            handleSubClauseClick(clause, response.data, idx >= 0 ? idx : 0);
-          }
-        } catch (error) {
-          console.error("Error fetching subclause:", error);
-        }
-      }
-      fetchSubClause();
+      const idx = clause?.subClauses.findIndex(
+        (sc: any) => sc.id === parseInt(subClauseId),
+      );
+      handleSubClauseClick(clause, {id: parseInt(subClauseId)}, idx ?? 0);
     }
   }, [clauseId, subClauseId, clauses]);
 
@@ -312,8 +301,8 @@ const ISO42001Clause = ({
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon
-                  sx={styles.expandIcon(expanded === clause.id)}
+                <RightArrowBlack
+                  style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.arrangement} {clause.title}

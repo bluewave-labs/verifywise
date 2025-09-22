@@ -1,4 +1,4 @@
-import { Stack, useTheme, Box } from "@mui/material";
+import { Stack, Box } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useState } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -31,7 +31,6 @@ const tabPanelStyle = {
 };
 
 const WatchTower = () => {
-  const theme = useTheme();
   const [value, setValue] = useState("1");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
@@ -40,8 +39,8 @@ const WatchTower = () => {
   };
 
   return (
-    <div className="watch-tower-page">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+    <Stack className="vwhome" gap={"24px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -49,7 +48,7 @@ const WatchTower = () => {
         pageTitle="Event Tracker"
       />
     
-      <Stack gap={theme.spacing(10)} maxWidth={1400}>
+      <Stack gap={"24px"} maxWidth={1400}>
       <PageHeader
                title="Event Tracker"
                description="Event Tracker gives you a live window into VerifyWise. It records
@@ -93,7 +92,7 @@ const WatchTower = () => {
           </TabPanel>
         </TabContext>
       </Stack>
-    </div>
+    </Stack>
   );
 };
 

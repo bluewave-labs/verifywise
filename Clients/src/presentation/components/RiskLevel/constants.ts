@@ -67,6 +67,12 @@ export const SEVERITY_COLOR_LOOKUP: Record<string, string> = Object.entries(RISK
   return acc;
 }, {} as Record<string, string>);
 
+// Add model risk level mappings
+SEVERITY_COLOR_LOOKUP['low'] = RISK_LABELS.low.color;
+SEVERITY_COLOR_LOOKUP['medium'] = RISK_LABELS.medium.color;
+SEVERITY_COLOR_LOOKUP['high'] = RISK_LABELS.high.color;
+SEVERITY_COLOR_LOOKUP['critical'] = RISK_LABELS.critical.color;
+
 export const getSeverityColorByText = (severity: string): string => {
   if (!severity) return '#B0B0B0';
   const color = SEVERITY_COLOR_LOOKUP[severity.toLowerCase().trim()];

@@ -9,7 +9,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../assets/icons/chevron-down-grey.svg";
 import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
@@ -373,7 +373,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                   );
                 }}
                 filterSelectedOptions
-                popupIcon={<KeyboardArrowDown />}
+                popupIcon={<GreyDownArrowIcon />}
                 renderInput={(params) => (
                   <TextField
                     {...params}

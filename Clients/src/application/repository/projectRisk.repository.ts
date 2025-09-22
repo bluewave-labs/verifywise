@@ -13,6 +13,17 @@ export async function getProjectRiskById({
   return response.data;
 }
 
+export async function getAllProjectRisks({
+  signal,
+}: {
+  signal?: AbortSignal;
+} = {}): Promise<any> {
+  const response = await apiServices.get("/projectRisks", {
+    signal,
+  });
+  return response.data;
+}
+
 export async function getAllProjectRisksByProjectId({
   projectId,
   signal,
@@ -21,6 +32,19 @@ export async function getAllProjectRisksByProjectId({
   signal?: AbortSignal;
 }): Promise<any> {
   const response = await apiServices.get(`/projectRisks/by-projid/${projectId}`, {
+    signal,
+  });
+  return response.data;
+}
+
+export async function getAllRisksByFrameworkId({
+  frameworkId,
+  signal,
+}: {
+  frameworkId: number;
+  signal?: AbortSignal;
+}): Promise<any> {
+  const response = await apiServices.get(`/projectRisks/by-frameworkid/${frameworkId}`, {
     signal,
   });
   return response.data;

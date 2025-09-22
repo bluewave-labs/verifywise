@@ -58,7 +58,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: 450,
-          bgcolor: theme.palette.background.main,
+          bgcolor: theme.palette.background.modal,
           border: 1,
           borderColor: theme.palette.border.dark,
           borderRadius: theme.shape.borderRadius,

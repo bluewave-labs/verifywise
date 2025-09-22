@@ -18,7 +18,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import {
@@ -28,6 +28,7 @@ import {
   IModelRiskFormData
 } from "../../../../domain/interfaces/i.modelRisk";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
+import { getAllUsers } from "../../../../application/repository/user.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
@@ -66,9 +67,9 @@ const initialState: IModelRiskFormData = {
 
 const riskCategoryOptions = [
   { _id: ModelRiskCategory.PERFORMANCE, name: "Performance" },
-  { _id: ModelRiskCategory.BIAS, name: "Bias & Fairness" },
+  { _id: ModelRiskCategory.BIAS, name: "Bias & fairness" },
   { _id: ModelRiskCategory.SECURITY, name: "Security" },
-  { _id: ModelRiskCategory.DATA_QUALITY, name: "Data Quality" },
+  { _id: ModelRiskCategory.DATA_QUALITY, name: "Data quality" },
   { _id: ModelRiskCategory.COMPLIANCE, name: "Compliance" },
 ];
 
@@ -104,21 +105,22 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   useEffect(() => {
-    if (initialData && users.length > 0) {
-      setValues(initialData);
-    } else if (initialData && !isEdit) {
+    if (initialData) {
       setValues(initialData);
     } else if (!isEdit) {
       setValues(initialState);
     }
-  }, [initialData, isEdit, users]);
+  }, [initialData, isEdit]);
 
   useEffect(() => {
     if (!isOpen) {
       setValues(initialState);
       setErrors({});
+    } else if (isOpen && initialData) {
+      // When modal opens with initial data, set it immediately
+      setValues(initialData);
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   // Fetch users and models when modal opens
   useEffect(() => {
@@ -131,12 +133,21 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const response = await getAllEntities({ routeUrl: "/users" });
-      if (response?.data) {
-        setUsers(response.data);
+      const response = await getAllUsers();
+      // Handle both direct array and {message, data} format
+      let userData = [];
+      if (Array.isArray(response)) {
+        userData = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        userData = response.data;
+      } else {
+        console.warn("Unexpected user data format:", response);
+        userData = [];
       }
+      setUsers(userData);
     } catch (error) {
       console.error("Error fetching users:", error);
+      setUsers([]);
     } finally {
       setIsLoadingUsers(false);
     }
@@ -146,11 +157,22 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     setIsLoadingModels(true);
     try {
       const response = await getAllEntities({ routeUrl: "/modelInventory" });
-      if (response?.data) {
-        setModels(response.data);
+      // Handle both direct array and {message, data} format
+      let modelsData = [];
+      if (Array.isArray(response)) {
+        modelsData = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        modelsData = response.data;
+      } else if (response) {
+        modelsData = response;
+      } else {
+        console.warn("Unexpected models data format:", response);
+        modelsData = [];
       }
+      setModels(modelsData);
     } catch (error) {
       console.error("Error fetching models:", error);
+      setModels([]);
     } finally {
       setIsLoadingModels(false);
     }
@@ -159,7 +181,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   // Transform users to the format expected by SelectComponent
   const userOptions = useMemo(() => {
     return users.map((user) => ({
-      _id: user.id,
+      _id: String(user.id), // Convert to string to match database format
       name: `${user.name} ${user.surname}`,
       email: user.email,
     }));
@@ -199,7 +221,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     if (newDate?.isValid()) {
       setValues((prev) => ({
         ...prev,
-        targetDate: newDate ? newDate.toISOString().split("T")[0] : "",
+        targetDate: newDate ? newDate.format("YYYY-MM-DD") : "",
       }));
       setErrors((prev) => ({ ...prev, targetDate: "" }));
     }
@@ -269,17 +291,25 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     () => ({
       backgroundColor: theme.palette.background.main,
       "& .MuiOutlinedInput-root": {
-        borderRadius: "3px",
+        borderRadius: theme.shape.borderRadius,
+        fontSize: "13px",
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: theme.palette.border.dark,
+          borderWidth: "1px",
+        },
         "&:hover .MuiOutlinedInput-notchedOutline": {
-          borderColor: "none",
+          borderColor: theme.palette.border.dark,
         },
         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-          borderColor: "#888",
+          borderColor: theme.palette.border.dark,
           borderWidth: "1px",
         },
       },
+      "& .MuiOutlinedInput-input::placeholder": {
+        fontSize: "13px",
+      },
     }),
-    [theme.palette.background.main]
+    [theme.palette.background.main, theme.shape.borderRadius, theme.palette.border.dark]
   );
 
   return (
@@ -305,7 +335,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
           maxHeight: "80vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: theme.palette.background.main,
+          bgcolor: theme.palette.background.modal,
           border: 1,
           borderColor: theme.palette.border,
           borderRadius: theme.shape.borderRadius,
@@ -362,7 +392,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="riskName"
-                    label="Risk Name"
+                    label="Risk name"
                     width={220}
                     value={values.riskName}
                     onChange={handleOnTextFieldChange("riskName")}
@@ -374,7 +404,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 </Suspense>
                 <SelectComponent
                   id="riskCategory"
-                  label="Risk Category"
+                  label="Risk category"
                   value={values.riskCategory}
                   error={errors.riskCategory}
                   isRequired
@@ -385,7 +415,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 />
                 <SelectComponent
                   id="riskLevel"
-                  label="Risk Level"
+                  label="Risk level"
                   value={values.riskLevel}
                   error={errors.riskLevel}
                   isRequired
@@ -427,7 +457,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 />
                 <Suspense fallback={<div>Loading...</div>}>
                   <DatePicker
-                    label="Target Date"
+                    label="Target date"
                     date={
                       values.targetDate
                         ? dayjs(values.targetDate)
@@ -452,7 +482,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
               >
                 <SelectComponent
                   id="modelId"
-                  label="Associated Model (Optional)"
+                  label="Associated model (optional)"
                   value={values.modelId || ""}
                   sx={{ width: 220 }}
                   items={modelOptions}
@@ -476,10 +506,10 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 </Typography>
                 <TextField
                   multiline
-                  rows={3}
+                  rows={2}
                   value={values.description}
                   onChange={handleOnTextFieldChange("description")}
-                  placeholder="Describe the risk in detail..."
+                  placeholder="Describe the risk in detail"
                   error={!!errors.description}
                   helperText={errors.description}
                   sx={textAreaStyle}
@@ -500,10 +530,10 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 </Typography>
                 <TextField
                   multiline
-                  rows={3}
+                  rows={2}
                   value={values.impact}
                   onChange={handleOnTextFieldChange("impact")}
-                  placeholder="Describe the potential impact of this risk..."
+                  placeholder="Describe the potential impact of this risk"
                   error={!!errors.impact}
                   helperText={errors.impact}
                   sx={textAreaStyle}
@@ -520,14 +550,14 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                     color: theme.palette.text.secondary,
                   }}
                 >
-                  Mitigation Plan
+                  Mitigation plan
                 </Typography>
                 <TextField
                   multiline
-                  rows={3}
+                  rows={2}
                   value={values.mitigationPlan}
                   onChange={handleOnTextFieldChange("mitigationPlan")}
-                  placeholder="Describe the plan to mitigate this risk..."
+                  placeholder="Describe the plan to mitigate this risk"
                   error={!!errors.mitigationPlan}
                   helperText={errors.mitigationPlan}
                   sx={textAreaStyle}
@@ -551,7 +581,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 gap: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite/>}
             />
           </Stack>
         </form>

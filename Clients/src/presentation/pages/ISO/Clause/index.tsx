@@ -6,7 +6,7 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
 import { useState, useEffect, useCallback } from "react";
 import VWISO42001ClauseDrawerDialog from "../../../components/Drawer/ClauseDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
@@ -269,8 +269,8 @@ const ISO42001Clauses = ({
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon
-                  sx={styles.expandIcon(expanded === clause.id)}
+                <RightArrowBlack
+                  style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.title}

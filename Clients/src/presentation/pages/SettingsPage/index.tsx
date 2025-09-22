@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Tabs, Tab, Stack } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Stack } from "@mui/material";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
+import Tab from "@mui/material/Tab";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Profile from "./Profile/index";
 import Password from "./Password/index";
@@ -20,19 +24,23 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
-  const [activeTab, setActiveTab] = useState(0);
-  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState("profile");
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab");
 
   useEffect(() => {
     if (activeSetting) {
-      setActiveTab(parseInt(activeSetting, 10));
+      setActiveTab(activeSetting);
     }
   }, [activeSetting]);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
+    if (activeSetting) {
+      searchParams.delete("activeTab");
+      setSearchParams(searchParams);
+    }
   };
 
   return (
@@ -62,38 +70,68 @@ export default function ProfilePage() {
           />
         }
       />
-      <Tabs
-        value={activeTab}
-        onChange={handleTabChange}
-        TabIndicatorProps={tabIndicatorStyle}
-        sx={tabContainerStyle}
-      >
-        <Tab label="Profile" disableRipple sx={settingTabStyle} />
-        <Tab label="Password" disableRipple sx={settingTabStyle} />
-        <Tab
-          label="Team"
-          disableRipple
-          sx={settingTabStyle}
-          disabled={isTeamManagementDisabled}
-        />
-        <Tab label="Organization" disableRipple sx={settingTabStyle} />
-        <Tab
-          label="Slack"
-          disableRipple
-          sx={settingTabStyle}
-          disabled={isSlackTabDisabled}
-        />
-      </Tabs>
+      <TabContext value={activeTab}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <TabList
+            onChange={handleTabChange}
+            TabIndicatorProps={tabIndicatorStyle}
+            sx={tabContainerStyle}
+          >
+            <Tab
+              label="Profile"
+              value="profile"
+              disableRipple
+              sx={settingTabStyle}
+            />
+            <Tab
+              label="Password"
+              value="password"
+              disableRipple
+              sx={settingTabStyle}
+            />
+            <Tab
+              label="Team"
+              value="team"
+              disableRipple
+              sx={settingTabStyle}
+              disabled={isTeamManagementDisabled}
+            />
+            <Tab
+              label="Organization"
+              value="organization"
+              disableRipple
+              sx={settingTabStyle}
+            />
+            <Tab
+              label="Slack"
+              value="slack"
+              disableRipple
+              sx={settingTabStyle}
+              disabled={isSlackTabDisabled}
+            />
+          </TabList>
+        </Box>
 
-      {activeTab === 0 && <Profile />}
+        <TabPanel value="profile">
+          <Profile />
+        </TabPanel>
 
-      {activeTab === 1 && <Password />}
+        <TabPanel value="password">
+          <Password />
+        </TabPanel>
 
-      {activeTab === 2 && <TeamManagement />}
+        <TabPanel value="team">
+          <TeamManagement />
+        </TabPanel>
 
-      {activeTab === 3 && <Organization />}
+        <TabPanel value="organization">
+          <Organization />
+        </TabPanel>
 
-      {activeTab === 4 && <Slack />}
+        <TabPanel value="slack">
+          <Slack />
+        </TabPanel>
+      </TabContext>
     </Stack>
   );
 }

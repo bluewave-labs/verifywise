@@ -9,7 +9,7 @@ import {
   InputBase,
   useTheme,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";

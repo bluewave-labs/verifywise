@@ -15,7 +15,7 @@ import HelperIcon from "../../components/HelperIcon";
 import organizationalFrameworksHelpContent from "../../helpers/organizational-frameworks-help.html?raw";
 import { useContext, useEffect, useState, useMemo } from "react";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
-import SettingsIcon from "@mui/icons-material/Settings";
+import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
 import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
 import EditIcon from "@mui/icons-material/Edit";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
@@ -715,7 +715,7 @@ const Framework = () => {
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <SettingsIcon
                       fontSize="small"
-                      sx={{
+                      style={{
                         color: "text.secondary",
                         fontSize: "16px",
                       }}

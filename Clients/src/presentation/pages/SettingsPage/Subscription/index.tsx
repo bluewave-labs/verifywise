@@ -13,12 +13,46 @@ import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getAllTiers } from "../../../../application/repository/tiers.repository";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 
 const pricingUrlMap = {
   Business: 'https://buy.stripe.com/00w7sKgEZ75ffV8coTa7C0c', // Growth tier $799/mo
   Enterprise: 'https://verifywise.ai/contact', // Redirect to contact page for custom pricing
+};
+
+// Feature tooltips
+const FEATURE_TOOLTIPS: Record<string, string> = {
+  // Core Features
+  'Seats': 'Number of team members who can access and use the VerifyWise platform simultaneously.',
+  'Projects': 'Maximum number of AI projects you can manage and track within the platform at any given time.',
+  'Frameworks': 'Access to different AI governance frameworks like EU AI Act, ISO 42001, NIST AI RMF, and custom frameworks.',
+
+  // AI Governance Features
+  'Project risks': 'Comprehensive risk assessment tools to identify, evaluate, and monitor potential risks across all your AI projects.',
+  'Reports': 'Automated generation of compliance reports, audit documentation, and executive summaries for stakeholders.',
+  'Evidence center': 'Centralized repository to store and manage all compliance documentation, audit trails, and evidence.',
+  'Vendor & risk module': 'Tools to assess third-party AI vendors, manage supplier risks, and ensure supply chain compliance.',
+  'Bias & fairness check': 'Automated testing and monitoring tools to detect and mitigate bias in AI models and ensure fairness.',
+  'AI policy manager': 'Create, manage, and enforce AI governance policies across your organization with automated compliance tracking.',
+  'Model inventory': 'Complete catalog of all AI models with detailed risk profiles, performance metrics, and lifecycle management.',
+  'Tasks': 'Workflow management system to assign, track, and complete compliance tasks across teams.',
+  'MIT AI risk inventory': 'Pre-built risk assessment framework based on MIT\'s AI risk categories and best practices.',
+  'AI trust center': 'Public-facing portal to showcase your AI governance practices and build stakeholder confidence.',
+  'Audit logs': 'Comprehensive activity tracking and logging system for compliance audits and regulatory requirements.',
+  'AI training register': 'Documentation and tracking system for internal staff training activities, AI governance education, and compliance training records.',
+
+  // Enterprise Features
+  'Secure authentication with OpenID Connect': 'Secure authentication with OpenID Connect integration for streamlined access management.',
+  'Custom integrations / development': 'Tailored API integrations and custom feature development to fit your specific workflow needs.',
+  'On-prem deployment': 'Deploy VerifyWise on your own infrastructure for maximum security and data control.',
+
+  // Support & Training
+  'Support': 'Different levels of customer support including email, phone, and dedicated success managers.',
+  'Private Slack/Teams channel': 'Exclusive access to a dedicated Slack or Microsoft Teams channel for direct communication with our team and other users.',
+  'Response SLA': 'Guaranteed response times for support requests based on your plan level.',
+  'Training': 'Comprehensive onboarding workshops and ongoing training sessions to maximize platform adoption.'
 };
 
 // Enhanced pricing plans with detailed features for comparison table
@@ -49,7 +83,7 @@ const ENHANCED_PLAN_FEATURES = {
       'Support & Training': {
         'Support': 'Email support',
         'Private Slack/Teams channel': false,
-        'Response SLA': '48 hours',
+        'Response SLA': '24 hours',
         'Training': 'None'
       }
     }
@@ -80,7 +114,7 @@ const ENHANCED_PLAN_FEATURES = {
       'Support & Training': {
         'Support': 'Email support',
         'Private Slack/Teams channel': true,
-        'Response SLA': '24 hours',
+        'Response SLA': '12 hours',
         'Training': 'Remote training'
       }
     }
@@ -112,7 +146,7 @@ const ENHANCED_PLAN_FEATURES = {
       'Support & Training': {
         'Support': 'Phone + email support',
         'Private Slack/Teams channel': true,
-        'Response SLA': '12 hours',
+        'Response SLA': '6 hours',
         'Training': 'Custom training'
       }
     }
@@ -544,9 +578,26 @@ const Subscription: React.FC = () => {
                       {getFeaturesByCategory(category).map((feature) => (
                         <TableRow key={feature} sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
                           <TableCell sx={{ width: '25%', py: 2, borderRight: 1, borderColor: 'grey.200' }}>
-                            <Typography variant="body2" fontWeight="medium">
-                              {feature}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" fontWeight="medium">
+                                {feature}
+                              </Typography>
+                              {FEATURE_TOOLTIPS[feature] && (
+                                <Tooltip
+                                  title={FEATURE_TOOLTIPS[feature]}
+                                  placement="top"
+                                  arrow
+                                >
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help'
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
+                            </Box>
                           </TableCell>
                           
                           {allTiers.filter(tier => tier.name !== 'Team').map((tier: Tier, index: number, filteredTiers: Tier[]) => {

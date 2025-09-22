@@ -41,7 +41,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import CustomizableToast from "../../Toast";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
@@ -690,7 +690,7 @@ const ProjectForm = ({
                     );
                   }}
                   filterSelectedOptions
-                  popupIcon={<KeyboardArrowDown />}
+                  popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -770,7 +770,7 @@ const ProjectForm = ({
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<KeyboardArrowDown />}
+                  popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
                     <TextField
                       {...params}

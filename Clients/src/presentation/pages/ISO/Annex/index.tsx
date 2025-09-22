@@ -6,7 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../assets/icons/right-arrow-black.svg";
 import VWISO42001AnnexDrawerDialog from "../../../components/Drawer/AnnexDrawerDialog";
 import { Project } from "../../../../domain/types/Project";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
@@ -201,8 +201,8 @@ const ISO42001Annex = ({
                   sx={styles.accordion}
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
-                    <ExpandMoreIcon
-                      sx={styles.expandIcon(expanded === annex.id)}
+                    <RightArrowBlack
+                      style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
                     />
                     {annex.title}
                   </AccordionSummary>

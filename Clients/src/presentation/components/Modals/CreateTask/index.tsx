@@ -453,7 +453,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         },
                       },
                       "& .MuiChip-root": {
-                        borderRadius: "4px",
+                        borderRadius: theme.shape.borderRadius,
                       },
                     }}
                     slotProps={{

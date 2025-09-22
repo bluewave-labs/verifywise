@@ -25,6 +25,7 @@ import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
+import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -719,6 +720,77 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       description: "Failed to get assessment progress for all projects",
       functionName: "allProjectsAssessmentProgress",
       fileName: "projec.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function updateProjectStatus(req: Request, res: Response): Promise<any> {
+  const transaction = await sequelize.transaction();
+  const projectId = parseInt(req.params.id);
+  const { status } = req.body;
+
+  logProcessing({
+    description: `starting updateProjectStatus for ID ${projectId}`,
+    functionName: "updateProjectStatus",
+    fileName: "project.ctrl.ts",
+  });
+
+  try {
+    // Validate status value
+    if (!status || !Object.values(ProjectStatus).includes(status)) {
+      return res.status(400).json(
+        STATUS_CODE[400]({ message: "Valid status is required" })
+      );
+    }
+
+    // Check if project exists
+    const existingProject = await getProjectByIdQuery(projectId, req.tenantId!);
+    if (!existingProject) {
+      await logSuccess({
+        eventType: "Update",
+        description: `Project not found for status update: ID ${projectId}`,
+        functionName: "updateProjectStatus",
+        fileName: "project.ctrl.ts",
+      });
+
+      return res.status(404).json(STATUS_CODE[404]({}));
+    }
+
+    // Update project status
+    const updatedProject = await updateProjectByIdQuery(
+      projectId,
+      { status, last_updated: new Date(), last_updated_by: req.userId! },
+      [], // no members update
+      req.tenantId!,
+      transaction
+    );
+
+    if (updatedProject) {
+      await transaction.commit();
+
+      await logSuccess({
+        eventType: "Update",
+        description: `Updated project status to ${status} for ID ${projectId}`,
+        functionName: "updateProjectStatus",
+        fileName: "project.ctrl.ts",
+      });
+
+      return res.status(200).json(STATUS_CODE[200](updatedProject));
+    }
+
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]("Failed to update project status"));
+  } catch (error) {
+    await transaction.rollback();
+
+    await logFailure({
+      eventType: "Update",
+      description: "Failed to update project status",
+      functionName: "updateProjectStatus",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 

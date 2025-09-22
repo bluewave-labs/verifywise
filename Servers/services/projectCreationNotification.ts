@@ -1,4 +1,4 @@
-import { notificationService } from "./NotificationService";
+import { notificationService } from "./notificationService";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { frontEndUrl } from "../config/constants";
 import {

@@ -77,4 +77,5 @@ export class NotificationService {
   }
 }
 
+// Export both the class and the instance for flexibility
 export const notificationService = NotificationService.getInstance();

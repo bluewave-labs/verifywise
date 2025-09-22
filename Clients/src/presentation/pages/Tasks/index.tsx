@@ -49,7 +49,6 @@ import {
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
-import singleTheme from "../../themes/v1SingleTheme";
 import DatePicker from "../../components/Inputs/Datepicker";
 import dayjs from "dayjs";
 import Toggle from "../../components/Toggle";
@@ -736,6 +735,7 @@ const Tasks: React.FC = () => {
               </Box>
             </Collapse>
           </Paper>
+        </Box>
 
         {/* Content Area */}
         <Box>

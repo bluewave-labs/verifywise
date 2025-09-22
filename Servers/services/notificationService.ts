@@ -8,7 +8,7 @@ import {
 } from "../utils/logger/logHelper";
 
 // Process-rooted templates directory for security and post-transpile compatibility
-const templatesDir = path.resolve(process.cwd(), "Servers", "templates");
+const templatesDir = path.resolve(process.cwd(), "templates");
 
 /**
  * Mask email address to prevent PII from being persisted in logs

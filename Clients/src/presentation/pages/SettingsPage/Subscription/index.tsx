@@ -48,7 +48,7 @@ const ENHANCED_PLAN_FEATURES = {
       },
       'Support & Training': {
         'Support': 'Email support',
-        'Private Discord channel': false,
+        'Private Slack/Teams channel': false,
         'Response SLA': '48 hours',
         'Training': 'None'
       }
@@ -79,7 +79,7 @@ const ENHANCED_PLAN_FEATURES = {
       },
       'Support & Training': {
         'Support': 'Email support',
-        'Private Discord channel': true,
+        'Private Slack/Teams channel': true,
         'Response SLA': '24 hours',
         'Training': 'Remote training'
       }
@@ -111,7 +111,7 @@ const ENHANCED_PLAN_FEATURES = {
       },
       'Support & Training': {
         'Support': 'Phone + email support',
-        'Private Discord channel': true,
+        'Private Slack/Teams channel': true,
         'Response SLA': '12 hours',
         'Training': 'Custom training'
       }

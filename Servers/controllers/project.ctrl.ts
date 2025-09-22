@@ -178,15 +178,13 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         fileName: "project.ctrl.ts",
       });
 
-      // Send project creation notification to admin (async, don't block response)
-      try {
-        await sendProjectCreatedNotification({
-          projectId: createdProject.id!,
-          projectName: createdProject.project_title,
-          adminId: createdProject.owner,
-          tenantId: req.tenantId!,
-        });
-      } catch (emailError) {
+      // Send project creation notification to admin (fire-and-forget, don't block response)
+      sendProjectCreatedNotification({
+        projectId: createdProject.id!,
+        projectName: createdProject.project_title,
+        adminId: createdProject.owner,
+        tenantId: req.tenantId!,
+      }).catch(async (emailError) => {
         // Log the email error but don't fail the project creation
         await logFailure({
           eventType: "Create",
@@ -195,7 +193,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           fileName: "project.ctrl.ts",
           error: emailError as Error,
         });
-      }
+      });
 
       return res.status(201).json(
         STATUS_CODE[201]({

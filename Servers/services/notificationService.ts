@@ -7,6 +7,9 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 
+// Process-rooted templates directory for security and post-transpile compatibility
+const templatesDir = path.resolve(process.cwd(), "Servers", "templates");
+
 /**
  * Mask email address to prevent PII from being persisted in logs
  */
@@ -60,11 +63,7 @@ export class NotificationService {
 
     try {
       // Read the template file
-      const templatePath = path.resolve(
-        __dirname,
-        "../templates",
-        templateFileName
-      );
+      const templatePath = path.join(templatesDir, path.basename(templateFileName));
       const template = await fs.readFile(templatePath, "utf8");
 
       // Send the email

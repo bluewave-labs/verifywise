@@ -568,7 +568,7 @@ const Subscription: React.FC = () => {
                       {/* Category Header */}
                       <TableRow sx={{ bgcolor: 'grey.50' }}>
                         <TableCell colSpan={allTiers.filter(tier => tier.name !== 'Team').length + 1} sx={{ py: 2, borderBottom: 1, borderColor: 'grey.200' }}>
-                          <Typography variant="h6" fontWeight="semibold" color="text.primary">
+                          <Typography variant="h6" fontWeight="semibold" color="text.primary" sx={{ fontSize: '15px' }}>
                             {category}
                           </Typography>
                         </TableCell>
@@ -587,6 +587,13 @@ const Subscription: React.FC = () => {
                                   title={FEATURE_TOOLTIPS[feature]}
                                   placement="top"
                                   arrow
+                                  componentsProps={{
+                                    tooltip: {
+                                      sx: {
+                                        fontSize: '13px'
+                                      }
+                                    }
+                                  }}
                                 >
                                   <InfoOutlinedIcon
                                     sx={{

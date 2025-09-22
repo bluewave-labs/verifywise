@@ -956,6 +956,10 @@ const Sidebar = () => {
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },
@@ -982,6 +986,10 @@ const Sidebar = () => {
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },
@@ -1001,6 +1009,10 @@ const Sidebar = () => {
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },

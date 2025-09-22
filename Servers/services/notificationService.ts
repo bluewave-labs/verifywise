@@ -85,12 +85,21 @@ export class NotificationService {
         fileName: "NotificationService.ts",
       });
     } catch (error) {
+
+      // Sanitize the error to remove any email addresses
+      const sanitized = new Error(
+        String((error as any)?.message ?? error).replace(
+          /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+          "[redacted]"
+        )
+      );
+
       await logFailure({
         eventType: "Create",
         description: `Failed to send email to ${maskEmail(recipientEmail)}`,
         functionName: "sendEmailWithTemplate",
         fileName: "NotificationService.ts",
-        error: error as Error,
+        error: sanitized,
       });
       throw error;
     }

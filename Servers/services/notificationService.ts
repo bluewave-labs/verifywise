@@ -53,7 +53,7 @@ export class NotificationService {
     recipientEmail: string,
     subject: string,
     templateFileName: string,
-    templateData: Record<string, any>
+    templateData: Record<string, string>
   ): Promise<void> {
     logProcessing({
       description: `Sending email with template: ${templateFileName}`,

@@ -46,7 +46,6 @@ const useSlackIntegrations = (userId: number | null) => {
       setLoading(true);
       const response = await getSlackIntegrations({ id: userId!, signal });
 
-      // Convert role_id to roleId
       const integrations: SlackWebhook[] = (response as ApiResponse).data.map(
         (item: ISlackWebhook): SlackWebhook => ({
           id: item.id,

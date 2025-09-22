@@ -1,7 +1,6 @@
 import Queue from "bull";
 import redis from "redis";
 import logger from "../utils/logger/fileLogger";
-// import SlackWebhookModel from "../domain.layer/models/slackNotification/slackWebhook.model";
 import { decryptText } from "../tools/createSecureValue";
 import { WebClient } from "@slack/web-api";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
@@ -48,10 +47,7 @@ export const sendImmediateMessage = async (
     };
   } catch (error: any) {
     logger.error("Error sending Slack message:", error);
-    return {
-      success: false,
-      error: error.message,
-    };
+    throw error;
   }
 };
 

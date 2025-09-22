@@ -71,7 +71,6 @@ export const createNewSlackWebhookQuery = async (
 export const updateSlackWebhookByIdQuery = async (
   id: number,
   updateData: Partial<SlackWebhookModel>,
-  tenant: string,
   transaction: Transaction,
 ): Promise<SlackWebhookModel | null> => {
   const updateSlackWebhookData: Partial<Record<keyof SlackWebhookModel, any>> =
@@ -102,7 +101,7 @@ export const updateSlackWebhookByIdQuery = async (
     })
     .join(", ");
 
-  const query = `UPDATE "${tenant}".slack_webhooks SET ${setClause} WHERE id = :id RETURNING *;`;
+  const query = `UPDATE public.slack_webhooks SET ${setClause} WHERE id = :id RETURNING *;`;
 
   updateSlackWebhookData.id = id;
 

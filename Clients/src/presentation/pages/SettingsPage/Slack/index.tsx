@@ -45,9 +45,14 @@ const Slack = () => {
     }
   }, [slackIntegrations, refreshSlackIntegrations]);
 
-  const scopes = ["channels:read", "incoming-webhook"].join(",");
+  const scopes = [
+    "channels:read",
+    "chat:write",
+    "incoming-webhook",
+    "chat:write.public",
+  ].join(",");
 
-  const url = `${ENV_VARs.SLACK_URL}?client_id=${ENV_VARs.CLIENT_ID}&scope=${scopes}&user_scope=&redirect_uri=${window.location.origin}/setting/?activeTab=4`;
+  const url = `${ENV_VARs.SLACK_URL}?client_id=${ENV_VARs.CLIENT_ID}&scope=${scopes}&user_scope=&redirect_uri=${window.location.origin}/setting/?activeTab=slack`;
 
   // Handle the callback when user returns from Slack
   useEffect(() => {
@@ -176,7 +181,10 @@ const Slack = () => {
       )}
 
       {integrationData.length > 0 && (
-        <SlackIntegrations integrationData={integrationData} />
+        <SlackIntegrations
+          integrationData={integrationData}
+          showAlert={showAlert}
+        />
       )}
     </Box>
   );

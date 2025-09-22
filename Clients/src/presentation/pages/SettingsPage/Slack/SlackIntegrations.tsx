@@ -24,6 +24,14 @@ import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/st
 
 interface SlackIntegrationsProps {
   integrationData: SlackWebhook[];
+  showAlert: (
+    variant: "success" | "info" | "warning" | "error",
+const SlackIntegrations = ({
+  integrationData,
+  showAlert,
+}: SlackIntegrationsProps) => {
+    body: string,
+  ) => void;
 }
 
 const SlackIntegrations = ({ integrationData }: SlackIntegrationsProps) => {
@@ -61,10 +69,18 @@ const SlackIntegrations = ({ integrationData }: SlackIntegrationsProps) => {
         },
       });
       if (msg.data.success) {
-        console.log("Test message sent successfully:", msg);
+        showAlert(
+          "success",
+          "Success",
+          "Test message sent successfully to the Slack channel.",
+        );
       }
     } catch (error) {
-      console.error("Error sending test message:", error);
+      showAlert(
+        "error",
+        "Error",
+        "Error sending test message to the Slack channel.",
+      );
     }
   };
 

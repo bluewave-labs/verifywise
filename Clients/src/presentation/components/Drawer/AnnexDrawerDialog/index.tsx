@@ -528,6 +528,10 @@ const VWISO42001AnnexDrawerDialog = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -654,7 +658,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -718,6 +722,8 @@ const VWISO42001AnnexDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={2}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>
@@ -729,7 +735,7 @@ const VWISO42001AnnexDrawerDialog = ({
             opacity: formData.is_applicable ? 1 : 0.5,
             pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"

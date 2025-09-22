@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Stack, Typography, Modal, Box, Divider } from "@mui/material";
+import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
   vwhomeBodyControls,
@@ -155,8 +155,7 @@ const Home = () => {
 
   return (
     <Stack className="vwhome">
-      <PageBreadcrumbs/>
-      <Divider sx={{ pt: 4, mb: 6 }}/>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -226,6 +225,8 @@ const Home = () => {
               justifyContent: "space-between",
               alignItems: "center",
               gap: "20px",
+              mt: "16px",
+              mb: "16px",
             }}
           >
             <HeaderCard title="Projects" count={dashboard?.projects || 0} />

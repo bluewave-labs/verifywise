@@ -37,7 +37,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
@@ -583,6 +583,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     whiteSpace: "nowrap",
                   },
                 },
+                "& .MuiChip-root": {
+                  borderRadius: "4px",
+                },
                 border: errors.projectIds
                   ? `1px solid #f04438`
                   : `1px solid ${theme.palette.border.dark}`,
@@ -783,7 +786,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             maxHeight: "80vh",
             display: "flex",
             flexDirection: "column",
-            bgcolor: theme.palette.background.main,
+            bgcolor: theme.palette.background.modal,
             border: 1,
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,
@@ -839,7 +842,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 gap: 2,
               }}
               onClick={handleSave}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite />}
               isDisabled={isEditingDisabled}
             />
           </Stack>

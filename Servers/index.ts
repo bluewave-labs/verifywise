@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import assessmentRoutes from "./routes/assessment.route";
 import controlRoutes from "./routes/control.route";
 import projectRoutes from "./routes/project.route";
-import projectRisksRoutes from "./routes/projectRisks.route";
+import risksRoutes from "./routes/risks.route";
 import projectScopeRoutes from "./routes/projectScope.route";
 import questionRoutes from "./routes/question.route";
 import subcontrolRoutes from "./routes/subcontrol.route";
@@ -33,6 +33,7 @@ import loggerRoutes from "./routes/logger.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import iso27001Routes from "./routes/iso27001.route";
 import modelInventoryRoutes from "./routes/modelInventory.route";
+import modelRiskRoutes from "./routes/modelRisk.route";
 import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
@@ -80,7 +81,7 @@ try {
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
-    if (req.url.includes("/upload")) {
+    if (req.url.includes("/api/bias_and_fairness/")) {
       // Let the proxy handle the raw body
       return next();
     }
@@ -97,7 +98,7 @@ try {
   app.use("/api/autoDrivers", autoDriverRoutes);
   app.use("/api/assessments", assessmentRoutes);
   app.use("/api/controls", controlRoutes);
-  app.use("/api/projectRisks", projectRisksRoutes);
+  app.use("/api/projectRisks", risksRoutes);
   app.use("/api/projectScopes", projectScopeRoutes);
   app.use("/api/subcontrols", subcontrolRoutes);
   app.use("/api/subtopics", subtopicRoutes);
@@ -116,6 +117,7 @@ try {
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
+  app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/tiers", tiersRoutes);
@@ -123,10 +125,6 @@ try {
   app.use("/api/tasks", taskRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
-
-  app.use("/api", (req, res) => {
-    res.json("Welcome to  VerifyWise root directory.");
-  });
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

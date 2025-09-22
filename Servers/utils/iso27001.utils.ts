@@ -939,7 +939,15 @@ export const updateAnnexControlQuery = async (
     }, [])
     .join(", ");
 
-  if (setClause.length === 0) {
+  // update the risks
+  const risksDeletedRaw = JSON.parse(annexControl.risksDelete || "[]");
+  const risksMitigatedRaw = JSON.parse(annexControl.risksMitigated || "[]");
+
+  // Validate that both arrays contain only valid integers
+  const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
+  const risksMitigated = validateRiskArray(risksMitigatedRaw, "risksMitigated");
+
+  if (setClause.length === 0 && risksDeleted.length === 0 && risksMitigated.length === 0) {
     return annexControl as IISO27001AnnexControl;
   }
 
@@ -954,14 +962,6 @@ export const updateAnnexControlQuery = async (
   })) as [ISO27001AnnexControlModel[], number];
   const annexControlResult = result[0][0];
   (annexControlResult as any).risks = [];
-
-  // update the risks
-  const risksDeletedRaw = JSON.parse(annexControl.risksDelete || "[]");
-  const risksMitigatedRaw = JSON.parse(annexControl.risksMitigated || "[]");
-
-  // Validate that both arrays contain only valid integers
-  const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
-  const risksMitigated = validateRiskArray(risksMitigatedRaw, "risksMitigated");
 
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".annexcontrols_iso27001__risks WHERE annexcontrol_id = :id`,
@@ -981,7 +981,7 @@ export const updateAnnexControlQuery = async (
       transaction,
     }
   );
-  if (currentRisks.length === 0) {
+  if (currentRisks.length > 0) {
     // Create parameterized placeholders for safe insertion
     const placeholders = currentRisks.map((_, i) => `(:annexcontrol_id${i}, :projects_risks_id${i})`).join(", ");
     const replacements: { [key: string]: any } = {};

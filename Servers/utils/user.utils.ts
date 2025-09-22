@@ -23,7 +23,7 @@ import { ProjectModel } from "../domain.layer/models/project/project.model";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { ControlModel } from "../domain.layer/models/control/control.model";
 import { SubcontrolModel } from "../domain.layer/models/subcontrol/subcontrol.model";
-import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
+import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ControlCategoryModel } from "../domain.layer/models/controlCategory/controlCategory.model";
@@ -332,7 +332,7 @@ export const deleteUserByIdQuery = async (
     // },
     {
       table: "projectrisks",
-      model: ProjectRiskModel,
+      model: RiskModel,
       fields: ["risk_owner", "risk_approval"],
     },
     { table: "vendorrisks", model: VendorRiskModel, fields: ["action_owner"] },

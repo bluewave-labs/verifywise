@@ -594,7 +594,7 @@ const VWISO27001AnnexDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -658,6 +658,8 @@ const VWISO27001AnnexDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={3}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>
@@ -667,7 +669,7 @@ const VWISO27001AnnexDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"

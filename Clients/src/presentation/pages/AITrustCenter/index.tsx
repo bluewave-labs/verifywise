@@ -51,8 +51,8 @@ const AITrustCenter: React.FC = () => {
   };
 
   return (
-    <Stack className="vw-project-view" overflow={"hidden"}>
-       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+    <Stack className="vwhome" gap={"24px"}>
+      <PageBreadcrumbs />
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -75,7 +75,7 @@ const AITrustCenter: React.FC = () => {
              />
       
 
-      <Stack className="vw-project-view-body">
+      <Stack>
         <TabContext value={tabValue}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList

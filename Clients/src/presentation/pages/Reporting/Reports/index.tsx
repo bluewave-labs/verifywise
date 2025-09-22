@@ -142,11 +142,11 @@ const Reports: React.FC<ReportsProps> = ({
         </>
       ) : (
         <>
-          <Stack 
-            direction="row" 
-            justifyContent="space-between" 
-            alignItems="center" 
-            sx={{ marginBottom: "7px" }}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ marginBottom: "24px" }}
           >
             <ProjectFilterDropdown
               projects={projects.map((project: Project) => ({

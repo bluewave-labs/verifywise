@@ -31,7 +31,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -567,7 +567,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 1000,
-            bgcolor: theme.palette.background.main,
+            bgcolor: theme.palette.background.modal,
             border: 1,
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,
@@ -621,7 +621,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                   gap: 2,
                 }}
                 onClick={handleSave}
-                icon={<SaveIcon />}
+                icon={<SaveIconSVGWhite />}
                 isDisabled={isEditingDisabled}
               />
             </Stack>

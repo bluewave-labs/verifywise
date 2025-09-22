@@ -44,6 +44,9 @@ export const createProjectFormStyles = {
         borderWidth: "1px",
       },
     },
+    "& .MuiChip-root": {
+      borderRadius: "4px",
+    },
   }),
   
   autocompleteTextField: {

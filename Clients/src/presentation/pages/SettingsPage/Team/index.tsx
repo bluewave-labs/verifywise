@@ -29,7 +29,7 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -480,7 +480,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 disableRipple
                                 disabled={member.id === userId}
                               >
-                                <DeleteOutlineOutlinedIcon />
+                                <DeleteIconGrey />
                               </IconButton>
                             </TableCell>
                           </TableRow>

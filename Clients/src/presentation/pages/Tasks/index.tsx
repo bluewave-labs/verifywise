@@ -3,7 +3,6 @@ import {
   Box,
   Stack,
   Typography,
-  InputBase,
   Collapse,
   Paper,
   Chip,
@@ -12,7 +11,7 @@ import {
   Divider,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { SearchBox } from "../../components/Search";
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
 import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
@@ -50,7 +49,6 @@ import {
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
-import { searchBoxStyle, searchInputStyle } from "./style";
 import singleTheme from "../../themes/v1SingleTheme";
 import DatePicker from "../../components/Inputs/Datepicker";
 import dayjs from "dayjs";
@@ -414,16 +412,13 @@ const Tasks: React.FC = () => {
             alignItems="center"
             mb={2}
           >
-            <Box sx={searchBoxStyle}>
-              <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
-              <InputBase
-                placeholder="Search tasks by title or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={searchInputStyle}
-                inputProps={{ "aria-label": "Search tasks" }}
-              />
-            </Box>
+            <SearchBox
+              placeholder="Search tasks by title or description..."
+              value={searchQuery}
+              onChange={setSearchQuery}
+              sx={{ mr: 2 }}
+              inputProps={{ "aria-label": "Search tasks" }}
+            />
 
             <Stack direction="row" spacing={3} alignItems="center">
               <CustomSelect

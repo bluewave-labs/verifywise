@@ -2,15 +2,18 @@ import { apiServices } from "../../infrastructure/api/networkServices";
 
 export async function getSlackIntegrations({
   id,
+  channel,
   signal,
   responseType = "json",
 }: {
   id: number;
+  channel?: string;
   signal?: AbortSignal;
   responseType?: string;
 }): Promise<any> {
   const response = await apiServices.get(`/slackWebhooks`, {
-    id,
+    userId: id,
+    channel,
     signal,
     responseType,
   });

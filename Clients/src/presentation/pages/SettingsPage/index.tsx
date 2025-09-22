@@ -8,7 +8,7 @@ import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import SlackIntegration from "./Slack";
+import Slack from "./Slack";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
@@ -87,7 +87,7 @@ export default function ProfilePage() {
 
       {activeTab === 3 && <Organization />}
 
-      {activeTab === 4 && <SlackIntegration />}
+      {activeTab === 4 && <Slack />}
     </Stack>
   );
 }

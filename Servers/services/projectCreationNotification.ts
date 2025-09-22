@@ -11,7 +11,6 @@ export interface ProjectCreatedNotificationData {
   projectId: number;
   projectName: string;
   adminId: number;
-  tenantId: string;
 }
 
 /**

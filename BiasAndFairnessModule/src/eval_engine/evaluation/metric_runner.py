@@ -334,6 +334,38 @@ class MetricRunner:
                     )
                     res["overall"] = None
 
+            # Compute per-attribute fairness if attributes exist and metric accepts them
+            if (
+                hasattr(data, "attributes_df")
+                and isinstance(protected_attributes, pd.DataFrame)
+                and not protected_attributes.empty
+                and "protected_attributes" in accepts
+            ):
+                for attr in protected_attributes.columns:
+                    try:
+                        attr_array = protected_attributes[attr].to_numpy()
+                        raw = self._safe_call(
+                            fn,
+                            **{
+                                **common,
+                                "protected_attributes": attr_array,
+                            },
+                        )
+
+                        if res["result_type"] == "unknown":
+                            res["result_type"] = self._infer_result_type_hint(raw)
+
+                        normalized = self._normalize_by_attribute(raw)
+                        res["by_attribute"][attr] = normalized
+
+                        if res["result_type"] == "scalar" and res["summary"] is None:
+                            res["summary"] = self._maybe_float(raw)
+                    except Exception as exc:
+                        self.logger.warning(
+                            f"By-attribute computation failed for metric '{metric_name}' on '{attr}': {exc}"
+                        )
+                        res["by_attribute"][attr] = None
+
             results[metric_name] = res
 
         return results

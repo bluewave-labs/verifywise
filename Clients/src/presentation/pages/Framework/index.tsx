@@ -14,7 +14,7 @@ import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import organizationalFrameworksHelpContent from "../../helpers/organizational-frameworks-help.html?raw";
 import { useContext, useEffect, useState, useMemo } from "react";
-import AddCircleOutlineIcon from "@mui/icons-material/Add";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
 import EditIcon from "@mui/icons-material/Edit";

@@ -183,7 +183,6 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         projectId: createdProject.id!,
         projectName: createdProject.project_title,
         adminId: createdProject.owner,
-        tenantId: req.tenantId!,
       }).catch(async (emailError) => {
         // Log the email error but don't fail the project creation
         await logFailure({

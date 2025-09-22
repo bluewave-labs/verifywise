@@ -79,6 +79,34 @@ class MetricRunner:
             return "dict_by_group"
         return "unknown"
 
+    def _safe_call(self, fn, **kwargs):
+        # Pass only accepted kwargs (signature-constrained)
+        sig = inspect.signature(fn)
+        accepts = set(sig.parameters.keys())
+        clean = {k: v for k, v in kwargs.items() if k in accepts}
+        return fn(**clean)
+
+    def _normalize_overall(self, raw: Any) -> Optional[float]:
+        """
+        For "overall", we only ever store a scalar if it exists.
+        If the metric returns a frame/dict/etc for overall, we ignore here and rely on by-attribute.
+        """
+        if self._is_number(raw):
+            return self._maybe_float(raw)
+        # MetricFrame overall
+        if hasattr(raw, "overall"):
+            try:
+                return self._maybe_float(getattr(raw, "overall"))
+            except Exception:
+                return None
+        # Pandas scalar-ish
+        if isinstance(raw, (pd.Series, pd.DataFrame)):
+            try:
+                return float(np.asarray(raw).ravel()[0])
+            except Exception:
+                return None
+        return None
+
     def run(self, data: EvalData) -> Dict[str, Any]:
         """Execute metric computations and prepare outputs.
 
@@ -135,12 +163,30 @@ class MetricRunner:
                 common["y_pred"] = y_pred
             if "y_pred_proba" in accepts:
                 common["y_pred_proba"] = y_prob
+            
+            res = self._empty_result(self._infer_result_type_hint(None))  # type filled after first success
+            res["notes"]["disparity_reference"] = data.meta.disparity_reference or "worst"
 
-            results[metric_name] = {
-                "fn": fn,
-                "accepts": accepts,
-                "common": common,
-            }
+            # Compute overall if metric does NOT accept protected attributes
+            if "protected_attributes" not in accepts:
+                try:
+                    overall_raw = self._safe_call(fn, **common)
+
+                    if res["result_type"] == "unknown":
+                        res["result_type"] = self._infer_result_type_hint(overall_raw)
+
+                    overall_value = self._normalize_overall(overall_raw)
+                    res["overall"] = overall_value
+
+                    if res["result_type"] == "scalar" and res["summary"] is None:
+                        res["summary"] = overall_value
+                except Exception as exc:
+                    self.logger.warning(
+                        f"Overall computation failed for metric '{metric_name}': {exc}"
+                    )
+                    res["overall"] = None
+
+            results[metric_name] = res
 
         return results
 

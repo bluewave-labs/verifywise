@@ -33,6 +33,11 @@ export const sendProjectCreatedNotification = async (
       throw new Error(`Admin user not found with ID: ${data.adminId}`);
     }
 
+    // Validate admin user email
+    if (!adminUser.email || adminUser.email.trim() === '') {
+      throw new Error(`Admin user email is missing or invalid for user ID: ${data.adminId}`);
+    }
+
     // Construct project URL
     const projectUrl = `${frontEndUrl}/project-view?projectId=${data.projectId}`;
 

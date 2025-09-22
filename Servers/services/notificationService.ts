@@ -8,6 +8,27 @@ import {
 } from "../utils/logger/logHelper";
 
 /**
+ * Mask email address to prevent PII from being persisted in logs
+ */
+function maskEmail(email: string): string {
+  if (!email || typeof email !== 'string' || email.trim() === '') {
+    return "redacted";
+  }
+
+  const trimmedEmail = email.trim();
+
+  if (trimmedEmail.length <= 2) {
+    return trimmedEmail.charAt(0) + "*";
+  }
+
+  if (trimmedEmail.length <= 6) {
+    return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
+  }
+
+  return trimmedEmail.charAt(0) + "*".repeat(trimmedEmail.length - 2) + trimmedEmail.charAt(trimmedEmail.length - 1);
+}
+
+/**
  * Core notification service for sending emails with templates
  */
 export class NotificationService {
@@ -60,14 +81,14 @@ export class NotificationService {
 
       await logSuccess({
         eventType: "Create",
-        description: `Email sent successfully to ${recipientEmail}`,
+        description: `Email sent successfully to ${maskEmail(recipientEmail)}`,
         functionName: "sendEmailWithTemplate",
         fileName: "NotificationService.ts",
       });
     } catch (error) {
       await logFailure({
         eventType: "Create",
-        description: `Failed to send email to ${recipientEmail}`,
+        description: `Failed to send email to ${maskEmail(recipientEmail)}`,
         functionName: "sendEmailWithTemplate",
         fileName: "NotificationService.ts",
         error: error as Error,

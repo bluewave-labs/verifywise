@@ -11,11 +11,23 @@ module.exports = {
         `SELECT id FROM public.organizations;`, { transaction }
       );
 
+      // Add status column to public.projects table
+      await queryInterface.addColumn(
+        'projects',
+        'status',
+        {
+          type: Sequelize.ENUM('Not started', 'In progress', 'Under review', 'Completed', 'Closed', 'On hold', 'Rejected'),
+          allowNull: false,
+          defaultValue: 'Not started'
+        },
+        { transaction }
+      );
+
       // Add status column to each tenant's projects table
       for (let organization of organizations[0]) {
         const tenantHash = getTenantHash(organization.id);
         
-        // First add the column as nullable
+        // Add the column as nullable first
         await queryInterface.addColumn(
           {
             tableName: 'projects',
@@ -23,16 +35,16 @@ module.exports = {
           },
           'status',
           {
-            type: Sequelize.ENUM('not_started', 'in_progress', 'under_review', 'completed', 'closed', 'on_hold', 'rejected'),
+            type: Sequelize.ENUM('Not started', 'In progress', 'Under review', 'Completed', 'Closed', 'On hold', 'Rejected'),
             allowNull: true,
-            defaultValue: 'not_started'
+            defaultValue: 'Not started'
           },
           { transaction }
         );
 
         // Update all existing records to have the default status
         await queryInterface.sequelize.query(
-          `UPDATE "${tenantHash}".projects SET status = 'not_started' WHERE status IS NULL;`,
+          `UPDATE "${tenantHash}".projects SET status = 'Not started' WHERE status IS NULL;`,
           { transaction }
         );
 
@@ -44,9 +56,9 @@ module.exports = {
           },
           'status',
           {
-            type: Sequelize.ENUM('not_started', 'in_progress', 'under_review', 'completed', 'closed', 'on_hold', 'rejected'),
+            type: Sequelize.ENUM('Not started', 'In progress', 'Under review', 'Completed', 'Closed', 'On hold', 'Rejected'),
             allowNull: false,
-            defaultValue: 'not_started'
+            defaultValue: 'Not started'
           },
           { transaction }
         );
@@ -62,6 +74,9 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
+      // Remove status column from public.projects table
+      await queryInterface.removeColumn('projects', 'status', { transaction });
+
       // Get all organizations to update their tenant schemas
       const organizations = await queryInterface.sequelize.query(
         `SELECT id FROM public.organizations;`, { transaction }

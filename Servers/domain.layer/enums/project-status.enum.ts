@@ -1,9 +1,9 @@
 export enum ProjectStatus {
-  NOT_STARTED = "not_started",
-  IN_PROGRESS = "in_progress", 
-  UNDER_REVIEW = "under_review",
-  COMPLETED = "completed",
-  CLOSED = "closed",
-  ON_HOLD = "on_hold",
-  REJECTED = "rejected"
+  NOT_STARTED = "Not started",
+  IN_PROGRESS = "In progress", 
+  UNDER_REVIEW = "Under review",
+  COMPLETED = "Completed",
+  CLOSED = "Closed",
+  ON_HOLD = "On hold",
+  REJECTED = "Rejected"
 }

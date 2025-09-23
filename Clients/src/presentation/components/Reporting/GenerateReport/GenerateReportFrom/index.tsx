@@ -173,7 +173,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
               onChange={handleOnSelectChange("framework")}
               items={
                 projectFrameworks?.map((framework) => ({
-                  _id: framework.framework_id,
+                  id: framework.framework_id,
                   name: framework.name,
                   projectFrameworkId: framework.project_framework_id,
                 })) || []
@@ -200,7 +200,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
                 ? EUAI_REPORT_TYPES
                 : ISO_REPORT_TYPES
               ).map((type) => ({
-                _id: type, // unique key / value
+                id: type, // unique key / value
                 name: type, // display name
               }))}
               sx={selectReportStyle}

@@ -222,6 +222,18 @@ class DataLoader:
         """
         return {attr: row[attr] for attr in self.dataset_config.protected_attributes}
 
+    def _extract_legitimate_attributes(self, row: pd.Series) -> Dict[str, Any]:
+        """
+        Extract legitimate attributes from a row.
+
+        Args:
+            row (pd.Series): A single row from the dataset
+
+        Returns:
+            Dict[str, Any]: Dictionary containing legitimate attribute values
+        """
+        return {attr: row[attr] for attr in getattr(self.dataset_config, "legitimate_attributes", [])}
+
     def generate_features_and_metadata(
         self, batch_size: Optional[int] = None
     ) -> List[Dict[str, Any]]:
@@ -259,6 +271,7 @@ class DataLoader:
                 "features": self._format_single_feature(row),
                 "answer": row[self.dataset_config.target_column],
                 "protected_attributes": self._extract_protected_attributes(row),
+                "legitimate_attributes": self._extract_legitimate_attributes(row),
             }
 
             if batch_size is None:

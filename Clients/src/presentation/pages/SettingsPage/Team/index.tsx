@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  lazy,
-  Suspense,
-} from "react";
+import React, { useState, useCallback, useMemo, lazy, Suspense } from "react";
 import {
   Box,
   Button,
@@ -29,7 +23,7 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
+import { ReactComponent as DeleteIconGrey } from "../../../assets/icons/trash-grey.svg";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -92,7 +86,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
       try {
         // Find the member to get their current data
         const member = teamUsers.find(
-          (user) => user.id.toString() === memberId
+          (user) => user.id?.toString() === memberId
         );
         if (!member) {
           setAlert({
@@ -427,7 +421,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               <Select
                                 value={member.roleId?.toString() || "1"}
                                 onChange={(e) =>
-                                  handleRoleChange(e, member.id.toString())
+                                  handleRoleChange(e, member.id!.toString())
                                 }
                                 size="small"
                                 displayEmpty
@@ -471,7 +465,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               }}
                             >
                               <IconButton
-                                onClick={() => handleDeleteClick(member.id)}
+                                onClick={() => handleDeleteClick(member.id!)}
                                 disableRipple
                                 disabled={member.id === userId}
                               >

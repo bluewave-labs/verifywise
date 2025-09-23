@@ -18,8 +18,11 @@ import { ReactComponent as SelectorVertical } from "../../../assets/icons/select
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
-import { User } from "../../../../domain/types/User";
-import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../../application/utils/paginationStorage";
+import { UserModel } from "../../../../domain/models/user";
 
 const TABLE_COLUMNS = [
   { id: "id", label: "ID" },
@@ -31,7 +34,7 @@ const TABLE_COLUMNS = [
 
 interface EventsTableProps {
   data: Event[];
-  users?: User[];
+  users?: UserModel[];
   isLoading?: boolean;
   paginated?: boolean;
 }
@@ -49,7 +52,10 @@ const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
     Error: { bg: "#FFE5D0", color: "#E64A19" },
   };
 
-  const style = eventTypeStyles[eventType] || { bg: "#E0E0E0", color: "#424242" };
+  const style = eventTypeStyles[eventType] || {
+    bg: "#E0E0E0",
+    color: "#424242",
+  };
 
   return (
     <span
@@ -77,13 +83,13 @@ const EventsTable: React.FC<EventsTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('eventTracker', DEFAULT_ROWS_PER_PAGE)
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("eventTracker", DEFAULT_ROWS_PER_PAGE)
   );
 
   // Format users data like other tables do
   const formattedUsers = useMemo(() => {
-    return users?.map((user: User) => ({
+    return users?.map((user: UserModel) => ({
       _id: user.id,
       name: `${user.name} ${user.surname}`,
     }));
@@ -97,7 +103,7 @@ const EventsTable: React.FC<EventsTableProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('eventTracker', newRowsPerPage);
+      setPaginationRowCount("eventTracker", newRowsPerPage);
       setPage(0);
     },
     []

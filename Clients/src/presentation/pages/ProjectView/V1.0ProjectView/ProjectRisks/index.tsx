@@ -17,6 +17,7 @@ import CustomizableToast from "../../../../components/Toast";
 import CustomizableSkeleton from "../../../../components/Skeletons";
 import useUsers from "../../../../../application/hooks/useUsers";
 import { getAllProjectRisksByProjectId } from "../../../../../application/repository/projectRisk.repository";
+import { UserModel } from "../../../../../domain/models/user";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -70,24 +71,44 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
-    const veryHighRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const veryHighRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("very high");
     }).length;
-    const highRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const highRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("high") && !riskLevel.includes("very high");
     }).length;
-    const mediumRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const mediumRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("medium");
     }).length;
-    const lowRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const lowRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("low") && !riskLevel.includes("very low");
     }).length;
-    const veryLowRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const veryLowRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("very low") || riskLevel.includes("no risk");
     }).length;
 
@@ -131,7 +152,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
    *
    */
 
-
   const handleLoading = (message: string) => {
     setIsLoading((prev) => ({ ...prev, loading: true, message: message }));
   };
@@ -162,7 +182,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
       setAlert(null);
     }, 3000);
   };
-
 
   const handleDelete = async (riskId: number) => {
     handleLoading("Deleting the risk. Please wait...");
@@ -294,7 +313,12 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
               onSuccess={handleUpdate}
               onError={handleError}
               onLoading={handleLoading}
-              users={users}
+              users={users.map((user: UserModel) => ({
+                id: user.id!,
+                name: `${user.name} ${user.surname}`,
+                email: user.email,
+                surname: user.surname,
+              }))}
               usersLoading={usersLoading}
             />
           }

@@ -2,7 +2,7 @@ import {
   MitigationFormValues,
   RiskFormValues,
 } from "../../presentation/components/AddNewRiskForm/interface";
-import { User } from "../types/User";
+import { UserModel } from "../models/user";
 
 export interface AddNewRiskFormProps {
   closePopup: () => void;
@@ -12,7 +12,7 @@ export interface AddNewRiskFormProps {
   onSuccess: () => void;
   onError?: (message: any) => void;
   onLoading?: (message: any) => void;
-  users?: User[]; // Optional users data to avoid calling useUsers hook
+  users?: UserModel[]; // Optional users data to avoid calling useUsers hook
   usersLoading?: boolean; // Optional loading state
 }
 

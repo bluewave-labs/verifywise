@@ -11,10 +11,10 @@ import useProjectData from "../../../../../application/hooks/useProjectData";
 import CustomizableSkeleton from "../../../../components/Skeletons";
 import { formatDate } from "../../../../tools/isoDateToString";
 import { useEffect, useState } from "react";
-import { User } from "../../../../../domain/types/User";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import useUsers from "../../../../../application/hooks/useUsers";
+import { UserModel } from "../../../../../domain/models/user";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId, setProjectFrameworkId] = useState<number | null>(
@@ -162,17 +162,17 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
     return <div>No project selected</div>;
   }
 
-  const user: User =
-    users.find((user: User) => user.id === project.last_updated_by) ??
-    ({} as User);
+  const user: UserModel =
+    users.find((user: UserModel) => user.id === project.last_updated_by) ??
+    ({} as UserModel);
 
   const { projectOwner } = useProjectData({
     projectId: String(projectId),
   });
 
   const projectMembers: string[] = users
-    .filter((user: { id: any }) => project.members.includes(user.id || ""))
-    .map((user: User) => `${user.name} ${user.surname}`);
+    .filter((user: UserModel) => project.members.includes(user.id!.toString()))
+    .map((user: UserModel) => `${user.name} ${user.surname}`);
 
   const completedEuActNumbers = [
     complianceProgress?.allDonesubControls ?? 0,

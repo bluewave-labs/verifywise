@@ -3,7 +3,7 @@ import { Box, Stack } from "@mui/material";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
@@ -22,6 +22,7 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import { UserModel } from "../../../domain/models/user";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -99,24 +100,44 @@ const RiskManagement = () => {
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
-    const veryHighRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const veryHighRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("very high");
     }).length;
-    const highRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const highRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("high") && !riskLevel.includes("very high");
     }).length;
-    const mediumRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const mediumRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("medium");
     }).length;
-    const lowRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const lowRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("low") && !riskLevel.includes("very low");
     }).length;
-    const veryLowRisks = projectRisks.filter(risk => {
-      const riskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
+    const veryLowRisks = projectRisks.filter((risk) => {
+      const riskLevel = (
+        risk.current_risk_level ||
+        risk.risk_level_autocalculated ||
+        ""
+      ).toLowerCase();
       return riskLevel.includes("very low") || riskLevel.includes("no risk");
     }).length;
 
@@ -306,27 +327,29 @@ const RiskManagement = () => {
         quickActions={[
           {
             label: "Add New Risk",
-            description: "Identify and document new risks with assessment details",
-            primary: true
+            description:
+              "Identify and document new risks with assessment details",
+            primary: true,
           },
           {
             label: "Import AI Risks",
-            description: "Add risks from the MIT AI Risk Database for comprehensive coverage"
-          }
+            description:
+              "Add risks from the MIT AI Risk Database for comprehensive coverage",
+          },
         ]}
         useCases={[
           "**Operational risk assessment** for *AI model deployments* and **data processing activities**",
-          "**Regulatory compliance** tracking for *governance frameworks* like **EU AI Act** and ISO standards"
+          "**Regulatory compliance** tracking for *governance frameworks* like **EU AI Act** and ISO standards",
         ]}
         keyFeatures={[
           "**Comprehensive risk assessment** with *severity* and **likelihood scoring**",
           "**MIT AI Risk Database** integration for *industry-standard risk templates*",
-          "**Risk visualization** and *filtering* with **real-time dashboard updates**"
+          "**Risk visualization** and *filtering* with **real-time dashboard updates**",
         ]}
         tips={[
           "**Regular risk reviews** help identify *emerging threats* before they impact operations",
           "Use **risk categories** to organize threats by *impact area* and **regulatory requirements**",
-          "Set **clear ownership** and *target dates* for effective **risk mitigation tracking**"
+          "Set **clear ownership** and *target dates* for effective **risk mitigation tracking**",
         ]}
       />
 
@@ -342,164 +365,175 @@ const RiskManagement = () => {
           }
         />
 
-      {alert && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Box>
-            <Alert
-              variant={alert.variant}
-              title={alert.title}
-              body={alert.body}
-              isToast={true}
-              onClick={() => setAlert(null)}
-            />
-          </Box>
-        </Suspense>
-      )}
-      {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={rowStyle}>
-        <RisksCard risksSummary={risksSummary} />
-      </Stack>
-
-      <Stack spacing={3}>
-        <RiskFilters
-          risks={projectRisks}
-          onFilterChange={handleRiskFilterChange}
-        />
-      </Stack>
-      <Stack
-        className="risk-management-row"
-        sx={{
-          gap: 10,
-          mb: 1,
-          mt: 2,
-        }}
-      >
-        <Stack
-          direction="row"
-          justifyContent="flex-end"
-          alignItems="center"
-        >
-          <Stack direction="row" gap={10}>
-            <CustomizableButton
-              variant="contained"
-              text="Insert from AI risks database"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Add new risk"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-          </Stack>
+        {alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Box>
+              <Alert
+                variant={alert.variant}
+                title={alert.title}
+                body={alert.body}
+                isToast={true}
+                onClick={() => setAlert(null)}
+              />
+            </Box>
+          </Suspense>
+        )}
+        {isLoading.loading && <CustomizableToast title={isLoading.message} />}
+        <Stack className="risk-management-row" sx={rowStyle}>
+          <RisksCard risksSummary={risksSummary} />
         </Stack>
 
-        {selectedRow.length > 0 && anchor ? (
-          <Popup
-            popupId="edit-new-risk-popup"
-            popupContent={
-              <AddNewRiskForm
-                closePopup={() => setAnchor(null)}
-                popupStatus="edit"
-                onSuccess={handleUpdate}
-                onError={handleError}
-                onLoading={handleLoading}
-                users={users}
-                usersLoading={usersLoading}
-              />
-            }
-            openPopupButtonName="Edit risk"
-            popupTitle="Edit project risk"
-            handleOpenOrClose={handleOpenOrClose}
-            anchor={anchor}
+        <Stack spacing={3}>
+          <RiskFilters
+            risks={projectRisks}
+            onFilterChange={handleRiskFilterChange}
           />
-        ) : (
+        </Stack>
+        <Stack
+          className="risk-management-row"
+          sx={{
+            gap: 10,
+            mb: 1,
+            mt: 2,
+          }}
+        >
+          <Stack direction="row" justifyContent="flex-end" alignItems="center">
+            <Stack direction="row" gap={10}>
+              <CustomizableButton
+                variant="contained"
+                text="Insert from AI risks database"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                onClick={handleAIModalOpen}
+                icon={<AddCircleOutlineIcon />}
+                isDisabled={
+                  !allowedRoles.projectRisks.create.includes(userRoleName)
+                }
+              />
+              <CustomizableButton
+                variant="contained"
+                text="Add new risk"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                onClick={handleOpenOrClose}
+                icon={<AddCircleOutlineIcon />}
+                isDisabled={
+                  !allowedRoles.projectRisks.create.includes(userRoleName)
+                }
+              />
+            </Stack>
+          </Stack>
+
+          {selectedRow.length > 0 && anchor ? (
+            <Popup
+              popupId="edit-new-risk-popup"
+              popupContent={
+                <AddNewRiskForm
+                  closePopup={() => setAnchor(null)}
+                  popupStatus="edit"
+                  onSuccess={handleUpdate}
+                  onError={handleError}
+                  onLoading={handleLoading}
+                  users={users.map((user: UserModel) => ({
+                    id: user.id!,
+                    name: `${user.name} ${user.surname}`,
+                    email: user.email,
+                    surname: user.surname,
+                  }))}
+                  usersLoading={usersLoading}
+                />
+              }
+              openPopupButtonName="Edit risk"
+              popupTitle="Edit project risk"
+              handleOpenOrClose={handleOpenOrClose}
+              anchor={anchor}
+            />
+          ) : (
+            <Popup
+              popupId="add-new-risk-popup"
+              popupContent={
+                <AddNewRiskForm
+                  closePopup={() => setAnchor(null)}
+                  popupStatus="new"
+                  onSuccess={handleSuccess}
+                  onError={handleError}
+                  onLoading={handleLoading}
+                  users={users.map((user: UserModel) => ({
+                    id: user.id!,
+                    name: `${user.name} ${user.surname}`,
+                    email: user.email,
+                    surname: user.surname,
+                  }))}
+                  usersLoading={usersLoading}
+                />
+              }
+              openPopupButtonName="Add new risk"
+              popupTitle="Add a new risk"
+              popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
+              handleOpenOrClose={handleOpenOrClose}
+              anchor={anchor}
+            />
+          )}
+          {showCustomizableSkeleton ? (
+            <CustomizableSkeleton
+              variant="rectangular"
+              width="100%"
+              height={200}
+            />
+          ) : (
+            <VWProjectRisksTable
+              columns={TITLE_OF_COLUMNS}
+              rows={filteredRisks.length > 0 ? filteredRisks : projectRisks}
+              setPage={setCurrentPagingation}
+              page={currentPage}
+              setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
+              setAnchor={setAnchor}
+              deleteRisk={handleDelete}
+              flashRow={currentRow}
+            />
+          )}
+        </Stack>
+        <AddNewRiskMITModal
+          isOpen={isAIModalOpen}
+          setIsOpen={setIsAIModalOpen}
+          onRiskSelected={handleRiskSelected}
+        />
+        {selectedRiskData && aiRiskAnchor && (
           <Popup
-            popupId="add-new-risk-popup"
+            popupId="add-risk-from-ai-popup"
             popupContent={
               <AddNewRiskForm
-                closePopup={() => setAnchor(null)}
+                closePopup={() => {
+                  setAiRiskAnchor(null);
+                  setSelectedRiskData(null);
+                }}
                 popupStatus="new"
                 onSuccess={handleSuccess}
                 onError={handleError}
                 onLoading={handleLoading}
-                users={users}
+                initialRiskValues={selectedRiskData}
+                users={users.map((user: UserModel) => ({
+                  id: user.id!,
+                  name: `${user.name} ${user.surname}`,
+                  email: user.email,
+                  surname: user.surname,
+                }))}
                 usersLoading={usersLoading}
               />
             }
-            openPopupButtonName="Add new risk"
-            popupTitle="Add a new risk"
-            popupSubtitle="Create a detailed breakdown of risks and their mitigation strategies to assist in documenting your risk management activities effectively."
-            handleOpenOrClose={handleOpenOrClose}
-            anchor={anchor}
+            openPopupButtonName="Add risk from AI database"
+            popupTitle="Add a new risk from AI database"
+            popupSubtitle="Review and edit the selected risk from the AI database before saving."
+            handleOpenOrClose={handleAiRiskOpenOrClose}
+            anchor={aiRiskAnchor}
           />
         )}
-        {showCustomizableSkeleton ? (
-          <CustomizableSkeleton
-            variant="rectangular"
-            width="100%"
-            height={200}
-          />
-        ) : (
-          <VWProjectRisksTable
-            columns={TITLE_OF_COLUMNS}
-            rows={filteredRisks.length > 0 ? filteredRisks : projectRisks}
-            setPage={setCurrentPagingation}
-            page={currentPage}
-            setSelectedRow={(row: ProjectRisk) => setSelectedRow([row])}
-            setAnchor={setAnchor}
-            deleteRisk={handleDelete}
-            flashRow={currentRow}
-          />
-        )}
-      </Stack>
-      <AddNewRiskMITModal
-        isOpen={isAIModalOpen}
-        setIsOpen={setIsAIModalOpen}
-        onRiskSelected={handleRiskSelected}
-      />
-      {selectedRiskData && aiRiskAnchor && (
-        <Popup
-          popupId="add-risk-from-ai-popup"
-          popupContent={
-            <AddNewRiskForm
-              closePopup={() => {
-                setAiRiskAnchor(null);
-                setSelectedRiskData(null);
-              }}
-              popupStatus="new"
-              onSuccess={handleSuccess}
-              onError={handleError}
-              onLoading={handleLoading}
-              initialRiskValues={selectedRiskData}
-              users={users}
-              usersLoading={usersLoading}
-            />
-          }
-          openPopupButtonName="Add risk from AI database"
-          popupTitle="Add a new risk from AI database"
-          popupSubtitle="Review and edit the selected risk from the AI database before saving."
-          handleOpenOrClose={handleAiRiskOpenOrClose}
-          anchor={aiRiskAnchor}
-        />
-      )}
       </Stack>
     </Stack>
   );

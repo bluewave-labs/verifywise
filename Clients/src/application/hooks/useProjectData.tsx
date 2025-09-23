@@ -1,8 +1,8 @@
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Project } from "../../domain/types/Project";
-import { User } from "../../domain/types/User";
 import { getProjectById } from "../repository/project.repository";
 import useUsers from "./useUsers";
+import { UserModel } from "../../domain/models/user";
 
 interface UseProjectDataParams {
   projectId: string;
@@ -39,11 +39,13 @@ const useProjectData = ({
     setIsLoading(true);
 
     getProjectById({
-        id: projectId,
-        signal: controller.signal,
-      })
+      id: projectId,
+      signal: controller.signal,
+    })
       .then(({ data }) => {
-        const ownerUser = users.find((user: User) => user.id === data.owner);
+        const ownerUser = users.find(
+          (user: UserModel) => user.id === data.owner
+        );
 
         /* 
           ** It should be data.last_updated_by: number instead of string

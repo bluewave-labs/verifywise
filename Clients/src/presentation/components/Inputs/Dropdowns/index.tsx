@@ -5,11 +5,11 @@ import DatePicker from "../Datepicker";
 import Field from "../Field";
 import { formatDate } from "../../../tools/isoDateToString";
 import useProjectData from "../../../../application/hooks/useProjectData";
-import { User } from "../../../../domain/types/User";
 import { Dayjs } from "dayjs";
 import { DropDownsProps } from "../../../../domain/interfaces/iWidget";
 import { inputStyles } from "./style";
 import useUsers from "../../../../application/hooks/useUsers";
+import { UserModel } from "../../../../domain/models/user";
 
 const DropDowns: React.FC<DropDownsProps> = ({
   elementId,
@@ -17,7 +17,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
   setState,
   projectId,
   readOnly = false,
-  setAuditedStatusModalOpen
+  setAuditedStatusModalOpen,
 }) => {
   const [status, setStatus] = useState("");
   const [approver, setApprover] = useState("");
@@ -27,16 +27,16 @@ const DropDowns: React.FC<DropDownsProps> = ({
   const [date, setDate] = useState<Dayjs | null>(null);
   const [implementationDetails, setImplementationDetails] = useState("");
   const theme = useTheme();
-  const { users } = useUsers(); 
+  const { users } = useUsers();
   const { project } = useProjectData({ projectId: String(projectId) || "0" });
 
-  const [projectMembers, setProjectMembers] = useState<User[]>([]);
+  const [projectMembers, setProjectMembers] = useState<UserModel[]>([]);
 
   // Filter users to only show project members
   useEffect(() => {
     if (project && users?.length > 0) {
       const members = users.filter(
-        (user: User) =>
+        (user: UserModel) =>
           typeof user.id === "number" &&
           project.members.some((memberId) => Number(memberId) === user.id)
       );
@@ -138,9 +138,9 @@ const DropDowns: React.FC<DropDownsProps> = ({
           value={status}
           onChange={(e) => handleChange(e, setStatus, "status")}
           items={[
-            { _id: "Waiting", name: "Waiting" },
-            { _id: "In progress", name: "In progress" },
-            { _id: "Done", name: "Done" },
+            { id: "Waiting", name: "Waiting" },
+            { id: "In progress", name: "In progress" },
+            { id: "Done", name: "Done" },
           ]}
           sx={inputStyles}
           placeholder={"Select status"}
@@ -153,7 +153,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           value={approver}
           onChange={(e) => handleChange(e, setApprover, "approver")}
           items={projectMembers.map((user) => ({
-            _id: user.id?.toString() || "",
+            id: user.id?.toString() || "",
             name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
@@ -167,9 +167,9 @@ const DropDowns: React.FC<DropDownsProps> = ({
           value={riskReview}
           onChange={(e) => handleChange(e, setRiskReview, "risk_review")}
           items={[
-            { _id: "Acceptable risk", name: "Acceptable risk" },
-            { _id: "Residual risk", name: "Residual risk" },
-            { _id: "Unacceptable risk", name: "Unacceptable risk" },
+            { id: "Acceptable risk", name: "Acceptable risk" },
+            { id: "Residual risk", name: "Residual risk" },
+            { id: "Unacceptable risk", name: "Unacceptable risk" },
           ]}
           sx={inputStyles}
           placeholder={"Select risk review"}
@@ -191,7 +191,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           value={owner}
           onChange={(e) => handleChange(e, setOwner, "owner")}
           items={projectMembers.map((user) => ({
-            _id: user.id?.toString() || "",
+            id: user.id?.toString() || "",
             name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}
@@ -205,7 +205,7 @@ const DropDowns: React.FC<DropDownsProps> = ({
           value={reviewer}
           onChange={(e) => handleChange(e, setReviewer, "reviewer")}
           items={projectMembers.map((user) => ({
-            _id: user.id?.toString() || "",
+            id: user.id?.toString() || "",
             name: `${user.name} ${user.surname}`,
           }))}
           sx={inputStyles}

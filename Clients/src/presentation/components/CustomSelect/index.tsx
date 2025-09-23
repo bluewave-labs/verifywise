@@ -1,16 +1,16 @@
 /**
  * CustomSelect Component
- * 
+ *
  * A reusable selection component that can be used across different features.
  * Uses the standard Select component with configurable options and handlers.
- * 
+ *
  * Features:
  * - Fully configurable options
  * - Interactive updates with loading states
  * - Consistent styling with design system
  * - Error handling and validation
  * - Reusable for status, sort, filter, or any selection needs
- * 
+ *
  * @component
  * @example
  * ```tsx
@@ -20,7 +20,7 @@
  *   onValueChange={handleStatusUpdate}
  *   options={["Open", "In Progress", "Completed"]}
  * />
- * 
+ *
  * // For sorting
  * <CustomSelect
  *   currentValue="newest"
@@ -49,56 +49,58 @@ interface CustomSelectProps {
   sx?: object;
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = React.memo(({
-  currentValue,
-  onValueChange,
-  options,
-  disabled = false,
-  size = "small",
-  sx = {},
-}) => {
-  const [isUpdating, setIsUpdating] = useState(false);
+const CustomSelect: React.FC<CustomSelectProps> = React.memo(
+  ({
+    currentValue,
+    onValueChange,
+    options,
+    disabled = false,
+    size = "small",
+    sx = {},
+  }) => {
+    const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleChange = async (event: SelectChangeEvent<string | number>) => {
-    const newValue = event.target.value as string;
-    if (newValue === currentValue || isUpdating || disabled) return;
-    
-    setIsUpdating(true);
-    try {
-      const success = await onValueChange(newValue);
-      if (!success) {
-        console.error('Failed to update value');
+    const handleChange = async (event: SelectChangeEvent<string | number>) => {
+      const newValue = event.target.value as string;
+      if (newValue === currentValue || isUpdating || disabled) return;
+
+      setIsUpdating(true);
+      try {
+        const success = await onValueChange(newValue);
+        if (!success) {
+          console.error("Failed to update value");
+        }
+      } catch (error) {
+        console.error("Error updating value:", error);
+      } finally {
+        setIsUpdating(false);
       }
-    } catch (error) {
-      console.error('Error updating value:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    };
 
-  const selectItems = options.map(option => ({
-    _id: option,
-    name: option,
-  }));
+    const selectItems = options.map((option) => ({
+      id: option,
+      name: option,
+    }));
 
-  return (
-    <Select
-      id={`custom-select-${Date.now()}`}
-      value={currentValue}
-      items={selectItems}
-      onChange={handleChange}
-      getOptionValue={(item: any) => item._id}
-      disabled={disabled || isUpdating}
-      sx={{
-        minWidth: size === "small" ? 120 : 140,
-        '& .MuiOutlinedInput-root': {
-          height: '34px',
-        },
-        ...sx,
-      }}
-    />
-  );
-});
+    return (
+      <Select
+        id={`custom-select-${Date.now()}`}
+        value={currentValue}
+        items={selectItems}
+        onChange={handleChange}
+        getOptionValue={(item: any) => item._id}
+        disabled={disabled || isUpdating}
+        sx={{
+          minWidth: size === "small" ? 120 : 140,
+          "& .MuiOutlinedInput-root": {
+            height: "34px",
+          },
+          ...sx,
+        }}
+      />
+    );
+  }
+);
 
 CustomSelect.displayName = "CustomSelect";
 

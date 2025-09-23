@@ -443,7 +443,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             </Box>
             <Box flex={1}>
               <Select
-                items={formattedUsers}
+                items={formattedUsers.map((user) => ({
+                  id: user.id,
+                  name: user.name,
+                }))}
                 label="Action owner"
                 placeholder="Select owner"
                 isHidden={false}

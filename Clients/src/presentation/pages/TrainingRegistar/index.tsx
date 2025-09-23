@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, Suspense, useMemo } from "react";
-import {
-  Box,
-  Stack,
-  Fade,
-  IconButton,
-  InputBase,
-} from "@mui/material";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  Suspense,
+  useMemo,
+} from "react";
+import { Box, Stack, Fade, IconButton, InputBase } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -64,10 +64,10 @@ const Training: React.FC = () => {
 
   // ✅ Status options
   const statusOptions = [
-    { _id: "all", name: "All Trainings" },
-    { _id: "Planned", name: "Planned" },
-    { _id: "In Progress", name: "In Progress" },
-    { _id: "Completed", name: "Completed" },
+    { id: "all", name: "All Trainings" },
+    { id: "Planned", name: "Planned" },
+    { id: "In Progress", name: "In Progress" },
+    { id: "Completed", name: "Completed" },
   ];
 
   const fetchTrainingData = useCallback(async () => {
@@ -212,7 +212,8 @@ const Training: React.FC = () => {
   // Filtered trainings
   const filteredTraining = useMemo(() => {
     return trainingData.filter((t) => {
-      const matchesStatus = statusFilter === "all" ? true : t.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" ? true : t.status === statusFilter;
       const matchesSearch = t.training_name
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -233,27 +234,29 @@ const Training: React.FC = () => {
         quickActions={[
           {
             label: "Add Training Program",
-            description: "Register a new AI training course or educational program",
-            primary: true
+            description:
+              "Register a new AI training course or educational program",
+            primary: true,
           },
           {
             label: "Track Progress",
-            description: "Monitor team completion rates and certification status"
-          }
+            description:
+              "Monitor team completion rates and certification status",
+          },
         ]}
         useCases={[
           "**Internal AI ethics** and *governance training programs* for development teams",
-          "**External certification courses** for *machine learning* and **data science skills**"
+          "**External certification courses** for *machine learning* and **data science skills**",
         ]}
         keyFeatures={[
           "**Comprehensive training catalog** with *metadata* and prerequisites",
           "**Progress tracking** and *certification management* for individuals and teams",
-          "**Integration** with learning management systems and *HR platforms*"
+          "**Integration** with learning management systems and *HR platforms*",
         ]}
         tips={[
           "Prioritize **ethics and governance training** for all *AI team members*",
           "Set up *automatic reminders* for **certification renewals** and mandatory training",
-          "Track **training effectiveness** through *assessments* and real-world application"
+          "Track **training effectiveness** through *assessments* and real-world application",
         ]}
       />
       {alert && (
@@ -285,93 +288,94 @@ const Training: React.FC = () => {
         </Suspense>
       )}
 
-        <PageHeader
-               title="AI training registry"
-               description=" This registry lists all AI-related training programs available to
+      <PageHeader
+        title="AI training registry"
+        description=" This registry lists all AI-related training programs available to
                your organization. You can view, add, and manage training details here."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
-             />
-
-           {/* Filter + Search row */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            spacing={4}
-            sx={{ width: "100%" }}
-          >
-            {/* Left side: Dropdown + Search together */}
-            <Stack direction="row" spacing={6} alignItems="center">
-              {/* Dropdown Filter */}
-              <Select
-                id="training-status"
-                value={statusFilter}
-                items={statusOptions}
-                onChange={(e: any) => setStatusFilter(e.target.value)}
-                sx={{
-                  minWidth: "180px",
-                  height: "34px",
-                  bgcolor: "#fff",
-                }}
-              />
-
-              {/* Expandable Search */}
-              <Box sx={searchBoxStyle(isSearchBarVisible)}>
-                <IconButton
-                  disableRipple
-                  disableFocusRipple
-                  sx={{ "&:hover": { backgroundColor: "transparent" } }}
-                  aria-label="Toggle training search"
-                  aria-expanded={isSearchBarVisible}
-                  onClick={() => setIsSearchBarVisible((prev) => !prev)}
-                >
-                  <SearchIcon />
-                </IconButton>
-
-                {isSearchBarVisible && (
-                  <InputBase
-                    autoFocus
-                    placeholder="Search trainings..."
-                    inputProps={{ "aria-label": "Search trainings" }}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    sx={inputStyle(isSearchBarVisible)}
-                  />
-                )}
-              </Box>
-            </Stack>
-
-            {/* Right side: Customize Button */}
-            <CustomizableButton
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "#13715B",
-                        border: "1px solid #13715B",
-                        gap: 2,
-                      }}
-                      text="New training"
-                      icon={<AddCircleOutlineIcon />}
-                      onClick={handleNewTrainingClick}
-                      isDisabled={isCreatingDisabled}
-                    />
-          </Stack>
-
-        {/* Table */}
-        <Box sx={{ mt: 1 }}>
-          <TrainingTable
-            data={filteredTraining}
-            isLoading={isLoading}
-            onEdit={handleEditTraining}
-            onDelete={handleDeleteTraining}
+        rightContent={
+          <HelperIcon
+            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            size="small"
           />
-        </Box>
+        }
+      />
+
+      {/* Filter + Search row */}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={4}
+        sx={{ width: "100%" }}
+      >
+        {/* Left side: Dropdown + Search together */}
+        <Stack direction="row" spacing={6} alignItems="center">
+          {/* Dropdown Filter */}
+          <Select
+            id="training-status"
+            value={statusFilter}
+            items={statusOptions.map((status) => ({
+              id: status.id,
+              name: status.name,
+            }))}
+            onChange={(e: any) => setStatusFilter(e.target.value)}
+            sx={{
+              minWidth: "180px",
+              height: "34px",
+              bgcolor: "#fff",
+            }}
+          />
+
+          {/* Expandable Search */}
+          <Box sx={searchBoxStyle(isSearchBarVisible)}>
+            <IconButton
+              disableRipple
+              disableFocusRipple
+              sx={{ "&:hover": { backgroundColor: "transparent" } }}
+              aria-label="Toggle training search"
+              aria-expanded={isSearchBarVisible}
+              onClick={() => setIsSearchBarVisible((prev) => !prev)}
+            >
+              <SearchIcon />
+            </IconButton>
+
+            {isSearchBarVisible && (
+              <InputBase
+                autoFocus
+                placeholder="Search trainings..."
+                inputProps={{ "aria-label": "Search trainings" }}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={inputStyle(isSearchBarVisible)}
+              />
+            )}
+          </Box>
+        </Stack>
+
+        {/* Right side: Customize Button */}
+        <CustomizableButton
+          variant="contained"
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+          }}
+          text="New training"
+          icon={<AddCircleOutlineIcon />}
+          onClick={handleNewTrainingClick}
+          isDisabled={isCreatingDisabled}
+        />
+      </Stack>
+
+      {/* Table */}
+      <Box sx={{ mt: 1 }}>
+        <TrainingTable
+          data={filteredTraining}
+          isLoading={isLoading}
+          onEdit={handleEditTraining}
+          onDelete={handleDeleteTraining}
+        />
+      </Box>
 
       {/* Modal */}
       <NewTraining

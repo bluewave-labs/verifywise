@@ -16,8 +16,8 @@ router.get("/", authenticateJWT, getAllRoles);
 router.get("/:id", authenticateJWT, getRoleById);
 
 // POST, PUT, DELETE requests
-router.post("/", authenticateJWT, createRole);
-router.put("/:id", authenticateJWT, updateRoleById);
-router.delete("/:id", authenticateJWT, deleteRoleById);
+// router.post("/", authenticateJWT, createRole);
+// router.put("/:id", authenticateJWT, updateRoleById);
+// router.delete("/:id", authenticateJWT, deleteRoleById);
 
 export default router;

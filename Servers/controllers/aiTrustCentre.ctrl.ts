@@ -30,6 +30,17 @@ import {
   logSuccess,
   logFailure,
 } from "../utils/logger/logHelper";
+import {
+  validateHashParam,
+  validateAITrustCentreIdParam,
+  validateCompleteOverviewUpdate,
+  validateCompleteResourceCreationWithRules,
+  validateCompleteResourceUpdateWithRules,
+  validateCompleteSubprocessorCreationWithRules,
+  validateCompleteSubprocessorUpdateWithRules,
+  validateAITrustCentreFileUpload
+} from "../utils/validations/aiTrustCentreValidation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getCompanyLogo(req: Request, res: Response) {
   const { hash } = req.params;
@@ -124,6 +135,23 @@ export async function getAITrustCentrePublicResource(
   res: Response
 ) {
   const { hash, id } = req.params;
+
+  // Validate resource ID parameter
+  const resourceIdValidation = validateAITrustCentreIdParam(parseInt(id));
+  if (!resourceIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid resource ID parameter: ${id}`,
+      "getAITrustCentrePublicResource",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: resourceIdValidation.message || 'Invalid resource ID',
+      code: resourceIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
     `fetching AI Trust Centre public resource for hash: ${hash}, id: ${id}`,
@@ -297,6 +325,46 @@ export async function createAITrustResource(
   req: RequestWithFile,
   res: Response
 ) {
+  // Validate resource creation request
+  const validationErrors = validateCompleteResourceCreationWithRules({
+    name: req.body.name,
+    description: req.body.description,
+    visible: req.body.visible === "true"
+  });
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      "AI Trust Centre resource creation validation failed",
+      "createAITrustResource",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'AI Trust Centre resource creation validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
+  // Validate file upload
+  const fileValidation = validateAITrustCentreFileUpload(req.file, 'resource');
+  if (!fileValidation.isValid) {
+    logStructured(
+      "error",
+      "AI Trust Centre resource file validation failed",
+      "createAITrustResource",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: fileValidation.message || 'Invalid file for resource',
+      code: fileValidation.code || 'INVALID_FILE'
+    });
+  }
+
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<{
     name: string;
@@ -403,6 +471,26 @@ export async function createAITrustResource(
 }
 
 export async function createAITrustSubprocessor(req: Request, res: Response) {
+  // Validate subprocessor creation request
+  const validationErrors = validateCompleteSubprocessorCreationWithRules(req.body);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      "AI Trust Centre subprocessor creation validation failed",
+      "createAITrustSubprocessor",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'AI Trust Centre subprocessor creation validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   const transaction = await sequelize.transaction();
   const body = req.body as IAITrustCentreSubprocessors;
 
@@ -481,6 +569,22 @@ export async function createAITrustSubprocessor(req: Request, res: Response) {
 }
 
 export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
+  // Validate file upload
+  const fileValidation = validateAITrustCentreFileUpload(req.file, 'logo');
+  if (!fileValidation.isValid) {
+    logStructured(
+      "error",
+      "Company logo file validation failed",
+      "uploadCompanyLogo",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: fileValidation.message || 'Invalid file for company logo',
+      code: fileValidation.code || 'INVALID_FILE'
+    });
+  }
+
   const transaction = await sequelize.transaction();
   const attachment = req.file as UploadedFile;
 
@@ -493,19 +597,6 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
   logger.debug("🖼️ Uploading company logo");
 
   try {
-    if (!attachment || attachment.mimetype.includes("image/") === false) {
-      logStructured(
-        "error",
-        "invalid file type for company logo upload",
-        "uploadCompanyLogo",
-        "aiTrustCentre.ctrl.ts"
-      );
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "Invalid file, please upload an image file.",
-        })
-      );
-    }
 
     const file = await uploadFile(
       attachment,
@@ -586,6 +677,26 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
 }
 
 export async function updateAITrustOverview(req: Request, res: Response) {
+  // Validate overview update request
+  const validationErrors = validateCompleteOverviewUpdate(req.body);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      "AI Trust Centre overview update validation failed",
+      "updateAITrustOverview",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'AI Trust Centre overview update validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<IAITrustCentreOverview>;
 
@@ -655,6 +766,66 @@ export async function updateAITrustResource(
   req: RequestWithFile,
   res: Response
 ) {
+  const resourceId = parseInt(req.params.id);
+
+  // Validate resource ID parameter
+  const resourceIdValidation = validateAITrustCentreIdParam(resourceId);
+  if (!resourceIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid resource ID parameter: ${req.params.id}`,
+      "updateAITrustResource",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: resourceIdValidation.message || 'Invalid resource ID',
+      code: resourceIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Validate resource update request
+  const validationErrors = validateCompleteResourceUpdateWithRules({
+    name: req.body.name,
+    description: req.body.description,
+    visible: req.body.visible === "true"
+  });
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      `AI Trust Centre resource update validation failed for ID ${resourceId}`,
+      "updateAITrustResource",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'AI Trust Centre resource update validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
+  // Validate file upload if provided
+  if (req.file) {
+    const fileValidation = validateAITrustCentreFileUpload(req.file, 'resource');
+    if (!fileValidation.isValid) {
+      logStructured(
+        "error",
+        "AI Trust Centre resource file validation failed",
+        "updateAITrustResource",
+        "aiTrustCentre.ctrl.ts"
+      );
+      return res.status(400).json({
+        status: 'error',
+        message: fileValidation.message || 'Invalid file for resource',
+        code: fileValidation.code || 'INVALID_FILE'
+      });
+    }
+  }
+
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<{
     name: string;
@@ -663,7 +834,6 @@ export async function updateAITrustResource(
     visible: string;
     delete: string;
   }>;
-  const resourceId = parseInt(req.params.id);
 
   logStructured(
     "processing",
@@ -772,6 +942,44 @@ export async function updateAITrustResource(
 }
 
 export async function updateAITrustSubprocessor(req: Request, res: Response) {
+  const subprocessorId = parseInt(req.params.id);
+
+  // Validate subprocessor ID parameter
+  const subprocessorIdValidation = validateAITrustCentreIdParam(subprocessorId);
+  if (!subprocessorIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid subprocessor ID parameter: ${req.params.id}`,
+      "updateAITrustSubprocessor",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: subprocessorIdValidation.message || 'Invalid subprocessor ID',
+      code: subprocessorIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Validate subprocessor update request
+  const validationErrors = validateCompleteSubprocessorUpdateWithRules(req.body);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      `AI Trust Centre subprocessor update validation failed for ID ${subprocessorId}`,
+      "updateAITrustSubprocessor",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'AI Trust Centre subprocessor update validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<{
     name: string;
@@ -779,7 +987,6 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
     location: string;
     url: string;
   }>;
-  const subprocessorId = parseInt(req.params.id);
 
   logStructured(
     "processing",
@@ -853,8 +1060,25 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
 }
 
 export async function deleteAITrustResource(req: Request, res: Response) {
-  const transaction = await sequelize.transaction();
   const resourceId = parseInt(req.params.id);
+
+  // Validate resource ID parameter
+  const resourceIdValidation = validateAITrustCentreIdParam(resourceId);
+  if (!resourceIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid resource ID parameter: ${req.params.id}`,
+      "deleteAITrustResource",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: resourceIdValidation.message || 'Invalid resource ID',
+      code: resourceIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  const transaction = await sequelize.transaction();
 
   logStructured(
     "processing",
@@ -923,8 +1147,25 @@ export async function deleteAITrustResource(req: Request, res: Response) {
 }
 
 export async function deleteAITrustSubprocessor(req: Request, res: Response) {
-  const transaction = await sequelize.transaction();
   const subprocessorId = parseInt(req.params.id);
+
+  // Validate subprocessor ID parameter
+  const subprocessorIdValidation = validateAITrustCentreIdParam(subprocessorId);
+  if (!subprocessorIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid subprocessor ID parameter: ${req.params.id}`,
+      "deleteAITrustSubprocessor",
+      "aiTrustCentre.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: subprocessorIdValidation.message || 'Invalid subprocessor ID',
+      code: subprocessorIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  const transaction = await sequelize.transaction();
 
   logStructured(
     "processing",

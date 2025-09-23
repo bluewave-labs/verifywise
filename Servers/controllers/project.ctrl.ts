@@ -25,6 +25,15 @@ import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
+import {
+  validateCompleteProjectWithBusinessRules,
+  validateUpdateProjectWithBusinessRules,
+  validateProjectIdParam
+} from '../utils/validations/projectValidation.utils';
+import {
+  ValidationException,
+  BusinessLogicException
+} from "../domain.layer/exceptions/custom.exception";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -64,6 +73,23 @@ export async function getAllProjects(req: Request, res: Response): Promise<any> 
 
 export async function getProjectById(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "getProjectById",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
 
   logProcessing({
     description: `starting getProjectById for ID ${projectId}`,
@@ -108,6 +134,31 @@ export async function getProjectById(req: Request, res: Response): Promise<any> 
 
 export async function createProject(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
+  const projectData = {
+    ...req.body,
+    framework: req.body.framework ?? [1],
+  };
+
+  // Validate request body with business rules
+  const validationErrors = validateCompleteProjectWithBusinessRules(projectData);
+  if (validationErrors.length > 0) {
+    await logFailure({
+      eventType: "Create",
+      description: `Validation failed for createProject: ${validationErrors.map(e => e.message).join(', ')}`,
+      functionName: "createProject",
+      fileName: "project.ctrl.ts",
+      error: new Error('Validation failed')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: 'Validation failed',
+      errors: validationErrors.map(err => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
 
   logProcessing({
     description: "starting createProject",
@@ -120,16 +171,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       members: number[] | undefined;
       framework: number[];
       enable_ai_data_insertion: boolean;
-    } = {
-      ...req.body,
-      framework: req.body.framework ?? [1],
-    };
-
-    if (!newProject.project_title || !newProject.owner) {
-      return res.status(400).json(
-        STATUS_CODE[400]({ message: "project_title and owner are required" })
-      );
-    }
+    } = projectData;
 
     const createdProject = await createNewProjectQuery(
       newProject,
@@ -196,6 +238,28 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   } catch (error) {
     await transaction.rollback();
 
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Create",
+        description: `Validation failed: ${error.message}`,
+        functionName: "createProject",
+        fileName: "project.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Create",
+        description: `Business logic error: ${error.message}`,
+        functionName: "createProject",
+        fileName: "project.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     await logFailure({
       eventType: "Create",
       description: "Failed to create project",
@@ -211,6 +275,24 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 export async function updateProjectById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
+  const updateData = req.body;
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Update",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "updateProjectById",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
 
   logProcessing({
     description: `starting updateProjectById for ID ${projectId}`,
@@ -219,18 +301,57 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
   });
 
   try {
-    const updatedProject: Partial<ProjectModel> & { members?: number[] } =
-      req.body;
+    const { userId, role } = req;
+    if (!userId || !role) {
+      await logFailure({
+        eventType: "Update",
+        description: "Unauthorized access attempt to update project",
+        functionName: "updateProjectById",
+        fileName: "project.ctrl.ts",
+        error: new Error("Unauthorized"),
+      });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Find existing project
+    const existingProject = await getProjectByIdQuery(projectId, req.tenantId!);
+
+    if (!existingProject) {
+      await logSuccess({
+        eventType: "Update",
+        description: `Project not found for update: ID ${projectId}`,
+        functionName: "updateProjectById",
+        fileName: "project.ctrl.ts",
+      });
+      return res.status(404).json(STATUS_CODE[404]({}));
+    }
+
+    // Validate request body with business rules and current project data
+    const validationErrors = validateUpdateProjectWithBusinessRules(updateData, existingProject);
+    if (validationErrors.length > 0) {
+      await logFailure({
+        eventType: "Update",
+        description: `Validation failed for updateProjectById: ${validationErrors.map(e => e.message).join(', ')}`,
+        functionName: "updateProjectById",
+        fileName: "project.ctrl.ts",
+        error: new Error('Validation failed')
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Validation failed',
+        errors: validationErrors.map(err => ({
+          field: err.field,
+          message: err.message,
+          code: err.code
+        }))
+      });
+    }
+
+    const updatedProject: Partial<ProjectModel> & { members?: number[] } = updateData;
     const members = updatedProject.members || [];
 
     delete updatedProject.members;
     delete updatedProject.id;
-
-    if (!updatedProject.project_title || !updatedProject.owner) {
-      return res.status(400).json(
-        STATUS_CODE[400]({ message: "project_title and owner are required" })
-      );
-    }
 
     const project = await updateProjectByIdQuery(
       projectId,
@@ -264,6 +385,28 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
   } catch (error) {
     await transaction.rollback();
 
+    if (error instanceof ValidationException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Validation failed: ${error.message}`,
+        functionName: "updateProjectById",
+        fileName: "project.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(400).json(STATUS_CODE[400](error.message));
+    }
+
+    if (error instanceof BusinessLogicException) {
+      await logFailure({
+        eventType: "Update",
+        description: `Business logic error: ${error.message}`,
+        functionName: "updateProjectById",
+        fileName: "project.ctrl.ts",
+        error: error as Error,
+      });
+      return res.status(403).json(STATUS_CODE[403](error.message));
+    }
+
     await logFailure({
       eventType: "Update",
       description: "Failed to update project",
@@ -279,6 +422,23 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
 export async function deleteProjectById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Delete",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "deleteProjectById",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
 
   logProcessing({
     description: `starting deleteProjectById for ID ${projectId}`,
@@ -327,10 +487,28 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
 
 export async function getProjectStatsById(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "getProjectStatsById",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getProjectStatsById for project ID ${projectId}`,
     functionName: "getProjectStatsById",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -355,7 +533,7 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
       eventType: "Read",
       description: `Retrieved project stats for project ID ${projectId}`,
       functionName: "getProjectStatsById",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(202).json(STATUS_CODE[202](overviewDetails));
@@ -364,7 +542,7 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
       eventType: "Read",
       description: "Failed to retrieve project stats",
       functionName: "getProjectStatsById",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 
@@ -374,10 +552,28 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
 
 export async function getProjectRisksCalculations(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "getProjectRisksCalculations",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getProjectRisksCalculations for project ID ${projectId}`,
     functionName: "getProjectRisksCalculations",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -387,7 +583,7 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       eventType: "Read",
       description: `Calculated risks for project ID ${projectId}`,
       functionName: "getProjectRisksCalculations",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(projectRisksCalculations ? 200 : 204).json(
@@ -398,7 +594,7 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       eventType: "Read",
       description: "Failed to calculate project risks",
       functionName: "getProjectRisksCalculations",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 
@@ -408,10 +604,28 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
 
 export async function getVendorRisksCalculations(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "getVendorRisksCalculations",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getVendorRisksCalculations for project ID ${projectId}`,
     functionName: "getVendorRisksCalculations",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -421,7 +635,7 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       eventType: "Read",
       description: `Calculated vendor risks for project ID ${projectId}`,
       functionName: "getVendorRisksCalculations",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(vendorRisksCalculations ? 200 : 204).json(
@@ -432,7 +646,7 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       eventType: "Read",
       description: "Failed to calculate vendor risks",
       functionName: "getVendorRisksCalculations",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 
@@ -442,10 +656,28 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
 
 export async function getCompliances(req: Request, res: Response) {
   const projectId = parseInt(req.params.projid);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter (projid): ${req.params.projid}`,
+      functionName: "getCompliances",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getCompliances for project ID ${projectId}`,
     functionName: "getCompliances",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -475,7 +707,7 @@ export async function getCompliances(req: Request, res: Response) {
         eventType: "Read",
         description: `Retrieved compliance data for project ID ${projectId}`,
         functionName: "getCompliances",
-        fileName: "projec.ctrl.ts",
+        fileName: "project.ctrl.ts",
       });
 
       return res.status(200).json(STATUS_CODE[200](controlCategories));
@@ -485,7 +717,7 @@ export async function getCompliances(req: Request, res: Response) {
       eventType: "Read",
       description: `Project not found for compliance lookup: ID ${projectId}`,
       functionName: "getCompliances",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -494,7 +726,7 @@ export async function getCompliances(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to fetch compliance data",
       functionName: "getCompliances",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 
@@ -504,10 +736,28 @@ export async function getCompliances(req: Request, res: Response) {
 
 export async function projectComplianceProgress(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "projectComplianceProgress",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting projectComplianceProgress for ID ${projectId}`,
     functionName: "projectComplianceProgress",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -520,7 +770,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
         eventType: "Read",
         description: `Compliance progress calculated for project ID ${projectId}`,
         functionName: "projectComplianceProgress",
-        fileName: "projec.ctrl.ts",
+        fileName: "project.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -535,7 +785,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       eventType: "Read",
       description: `Project not found: ID ${projectId}`,
       functionName: "projectComplianceProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -544,7 +794,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to get compliance progress",
       functionName: "projectComplianceProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 
@@ -554,10 +804,28 @@ export async function projectComplianceProgress(req: Request, res: Response) {
 
 export async function projectAssessmentProgress(req: Request, res: Response) {
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "projectAssessmentProgress",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting projectAssessmentProgress for ID ${projectId}`,
     functionName: "projectAssessmentProgress",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -570,7 +838,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
         eventType: "Read",
         description: `Assessment progress calculated for project ID ${projectId}`,
         functionName: "projectAssessmentProgress",
-        fileName: "projec.ctrl.ts",
+        fileName: "project.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -585,7 +853,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       eventType: "Read",
       description: `Project not found: ID ${projectId}`,
       functionName: "projectAssessmentProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](project));
@@ -594,7 +862,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       eventType: "Read",
       description: "Failed to get assessment progress",
       functionName: "projectAssessmentProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 
@@ -608,7 +876,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
   logProcessing({
     description: "starting allProjectsComplianceProgress",
     functionName: "allProjectsComplianceProgress",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -632,7 +900,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
         eventType: "Read",
         description: "Compliance progress calculated across all projects",
         functionName: "allProjectsComplianceProgress",
-        fileName: "projec.ctrl.ts",
+        fileName: "project.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -647,7 +915,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
       eventType: "Read",
       description: "No projects found for compliance progress",
       functionName: "allProjectsComplianceProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -656,7 +924,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
       eventType: "Read",
       description: "Failed to get compliance progress for all projects",
       functionName: "allProjectsComplianceProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 
@@ -670,7 +938,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
   logProcessing({
     description: "starting allProjectsAssessmentProgress",
     functionName: "allProjectsAssessmentProgress",
-    fileName: "projec.ctrl.ts",
+    fileName: "project.ctrl.ts",
   });
 
   try {
@@ -694,7 +962,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
         eventType: "Read",
         description: "Assessment progress calculated across all projects",
         functionName: "allProjectsAssessmentProgress",
-        fileName: "projec.ctrl.ts",
+        fileName: "project.ctrl.ts",
       });
 
       return res.status(200).json(
@@ -709,7 +977,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       eventType: "Read",
       description: "No projects found for assessment progress",
       functionName: "allProjectsAssessmentProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
     });
 
     return res.status(404).json(STATUS_CODE[404](projects));
@@ -718,7 +986,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       eventType: "Read",
       description: "Failed to get assessment progress for all projects",
       functionName: "allProjectsAssessmentProgress",
-      fileName: "projec.ctrl.ts",
+      fileName: "project.ctrl.ts",
       error: error as Error,
     });
 

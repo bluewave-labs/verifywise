@@ -27,6 +27,7 @@ import { useProjects } from "../../../../application/hooks/useProjects";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import allowedRoles from "../../../../application/constants/permissions";
 import styles from "../styles.module.css";
+import { UserModel } from "../../../../domain/models/user";
 
 const RiskLevel = React.lazy(() => import("../../RiskLevel"));
 
@@ -125,7 +126,8 @@ const RiskSection: FC<RiskSectionProps> = ({
   const [alert, setAlert] = useState<alertState | null>(null);
   const { users, loading: usersLoading } = useUsers();
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const { allFrameworks: frameworks, loading: frameworksLoading } = useFrameworks({ listOfFrameworks: [] });
+  const { allFrameworks: frameworks, loading: frameworksLoading } =
+    useFrameworks({ listOfFrameworks: [] });
 
   const handleOnSelectChange = useCallback(
     (prop: keyof RiskFormValues) =>
@@ -140,10 +142,7 @@ const RiskSection: FC<RiskSectionProps> = ({
 
   const handleOnMultiselectChange = useCallback(
     (prop: keyof RiskFormValues) =>
-      (
-        _event: React.SyntheticEvent,
-        newValue: any[]
-      ) => {
+      (_event: React.SyntheticEvent, newValue: any[]) => {
         setRiskValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue.map((item) => Number(item._id || item.id)),
@@ -207,7 +206,8 @@ const RiskSection: FC<RiskSectionProps> = ({
               lineHeight: 1.5,
             }}
           >
-            Define the scope of this risk by selecting applicable projects and frameworks.
+            Define the scope of this risk by selecting applicable projects and
+            frameworks.
           </Typography>
 
           {/* Horizontal layout for Projects and Frameworks */}
@@ -215,7 +215,11 @@ const RiskSection: FC<RiskSectionProps> = ({
             {/* Applicable Projects */}
             <Stack sx={{ flex: 1 }}>
               <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 1,
+                }}
               >
                 Applicable projects
               </Typography>
@@ -233,16 +237,21 @@ const RiskSection: FC<RiskSectionProps> = ({
                           riskValues.applicableProjects.includes(project.id)
                         )
                 }
-                options={projects?.filter((project) => !project.is_organizational) || []}
+                options={
+                  projects?.filter((project) => !project.is_organizational) ||
+                  []
+                }
                 getOptionLabel={(project) => project.project_title}
                 renderOption={(props, option) => {
                   const { key, ...optionProps } = props;
                   return (
                     <Box key={key} component="li" {...optionProps}>
-                      <Typography sx={{
-                        fontSize: FORM_STYLES.fontSize,
-                        color: theme.palette.text.primary
-                      }}>
+                      <Typography
+                        sx={{
+                          fontSize: FORM_STYLES.fontSize,
+                          color: theme.palette.text.primary,
+                        }}
+                      >
                         {option.project_title}
                       </Typography>
                     </Box>
@@ -255,7 +264,11 @@ const RiskSection: FC<RiskSectionProps> = ({
                     placeholder={
                       projectsLoading || !projects?.length
                         ? "Loading projects..."
-                        : projects?.filter((project) => !project.is_organizational && riskValues.applicableProjects.includes(project.id)).length > 0
+                        : projects?.filter(
+                            (project) =>
+                              !project.is_organizational &&
+                              riskValues.applicableProjects.includes(project.id)
+                          ).length > 0
                         ? ""
                         : "Select Applicable Projects"
                     }
@@ -321,7 +334,11 @@ const RiskSection: FC<RiskSectionProps> = ({
             {/* Applicable Frameworks */}
             <Stack sx={{ flex: 1 }}>
               <Typography
-                sx={{ fontSize: theme.typography.fontSize, fontWeight: 500, mb: 1 }}
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 1,
+                }}
               >
                 Applicable frameworks
               </Typography>
@@ -336,19 +353,27 @@ const RiskSection: FC<RiskSectionProps> = ({
                     : frameworks
                         .filter((framework) => framework.is_organizational)
                         .filter((framework) =>
-                          riskValues.applicableFrameworks.includes(Number(framework.id))
+                          riskValues.applicableFrameworks.includes(
+                            Number(framework.id)
+                          )
                         )
                 }
-                options={frameworks?.filter((framework) => framework.is_organizational) || []}
+                options={
+                  frameworks?.filter(
+                    (framework) => framework.is_organizational
+                  ) || []
+                }
                 getOptionLabel={(framework) => framework.name}
                 renderOption={(props, option) => {
                   const { key, ...optionProps } = props;
                   return (
                     <Box key={key} component="li" {...optionProps}>
-                      <Typography sx={{
-                        fontSize: FORM_STYLES.fontSize,
-                        color: theme.palette.text.primary
-                      }}>
+                      <Typography
+                        sx={{
+                          fontSize: FORM_STYLES.fontSize,
+                          color: theme.palette.text.primary,
+                        }}
+                      >
                         {option.name}
                       </Typography>
                     </Box>
@@ -361,7 +386,13 @@ const RiskSection: FC<RiskSectionProps> = ({
                     placeholder={
                       frameworksLoading || !frameworks?.length
                         ? "Loading frameworks..."
-                        : frameworks?.filter((framework) => framework.is_organizational && riskValues.applicableFrameworks.includes(Number(framework.id))).length > 0
+                        : frameworks?.filter(
+                            (framework) =>
+                              framework.is_organizational &&
+                              riskValues.applicableFrameworks.includes(
+                                Number(framework.id)
+                              )
+                          ).length > 0
                         ? ""
                         : "Select Applicable Frameworks"
                     }
@@ -456,7 +487,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 }
                 onChange={handleOnSelectChange("actionOwner")}
                 items={
-                  users?.map((user) => ({
+                  users?.map((user: UserModel) => ({
                     _id: user.id,
                     name: `${user.name} ${user.surname}`,
                   })) || []
@@ -624,10 +655,22 @@ const RiskSection: FC<RiskSectionProps> = ({
         </Stack>
 
         <Stack sx={{ gap: 2, mt: 9 }}>
-          <Typography sx={{ fontSize: 16, fontWeight: 600, color: theme.palette.text.primary }}>
+          <Typography
+            sx={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+            }}
+          >
             Calculate inherent risk level
           </Typography>
-          <Typography sx={{ fontSize: theme.typography.fontSize, color: theme.palette.text.tertiary, lineHeight: 1.5 }}>
+          <Typography
+            sx={{
+              fontSize: theme.typography.fontSize,
+              color: theme.palette.text.tertiary,
+              lineHeight: 1.5,
+            }}
+          >
             The Risk Level is calculated by multiplying the Likelihood and
             Severity scores. By assigning these scores, the risk level will be
             determined based on your inputs.

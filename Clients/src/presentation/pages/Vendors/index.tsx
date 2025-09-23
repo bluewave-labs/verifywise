@@ -1,11 +1,5 @@
 import "./index.css";
-import {
-  Box,
-  SelectChangeEvent,
-  Stack,
-  Tab,
-  useTheme,
-} from "@mui/material";
+import { Box, SelectChangeEvent, Stack, Tab, useTheme } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
@@ -24,7 +18,7 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../components/Skeletons";
@@ -356,7 +350,7 @@ const Vendors = () => {
 
   return (
     <Stack className="vwhome" gap={0}>
-     <PageBreadcrumbs />
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -367,33 +361,35 @@ const Vendors = () => {
         quickActions={[
           {
             label: "Add Your First Vendor",
-            description: "Start by adding a key AI vendor to track their services and compliance",
+            description:
+              "Start by adding a key AI vendor to track their services and compliance",
             primary: true,
             action: () => {
               setIsHelperDrawerOpen(false);
               setIsOpen(true);
-            }
+            },
           },
           {
             label: "Add Vendor Risk",
-            description: "Quickly assess vendor risks using our pre-built risk templates",
+            description:
+              "Quickly assess vendor risks using our pre-built risk templates",
             action: () => {
               setIsHelperDrawerOpen(false);
               setIsRiskModalOpen(true);
-            }
-          }
+            },
+          },
         ]}
         useCases={[
           "**AI model vendors** providing machine learning algorithms and *pre-trained models*",
           "**Cloud AI platforms** offering infrastructure and *development environments*",
           "**Data processing services** handling *sensitive or regulated information*",
-          "**Third-party analytics tools** integrated with your AI systems"
+          "**Third-party analytics tools** integrated with your AI systems",
         ]}
         keyFeatures={[
           "Centralized vendor database with contact and contract information",
           "Risk assessment workflows with customizable scoring criteria",
           "Compliance tracking and certification management",
-          "Integration with project management and audit trails"
+          "Integration with project management and audit trails",
         ]}
         tips={[
           "Start with your **most critical AI vendors** - those providing *core ML services* or data",
@@ -401,7 +397,7 @@ const Vendors = () => {
           "Use *vendor risk scoring* to prioritize your management efforts",
           "Document all vendor communications and maintain **audit trails**",
           "Set up *automated reminders* for contract renewals and **compliance reviews**",
-          "Establish clear **escalation procedures** for vendor-related incidents"
+          "Establish clear **escalation procedures** for vendor-related incidents",
         ]}
       />
       <PageTour
@@ -427,18 +423,16 @@ const Vendors = () => {
                 />
               </Suspense>
             )}
-             <PageHeader
-               title="Vendor list"
-               description="This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(true)
-                     }
-                     size="small"
-                    />
-                 }
-             />
+            <PageHeader
+              title="Vendor list"
+              description="This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+              rightContent={
+                <HelperIcon
+                  onClick={() => setIsHelperDrawerOpen(true)}
+                  size="small"
+                />
+              }
+            />
           </>
         ) : (
           <>
@@ -455,9 +449,9 @@ const Vendors = () => {
             )}
 
             <PageHeader
-                title="Vendor risks list"
-                description="This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
-                />
+              title="Vendor risks list"
+              description="This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+            />
           </>
         )}
         <TabContext value={value}>
@@ -502,9 +496,9 @@ const Vendors = () => {
                   id="projects"
                   value={selectedProjectId ?? ""}
                   items={[
-                    { _id: "all", name: "All Projects" },
+                    { id: "all", name: "All Projects" },
                     ...projects.map((project) => ({
-                      _id: project.id.toString(),
+                      id: project.id.toString(),
                       name: project.project_title,
                     })),
                   ]}
@@ -555,9 +549,9 @@ const Vendors = () => {
                     id="projects"
                     value={selectedProjectId ?? ""}
                     items={[
-                      { _id: "all", name: "All Projects" },
+                      { id: "all", name: "All Projects" },
                       ...projects.map((project) => ({
-                        _id: project.id.toString(),
+                        id: project.id.toString(),
                         name: project.project_title,
                       })),
                     ]}
@@ -572,9 +566,9 @@ const Vendors = () => {
                     id="vendors"
                     value={selectedVendorId}
                     items={[
-                      { _id: "all", name: "All Vendors" },
+                      { id: "all", name: "All Vendors" },
                       ...vendorOptions.map((vendor) => ({
-                        _id: vendor.id.toString(),
+                        id: vendor.id.toString(),
                         name: vendor.name,
                       })),
                     ]}
@@ -618,7 +612,12 @@ const Vendors = () => {
             <TabPanel value="1" sx={tabPanelStyle}>
               <TableWithPlaceholder
                 vendors={vendors}
-                users={users}
+                users={users.map((user) => ({
+                  id: user.id!,
+                  name: `${user.name} ${user.surname}`,
+                  surname: user.surname!,
+                  email: user.email!,
+                }))}
                 onDelete={handleDeleteVendor}
                 onEdit={handleEditVendor}
               />
@@ -636,7 +635,12 @@ const Vendors = () => {
           ) : (
             <TabPanel value="2" sx={tabPanelStyle}>
               <RiskTable
-                users={users}
+                users={users.map((user) => ({
+                  id: user.id!,
+                  name: `${user.name} ${user.surname}`,
+                  surname: user.surname!,
+                  email: user.email!,
+                }))}
                 vendors={vendors}
                 vendorRisks={vendorRisks}
                 onDelete={handleDeleteRisk}

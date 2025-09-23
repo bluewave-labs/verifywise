@@ -512,7 +512,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                 }
                 onChange={handleOnSelectChange("aiLifecyclePhase")}
                 items={aiLifecyclePhase.map((phase) => ({
-                  id: phase._id,
+                  id: phase.id,
                   name: phase.name,
                 }))}
                 isRequired
@@ -554,7 +554,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   id="risk-categories-input"
                   size="small"
                   value={riskCategoryItems.filter((category) =>
-                    riskValues.riskCategory.includes(category._id)
+                    riskValues.riskCategory.includes(category.id)
                   )}
                   options={riskCategoryItems}
                   getOptionLabel={(category) => `${category.name}`}

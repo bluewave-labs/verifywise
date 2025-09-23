@@ -21,13 +21,13 @@ import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
 import Placeholder from "../../assets/imgs/empty-state.svg";
-import {
-  IModelInventory,
-  ModelInventoryStatus,
-} from "../../../domain/interfaces/i.modelInventory";
+import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
-import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../application/utils/paginationStorage";
 import {
   statusBadgeStyle,
   securityAssessmentBadgeStyle,
@@ -45,6 +45,7 @@ import {
   paginationSelectStyle,
   paginationStyle,
 } from "./style";
+import { ModelInventoryStatus } from "../../../domain/enums/modelInventoryStatus";
 
 // Constants for table
 const TABLE_COLUMNS = [
@@ -121,8 +122,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('modelInventory', DEFAULT_ROWS_PER_PAGE)
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("modelInventory", DEFAULT_ROWS_PER_PAGE)
   );
   const [users, setUsers] = useState<User[]>([]);
 
@@ -162,7 +163,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('modelInventory', newRowsPerPage);
+      setPaginationRowCount("modelInventory", newRowsPerPage);
       setPage(0);
     },
     []

@@ -88,12 +88,12 @@ const PolicyDashboard: React.FC = () => {
 
   // ✅ Status options (same as PolicyStatusCard)
   const statusOptions = [
-    { _id: "all", name: "All Policies" },
-    { _id: "Draft", name: "Draft" },
-    { _id: "In review", name: "In Review" },
-    { _id: "Approved", name: "Approved" },
-    { _id: "Published", name: "Published" },
-    { _id: "Archived", name: "Archived" },
+    { id: "all", name: "All Policies" },
+    { id: "Draft", name: "Draft" },
+    { id: "In review", name: "In Review" },
+    { id: "Approved", name: "Approved" },
+    { id: "Published", name: "Published" },
+    { id: "Archived", name: "Archived" },
   ];
 
   // ✅ Filter + search
@@ -111,122 +111,124 @@ const PolicyDashboard: React.FC = () => {
   return (
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
-        <HelperDrawer
-          open={isHelperDrawerOpen}
-          onClose={() => setIsHelperDrawerOpen(false)}
-          title="Policy manager"
-          description="Create and maintain AI governance policies aligned with regulatory requirements"
-          whatItDoes="Centralize **policy creation**, *version control*, and **distribution** for all *AI-related governance documentation*. Track **policy reviews**, *approvals*, and **acknowledgments** across your organization."
-          whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to **responsible AI**, ensure *consistent practices* across teams, and satisfy **regulatory requirements** for documented controls."
-          quickActions={[
-            {
-              label: "Create New Policy",
-              description: "Draft governance policies using templates and best practices",
-              primary: true
-            },
-            {
-              label: "Review Policy Status",
-              description: "Check approval status and track policy acknowledgments"
-            }
-          ]}
-          useCases={[
-            "**AI ethics policies** defining *acceptable use* and **development principles**",
-            "**Data governance policies** for handling *sensitive information* in **AI systems**"
-          ]}
-          keyFeatures={[
-            "**Policy lifecycle management** from *draft* through **approval** to *retirement*",
-            "**Version control** with *change tracking* and **approval workflows**",
-            "**Distribution tracking** to ensure all *stakeholders* have **acknowledged current policies**"
-          ]}
-          tips={[
-            "Start with **template policies** and customize them to your *organization's needs*",
-            "Schedule **regular policy reviews** to ensure they remain *current and relevant*",
-            "Track **acknowledgments** to demonstrate *policy awareness* across your teams"
-          ]}
-        />
+      <HelperDrawer
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Policy manager"
+        description="Create and maintain AI governance policies aligned with regulatory requirements"
+        whatItDoes="Centralize **policy creation**, *version control*, and **distribution** for all *AI-related governance documentation*. Track **policy reviews**, *approvals*, and **acknowledgments** across your organization."
+        whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to **responsible AI**, ensure *consistent practices* across teams, and satisfy **regulatory requirements** for documented controls."
+        quickActions={[
+          {
+            label: "Create New Policy",
+            description:
+              "Draft governance policies using templates and best practices",
+            primary: true,
+          },
+          {
+            label: "Review Policy Status",
+            description:
+              "Check approval status and track policy acknowledgments",
+          },
+        ]}
+        useCases={[
+          "**AI ethics policies** defining *acceptable use* and **development principles**",
+          "**Data governance policies** for handling *sensitive information* in **AI systems**",
+        ]}
+        keyFeatures={[
+          "**Policy lifecycle management** from *draft* through **approval** to *retirement*",
+          "**Version control** with *change tracking* and **approval workflows**",
+          "**Distribution tracking** to ensure all *stakeholders* have **acknowledged current policies**",
+        ]}
+        tips={[
+          "Start with **template policies** and customize them to your *organization's needs*",
+          "Schedule **regular policy reviews** to ensure they remain *current and relevant*",
+          "Track **acknowledgments** to demonstrate *policy awareness* across your teams",
+        ]}
+      />
 
-        <PageHeader
-          title="Policy manager"
-          description="Policy Manager lets you create and update company AI policies in one
+      <PageHeader
+        title="Policy manager"
+        description="Policy Manager lets you create and update company AI policies in one
                place to stay compliant and consistent."
-          rightContent={
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          }
-        />
-
-        {/* Policy by Status Cards */}
-        {policies.length > 0 && (
-          <Box>
-            <PolicyStatusCard policies={policies} />
-          </Box>
-        )}
-
-        {/* Filter + Search + Add Button row */}
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          spacing={4}
-          sx={{ width: "100%" }}
-        >
-          {/* Left side: Dropdown + Search together */}
-          <Stack direction="row" spacing={4} alignItems="center">
-            {/* Dropdown Filter */}
-            <Select
-              id="policy-status"
-              value={statusFilter}
-              items={statusOptions}
-              onChange={(e: any) => setStatusFilter(e.target.value)}
-              sx={{
-                minWidth: "180px",
-                height: "34px",
-                bgcolor: "#fff",
-              }}
-            />
-
-            {/* Expandable Search */}
-            <Box sx={searchBoxStyle(isSearchBarVisible)}>
-              <IconButton
-                disableRipple
-                disableFocusRipple
-                sx={{ "&:hover": { backgroundColor: "transparent" } }}
-                aria-label="Toggle policy search"
-                aria-expanded={isSearchBarVisible}
-                onClick={() => setIsSearchBarVisible((prev) => !prev)}
-              >
-                <SearchIcon />
-              </IconButton>
-
-              {isSearchBarVisible && (
-                <InputBase
-                  autoFocus
-                  placeholder="Search policies..."
-                  inputProps={{ "aria-label": "Search policies" }}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={inputStyle(isSearchBarVisible)}
-                />
-              )}
-            </Box>
-          </Stack>
-
-          {/* Right side: Add New Policy Button */}
-          <CustomizableButton
-            variant="contained"
-            text="Add new policy"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 3,
-              height: "fit-content",
-            }}
-            icon={<AddCircleOutlineIcon />}
-            onClick={handleAddNewPolicy}
+        rightContent={
+          <HelperIcon
+            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            size="small"
           />
+        }
+      />
+
+      {/* Policy by Status Cards */}
+      {policies.length > 0 && (
+        <Box>
+          <PolicyStatusCard policies={policies} />
+        </Box>
+      )}
+
+      {/* Filter + Search + Add Button row */}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={4}
+        sx={{ width: "100%" }}
+      >
+        {/* Left side: Dropdown + Search together */}
+        <Stack direction="row" spacing={4} alignItems="center">
+          {/* Dropdown Filter */}
+          <Select
+            id="policy-status"
+            value={statusFilter}
+            items={statusOptions}
+            onChange={(e: any) => setStatusFilter(e.target.value)}
+            sx={{
+              minWidth: "180px",
+              height: "34px",
+              bgcolor: "#fff",
+            }}
+          />
+
+          {/* Expandable Search */}
+          <Box sx={searchBoxStyle(isSearchBarVisible)}>
+            <IconButton
+              disableRipple
+              disableFocusRipple
+              sx={{ "&:hover": { backgroundColor: "transparent" } }}
+              aria-label="Toggle policy search"
+              aria-expanded={isSearchBarVisible}
+              onClick={() => setIsSearchBarVisible((prev) => !prev)}
+            >
+              <SearchIcon />
+            </IconButton>
+
+            {isSearchBarVisible && (
+              <InputBase
+                autoFocus
+                placeholder="Search policies..."
+                inputProps={{ "aria-label": "Search policies" }}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={inputStyle(isSearchBarVisible)}
+              />
+            )}
+          </Box>
         </Stack>
+
+        {/* Right side: Add New Policy Button */}
+        <CustomizableButton
+          variant="contained"
+          text="Add new policy"
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 3,
+            height: "fit-content",
+          }}
+          icon={<AddCircleOutlineIcon />}
+          onClick={handleAddNewPolicy}
+        />
+      </Stack>
 
       {/* Table / Empty state */}
       <Box sx={{ mt: 1 }}>

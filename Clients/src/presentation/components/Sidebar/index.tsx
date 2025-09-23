@@ -946,7 +946,7 @@ const Sidebar = () => {
           <MenuItem
             onClick={() => {
               window.open(
-                "https://github.com/bluewave-labs/verifywise/discussions",
+                "https://verifywise.ai/contact",
                 "_blank",
                 "noreferrer"
               );

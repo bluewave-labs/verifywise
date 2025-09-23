@@ -2,7 +2,7 @@ import React, { createContext } from "react";
 import { defaultProjectStatus, ProjectStatus } from "../hooks/useProjectStatus";
 import { Project } from "../../domain/types/Project";
 import { ComponentVisible } from "../../application/interfaces/ComponentVisible";
-import { User } from "../../domain/types/User";
+import { UserModel } from "../../domain/models/user";
 
 interface VerifyWiseContextProps {
   uiValues: any;
@@ -27,7 +27,7 @@ interface VerifyWiseContextProps {
     component: keyof ComponentVisible,
     value: boolean
   ) => void;
-  users: User[];
+  users: UserModel[];
   refreshUsers: () => void;
   userRoleName: string;
   organizationId: number | null;
@@ -51,7 +51,12 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
   userId: null,
   projects: [],
   setProjects: () => {},
-  componentsVisible: { home: false, sidebar: false, projectFrameworks: false, compliance: false },
+  componentsVisible: {
+    home: false,
+    sidebar: false,
+    projectFrameworks: false,
+    compliance: false,
+  },
   changeComponentVisibility: () => {},
   users: [],
   refreshUsers: () => {},

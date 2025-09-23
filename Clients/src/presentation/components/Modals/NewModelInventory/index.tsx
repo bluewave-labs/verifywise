@@ -24,13 +24,12 @@ import SelectComponent from "../../Inputs/Select";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";
+import { ModelInventoryStatus } from "../../../../domain/enums/modelInventoryStatus";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -164,7 +163,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   // Transform users to the format expected by SelectComponent
   const userOptions = useMemo(() => {
     return users.map((user) => ({
-      _id: user.id,
+      id: user.id,
       name: `${user.name} ${user.surname}`,
       email: user.email,
     }));
@@ -335,13 +334,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal 
-      open={isOpen} 
+    <Modal
+      open={isOpen}
       onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
+        if (reason !== "backdropClick") {
           handleClose();
         }
-      }} 
+      }}
       sx={{ overflowY: "scroll" }}
     >
       <Stack
@@ -464,13 +463,19 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   error={errors.approver}
                   isRequired
                   sx={{ width: 220 }}
-                  items={userOptions}
+                  items={userOptions.map((user) => ({
+                    id: user.id,
+                    name: user.name,
+                  }))}
                   onChange={handleOnSelectChange("approver")}
                   placeholder="Select approver"
                   disabled={isLoadingUsers}
                 />
                 <SelectComponent
-                  items={statusOptions}
+                  items={statusOptions.map((status) => ({
+                    id: status._id,
+                    name: status.name,
+                  }))}
                   value={values.status}
                   error={errors.status}
                   sx={{ width: 220 }}

@@ -291,7 +291,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                   users
                     ?.filter((user: UserModel) => user.id !== undefined)
                     .map((user: UserModel) => ({
-                      _id: user.id!,
+                      id: user.id!,
                       name: `${user.name} ${user.surname}`,
                       email: user.email,
                     })) || []
@@ -313,7 +313,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 }
                 onChange={handleOnSelectChange("ai_risk_classification")}
                 items={riskClassificationItems.map((item) => ({
-                  _id: item.id,
+                  id: item.id,
                   name: item.name,
                 }))}
                 sx={createProjectFormStyles.selectStyle(theme)}
@@ -333,7 +333,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 }
                 onChange={handleOnSelectChange("type_of_high_risk_role")}
                 items={highRiskRoleItems.map((item) => ({
-                  _id: item.id,
+                  id: item.id,
                   name: item.name,
                 }))}
                 sx={createProjectFormStyles.selectStyle(theme)}

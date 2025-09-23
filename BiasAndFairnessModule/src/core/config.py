@@ -29,6 +29,9 @@ class DatasetConfig(BaseModel):
     protected_attributes: List[str] = Field(
         default=[], description="List of protected attributes to check for bias"
     )
+    legitimate_attributes: List[str] = Field(
+        default=[], description="List of legitimate (allowed) attributes for processing"
+    )
     target_column: str = Field(..., description="Target column for prediction")
     sampling: SamplingConfig = Field(
         default_factory=lambda: SamplingConfig(), description="Sampling configuration"

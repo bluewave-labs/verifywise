@@ -6,6 +6,7 @@ dataset:
   platform: "huggingface"
   protected_attributes:
     - "sex"
+  legitimate_attributes:
     - "race"
   target_column: "income"
   sampling:
@@ -63,8 +64,8 @@ metrics:
     enabled: true
     metrics:
       - "demographic_parity"
-      - "equalized_odds"
-      - "predictive_parity"
+      # - "equalized_odds"
+      #- "balance_negative_class"
 
   # Performance metrics
   performance:
@@ -75,4 +76,4 @@ metrics:
 
 artifacts:
   inference_results_path: "artifacts/inference_results.csv"
-  postprocessed_results_path: "artifacts/postprocessed_results.csv"
+  postprocessed_results_path: "artifacts/base_test_metrics.csv"

@@ -124,7 +124,7 @@ const mapRiskCategories = (riskCategories: string): number[] => {
       (item) => item.name.toLowerCase() === category.toLowerCase()
     );
     if (matchedCategory) {
-      mappedCategories.push(matchedCategory._id);
+      mappedCategories.push(matchedCategory.id);
     }
   });
 
@@ -225,10 +225,10 @@ const AddNewRiskMITModal = ({
   }, [selectedId, onRiskSelected, handleClose]);
 
   return (
-    <Modal 
-      open={isOpen} 
+    <Modal
+      open={isOpen}
       onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
+        if (reason !== "backdropClick") {
           handleClose();
         }
       }}

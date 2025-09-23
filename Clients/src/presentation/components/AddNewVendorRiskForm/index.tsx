@@ -8,7 +8,16 @@ import {
   Box,
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
-import { FC, useState, useContext, useEffect, lazy, Suspense, useCallback, useMemo } from "react";
+import {
+  FC,
+  useState,
+  useContext,
+  useEffect,
+  lazy,
+  Suspense,
+  useCallback,
+  useMemo,
+} from "react";
 import Field from "../Inputs/Field";
 import DatePicker from "../Inputs/Datepicker";
 import selectValidation from "../../../application/validations/selectValidation";
@@ -84,13 +93,13 @@ const INITIAL_FORM_STATE: FormValues = {
 // Utility functions
 const createVendorOptions = (vendors: Vendor[]) =>
   vendors.map((vendor) => ({
-    _id: vendor.id,
+    id: vendor.id,
     name: vendor.vendor_name,
   }));
 
 const createUserOptions = (users: User[]) =>
   users.map((user) => ({
-    _id: user.id,
+    id: user.id,
     name: user.name,
   }));
 
@@ -101,24 +110,24 @@ const formatErrorMessage = (operation: string, error: unknown): string => {
 
 /**
  * AddNewVendorRiskForm component provides a form interface for creating and editing vendor risks.
- * 
+ *
  * Features:
  * - Form validation with real-time feedback
  * - Support for both create and edit modes
  * - Responsive design with accessible controls
  * - Loading states and error handling
- * 
+ *
  * @component
  * @param {RiskSectionProps} props - Component props
  * @param {() => void} props.closePopup - Callback to close the form modal
  * @param {() => void} props.onSuccess - Callback executed after successful form submission
  * @param {string} props.popupStatus - Form mode: "new" for creation, "edit" for modification
- * 
+ *
  * @returns {JSX.Element} The rendered form component
- * 
+ *
  * @example
  * ```tsx
- * <AddNewVendorRiskForm 
+ * <AddNewVendorRiskForm
  *   closePopup={handleClose}
  *   onSuccess={handleSuccess}
  *   popupStatus="new"
@@ -170,13 +179,13 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
   const handleOnSelectChange = useCallback(
     (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
       const value = event.target.value;
-      setValues((prevValues) => ({ 
-        ...prevValues, 
-        [prop]: value 
+      setValues((prevValues) => ({
+        ...prevValues,
+        [prop]: value,
       }));
-      setErrors((prevErrors) => ({ 
-        ...prevErrors, 
-        [prop]: "" 
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [prop]: "",
       }));
     },
     []
@@ -184,17 +193,17 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof FormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setValues((prevValues) => ({ 
-        ...prevValues, 
-        [prop]: value 
-      }));
-      setErrors((prevErrors) => ({ 
-        ...prevErrors, 
-        [prop]: "" 
-      }));
-    },
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        setValues((prevValues) => ({
+          ...prevValues,
+          [prop]: value,
+        }));
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [prop]: "",
+        }));
+      },
     []
   );
 
@@ -203,9 +212,9 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
 
     // Risk name validation
     const riskName = checkStringValidation(
-      "Risk name", 
-      values.riskName, 
-      VALIDATION_LIMITS.RISK_NAME.MIN, 
+      "Risk name",
+      values.riskName,
+      VALIDATION_LIMITS.RISK_NAME.MIN,
       VALIDATION_LIMITS.RISK_NAME.MAX
     );
     if (!riskName.accepted) {
@@ -249,72 +258,83 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
     return Object.keys(newErrors).length === 0;
   }, [values]);
 
-  const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-    setIsSubmitting(true);
-
-    try {
-      const formData: VendorRiskFormData = {
-        project_id: projectId,
-        vendor_name: values.vendorName,
-        risk_name: values.riskName,
-        owner: values.actionOwner,
-        risk_level: "High Risk", // TODO: Make this dynamic
-        review_date: values.reviewDate,
-      };
-
-      let response: ApiResponse;
-      
-      if (popupStatus === "edit") {
-        // Update existing risk
-        response = await apiServices.put(
-          `/vendorRisks/${inputValues.id}`,
-          formData
-        );
-        
-        if (response.status === HTTP_STATUS.UPDATED) {
-          onSuccess?.();
-          closePopup();
-          setValues(INITIAL_FORM_STATE); // Reset form
-        } else {
-          handleAlert({
-            variant: "error",
-            body: "Failed to update the vendor risk. Please try again.",
-            setAlert,
-          });
-        }
-      } else {
-        // Create new risk
-        response = await apiServices.post("/vendorRisks", formData);
-        
-        if (response.status === HTTP_STATUS.CREATED) {
-          onSuccess?.();
-          closePopup();
-          setValues(INITIAL_FORM_STATE); // Reset form
-        } else {
-          handleAlert({
-            variant: "error",
-            body: "Failed to create the vendor risk. Please try again.",
-            setAlert,
-          });
-        }
+      if (!validateForm()) {
+        return;
       }
-    } catch (error) {
-      const operation = popupStatus === "edit" ? "updating" : "creating";
-      handleAlert({
-        variant: "error",
-        body: formatErrorMessage(`${operation} the vendor risk`, error),
-        setAlert,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [validateForm, popupStatus, projectId, values, inputValues.id, onSuccess, closePopup]);
+
+      setIsSubmitting(true);
+
+      try {
+        const formData: VendorRiskFormData = {
+          project_id: projectId,
+          vendor_name: values.vendorName,
+          risk_name: values.riskName,
+          owner: values.actionOwner,
+          risk_level: "High Risk", // TODO: Make this dynamic
+          review_date: values.reviewDate,
+        };
+
+        let response: ApiResponse;
+
+        if (popupStatus === "edit") {
+          // Update existing risk
+          response = await apiServices.put(
+            `/vendorRisks/${inputValues.id}`,
+            formData
+          );
+
+          if (response.status === HTTP_STATUS.UPDATED) {
+            onSuccess?.();
+            closePopup();
+            setValues(INITIAL_FORM_STATE); // Reset form
+          } else {
+            handleAlert({
+              variant: "error",
+              body: "Failed to update the vendor risk. Please try again.",
+              setAlert,
+            });
+          }
+        } else {
+          // Create new risk
+          response = await apiServices.post("/vendorRisks", formData);
+
+          if (response.status === HTTP_STATUS.CREATED) {
+            onSuccess?.();
+            closePopup();
+            setValues(INITIAL_FORM_STATE); // Reset form
+          } else {
+            handleAlert({
+              variant: "error",
+              body: "Failed to create the vendor risk. Please try again.",
+              setAlert,
+            });
+          }
+        }
+      } catch (error) {
+        const operation = popupStatus === "edit" ? "updating" : "creating";
+        handleAlert({
+          variant: "error",
+          body: formatErrorMessage(`${operation} the vendor risk`, error),
+          setAlert,
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      validateForm,
+      popupStatus,
+      projectId,
+      values,
+      inputValues.id,
+      onSuccess,
+      closePopup,
+    ]
+  );
 
   // Memoized styles for performance
   const fieldStyle = useMemo(
@@ -349,7 +369,7 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
       mr: 0,
       mt: FORM_CONFIG.SUBMIT_MARGIN_TOP,
       minWidth: 100,
-      "&:hover": { 
+      "&:hover": {
         boxShadow: "none",
         backgroundColor: theme.palette.primary.dark,
       },
@@ -393,7 +413,8 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
     return (
       <Stack alignItems="center" spacing={2} sx={{ py: 4 }}>
         <Typography color="text.secondary">
-          No vendors available. Please create a vendor first to add vendor risks.
+          No vendors available. Please create a vendor first to add vendor
+          risks.
         </Typography>
       </Stack>
     );
@@ -402,11 +423,13 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
   return (
     <Stack role="main" aria-label="Vendor risk form">
       {alert && (
-        <Suspense fallback={
-          <Box display="flex" justifyContent="center" p={2}>
-            <CircularProgress size={20} />
-          </Box>
-        }>
+        <Suspense
+          fallback={
+            <Box display="flex" justifyContent="center" p={2}>
+              <CircularProgress size={20} />
+            </Box>
+          }
+        >
           <Alert
             variant={alert.variant}
             title={alert.title}
@@ -416,11 +439,11 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
           />
         </Suspense>
       )}
-      <Stack 
-        component="form" 
+      <Stack
+        component="form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label={`${popupStatus === 'new' ? 'Create' : 'Edit'} vendor risk`}
+        aria-label={`${popupStatus === "new" ? "Create" : "Edit"} vendor risk`}
       >
         <Stack sx={gridStyle}>
           <Select
@@ -436,7 +459,9 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
             }}
             error={errors.vendorName}
             isRequired
-            aria-describedby={errors.vendorName ? "vendor-name-error" : undefined}
+            aria-describedby={
+              errors.vendorName ? "vendor-name-error" : undefined
+            }
           />
           <Select
             id="action-owner-input"
@@ -451,7 +476,9 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
             }}
             error={errors.actionOwner}
             isRequired
-            aria-describedby={errors.actionOwner ? "action-owner-error" : undefined}
+            aria-describedby={
+              errors.actionOwner ? "action-owner-error" : undefined
+            }
           />
           <Field
             id="risk-name-input"
@@ -473,8 +500,8 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
             handleDateChange={handleDateChange}
             sx={{
               width: { xs: "100%", md: FORM_CONFIG.DATE_PICKER_WIDTH },
-              "& input": { 
-                width: { xs: "100%", md: FORM_CONFIG.DATE_INPUT_WIDTH } 
+              "& input": {
+                width: { xs: "100%", md: FORM_CONFIG.DATE_INPUT_WIDTH },
               },
             }}
             isRequired
@@ -501,7 +528,9 @@ const AddNewVendorRiskForm: FC<RiskSectionProps> = ({
           }
           disabled={isSubmitting}
           sx={submitButtonStyle}
-          aria-label={`${popupStatus === 'new' ? 'Save' : 'Update'} vendor risk`}
+          aria-label={`${
+            popupStatus === "new" ? "Save" : "Update"
+          } vendor risk`}
         >
           {isSubmitting ? (
             <Stack direction="row" alignItems="center" spacing={1}>

@@ -23,14 +23,15 @@ const Select: React.FC<SelectProps> = ({
   if (isHidden) return null;
 
   return (
-    <FormControl 
-      size="small" 
+    <FormControl
+      size="small"
       sx={{ minWidth: 140, ...sx }}
       error={!!error}
       required={isRequired}
     >
       <InputLabel id={`${id}-label`}>
-        {label}{isRequired && ' *'}
+        {label}
+        {isRequired && " *"}
       </InputLabel>
       <MuiSelect
         labelId={`${id}-label`}
@@ -47,13 +48,15 @@ const Select: React.FC<SelectProps> = ({
           </MenuItem>
         )}
         {items.map((item) => (
-          <MenuItem key={item._id} value={item._id}>
+          <MenuItem key={item.id} value={item.id}>
             {item.name}
           </MenuItem>
         ))}
       </MuiSelect>
       {error && (
-        <div style={{ color: '#d32f2f', fontSize: '0.75rem', marginTop: '4px' }}>
+        <div
+          style={{ color: "#d32f2f", fontSize: "0.75rem", marginTop: "4px" }}
+        >
           {error}
         </div>
       )}

@@ -30,6 +30,8 @@ export interface PageBreadcrumbsProps {
   className?: string;
   /** Test identifier for automated testing */
   testId?: string;
+  /** Whether to show the divider below breadcrumbs */
+  showDivider?: boolean;
 }
 
 /**
@@ -60,6 +62,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = memo(
     sx,
     className,
     testId,
+    showDivider = true,
   }) => {
     const theme = useTheme();
 
@@ -103,7 +106,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = memo(
             },
           }}
         />
-        <Divider sx={{ mb: 2 }} />
+        {showDivider && <Divider sx={{ mb: 2 }} />}
       </Stack>
     )
   }

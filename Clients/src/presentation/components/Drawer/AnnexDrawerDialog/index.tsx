@@ -735,7 +735,7 @@ const VWISO42001AnnexDrawerDialog = ({
             opacity: formData.is_applicable ? 1 : 0.5,
             pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"

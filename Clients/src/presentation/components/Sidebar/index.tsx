@@ -165,16 +165,6 @@ const other: MenuItem[] = [
     icon: <Settings />,
     path: "/setting",
   },
-  {
-    name: "Feedback",
-    icon: <Feedback />,
-    path: "https://github.com/bluewave-labs/verifywise/discussions",
-  },
-  {
-    name: "Ask on Discord",
-    icon: <Discord />,
-    path: "https://discord.gg/d3k3E4uEpR",
-  },
 ];
 
 const DEFAULT_USER: User = {
@@ -279,7 +269,7 @@ const Sidebar = () => {
       component="aside"
       className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
       py={theme.spacing(6)}
-      gap={theme.spacing(6)}
+      gap={theme.spacing(2)}
       sx={{
         height: "100vh",
         border: 1,
@@ -954,11 +944,75 @@ const Sidebar = () => {
             </MenuItem>
           )}
           <MenuItem
+            onClick={() => {
+              window.open(
+                "https://verifywise.ai/contact",
+                "_blank",
+                "noreferrer"
+              );
+              closePopup();
+            }}
+            sx={{
+              gap: theme.spacing(4),
+              borderRadius: theme.shape.borderRadius,
+              pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
+              "& svg path": {
+                stroke: theme.palette.other.icon,
+              },
+              fontSize: "13px",
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
+              },
+            }}
+          >
+            <Feedback />
+            Feedback
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              window.open(
+                "https://discord.gg/d3k3E4uEpR",
+                "_blank",
+                "noreferrer"
+              );
+              closePopup();
+            }}
+            sx={{
+              gap: theme.spacing(4),
+              borderRadius: theme.shape.borderRadius,
+              pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
+              "& svg path": {
+                stroke: theme.palette.other.icon,
+              },
+              fontSize: "13px",
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
+              },
+            }}
+          >
+            <Discord />
+            Ask on Discord
+          </MenuItem>
+          <MenuItem
             onClick={logout}
             sx={{
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },

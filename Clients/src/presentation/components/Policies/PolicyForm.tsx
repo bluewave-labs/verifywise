@@ -163,7 +163,7 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
                 },
               },
               "& .MuiChip-root": {
-                borderRadius: "4px",
+                borderRadius: theme.shape.borderRadius,
               },
             }}
             slotProps={{
@@ -246,7 +246,7 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
                 },
               },
               "& .MuiChip-root": {
-                borderRadius: "4px",
+                borderRadius: theme.shape.borderRadius,
               },
             }}
             slotProps={{

@@ -19,7 +19,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
@@ -422,7 +422,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         : "No options"
                     }
                     filterSelectedOptions
-                    popupIcon={<KeyboardArrowDown />}
+                    popupIcon={<GreyDownArrowIcon />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -453,7 +453,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         },
                       },
                       "& .MuiChip-root": {
-                        borderRadius: "4px",
+                        borderRadius: theme.shape.borderRadius,
                       },
                     }}
                     slotProps={{
@@ -530,7 +530,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                       }}
                       getOptionLabel={(option: string) => option}
                       filterSelectedOptions
-                      popupIcon={<KeyboardArrowDown />}
+                      popupIcon={<GreyDownArrowIcon />}
                       renderInput={(params) => (
                         <TextField
                           {...params}

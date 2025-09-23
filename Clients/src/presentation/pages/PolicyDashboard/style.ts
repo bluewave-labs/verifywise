@@ -6,11 +6,13 @@ export const searchBoxStyle =
     (theme: Theme) => ({
         display: "flex",
         alignItems: "center",
+        justifyContent: isSearchBarVisible ? "flex-start" : "center",
         border: `1px solid ${theme.palette.border.dark}`, // adjust as needed
         borderRadius: theme.shape.borderRadius,
-        p: "4px 6px",
+        p: isSearchBarVisible ? "6px 8px" : "0",
         bgcolor: "#fff",
-        width: isSearchBarVisible ? "23.8%" : "40px",
+        width: isSearchBarVisible ? "23.8%" : "34px",
+        height: "34px",
         transition: "all 0.3s ease",
         mb: 9,
     });

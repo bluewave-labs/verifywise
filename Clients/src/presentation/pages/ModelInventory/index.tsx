@@ -49,7 +49,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import Tab from "@mui/material/Tab";
 import { IconButton, InputBase } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import { searchBoxStyle, inputStyle } from "./style";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
@@ -675,7 +675,7 @@ const ModelInventory: React.FC = () => {
                     aria-expanded={isSearchBarVisible}
                     onClick={() => setIsSearchBarVisible((prev) => !prev)}
                   >
-                    <SearchIcon sx={{ml: 2}}/>
+                    <SearchIcon/>
                   </IconButton>
 
                   {isSearchBarVisible && (

@@ -1,6 +1,6 @@
-import { Box, Chip, Stack, Tooltip, Typography, Dialog } from "@mui/material";
+import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import {
   priorities,
   PriorityLevel,
@@ -49,6 +49,7 @@ const QuestionFrame = ({
   setRefreshKey,
   currentProjectId,
 }: QuestionProps) => {
+  const theme = useTheme();
   const { userRoleName, userId } = useAuth();
   const [values, setValues] = useState<Question>({
     ...question,
@@ -242,7 +243,7 @@ const QuestionFrame = ({
           backgroundColor: "#FBFAFA",
           border: "1px solid #D0D5DD",
           borderBottom: "none",
-          borderRadius: "4px 4px 0 0",
+          borderRadius: `${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0`,
           gap: 4,
         }}
       >
@@ -261,7 +262,7 @@ const QuestionFrame = ({
                   },
                 }}
               >
-                <InfoOutlinedIcon fontSize="inherit" />
+                <GreyCircleInfoIcon fontSize="inherit" />
               </Tooltip>
             </Box>
           )}
@@ -288,7 +289,7 @@ const QuestionFrame = ({
                   (question.priority_level || "low priority") as PriorityLevel
                 ]?.color || "#666",
               color: "#FFFFFF",
-              borderRadius: "4px",
+              borderRadius: theme.shape.borderRadius,
             }}
             size="small"
           />
@@ -304,7 +305,7 @@ const QuestionFrame = ({
         }}
         bodySx={{
           borderColor: "#D0D5DD",
-          borderRadius: "0 0 4px 4px",
+          borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
           "& .ProseMirror > p": {
             margin: 0,
           },

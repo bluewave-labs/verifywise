@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import React, {
   useState,
   useCallback,
@@ -896,7 +896,7 @@ const ProjectSettings = React.memo(
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<KeyboardArrowDown />}
+                  popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -1051,7 +1051,7 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<KeyboardArrowDown />}
+              popupIcon={<GreyDownArrowIcon />}
               renderInput={(params) => (
                 <TextField
                   {...params}

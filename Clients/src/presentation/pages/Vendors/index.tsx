@@ -355,7 +355,7 @@ const Vendors = () => {
   }, [selectedProjectId, vendorOptions, selectedVendorId]);
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={0}>
      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
@@ -413,7 +413,7 @@ const Vendors = () => {
         }}
         tourKey="vendor-tour"
       />
-      <Stack gap={theme.spacing(10)} maxWidth={1400}>
+      <Stack gap={"16px"} maxWidth={1400}>
         {value === "1" ? (
           <>
             {alert && (

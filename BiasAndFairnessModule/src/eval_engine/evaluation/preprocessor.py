@@ -93,6 +93,34 @@ class Preprocessor:
 
         return present_attrs
 
+    def get_legitimate_attributes(self, df: pd.DataFrame) -> List[str]:
+        """Return list of legitimate attribute columns present in the DataFrame.
+
+        Reads desired attributes from ConfigManager and logs warnings for any that
+        are missing from the provided DataFrame.
+        """
+
+        desired_attrs: List[str] = (
+            self.config_manager.get_dataset_config().legitimate_attributes or []
+        )
+        present_attrs: List[str] = []
+        missing_attrs: List[str] = []
+
+        df_cols = set(df.columns)
+        for attr in desired_attrs:
+            if attr in df_cols:
+                present_attrs.append(attr)
+            else:
+                missing_attrs.append(attr)
+
+        if missing_attrs:
+            self.logger.warning(
+                "Missing legitimate attributes in dataset: %s",
+                ", ".join(missing_attrs),
+            )
+
+        return present_attrs
+
     def run(
         self,
         results_path: Optional[str],
@@ -106,6 +134,7 @@ class Preprocessor:
         # Load results and determine protected attributes present
         df = self.load_postprocessed_results(results_path)
         protected_attrs = self.get_protected_attributes(df)
+        legitimate_attrs = self.get_legitimate_attributes(df)
 
         # Extract required arrays
         if "answer" not in df.columns or "prediction" not in df.columns:
@@ -120,9 +149,15 @@ class Preprocessor:
 
         # Attributes DataFrame (N x K) or empty with correct index
         if protected_attrs:
-            attributes_df = df[protected_attrs].copy()
+            protected_attributes_df = df[protected_attrs].copy()
         else:
-            attributes_df = pd.DataFrame(index=df.index)
+            protected_attributes_df = pd.DataFrame(index=df.index)
+
+        # Legitimate Attributes DataFrame (N x L) or empty with correct index
+        if legitimate_attrs:
+            legitimate_attributes_df = df[legitimate_attrs].copy()
+        else:
+            legitimate_attributes_df = pd.DataFrame(index=df.index)
 
         # Build Meta
         pp_cfg = self.config_manager.get_post_processing_config()
@@ -145,7 +180,8 @@ class Preprocessor:
             y_true=y_true,
             y_pred=y_pred,
             y_prob=y_prob,
-            attributes_df=attributes_df,
+            protected_attributes_df=protected_attributes_df,
+            legitimate_attributes_df=legitimate_attributes_df,
             meta=meta,
         )
 

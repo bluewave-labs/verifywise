@@ -34,7 +34,8 @@ class EvalData:
     y_true: np.ndarray
     y_pred: np.ndarray
     y_prob: Optional[np.ndarray]
-    attributes_df: pd.DataFrame
+    protected_attributes_df: pd.DataFrame
+    legitimate_attributes_df: pd.DataFrame
     meta: Meta
 
 

@@ -1,5 +1,5 @@
 import fnmatch
-from typing import Any, Dict, Optional, List, Tuple
+from typing import Any, Dict, Optional, List, Tuple, Union
 import inspect
 import numpy as np
 import pandas as pd
@@ -255,11 +255,13 @@ class MetricRunner:
         # Unknown type
         return None
 
-    def run(self, data: EvalData) -> Dict[str, Any]:
+    def run(self, data: EvalData, selected_metrics: Optional[Union[str, List[str]]] = None) -> Dict[str, Any]:
         """Execute metric computations and prepare outputs.
 
         Args:
             data: The prepared evaluation data container.
+            selected_metrics: Optional override for metric names to run. If provided,
+                these metric(s) will be executed instead of those from configuration.
 
         Note:
             Implementation to be added: compute metrics, handle graceful failures,
@@ -283,12 +285,18 @@ class MetricRunner:
         y_true = data.y_true
         y_pred = data.y_pred
         y_prob = data.y_prob
-        protected_attributes = data.attributes_df
+        protected_attributes = data.protected_attributes_df
 
         # Determine full ordered list of metric names to run
-        metric_names: list[str] = []
-        metric_names.extend(fairness_metric_names)
-        metric_names.extend(performance_metric_names)
+        if selected_metrics is not None:
+            if isinstance(selected_metrics, str):
+                metric_names = [selected_metrics]
+            else:
+                metric_names = list(selected_metrics)
+        else:
+            metric_names: list[str] = []
+            metric_names.extend(fairness_metric_names)
+            metric_names.extend(performance_metric_names)
 
         # Register metric keys in results and warn on missing metrics
         for metric_name in metric_names:
@@ -336,7 +344,7 @@ class MetricRunner:
 
             # Compute per-attribute fairness if attributes exist and metric accepts them
             if (
-                hasattr(data, "attributes_df")
+                hasattr(data, "protected_attributes_df")
                 and isinstance(protected_attributes, pd.DataFrame)
                 and not protected_attributes.empty
                 and "protected_attributes" in accepts

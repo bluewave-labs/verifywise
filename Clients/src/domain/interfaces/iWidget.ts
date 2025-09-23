@@ -134,6 +134,7 @@ export interface SelectProps {
   sx?: object;
   getOptionValue?: (item: any) => any;
   disabled?: boolean;
+  customRenderValue?: (value: any, selectedItem: any) => string;
 }
 
 export interface IBannerProps {

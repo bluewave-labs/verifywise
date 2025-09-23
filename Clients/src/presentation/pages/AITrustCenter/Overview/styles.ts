@@ -2,30 +2,32 @@ import { styled } from "@mui/material/styles";
 import { Box, Card, Theme } from "@mui/material";
 
 export const SectionPaper = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(5),
+  marginBottom: theme.spacing(8),
   padding: theme.spacing(8),
   borderRadius: theme.shape.borderRadius,
   background: theme.palette.background.paper,
   border: `1.5px solid ${theme.palette.border.light}`,
 }));
 
-export const CardActive = styled(Card)(({ theme }) => ({
-  padding: theme.spacing(3),
-  borderRadius: theme.shape.borderRadius,
-  background: theme.palette.background.accent,
+export const CardActive = styled(Card)(() => ({
+  padding: 0,
+  borderRadius: 0,
+  background: 'transparent',
   minHeight: 140,
-  border: `1.5px solid ${theme.palette.border.light}`,
+  border: 'none',
   flex: 1,
+  boxShadow: 'none',
 }));
 
-export const CardDisabled = styled(Card)(({ theme }) => ({
-  padding: theme.spacing(3),
-  borderRadius: theme.shape.borderRadius,
-  background: theme.palette.background.default,
-  border: `1.5px solid ${theme.palette.border.light}`,
+export const CardDisabled = styled(Card)(() => ({
+  padding: 0,
+  borderRadius: 0,
+  background: 'transparent',
+  border: 'none',
   opacity: 0.6,
   minHeight: 140,
   flex: 1,
+  boxShadow: 'none',
 }));
 
 export const PrivacyFields = styled(Box)(({ theme }) => ({

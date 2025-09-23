@@ -10,7 +10,7 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repos
 import { useEffect, useState } from "react";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../../ISO27001/Clause/style";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
 import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
@@ -27,11 +27,15 @@ const ISO42001Annex = ({
   projectFrameworkId,
   statusFilter,
   applicabilityFilter,
+  initialAnnexId,
+  initialAnnexCategoryId,
 }: {
   project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
+  initialAnnexId?: string | null;
+  initialAnnexCategoryId?: string | null;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -43,10 +47,10 @@ const ISO42001Annex = ({
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchParams] = useSearchParams();
-  const annexId = searchParams.get("annexId");
-  const annexControlId = searchParams.get("annexControlId");
+  const annexId = initialAnnexId;
+  const annexControlId = initialAnnexCategoryId;
 
   useEffect(() => {
     const fetchAnnexes = async () => {
@@ -67,17 +71,19 @@ const ISO42001Annex = ({
   }, [projectFrameworkId, refreshTrigger]);
 
   useEffect(() => {
+    // Use initialAnnexId/initialAnnexCategoryId props first, fallback to URL params
+
     if (annexId && annexes && annexes.length > 0) {
       const annex = annexes.find((a: any) => a.id === Number(annexId));
       if (annex) {
         handleAccordionChange(annex.id)(new Event("click") as any, true);
-        const annexControl = annex.annexCategories?.find(
+        const annexCategory = annex.annexCategories?.find(
           (ac: any) => ac.id === Number(annexControlId),
         );
-        if (annexControl) handleControlClick(annex, annexControl);
+        if (annexCategory) handleControlClick(annex, annexCategory);
       }
     }
-  }, [annexId, annexes, annexControlId]);
+  }, [annexId, annexes, annexControlId, initialAnnexId, initialAnnexCategoryId]);
 
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -94,6 +100,12 @@ const ISO42001Annex = ({
     setDrawerOpen(false);
     setSelectedControl(null);
     setSelectedAnnex(null);
+    if (annexId && annexControlId) {
+      searchParams.delete("annexId");
+      searchParams.delete("annexControlId");
+      searchParams.delete("framework");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleSaveSuccess = async (
@@ -250,7 +262,9 @@ const ISO42001Annex = ({
               onChange={handleAccordionChange(annex.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
+                <RightArrowBlack
+                  style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
+                   />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {annex.arrangement} {annex.title}
                 </Typography>

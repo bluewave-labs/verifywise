@@ -9,6 +9,8 @@ import {
   Typography,
   useTheme,
   MenuItem,
+  Chip,
+  Box,
 } from "@mui/material";
 import "./index.css";
 import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
@@ -62,9 +64,21 @@ const CustomizableMultiSelect = ({
     const selectedItems = items.filter((item) =>
       selected.includes(getOptionValue ? getOptionValue(item) : item._id)
     );
-    return selectedItems
-      .map((item) => item.name + (item.surname ? " " + item.surname : ""))
-      .join(", ");
+    return (
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+        {selectedItems.map((item) => (
+          <Chip
+            key={getOptionValue ? getOptionValue(item) : item._id}
+            label={item.name + (item.surname ? " " + item.surname : "")}
+            sx={{
+              borderRadius: theme.shape.borderRadius,
+              height: 24,
+              fontSize: 12,
+            }}
+          />
+        ))}
+      </Box>
+    );
   };
 
   return (

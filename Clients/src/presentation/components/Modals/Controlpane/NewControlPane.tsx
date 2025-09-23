@@ -544,7 +544,7 @@ const NewControlPane = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -777,6 +777,7 @@ const NewControlPane = ({
               .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
+            projectId={projectId}
           />
         </Suspense>
       </Dialog>

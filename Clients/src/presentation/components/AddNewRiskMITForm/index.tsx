@@ -11,12 +11,12 @@ import {
   TableHead,
   TableRow,
   Radio,
-  Button,
   TextField,
 } from "@mui/material";
 import { ReactComponent as GreyCloseIconSVG } from "../../assets/icons/close-grey.svg";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import riskData from "../../assets/MITAIRISKDB.json";
+import CustomizableButton from "../Button/CustomizableButton";
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import { riskCategoryItems } from "../AddNewRiskForm/projectRiskValue";
 
@@ -43,6 +43,8 @@ interface SelectedRiskData {
   riskSeverity: number;
   riskLevel: number;
   reviewNotes: string;
+  applicableProjects: number[];
+  applicableFrameworks: number[];
 }
 
 // Constants
@@ -211,6 +213,8 @@ const AddNewRiskMITModal = ({
         riskSeverity: mapSeverity(selectedRisk["Risk Severity"]),
         riskLevel: DEFAULT_VALUES.RISK_LEVEL,
         reviewNotes: `Imported from MIT AI Risk Database - Category: ${selectedRisk["Risk Category"]}`,
+        applicableProjects: [],
+        applicableFrameworks: [],
       };
 
       onRiskSelected?.(mappedRiskData);
@@ -292,6 +296,11 @@ const AddNewRiskMITModal = ({
               maxWidth: MODAL_CONFIG.SEARCH_FIELD_WIDTH,
               "& .MuiOutlinedInput-root": {
                 borderRadius: theme.spacing(0.5),
+                height: 34,
+                fontSize: 13,
+                "& input::placeholder": {
+                  fontSize: 13,
+                },
                 "& fieldset": {
                   borderRadius: theme.spacing(0.5),
                 },
@@ -470,19 +479,21 @@ const AddNewRiskMITModal = ({
           </TableContainer>
         </Stack>
         <Stack direction="row" justifyContent="flex-end" gap={2} mt={4}>
-          <Button
+          <CustomizableButton
             variant="outlined"
+            text="Cancel"
             onClick={handleClose}
             sx={{
               fontWeight: 400,
               fontSize: 13,
               minWidth: 120,
             }}
-          >
-            Cancel
-          </Button>
-          <Button
+          />
+          <CustomizableButton
             variant="contained"
+            text="Use selected risk and edit"
+            onClick={handleUseSelectedRisk}
+            isDisabled={selectedId === null}
             sx={{
               fontWeight: 400,
               fontSize: 13,
@@ -495,11 +506,7 @@ const AddNewRiskMITModal = ({
                 bgcolor: theme.palette.action.disabledBackground,
               },
             }}
-            onClick={handleUseSelectedRisk}
-            disabled={selectedId === null}
-          >
-            Use selected risk and edit
-          </Button>
+          />
         </Stack>
       </Stack>
     </Modal>

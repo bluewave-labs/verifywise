@@ -45,8 +45,10 @@ declare module "@mui/material/styles" {
   interface TypeBackground {
     main: string;
     alt: string;
+    modal: string;
     fill: string;
     accent: string;
+    modal: string;
   }
   interface TypeText {
     primary: string;

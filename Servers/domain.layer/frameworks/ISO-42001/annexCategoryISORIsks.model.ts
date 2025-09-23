@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectRiskModel } from "../../models/projectRisks/projectRisk.model";
+import { RiskModel } from "../../models/risks/risk.model";
 import { AnnexCategoryISOModel } from "./annexCategoryISO.model";
 
 export type AnnexCategoryISORisks = {
@@ -24,7 +24,7 @@ export class AnnexCategoryISORisksModel extends Model<AnnexCategoryISORisks> {
   })
   annexcategory_id?: number;
 
-  @ForeignKey(() => ProjectRiskModel)
+  @ForeignKey(() => RiskModel)
   @Column({
     type: DataType.INTEGER,
     primaryKey: true,

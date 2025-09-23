@@ -10,7 +10,7 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repos
 import { useCallback, useEffect, useState } from "react";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../Clause/style";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
 import VWISO27001AnnexDrawerDialog from "../../../../components/Drawer/ISO27001AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
@@ -30,11 +30,15 @@ const ISO27001Annex = ({
   projectFrameworkId,
   statusFilter,
   applicabilityFilter,
+  initialAnnexId,
+  initialAnnexControlId,
 }: {
   project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
+  initialAnnexId?: string | null;
+  initialAnnexControlId?: string | null;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -49,8 +53,8 @@ const ISO27001Annex = ({
   const [controlsMap, setControlsMap] = useState<{ [key: number]: any[] }>({});
   const [annexTitle, setAnnexTitle] = useState<string>("");
   const [searchParams, setSearchParams] = useSearchParams();
-  const annexId = searchParams.get("annexId");
-  const annexControlId = searchParams.get("annexControlId");
+  const annexId = initialAnnexId;
+  const annexControlId = initialAnnexControlId;
 
   useEffect(() => {
     const fetchClauses = async () => {
@@ -71,18 +75,22 @@ const ISO27001Annex = ({
   }, [refreshTrigger, projectFrameworkId]);
 
   useEffect(() => {
-    if (annexId && annexes && annexes.length > 0) {
-      const annex = annexes.find((a: any) => a.id === Number(annexId));
+    // Use initialAnnexId/initialAnnexControlId props first, fallback to URL params
+    const activeAnnexId = initialAnnexId || annexId;
+    const activeAnnexControlId = initialAnnexControlId || annexControlId;
+
+    if (activeAnnexId && annexes && annexes.length > 0) {
+      const annex = annexes.find((a: any) => a.id === Number(activeAnnexId));
       if (annex) {
         handleAccordionChange(annex.id)(new Event("click") as any, true);
         const annexControl = annex.annexControls?.find(
-          (ac: any) => ac.id === Number(annexControlId),
+          (ac: any) => ac.id === Number(activeAnnexControlId),
         );
         if (annexControl) handleControlClick(annex, annexControl);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [annexId, annexes, annexControlId]);
+  }, [annexId, annexes, annexControlId, annexId, annexControlId]);
 
   const handleAccordionChange =
     (panel: number) => async (_: React.SyntheticEvent, isExpanded: boolean) => {
@@ -196,9 +204,9 @@ const ISO27001Annex = ({
   const handleDrawerClose = () => {
     setDrawerOpen(false);
     if (annexId && annexControlId) {
-      searchParams.delete("annexId");
-      searchParams.delete("annexControlId");
-      searchParams.delete("frameworkName");
+      searchParams.delete("annex27001Id");
+      searchParams.delete("annexControl27001Id");
+      searchParams.delete("framework");
       setSearchParams(searchParams);
     }
   };
@@ -229,10 +237,12 @@ const ISO27001Annex = ({
                   sx={styles.accordion}
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
-                    <ExpandMoreIcon
-                      sx={styles.expandIcon(expanded === annex.id)}
+                    <RightArrowBlack
+                      style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
                     />
-                    {annex.arrangement}.{annex.order_no} {annex.title}
+                    <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
+                      {annex.arrangement}.{annex.order_no} {annex.title}
+                    </Typography>
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
                     {(() => {

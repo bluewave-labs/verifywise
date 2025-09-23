@@ -18,7 +18,7 @@ import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
@@ -537,7 +537,7 @@ const ProfileForm: React.FC = () => {
                   border: `1px solid ${isAdmin ? "#C2C2C2" : "#DB504A"}`,
                   gap: 2,
                 }}
-                icon={<DeleteIcon />}
+                icon={<DeleteIconWhite />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete account"

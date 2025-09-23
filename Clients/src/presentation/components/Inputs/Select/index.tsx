@@ -39,6 +39,7 @@ const Select: React.FC<SelectProps> = ({
   sx,
   getOptionValue,
   disabled,
+  customRenderValue,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -53,10 +54,17 @@ const Select: React.FC<SelectProps> = ({
     const selectedItem = items.find(
       (item) => (getOptionValue ? getOptionValue(item) : item._id) === selected
     );
-    const displayText = selectedItem
-      ? selectedItem.name +
-        (selectedItem.surname ? " " + selectedItem.surname : "")
-      : placeholder;
+
+    let displayText;
+    if (customRenderValue && selectedItem) {
+      displayText = customRenderValue(value, selectedItem);
+    } else {
+      displayText = selectedItem
+        ? selectedItem.name +
+          (selectedItem.surname ? " " + selectedItem.surname : "")
+        : placeholder;
+    }
+
     return (
       <span
         style={{
@@ -154,6 +162,7 @@ const Select: React.FC<SelectProps> = ({
         sx={{
           fontSize: 13,
           minWidth: "125px",
+          backgroundColor: theme.palette.background.main,
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
             borderColor: theme.palette.border.dark,

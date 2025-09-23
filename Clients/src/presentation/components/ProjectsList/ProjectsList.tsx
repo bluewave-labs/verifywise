@@ -1,7 +1,7 @@
 // New component file: ProjectList.tsx
 import { useState, useMemo } from "react";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";

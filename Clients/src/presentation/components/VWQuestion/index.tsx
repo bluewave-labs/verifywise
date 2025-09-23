@@ -1,6 +1,6 @@
-import { Box, Chip, Stack, Tooltip, Typography, Dialog } from "@mui/material";
+import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import {
   priorities,
   PriorityLevel,
@@ -49,6 +49,7 @@ const QuestionFrame = ({
   setRefreshKey,
   currentProjectId,
 }: QuestionProps) => {
+  const theme = useTheme();
   const { userRoleName, userId } = useAuth();
   const [values, setValues] = useState<Question>({
     ...question,
@@ -242,7 +243,7 @@ const QuestionFrame = ({
           backgroundColor: "#FBFAFA",
           border: "1px solid #D0D5DD",
           borderBottom: "none",
-          borderRadius: "4px 4px 0 0",
+          borderRadius: `${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0`,
           gap: 4,
         }}
       >
@@ -250,8 +251,18 @@ const QuestionFrame = ({
           {question.question || ""}
           {question.hint && (
             <Box component="span" ml={2}>
-              <Tooltip title={question.hint || ""} sx={{ fontSize: 13 }}>
-                <InfoOutlinedIcon fontSize="inherit" />
+              <Tooltip
+                title={question.hint || ""}
+                sx={{ fontSize: 13 }}
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      fontSize: 12,
+                    },
+                  },
+                }}
+              >
+                <GreyCircleInfoIcon fontSize="inherit" />
               </Tooltip>
             </Box>
           )}
@@ -278,7 +289,7 @@ const QuestionFrame = ({
                   (question.priority_level || "low priority") as PriorityLevel
                 ]?.color || "#666",
               color: "#FFFFFF",
-              borderRadius: "4px",
+              borderRadius: theme.shape.borderRadius,
             }}
             size="small"
           />
@@ -294,7 +305,7 @@ const QuestionFrame = ({
         }}
         bodySx={{
           borderColor: "#D0D5DD",
-          borderRadius: "0 0 4px 4px",
+          borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
           "& .ProseMirror > p": {
             margin: 0,
           },
@@ -334,6 +345,10 @@ const QuestionFrame = ({
               backgroundColor: "white",
               color: "#344054",
               flexShrink: 0, //  prevent shrinking in flex layouts
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+                border: "1px solid #D0D5DD",
+              },
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}
@@ -356,7 +371,7 @@ const QuestionFrame = ({
             {`${values?.evidence_files?.length || 0} evidence files attached`}
           </Typography>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} sx={{ ml: "36px" }}>
             <Button
               variant="contained"
               sx={{
@@ -368,6 +383,10 @@ const QuestionFrame = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple
               onClick={() => setIsLinkedRisksModalOpen(true)}
@@ -405,7 +424,7 @@ const QuestionFrame = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -462,6 +481,7 @@ const QuestionFrame = ({
               .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
+            projectId={currentProjectId}
           />
         </Suspense>
       </Dialog>

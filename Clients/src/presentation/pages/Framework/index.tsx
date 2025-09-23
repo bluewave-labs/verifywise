@@ -14,9 +14,9 @@ import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import organizationalFrameworksHelpContent from "../../helpers/organizational-frameworks-help.html?raw";
 import { useContext, useEffect, useState, useMemo } from "react";
-import AddCircleOutlineIcon from "@mui/icons-material/Add";
-import SettingsIcon from "@mui/icons-material/Settings";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
+import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
 import EditIcon from "@mui/icons-material/Edit";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
@@ -77,7 +77,6 @@ const frameworkTabsContainerStyle = {
   overflow: "hidden",
   height: 43,
   bgcolor: "background.paper",
-  mb: 4,
   width: "fit-content",
 };
 
@@ -103,9 +102,20 @@ const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
+  const framework = searchParams.get("framework");
   const frameworkName = searchParams.get("frameworkName");
-  const annexId = searchParams.get("annexId");
+
+  // ISO 42001 parameters
   const clauseId = searchParams.get("clauseId");
+  const subClauseId = searchParams.get("subClauseId");
+  const annexId = searchParams.get("annexId");
+  const annexCategoryId = searchParams.get("annexCategoryId");
+
+  // ISO 27001 parameters
+  const clause27001Id = searchParams.get("clause27001Id");
+  const subClause27001Id = searchParams.get("subClause27001Id");
+  const annex27001Id = searchParams.get("annex27001Id");
+  const annexControl27001Id = searchParams.get("annexControl27001Id");
   const [rotated, setRotated] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
@@ -292,14 +302,50 @@ const Framework = () => {
   }, [filteredFrameworks, selectedFramework, frameworkName]);
 
   useEffect(() => {
-    if (frameworkName === "iso-42001") {
-      setSelectedFramework(1);
-      setIso42001TabValue(annexId ? "annexes" : "clauses");
-    } else if (frameworkName === "iso-27001") {
-      setSelectedFramework(0);
-      setIso27001TabValue(annexId ? "annex" : "clause");
+    if (framework === "iso-42001" || frameworkName === "iso-42001") {
+      // Find ISO 42001 framework in filtered frameworks
+      const iso42001Index = filteredFrameworks.findIndex(fw =>
+        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("42001")
+      );
+      if (iso42001Index !== -1) {
+        setSelectedFramework(iso42001Index);
+      }
+
+      // Set tab based on parameters
+      if (annexId || annexCategoryId) {
+        setIso42001TabValue("annexes");
+      } else if (clauseId || subClauseId) {
+        setIso42001TabValue("clauses");
+      }
+    } else if (framework === "iso-27001" || frameworkName === "iso-27001") {
+      // Find ISO 27001 framework in filtered frameworks
+      const iso27001Index = filteredFrameworks.findIndex(fw =>
+        fw.name.toLowerCase().includes("iso") && fw.name.toLowerCase().includes("27001")
+      );
+      if (iso27001Index !== -1) {
+        setSelectedFramework(iso27001Index);
+      }
+
+      // Set tab based on parameters
+      if (annex27001Id || annexControl27001Id) {
+        setIso27001TabValue("annex");
+      } else if (clause27001Id || subClause27001Id) {
+        setIso27001TabValue("clause");
+      }
     }
-  }, [frameworkName, annexId, clauseId]);
+  }, [
+    framework,
+    frameworkName,
+    filteredFrameworks,
+    clauseId,
+    subClauseId,
+    annexId,
+    annexCategoryId,
+    clause27001Id,
+    subClause27001Id,
+    annex27001Id,
+    annexControl27001Id
+  ]);
 
   // Reset filters when tab changes (following ProjectFrameworks pattern)
   useEffect(() => {
@@ -429,6 +475,8 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                initialClauseId={clause27001Id}
+                initialSubClauseId={subClause27001Id}
               />
             </TabPanel>
 
@@ -440,6 +488,8 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                initialAnnexId={annex27001Id}
+                initialAnnexControlId={annexControl27001Id}
               />
             </TabPanel>
           </TabContext>
@@ -492,6 +542,8 @@ const Framework = () => {
                   getProjectFrameworkId(framework.id) || framework.id
                 }
                 statusFilter={statusFilter}
+                initialClauseId={clauseId}
+                initialSubClauseId={subClauseId}
               />
             </TabPanel>
 
@@ -503,6 +555,8 @@ const Framework = () => {
                 }
                 statusFilter={statusFilter}
                 applicabilityFilter={applicabilityFilter}
+                initialAnnexId={annexId}
+                initialAnnexCategoryId={annexCategoryId}
               />
             </TabPanel>
           </TabContext>
@@ -540,22 +594,14 @@ const Framework = () => {
   };
 
   return (
-    <Stack
-      className="framework-page"
-      sx={{
-        minHeight: "100vh",
-        padding: 3,
-        backgroundColor: "#FCFCFD",
-      }}
-      ref={refs[0]}
-    >
+    <Stack className="vwhome" gap={"24px"} ref={refs[0]}>
       <HelperDrawer
         isOpen={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
         helpContent={organizationalFrameworksHelpContent}
         pageTitle="Organizational Frameworks"
       />
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
+      <PageBreadcrumbs />
       <Stack>
       <PageHeader
                title="Framework"
@@ -571,16 +617,36 @@ const Framework = () => {
                     />
                  }
        />
-        {/* Conditional Button Section */}
+        {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
         <Box
           sx={{
-            mt: 4,
-            mb: 4,
+            mt: "24px",
+            mb: "0px",
             display: "flex",
             gap: 2,
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
+          {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
+          {organizationalProject && filteredFrameworks.length > 0 && (
+            <Box sx={frameworkTabsContainerStyle}>
+              {filteredFrameworks.map((framework, index) => (
+                <Box
+                  key={framework.id}
+                  onClick={() => handleFrameworkSelect(index)}
+                  sx={getFrameworkTabStyle(
+                    selectedFramework === index,
+                    index === filteredFrameworks.length - 1
+                  )}
+                >
+                  {framework.name}
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          {/* Manage Project Button */}
           {organizationalProject ? (
             <>
               <Button
@@ -649,7 +715,7 @@ const Framework = () => {
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <SettingsIcon
                       fontSize="small"
-                      sx={{
+                      style={{
                         color: "text.secondary",
                         fontSize: "16px",
                       }}
@@ -694,9 +760,9 @@ const Framework = () => {
                   }
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <DeleteIcon
+                    <DeleteIconRed
                       fontSize="small"
-                      sx={{
+                      style={{
                         color: "error.main",
                         fontSize: "16px",
                       }}
@@ -740,25 +806,7 @@ const Framework = () => {
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
-        <Stack className="frameworks-switch" sx={{ mt: 6 }}>
-          {/* Framework toggle following ProjectFrameworks pattern - only show if frameworks are available */}
-          {filteredFrameworks.length > 0 && (
-            <Box sx={frameworkTabsContainerStyle}>
-              {filteredFrameworks.map((framework, index) => (
-                <Box
-                  key={framework.id}
-                  onClick={() => handleFrameworkSelect(index)}
-                  sx={getFrameworkTabStyle(
-                    selectedFramework === index,
-                    index === filteredFrameworks.length - 1
-                  )}
-                >
-                  {framework.name}
-                </Box>
-              ))}
-            </Box>
-          )}
-
+        <Stack className="frameworks-switch" sx={{ mt: 0 }}>
           {/* Content that changes based on selected framework */}
           {renderFrameworkContent()}
         </Stack>

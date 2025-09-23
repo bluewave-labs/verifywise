@@ -9,7 +9,7 @@ import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMet
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
-import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
+import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/Drawer/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import evidencesHelpContent from "../../../presentation/helpers/evidences-help.html?raw";
@@ -88,16 +88,8 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [allVisible]);
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ height: 10 }}
-      >
-        {" "}
-        <PageBreadcrumbs />{" "}
-      </Stack>
+    <Stack className="vwhome" gap={"16px"}>
+      <PageBreadcrumbs />
       <PageTour
         steps={FileSteps}
         run={runFileTour}
@@ -126,19 +118,31 @@ const FileManager: React.FC = (): JSX.Element => {
           />
         </>
       ) : (
-        <>
-          <ProjectFilterDropdown
-            projects={projects.map((project: Project) => ({
-              id: project.id.toString(),
-              name: project.project_title,
-            }))}
-            selectedProject={selectedProject}
-            onChange={setSelectedProject}
-          />
+        <Stack gap={"16px"}>
+          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
+            <Select
+              id="project-filter"
+              value={selectedProject || "all"}
+              items={[
+                { _id: "all", name: "All projects" },
+                ...projects.map((project: Project) => ({
+                  _id: project.id.toString(),
+                  name: project.project_title,
+                }))
+              ]}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              sx={{
+                width: "fit-content",
+                minWidth: "200px",
+                height: "34px",
+                bgcolor: "#fff",
+              }}
+            />
+          </Box>
           <Box sx={boxStyles}>
             <FileTable cols={COLUMNS} files={filteredFiles} />
           </Box>
-        </>
+        </Stack>
       )}
     </Stack>
   );

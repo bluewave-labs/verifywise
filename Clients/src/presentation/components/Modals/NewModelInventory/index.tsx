@@ -28,7 +28,7 @@ import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInven
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 
@@ -291,14 +291,21 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   const capabilitiesSxStyle = {
     width: "100%",
     "& .MuiOutlinedInput-root": {
-      borderRadius: "3px",
-      "&:hover .MuiOutlinedInput-notchedOutline": {
-        borderColor: "none",
-      },
-      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-        borderColor: "#888",
+      borderRadius: "2px",
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d0d5dd",
         borderWidth: "1px",
       },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d0d5dd",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#d0d5dd",
+        borderWidth: "1px",
+      },
+    },
+    "& .MuiChip-root": {
+      borderRadius: "4px",
     },
   };
 
@@ -350,7 +357,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           maxHeight: "80vh",
           display: "flex",
           flexDirection: "column",
-          bgcolor: theme.palette.background.main,
+          bgcolor: theme.palette.background.modal,
           border: 1,
           borderColor: theme.palette.border,
           borderRadius: theme.shape.borderRadius,
@@ -525,7 +532,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     </Box>
                   )}
                   filterSelectedOptions
-                  popupIcon={<KeyboardArrowDown />}
+                  popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
                     <TextField
                       {...params}

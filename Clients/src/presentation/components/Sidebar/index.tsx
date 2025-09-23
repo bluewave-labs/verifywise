@@ -28,6 +28,7 @@ import { ReactComponent as Tasks } from "../../assets/icons/flag-grey.svg";
 import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
 import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
 import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
+import { ReactComponent as RiskManagementIcon } from "../../assets/icons/warning-triangle.svg";
 
 import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
 import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
@@ -84,6 +85,11 @@ const getMenuItems = (openTasksCount: number): MenuItem[] => [
       },
     ],
     highlightPaths: ["/project-view"],
+  },
+  {
+    name: "Risk Management",
+    icon: <RiskManagementIcon />,
+    path: "/risk-management",
   },
   {
     name: "Tasks",
@@ -158,16 +164,6 @@ const other: MenuItem[] = [
     name: "Settings",
     icon: <Settings />,
     path: "/setting",
-  },
-  {
-    name: "Feedback",
-    icon: <Feedback />,
-    path: "https://github.com/bluewave-labs/verifywise/discussions",
-  },
-  {
-    name: "Ask on Discord",
-    icon: <Discord />,
-    path: "https://discord.gg/d3k3E4uEpR",
   },
 ];
 
@@ -273,7 +269,7 @@ const Sidebar = () => {
       component="aside"
       className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
       py={theme.spacing(6)}
-      gap={theme.spacing(6)}
+      gap={theme.spacing(2)}
       sx={{
         height: "100vh",
         border: 1,
@@ -437,18 +433,17 @@ const Sidebar = () => {
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 0 }}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "fit-content",
-                          height: "fit-content",
-                        }}
-                      >
-                        {item.icon}
-                      </Box>
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-start",
+                        width: "32px",
+                        mr: 0,
+                      }}
+                    >
+                      {item.icon}
                     </ListItemIcon>
                     <ListItemText>{item.name}</ListItemText>
                   </ListItemButton>
@@ -538,18 +533,17 @@ const Sidebar = () => {
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 0 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "fit-content",
-                        height: "fit-content",
-                      }}
-                    >
-                      {item.icon}
-                    </Box>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      width: "32px",
+                      mr: 0,
+                    }}
+                  >
+                    {item.icon}
                   </ListItemIcon>
                   <ListItemText
                     sx={{
@@ -698,7 +692,18 @@ const Sidebar = () => {
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    width: "32px",
+                    mr: 0,
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
                 <ListItemText
                   sx={{
                     "& .MuiListItemText-primary": {
@@ -770,7 +775,18 @@ const Sidebar = () => {
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 0 }}>{item.icon}</ListItemIcon>
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  width: "32px",
+                  mr: 0,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
               <ListItemText
                 sx={{
                   "& .MuiListItemText-primary": {
@@ -928,11 +944,75 @@ const Sidebar = () => {
             </MenuItem>
           )}
           <MenuItem
+            onClick={() => {
+              window.open(
+                "https://verifywise.ai/contact",
+                "_blank",
+                "noreferrer"
+              );
+              closePopup();
+            }}
+            sx={{
+              gap: theme.spacing(4),
+              borderRadius: theme.shape.borderRadius,
+              pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
+              "& svg path": {
+                stroke: theme.palette.other.icon,
+              },
+              fontSize: "13px",
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
+              },
+            }}
+          >
+            <Feedback />
+            Feedback
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              window.open(
+                "https://discord.gg/d3k3E4uEpR",
+                "_blank",
+                "noreferrer"
+              );
+              closePopup();
+            }}
+            sx={{
+              gap: theme.spacing(4),
+              borderRadius: theme.shape.borderRadius,
+              pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
+              "& svg path": {
+                stroke: theme.palette.other.icon,
+              },
+              fontSize: "13px",
+
+              "& .MuiTouchRipple-root": {
+                display: "none",
+              },
+            }}
+          >
+            <Discord />
+            Ask on Discord
+          </MenuItem>
+          <MenuItem
             onClick={logout}
             sx={{
               gap: theme.spacing(4),
               borderRadius: theme.shape.borderRadius,
               pl: theme.spacing(4),
+              "& svg": {
+                width: "fit-content",
+                height: "fit-content",
+              },
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },

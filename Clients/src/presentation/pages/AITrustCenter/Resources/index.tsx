@@ -13,8 +13,7 @@ import {
 import Alert from "../../../components/Alert";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import AddIcon from "@mui/icons-material/Add";
-
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
@@ -503,7 +502,7 @@ const TrustCenterResources: React.FC = () => {
             onClick={handleOpenAddModal}
             isDisabled={!formData?.info?.resources_visible}
             text="Add new resource"
-            icon={<AddIcon />}
+            icon={<AddCircleOutlineIcon />}
           />
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>

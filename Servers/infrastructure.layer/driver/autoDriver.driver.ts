@@ -1,24 +1,28 @@
-import { getData, deleteDemoVendorsData, checkOrganizationalProjectExists } from "../utils/autoDriver.utils";
-import { createEUFrameworkQuery } from "../utils/eu.utils";
-import { sequelize } from "../database/db";
+import {
+  getData,
+  deleteDemoVendorsData,
+  checkOrganizationalProjectExists,
+} from "../../utils/autoDriver.utils";
+import { createEUFrameworkQuery } from "../../utils/eu.utils";
+import { sequelize } from "../../database/db";
 import {
   createNewProjectQuery,
   deleteProjectByIdQuery,
-} from "../utils/project.utils";
-import { createRiskQuery } from "../utils/risk.utils";
-import { createNewVendorQuery } from "../utils/vendor.utils";
-import { createNewVendorRiskQuery } from "../utils/vendorRisk.utils";
-import { createNewUserQuery } from "../utils/user.utils";
-import { UserModel } from "../domain.layer/models/user/user.model";
+} from "../../utils/project.utils";
+import { createRiskQuery } from "../../utils/risk.utils";
+import { createNewVendorQuery } from "../../utils/vendor.utils";
+import { createNewVendorRiskQuery } from "../../utils/vendorRisk.utils";
+import { createNewUserQuery } from "../../utils/user.utils";
+import { UserModel } from "../../domain.layer/models/user/user.model";
 
-import { createISOFrameworkQuery } from "../utils/iso42001.utils";
-import { addVendorProjects } from "../utils/vendor.utils";
-import { ProjectModel } from "../domain.layer/models/project/project.model";
-import { HighRiskRole } from "../domain.layer/enums/high-risk-role.enum";
-import { AiRiskClassification } from "../domain.layer/enums/ai-risk-classification.enum";
-import { updateAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
-import { IVendor } from "../domain.layer/interfaces/i.vendor";
-import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
+import { createISOFrameworkQuery } from "../../utils/iso42001.utils";
+import { addVendorProjects } from "../../utils/vendor.utils";
+import { ProjectModel } from "../../domain.layer/models/project/project.model";
+import { HighRiskRole } from "../../domain.layer/enums/high-risk-role.enum";
+import { AiRiskClassification } from "../../domain.layer/enums/ai-risk-classification.enum";
+import { updateAITrustCentreOverviewQuery } from "../../utils/aiTrustCentre.utils";
+import { IVendor } from "../../domain.layer/interfaces/i.vendor";
+import { createISO27001FrameworkQuery } from "../../utils/iso27001.utils";
 // import { createAITrustCentreOverviewQuery } from "../utils/aiTrustCentre.utils";
 
 export async function insertMockData(
@@ -94,7 +98,8 @@ export async function insertMockData(
         true
       );
 
-      const organizationalProjectExists = await checkOrganizationalProjectExists(tenant, transaction);
+      const organizationalProjectExists =
+        await checkOrganizationalProjectExists(tenant, transaction);
       if (!organizationalProjectExists) {
         const projectOrg = await createNewProjectQuery(
           {
@@ -104,7 +109,7 @@ export async function insertMockData(
             goal: "To establish comprehensive information security management and AI governance frameworks ensuring regulatory compliance and risk mitigation across organizational operations",
             last_updated: new Date(Date.now()),
             last_updated_by: users[0].id!,
-            is_organizational: true
+            is_organizational: true,
           },
           users.reduce((acc: number[], user) => {
             if (user.id !== owner) {

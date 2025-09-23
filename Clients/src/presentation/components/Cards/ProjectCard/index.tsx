@@ -181,10 +181,12 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
     } = useProjectProgress(projectFrameworkId, projectFrameworkId2);
 
     // Find project owner
-    const ownerUser: User | null = useMemo(
-      () => users?.find((user: User) => user.id === project.owner) ?? null,
-      [users, project.owner]
-    );
+    const ownerUser: User | null = useMemo(() => {
+      const foundUser = users?.find((user) => user.id === project.owner);
+      return foundUser && foundUser.id !== undefined
+        ? ({ ...foundUser, id: foundUser.id } as User)
+        : null;
+    }, [users, project.owner]);
 
     // Navigation handlers for framework buttons
     const handleFrameworkClick = (frameworkId: number) => {

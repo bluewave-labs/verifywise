@@ -32,11 +32,20 @@ import {
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
 import { IUser } from "../../../domain/interfaces/iUser";
+
+// Type for Autocomplete users with required id
+type AutocompleteUser = {
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+};
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
 import { Project } from "../../../domain/types/Project";
 import { createProjectFormStyles } from "./styles";
+import { UserModel } from "../../../domain/models/user";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -189,10 +198,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
         body: {
           ...values,
           type_of_high_risk_role: highRiskRoleItems.find(
-            (item) => item._id === values.type_of_high_risk_role
+            (item) => item.id === values.type_of_high_risk_role
           )?.name,
           ai_risk_classification: riskClassificationItems.find(
-            (item) => item._id === values.ai_risk_classification
+            (item) => item.id === values.ai_risk_classification
           )?.name,
           last_updated: values.start_date,
           last_updated_by: userInfo?.id,
@@ -217,21 +226,21 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const riskClassificationItems = useMemo(
     () => [
-      { _id: 1, name: RiskClassificationEnum.HighRisk },
-      { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-      { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+      { id: 1, name: RiskClassificationEnum.HighRisk },
+      { id: 2, name: RiskClassificationEnum.LimitedRisk },
+      { id: 3, name: RiskClassificationEnum.MinimalRisk },
     ],
     []
   );
 
   const highRiskRoleItems = useMemo(
     () => [
-      { _id: 1, name: HighRiskRoleEnum.Deployer },
-      { _id: 2, name: HighRiskRoleEnum.Provider },
-      { _id: 3, name: HighRiskRoleEnum.Distributor },
-      { _id: 4, name: HighRiskRoleEnum.Importer },
-      { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-      { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+      { id: 1, name: HighRiskRoleEnum.Deployer },
+      { id: 2, name: HighRiskRoleEnum.Provider },
+      { id: 3, name: HighRiskRoleEnum.Distributor },
+      { id: 4, name: HighRiskRoleEnum.Importer },
+      { id: 5, name: HighRiskRoleEnum.ProductManufacturer },
+      { id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
     ],
     []
   );
@@ -243,10 +252,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: IUser[]) => {
+      (_event: React.SyntheticEvent, newValue: AutocompleteUser[]) => {
         setValues((prevValues) => ({
           ...prevValues,
-          [prop]: newValue,
+          [prop]: newValue as IUser[],
         }));
         setMemberRequired(false);
         setErrors((prevErrors) => ({ ...prevErrors, members: "" }));
@@ -279,11 +288,13 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 value={values.owner === 0 ? "" : values.owner}
                 onChange={handleOnSelectChange("owner")}
                 items={
-                  users?.map((user) => ({
-                    _id: user.id,
-                    name: `${user.name} ${user.surname}`,
-                    email: user.email,
-                  })) || []
+                  users
+                    ?.filter((user: UserModel) => user.id !== undefined)
+                    .map((user: UserModel) => ({
+                      _id: user.id!,
+                      name: `${user.name} ${user.surname}`,
+                      email: user.email,
+                    })) || []
                 }
                 sx={createProjectFormStyles.selectStyle(theme)}
                 error={errors.owner}
@@ -301,7 +312,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     : values.ai_risk_classification
                 }
                 onChange={handleOnSelectChange("ai_risk_classification")}
-                items={riskClassificationItems}
+                items={riskClassificationItems.map((item) => ({
+                  _id: item.id,
+                  name: item.name,
+                }))}
                 sx={createProjectFormStyles.selectStyle(theme)}
                 error={errors.riskClassification}
                 isRequired
@@ -318,7 +332,10 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     : values.type_of_high_risk_role
                 }
                 onChange={handleOnSelectChange("type_of_high_risk_role")}
-                items={highRiskRoleItems}
+                items={highRiskRoleItems.map((item) => ({
+                  _id: item.id,
+                  name: item.name,
+                }))}
                 sx={createProjectFormStyles.selectStyle(theme)}
                 isRequired
                 error={errors.typeOfHighRiskRole}
@@ -337,11 +354,16 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 }
                 id="users-input"
                 size="small"
-                value={values.members}
+                value={
+                  values.members.filter(
+                    (member) => member.id !== undefined
+                  ) as AutocompleteUser[]
+                }
                 options={
                   users
                     ?.filter(
                       (user) =>
+                        user.id !== undefined &&
                         !values.members.some(
                           (selectedUser) => selectedUser.id === user.id
                         )
@@ -349,11 +371,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     .map(
                       (user) =>
                         ({
-                          id: user.id,
+                          id: user.id!,
                           name: user.name,
                           surname: user.surname,
                           email: user.email,
-                        } satisfies IUser)
+                        } satisfies AutocompleteUser)
                     ) || []
                 }
                 noOptionsText={

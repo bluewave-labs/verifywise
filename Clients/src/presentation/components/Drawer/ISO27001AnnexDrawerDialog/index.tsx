@@ -19,7 +19,6 @@ import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
@@ -31,6 +30,7 @@ import { useAuth } from "../../../../application/hooks/useAuth";
 import { updateEntityById } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { GetAnnexControlISO27001ById } from "../../../../application/repository/annex_struct_iso.repository";
+import { UserModel } from "../../../../domain/models/user";
 const AuditRiskPopup = lazy(() => import("../../RiskPopup/AuditRiskPopup"));
 const LinkedRisksPopup = lazy(() => import("../../LinkedRisks"));
 
@@ -70,7 +70,7 @@ const VWISO27001AnnexDrawerDialog = ({
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedAnnex, setFetchedAnnex] = useState<any>();
   const [isLoading, setIsLoading] = useState(false);
-  const [projectMembers, setProjectMembers] = useState<User[]>([]);
+  const [projectMembers, setProjectMembers] = useState<UserModel[]>([]);
   const [isLinkedRisksModalOpen, setIsLinkedRisksModalOpen] =
     useState<boolean>(false);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState(false);
@@ -677,7 +677,7 @@ const VWISO27001AnnexDrawerDialog = ({
             value={formData.status}
             onChange={handleSelectChange("status")}
             items={STATUSES.map((status) => ({
-              _id: status,
+              id: status,
               name: status.charAt(0).toUpperCase() + status.slice(1),
             }))}
             disabled={isEditingDisabled}
@@ -691,7 +691,7 @@ const VWISO27001AnnexDrawerDialog = ({
             value={formData.owner || ""}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
-              _id: user.id.toString(),
+              id: user.id?.toString(),
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -699,7 +699,7 @@ const VWISO27001AnnexDrawerDialog = ({
             disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select owner"}
-            getOptionValue={(item) => item._id}
+            getOptionValue={(item) => item.id}
           />
 
           <Select
@@ -708,7 +708,7 @@ const VWISO27001AnnexDrawerDialog = ({
             value={formData.reviewer || ""}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
-              _id: user.id.toString(),
+              id: user.id?.toString(),
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -716,7 +716,7 @@ const VWISO27001AnnexDrawerDialog = ({
             disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select reviewer"}
-            getOptionValue={(item) => item._id}
+            getOptionValue={(item) => item.id}
           />
 
           <Select
@@ -725,7 +725,7 @@ const VWISO27001AnnexDrawerDialog = ({
             value={formData.approver || ""}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
-              _id: user.id.toString(),
+              id: user.id?.toString(),
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -733,7 +733,7 @@ const VWISO27001AnnexDrawerDialog = ({
             disabled={isEditingDisabled}
             sx={inputStyles}
             placeholder={"Select approver"}
-            getOptionValue={(item) => item._id}
+            getOptionValue={(item) => item.id}
           />
 
           <DatePicker

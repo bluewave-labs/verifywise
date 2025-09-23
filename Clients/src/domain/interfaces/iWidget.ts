@@ -114,7 +114,7 @@ export interface RadioProps {
 }
 
 export interface SelectProps {
-  id: string;
+  id?: string;
   label?: string;
   placeholder?: string;
   isHidden?: boolean;

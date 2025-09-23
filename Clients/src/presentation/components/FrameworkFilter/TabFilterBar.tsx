@@ -20,7 +20,7 @@ const TabFilterBar = ({
   statusOptions = [],
 }: TabFilterBarProps) => {
   const mapToSelectItems = (options: { label: string; value: string }[]) =>
-    options.map((opt) => ({ _id: opt.value, name: opt.label }));
+    options.map((opt) => ({ id: opt.value, name: opt.label }));
 
   return (
     <Box
@@ -36,7 +36,7 @@ const TabFilterBar = ({
             value={statusFilter ?? ""}
             onChange={(e) => onStatusChange?.(e.target.value as string)}
             items={[
-              { _id: "", name: "All" },
+              { id: "", name: "All" },
               ...mapToSelectItems(statusOptions),
             ]}
             getOptionValue={(item) => item._id}
@@ -50,9 +50,9 @@ const TabFilterBar = ({
             value={applicabilityFilter ?? "all"}
             onChange={(e) => onApplicabilityChange?.(e.target.value as string)}
             items={[
-              { _id: "all", name: "All" },
-              { _id: "true", name: "Applicable" },
-              { _id: "false", name: "Not Applicable" },
+              { id: "all", name: "All" },
+              { id: "true", name: "Applicable" },
+              { id: "false", name: "Not Applicable" },
             ]}
             getOptionValue={(item) => item._id}
           />

@@ -19,7 +19,7 @@ import {
   IconButton,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
@@ -36,7 +36,6 @@ import HelperIcon from "../../components/HelperIcon";
 import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import PageHeader from "../../components/Layout/PageHeader";
-
 
 export type FairnessModel = {
   id: number | string; // Use number or string based on your backend response
@@ -68,7 +67,7 @@ export default function FairnessDashboard() {
   const [showToastNotification, setShowToastNotification] = useState(false);
 
   const targetColumnItems = useMemo(() => {
-    return columnOptions.map((col) => ({ _id: col, name: col }));
+    return columnOptions.map((col) => ({ id: col, name: col }));
   }, [columnOptions]);
 
   const [page, setPage] = useState(0);
@@ -86,12 +85,18 @@ export default function FairnessDashboard() {
         return; // Don't raise error
       }
 
-      const formatted = metrics.map((item: { metrics_id: number | string; model_filename: string; data_filename: string }) => ({
-        id: item.metrics_id, // use this for "ID" column
-        model: item.model_filename,
-        dataset: item.data_filename,
-        status: "Completed", // Assuming all fetched metrics are completed
-      }));
+      const formatted = metrics.map(
+        (item: {
+          metrics_id: number | string;
+          model_filename: string;
+          data_filename: string;
+        }) => ({
+          id: item.metrics_id, // use this for "ID" column
+          model: item.model_filename,
+          dataset: item.data_filename,
+          status: "Completed", // Assuming all fetched metrics are completed
+        })
+      );
       setUploadedModels(formatted);
     } catch {
       setAlert({
@@ -263,7 +268,7 @@ export default function FairnessDashboard() {
 
   return (
     <Stack className="vwhome" gap="20px">
-       <PageBreadcrumbs />
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -274,34 +279,36 @@ export default function FairnessDashboard() {
         quickActions={[
           {
             label: "Upload Model for Assessment",
-            description: "Submit a classification model with dataset for comprehensive bias evaluation",
-            primary: true
+            description:
+              "Submit a classification model with dataset for comprehensive bias evaluation",
+            primary: true,
           },
           {
             label: "Run Fairness Analysis",
-            description: "Execute advanced bias detection using the BiasAndFairnessModule"
-          }
+            description:
+              "Execute advanced bias detection using the BiasAndFairnessModule",
+          },
         ]}
         useCases={[
           "**Hiring and recruitment models** requiring *equal opportunity compliance*",
-          "**Credit scoring** and financial services models subject to *fair lending regulations*"
+          "**Credit scoring** and financial services models subject to *fair lending regulations*",
         ]}
         keyFeatures={[
           "**Multiple fairness metrics** including *demographic parity* and **equalized odds**",
           "**Support for classification models** with *sklearn Pipeline* compatibility",
-          "**Comprehensive bias reporting** with *actionable recommendations* for model improvement"
+          "**Comprehensive bias reporting** with *actionable recommendations* for model improvement",
         ]}
         tips={[
           "Test models with **diverse datasets** representing your *target population*",
           "Focus on *sensitive attributes* relevant to your specific use case and **regulatory requirements**",
-          "**Regular fairness audits** should be part of your *model maintenance lifecycle*"
+          "**Regular fairness audits** should be part of your *model maintenance lifecycle*",
         ]}
       />
       <Box>
         <PageHeader
           title="Bias & fairness dashboard"
           description={
-            tab === "uploads" 
+            tab === "uploads"
               ? "This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model's input requirements."
               : "Advanced bias detection and fairness evaluation using the BiasAndFairnessModule. Configure your evaluation parameters to perform comprehensive fairness analysis with multiple metrics and bias detection methods."
           }
@@ -433,11 +440,16 @@ export default function FairnessDashboard() {
             }}
           />
 
-          <Dialog open={dialogOpen} onClose={(_event, reason) => {
-            if (reason !== 'backdropClick') {
-              resetForm();
-            }
-          }} maxWidth="sm" fullWidth>
+          <Dialog
+            open={dialogOpen}
+            onClose={(_event, reason) => {
+              if (reason !== "backdropClick") {
+                resetForm();
+              }
+            }}
+            maxWidth="sm"
+            fullWidth
+          >
             <DialogTitle>
               <Box
                 display="flex"
@@ -614,7 +626,7 @@ export default function FairnessDashboard() {
             </DialogContent>
           </Dialog>
         </TabPanel>
-        
+
         <TabPanel value="biasModule" sx={tabPanelStyle}>
           <BiasAndFairnessModule />
         </TabPanel>

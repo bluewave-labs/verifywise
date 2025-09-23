@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
@@ -22,7 +22,10 @@ import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelRisksTable from "./ModelRisksTable";
-import { IModelRisk, IModelRiskFormData } from "../../../domain/interfaces/i.modelRisk";
+import {
+  IModelRisk,
+  IModelRiskFormData,
+} from "../../../domain/interfaces/i.modelRisk";
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
@@ -39,10 +42,7 @@ import {
   aiTrustCenterTabStyle,
   aiTrustCenterTabListStyle,
 } from "../AITrustCenter/styles";
-import {
-  ModelInventoryStatus,
-  ModelInventorySummary as Summary,
-} from "../../../domain/interfaces/i.modelInventory";
+import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabContext from "@mui/lab/TabContext";
@@ -51,6 +51,7 @@ import Tab from "@mui/material/Tab";
 import { IconButton, InputBase } from "@mui/material";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import { searchBoxStyle, inputStyle } from "./style";
+import { ModelInventoryStatus } from "../../../domain/enums/modelInventoryStatus";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -71,11 +72,17 @@ const ModelInventory: React.FC = () => {
   const [modelRisksData, setModelRisksData] = useState<IModelRisk[]>([]);
   const [isModelRisksLoading, setIsModelRisksLoading] = useState(false);
   const [isNewModelRiskModalOpen, setIsNewModelRiskModalOpen] = useState(false);
-  const [selectedModelRiskId, setSelectedModelRiskId] = useState<number | null>(null);
-  const [selectedModelRisk, setSelectedModelRisk] = useState<IModelRisk | null>(null);
+  const [selectedModelRiskId, setSelectedModelRiskId] = useState<number | null>(
+    null
+  );
+  const [selectedModelRisk, setSelectedModelRisk] = useState<IModelRisk | null>(
+    null
+  );
   const [modelRiskCategoryFilter, setModelRiskCategoryFilter] = useState("all");
   const [modelRiskLevelFilter, setModelRiskLevelFilter] = useState("all");
-  const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(null);
+  const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
+    null
+  );
   const [users, setUsers] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -102,7 +109,6 @@ const ModelInventory: React.FC = () => {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-
   // Calculate summary from data
   const summary: Summary = {
     approved: modelInventoryData.filter(
@@ -122,21 +128,22 @@ const ModelInventory: React.FC = () => {
 
   // Filter data based on status
   const filteredData = useMemo(() => {
-    let data = statusFilter === "all"
-      ? modelInventoryData
-      : modelInventoryData.filter((item) => item.status === statusFilter);
-  
+    let data =
+      statusFilter === "all"
+        ? modelInventoryData
+        : modelInventoryData.filter((item) => item.status === statusFilter);
+
     if (searchTerm) {
-      data = data.filter((item) =>
-        item.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.provider?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.version?.toLowerCase().includes(searchTerm.toLowerCase())
+      data = data.filter(
+        (item) =>
+          item.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.provider?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.version?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-  
+
     return data;
   }, [modelInventoryData, statusFilter, searchTerm]);
-  
 
   // Function to fetch model inventory data
   const fetchModelInventoryData = async (showLoading = true) => {
@@ -422,11 +429,11 @@ const ModelInventory: React.FC = () => {
   };
 
   const statusFilterOptions = [
-    { _id: "all", name: "All statuses" },
-    { _id: ModelInventoryStatus.APPROVED, name: "Approved" },
-    { _id: ModelInventoryStatus.RESTRICTED, name: "Restricted" },
-    { _id: ModelInventoryStatus.PENDING, name: "Pending" },
-    { _id: ModelInventoryStatus.BLOCKED, name: "Blocked" },
+    { id: "all", name: "All statuses" },
+    { id: ModelInventoryStatus.APPROVED, name: "Approved" },
+    { id: ModelInventoryStatus.RESTRICTED, name: "Restricted" },
+    { id: ModelInventoryStatus.PENDING, name: "Pending" },
+    { id: ModelInventoryStatus.BLOCKED, name: "Blocked" },
   ];
 
   // Filter model risks based on category and level
@@ -434,11 +441,15 @@ const ModelInventory: React.FC = () => {
     let filtered = modelRisksData;
 
     if (modelRiskCategoryFilter !== "all") {
-      filtered = filtered.filter((risk) => risk.riskCategory === modelRiskCategoryFilter);
+      filtered = filtered.filter(
+        (risk) => risk.riskCategory === modelRiskCategoryFilter
+      );
     }
 
     if (modelRiskLevelFilter !== "all") {
-      filtered = filtered.filter((risk) => risk.riskLevel === modelRiskLevelFilter);
+      filtered = filtered.filter(
+        (risk) => risk.riskLevel === modelRiskLevelFilter
+      );
     }
 
     return filtered;
@@ -557,27 +568,29 @@ const ModelInventory: React.FC = () => {
         quickActions={[
           {
             label: "Add New Model",
-            description: "Register a new AI model with comprehensive metadata and risk assessment",
-            primary: true
+            description:
+              "Register a new AI model with comprehensive metadata and risk assessment",
+            primary: true,
           },
           {
             label: "Assess Model Risk",
-            description: "Evaluate potential risks for existing models using our assessment framework"
-          }
+            description:
+              "Evaluate potential risks for existing models using our assessment framework",
+          },
         ]}
         useCases={[
           "**Machine learning models** in production environments requiring *monitoring and governance*",
-          "**Pre-trained models** from external vendors that need *risk assessment* and **compliance tracking**"
+          "**Pre-trained models** from external vendors that need *risk assessment* and **compliance tracking**",
         ]}
         keyFeatures={[
           "**Complete model lifecycle tracking** from *development* to retirement",
           "**Automated risk scoring** based on *model characteristics* and deployment context",
-          "**Integration** with model deployment pipelines and *monitoring systems*"
+          "**Integration** with model deployment pipelines and *monitoring systems*",
         ]}
         tips={[
           "Start with your **production models** first - these carry the *highest operational risk*",
           "**Regular model performance reviews** help catch *drift and degradation* early",
-          "Document **model lineage** and dependencies for better *impact assessment*"
+          "Document **model lineage** and dependencies for better *impact assessment*",
         ]}
       />
       {alert && (
@@ -600,26 +613,28 @@ const ModelInventory: React.FC = () => {
       )}
 
       <Stack sx={mainStackStyle}>
-            <PageHeader
-               title="Model Inventory"
-               description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
-             />
+        <PageHeader
+          title="Model Inventory"
+          description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
+          rightContent={
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          }
+        />
 
         {/* Summary Cards */}
         {activeTab === "models" && <ModelInventorySummary summary={summary} />}
-        {activeTab === "model-risks" && <ModelRiskSummary modelRisks={modelRisksData} />}
+        {activeTab === "model-risks" && (
+          <ModelRiskSummary modelRisks={modelRisksData} />
+        )}
 
         {/* Tab Bar */}
         <TabContext value={activeTab}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}>
+          <Box
+            sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}
+          >
             <TabList
               onChange={handleTabChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -675,7 +690,7 @@ const ModelInventory: React.FC = () => {
                     aria-expanded={isSearchBarVisible}
                     onClick={() => setIsSearchBarVisible((prev) => !prev)}
                   >
-                    <SearchIcon/>
+                    <SearchIcon />
                   </IconButton>
 
                   {isSearchBarVisible && (
@@ -727,12 +742,12 @@ const ModelInventory: React.FC = () => {
                   id="risk-category-filter"
                   value={modelRiskCategoryFilter}
                   items={[
-                    { _id: "all", name: "All categories" },
-                    { _id: "Performance", name: "Performance" },
-                    { _id: "Bias & Fairness", name: "Bias & Fairness" },
-                    { _id: "Security", name: "Security" },
-                    { _id: "Data Quality", name: "Data Quality" },
-                    { _id: "Compliance", name: "Compliance" },
+                    { id: "all", name: "All categories" },
+                    { id: "Performance", name: "Performance" },
+                    { id: "Bias & Fairness", name: "Bias & Fairness" },
+                    { id: "Security", name: "Security" },
+                    { id: "Data Quality", name: "Data Quality" },
+                    { id: "Compliance", name: "Compliance" },
                   ]}
                   onChange={handleModelRiskCategoryFilterChange}
                   sx={statusFilterSelectStyle}
@@ -747,11 +762,11 @@ const ModelInventory: React.FC = () => {
                   id="risk-level-filter"
                   value={modelRiskLevelFilter}
                   items={[
-                    { _id: "all", name: "All risk levels" },
-                    { _id: "Low", name: "Low" },
-                    { _id: "Medium", name: "Medium" },
-                    { _id: "High", name: "High" },
-                    { _id: "Critical", name: "Critical" },
+                    { id: "all", name: "All risk levels" },
+                    { id: "Low", name: "Low" },
+                    { id: "Medium", name: "Medium" },
+                    { id: "High", name: "High" },
+                    { id: "Critical", name: "Critical" },
                   ]}
                   onChange={handleModelRiskLevelFilterChange}
                   sx={statusFilterSelectStyle}

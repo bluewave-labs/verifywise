@@ -108,27 +108,29 @@ const FileManager: React.FC = (): JSX.Element => {
         quickActions={[
           {
             label: "Upload Evidence",
-            description: "Add new compliance documents or audit evidence to the repository",
-            primary: true
+            description:
+              "Add new compliance documents or audit evidence to the repository",
+            primary: true,
           },
           {
             label: "Download Reports",
-            description: "Export evidence packages for auditors and stakeholders"
-          }
+            description:
+              "Export evidence packages for auditors and stakeholders",
+          },
         ]}
         useCases={[
           "**Audit evidence collection** including *policies*, *procedures*, and **control test results**",
-          "**Compliance certificates** and *third-party assessment reports* from vendors"
+          "**Compliance certificates** and *third-party assessment reports* from vendors",
         ]}
         keyFeatures={[
           "**Secure document storage** with *version control* and **access tracking**",
           "**Metadata tagging** for easy *search and retrieval* during audits",
-          "**Integration** with project management for *context-aware evidence organization*"
+          "**Integration** with project management for *context-aware evidence organization*",
         ]}
         tips={[
           "Maintain **consistent naming conventions** to simplify *evidence retrieval*",
           "Tag documents with *relevant frameworks* and **controls** for better organization",
-          "**Regular archival** of outdated documents helps maintain a *clean repository*"
+          "**Regular archival** of outdated documents helps maintain a *clean repository*",
         ]}
       />
       <FileManagerHeader
@@ -145,16 +147,22 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-start",
+              width: "100%",
+            }}
+          >
             <Select
               id="project-filter"
               value={selectedProject || "all"}
               items={[
-                { _id: "all", name: "All projects" },
+                { id: "all", name: "All projects" },
                 ...projects.map((project: Project) => ({
-                  _id: project.id.toString(),
+                  id: project.id.toString(),
                   name: project.project_title,
-                }))
+                })),
               ]}
               onChange={(e) => setSelectedProject(e.target.value)}
               sx={{

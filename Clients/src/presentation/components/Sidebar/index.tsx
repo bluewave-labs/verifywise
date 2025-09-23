@@ -57,6 +57,7 @@ import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
 import { TaskStatus } from "../../../domain/interfaces/i.task";
 import { getAllTasks } from "../../../application/repository/task.repository";
+import { UserModel } from "../../../domain/models/user";
 
 interface MenuItem {
   name: string;
@@ -198,8 +199,8 @@ const Sidebar = () => {
     countToTrigger: 1,
   });
 
-  const user: User = users
-    ? users.find((user: User) => user.id === userId) || DEFAULT_USER
+  const user: UserModel = users
+    ? users.find((user: UserModel) => user.id === userId) || DEFAULT_USER
     : DEFAULT_USER;
 
   const userAvator: User_Avatar = {

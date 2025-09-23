@@ -71,9 +71,9 @@ const initialState: CreateTaskFormValues = {
 };
 
 const priorityOptions = [
-  { _id: TaskPriority.LOW, name: "Low" },
-  { _id: TaskPriority.MEDIUM, name: "Medium" },
-  { _id: TaskPriority.HIGH, name: "High" },
+  { id: TaskPriority.LOW, name: "Low" },
+  { id: TaskPriority.MEDIUM, name: "Medium" },
+  { id: TaskPriority.HIGH, name: "High" },
 ];
 
 const CreateTask: FC<CreateTaskProps> = ({
@@ -322,7 +322,7 @@ const CreateTask: FC<CreateTaskProps> = ({
               id="task-form-title"
               sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
             >
-              {mode === 'edit' ? 'Edit task' : 'Create new task'}
+              {mode === "edit" ? "Edit task" : "Create new task"}
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#344054" }}>
               {mode === "edit"
@@ -338,30 +338,30 @@ const CreateTask: FC<CreateTaskProps> = ({
 
         {/* Form Content */}
         <form onSubmit={handleSubmit}>
-            <Stack
-              className="vwtask-form-body"
-              sx={{ display: "flex", flexDirection: "column", gap: 8 }}
-            >
-              {/* Row 1: Task Title and Assignees */}
-              <Stack direction="row" sx={{ gap: 8 }}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="title"
-                    label="Task title"
-                    width="350px"
-                    value={values.title}
-                    onChange={handleOnTextFieldChange("title")}
-                    error={errors.title}
-                    isRequired
-                    sx={{
-                      backgroundColor: theme.palette.background.main,
-                      "& input": {
-                        padding: "0 14px",
-                      },
-                    }}
-                    placeholder="Enter task title"
-                  />
-                </Suspense>
+          <Stack
+            className="vwtask-form-body"
+            sx={{ display: "flex", flexDirection: "column", gap: 8 }}
+          >
+            {/* Row 1: Task Title and Assignees */}
+            <Stack direction="row" sx={{ gap: 8 }}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="title"
+                  label="Task title"
+                  width="350px"
+                  value={values.title}
+                  onChange={handleOnTextFieldChange("title")}
+                  error={errors.title}
+                  isRequired
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    "& input": {
+                      padding: "0 14px",
+                    },
+                  }}
+                  placeholder="Enter task title"
+                />
+              </Suspense>
 
               <Suspense fallback={<div>Loading...</div>}>
                 <Stack gap={theme.spacing(2)}>
@@ -483,146 +483,144 @@ const CreateTask: FC<CreateTaskProps> = ({
               </Suspense>
             </Stack>
 
-              {/* Row 2: Due Date and Categories */}
-              <Stack direction="row" sx={{ gap: 8, alignItems: "flex-start" }}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <DatePicker
-                    label="Due date"
-                    date={values.due_date ? dayjs(values.due_date) : null}
-                    handleDateChange={handleDateChange}
+            {/* Row 2: Due Date and Categories */}
+            <Stack direction="row" sx={{ gap: 8, alignItems: "flex-start" }}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <DatePicker
+                  label="Due date"
+                  date={values.due_date ? dayjs(values.due_date) : null}
+                  handleDateChange={handleDateChange}
+                  sx={{
+                    ...datePickerStyle,
+                    width: "350px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  isRequired
+                  error={errors.due_date}
+                />
+              </Suspense>
+
+              <Suspense fallback={<div>Loading...</div>}>
+                <Stack gap={theme.spacing(2)}>
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color={theme.palette.text.secondary}
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: "22px" }}
+                  >
+                    Categories
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    id="categories-input"
+                    size="small"
+                    freeSolo
+                    value={values.categories}
+                    options={[]}
+                    onChange={(_event, newValue: string[]) => {
+                      setValues((prevValues) => ({
+                        ...prevValues,
+                        categories: newValue,
+                      }));
+                      setErrors((prev) => ({ ...prev, categories: "" }));
+                    }}
+                    getOptionLabel={(option: string) => option}
+                    filterSelectedOptions
+                    popupIcon={<GreyDownArrowIcon />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter categories"
+                        error={!!errors.categories}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            minHeight: "34px",
+                            height: "auto",
+                            alignItems: "flex-start",
+                            paddingY: "3px !important",
+                            flexWrap: "wrap",
+                            gap: "2px",
+                          },
+                          "& ::placeholder": {
+                            fontSize: "13px",
+                          },
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value && !values.categories.includes(value)) {
+                              setValues((prevValues) => ({
+                                ...prevValues,
+                                categories: [...prevValues.categories, value],
+                              }));
+                              input.value = "";
+                            }
+                          }
+                        }}
+                      />
+                    )}
                     sx={{
-                      ...datePickerStyle,
                       width: "350px",
                       backgroundColor: theme.palette.background.main,
-                    }}
-                    isRequired
-                    error={errors.due_date}
-                  />
-                </Suspense>
-
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Stack
-                    gap={theme.spacing(2)}
-                  >
-                    <Typography
-                      component="p"
-                      variant="body1"
-                      color={theme.palette.text.secondary}
-                      fontWeight={500}
-                      fontSize={"13px"}
-                      sx={{ margin: 0, height: '22px' }}
-                    >
-                      Categories
-                    </Typography>
-                    <Autocomplete
-                      multiple
-                      id="categories-input"
-                      size="small"
-                      freeSolo
-                      value={values.categories}
-                      options={[]}
-                      onChange={(_event, newValue: string[]) => {
-                        setValues((prevValues) => ({
-                          ...prevValues,
-                          categories: newValue,
-                        }));
-                        setErrors((prev) => ({ ...prev, categories: "" }));
-                      }}
-                      getOptionLabel={(option: string) => option}
-                      filterSelectedOptions
-                      popupIcon={<GreyDownArrowIcon />}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          placeholder="Enter categories"
-                          error={!!errors.categories}
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              minHeight: "34px",
-                              height: "auto",
-                              alignItems: "flex-start",
-                              paddingY: "3px !important",
-                              flexWrap: "wrap",
-                              gap: "2px",
-                            },
-                            "& ::placeholder": {
-                              fontSize: "13px",
-                            },
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              const input = e.target as HTMLInputElement;
-                              const value = input.value.trim();
-                              if (value && !values.categories.includes(value)) {
-                                setValues((prevValues) => ({
-                                  ...prevValues,
-                                  categories: [...prevValues.categories, value],
-                                }));
-                                input.value = '';
-                              }
-                            }
-                          }}
-                        />
-                      )}
-                      sx={{
-                        width: "350px",
-                        backgroundColor: theme.palette.background.main,
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "3px",
-                          overflowY: "auto",
-                          flexWrap: "wrap",
-                          maxHeight: "115px",
-                          alignItems: "flex-start",
-                          "&:hover": {
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              border: "none",
-                            },
-                          },
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "3px",
+                        overflowY: "auto",
+                        flexWrap: "wrap",
+                        maxHeight: "115px",
+                        alignItems: "flex-start",
+                        "&:hover": {
                           "& .MuiOutlinedInput-notchedOutline": {
                             border: "none",
                           },
-                          "&.Mui-focused": {
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              border: "none",
-                            },
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          border: "none",
+                        },
+                        "&.Mui-focused": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
                           },
                         },
-                        "& .MuiAutocomplete-tag": {
-                          margin: "2px",
-                          maxWidth: "calc(100% - 25px)",
-                          "& .MuiChip-label": {
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          },
+                      },
+                      "& .MuiAutocomplete-tag": {
+                        margin: "2px",
+                        maxWidth: "calc(100% - 25px)",
+                        "& .MuiChip-label": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         },
-                        border: errors.categories
-                          ? `1px solid #f04438`
-                          : `1px solid ${theme.palette.border.dark}`,
-                        borderRadius: "3px",
-                        opacity: errors.categories ? 0.8 : 1,
-                      }}
-                      slotProps={{
-                        paper: {
-                          sx: {
-                            display: 'none'
-                          }
-                        }
-                      }}
-                    />
-                    {errors.categories && (
-                      <Typography
-                        color="error"
-                        variant="caption"
-                        sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-                      >
-                        {errors.categories}
-                      </Typography>
-                    )}
-                  </Stack>
-                </Suspense>
-              </Stack>
+                      },
+                      border: errors.categories
+                        ? `1px solid #f04438`
+                        : `1px solid ${theme.palette.border.dark}`,
+                      borderRadius: "3px",
+                      opacity: errors.categories ? 0.8 : 1,
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          display: "none",
+                        },
+                      },
+                    }}
+                  />
+                  {errors.categories && (
+                    <Typography
+                      color="error"
+                      variant="caption"
+                      sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+                    >
+                      {errors.categories}
+                    </Typography>
+                  )}
+                </Stack>
+              </Suspense>
+            </Stack>
 
             {/* Row 3: Priority and Description */}
             <Stack direction="row" sx={{ gap: 8 }}>

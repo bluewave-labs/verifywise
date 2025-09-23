@@ -44,10 +44,10 @@ const RiskLevel: FC<RiskLevelProps> = ({
 
   // Get the selected likelihood and severity names from the items
   const selectedLikelihood = likelihoodItems.find(
-    (item) => item._id === likelihood
+    (item) => item.id === likelihood
   );
   const selectedSeverity = riskSeverityItems.find(
-    (item) => item._id === riskSeverity
+    (item) => item.id === riskSeverity
   );
 
   // Calculate risk level using RiskCalculator
@@ -68,7 +68,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         value={likelihood}
         onChange={handleOnSelectChange("likelihood")}
         items={likelihoodItems.map((item) => ({
-          id: item._id,
+          id: item.id,
           name: item.name,
         }))}
         sx={{ width: 324, backgroundColor: theme.palette.background.main }}
@@ -81,7 +81,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
         value={riskSeverity}
         onChange={handleOnSelectChange("riskSeverity")}
         items={riskSeverityItems.map((item) => ({
-          id: item._id,
+          id: item.id,
           name: item.name,
         }))}
         sx={{ width: 324, backgroundColor: theme.palette.background.main }}

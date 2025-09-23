@@ -97,10 +97,10 @@ interface AddNewVendorProps {
 }
 
 const REVIEW_STATUS_OPTIONS = [
-  { _id: "notStarted", name: "Not started" },
-  { _id: "inReview", name: "In review" },
-  { _id: "reviewed", name: "Reviewed" },
-  { _id: "requiresFollowUp", name: "Requires follow-up" },
+  { id: "notStarted", name: "Not started" },
+  { id: "inReview", name: "In review" },
+  { id: "reviewed", name: "Reviewed" },
+  { id: "requiresFollowUp", name: "Requires follow-up" },
 ];
 
 const AddNewVendor: React.FC<AddNewVendorProps> = ({
@@ -122,7 +122,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     body: string;
   } | null>(null);
   const [projectOptions, setProjectOptions] = useState<
-    { _id: number; name: string }[]
+    { id: number; name: string }[]
   >([]);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
@@ -135,14 +135,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   const isEditingDisabled = !allowedRoles.vendors.edit.includes(userRoleName);
 
   const formattedUsers = users?.map((user: any) => ({
-    _id: user.id,
+    id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
 
   const formattedProjects = useMemo(() => {
     return Array.isArray(projects)
       ? projects?.map((project: any) => ({
-          _id: project.id,
+          id: project.id,
           name: project.project_title,
         }))
       : [];
@@ -179,16 +179,16 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           reviewStatus:
             REVIEW_STATUS_OPTIONS?.find(
               (s) => s.name === existingVendor.review_status
-            )?._id || "",
+            )?.id || "",
           reviewer:
             formattedUsers?.find(
-              (user: any) => user._id === existingVendor.reviewer
-            )?._id || "",
+              (user: any) => user.id === existingVendor.reviewer
+            )?.id || "",
           reviewResult: existingVendor.review_result,
           assignee:
             formattedUsers?.find(
-              (user: any) => user._id === existingVendor.assignee
-            )?._id || " ",
+              (user: any) => user.id === existingVendor.assignee
+            )?.id || " ",
           reviewDate: existingVendor.review_date,
         },
       }));
@@ -198,7 +198,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   // ESC key handling and focus trapping
   useModalKeyHandling({
     isOpen,
-    onClose: () => setIsOpen(false)
+    onClose: () => setIsOpen(false),
   });
 
   /**
@@ -331,19 +331,19 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       projects: values.vendorDetails.projectIds,
       vendor_name: values.vendorDetails.vendorName,
       assignee: formattedUsers?.find(
-        (user: any) => user._id === values.vendorDetails.assignee
-      )?._id,
+        (user: any) => user.id === values.vendorDetails.assignee
+      )?.id,
       vendor_provides: values.vendorDetails.vendorProvides,
       website: values.vendorDetails.website,
       vendor_contact_person: values.vendorDetails.vendorContactPerson,
       review_result: values.vendorDetails.reviewResult,
       review_status:
         REVIEW_STATUS_OPTIONS?.find(
-          (s) => s._id === values.vendorDetails.reviewStatus
+          (s) => s.id === values.vendorDetails.reviewStatus
         )?.name || "",
       reviewer: formattedUsers?.find(
-        (user: any) => user._id === values.vendorDetails.reviewer
-      )?._id,
+        (user: any) => user.id === values.vendorDetails.reviewer
+      )?.id,
       review_date: values.vendorDetails.reviewDate,
     };
     if (existingVendor) {
@@ -500,7 +500,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               disabled={isEditingDisabled}
               value={
                 projectOptions?.filter((project) =>
-                  values.vendorDetails.projectIds?.includes(project._id)
+                  values.vendorDetails.projectIds?.includes(project.id)
                 ) || []
               }
               options={projectOptions || []}
@@ -510,19 +510,19 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                   ? "All projects are selected"
                   : "No options"
               }
-              onChange={(_event, newValue: { _id: number; name: string }[]) => {
+              onChange={(_event, newValue: { id: number; name: string }[]) => {
                 handleOnChange(
                   "projectIds",
-                  newValue.map((project) => project._id)
+                  newValue.map((project) => project.id)
                 );
               }}
-              getOptionLabel={(project: { _id: number; name: string }) =>
+              getOptionLabel={(project: { id: number; name: string }) =>
                 project.name
               }
-              renderOption={(props, option: { _id: number; name: string }) => {
+              renderOption={(props, option: { id: number; name: string }) => {
                 const { key, ...optionProps } = props;
                 return (
-                  <Box key={option._id} component="li" {...optionProps}>
+                  <Box key={option.id} component="li" {...optionProps}>
                     <Typography sx={{ fontSize: "13px" }}>
                       {option.name}
                     </Typography>
@@ -680,7 +680,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         marginBottom={theme.spacing(8)}
       >
         <Select // reviewStatus
-          items={REVIEW_STATUS_OPTIONS}
+          items={REVIEW_STATUS_OPTIONS.map((status) => ({
+            id: status.id,
+            name: status.name,
+          }))}
           label="Review status"
           placeholder="Select review status"
           isHidden={false}
@@ -810,7 +813,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
               {existingVendor ? "Edit vendor" : "Add new vendor"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
+            <Close
+              style={{ cursor: "pointer" }}
+              onClick={() => setIsOpen(false)}
+            />
           </Stack>
           {!existingVendor && (
             <Typography
@@ -819,7 +825,10 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               marginBottom={theme.spacing(4)}
               sx={{ lineHeight: 1.4 }}
             >
-              Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements.
+              Use this form to register a new vendor. Include details about what
+              they provide, who is responsible, and the outcome of your review.
+              Provide enough details so your team can assess risks,
+              responsibilities, and compliance requirements.
             </Typography>
           )}
           <Box

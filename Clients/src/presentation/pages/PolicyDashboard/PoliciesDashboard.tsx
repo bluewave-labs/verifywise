@@ -12,9 +12,8 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import policyManagerHelpContent from "../../../presentation/helpers/policy-manager-help.html?raw";
 import {
   deletePolicy,
   getAllPolicies,
@@ -113,14 +112,41 @@ const PolicyDashboard: React.FC = () => {
     <Stack className="vwhome" gap={"20px"}>
       <PageBreadcrumbs />
         <HelperDrawer
-          isOpen={isHelperDrawerOpen}
-          onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-          helpContent={policyManagerHelpContent}
-          pageTitle="Policy Manager"
+          open={isHelperDrawerOpen}
+          onClose={() => setIsHelperDrawerOpen(false)}
+          title="Policy manager"
+          description="Create and maintain AI governance policies aligned with regulatory requirements"
+          whatItDoes="Centralize **policy creation**, *version control*, and **distribution** for all *AI-related governance documentation*. Track **policy reviews**, *approvals*, and **acknowledgments** across your organization."
+          whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to **responsible AI**, ensure *consistent practices* across teams, and satisfy **regulatory requirements** for documented controls."
+          quickActions={[
+            {
+              label: "Create New Policy",
+              description: "Draft governance policies using templates and best practices",
+              primary: true
+            },
+            {
+              label: "Review Policy Status",
+              description: "Check approval status and track policy acknowledgments"
+            }
+          ]}
+          useCases={[
+            "**AI ethics policies** defining *acceptable use* and **development principles**",
+            "**Data governance policies** for handling *sensitive information* in **AI systems**"
+          ]}
+          keyFeatures={[
+            "**Policy lifecycle management** from *draft* through **approval** to *retirement*",
+            "**Version control** with *change tracking* and **approval workflows**",
+            "**Distribution tracking** to ensure all *stakeholders* have **acknowledged current policies**"
+          ]}
+          tips={[
+            "Start with **template policies** and customize them to your *organization's needs*",
+            "Schedule **regular policy reviews** to ensure they remain *current and relevant*",
+            "Track **acknowledgments** to demonstrate *policy awareness* across your teams"
+          ]}
         />
 
         <PageHeader
-          title="Policy Manager"
+          title="Policy manager"
           description="Policy Manager lets you create and update company AI policies in one
                place to stay compliant and consistent."
           rightContent={

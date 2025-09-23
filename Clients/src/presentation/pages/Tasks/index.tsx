@@ -22,9 +22,8 @@ import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import taskManagementHelpContent from "../../helpers/task-management-help.html?raw";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   ITask,
@@ -358,16 +357,43 @@ const Tasks: React.FC = () => {
     <Stack className="vwhome" gap={"20px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={taskManagementHelpContent}
-        pageTitle="Task Management"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Task management"
+        description="Coordinate AI governance activities and compliance tasks across your teams"
+        whatItDoes="Centralize **task assignment** and tracking for *AI governance activities*. Manage deadlines, priorities, and progress for **compliance requirements**, *audits*, and **implementation projects**."
+        whyItMatters="Effective **task management** ensures nothing falls through the cracks in your *AI governance program*. It provides **accountability** and visibility into team workload, helping meet *compliance deadlines* and **implementation milestones**."
+        quickActions={[
+          {
+            label: "Create New Task",
+            description: "Assign a governance or compliance task to team members",
+            primary: true
+          },
+          {
+            label: "View My Tasks",
+            description: "Filter tasks assigned to you and track your progress"
+          }
+        ]}
+        useCases={[
+          "**Compliance activities** like *framework implementation steps* and **audit preparations**",
+          "**Risk remediation tasks** arising from *vendor assessments* and **model evaluations**"
+        ]}
+        keyFeatures={[
+          "**Priority-based task queuing** with *due date tracking* and automated reminders",
+          "**Assignment to individuals or teams** with *progress monitoring*",
+          "**Integration** with project timelines and *compliance calendars*"
+        ]}
+        tips={[
+          "Break down **large compliance projects** into *manageable tasks* with **clear owners**",
+          "Set *realistic deadlines* considering **team capacity** and other commitments",
+          "**Regular task reviews** help identify *bottlenecks* and **resource constraints** early"
+        ]}
       />
 
         {/* Page Header */}
         <Stack sx={vwhomeBody}>
           <PageHeader
-            title="Task Management"
+            title="Task management"
             description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
             rightContent={
               <HelperIcon

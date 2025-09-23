@@ -120,7 +120,7 @@ export interface SelectProps {
   isHidden?: boolean;
   value: string | number;
   items: {
-    id: number | string;
+    id: number | string | undefined;
     name: string;
     email?: string;
     surname?: string;

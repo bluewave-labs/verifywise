@@ -175,7 +175,7 @@ const Select: React.FC<SelectProps> = ({
       >
         {items.map(
           (item: {
-            id: string | number;
+            id: string | number | undefined;
             name: string;
             email?: string;
             surname?: string;

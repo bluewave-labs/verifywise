@@ -21,7 +21,6 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
-import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
@@ -32,6 +31,7 @@ import allowedRoles from "../../../../application/constants/permissions";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 import LinkedRisksPopup from "../../LinkedRisks";
 import { ISO27001GetSubClauseById } from "../../../../application/repository/subClause_iso.repository";
+import { UserModel } from "../../../../domain/models/user";
 
 export const inputStyles = {
   minWidth: 200,
@@ -66,7 +66,7 @@ const VWISO27001ClauseDrawerDialog = ({
   const [date, setDate] = useState<Dayjs | null>(null);
   const [fetchedSubClause, setFetchedSubClause] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [projectMembers, setProjectMembers] = useState<User[]>([]);
+  const [projectMembers, setProjectMembers] = useState<UserModel[]>([]);
   const [isFileUploadOpen, setIsFileUploadOpen] = useState<boolean>(false);
   const [evidenceFiles, setEvidenceFiles] = useState<any[]>([]);
   const theme = useTheme();
@@ -119,7 +119,7 @@ const VWISO27001ClauseDrawerDialog = ({
   useEffect(() => {
     if (users?.length > 0) {
       // Since we don't have project data, use all users
-      setProjectMembers(users);
+      setProjectMembers(users as UserModel[]);
     }
   }, [users]);
 
@@ -705,14 +705,14 @@ const VWISO27001ClauseDrawerDialog = ({
             value={formData.status}
             onChange={handleSelectChange("status")}
             items={[
-              { _id: "0", name: "Not started" },
-              { _id: "1", name: "Draft" },
-              { _id: "2", name: "In progress" },
-              { _id: "3", name: "Awaiting review" },
-              { _id: "4", name: "Awaiting approval" },
-              { _id: "5", name: "Implemented" },
+              { id: "0", name: "Not started" },
+              { id: "1", name: "Draft" },
+              { id: "2", name: "In progress" },
+              { id: "3", name: "Awaiting review" },
+              { id: "4", name: "Awaiting approval" },
+              { id: "5", name: "Implemented" },
               // { _id: "6", name: "Audited" },
-              { _id: "6", name: "Needs rework" },
+              { id: "6", name: "Needs rework" },
             ]}
             sx={inputStyles}
             placeholder={"Select status"}
@@ -725,7 +725,7 @@ const VWISO27001ClauseDrawerDialog = ({
             value={formData.owner || ""}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
-              _id: user.id.toString(),
+              id: user.id?.toString(),
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -742,7 +742,7 @@ const VWISO27001ClauseDrawerDialog = ({
             value={formData.reviewer || ""}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
-              _id: user.id.toString(),
+              id: user.id?.toString(),
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -759,7 +759,7 @@ const VWISO27001ClauseDrawerDialog = ({
             value={formData.approver || ""}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
-              _id: user.id.toString(),
+              id: user.id?.toString(),
               name: user.name,
               email: user.email,
               surname: user.surname,

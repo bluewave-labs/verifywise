@@ -20,7 +20,7 @@ import {
   useEffect,
 } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
@@ -61,6 +61,7 @@ import {
   createProject,
   updateProject,
 } from "../../../../application/repository/project.repository";
+import { UserModel } from "../../../../domain/models/user";
 
 const ProjectForm = ({
   sx,
@@ -573,8 +574,8 @@ const ProjectForm = ({
             value={values.owner || ""}
             onChange={handleOnSelectChange("owner")}
             items={
-              users?.map((user: any) => ({
-                _id: user.id,
+              users?.map((user: UserModel) => ({
+                id: user.id,
                 name: `${user.name} ${user.surname}`,
                 email: user.email,
               })) || []
@@ -594,7 +595,10 @@ const ProjectForm = ({
                 placeholder="Select an option"
                 value={values.ai_risk_classification || ""}
                 onChange={handleOnSelectChange("ai_risk_classification")}
-                items={riskClassificationItems}
+                items={riskClassificationItems.map((item) => ({
+                  id: item._id,
+                  name: item.name,
+                }))}
                 sx={{
                   width: "350px",
                   backgroundColor: theme.palette.background.main,
@@ -608,7 +612,10 @@ const ProjectForm = ({
                 placeholder="Select an option"
                 value={values.type_of_high_risk_role || ""}
                 onChange={handleOnSelectChange("type_of_high_risk_role")}
-                items={highRiskRoleItems}
+                items={highRiskRoleItems.map((item) => ({
+                  id: item._id,
+                  name: item.name,
+                }))}
                 sx={{
                   width: "350px",
                   backgroundColor: theme.palette.background.main,
@@ -636,8 +643,8 @@ const ProjectForm = ({
                   multiple
                   id="users-input"
                   size="small"
-                  value={values.members.map((user) => ({
-                    _id: Number(user._id),
+                  value={values.members.map((user: UserModel) => ({
+                    id: Number(user.id),
                     name: user.name,
                     surname: user.surname,
                     email: user.email,
@@ -652,7 +659,7 @@ const ProjectForm = ({
                           ) && values.owner !== user.id
                       )
                       .map((user) => ({
-                        _id: user.id,
+                        id: user.id,
                         name: user.name,
                         surname: user.surname,
                         email: user.email,

@@ -23,7 +23,10 @@ import useFrameworks from "../../../application/hooks/useFrameworks";
 
 interface RiskFiltersProps {
   risks: ProjectRisk[];
-  onFilterChange: (filteredRisks: ProjectRisk[], activeFilters: FilterState) => void;
+  onFilterChange: (
+    filteredRisks: ProjectRisk[],
+    activeFilters: FilterState
+  ) => void;
   hideProjectFilter?: boolean;
   hideFrameworkFilter?: boolean;
 }
@@ -48,28 +51,29 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
   risks,
   onFilterChange,
   hideProjectFilter = false,
-  hideFrameworkFilter = false
+  hideFrameworkFilter = false,
 }) => {
   const [filters, setFilters] = useState<FilterState>(initialFilterState);
   const [users, setUsers] = useState<any[]>([]);
 
   // Fetch projects and frameworks
   const { data: projects = [] } = useProjects();
-  const { allFrameworks: frameworks = [] } = useFrameworks({ listOfFrameworks: [] });
+  const { allFrameworks: frameworks = [] } = useFrameworks({
+    listOfFrameworks: [],
+  });
 
-  
   // Initialize expanded state from localStorage, default to false
   const getInitialExpandedState = (): boolean => {
-    const saved = localStorage.getItem('riskFilters_expanded');
+    const saved = localStorage.getItem("riskFilters_expanded");
     return saved !== null ? JSON.parse(saved) : false;
   };
-  
+
   const [expanded, setExpanded] = useState<boolean>(getInitialExpandedState);
 
   // Handle expanded state changes and save to localStorage
   const handleExpandedChange = (newExpanded: boolean) => {
     setExpanded(newExpanded);
-    localStorage.setItem('riskFilters_expanded', JSON.stringify(newExpanded));
+    localStorage.setItem("riskFilters_expanded", JSON.stringify(newExpanded));
   };
 
   // Fetch users on component mount
@@ -82,7 +86,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
         console.error("Error fetching users:", error);
       }
     };
-    
+
     fetchUsers();
   }, []);
 
@@ -99,19 +103,32 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     // Risk level filter
     if (newFilters.riskLevel !== "all") {
       filteredRisks = filteredRisks.filter((risk) => {
-        const currentRiskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
-        
+        const currentRiskLevel = (
+          risk.current_risk_level ||
+          risk.risk_level_autocalculated ||
+          ""
+        ).toLowerCase();
+
         switch (newFilters.riskLevel) {
           case "veryHigh":
             return currentRiskLevel.includes("very high");
           case "high":
-            return currentRiskLevel.includes("high") && !currentRiskLevel.includes("very high");
+            return (
+              currentRiskLevel.includes("high") &&
+              !currentRiskLevel.includes("very high")
+            );
           case "medium":
             return currentRiskLevel.includes("medium");
           case "low":
-            return currentRiskLevel.includes("low") && !currentRiskLevel.includes("very low");
+            return (
+              currentRiskLevel.includes("low") &&
+              !currentRiskLevel.includes("very low")
+            );
           case "veryLow":
-            return currentRiskLevel.includes("very low") || currentRiskLevel.includes("no risk");
+            return (
+              currentRiskLevel.includes("very low") ||
+              currentRiskLevel.includes("no risk")
+            );
           default:
             return true;
         }
@@ -134,8 +151,10 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     if (!hideFrameworkFilter && newFilters.framework !== "all") {
       filteredRisks = filteredRisks.filter((risk) => {
         // Only filter by frameworks if the frameworks array exists
-        return Array.isArray(risk.frameworks) &&
-               risk.frameworks.includes(parseInt(newFilters.framework));
+        return (
+          Array.isArray(risk.frameworks) &&
+          risk.frameworks.includes(parseInt(newFilters.framework))
+        );
       });
     }
 
@@ -150,7 +169,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     if (newFilters.mitigationStatus !== "all") {
       filteredRisks = filteredRisks.filter((risk) => {
         const mitigationStatus = risk.mitigation_status?.toLowerCase();
-        
+
         switch (newFilters.mitigationStatus) {
           case "completed":
             return mitigationStatus === "completed";
@@ -165,7 +184,6 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
         }
       });
     }
-
 
     onFilterChange(filteredRisks, newFilters);
   };
@@ -193,14 +211,20 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
 
   // Helper function to get user name by ID
   const getUserNameById = (userId: string): string => {
-    const user = users.find(u => u.id.toString() === userId.toString());
+    const user = users.find((u) => u.id.toString() === userId.toString());
     if (user) {
       // Try different possible field name combinations
-      const firstName = user.firstName || user.first_name || user.name?.split(' ')[0] || '';
-      const lastName = user.lastName || user.last_name || user.surname || user.name?.split(' ')[1] || '';
-      
+      const firstName =
+        user.firstName || user.first_name || user.name?.split(" ")[0] || "";
+      const lastName =
+        user.lastName ||
+        user.last_name ||
+        user.surname ||
+        user.name?.split(" ")[1] ||
+        "";
+
       const fullName = `${firstName} ${lastName}`.trim();
-      
+
       // Return full name if available, otherwise fallback to email, then user ID
       return fullName || user.email || `User ${userId}`;
     }
@@ -209,7 +233,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
 
   const getUniqueOwners = () => {
     const ownerIds = new Set<string>();
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (risk.risk_owner) {
         ownerIds.add(risk.risk_owner.toString());
       }
@@ -217,18 +241,18 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
 
     return Array.from(ownerIds)
       .sort()
-      .map(ownerId => ({
+      .map((ownerId) => ({
         id: ownerId,
-        name: getUserNameById(ownerId)
+        name: getUserNameById(ownerId),
       }));
   };
 
   const getUniqueProjects = () => {
     const projectIds = new Set<string>();
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       // First try the projects array, then fallback to project_id
       if (Array.isArray(risk.projects)) {
-        risk.projects.forEach(projectId => {
+        risk.projects.forEach((projectId) => {
           projectIds.add(projectId.toString());
         });
       } else if (risk.project_id) {
@@ -240,27 +264,26 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     return Array.from(projectIds)
       .sort((a, b) => {
         // Sort by project name if available, otherwise by ID
-        const projectA = projects.find(p => p.id.toString() === a);
-        const projectB = projects.find(p => p.id.toString() === b);
+        const projectA = projects.find((p) => p.id.toString() === a);
+        const projectB = projects.find((p) => p.id.toString() === b);
         const nameA = projectA?.project_title || `Project ${a}`;
         const nameB = projectB?.project_title || `Project ${b}`;
         return nameA.localeCompare(nameB);
       })
-      .map(projectId => {
-        const project = projects.find(p => p.id.toString() === projectId);
+      .map((projectId) => {
+        const project = projects.find((p) => p.id.toString() === projectId);
         return {
           id: projectId,
-          name: project?.project_title || `Project ${projectId}`
+          name: project?.project_title || `Project ${projectId}`,
         };
-      })
-; // Show all projects, even if we only have IDs
+      }); // Show all projects, even if we only have IDs
   };
 
   const getUniqueFrameworks = () => {
     const frameworkIds = new Set<string>();
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (Array.isArray(risk.frameworks)) {
-        risk.frameworks.forEach(frameworkId => {
+        risk.frameworks.forEach((frameworkId) => {
           frameworkIds.add(frameworkId.toString());
         });
       }
@@ -268,11 +291,13 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
 
     return Array.from(frameworkIds)
       .sort()
-      .map(frameworkId => {
-        const framework = frameworks.find(f => f.id.toString() === frameworkId);
+      .map((frameworkId) => {
+        const framework = frameworks.find(
+          (f) => f.id.toString() === frameworkId
+        );
         return {
           id: frameworkId,
-          name: framework?.name || `Framework ${frameworkId}`
+          name: framework?.name || `Framework ${frameworkId}`,
         };
       });
   };
@@ -283,9 +308,9 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
   const uniqueFrameworks = getUniqueFrameworks();
 
   return (
-    <Paper 
+    <Paper
       elevation={0}
-      sx={{ 
+      sx={{
         mb: 2,
         border: "1px solid #E5E7EB",
         borderRadius: 2,
@@ -308,7 +333,10 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <FilterIcon sx={{ color: "#13715B", fontSize: 20 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 600, color: "#1A1919" }}
+          >
             Filters
           </Typography>
           {activeFilterCount > 0 && (
@@ -345,7 +373,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
                 fontSize: 12,
                 "&:hover": {
                   backgroundColor: "#F3F4F6",
-                }
+                },
               }}
             >
               Clear All
@@ -361,21 +389,29 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
       <Collapse in={expanded}>
         <Box sx={{ p: 3, pl: 9, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
           {/* Dropdown Filters */}
-          <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "center",
+            }}
+          >
             <Stack direction={{ xs: "column", sm: "row" }} spacing="18px">
               <Select
                 id="risk-level-filter"
                 label="Risk Level"
                 value={filters.riskLevel}
                 items={[
-                  { _id: "all", name: "All Levels" },
-                  { _id: "veryHigh", name: "Very High" },
-                  { _id: "high", name: "High" },
-                  { _id: "medium", name: "Medium" },
-                  { _id: "low", name: "Low" },
-                  { _id: "veryLow", name: "Very Low" },
+                  { id: "all", name: "All Levels" },
+                  { id: "veryHigh", name: "Very High" },
+                  { id: "high", name: "High" },
+                  { id: "medium", name: "Medium" },
+                  { id: "low", name: "Low" },
+                  { id: "veryLow", name: "Very Low" },
                 ]}
-                onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("riskLevel", e.target.value)
+                }
                 sx={{ minWidth: 140 }}
               />
 
@@ -384,8 +420,11 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
                 label="Owner"
                 value={filters.owner}
                 items={[
-                  { _id: "all", name: "All Owners" },
-                  ...uniqueOwners.map(owner => ({ _id: owner.id, name: owner.name }))
+                  { id: "all", name: "All Owners" },
+                  ...uniqueOwners.map((owner) => ({
+                    id: owner.id,
+                    name: owner.name,
+                  })),
                 ]}
                 onChange={(e) => handleFilterChange("owner", e.target.value)}
                 sx={{ minWidth: 140 }}
@@ -396,13 +435,15 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
                 label="Mitigation Status"
                 value={filters.mitigationStatus}
                 items={[
-                  { _id: "all", name: "All Statuses" },
-                  { _id: "completed", name: "Completed" },
-                  { _id: "in_progress", name: "In Progress" },
-                  { _id: "pending", name: "Pending" },
-                  { _id: "none", name: "No Mitigations" },
+                  { id: "all", name: "All Statuses" },
+                  { id: "completed", name: "Completed" },
+                  { id: "in_progress", name: "In Progress" },
+                  { id: "pending", name: "Pending" },
+                  { id: "none", name: "No Mitigations" },
                 ]}
-                onChange={(e) => handleFilterChange("mitigationStatus", e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange("mitigationStatus", e.target.value)
+                }
                 sx={{ minWidth: 160 }}
               />
 
@@ -412,10 +453,15 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
                   label="Project"
                   value={filters.project}
                   items={[
-                    { _id: "all", name: "All Projects" },
-                    ...uniqueProjects.map(project => ({ _id: project.id, name: project.name }))
+                    { id: "all", name: "All Projects" },
+                    ...uniqueProjects.map((project) => ({
+                      id: project.id,
+                      name: project.name,
+                    })),
                   ]}
-                  onChange={(e) => handleFilterChange("project", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("project", e.target.value)
+                  }
                   sx={{ minWidth: 160 }}
                 />
               )}
@@ -426,10 +472,15 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
                   label="Framework"
                   value={filters.framework}
                   items={[
-                    { _id: "all", name: "All Frameworks" },
-                    ...uniqueFrameworks.map(framework => ({ _id: framework.id, name: framework.name }))
+                    { id: "all", name: "All Frameworks" },
+                    ...uniqueFrameworks.map((framework) => ({
+                      id: framework.id,
+                      name: framework.name,
+                    })),
                   ]}
-                  onChange={(e) => handleFilterChange("framework", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("framework", e.target.value)
+                  }
                   sx={{ minWidth: 160 }}
                 />
               )}

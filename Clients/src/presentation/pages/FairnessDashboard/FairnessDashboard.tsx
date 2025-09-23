@@ -31,9 +31,8 @@ import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import { tabPanelStyle } from "../Vendors/style";
 import Alert from "../../components/Alert";
 import CustomizableToast from "../../components/Toast";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import biasFairnessHelpContent from "../../../presentation/helpers/bias-fairness-help.html?raw";
 import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import PageHeader from "../../components/Layout/PageHeader";
@@ -266,10 +265,37 @@ export default function FairnessDashboard() {
     <Stack className="vwhome" gap="20px">
        <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={biasFairnessHelpContent}
-        pageTitle="Bias & Fairness Assessment"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Bias & fairness assessment"
+        description="Evaluate AI models for bias and ensure fairness across different demographic groups"
+        whatItDoes="Analyze your **AI models** for potential bias using *comprehensive fairness metrics* and **bias detection algorithms**. Upload models and datasets to perform *automated fairness evaluations* across **sensitive attributes**."
+        whyItMatters="**Biased AI systems** can perpetuate *discrimination* and cause harm to individuals and communities. Fairness assessment helps ensure **equitable outcomes** and maintains trust in AI systems while meeting *regulatory compliance* requirements."
+        quickActions={[
+          {
+            label: "Upload Model for Assessment",
+            description: "Submit a classification model with dataset for comprehensive bias evaluation",
+            primary: true
+          },
+          {
+            label: "Run Fairness Analysis",
+            description: "Execute advanced bias detection using the BiasAndFairnessModule"
+          }
+        ]}
+        useCases={[
+          "**Hiring and recruitment models** requiring *equal opportunity compliance*",
+          "**Credit scoring** and financial services models subject to *fair lending regulations*"
+        ]}
+        keyFeatures={[
+          "**Multiple fairness metrics** including *demographic parity* and **equalized odds**",
+          "**Support for classification models** with *sklearn Pipeline* compatibility",
+          "**Comprehensive bias reporting** with *actionable recommendations* for model improvement"
+        ]}
+        tips={[
+          "Test models with **diverse datasets** representing your *target population*",
+          "Focus on *sensitive attributes* relevant to your specific use case and **regulatory requirements**",
+          "**Regular fairness audits** should be part of your *model maintenance lifecycle*"
+        ]}
       />
       <Box>
         <PageHeader

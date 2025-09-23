@@ -48,7 +48,6 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
 
     if (users && users.length > 0) {
       logStructured('successful', `found ${users.length} users`, 'getAllUsers', 'user.ctrl.ts');
-      console.log('✅ Sending successful response with users:', users.map((user) => user.toSafeJSON()));
       return res
         .status(200)
         .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));

@@ -26,3 +26,5 @@ dist-ssr
 .env
 # *.dev
 *.prod
+
+README-Email-Notifications.md

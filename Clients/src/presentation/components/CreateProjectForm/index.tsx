@@ -1,4 +1,11 @@
-import React, { FC, useState, useMemo, useCallback, Suspense, lazy } from "react";
+import React, {
+  FC,
+  useState,
+  useMemo,
+  useCallback,
+  Suspense,
+  lazy,
+} from "react";
 import {
   Button,
   SelectChangeEvent,
@@ -24,7 +31,7 @@ import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
-import { CreateProjectFormUser } from "../../../domain/interfaces/iUser";
+import { IUser } from "../../../domain/interfaces/iUser";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
@@ -44,7 +51,6 @@ const initialState: CreateProjectFormValues = {
   type_of_high_risk_role: 0,
   goal: "",
 };
-
 
 interface ProjectResponse {
   status: number;
@@ -95,8 +101,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   const handleOnSelectChange = useCallback(
     (prop: keyof CreateProjectFormValues) =>
       (event: SelectChangeEvent<string | number>) => {
-        setValues(prevValues => ({ ...prevValues, [prop]: event.target.value }));
-        setErrors(prevErrors => ({ ...prevErrors, [prop]: "" }));
+        setValues((prevValues) => ({
+          ...prevValues,
+          [prop]: event.target.value,
+        }));
+        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -104,8 +113,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   const handleOnTextFieldChange = useCallback(
     (prop: keyof CreateProjectFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues(prevValues => ({ ...prevValues, [prop]: event.target.value }));
-        setErrors(prevErrors => ({ ...prevErrors, [prop]: "" }));
+        setValues((prevValues) => ({
+          ...prevValues,
+          [prop]: event.target.value,
+        }));
+        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -172,7 +184,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     try {
       const userInfo = extractUserToken(authState.authToken);
 
-      const teamMember = values.members.map((user) => String(user._id));
+      const teamMember = values.members.map((user) => String(user.id));
       const response: ProjectResponse = await createProject({
         body: {
           ...values,
@@ -187,11 +199,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           members: teamMember,
         },
       });
-      
+
       setValues(initialState);
       setErrors({});
       closePopup();
-      
+
       if (response.status === 201) {
         onNewProject({
           isNewProject: true,
@@ -199,7 +211,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
         });
       }
     } catch (error) {
-      console.error('Error creating project:', error);
+      console.error("Error creating project:", error);
     }
   };
 
@@ -231,13 +243,13 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
 
   const handleOnMultiSelect = useCallback(
     (prop: keyof CreateProjectFormValues) =>
-      (_event: React.SyntheticEvent, newValue: CreateProjectFormUser[]) => {
+      (_event: React.SyntheticEvent, newValue: IUser[]) => {
         setValues((prevValues) => ({
           ...prevValues,
           [prop]: newValue,
         }));
         setMemberRequired(false);
-        setErrors(prevErrors => ({ ...prevErrors, members: "" }));
+        setErrors((prevErrors) => ({ ...prevErrors, members: "" }));
       },
     []
   );
@@ -245,13 +257,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   return (
     <Stack>
       <Stack component="form" onSubmit={handleSubmit}>
-        <Stack
-          direction="row"
-          sx={createProjectFormStyles.formContainer}
-        >
-          <Stack
-            sx={createProjectFormStyles.leftColumn}
-          >
+        <Stack direction="row" sx={createProjectFormStyles.formContainer}>
+          <Stack sx={createProjectFormStyles.leftColumn}>
             <Suspense fallback={<div>Loading...</div>}>
               <Field
                 id="project-title-input"
@@ -320,14 +327,14 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           </Stack>
           <Stack>
             <Suspense fallback={<div>Loading...</div>}>
-              <Typography
-                sx={createProjectFormStyles.teamMembersTitle(theme)}
-              >
+              <Typography sx={createProjectFormStyles.teamMembersTitle(theme)}>
                 Team members *
               </Typography>
               <Autocomplete
                 multiple
-                readOnly={!allowedRoles.projects.editTeamMembers.includes(userRoleName)}
+                readOnly={
+                  !allowedRoles.projects.editTeamMembers.includes(userRoleName)
+                }
                 id="users-input"
                 size="small"
                 value={values.members}
@@ -336,15 +343,18 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                     ?.filter(
                       (user) =>
                         !values.members.some(
-                          (selectedUser) => selectedUser._id === user.id
+                          (selectedUser) => selectedUser.id === user.id
                         )
                     )
-                    .map((user) => ({
-                      _id: user.id,
-                      name: user.name,
-                      surname: user.surname,
-                      email: user.email,
-                    } satisfies CreateProjectFormUser)) || []
+                    .map(
+                      (user) =>
+                        ({
+                          id: user.id,
+                          name: user.name,
+                          surname: user.surname,
+                          email: user.email,
+                        } satisfies IUser)
+                    ) || []
                 }
                 noOptionsText={
                   values.members.length === users?.length
@@ -361,7 +371,9 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                       : option.email;
                   return (
                     <Box key={key} component="li" {...optionProps}>
-                      <Typography sx={createProjectFormStyles.autocompleteOptionText}>
+                      <Typography
+                        sx={createProjectFormStyles.autocompleteOptionText}
+                      >
                         {option.name} {option.surname}
                       </Typography>
                       <Typography
@@ -394,9 +406,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 </Typography>
               )}
             </Suspense>
-            <Stack
-              sx={createProjectFormStyles.rightColumnContainer}
-            >
+            <Stack sx={createProjectFormStyles.rightColumnContainer}>
               <Suspense fallback={<div>Loading...</div>}>
                 <DatePicker
                   label="Start date"

@@ -1,4 +1,4 @@
-import { CreateProjectFormUser } from "./iUser";
+import { IUser } from "./iUser";
 
 export interface FormValues {
   vendorName: number;
@@ -19,7 +19,7 @@ export interface FormErrors {
 export interface CreateProjectFormValues {
   project_title: string;
   owner: number;
-  members: CreateProjectFormUser[];
+  members: IUser[];
   start_date: string;
   ai_risk_classification: number;
   type_of_high_risk_role: number;

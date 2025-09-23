@@ -26,6 +26,7 @@ import {
 } from "../projectRiskValue";
 import { alertState } from "../../../../domain/interfaces/iAlert";
 import allowedRoles from "../../../../application/constants/permissions";
+import { UserModel } from "../../../../domain/models/user";
 
 // Constants
 const FORM_FIELD_WIDTH = 325;
@@ -80,7 +81,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   // Memoized values
   const userOptions = useMemo(
     () =>
-      users?.map((user) => ({
+      users?.map((user: UserModel) => ({
         _id: user.id,
         name: `${user.name} ${user.surname}`,
       })) || [],

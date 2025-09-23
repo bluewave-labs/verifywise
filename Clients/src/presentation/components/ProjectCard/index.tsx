@@ -12,6 +12,7 @@ import {
 } from "../../../application/hooks/useProjectStatus";
 import { formatDate } from "../../tools/isoDateToString";
 import { User } from "../../../domain/types/User";
+import { UserModel } from "../../../domain/models/user";
 
 export interface ProjectCardProps {
   id: number;
@@ -47,7 +48,9 @@ const ProjectCard: FC<ProjectCardProps> = ({
   const theme = useTheme();
   const navigate = useNavigateSearch();
   const { users } = useUsers();
-  const ownerUser: User = users.find((user: User) => user.id.toString() === owner) ?? ({} as User);
+  const ownerUser: UserModel =
+    users.find((user: UserModel) => user.id?.toString() === owner) ??
+    ({} as User);
 
   const {
     controlsProgress,

@@ -72,7 +72,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
   const roleItems = useMemo(
     () =>
       roles.map((role) => ({
-        _id: role.id.toString(),
+        id: role.id.toString(),
         name: role.name,
       })),
     [roles]

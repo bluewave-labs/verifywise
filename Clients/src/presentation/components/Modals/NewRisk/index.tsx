@@ -127,10 +127,10 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   const VENDOR_OPTIONS =
     vendors?.length > 0
       ? vendors.map((vendor: any) => ({
-          _id: vendor.id,
+          id: vendor.id,
           name: vendor.vendor_name,
         }))
-      : [{ _id: "no-vendor", name: "No Vendor Exists" }];
+      : [{ id: "no-vendor", name: "No Vendor Exists" }];
 
   const [values, setValues] = useState(initialState);
   const [errors, setErrors] = useState({} as FormErrors);
@@ -143,7 +143,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
 
   const { users } = useUsers();
   const formattedUsers = users?.map((user) => ({
-    _id: String(user.id),
+    id: String(user.id),
     name: `${user.name} ${user.surname}`,
   }));
 
@@ -167,8 +167,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         impact_description: existingRisk.impact_description,
         action_owner: String(
           formattedUsers?.find(
-            (user) => String(user._id) === String(existingRisk.action_owner)
-          )?._id || ""
+            (user) => String(user.id) === String(existingRisk.action_owner)
+          )?.id || ""
         ),
         risk_severity: Number(
           RISK_SEVERITY_OPTIONS.find(
@@ -295,8 +295,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
       risk_description: values.risk_description,
       impact_description: values.impact_description,
       action_owner: formattedUsers?.find(
-        (user) => String(user._id) === String(values.action_owner)
-      )?._id,
+        (user) => String(user.id) === String(values.action_owner)
+      )?.id,
       action_plan: values.action_plan,
       risk_severity: selectedSeverity.name,
       risk_level: risk_risklevel.level,
@@ -602,7 +602,8 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
               marginBottom={theme.spacing(2)}
               sx={{ lineHeight: 1.4 }}
             >
-              Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan.
+              Document and assess a potential risk associated with your vendor.
+              Provide details of the risk, its impact, and your mitigation plan.
             </Typography>
           )}
           <TabContext value={value}>

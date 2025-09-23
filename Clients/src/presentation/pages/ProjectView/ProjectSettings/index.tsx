@@ -35,19 +35,19 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite }from "../../../assets/icons/trash-filled-white.svg";
+import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import { User } from "../../../../domain/types/User";
 import {
   deleteProject,
   updateProject,
 } from "../../../../application/repository/project.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { UserModel } from "../../../../domain/models/user";
 
 enum RiskClassificationEnum {
   HighRisk = "High risk",
@@ -56,9 +56,9 @@ enum RiskClassificationEnum {
 }
 
 const riskClassificationItems = [
-  { _id: 1, name: RiskClassificationEnum.HighRisk },
-  { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-  { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+  { id: 1, name: RiskClassificationEnum.HighRisk },
+  { id: 2, name: RiskClassificationEnum.LimitedRisk },
+  { id: 3, name: RiskClassificationEnum.MinimalRisk },
 ];
 
 enum HighRiskRoleEnum {
@@ -71,12 +71,12 @@ enum HighRiskRoleEnum {
 }
 
 const highRiskRoleItems = [
-  { _id: 1, name: HighRiskRoleEnum.Deployer },
-  { _id: 2, name: HighRiskRoleEnum.Provider },
-  { _id: 3, name: HighRiskRoleEnum.Distributor },
-  { _id: 4, name: HighRiskRoleEnum.Importer },
-  { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-  { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+  { id: 1, name: HighRiskRoleEnum.Deployer },
+  { id: 2, name: HighRiskRoleEnum.Provider },
+  { id: 3, name: HighRiskRoleEnum.Distributor },
+  { id: 4, name: HighRiskRoleEnum.Importer },
+  { id: 5, name: HighRiskRoleEnum.ProductManufacturer },
+  { id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
 ];
 
 interface FormValues {
@@ -129,8 +129,10 @@ const ProjectSettings = React.memo(
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
     const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
-    const [pendingOwnerId, setPendingOwnerId] = useState<User | null>(null);
-    const [removedOwner, setRemovedOwner] = useState<User | null>(null);
+    const [pendingOwnerId, setPendingOwnerId] = useState<UserModel | null>(
+      null
+    );
+    const [removedOwner, setRemovedOwner] = useState<UserModel | null>(null);
 
     const { project } = useProjectData({ projectId });
     const navigate = useNavigate();
@@ -253,13 +255,13 @@ const ProjectSettings = React.memo(
               (item) =>
                 item.name.toLowerCase() ===
                 project.ai_risk_classification.toLowerCase()
-            )?._id || 0,
+            )?.id || 0,
           typeOfHighRiskRole:
             highRiskRoleItems.find(
               (item) =>
                 item.name.toLowerCase() ===
                 project.type_of_high_risk_role.toLowerCase()
-            )?._id || 0,
+            )?.id || 0,
           monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
@@ -310,7 +312,7 @@ const ProjectSettings = React.memo(
       if (!pendingOwnerId) return;
       setValues((prevValues) => ({
         ...prevValues,
-        owner: pendingOwnerId.id,
+        owner: pendingOwnerId.id!,
         members: values.members.filter(
           (member) => member !== pendingOwnerId.id
         ),
@@ -347,7 +349,7 @@ const ProjectSettings = React.memo(
             ) {
               const removedFramework =
                 values.monitoredRegulationsAndStandards.find(
-                  (fw) => !newValue.some((nv) => nv._id === fw._id)
+                  (fw) => !newValue.some((nv) => nv.id === fw._id)
                 );
               setRemovedFramework(prop === "monitoredRegulationsAndStandards");
               if (removedFramework) {
@@ -367,7 +369,7 @@ const ProjectSettings = React.memo(
               const addedFramework = newValue.find(
                 (nv) =>
                   !values.monitoredRegulationsAndStandards.some(
-                    (fw) => fw._id === nv._id
+                    (fw) => fw._id === nv.id
                   )
               );
 
@@ -631,10 +633,10 @@ const ProjectSettings = React.memo(
     const handleSaveConfirm = useCallback(async () => {
       const selectedRiskClass =
         riskClassificationItems.find(
-          (item) => item._id === values.riskClassification
+          (item) => item.id === values.riskClassification
         )?.name || "";
       const selectedHighRiskRole =
-        highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
+        highRiskRoleItems.find((item) => item.id === values.typeOfHighRiskRole)
           ?.name || "";
       const selectedRegulations = values.monitoredRegulationsAndStandards.map(
         (reg) => reg.name
@@ -781,8 +783,8 @@ const ProjectSettings = React.memo(
               value={values.owner || ""}
               onChange={handleOnSelectChange("owner")}
               items={
-                users?.map((user) => ({
-                  _id: user.id,
+                users?.map((user: UserModel) => ({
+                  id: user.id,
                   name: `${user.name} ${user.surname}`,
                   email: user.email,
                 })) || []
@@ -1003,34 +1005,39 @@ const ProjectSettings = React.memo(
               }
               id="users-input"
               size="small"
-              value={users.filter((user) =>
-                values.members.includes(Number(user.id))
+              value={users.filter(
+                (user: UserModel) =>
+                  user.id !== undefined &&
+                  values.members.includes(Number(user.id))
               )}
               options={
                 users
                   ?.filter(
-                    (user) =>
+                    (user: UserModel) =>
+                      user.id !== undefined &&
                       user.id !== values.owner &&
                       !values.members.includes(Number(user.id))
                   )
-                  .map((user) => ({
-                    id: user.id,
+                  .map((user: UserModel) => ({
+                    id: user.id!,
                     name: user.name,
                     surname: user.surname,
                     email: user.email,
                   })) || []
               }
-              getOptionLabel={(member) => `${member.name} ${member.surname}`}
+              getOptionLabel={(member: UserModel) =>
+                `${member.name} ${member.surname}`
+              }
               renderOption={(props, option) => {
                 const { key, ...optionProps } = props;
                 const userEmail =
-                  option.email.length > 30
+                  option.email?.length > 30
                     ? `${option.email.slice(0, 30)}...`
                     : option.email;
                 return (
                   <Box component="li" key={key} {...optionProps}>
                     <Typography sx={{ fontSize: "13px" }}>
-                      {option.name} {option.surname}
+                      {option.name} {option.surname || ""}
                     </Typography>
                     <Typography
                       sx={{
@@ -1040,7 +1047,7 @@ const ProjectSettings = React.memo(
                         right: "9px",
                       }}
                     >
-                      {userEmail}
+                      {userEmail || ""}
                     </Typography>
                   </Box>
                 );
@@ -1267,7 +1274,6 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
-
       </Stack>
     );
   }

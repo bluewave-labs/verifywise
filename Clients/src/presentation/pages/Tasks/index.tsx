@@ -3,7 +3,6 @@ import {
   Box,
   Stack,
   Typography,
-  InputBase,
   Collapse,
   Paper,
   Chip,
@@ -13,7 +12,7 @@ import {
   Autocomplete,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { SearchBox } from "../../components/Search";
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
 import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
@@ -50,7 +49,6 @@ import {
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
-import { searchBoxStyle, searchInputStyle } from "./style";
 import DatePicker from "../../components/Inputs/Datepicker";
 import dayjs from "dayjs";
 import Toggle from "../../components/Toggle";
@@ -400,22 +398,21 @@ const Tasks: React.FC = () => {
           <HeaderCard title="Completed" count={summary.completed} />
         </Stack>
 
-        {/* Search and Sort Controls */}
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Box sx={searchBoxStyle}>
-            <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
-            <InputBase
+        {/* Search, Filter, and Sort Controls  */}
+        <Box sx={{ mt: 6, mb: 6 }}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
+            <SearchBox
               placeholder="Search tasks by title or description..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={searchInputStyle}
+              onChange={setSearchQuery}
+              sx={{ mr: 2 }}
               inputProps={{ "aria-label": "Search tasks" }}
             />
-          </Box>
 
           <Stack direction="row" spacing={3} alignItems="center">
             <CustomSelect
@@ -738,6 +735,7 @@ const Tasks: React.FC = () => {
               </Box>
             </Collapse>
           </Paper>
+        </Box>
 
         {/* Content Area */}
         <Box>

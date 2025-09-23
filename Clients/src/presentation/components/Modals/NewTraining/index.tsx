@@ -57,9 +57,9 @@ const initialState: NewTrainingFormValues = {
 };
 
 const statusOptions = [
-  { _id: "Planned", name: "Planned" },
-  { _id: "In Progress", name: "In Progress" },
-  { _id: "Completed", name: "Completed" },
+  { id: "Planned", name: "Planned" },
+  { id: "In Progress", name: "In Progress" },
+  { id: "Completed", name: "Completed" },
 ];
 
 const NewTraining: FC<NewTrainingProps> = ({
@@ -182,18 +182,18 @@ const NewTraining: FC<NewTrainingProps> = ({
     [theme.palette.background.main]
   );
 
-    useModalKeyHandling({
-        isOpen,
-        onClose: handleClose,
-    });
+  useModalKeyHandling({
+    isOpen,
+    onClose: handleClose,
+  });
 
   return (
     <Dialog
       open={isOpen}
       onClose={(_event, reason) => {
-          if (reason !== 'backdropClick') {
-              handleClose();
-          }
+        if (reason !== "backdropClick") {
+          handleClose();
+        }
       }}
       maxWidth="md"
       fullWidth
@@ -253,15 +253,18 @@ const NewTraining: FC<NewTrainingProps> = ({
               <CloseIcon />
             </Box>
           </Stack>
-          <Typography 
-            sx={{ 
-              fontSize: 13, 
+          <Typography
+            sx={{
+              fontSize: 13,
               color: theme.palette.text.secondary,
               mt: 1,
-              mb: 18
+              mb: 18,
             }}
           >
-            Record and manage your organization's AI literacy and compliance trainings. Enter training details such as name, provider, duration, department, participants, and status to keep a clear history of all AI-related education initiatives.
+            Record and manage your organization's AI literacy and compliance
+            trainings. Enter training details such as name, provider, duration,
+            department, participants, and status to keep a clear history of all
+            AI-related education initiatives.
           </Typography>
           <DialogContent sx={{ p: 0 }}>
             <Stack sx={{ gap: "16px", mt: 4 }}>

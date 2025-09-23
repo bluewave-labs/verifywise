@@ -229,7 +229,7 @@ export const searchBoxStyle =
         borderRadius: theme.shape.borderRadius,
         p: "1px 1px",
         bgcolor: "#fff",
-        width: isSearchBarVisible ? "50%" : "40px",
+        width: isSearchBarVisible ? "50%" : "auto",
         transition: "all 0.3s ease",
         mb: 9,
     });

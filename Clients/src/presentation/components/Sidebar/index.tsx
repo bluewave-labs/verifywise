@@ -269,7 +269,7 @@ const Sidebar = () => {
       component="aside"
       className={`sidebar-menu ${collapsed ? "collapsed" : "expanded"}`}
       py={theme.spacing(6)}
-      gap={theme.spacing(6)}
+      gap={theme.spacing(2)}
       sx={{
         height: "100vh",
         border: 1,
@@ -946,7 +946,7 @@ const Sidebar = () => {
           <MenuItem
             onClick={() => {
               window.open(
-                "https://github.com/bluewave-labs/verifywise/discussions",
+                "https://verifywise.ai/contact",
                 "_blank",
                 "noreferrer"
               );

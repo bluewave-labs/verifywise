@@ -81,10 +81,12 @@ const MitigationSection: FC<MitigationSectionProps> = ({
   // Memoized values
   const userOptions = useMemo(
     () =>
-      users?.map((user: UserModel) => ({
-        _id: user.id,
-        name: `${user.name} ${user.surname}`,
-      })) || [],
+      users
+        ?.filter((user: UserModel) => user.id !== undefined)
+        .map((user: UserModel) => ({
+          _id: user.id!,
+          name: `${user.name} ${user.surname}`,
+        })) || [],
     [users]
   );
 

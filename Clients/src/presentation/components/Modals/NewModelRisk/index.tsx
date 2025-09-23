@@ -25,7 +25,7 @@ import {
   ModelRiskCategory,
   ModelRiskLevel,
   ModelRiskStatus,
-  IModelRiskFormData
+  IModelRiskFormData,
 } from "../../../../domain/interfaces/i.modelRisk";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { getAllUsers } from "../../../../application/repository/user.repository";
@@ -181,7 +181,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   // Transform users to the format expected by SelectComponent
   const userOptions = useMemo(() => {
     return users.map((user) => ({
-      _id: String(user.id), // Convert to string to match database format
+      id: String(user.id), // Convert to string to match database format
       name: `${user.name} ${user.surname}`,
       email: user.email,
     }));
@@ -190,11 +190,11 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   // Transform models to the format expected by SelectComponent
   const modelOptions = useMemo(() => {
     return [
-      { _id: "", name: "None (General Risk)" },
+      { id: "", name: "None (General Risk)" },
       ...models.map((model) => ({
-        _id: model.id,
+        id: model.id,
         name: `${model.provider} ${model.model} ${model.version || ""}`.trim(),
-      }))
+      })),
     ];
   }, [models]);
 
@@ -309,14 +309,18 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
         fontSize: "13px",
       },
     }),
-    [theme.palette.background.main, theme.shape.borderRadius, theme.palette.border.dark]
+    [
+      theme.palette.background.main,
+      theme.shape.borderRadius,
+      theme.palette.border.dark,
+    ]
   );
 
   return (
     <Modal
       open={isOpen}
       onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
+        if (reason !== "backdropClick") {
           handleClose();
         }
       }}
@@ -409,7 +413,10 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                   error={errors.riskCategory}
                   isRequired
                   sx={{ width: 220 }}
-                  items={riskCategoryOptions}
+                  items={riskCategoryOptions.map((category) => ({
+                    id: category._id,
+                    name: category.name,
+                  }))}
                   onChange={handleOnSelectChange("riskCategory")}
                   placeholder="Select category"
                 />
@@ -420,7 +427,10 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                   error={errors.riskLevel}
                   isRequired
                   sx={{ width: 220 }}
-                  items={riskLevelOptions}
+                  items={riskLevelOptions.map((level) => ({
+                    id: level._id,
+                    name: level.name,
+                  }))}
                   onChange={handleOnSelectChange("riskLevel")}
                   placeholder="Select risk level"
                 />
@@ -439,7 +449,10 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                   error={errors.status}
                   isRequired
                   sx={{ width: 220 }}
-                  items={statusOptions}
+                  items={statusOptions.map((status) => ({
+                    id: status._id,
+                    name: status.name,
+                  }))}
                   onChange={handleOnSelectChange("status")}
                   placeholder="Select status"
                 />
@@ -581,7 +594,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 gap: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIconSVGWhite/>}
+              icon={<SaveIconSVGWhite />}
             />
           </Stack>
         </form>

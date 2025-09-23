@@ -4,11 +4,7 @@ import {
   Box,
   Typography,
   Stack,
-  Card,
-  Button,
   IconButton,
-  Divider,
-  Chip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 

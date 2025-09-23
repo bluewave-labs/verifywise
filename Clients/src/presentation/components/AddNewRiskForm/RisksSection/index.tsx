@@ -488,8 +488,10 @@ const RiskSection: FC<RiskSectionProps> = ({
                 onChange={handleOnSelectChange("actionOwner")}
                 items={
                   users?.map((user: UserModel) => ({
-                    _id: user.id,
+                    id: user.id || "",
                     name: `${user.name} ${user.surname}`,
+                    email: user.email,
+                    surname: user.surname,
                   })) || []
                 }
                 isRequired
@@ -509,7 +511,10 @@ const RiskSection: FC<RiskSectionProps> = ({
                     : riskValues.aiLifecyclePhase
                 }
                 onChange={handleOnSelectChange("aiLifecyclePhase")}
-                items={aiLifecyclePhase}
+                items={aiLifecyclePhase.map((phase) => ({
+                  id: phase._id,
+                  name: phase.name,
+                }))}
                 isRequired
                 error={riskErrors.aiLifecyclePhase}
                 sx={{

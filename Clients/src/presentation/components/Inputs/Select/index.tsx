@@ -24,7 +24,7 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { SelectProps } from "../../../../domain/interfaces/iWidget";
 
 const Select: React.FC<SelectProps> = ({
@@ -52,7 +52,7 @@ const Select: React.FC<SelectProps> = ({
   const renderValue = (value: unknown) => {
     const selected = value as string | number;
     const selectedItem = items.find(
-      (item) => (getOptionValue ? getOptionValue(item) : item._id) === selected
+      (item) => (getOptionValue ? getOptionValue(item) : item.id) === selected
     );
 
     let displayText;
@@ -107,7 +107,7 @@ const Select: React.FC<SelectProps> = ({
           fontSize={"13px"}
           sx={{
             margin: 0,
-            height: '22px',
+            height: "22px",
             display: "flex",
             alignItems: "center",
           }}
@@ -175,14 +175,14 @@ const Select: React.FC<SelectProps> = ({
       >
         {items.map(
           (item: {
-            _id: string | number;
+            id: string | number;
             name: string;
             email?: string;
             surname?: string;
           }) => (
             <MenuItem
-              value={getOptionValue ? getOptionValue(item) : item._id}
-              key={`${id}-${item._id}`}
+              value={getOptionValue ? getOptionValue(item) : item.id}
+              key={`${id}-${item.id}`}
               sx={{
                 display: "flex",
                 ...itemStyles,

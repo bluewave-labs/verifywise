@@ -1,7 +1,8 @@
+import { IUser } from "../../interfaces/iUser";
 import { User } from "../../types/User";
 
-export class UserModel {
-  id: number;
+export class UserModel implements IUser {
+  id?: number;
   name: string;
   surname: string;
   email: string;
@@ -10,7 +11,7 @@ export class UserModel {
   created_at?: Date;
   last_login?: Date;
 
-  constructor(data: User) {
+  constructor(data: IUser) {
     this.id = data.id;
     this.name = data.name;
     this.surname = data.surname;

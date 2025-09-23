@@ -168,6 +168,8 @@ export async function insertMockData(
           risk_approval: users[1].id!,
           approval_status: "In Progress",
           date_of_assessment: new Date(Date.now()),
+          projects: [project.id!],
+          frameworks: [2, 3], // ISO frameworks
         },
         tenant,
         transaction

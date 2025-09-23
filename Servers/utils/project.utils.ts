@@ -304,7 +304,7 @@ export const updateProjectUpdatedByIdQuery = async (
   byTable:
     | "controls"
     | "answers"
-    | "projectrisks"
+    // | "projectrisks"
     | "vendors"
     | "subclauses"
     | "annexcategories"
@@ -316,9 +316,9 @@ export const updateProjectUpdatedByIdQuery = async (
   const queryMap = {
     controls: `SELECT pf.project_id as id FROM "${tenant}".controls_eu c JOIN "${tenant}".projects_frameworks pf ON pf.id = c.projects_frameworks_id WHERE c.id = :id;`,
     answers: `SELECT pf.project_id as id FROM "${tenant}".assessments a JOIN "${tenant}".answers_eu ans ON ans.assessment_id = a.id JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE ans.id = :id;`,
-    projectrisks: `SELECT p.id FROM
-      "${tenant}".projects p JOIN "${tenant}".projectrisks pr ON p.id = pr.project_id
-        WHERE pr.id = :id;`,
+    // projectrisks: `SELECT p.id FROM
+    //   "${tenant}".projects p JOIN "${tenant}".projectrisks pr ON p.id = pr.project_id
+    //     WHERE pr.id = :id;`,
     vendors: `SELECT project_id as id FROM "${tenant}".vendors_projects WHERE vendor_id = :id;`,
     subclauses: `SELECT pf.project_id as id FROM "${tenant}".subclauses_iso sc JOIN "${tenant}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
     annexcategories: `SELECT pf.project_id as id FROM "${tenant}".annexcategories_iso a JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`,
@@ -480,7 +480,8 @@ export const deleteHelper = async (
   let childIds: any = {};
   if (
     childTableName !== "projects_members" &&
-    childTableName !== "projects_frameworks"
+    childTableName !== "projects_frameworks" &&
+    childTableName !== "projects_risks"
   ) {
     if (childTableName === "vendors") {
       childIds = await sequelize.query(
@@ -555,7 +556,7 @@ export const deleteProjectByIdQuery = async (
       },
     },
     { files: { foreignKey: "project_id", model: FileModel } },
-    { projectrisks: { foreignKey: "project_id", model: RiskModel } },
+    { projects_risks: { foreignKey: "project_id", model: RiskModel } },
     {
       projects_members: {
         foreignKey: "project_id",
@@ -604,7 +605,7 @@ export const calculateProjectRisks = async (
     risk_level_autocalculated: string;
     count: string;
   }>(
-    `SELECT risk_level_autocalculated, count(*) AS count FROM "${tenant}".projectrisks WHERE project_id = :project_id GROUP BY risk_level_autocalculated`,
+    `SELECT risk_level_autocalculated, count(*) AS count FROM "${tenant}".risks r JOIN "${tenant}".projects_risks pr ON r.id = pr.risk_id WHERE pr.project_id = :project_id GROUP BY risk_level_autocalculated`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,

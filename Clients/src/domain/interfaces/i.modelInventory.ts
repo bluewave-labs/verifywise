@@ -1,3 +1,5 @@
+import { ModelInventoryStatus } from "../enums/modelInventoryStatus";
+
 export interface IModelInventory {
   id?: number;
   provider_model?: string; // Keep for backward compatibility during transition
@@ -12,13 +14,6 @@ export interface IModelInventory {
   is_demo?: boolean;
   created_at?: Date;
   updated_at?: Date;
-}
-
-export enum ModelInventoryStatus {
-  APPROVED = "Approved",
-  RESTRICTED = "Restricted",
-  PENDING = "Pending",
-  BLOCKED = "Blocked",
 }
 
 export interface ModelInventorySummary {

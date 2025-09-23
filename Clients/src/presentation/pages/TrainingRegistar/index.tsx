@@ -26,8 +26,7 @@ import HelperIcon from "../../components/HelperIcon";
 import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
-
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import Select from "../../components/Inputs/Select";
 import { searchBoxStyle, inputStyle } from "./style";
 

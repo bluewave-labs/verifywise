@@ -18,7 +18,8 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import InfoIcon from "@mui/icons-material/Info";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { ReactComponent as BlueInfoIcon } from "../../assets/icons/info-circle-blue.svg";
 import DownloadIcon from "@mui/icons-material/Download";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
@@ -740,7 +741,7 @@ export default function BiasAndFairnessResultsPage() {
                 >
                   {data_quality.insights.map((insight: string, index: number) => (
                     <Box key={index} display="flex" alignItems="flex-start" mb={1}>
-                      <InfoIcon sx={{ color: '#0284c7', mr: 1, mt: 0.2, fontSize: 16 }} />
+                      <BlueInfoIcon/>
                       <Typography variant="body2" sx={{ color: "#1c2130", fontSize: '15px', fontWeight: 500, flex: 1 }}>
                         {insight}
                       </Typography>
@@ -872,7 +873,7 @@ export default function BiasAndFairnessResultsPage() {
                     />
                     <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, flex: 1 }}>{m}</Typography>
                     <Tooltip title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} placement="top">
-                      <InfoIcon sx={{ fontSize: 16, color: '#6b7280' }} />
+                      <GreyCircleInfoIcon style={{ fontSize: 16, color: '#6b7280' }} />
                     </Tooltip>
                   </Box>
                 ))}
@@ -898,7 +899,7 @@ export default function BiasAndFairnessResultsPage() {
                     />
                     <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, flex: 1 }}>{m}</Typography>
                     <Tooltip title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} placement="top">
-                      <InfoIcon sx={{ fontSize: 16, color: '#6b7280' }} />
+                      <GreyCircleInfoIcon style={{ fontSize: 16, color: '#6b7280' }} />
                     </Tooltip>
                   </Box>
                 ))}
@@ -925,7 +926,7 @@ export default function BiasAndFairnessResultsPage() {
                       />
                       <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, flex: 1 }}>{m}</Typography>
                       <Tooltip title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} placement="top">
-                        <InfoIcon sx={{ fontSize: 16, color: '#6b7280' }} />
+                        <GreyCircleInfoIcon style={{ fontSize: 16, color: '#6b7280' }} />
                       </Tooltip>
                     </Box>
                   ))}

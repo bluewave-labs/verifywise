@@ -84,7 +84,7 @@ const MitigationSection: FC<MitigationSectionProps> = ({
       users
         ?.filter((user: UserModel) => user.id !== undefined)
         .map((user: UserModel) => ({
-          _id: user.id!,
+          id: user.id!,
           name: `${user.name} ${user.surname}`,
         })) || [],
     [users]

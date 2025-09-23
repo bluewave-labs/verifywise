@@ -5,7 +5,7 @@ import StatusBadge from "../StatusBadge";
 
 const LocalizationTest = () => {
   const { t } = useTranslation();
-  const { translateStatus, translateRiskLevel } = useStatusTranslation();
+  const { translateRiskLevel } = useStatusTranslation();
 
   const testStatuses = ["In Progress", "Completed", "Pending", "Failed"];
   const testRiskLevels = ["Very High Risk", "High Risk", "Medium Risk", "Low Risk"];

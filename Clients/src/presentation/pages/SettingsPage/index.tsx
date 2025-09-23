@@ -12,9 +12,8 @@ import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import settingsHelpContent from "../../helpers/settings-help.html?raw";
 import PageHeader from "../../components/Layout/PageHeader";
 
 export default function ProfilePage() {
@@ -32,10 +31,37 @@ export default function ProfilePage() {
     <Stack className="vwhome">
      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 45 }} > <PageBreadcrumbs /> </Stack>
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={settingsHelpContent}
-        pageTitle="Settings"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Settings & configuration"
+        description="Manage your account, organization, and system preferences"
+        whatItDoes="Configure **user profiles**, *security settings*, **team management**, and *organizational preferences*. Control **access permissions**, *notification preferences*, and **system integrations**."
+        whyItMatters="Proper **configuration** ensures your *AI governance platform* operates **securely** and efficiently. Settings management helps maintain **user access controls**, enforce *security policies*, and customize the platform to your *organization's needs*."
+        quickActions={[
+          {
+            label: "Update Profile",
+            description: "Manage your personal information and preferences",
+            primary: true
+          },
+          {
+            label: "Manage Team",
+            description: "Add users and configure role-based permissions"
+          }
+        ]}
+        useCases={[
+          "**User onboarding** with appropriate *role assignments* and **access levels**",
+          "**Security configuration** including *password policies* and **authentication methods**"
+        ]}
+        keyFeatures={[
+          "**Role-based access control** with *granular permission settings*",
+          "**Team management** with *user invitation* and **deactivation workflows**",
+          "**Organization-wide settings** for *branding* and **compliance preferences**"
+        ]}
+        tips={[
+          "**Regularly review** user access to ensure *appropriate permissions*",
+          "Enable **two-factor authentication** for *enhanced security*",
+          "Document **role definitions** to ensure *consistent permission assignments*"
+        ]}
       />
        <PageHeader
                title="Settings"

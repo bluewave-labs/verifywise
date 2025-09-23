@@ -221,7 +221,7 @@ const VWISO27001AnnexDrawerDialog = ({
   };
 
   const handleSelectChange = (field: string) => (event: any) => {
-    const value = event.target.value.toString();
+    const value = event.target.value?.toString() || "";
     if (
       field === "status" &&
       value === "Implemented" &&

@@ -186,7 +186,7 @@ const VWISO27001ClauseDrawerDialog = ({
 
   const handleSelectChange =
     (field: string) => (event: SelectChangeEvent<string | number>) => {
-      const value = event.target.value.toString();
+      const value = event.target.value?.toString() || "";
       if (
         field === "status" &&
         value === "6" &&
@@ -722,10 +722,10 @@ const VWISO27001ClauseDrawerDialog = ({
           <Select
             id="Owner"
             label="Owner:"
-            value={formData.owner || ""}
+            value={formData.owner ? parseInt(formData.owner) : ""}
             onChange={handleSelectChange("owner")}
             items={projectMembers.map((user) => ({
-              id: user.id?.toString(),
+              id: user.id,
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -733,16 +733,15 @@ const VWISO27001ClauseDrawerDialog = ({
             sx={inputStyles}
             placeholder={"Select owner"}
             disabled={isEditingDisabled}
-            getOptionValue={(item) => item._id}
           />
 
           <Select
             id="Reviewer"
             label="Reviewer:"
-            value={formData.reviewer || ""}
+            value={formData.reviewer ? parseInt(formData.reviewer) : ""}
             onChange={handleSelectChange("reviewer")}
             items={projectMembers.map((user) => ({
-              id: user.id?.toString(),
+              id: user.id,
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -750,16 +749,15 @@ const VWISO27001ClauseDrawerDialog = ({
             sx={inputStyles}
             placeholder={"Select reviewer"}
             disabled={isEditingDisabled}
-            getOptionValue={(item) => item._id}
           />
 
           <Select
             id="Approver"
             label="Approver:"
-            value={formData.approver || ""}
+            value={formData.approver ? parseInt(formData.approver) : ""}
             onChange={handleSelectChange("approver")}
             items={projectMembers.map((user) => ({
-              id: user.id?.toString(),
+              id: user.id,
               name: user.name,
               email: user.email,
               surname: user.surname,
@@ -767,7 +765,6 @@ const VWISO27001ClauseDrawerDialog = ({
             sx={inputStyles}
             placeholder={"Select approver"}
             disabled={isEditingDisabled}
-            getOptionValue={(item) => item._id}
           />
 
           <DatePicker

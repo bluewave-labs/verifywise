@@ -26,15 +26,15 @@ interface SlackIntegrationsProps {
   integrationData: SlackWebhook[];
   showAlert: (
     variant: "success" | "info" | "warning" | "error",
-const SlackIntegrations = ({
-  integrationData,
-  showAlert,
-}: SlackIntegrationsProps) => {
+    title: string,
     body: string,
   ) => void;
 }
 
-const SlackIntegrations = ({ integrationData }: SlackIntegrationsProps) => {
+const SlackIntegrations = ({
+  integrationData,
+  showAlert,
+}: SlackIntegrationsProps) => {
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const theme = useTheme();

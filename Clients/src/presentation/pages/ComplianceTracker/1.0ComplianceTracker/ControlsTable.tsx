@@ -16,7 +16,6 @@ import {
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { Control } from "../../../../domain/types/Control";
-import { User } from "../../../../domain/types/User";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import NewControlPane from "../../../components/Modals/Controlpane/NewControlPane";
 import Alert from "../../../components/Alert";
@@ -27,6 +26,7 @@ import {
   getControlByIdAndProject,
   getControlsByControlCategoryId,
 } from "../../../../application/repository/control_eu_act.repository";
+import { UserModel } from "../../../../domain/models/user";
 
 interface Column {
   name: string;
@@ -199,7 +199,7 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
 
   const getOwnerName = (ownerId: number | undefined) => {
     if (!ownerId) return "Not set";
-    const owner = users?.find((user: User) => user.id === ownerId);
+    const owner = users?.find((user: UserModel) => user.id === ownerId);
     return owner ? `${owner.name} ${owner.surname}` : "Not set";
   };
 

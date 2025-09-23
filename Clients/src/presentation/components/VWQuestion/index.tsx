@@ -1,4 +1,12 @@
-import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Stack,
+  Tooltip,
+  Typography,
+  Dialog,
+  useTheme,
+} from "@mui/material";
 import { Question } from "../../../domain/types/Question";
 import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import {
@@ -71,9 +79,9 @@ const QuestionFrame = ({
   );
 
   const STATUS_OPTIONS = [
-    { _id: "notStarted", name: "Not started" },
-    { _id: "inProgress", name: "In progress" },
-    { _id: "done", name: "Done" },
+    { id: "notStarted", name: "Not started" },
+    { id: "inProgress", name: "In progress" },
+    { id: "done", name: "Done" },
   ];
 
   const handleChangeEvidenceFiles = useCallback((files: FileData[]) => {

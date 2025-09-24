@@ -13,8 +13,8 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
 import { getUserById, updatePassword } from "../../../../application/repository/user.repository";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast"; // Import CustomizableToast
 
@@ -25,15 +25,18 @@ const PasswordForm: React.FC = () => {
   const { id } = userData || {};
   const [pwdSet, setPwdSet] = useState(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {try {
+  const fetchUserData = useCallback(async () => {
+    try {
       const response = await getUserById({ userId: id });
       setPwdSet(response.data.pwd_set ?? true);
     } catch (error) {
       console.log(error);
-    }}
+    }
+  }, [id]);
+
+  useEffect(() => {
     fetchUserData();
-  }, [])
+  }, [fetchUserData])
 
   // State management
   const [currentPassword, setCurrentPassword] = useState<string>("");
@@ -169,6 +172,8 @@ const PasswordForm: React.FC = () => {
           isToast: true,
           visible: true,
         });
+        // Refresh user data after successful password update
+        await fetchUserData();
       } else {
         setAlert({
           variant: "error",
@@ -195,7 +200,7 @@ const PasswordForm: React.FC = () => {
         setAlert((prev) => ({ ...prev, visible: false }));
       }, 3000); // Alert will disappear after 3 seconds
     }
-  }, [currentPassword, newPassword, confirmPassword]);
+  }, [currentPassword, newPassword, confirmPassword, fetchUserData]);
 
   const handleCloseConfirmationModal = useCallback(() => {
     setIsConfirmationModalOpen(false);
@@ -325,7 +330,7 @@ const PasswordForm: React.FC = () => {
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIcon />}
+                icon={<SaveIconSVGWhite />}
                 onClick={() => setIsConfirmationModalOpen(true)}
                 isDisabled={isSaveDisabled}
               />

@@ -1,30 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import svgr from "@svgr/rollup";
+import { version } from "./package.json"
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     svgr(),
-    // Removed the problematic HTML loader plugin that was causing parsing errors
-    // {
-    //   name: "html-loader",
-    //   enforce: "pre",
-    //   transform(code, id) {
-    //     if (id.endsWith(".html")) {
-    //       const cleaned = code
-    //         .replace(/<!--[\s\S]*?-->/g, "")
-    //         .replace(/\s+/g, " ")
-    //         .trim();
-
-    //       return {
-    //         code: `export default ${JSON.stringify(cleaned)};`,
-    //         map: null,
-    //       };
-    //     }
-    //   },
-    // },
   ],
   server: {
     host: "0.0.0.0",
@@ -32,5 +15,17 @@ export default defineConfig({
       ? parseInt(process.env.VITE_APP_PORT)
       : 5173,
   },
-  define: { global: "globalThis" },
+  build: {
+    // Generate manifest for cache busting
+    manifest: true,
+    rollupOptions: {
+      output: {
+        // Add hash to filenames for cache busting
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    }
+  },
+  define: { global: "globalThis", __APP_VERSION__: JSON.stringify(version) },
 });

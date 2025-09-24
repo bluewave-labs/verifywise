@@ -14,8 +14,9 @@ const text = {
 };
 
 const background = {
-  main: "#FFFFFF",
-  alt: "#FCFCFD",
+  main: "#FFFFFF",      // General background for forms, fields, etc.
+  alt: "#FCFCFD",       // Alternative background
+  modal: "#FCFCFD",     // Dedicated background for all modals
   fill: "#F4F4F4",
   accent: "#f9fafb",
 };
@@ -248,6 +249,75 @@ const light = createTheme({
         },
       },
     },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: background.modal,
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: background.modal,
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          backgroundColor: background.main,
+          "& .MuiOutlinedInput-root": {
+            backgroundColor: background.main,
+            borderRadius: 2,
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#d0d5dd",
+              borderWidth: "1px",
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#d0d5dd",
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#d0d5dd",
+              borderWidth: "1px",
+            },
+          },
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: background.main,
+          borderRadius: 2,
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#d0d5dd",
+            borderWidth: "1px",
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#d0d5dd",
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#d0d5dd",
+            borderWidth: "1px",
+          },
+        },
+      },
+    },
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          backgroundColor: background.main,
+        },
+      },
+    },
+    MuiAutocomplete: {
+      styleOverrides: {
+        inputRoot: {
+          backgroundColor: background.main,
+        },
+      },
+    },
 
     MuiButtonBase: {
       defaultProps: {
@@ -265,6 +335,26 @@ const light = createTheme({
       },
     },
     MuiButtonGroup: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiTab: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiToggleButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiSwitch: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
+    MuiRadio: {
       defaultProps: {
         disableRipple: true,
       },

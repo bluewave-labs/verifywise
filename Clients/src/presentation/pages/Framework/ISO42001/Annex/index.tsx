@@ -10,7 +10,7 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repos
 import { useEffect, useState } from "react";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../../ISO27001/Clause/style";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
 import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
@@ -20,17 +20,22 @@ import { updateISO42001AnnexStatus } from "../../../../components/StatusDropdown
 import { useAuth } from "../../../../../application/hooks/useAuth";
 import allowedRoles from "../../../../../application/constants/permissions";
 import { Project } from "../../../../../domain/types/Project";
+import { useSearchParams } from "react-router-dom";
 
 const ISO42001Annex = ({
   project,
   projectFrameworkId,
   statusFilter,
   applicabilityFilter,
+  initialAnnexId,
+  initialAnnexCategoryId,
 }: {
   project: Project;
   projectFrameworkId: string | number;
   statusFilter?: string;
   applicabilityFilter?: string;
+  initialAnnexId?: string | null;
+  initialAnnexCategoryId?: string | null;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
@@ -42,6 +47,10 @@ const ISO42001Annex = ({
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const annexId = initialAnnexId;
+  const annexControlId = initialAnnexCategoryId;
 
   useEffect(() => {
     const fetchAnnexes = async () => {
@@ -61,6 +70,21 @@ const ISO42001Annex = ({
     fetchAnnexes();
   }, [projectFrameworkId, refreshTrigger]);
 
+  useEffect(() => {
+    // Use initialAnnexId/initialAnnexCategoryId props first, fallback to URL params
+
+    if (annexId && annexes && annexes.length > 0) {
+      const annex = annexes.find((a: any) => a.id === Number(annexId));
+      if (annex) {
+        handleAccordionChange(annex.id)(new Event("click") as any, true);
+        const annexCategory = annex.annexCategories?.find(
+          (ac: any) => ac.id === Number(annexControlId),
+        );
+        if (annexCategory) handleControlClick(annex, annexCategory);
+      }
+    }
+  }, [annexId, annexes, annexControlId, initialAnnexId, initialAnnexCategoryId]);
+
   const handleAccordionChange =
     (panel: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
@@ -76,12 +100,18 @@ const ISO42001Annex = ({
     setDrawerOpen(false);
     setSelectedControl(null);
     setSelectedAnnex(null);
+    if (annexId && annexControlId) {
+      searchParams.delete("annexId");
+      searchParams.delete("annexControlId");
+      searchParams.delete("framework");
+      setSearchParams(searchParams);
+    }
   };
 
   const handleSaveSuccess = async (
     success: boolean,
     message?: string,
-    savedControlId?: number
+    savedControlId?: number,
   ) => {
     handleAlert({
       variant: success ? "success" : "error",
@@ -99,7 +129,10 @@ const ISO42001Annex = ({
     }
   };
 
-  const handleStatusChange = async (control: any, newStatus: string): Promise<boolean> => {
+  const handleStatusChange = async (
+    control: any,
+    newStatus: string,
+  ): Promise<boolean> => {
     try {
       const success = await updateISO42001AnnexStatus({
         id: control.id,
@@ -118,7 +151,7 @@ const ISO42001Annex = ({
 
         setFlashingRowId(control.id);
         setTimeout(() => setFlashingRowId(null), 2000);
-        
+
         setRefreshTrigger((prev) => prev + 1);
       } else {
         handleAlert({
@@ -149,7 +182,7 @@ const ISO42001Annex = ({
     if (statusFilter && statusFilter !== "") {
       filteredControls = filteredControls.filter(
         (control: any) =>
-          control.status?.toLowerCase() === statusFilter.toLowerCase()
+          control.status?.toLowerCase() === statusFilter.toLowerCase(),
       );
     }
 
@@ -161,7 +194,7 @@ const ISO42001Annex = ({
     ) {
       const isApplicable = applicabilityFilter === "true";
       filteredControls = filteredControls.filter(
-        (control: any) => Boolean(control.is_applicable) === isApplicable
+        (control: any) => Boolean(control.is_applicable) === isApplicable,
       );
     }
 
@@ -176,7 +209,7 @@ const ISO42001Annex = ({
               }}
               sx={styles.controlRow(
                 filteredControls.length - 1 === index,
-                flashingRowId === control.id
+                flashingRowId === control.id,
               )}
             >
               <Stack>
@@ -187,7 +220,9 @@ const ISO42001Annex = ({
               </Stack>
               <StatusDropdown
                 currentStatus={control.status || "Not started"}
-                onStatusChange={(newStatus) => handleStatusChange(control, newStatus)}
+                onStatusChange={(newStatus) =>
+                  handleStatusChange(control, newStatus)
+                }
                 size="small"
                 allowedRoles={allowedRoles.frameworks.edit}
                 userRole={userRoleName}
@@ -227,7 +262,9 @@ const ISO42001Annex = ({
               onChange={handleAccordionChange(annex.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon sx={styles.expandIcon(expanded === annex.id)} />
+                <RightArrowBlack
+                  style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
+                   />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {annex.arrangement} {annex.title}
                 </Typography>
@@ -240,7 +277,12 @@ const ISO42001Annex = ({
         <VWISO42001AnnexDrawerDialog
           title={selectedControl?.title || ""}
           open={drawerOpen}
-          onClose={handleDrawerClose}
+          onClose={(_event?: any, reason?: string) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleDrawerClose();
+          }}
           annex={selectedAnnex}
           control={selectedControl}
           projectFrameworkId={Number(projectFrameworkId)}

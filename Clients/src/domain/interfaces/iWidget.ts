@@ -18,13 +18,14 @@ export interface IconButtonProps {
   id: number;
   onDelete: () => void;
   onEdit: () => void;
-  warningTitle: string;
-  warningMessage: string;
+  warningTitle?: string;
+  warningMessage?: string;
   type: string;
   onMouseEvent: (event: React.SyntheticEvent) => void;
   onMakeVisible?: () => void;
   onDownload?: () => void;
   isVisible?: boolean;
+  canDelete?: boolean;
 }
 
 export interface AutoCompleteOption {
@@ -133,6 +134,7 @@ export interface SelectProps {
   sx?: object;
   getOptionValue?: (item: any) => any;
   disabled?: boolean;
+  customRenderValue?: (value: any, selectedItem: any) => string;
 }
 
 export interface IBannerProps {

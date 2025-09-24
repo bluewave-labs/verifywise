@@ -16,8 +16,9 @@ import TablePaginationActions from "../../TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 interface TableProps {
   data: {
@@ -45,7 +46,9 @@ const CustomizablePolicyTable = ({
 }: TableProps) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('policyManager', DEFAULT_ROWS_PER_PAGE)
+  );
   const { setInputValues } =
     useContext(VerifyWiseContext);
 
@@ -57,7 +60,9 @@ const CustomizablePolicyTable = ({
   );
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('policyManager', newRowsPerPage);
       setPage(0);
     },
     []

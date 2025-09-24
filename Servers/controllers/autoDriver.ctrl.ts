@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { deleteMockData, insertMockData } from "../driver/autoDriver.driver";
+import {
+  deleteMockData,
+  insertMockData,
+} from "../infrastructure.layer/driver/autoDriver.driver";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";

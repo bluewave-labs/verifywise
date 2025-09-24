@@ -7,8 +7,7 @@ import {
   vwhomeHeading,
 } from "./style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -19,14 +18,15 @@ import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
 import allowedRoles from "../../../../application/constants/permissions";
-import HelperDrawer from "../../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../../components/HelperDrawer";
 import HelperIcon from "../../../components/HelperIcon";
-import dashboardHelpContent from "../../../../presentation/helpers/dashboard-help.html?raw";
 import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 import { useSubscriptionData } from "../../../../application/hooks/useSubscriptionData";
+import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+
 
 const Home = () => {
   const {
@@ -154,11 +154,39 @@ const Home = () => {
 
   return (
     <Stack className="vwhome">
+      <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={dashboardHelpContent}
-        pageTitle="VerifyWise Dashboard"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Dashboard overview"
+        description="Your central hub for AI governance management and compliance tracking"
+        whatItDoes="Provides a **comprehensive overview** of your *AI governance program*. View **project status**, *compliance metrics*, **pending tasks**, and *recent activities* all in one **centralized dashboard**."
+        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or **governance issues**. It provides **executive visibility** into *AI program health* and helps prioritize resources where they're needed most."
+        quickActions={[
+          {
+            label: "Create New Project",
+            description: "Start a new AI governance project or compliance initiative",
+            primary: true
+          },
+          {
+            label: "View Metrics",
+            description: "Check your compliance status and governance metrics"
+          }
+        ]}
+        useCases={[
+          "**Daily monitoring** of *governance activities* and **compliance status**",
+          "**Executive reporting** with *real-time metrics* and **progress tracking**"
+        ]}
+        keyFeatures={[
+          "**Real-time project status tracking** with *progress indicators*",
+          "**Aggregated compliance metrics** across all *governance areas*",
+          "**Quick access** to *pending tasks* and **upcoming deadlines**"
+        ]}
+        tips={[
+          "**Check the dashboard daily** to stay on top of *governance activities*",
+          "Use **project filters** to focus on *specific initiatives* or teams",
+          "Set up **dashboard alerts** for *critical compliance thresholds*"
+        ]}
       />
       {alertState && (
         <Alert
@@ -223,6 +251,8 @@ const Home = () => {
               justifyContent: "space-between",
               alignItems: "center",
               gap: "20px",
+              mt: "16px",
+              mb: "16px",
             }}
           >
             <HeaderCard title="Projects" count={dashboard?.projects || 0} />
@@ -239,7 +269,11 @@ const Home = () => {
 
       <Modal
         open={isProjectFormModalOpen}
-        onClose={handleProjectFormModalClose}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            handleProjectFormModalClose();
+          }
+        }}
         aria-labelledby="modal-title"
         aria-describedby="modal-description"
       >

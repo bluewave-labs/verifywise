@@ -1,8 +1,13 @@
-import React, { useState, useEffect, useCallback, Suspense } from "react";
-import { Box, Stack, Typography, Fade } from "@mui/material";
+import React, { useState, useEffect, useCallback, Suspense, useMemo } from "react";
+import {
+  Box,
+  Stack,
+  Fade,
+  IconButton,
+  InputBase,
+} from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
 import {
@@ -16,12 +21,13 @@ import {
 import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable
 import NewTraining from "../../../presentation/components/Modals/NewTraining"; // Import the NewTraining modal
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
-import { vwhomeHeading } from "../Home/1.0Home/style";
-import singleTheme from "../../themes/v1SingleTheme";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 import { useAuth } from "../../../application/hooks/useAuth";
+import PageHeader from "../../components/Layout/PageHeader";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import Select from "../../components/Inputs/Select";
+import { searchBoxStyle, inputStyle } from "./style";
 
 const Alert = React.lazy(
   () => import("../../../presentation/components/Alert")
@@ -43,7 +49,6 @@ const Training: React.FC = () => {
   // Assuming a similar permission structure for 'training' as 'vendors'
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName); // Example permission check
-
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -52,11 +57,22 @@ const Training: React.FC = () => {
 
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  // Function to simulate fetching training data
+  // ✅ Filter + search state
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+
+  // ✅ Status options
+  const statusOptions = [
+    { _id: "all", name: "All Trainings" },
+    { _id: "Planned", name: "Planned" },
+    { _id: "In Progress", name: "In Progress" },
+    { _id: "Completed", name: "Completed" },
+  ];
+
   const fetchTrainingData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Simulate API call to fetch training data
       const response = await getAllEntities({ routeUrl: "/training" });
       if (response?.data) {
         setTrainingData(response.data);
@@ -100,7 +116,6 @@ const Training: React.FC = () => {
     setSelectedTrainingId(id);
     setIsNewTrainingModalOpen(true);
   };
-
   // Fetch training data when modal opens with an ID
   useEffect(() => {
     const fetchTrainingDetails = async () => {
@@ -194,14 +209,52 @@ const Training: React.FC = () => {
     }
   };
 
+  // Filtered trainings
+  const filteredTraining = useMemo(() => {
+    return trainingData.filter((t) => {
+      const matchesStatus = statusFilter === "all" ? true : t.status === statusFilter;
+      const matchesSearch = t.training_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [trainingData, statusFilter, searchTerm]);
+
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={trainingHelpContent}
-        pageTitle="Training Registry"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="AI training registry"
+        description="Manage and track AI-related training programs and educational resources"
+        whatItDoes="Centralize all **AI training programs**, *courses*, and *educational materials* for your organization. Track **completion status**, *certifications*, and **learning progress** across teams."
+        whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for **responsible AI development** and deployment. Training records support *compliance* and **competency requirements**."
+        quickActions={[
+          {
+            label: "Add Training Program",
+            description: "Register a new AI training course or educational program",
+            primary: true
+          },
+          {
+            label: "Track Progress",
+            description: "Monitor team completion rates and certification status"
+          }
+        ]}
+        useCases={[
+          "**Internal AI ethics** and *governance training programs* for development teams",
+          "**External certification courses** for *machine learning* and **data science skills**"
+        ]}
+        keyFeatures={[
+          "**Comprehensive training catalog** with *metadata* and prerequisites",
+          "**Progress tracking** and *certification management* for individuals and teams",
+          "**Integration** with learning management systems and *HR platforms*"
+        ]}
+        tips={[
+          "Prioritize **ethics and governance training** for all *AI team members*",
+          "Set up *automatic reminders* for **certification renewals** and mandatory training",
+          "Track **training effectiveness** through *assessments* and real-world application"
+        ]}
       />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
@@ -232,45 +285,95 @@ const Training: React.FC = () => {
         </Suspense>
       )}
 
-      <Stack gap={4}>
-        <Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>AI training registry</Typography>
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
+        <PageHeader
+               title="AI training registry"
+               description=" This registry lists all AI-related training programs available to
+               your organization. You can view, add, and manage training details here."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
+
+           {/* Filter + Search row */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={4}
+            sx={{ width: "100%" }}
+          >
+            {/* Left side: Dropdown + Search together */}
+            <Stack direction="row" spacing={6} alignItems="center">
+              {/* Dropdown Filter */}
+              <Select
+                id="training-status"
+                value={statusFilter}
+                items={statusOptions}
+                onChange={(e: any) => setStatusFilter(e.target.value)}
+                sx={{
+                  minWidth: "180px",
+                  height: "34px",
+                  bgcolor: "#fff",
+                }}
+              />
+
+              {/* Expandable Search */}
+              <Box sx={searchBoxStyle(isSearchBarVisible)}>
+                <IconButton
+                  disableRipple
+                  disableFocusRipple
+                  sx={{ "&:hover": { backgroundColor: "transparent" } }}
+                  aria-label="Toggle training search"
+                  aria-expanded={isSearchBarVisible}
+                  onClick={() => setIsSearchBarVisible((prev) => !prev)}
+                >
+                  <SearchIcon />
+                </IconButton>
+
+                {isSearchBarVisible && (
+                  <InputBase
+                    autoFocus
+                    placeholder="Search trainings..."
+                    inputProps={{ "aria-label": "Search trainings" }}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={inputStyle(isSearchBarVisible)}
+                  />
+                )}
+              </Box>
+            </Stack>
+
+            {/* Right side: Customize Button */}
+            <CustomizableButton
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#13715B",
+                        border: "1px solid #13715B",
+                        gap: 2,
+                      }}
+                      text="New training"
+                      icon={<AddCircleOutlineIcon />}
+                      onClick={handleNewTrainingClick}
+                      isDisabled={isCreatingDisabled}
+                    />
           </Stack>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            This registry lists all AI-related training programs available to
-            your organization. You can view, add, and manage training details
-            here.
-          </Typography>
-        </Stack>
 
-        <Stack direction="row" justifyContent="flex-end" alignItems="center">
-          <CustomizableButton
-            variant="contained"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            text="New training"
-            icon={<AddCircleOutlineIcon />}
-            onClick={handleNewTrainingClick}
-            isDisabled={isCreatingDisabled}
+        {/* Table */}
+        <Box sx={{ mt: 1 }}>
+          <TrainingTable
+            data={filteredTraining}
+            isLoading={isLoading}
+            onEdit={handleEditTraining}
+            onDelete={handleDeleteTraining}
           />
-        </Stack>
+        </Box>
 
-        <TrainingTable
-          data={trainingData}
-          isLoading={isLoading}
-          onEdit={handleEditTraining}
-          onDelete={handleDeleteTraining}
-        />
-      </Stack>
-
+      {/* Modal */}
       <NewTraining
         isOpen={isNewTrainingModalOpen}
         setIsOpen={handleCloseModal}

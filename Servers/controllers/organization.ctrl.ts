@@ -24,6 +24,7 @@ import { UserModel } from "../domain.layer/models/user/user.model";
 import { OAuth2Client } from "google-auth-library";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { generateUserTokens } from "../utils/auth.utils";
 
 /**
  * Get all organizations
@@ -212,6 +213,15 @@ export async function createOrganization(
         },
         transaction
       );
+
+      // Generate tokens for the newly created user
+      const { accessToken } = generateUserTokens({
+        id: user.id!,
+        email: body.userEmail,
+        roleName: "Admin", // roleId 1 corresponds to Admin
+        organizationId: organization_id,
+      }, res);
+
       await transaction.commit();
       logStructured(
         "successful",
@@ -225,7 +235,10 @@ export async function createOrganization(
         user.id!,
         req.tenantId!
       );
-      return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+      return res.status(201).json(STATUS_CODE[201]({
+        user: user.toSafeJSON(),
+        token: accessToken
+      }));
     }
 
     logStructured(
@@ -376,10 +389,21 @@ export async function createOrganizationWithGoogle(
       const user = (await createNewUserQuery(userModel, transaction)) as UserModel;
 
       if (user) {
+        // Generate tokens for the newly created user
+        const { accessToken } = generateUserTokens({
+          id: user.id!,
+          email: email!,
+          roleName: "Admin", // roleId 1 corresponds to Admin
+          organizationId: organization_id,
+        }, res);
+
         await transaction.commit();
         logStructured('successful', `user created: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
         await logEvent('Create', `User created: ${email}`, req.userId!, req.tenantId!);
-        return res.status(201).json(STATUS_CODE[201](user.toSafeJSON()));
+        return res.status(201).json(STATUS_CODE[201]({
+          user: user.toSafeJSON(),
+          token: accessToken
+        }));
       }
       logStructured('error', `failed to create user: ${email}`, 'createNewOrganizationWithGoogle', 'organization.ctrl.ts');
       await logEvent('Error', `User creation failed: ${email}`, req.userId!, req.tenantId!);

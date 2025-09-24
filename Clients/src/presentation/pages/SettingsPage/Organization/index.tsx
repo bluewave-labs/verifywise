@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
@@ -26,8 +26,8 @@ import {
 } from "../../../../application/repository/aiTrustCentre.repository";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { getAuthToken } from "../../../../application/redux/auth/getAuthToken";
-import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { useLogoFetch } from "../../../../application/hooks/useLogoFetch";
 
 interface AlertState {
   variant: "success" | "info" | "warning" | "error";
@@ -38,6 +38,7 @@ interface AlertState {
 
 const Organization = () => {
   const { userRoleName, organizationId } = useAuth();
+  const { fetchLogoAsBlobUrl } = useLogoFetch();
   const isEditingDisabled =
     !allowedRoles.organizations.edit.includes(userRoleName);
   const isCreatingDisabled =
@@ -95,55 +96,6 @@ const Organization = () => {
   const handleLogoLoad = useCallback(() => {
     setLogoLoadError(false);
   }, []);
-
-  // Function to fetch logo and convert Buffer to Blob URL
-  const fetchLogoAsBlobUrl = useCallback(
-    async (tenantId: string): Promise<string | null> => {
-      try {
-        const response = await apiServices.get(
-          `/aiTrustCentre/${tenantId}/logo`,
-          {
-            responseType: "json",
-          }
-        );
-
-        const responseData = response.data as any;
-        if (responseData?.data?.logo?.content?.data) {
-          const bufferData = new Uint8Array(
-            responseData.data.logo.content.data
-          );
-
-          // Determine the correct MIME type from the response or default to png
-          const mimeType =
-            responseData.data.logo.mimeType ||
-            responseData.data.logo.contentType ||
-            "image/png";
-
-          const blob = new Blob([bufferData], { type: mimeType });
-          const blobUrl = URL.createObjectURL(blob);
-
-          // Validate that the blob URL can be loaded as an image
-          return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-              resolve(blobUrl);
-            };
-            img.onerror = () => {
-              console.error("Failed to load logo image");
-              URL.revokeObjectURL(blobUrl);
-              resolve(null);
-            };
-            img.src = blobUrl;
-          });
-        }
-        return null;
-      } catch (error) {
-        console.error("Error fetching logo:", error);
-        return null;
-      }
-    },
-    []
-  );
 
   // Fetch organization data and logo
   const fetchOrganization = useCallback(async () => {
@@ -222,19 +174,7 @@ const Organization = () => {
         return;
       }
 
-      // Reject SVG files for security reasons
-      if (
-        file.type === "image/svg+xml" ||
-        file.name.toLowerCase().endsWith(".svg")
-      ) {
-        showAlert(
-          "error",
-          "Invalid File",
-          "SVG files are not supported. Please use PNG, JPG, or GIF format."
-        );
-        return;
-      }
-
+      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         showAlert("error", "File Too Large", "File size must be less than 5MB");
         return;
@@ -480,15 +420,15 @@ const Organization = () => {
               sx={{
                 width: 90,
                 backgroundColor: "#13715B",
-                border: "1px solid #13715B",
+                border: "1px solid",
                 gap: 2,
                 mt: 3,
               }}
               icon={
                 isLoading ? (
-                  <CircularProgress size={20} sx={{ color: "#13715B" }} />
+                  <CircularProgress size={20} />
                 ) : (
-                  <SaveIcon />
+                  <SaveIconSVGWhite />
                 )
               }
               onClick={organizationExists ? handleUpdate : handleCreate}
@@ -636,7 +576,7 @@ const Organization = () => {
                 )}
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
                   hidden
                   ref={fileInputRef}
                   onChange={handleLogoChange}
@@ -653,7 +593,7 @@ const Organization = () => {
                 lineHeight: 1.4,
               }}
             >
-              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF
+              Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF, SVG
             </Typography>
           </Stack>
         </Box>

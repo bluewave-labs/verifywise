@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import { useState } from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../assets/icons/right-arrow-black.svg";
 import ControlsTable from "./ControlsTable";
 
 const Table_Columns = [
@@ -66,8 +66,8 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
         <AccordionSummary
           className="control-category-accordion-summary"
           expandIcon={
-            <ExpandMoreIcon
-              sx={{
+            <RightArrowBlack
+              style={{
                 transform:
                   expanded === controlCategory.id
                     ? "rotate(180deg)"

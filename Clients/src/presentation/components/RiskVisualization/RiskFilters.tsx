@@ -18,29 +18,45 @@ import {
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
+import { useProjects } from "../../../application/hooks/useProjects";
+import useFrameworks from "../../../application/hooks/useFrameworks";
 
 interface RiskFiltersProps {
   risks: ProjectRisk[];
   onFilterChange: (filteredRisks: ProjectRisk[], activeFilters: FilterState) => void;
+  hideProjectFilter?: boolean;
+  hideFrameworkFilter?: boolean;
 }
 
 interface FilterState {
   riskLevel: string;
   owner: string;
   mitigationStatus: string;
-  searchTerm: string;
+  project: string;
+  framework: string;
 }
 
 const initialFilterState: FilterState = {
   riskLevel: "all",
   owner: "all",
   mitigationStatus: "all",
-  searchTerm: "",
+  project: "all",
+  framework: "all",
 };
 
-const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
+const RiskFilters: React.FC<RiskFiltersProps> = ({
+  risks,
+  onFilterChange,
+  hideProjectFilter = false,
+  hideFrameworkFilter = false
+}) => {
   const [filters, setFilters] = useState<FilterState>(initialFilterState);
   const [users, setUsers] = useState<any[]>([]);
+
+  // Fetch projects and frameworks
+  const { data: projects = [] } = useProjects();
+  const { allFrameworks: frameworks = [] } = useFrameworks({ listOfFrameworks: [] });
+
   
   // Initialize expanded state from localStorage, default to false
   const getInitialExpandedState = (): boolean => {
@@ -102,6 +118,26 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
       });
     }
 
+    // Project filter (only apply if not hidden)
+    if (!hideProjectFilter && newFilters.project !== "all") {
+      filteredRisks = filteredRisks.filter((risk) => {
+        // First try the projects array, then fallback to project_id
+        if (Array.isArray(risk.projects)) {
+          return risk.projects.includes(parseInt(newFilters.project));
+        }
+        // Fallback to project_id field
+        return risk.project_id?.toString() === newFilters.project;
+      });
+    }
+
+    // Framework filter (only apply if not hidden)
+    if (!hideFrameworkFilter && newFilters.framework !== "all") {
+      filteredRisks = filteredRisks.filter((risk) => {
+        // Only filter by frameworks if the frameworks array exists
+        return Array.isArray(risk.frameworks) &&
+               risk.frameworks.includes(parseInt(newFilters.framework));
+      });
+    }
 
     // Owner filter
     if (newFilters.owner !== "all") {
@@ -130,17 +166,6 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
       });
     }
 
-    // Search term filter
-    if (newFilters.searchTerm.trim()) {
-      const searchLower = newFilters.searchTerm.toLowerCase();
-      filteredRisks = filteredRisks.filter((risk) => {
-        return (
-          risk.risk_name?.toLowerCase().includes(searchLower) ||
-          risk.risk_description?.toLowerCase().includes(searchLower) ||
-          risk.impact?.toLowerCase().includes(searchLower)
-        );
-      });
-    }
 
     onFilterChange(filteredRisks, newFilters);
   };
@@ -161,7 +186,8 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
     if (filters.riskLevel !== "all") count++;
     if (filters.owner !== "all") count++;
     if (filters.mitigationStatus !== "all") count++;
-    if (filters.searchTerm.trim()) count++;
+    if (!hideProjectFilter && filters.project !== "all") count++;
+    if (!hideFrameworkFilter && filters.framework !== "all") count++;
     return count;
   };
 
@@ -188,7 +214,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
         ownerIds.add(risk.risk_owner.toString());
       }
     });
-    
+
     return Array.from(ownerIds)
       .sort()
       .map(ownerId => ({
@@ -197,8 +223,64 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
       }));
   };
 
+  const getUniqueProjects = () => {
+    const projectIds = new Set<string>();
+    risks.forEach(risk => {
+      // First try the projects array, then fallback to project_id
+      if (Array.isArray(risk.projects)) {
+        risk.projects.forEach(projectId => {
+          projectIds.add(projectId.toString());
+        });
+      } else if (risk.project_id) {
+        // Fallback to project_id field
+        projectIds.add(risk.project_id.toString());
+      }
+    });
+
+    return Array.from(projectIds)
+      .sort((a, b) => {
+        // Sort by project name if available, otherwise by ID
+        const projectA = projects.find(p => p.id.toString() === a);
+        const projectB = projects.find(p => p.id.toString() === b);
+        const nameA = projectA?.project_title || `Project ${a}`;
+        const nameB = projectB?.project_title || `Project ${b}`;
+        return nameA.localeCompare(nameB);
+      })
+      .map(projectId => {
+        const project = projects.find(p => p.id.toString() === projectId);
+        return {
+          id: projectId,
+          name: project?.project_title || `Project ${projectId}`
+        };
+      })
+; // Show all projects, even if we only have IDs
+  };
+
+  const getUniqueFrameworks = () => {
+    const frameworkIds = new Set<string>();
+    risks.forEach(risk => {
+      if (Array.isArray(risk.frameworks)) {
+        risk.frameworks.forEach(frameworkId => {
+          frameworkIds.add(frameworkId.toString());
+        });
+      }
+    });
+
+    return Array.from(frameworkIds)
+      .sort()
+      .map(frameworkId => {
+        const framework = frameworks.find(f => f.id.toString() === frameworkId);
+        return {
+          id: frameworkId,
+          name: framework?.name || `Framework ${frameworkId}`
+        };
+      });
+  };
+
   const activeFilterCount = getActiveFilterCount();
   const uniqueOwners = getUniqueOwners();
+  const uniqueProjects = getUniqueProjects();
+  const uniqueFrameworks = getUniqueFrameworks();
 
   return (
     <Paper 
@@ -212,9 +294,10 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
       }}
     >
       {/* Filter Header */}
-      <Box 
-        sx={{ 
-          p: 2, 
+      <Box
+        sx={{
+          p: 2,
+          pl: 6,
           borderBottom: expanded ? "1px solid #E5E7EB" : "none",
           display: "flex",
           justifyContent: "space-between",
@@ -276,10 +359,10 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
 
       {/* Filter Content */}
       <Collapse in={expanded}>
-        <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
+        <Box sx={{ p: 3, pl: 9, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
           {/* Dropdown Filters */}
           <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing="12px" sx={{ ml: "12px" }}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing="18px">
               <Select
                 id="risk-level-filter"
                 label="Risk Level"
@@ -322,6 +405,34 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
                 onChange={(e) => handleFilterChange("mitigationStatus", e.target.value)}
                 sx={{ minWidth: 160 }}
               />
+
+              {!hideProjectFilter && (
+                <Select
+                  id="project-filter"
+                  label="Project"
+                  value={filters.project}
+                  items={[
+                    { _id: "all", name: "All Projects" },
+                    ...uniqueProjects.map(project => ({ _id: project.id, name: project.name }))
+                  ]}
+                  onChange={(e) => handleFilterChange("project", e.target.value)}
+                  sx={{ minWidth: 160 }}
+                />
+              )}
+
+              {!hideFrameworkFilter && (
+                <Select
+                  id="framework-filter"
+                  label="Framework"
+                  value={filters.framework}
+                  items={[
+                    { _id: "all", name: "All Frameworks" },
+                    ...uniqueFrameworks.map(framework => ({ _id: framework.id, name: framework.name }))
+                  ]}
+                  onChange={(e) => handleFilterChange("framework", e.target.value)}
+                  sx={{ minWidth: 160 }}
+                />
+              )}
             </Stack>
           </Box>
         </Box>

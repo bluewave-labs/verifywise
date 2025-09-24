@@ -11,6 +11,7 @@ import { sequelize } from "../database/db";
 import { ITask } from "../domain.layer/interfaces/i.task";
 import { TaskPriority } from "../domain.layer/enums/task-priority.enum";
 import { TaskStatus } from "../domain.layer/enums/task-status.enum";
+import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { ValidationException, BusinessLogicException } from "../domain.layer/exceptions/custom.exception";
 
@@ -30,7 +31,7 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { title, description, due_date, priority, status, categories } = req.body;
+    const { title, description, due_date, priority, status, categories, assignees } = req.body;
 
     // Validate required fields
     if (!title) {
@@ -47,6 +48,11 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       return res.status(400).json(STATUS_CODE[400](`Invalid status. Must be one of: ${Object.values(TaskStatus).join(', ')}`));
     }
 
+    // Validate assignees (following project members pattern)
+    if (assignees && !Array.isArray(assignees)) {
+      return res.status(400).json(STATUS_CODE[400]("Assignees must be an array"));
+    }
+
     // Create task with current user as creator
     const taskData: ITask = {
       title,
@@ -59,10 +65,16 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       categories: categories || [],
     };
 
-    const task = await createNewTaskQuery(taskData, req.tenantId!, transaction);
+    const task = await createNewTaskQuery(taskData, req.tenantId!, transaction, assignees);
 
     await transaction.commit();
 
+    // Add assignees to response (manually from dataValues)
+    const taskResponse = {
+      ...task.toJSON(),
+      assignees: (task.dataValues as any)["assignees"] || []
+    };
+    
     await logSuccess({
       eventType: "Create",
       description: `Created new task: ${title}`,
@@ -72,7 +84,7 @@ export async function createTask(req: Request, res: Response): Promise<any> {
       tenantId: req.tenantId!,
     });
 
-    return res.status(201).json(STATUS_CODE[201](task));
+    return res.status(201).json(STATUS_CODE[201](taskResponse));
   } catch (error) {
     await transaction.rollback();
 
@@ -134,11 +146,14 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     // Extract query parameters for filters, sorting, and pagination
     const {
       status,
+      priority,
       due_date_start,
       due_date_end,
       category,
       assignee,
       organization_id,
+      search,
+      include_archived,
       sort_by = 'created_at',
       sort_order = 'DESC',
       page = '1',
@@ -148,10 +163,13 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     // Parse filters
     const filters: any = {};
     if (status) filters.status = Array.isArray(status) ? status : [status];
+    if (priority) filters.priority = Array.isArray(priority) ? priority : [priority];
     if (due_date_start) filters.due_date_start = due_date_start as string;
     if (due_date_end) filters.due_date_end = due_date_end as string;
     if (category) filters.category = Array.isArray(category) ? category : [category];
     if (assignee) filters.assignee = Array.isArray(assignee) ? assignee.map(Number) : [Number(assignee)];
+    if (search) filters.search = search as string;
+    if (include_archived) filters.include_archived = include_archived === 'true';
     filters.organization_id = Number(req.organizationId);
 
     // Parse sorting
@@ -170,8 +188,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       { userId, role },
       req.tenantId!,
       filters,
-      sort,
-      { limit, offset }
+      sort
     );
 
     // Calculate pagination metadata
@@ -185,6 +202,12 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
       hasPrev: pageNum > 1
     };
 
+    // Add assignees to each task response (manually from dataValues)
+    const tasksWithAssignees = tasks.map(task => ({
+      ...task.toJSON(),
+      assignees: (task.dataValues as any)["assignees"] || []
+    }));
+
     await logSuccess({
       eventType: "Read",
       description: "Retrieved tasks list",
@@ -195,7 +218,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
     });
 
     return res.status(200).json(STATUS_CODE[200]({
-      tasks,
+      tasks: tasksWithAssignees,
       pagination
     }));
   } catch (error) {
@@ -233,6 +256,12 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
     const task = await getTaskByIdQuery(taskId, { userId, role }, req.tenantId!, req.organizationId!);
 
     if (task) {
+      // Add assignees to response (manually from dataValues)
+      const taskResponse = {
+        ...task.toJSON(),
+        assignees: (task.dataValues as any)["assignees"] || []
+      };
+
       await logSuccess({
         eventType: "Read",
         description: `Retrieved task ID ${taskId}`,
@@ -242,7 +271,7 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
         tenantId: req.tenantId!,
       });
 
-      return res.status(200).json(STATUS_CODE[200](task));
+      return res.status(200).json(STATUS_CODE[200](taskResponse));
     }
 
     await logSuccess({
@@ -289,7 +318,7 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
     }
 
     const updateData: Partial<ITask> = {};
-    const { title, description, due_date, priority, status, categories } = req.body;
+    const { title, description, due_date, priority, status, categories, assignees } = req.body;
 
     // Only include fields that are being updated
     if (title !== undefined) updateData.title = title;
@@ -308,7 +337,8 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
         userOrganizationId: req.organizationId!,
         transaction,
       },
-      req.tenantId!
+      req.tenantId!,
+      assignees // Pass assignees to the function
     );
 
     await transaction.commit();
@@ -322,7 +352,13 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
       tenantId: req.tenantId!,
     });
 
-    return res.status(200).json(STATUS_CODE[200](updatedTask));
+    // Add assignees to response (manually from dataValues)
+    const taskResponse = {
+      ...updatedTask.toJSON(),
+      assignees: (updatedTask.dataValues as any)["assignees"] || []
+    };
+
+    return res.status(200).json(STATUS_CODE[200](taskResponse));
   } catch (error) {
     await transaction.rollback();
 

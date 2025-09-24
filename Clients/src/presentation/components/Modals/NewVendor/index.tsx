@@ -37,13 +37,14 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,
   useUpdateVendor,
 } from "../../../../application/hooks/useVendors";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 export interface VendorDetails {
   id?: number;
@@ -88,7 +89,7 @@ const initialState = {
 
 interface AddNewVendorProps {
   isOpen: boolean;
-  setIsOpen: () => void;
+  setIsOpen: (isOpen: boolean) => void;
   value: string;
   onSuccess: () => void;
   existingVendor?: VendorDetails | null;
@@ -193,6 +194,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       }));
     }
   }, [existingVendor]);
+
+  // ESC key handling and focus trapping
+  useModalKeyHandling({
+    isOpen,
+    onClose: () => setIsOpen(false)
+  });
 
   /**
    * Opens the confirmation modal if form validation passes
@@ -362,7 +369,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => setAlert(null), 3000);
         onSuccess();
-        setIsOpen();
+        setIsOpen(false);
       } else {
         setAlert({
           variant: "error",
@@ -417,7 +424,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         });
         setTimeout(() => setAlert(null), 3000);
         onSuccess();
-        setIsOpen();
+        setIsOpen(false);
       } else {
         setAlert({
           variant: "error",
@@ -475,7 +482,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             />
           </Box>
         </Stack>
-        <Stack sx={{ flex: 1 }} mt={theme.spacing(1)}>
+        <Stack sx={{ flex: 1 }}>
           <Stack>
             <Typography
               sx={{
@@ -523,7 +530,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 );
               }}
               filterSelectedOptions
-              popupIcon={<KeyboardArrowDown />}
+              popupIcon={<GreyDownArrowIcon />}
               renderInput={(params: AutocompleteRenderInputParams) => (
                 <TextField
                   {...params}
@@ -575,6 +582,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   },
+                },
+                "& .MuiChip-root": {
+                  borderRadius: "4px",
                 },
                 border: errors.projectIds
                   ? `1px solid #f04438`
@@ -660,6 +670,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           error={errors.vendorProvides}
           isRequired
           disabled={isEditingDisabled}
+          placeholder="Describe the products or services this vendor delivers (e.g., cloud hosting, legal advisory, AI APIs)."
+          rows={2}
         />
       </Stack>
       <Stack
@@ -727,6 +739,8 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           onChange={(e) => handleOnChange("reviewResult", e.target.value)}
           isRequired
           disabled={isEditingDisabled}
+          placeholder="Summarize the outcome of the review (e.g., approved, rejected, pending more info, or risk concerns identified)."
+          rows={2}
         />
       </Stack>
     </TabPanel>
@@ -753,15 +767,15 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         onClose={(_event, reason) => {
           if (reason !== "backdropClick") {
             setValues(initialState);
-            setIsOpen();
+            setIsOpen(false);
           }
         }}
-        disableEscapeKeyDown
         sx={{ overflowY: "scroll" }}
       >
         <Stack
           gap={theme.spacing(2)}
           color={theme.palette.text.secondary}
+          onClick={(e) => e.stopPropagation()}
           sx={{
             backgroundColor: "#D9D9D9",
             position: "absolute",
@@ -772,7 +786,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             maxHeight: "80vh",
             display: "flex",
             flexDirection: "column",
-            bgcolor: theme.palette.background.main,
+            bgcolor: theme.palette.background.modal,
             border: 1,
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,
@@ -796,10 +810,20 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
               {existingVendor ? "Edit vendor" : "Add new vendor"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
+            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
           </Stack>
+          {!existingVendor && (
+            <Typography
+              fontSize={13}
+              color={theme.palette.text.secondary}
+              marginBottom={theme.spacing(4)}
+              sx={{ lineHeight: 1.4 }}
+            >
+              Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements.
+            </Typography>
+          )}
           <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
+            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(4) }}
           >
             <TabContext value={value}>{vendorDetailsPanel}</TabContext>
           </Box>
@@ -818,7 +842,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 gap: 2,
               }}
               onClick={handleSave}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite />}
               isDisabled={isEditingDisabled}
             />
           </Stack>

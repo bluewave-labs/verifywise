@@ -25,6 +25,7 @@ import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
+import { sendProjectCreatedNotification } from "../services/projectCreationNotification";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -193,6 +194,22 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         fileName: "project.ctrl.ts",
         userId: req.userId!,
         tenantId: req.tenantId!,
+      });
+
+      // Send project creation notification to admin (fire-and-forget, don't block response)
+      sendProjectCreatedNotification({
+        projectId: createdProject.id!,
+        projectName: createdProject.project_title,
+        adminId: createdProject.owner,
+      }).catch(async (emailError) => {
+        // Log the email error but don't fail the project creation
+        await logFailure({
+          eventType: "Create",
+          description: "Failed to send project creation notification email",
+          functionName: "createProject",
+          fileName: "project.ctrl.ts",
+          error: emailError as Error,
+        });
       });
 
       return res.status(201).json(

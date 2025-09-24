@@ -331,7 +331,7 @@ export const deleteUserByIdQuery = async (
     //   fields: ["approver", "owner", "reviewer"],
     // },
     {
-      table: "projectrisks",
+      table: "risks",
       model: RiskModel,
       fields: ["risk_owner", "risk_approval"],
     },

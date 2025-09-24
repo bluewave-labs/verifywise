@@ -21,13 +21,11 @@ import {
 import TrainingTable, { IAITraining } from "./trainingTable"; // Import IAITraining from TrainingTable
 import NewTraining from "../../../presentation/components/Modals/NewTraining"; // Import the NewTraining modal
 import { createTraining } from "../../../application/repository/trainingregistar.repository";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import trainingHelpContent from "../../../presentation/helpers/training-help.html?raw";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
-
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import Select from "../../components/Inputs/Select";
 import { searchBoxStyle, inputStyle } from "./style";
 
@@ -226,10 +224,37 @@ const Training: React.FC = () => {
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={trainingHelpContent}
-        pageTitle="Training Registry"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="AI training registry"
+        description="Manage and track AI-related training programs and educational resources"
+        whatItDoes="Centralize all **AI training programs**, *courses*, and *educational materials* for your organization. Track **completion status**, *certifications*, and **learning progress** across teams."
+        whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for **responsible AI development** and deployment. Training records support *compliance* and **competency requirements**."
+        quickActions={[
+          {
+            label: "Add Training Program",
+            description: "Register a new AI training course or educational program",
+            primary: true
+          },
+          {
+            label: "Track Progress",
+            description: "Monitor team completion rates and certification status"
+          }
+        ]}
+        useCases={[
+          "**Internal AI ethics** and *governance training programs* for development teams",
+          "**External certification courses** for *machine learning* and **data science skills**"
+        ]}
+        keyFeatures={[
+          "**Comprehensive training catalog** with *metadata* and prerequisites",
+          "**Progress tracking** and *certification management* for individuals and teams",
+          "**Integration** with learning management systems and *HR platforms*"
+        ]}
+        tips={[
+          "Prioritize **ethics and governance training** for all *AI team members*",
+          "Set up *automatic reminders* for **certification renewals** and mandatory training",
+          "Track **training effectiveness** through *assessments* and real-world application"
+        ]}
       />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>

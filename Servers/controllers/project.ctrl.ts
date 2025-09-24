@@ -25,7 +25,9 @@ import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
-import { sendProjectCreatedNotification } from "../services/projectCreationNotification";
+import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
+import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
+
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -249,6 +251,10 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       );
     }
 
+    // Get current project to check if owner changed
+    const currentProject = await getProjectByIdQuery(projectId, req.tenantId!);
+    const ownerChanged = currentProject && currentProject.owner !== updatedProject.owner;
+
     const project = await updateProjectByIdQuery(
       projectId,
       updatedProject,
@@ -267,8 +273,27 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         fileName: "project.ctrl.ts",
       });
 
+      // Send notification if owner changed (fire-and-forget, don't block response)
+      if (ownerChanged && currentProject) {
+        sendUserAddedAdminNotification({
+          projectId: projectId,
+          projectName: project.project_title,
+          adminId: currentProject.owner, // Person who made the change
+          userId: updatedProject.owner!  // New admin receiving notification
+        }).catch(async (emailError) => {
+          await logFailure({
+            eventType: "Update",
+            description: "Failed to send user added as admin notification email",
+            functionName: "updateProjectById",
+            fileName: "project.ctrl.ts",
+            error: emailError as Error,
+          });
+        });
+      }
+
       return res.status(202).json(STATUS_CODE[202](project));
     }
+
 
     await logSuccess({
       eventType: "Update",

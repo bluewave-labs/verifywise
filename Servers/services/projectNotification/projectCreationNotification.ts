@@ -1,11 +1,11 @@
-import { notificationService } from "./notificationService";
-import { getUserByIdQuery } from "../utils/user.utils";
-import { frontEndUrl } from "../config/constants";
+import { notificationService } from "../notificationService";
+import { getUserByIdQuery } from "../../utils/user.utils";
+import { frontEndUrl } from "../../config/constants";
 import {
   logProcessing,
   logSuccess,
   logFailure,
-} from "../utils/logger/logHelper";
+} from "../../utils/logger/logHelper";
 
 export interface ProjectCreatedNotificationData {
   projectId: number;

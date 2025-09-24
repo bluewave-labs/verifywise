@@ -4,12 +4,10 @@ import {
   Box,
   Typography,
   Paper,
-  IconButton,
   CircularProgress,
   Grid,
   Chip,
   Divider,
-  Button,
   Stack,
   Alert,
   Tooltip,
@@ -18,7 +16,6 @@ import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DownloadIcon from "@mui/icons-material/Download";
-import SettingsIcon from "@mui/icons-material/Settings";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
@@ -26,6 +23,7 @@ const Plot = createPlotlyComponent(Plotly);
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import MetricInfoIcon from "../../components/MetricInfoIcon";
+import Button from "../../components/Button";
 import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
@@ -54,6 +52,20 @@ const COLORS = {
   BACKGROUND: '#FFFFFF',
   BACKGROUND_HOVER: '#f3f4f6',
 } as const;
+
+// Color palette for different metrics
+const METRIC_COLORS = [
+  '#3b82f6', // Blue
+  '#10b981', // Green
+  '#f59e0b', // Orange
+  '#ef4444', // Red
+  '#8b5cf6', // Purple
+  '#06b6d4', // Cyan
+  '#84cc16', // Lime
+  '#f97316', // Orange-red
+  '#ec4899', // Pink
+  '#14b8a6', // Teal
+] as const;
 
 // Reusable styles
 const STYLES = {
@@ -325,6 +337,21 @@ export default function BiasAndFairnessResultsPage() {
 
   const uniqueMetrics = useMemo(() => getUniqueMetricNames(), [getUniqueMetricNames]);
 
+  // Helper function to get consistent colors for metrics
+  const getMetricColors = useCallback((metricNames: string[]) => {
+    return metricNames.map((metric, index) => METRIC_COLORS[index % METRIC_COLORS.length]);
+  }, []);
+
+  // Get currently selected metrics for descriptions
+  const getSelectedMetricsForDescriptions = useCallback(() => {
+    const selectedMetricNames = Object.keys(appliedSelection).filter(k => appliedSelection[k]);
+    if (selectedMetricNames.length === 0) {
+      // If no metrics are selected, show all available metrics
+      return getMetricsToDisplay();
+    }
+    return selectedMetricNames;
+  }, [appliedSelection, getMetricsToDisplay]);
+
   const handleCopyJSON = useCallback(async () => {
     try {
       const json = JSON.stringify(metrics?.results || {}, null, 2);
@@ -510,20 +537,12 @@ export default function BiasAndFairnessResultsPage() {
                 mb: 0.5
               }}
             >
-              Bias & Fairness Evaluation Results
+              Bias & fairness evaluation results
             </Typography>
             <Typography sx={STYLES.secondaryText}>
               Comprehensive analysis of model fairness across protected attributes
             </Typography>
           </Box>
-          <IconButton
-            onClick={() => console.log("Settings clicked")} // Placeholder for settings functionality
-            aria-label="Open settings"
-            sx={STYLES.iconButton}
-            title="Settings"
-          >
-            <SettingsIcon sx={{ fontSize: "20px", color: "#667085" }} />
-          </IconButton>
         </Box>
       </Box>
 
@@ -543,13 +562,13 @@ export default function BiasAndFairnessResultsPage() {
               sx={{ textTransform: "none !important" }}
             />
             <Tab
-              label="Data & Subgroups"
+              label="Metric selection"
               value="explorer"
               disableRipple
               sx={{ textTransform: "none !important" }}
             />
             <Tab
-              label="Settings / Config"
+              label="Evaluation details"
               value="settings"
               disableRipple
               sx={{ textTransform: "none !important" }}
@@ -570,7 +589,7 @@ export default function BiasAndFairnessResultsPage() {
                     ...STYLES.sectionTitle,
                   }}
                 >
-                  Performance Metrics
+                  Performance metrics
                 </Typography>
                 <Grid container spacing={3}>
                   {Object.entries(performance).map(([metric, value]) => {
@@ -618,9 +637,18 @@ export default function BiasAndFairnessResultsPage() {
                     ...STYLES.sectionTitle,
                   }}
                 >
-                  Fairness Metrics by Protected Attribute
+                  Fairness metrics by protected attribute
                 </Typography>
                 
+                {/* Fairness Legend and Info */}
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Plot interpretation:</strong> Values closer to 0 indicate better fairness. 
+                    Green bars show good fairness (&lt;{FAIRNESS_THRESHOLD_MODERATE}), yellow shows moderate bias ({FAIRNESS_THRESHOLD_MODERATE}-{FAIRNESS_THRESHOLD_SIGNIFICANT}), 
+                    and red shows significant bias (&gt;{FAIRNESS_THRESHOLD_SIGNIFICANT}).
+                  </Typography>
+                </Alert>
+
                 {/* Sex Metrics */}
                 {Object.keys(sexMetrics).length > 0 && (
                   <Box mb={4}>
@@ -639,7 +667,7 @@ export default function BiasAndFairnessResultsPage() {
                           ...STYLES.subsectionTitle,
                         }}
                       >
-                        Sex Attribute Fairness Metrics
+                        Sex attribute fairness metrics
                       </Typography>
                   {Plot ? (
                     <Plot
@@ -716,7 +744,7 @@ export default function BiasAndFairnessResultsPage() {
                           ...STYLES.subsectionTitle,
                         }}
                       >
-                        Race Attribute Fairness Metrics
+                        Race attribute fairness metrics
                       </Typography>
                   {Plot ? (
                     <Plot
@@ -775,14 +803,56 @@ export default function BiasAndFairnessResultsPage() {
                   </Box>
                 )}
 
-                {/* Fairness Legend and Info */}
-                <Alert severity="info" sx={{ mt: 3 }}>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>Fairness Interpretation:</strong> Values closer to 0 indicate better fairness. 
-                    Green bars show good fairness (&lt;{FAIRNESS_THRESHOLD_MODERATE}), yellow shows moderate bias ({FAIRNESS_THRESHOLD_MODERATE}-{FAIRNESS_THRESHOLD_SIGNIFICANT}), 
-                    and red shows significant bias (&gt;{FAIRNESS_THRESHOLD_SIGNIFICANT}).
-                  </Typography>
-                </Alert>
+
+                {/* Metric Descriptions - Dynamic based on selected metrics */}
+                {getSelectedMetricsForDescriptions().length > 0 && (
+                  <Box mt={4}>
+                    <Typography
+                      variant="h2"
+                      component="div"
+                      sx={{
+                        mb: 3,
+                        ...STYLES.sectionTitle,
+                      }}
+                    >
+                      Metric descriptions
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {getSelectedMetricsForDescriptions().map((metric) => (
+                        <Grid item xs={12} md={6} key={metric}>
+                          <Box sx={{
+                            ...STYLES.card,
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'flex-start'
+                          }}>
+                            <Typography sx={{ 
+                              fontSize: '13px',
+                              fontWeight: 600,
+                              color: COLORS.TEXT_PRIMARY,
+                              pb: "4px",
+                              lineHeight: 1.2
+                            }}>
+                              {(() => {
+                                const formattedMetric = metric.replace(/_/g, ' ');
+                                return formattedMetric.charAt(0).toUpperCase() + formattedMetric.slice(1);
+                              })()}
+                            </Typography>
+                            <Typography sx={{ 
+                              fontSize: '13px',
+                              fontWeight: 400,
+                              color: COLORS.TEXT_SECONDARY,
+                              lineHeight: 1.4
+                            }}>
+                              {metricDescriptions[metric as keyof typeof metricDescriptions] || "No description available."}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                )}
               </Box>
             )}
 
@@ -794,7 +864,7 @@ export default function BiasAndFairnessResultsPage() {
                   textAlign: 'center'
                 }}>
                   <Typography sx={{ ...STYLES.mutedText, pb: "2px" }}>
-                    Evaluation Data Quality
+                    Evaluation data quality
                   </Typography>
                   <Typography sx={{ ...STYLES.bodyText, mb: 1 }}>
                     {data_quality.data_quality_score ? (data_quality.data_quality_score * 100).toFixed(1) : 'N/A'}%
@@ -815,35 +885,6 @@ export default function BiasAndFairnessResultsPage() {
               </Box>
             )}
 
-            {/* Metric Descriptions */}
-            {uniqueMetrics.length > 0 && (
-              <Box>
-                <Typography
-                  variant="h2"
-                  component="div"
-                  sx={{
-                    mb: 3,
-                    ...STYLES.sectionTitle,
-                  }}
-                >
-                  Metric Descriptions
-                </Typography>
-                <Grid container spacing={2}>
-                  {uniqueMetrics.slice(0, 6).map((metric) => (
-                    <Grid item xs={12} md={6} key={metric}>
-                      <Box sx={STYLES.card}>
-                        <Typography sx={{ ...STYLES.mutedText, pb: "2px" }}>
-                          {metric.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </Typography>
-                        <Typography sx={STYLES.bodyText}>
-                          {metricDescriptions[metric as keyof typeof metricDescriptions] || "No description available."}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
           </Stack>
         </TabPanel>
 
@@ -851,14 +892,14 @@ export default function BiasAndFairnessResultsPage() {
 
         <TabPanel value="explorer" sx={{ ...tabPanelStyle, pt: 2 }}>
           <Box>
-            <Typography variant="h6" sx={{ mb: 2, ...STYLES.bodyText }}>Data & Subgroups</Typography>
-            <Typography variant="body2" sx={{ mb: 4, color: COLORS.TEXT_SECONDARY }}>
+            <Typography variant="h6" sx={{ mb: 2, ...STYLES.bodyText }}>Metric selection</Typography>
+            <Typography variant="body2" sx={{ mb: 6, color: COLORS.TEXT_SECONDARY }}>
               Currently displaying {getMetricsToDisplay().length} metrics (user-selected + compass-recommended metrics).
             </Typography>
-          <Grid container spacing={3}>
+          <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>User-selected</Typography>
-              <Stack spacing={2}>
+              <Stack spacing={3}>
                 {(metricsCfg.user_selected_metrics || []).map(m => (
                   <Box key={m} sx={{ 
                     border: '1px solid #eaecf0',
@@ -867,7 +908,7 @@ export default function BiasAndFairnessResultsPage() {
                     padding: "8px 36px 14px 14px",
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 0.5
                   }}>
                     <input 
                       type="checkbox" 
@@ -891,7 +932,7 @@ export default function BiasAndFairnessResultsPage() {
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Recommended</Typography>
-              <Stack spacing={2}>
+              <Stack spacing={3}>
                 {(metricsCfg.fairness_compass_recommended_metrics || []).map(m => (
                   <Box key={m} sx={{ 
                     border: '1px solid #eaecf0',
@@ -900,7 +941,7 @@ export default function BiasAndFairnessResultsPage() {
                     padding: "8px 36px 14px 14px",
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 0.5
                   }}>
                     <input 
                       type="checkbox" 
@@ -922,7 +963,7 @@ export default function BiasAndFairnessResultsPage() {
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>All Available</Typography>
-                <Stack spacing={2}>
+                <Stack spacing={3}>
                   {(metricsCfg.all_available_metrics || []).map(m => (
                     <Box key={m} sx={{ 
                       border: '1px solid #eaecf0',
@@ -931,7 +972,7 @@ export default function BiasAndFairnessResultsPage() {
                       padding: "8px 36px 14px 14px",
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1
+                      gap: 0.5
                     }}>
                       <input 
                         type="checkbox" 
@@ -959,9 +1000,15 @@ export default function BiasAndFairnessResultsPage() {
               onClick={handleApplySelection} 
               disabled={!hasDraftChanges}
               sx={{
-                ...STYLES.button,
                 px: 3,
-                py: 1
+                py: 1,
+                fontSize: '13px',
+                '&:hover': {
+                  backgroundColor: '#13715B',
+                  borderColor: '#13715B',
+                  transform: 'none',
+                  boxShadow: 'none'
+                }
               }}
             >
               Apply Selection
@@ -971,14 +1018,22 @@ export default function BiasAndFairnessResultsPage() {
           {/* Raw JSON Section */}
           <Box mt={6}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6" sx={STYLES.bodyText}>Raw JSON Data</Typography>
+              <Typography variant="h6" sx={STYLES.bodyText}>Raw JSON data</Typography>
               <Box display="flex" gap={1}>
                 <Button 
                   variant="outlined" 
                   size="small" 
                   onClick={handleCopyJSON}
                   startIcon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-                  sx={STYLES.buttonOutlined}
+                  sx={{ 
+                    fontSize: '13px',
+                    '&:hover': {
+                      backgroundColor: '#13715B',
+                      borderColor: '#13715B',
+                      transform: 'none',
+                      boxShadow: 'none'
+                    }
+                  }}
                 >
                   Copy
                 </Button>
@@ -987,7 +1042,15 @@ export default function BiasAndFairnessResultsPage() {
                   size="small" 
                   onClick={handleDownloadJSON}
                   startIcon={<DownloadIcon sx={{ fontSize: 16 }} />}
-                  sx={STYLES.button}
+                  sx={{ 
+                    fontSize: '13px',
+                    '&:hover': {
+                      backgroundColor: '#13715B',
+                      borderColor: '#13715B',
+                      transform: 'none',
+                      boxShadow: 'none'
+                    }
+                  }}
                 >
                   Download
                 </Button>
@@ -1022,10 +1085,16 @@ export default function BiasAndFairnessResultsPage() {
                     sx={{ 
                       color: COLORS.PRIMARY,
                       textTransform: 'none',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      fontSize: '13px',
+                      backgroundColor: 'transparent',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        color: COLORS.PRIMARY
+                      }
                     }}
                   >
-                    View Full JSON
+                    View Full
                   </Button>
                 </Box>
               )}
@@ -1038,7 +1107,13 @@ export default function BiasAndFairnessResultsPage() {
                     sx={{ 
                       color: COLORS.PRIMARY,
                       textTransform: 'none',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      fontSize: '13px',
+                      backgroundColor: 'transparent',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        color: COLORS.PRIMARY
+                      }
                     }}
                   >
                     Show Less
@@ -1065,7 +1140,7 @@ export default function BiasAndFairnessResultsPage() {
                   color: COLORS.TEXT_PRIMARY,
                 }}
               >
-                Evaluation Information
+                Evaluation information
               </Typography>
               <Grid container spacing={1}>
                 <Grid item xs={12} md={6}>

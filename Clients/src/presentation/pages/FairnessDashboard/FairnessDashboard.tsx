@@ -277,7 +277,7 @@ export default function FairnessDashboard() {
           description={
             tab === "uploads" 
               ? "This table displays fairness evaluation results for your uploaded models. To evaluate a new model, upload the model along with its dataset, target column, and at least one sensitive feature. Only classification models are supported at the moment. Make sure your model includes preprocessing steps, such as an sklearn.Pipeline, and that the dataset is already formatted to match the model's input requirements."
-              : "Advanced bias detection and fairness evaluation using the BiasAndFairnessModule. Configure your evaluation parameters to perform comprehensive fairness analysis with multiple metrics and bias detection methods."
+              : "Comprehensive AI model evaluation platform for bias detection, fairness assessment, and performance analysis. Configure evaluation parameters to analyze model behavior across protected attributes with multiple fairness metrics and bias detection methods."
           }
           rightContent={
             <HelperIcon
@@ -309,13 +309,13 @@ export default function FairnessDashboard() {
             sx={styles.tabList}
           >
             <Tab
-              label="Fairness checks"
+              label="ML evaluator"
               value="uploads"
               disableRipple
               sx={{ textTransform: "none !important" }}
             />
             <Tab
-              label="Bias & Fairness Module"
+              label="LLM evaluator"
               value="biasModule"
               disableRipple
               sx={{ textTransform: "none !important" }}

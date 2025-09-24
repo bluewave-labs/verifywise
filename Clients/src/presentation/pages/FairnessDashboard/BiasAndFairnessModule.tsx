@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
-import SettingsIcon from "@mui/icons-material/Settings";
+import SettingIcon from "../../assets/icons/setting.svg";
 import { useNavigate } from "react-router-dom";
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
@@ -362,17 +362,6 @@ export default function BiasAndFairnessModule() {
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4}>
         <Box display="flex" alignItems="center" gap={1}>
-          <IconButton
-            onClick={() => console.log("Settings clicked")} // Placeholder for settings functionality
-            sx={{
-              backgroundColor: "white",
-              boxShadow: 1,
-              "&:hover": { backgroundColor: "#f3f4f6" }
-            }}
-            title="Settings"
-          >
-            <SettingsIcon sx={{ fontSize: "20px", color: "#667085" }} />
-          </IconButton>
           <Button
             variant="contained"
             startIcon={<AddCircleOutlineIcon />}
@@ -392,14 +381,16 @@ export default function BiasAndFairnessModule() {
           >
             New Evaluation
           </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => navigate("/fairness-dashboard/bias-fairness-results-demo")}
-            sx={{ ml: 1 }}
+          <IconButton
+            onClick={() => console.log("Settings clicked")} // Placeholder for settings functionality
+            sx={{
+              "&:hover": { backgroundColor: "#f3f4f6" },
+              ml: 1
+            }}
+            title="Settings"
           >
-            Demo
-          </Button>
+            <img src={SettingIcon} alt="Settings" style={{ width: "20px", height: "20px" }} />
+          </IconButton>
         </Box>
       </Box>
 

@@ -53,14 +53,10 @@ const TABLE_COLUMNS = [
   { id: "model", label: "MODEL" },
   { id: "version", label: "VERSION" },
   { id: "approver", label: "APPROVER" },
-  { id: "capabilities", label: "CAPABILITIES" },
+  // { id: "capabilities", label: "CAPABILITIES" },
   { id: "security_assessment", label: "SECURITY ASSESSMENT" },
   { id: "status", label: "STATUS" },
   { id: "status_date", label: "STATUS DATE" },
-  { id: "reference_link", label: "REFERENCE LINK" },
-  { id: "biases", label: "BIASES" },
-  { id: "limitations", label: "LIMITATIONS" },
-  { id: "hosting_provider", label: "HOSTING PROVIDER" },
   { id: "actions", label: "" },
 ];
 
@@ -249,9 +245,9 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
                   <TooltipCell value={userMap.get(modelInventory.approver.toString())} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                {/* <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <CapabilitiesChips capabilities={modelInventory.capabilities} />
-                </TableCell>
+                </TableCell> */}
                 <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
                   <SecurityAssessmentBadge assessment={modelInventory.security_assessment} />
                 </TableCell>
@@ -266,18 +262,6 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                         : "-"
                     }
                   />
-                </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
-                  <TooltipCell value={modelInventory.reference_link} />
-                </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
-                  <TooltipCell value={modelInventory.biases} />
-                </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
-                  <TooltipCell value={modelInventory.limitations} />
-                </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
-                  <TooltipCell value={modelInventory.hosting_provider} />
                 </TableCell>
                 <TableCell
                   sx={{
@@ -362,7 +346,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   }
 
   return (
-    <TableContainer sx={{ overflowX: "auto", width: "1150px" }}>
+    <TableContainer sx={{ overflowX: "auto" }}>
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}

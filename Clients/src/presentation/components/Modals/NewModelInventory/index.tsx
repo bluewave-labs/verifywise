@@ -663,14 +663,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
               <Stack
                 direction={"row"}
-                justifyContent={"space-between"}
                 gap={theme.spacing(8)}
               >
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="reference_link"
                     label="Reference link"
-                    width={220}
+                    width={"50%"}
                     value={values.reference_link}
                     onChange={handleOnTextFieldChange("reference_link")}
                     sx={fieldStyle}
@@ -682,38 +681,39 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 <Field
                     id="biases"
                     label="Biases"
-                    width={220}
+                    width={"50%"}
                     value={values.biases}
                     onChange={handleOnTextFieldChange("biases")}
                     sx={fieldStyle}
                     placeholder="Biases"
                   />
                 </Suspense>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="limitations"
-                    label="Limitations"
-                    width={220}
-                    value={values.limitations}
-                    onChange={handleOnTextFieldChange("limitations")}
-                    sx={fieldStyle}
-                    placeholder="Limitation"
-                  />
-                </Suspense>
               </Stack>
 
               <Stack
                 direction={"row"}
+                gap={theme.spacing(8)}
               >
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="hosting_provider"
                     label="Hosting provider"
                     value={values.hosting_provider}
-                    width={"100%"}
+                    width={"50%"}
                     onChange={handleOnTextFieldChange("hosting_provider")}
                     sx={fieldStyle}
                     placeholder="eg. OpenAI"
+                  />
+                </Suspense>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
+                    id="limitations"
+                    label="Limitations"
+                    width={"50%"}
+                    value={values.limitations}
+                    onChange={handleOnTextFieldChange("limitations")}
+                    sx={fieldStyle}
+                    placeholder="Limitation"
                   />
                 </Suspense>
               </Stack>

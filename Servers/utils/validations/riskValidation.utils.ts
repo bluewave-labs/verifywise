@@ -14,6 +14,7 @@ import {
   ValidationError
 } from './validation.utils';
 import { IRisk } from '../../domain.layer/interfaces/I.risk';
+import { validateRiskFrameworksQuery, validateRiskProjectsQuery } from '../risk.utils';
 
 /**
  * Validation constants for risks
@@ -251,6 +252,102 @@ export const validateFrameworkId = (value: any): ValidationResult => {
 };
 
 /**
+ * Validates frameworks array for risk creation
+ * Frameworks should contain only organization framework IDs
+ */
+export const validateFrameworksArray = (value: any): ValidationResult => {
+  if (value === undefined || value === null) {
+    return { isValid: true }; // Frameworks array is optional
+  }
+
+  if (!Array.isArray(value)) {
+    return {
+      isValid: false,
+      message: 'Frameworks must be an array',
+      code: 'INVALID_FRAMEWORKS_TYPE'
+    };
+  }
+
+  // Allow empty array
+  if (value.length === 0) {
+    return { isValid: true };
+  }
+
+  // Validate each framework ID
+  for (let i = 0; i < value.length; i++) {
+    const frameworkId = value[i];
+    const frameworkValidation = validateForeignKey(frameworkId, `Framework ${i + 1}`, true);
+    if (!frameworkValidation.isValid) {
+      return {
+        isValid: false,
+        message: `Framework at index ${i}: ${frameworkValidation.message}`,
+        code: 'INVALID_FRAMEWORK_ID'
+      };
+    }
+  }
+
+  // Check for duplicates
+  const uniqueFrameworks = [...new Set(value)];
+  if (uniqueFrameworks.length !== value.length) {
+    return {
+      isValid: false,
+      message: 'Frameworks array cannot contain duplicate IDs',
+      code: 'DUPLICATE_FRAMEWORKS'
+    };
+  }
+
+  return { isValid: true };
+};
+
+/**
+ * Validates projects array for risk creation
+ * Projects should contain only non-organization project IDs
+ */
+export const validateProjectsArray = (value: any): ValidationResult => {
+  if (value === undefined || value === null) {
+    return { isValid: true }; // Projects array is optional
+  }
+
+  if (!Array.isArray(value)) {
+    return {
+      isValid: false,
+      message: 'Projects must be an array',
+      code: 'INVALID_PROJECTS_TYPE'
+    };
+  }
+
+  // Allow empty array
+  if (value.length === 0) {
+    return { isValid: true };
+  }
+
+  // Validate each project ID
+  for (let i = 0; i < value.length; i++) {
+    const projectId = value[i];
+    const projectValidation = validateForeignKey(projectId, `Project ${i + 1}`, true);
+    if (!projectValidation.isValid) {
+      return {
+        isValid: false,
+        message: `Project at index ${i}: ${projectValidation.message}`,
+        code: 'INVALID_PROJECT_ID'
+      };
+    }
+  }
+
+  // Check for duplicates
+  const uniqueProjects = [...new Set(value)];
+  if (uniqueProjects.length !== value.length) {
+    return {
+      isValid: false,
+      message: 'Projects array cannot contain duplicate IDs',
+      code: 'DUPLICATE_PROJECTS'
+    };
+  }
+
+  return { isValid: true };
+};
+
+/**
  * Validation schema for creating a new risk
  */
 export const createRiskSchema = {
@@ -266,7 +363,9 @@ export const createRiskSchema = {
   mitigation_status: validateMitigationStatus,
   deadline: validateDeadline,
   date_of_assessment: validateDateOfAssessment,
-  risk_approval: validateRiskApproval
+  risk_approval: validateRiskApproval,
+  frameworks: validateFrameworksArray,
+  projects: validateProjectsArray
 };
 
 /**
@@ -286,7 +385,9 @@ export const updateRiskSchema = {
   mitigation_status: (value: any) => value !== undefined ? validateMitigationStatus(value) : { isValid: true },
   deadline: (value: any) => value !== undefined ? validateDeadline(value) : { isValid: true },
   date_of_assessment: (value: any) => value !== undefined ? validateDateOfAssessment(value) : { isValid: true },
-  risk_approval: (value: any) => value !== undefined ? validateRiskApproval(value) : { isValid: true }
+  risk_approval: (value: any) => value !== undefined ? validateRiskApproval(value) : { isValid: true },
+  frameworks: (value: any) => value !== undefined ? validateFrameworksArray(value) : { isValid: true },
+  projects: (value: any) => value !== undefined ? validateProjectsArray(value) : { isValid: true }
 };
 
 /**
@@ -304,7 +405,8 @@ export const validateUpdateRisk = (data: any): ValidationError[] => {
   const updateFields = [
     'risk_name', 'risk_owner', 'ai_lifecycle_phase', 'risk_description',
     'risk_category', 'impact', 'likelihood', 'severity', 'risk_severity',
-    'mitigation_status', 'deadline', 'date_of_assessment', 'risk_approval'
+    'mitigation_status', 'deadline', 'date_of_assessment', 'risk_approval',
+    'frameworks', 'projects'
   ];
 
   const hasUpdateField = updateFields.some(field => data[field] !== undefined);
@@ -441,10 +543,75 @@ export const validateCurrentRiskLevel = (
 };
 
 /**
+ * Business rule validation for frameworks and projects arrays
+ */
+export const validateFrameworksAndProjectsBusinessRules = async (data: any, tenant: string): Promise<ValidationError[]> => {
+  const errors: ValidationError[] = [];
+
+  // Validate that frameworks contain only organization framework IDs
+  if (data.frameworks && Array.isArray(data.frameworks) && data.frameworks.length > 0) {
+    // Validate frameworks array structure
+    for (let i = 0; i < data.frameworks.length; i++) {
+      const frameworkId = data.frameworks[i];
+
+      // Ensure framework ID is a positive integer
+      if (!Number.isInteger(frameworkId) || frameworkId <= 0) {
+        errors.push({
+          field: 'frameworks',
+          message: `Framework at index ${i} must be a positive integer`,
+          code: 'INVALID_FRAMEWORK_ID_TYPE'
+        });
+      }
+    }
+
+    const validatedFrameworks = await validateRiskFrameworksQuery(data.frameworks);
+    if (!validatedFrameworks) {
+      errors.push({
+        field: 'frameworks',
+        message: 'Invalid frameworks for this organization',
+        code: 'INVALID_ORGANIZATION_FRAMEWORKS'
+      });
+    }
+  }
+
+  // Validate that projects contain only non-organization project IDs
+  if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
+    // Validate projects array structure
+    for (let i = 0; i < data.projects.length; i++) {
+      const projectId = data.projects[i];
+
+      // Ensure project ID is a positive integer
+      if (!Number.isInteger(projectId) || projectId <= 0) {
+        errors.push({
+          field: 'projects',
+          message: `Project at index ${i} must be a positive integer`,
+          code: 'INVALID_PROJECT_ID_TYPE'
+        });
+      }
+
+      const isValidProject = await validateRiskProjectsQuery(data.projects, tenant);
+      if (!isValidProject) {
+        errors.push({
+          field: 'projects',
+          message: 'Invalid non-organization projects',
+          code: 'INVALID_NON_ORGANIZATION_PROJECTS'
+        });
+      }
+    }
+  }
+
+  return errors;
+};
+
+/**
  * Complete validation for risk creation with business rules
  */
-export const validateCompleteRiskWithBusinessRules = (data: any): ValidationError[] => {
+export const validateCompleteRiskWithBusinessRules = async (data: any, tenant: string): Promise<ValidationError[]> => {
   const errors = validateCompleteRisk(data);
+
+  // Add frameworks and projects business rule validation
+  const frameworksProjectsErrors = await validateFrameworksAndProjectsBusinessRules(data, tenant);
+  errors.push(...frameworksProjectsErrors);
 
   // Add business rule validations if basic validation passes
   if (errors.length === 0) {
@@ -513,11 +680,22 @@ export const validateCompleteRiskWithBusinessRules = (data: any): ValidationErro
 /**
  * Complete validation for risk updates with business rules
  */
-export const validateUpdateRiskWithBusinessRules = (
+export const validateUpdateRiskWithBusinessRules = async (
   data: any,
+  tenant: string,
   currentRisk?: any
-): ValidationError[] => {
+): Promise<ValidationError[]> => {
   const errors = validateUpdateRisk(data);
+
+  // Add frameworks and projects business rule validation for updates
+  if (data.frameworks !== undefined || data.projects !== undefined) {
+    const updateData = {
+      frameworks: data.frameworks !== undefined ? data.frameworks : (currentRisk?.frameworks || []),
+      projects: data.projects !== undefined ? data.projects : (currentRisk?.projects || [])
+    };
+    const frameworksProjectsErrors = await validateFrameworksAndProjectsBusinessRules(updateData, tenant);
+    errors.push(...frameworksProjectsErrors);
+  }
 
   // Add business rule validations if basic validation passes
   if (errors.length === 0) {

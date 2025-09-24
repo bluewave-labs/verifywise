@@ -31,14 +31,13 @@ import {
   logFailure,
 } from "../utils/logger/logHelper";
 import {
-  validateHashParam,
   validateAITrustCentreIdParam,
-  validateCompleteOverviewUpdate,
-  validateCompleteResourceCreationWithRules,
-  validateCompleteResourceUpdateWithRules,
-  validateCompleteSubprocessorCreationWithRules,
-  validateCompleteSubprocessorUpdateWithRules,
-  validateAITrustCentreFileUpload
+  validateAITrustCentreFileUpload,
+  validateResourceCreate,
+  validateSubprocessorCreate,
+  validateOverviewUpdate,
+  validateResourceUpdate,
+  validateSubprocessorUpdate
 } from "../utils/validations/aiTrustCentreValidation.utils";
 import { ValidationError } from "../utils/validations/validation.utils";
 
@@ -326,7 +325,7 @@ export async function createAITrustResource(
   res: Response
 ) {
   // Validate resource creation request
-  const validationErrors = validateCompleteResourceCreationWithRules({
+  const validationErrors = validateResourceCreate({
     name: req.body.name,
     description: req.body.description,
     visible: req.body.visible === "true"
@@ -472,7 +471,7 @@ export async function createAITrustResource(
 
 export async function createAITrustSubprocessor(req: Request, res: Response) {
   // Validate subprocessor creation request
-  const validationErrors = validateCompleteSubprocessorCreationWithRules(req.body);
+  const validationErrors = validateSubprocessorCreate(req.body);
   if (validationErrors.length > 0) {
     logStructured(
       "error",
@@ -678,7 +677,7 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
 
 export async function updateAITrustOverview(req: Request, res: Response) {
   // Validate overview update request
-  const validationErrors = validateCompleteOverviewUpdate(req.body);
+  const validationErrors = validateOverviewUpdate(req.body);
   if (validationErrors.length > 0) {
     logStructured(
       "error",
@@ -785,7 +784,7 @@ export async function updateAITrustResource(
   }
 
   // Validate resource update request
-  const validationErrors = validateCompleteResourceUpdateWithRules({
+  const validationErrors = validateResourceUpdate({
     name: req.body.name,
     description: req.body.description,
     visible: req.body.visible === "true"
@@ -961,7 +960,7 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
   }
 
   // Validate subprocessor update request
-  const validationErrors = validateCompleteSubprocessorUpdateWithRules(req.body);
+  const validationErrors = validateSubprocessorUpdate(req.body);
   if (validationErrors.length > 0) {
     logStructured(
       "error",

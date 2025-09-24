@@ -102,19 +102,17 @@ export const validatePaginationParams = (page: any, pageSize: any): ValidationEr
 /**
  * Validates file upload body parameters
  */
-export const validateFileUploadBody = (body: any): ValidationError[] => {
+export const validateFileUploadBody = async (body: any, tenant: string): Promise<ValidationError[]> => {
   const errors: ValidationError[] = [];
 
-  // Validate question_id
-  if (body.question_id !== undefined) {
-    const questionIdValidation = validateForeignKey(body.question_id, 'Question ID', false);
-    if (!questionIdValidation.isValid) {
-      errors.push({
-        field: 'question_id',
-        message: questionIdValidation.message || 'Invalid question ID',
-        code: questionIdValidation.code || 'INVALID_QUESTION_ID'
-      });
-    }
+  // Validate question_id (required)
+  const questionIdValidation = validateForeignKey(body.question_id, 'Question ID', false);
+  if (!questionIdValidation.isValid) {
+    errors.push({
+      field: 'question_id',
+      message: questionIdValidation.message || 'Invalid question ID',
+      code: questionIdValidation.code || 'INVALID_QUESTION_ID'
+    });
   }
 
   // Validate project_id (required)
@@ -158,6 +156,7 @@ export const validateFileUploadBody = (body: any): ValidationError[] => {
               code: 'INVALID_DELETE_FILE_ID'
             });
           }
+          // await validateFileDelete(deleteArray[i], body.question_id, tenant);
         }
       }
     } catch (error) {
@@ -261,8 +260,8 @@ export const validateUploadedFiles = (files: any): ValidationError[] => {
 /**
  * Complete validation for file upload request
  */
-export const validateFileUploadRequest = (body: any, files: any): ValidationError[] => {
-  const bodyErrors = validateFileUploadBody(body);
+export const validateFileUploadRequest = async (body: any, files: any, tenant: string): Promise<ValidationError[]> => {
+  const bodyErrors = await validateFileUploadBody(body, tenant);
   const fileErrors = validateUploadedFiles(files);
 
   return [...bodyErrors, ...fileErrors];
@@ -308,8 +307,8 @@ export const validateFileBusinessRules = (body: any, files: any): ValidationErro
 /**
  * Complete validation for file upload with business rules
  */
-export const validateCompleteFileUpload = (body: any, files: any): ValidationError[] => {
-  const validationErrors = validateFileUploadRequest(body, files);
+export const validateCompleteFileUpload = async (body: any, files: any, tenant: string): Promise<ValidationError[]> => {
+  const validationErrors = await validateFileUploadRequest(body, files, tenant);
   const businessErrors = validateFileBusinessRules(body, files);
 
   return [...validationErrors, ...businessErrors];

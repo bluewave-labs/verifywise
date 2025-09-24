@@ -3,6 +3,9 @@
  * Contains validation schemas and functions specifically for AI Trust Centre operations
  */
 
+import { IAITrustCentreOverview } from '../../domain.layer/interfaces/i.aiTrustCentreOverview';
+import { IAITrustCentreResources } from '../../domain.layer/interfaces/i.aiTrustCentreResources';
+import { IAITrustCentreSubprocessors } from '../../domain.layer/interfaces/i.aiTrustCentreSubprocessors';
 import {
   validateString,
   validateForeignKey,
@@ -40,38 +43,6 @@ export const AI_TRUST_CENTRE_VALIDATION_LIMITS = {
  */
 export const validateAITrustCentreIdParam = (id: any): ValidationResult => {
   return validateForeignKey(id, 'AI Trust Centre ID', true);
-};
-
-/**
- * Validates hash parameter for public access
- */
-export const validateHashParam = (hash: any): ValidationResult => {
-  if (!hash || typeof hash !== 'string') {
-    return {
-      isValid: false,
-      message: 'Hash parameter is required and must be a string',
-      code: 'INVALID_HASH'
-    };
-  }
-
-  if (hash.length !== AI_TRUST_CENTRE_VALIDATION_LIMITS.HASH.EXACT) {
-    return {
-      isValid: false,
-      message: `Hash must be exactly ${AI_TRUST_CENTRE_VALIDATION_LIMITS.HASH.EXACT} characters long`,
-      code: 'INVALID_HASH_LENGTH'
-    };
-  }
-
-  // Check if it's a valid hex string
-  if (!/^[a-fA-F0-9]+$/.test(hash)) {
-    return {
-      isValid: false,
-      message: 'Hash must contain only hexadecimal characters',
-      code: 'INVALID_HASH_FORMAT'
-    };
-  }
-
-  return { isValid: true };
 };
 
 /**
@@ -409,8 +380,6 @@ export const validateSubprocessorURL = (value: any): ValidationResult => {
 export const createResourceSchema = {
   name: validateResourceName,
   description: validateResourceDescription,
-  file_id: validateResourceFileId,
-  visible: (value: any) => ({ isValid: true }) // Boolean validation handled by controller
 };
 
 /**
@@ -419,8 +388,6 @@ export const createResourceSchema = {
 export const updateResourceSchema = {
   name: (value: any) => value !== undefined ? validateResourceName(value) : { isValid: true },
   description: (value: any) => value !== undefined ? validateResourceDescription(value) : { isValid: true },
-  file_id: (value: any) => value !== undefined ? validateResourceFileId(value) : { isValid: true },
-  visible: (value: any) => ({ isValid: true }) // Boolean validation handled by controller
 };
 
 /**
@@ -441,58 +408,6 @@ export const updateSubprocessorSchema = {
   purpose: (value: any) => value !== undefined ? validateSubprocessorPurpose(value) : { isValid: true },
   location: (value: any) => value !== undefined ? validateSubprocessorLocation(value) : { isValid: true },
   url: (value: any) => value !== undefined ? validateSubprocessorURL(value) : { isValid: true }
-};
-
-/**
- * Validates a complete AI Trust Centre resource object for creation
- */
-export const validateCompleteResourceCreation = (data: any): ValidationError[] => {
-  return validateSchema(data, createResourceSchema);
-};
-
-/**
- * Validates an AI Trust Centre resource object for updates
- */
-export const validateResourceUpdate = (data: any): ValidationError[] => {
-  // Check if at least one field is provided for update
-  const updateFields = ['name', 'description', 'file_id', 'visible'];
-  const hasUpdateField = updateFields.some(field => data[field] !== undefined);
-
-  if (!hasUpdateField) {
-    return [{
-      field: 'body',
-      message: 'At least one field must be provided for update',
-      code: 'NO_UPDATE_FIELDS'
-    }];
-  }
-
-  return validateSchema(data, updateResourceSchema);
-};
-
-/**
- * Validates a complete AI Trust Centre subprocessor object for creation
- */
-export const validateCompleteSubprocessorCreation = (data: any): ValidationError[] => {
-  return validateSchema(data, createSubprocessorSchema);
-};
-
-/**
- * Validates an AI Trust Centre subprocessor object for updates
- */
-export const validateSubprocessorUpdate = (data: any): ValidationError[] => {
-  // Check if at least one field is provided for update
-  const updateFields = ['name', 'purpose', 'location', 'url'];
-  const hasUpdateField = updateFields.some(field => data[field] !== undefined);
-
-  if (!hasUpdateField) {
-    return [{
-      field: 'body',
-      message: 'At least one field must be provided for update',
-      code: 'NO_UPDATE_FIELDS'
-    }];
-  }
-
-  return validateSchema(data, updateSubprocessorSchema);
 };
 
 /**
@@ -554,7 +469,7 @@ export const validateAITrustCentreFileUpload = (file: any, type: 'logo' | 'resou
 /**
  * Business rule validation for AI Trust Centre overview
  */
-export const validateOverviewBusinessRules = (data: any): ValidationError[] => {
+export const validateOverviewBusinessRules = (data: Partial<IAITrustCentreOverview>): ValidationError[] => {
   const errors: ValidationError[] = [];
 
   // Validate that if sections are visible, they have meaningful content
@@ -615,10 +530,67 @@ export const validateOverviewBusinessRules = (data: any): ValidationError[] => {
   return errors;
 };
 
+// **
+
+/**
+ * Complete validation for AI Trust Centre resource creation with business rules
+ */
+export const validateResourceCreate = (data: Partial<IAITrustCentreResources>): ValidationError[] => {
+  const validationErrors = validateSchema(data, createResourceSchema);
+  return validationErrors;
+};
+
+/**
+ * Complete validation for AI Trust Centre resource updates with business rules
+ */
+export const validateResourceUpdate = (data: any): ValidationError[] => {
+  // Check if at least one field is provided for update
+  const updateFields = ['name', 'description', 'visible'];
+  const hasUpdateField = updateFields.some(field => data[field] !== undefined);
+
+  if (!hasUpdateField) {
+    return [{
+      field: 'body',
+      message: 'At least one field must be provided for update',
+      code: 'NO_UPDATE_FIELDS'
+    }];
+  }
+
+  return validateSchema(data, updateResourceSchema);
+};
+
+/**
+ * Complete validation for AI Trust Centre subprocessor updates with business rules
+ */
+export const validateSubprocessorUpdate = (data: any): ValidationError[] => {
+  // Check if at least one field is provided for update
+  const updateFields = ['name', 'purpose', 'location', 'url'];
+  const hasUpdateField = updateFields.some(field => data[field] !== undefined);
+
+  if (!hasUpdateField) {
+    return [{
+      field: 'body',
+      message: 'At least one field must be provided for update',
+      code: 'NO_UPDATE_FIELDS'
+    }];
+  }
+
+  return validateSchema(data, updateSubprocessorSchema);
+};
+
+/**
+ * Complete validation for AI Trust Centre subprocessor creation with business rules
+ */
+export const validateSubprocessorCreate = (data: Partial<IAITrustCentreSubprocessors>): ValidationError[] => {
+  const validationErrors = validateSchema(data, createSubprocessorSchema);
+  // Add any subprocessor-specific business rules here if needed
+  return validationErrors;
+};
+
 /**
  * Complete validation for AI Trust Centre overview update
  */
-export const validateCompleteOverviewUpdate = (data: any): ValidationError[] => {
+export const validateOverviewUpdate = (data: Partial<IAITrustCentreOverview>): ValidationError[] => {
   const validationErrors: ValidationError[] = [];
   const businessErrors = validateOverviewBusinessRules(data);
 
@@ -668,40 +640,4 @@ export const validateCompleteOverviewUpdate = (data: any): ValidationError[] => 
   }
 
   return [...validationErrors, ...businessErrors];
-};
-
-/**
- * Complete validation for AI Trust Centre resource creation with business rules
- */
-export const validateCompleteResourceCreationWithRules = (data: any): ValidationError[] => {
-  const validationErrors = validateCompleteResourceCreation(data);
-  // Add any resource-specific business rules here if needed
-  return validationErrors;
-};
-
-/**
- * Complete validation for AI Trust Centre resource updates with business rules
- */
-export const validateCompleteResourceUpdateWithRules = (data: any): ValidationError[] => {
-  const validationErrors = validateResourceUpdate(data);
-  // Add any resource-specific business rules here if needed
-  return validationErrors;
-};
-
-/**
- * Complete validation for AI Trust Centre subprocessor creation with business rules
- */
-export const validateCompleteSubprocessorCreationWithRules = (data: any): ValidationError[] => {
-  const validationErrors = validateCompleteSubprocessorCreation(data);
-  // Add any subprocessor-specific business rules here if needed
-  return validationErrors;
-};
-
-/**
- * Complete validation for AI Trust Centre subprocessor updates with business rules
- */
-export const validateCompleteSubprocessorUpdateWithRules = (data: any): ValidationError[] => {
-  const validationErrors = validateSubprocessorUpdate(data);
-  // Add any subprocessor-specific business rules here if needed
-  return validationErrors;
 };

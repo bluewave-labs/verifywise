@@ -288,7 +288,7 @@ export async function createRisk(
   const riskData = req.body;
 
   // Validate request body with business rules
-  const validationErrors = validateCompleteRiskWithBusinessRules(riskData);
+  const validationErrors = await validateCompleteRiskWithBusinessRules(riskData, req.tenantId!);
   if (validationErrors.length > 0) {
     logStructured(
       "error",
@@ -424,7 +424,7 @@ export async function updateRiskById(
   }
 
   // Validate request body with business rules
-  const validationErrors = validateUpdateRiskWithBusinessRules(updateData);
+  const validationErrors = await validateUpdateRiskWithBusinessRules(updateData, req.tenantId!);
   if (validationErrors.length > 0) {
     logStructured(
       "error",

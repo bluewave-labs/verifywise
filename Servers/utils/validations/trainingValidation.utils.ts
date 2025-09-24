@@ -22,7 +22,7 @@ export const TRAINING_VALIDATION_LIMITS = {
   PROVIDER: { MIN: 1, MAX: 255 },
   DURATION: { MIN: 1, MAX: 1000 },
   NUMBER_OF_PEOPLE: { MIN: 1, MAX: 1000 },
-  NOTES: { MIN: 1, MAX: 2000 }
+  DESCRIPTION: { MIN: 1, MAX: 2000 }
 } as const;
 
 /**
@@ -32,9 +32,9 @@ export const TRAINING_STATUS_ENUM = [
   'Planned',
   'In Progress',
   'Completed',
-  'Cancelled',
-  'Postponed',
-  'Under Review'
+  // 'Cancelled',
+  // 'Postponed',
+  // 'Under Review'
 ] as const;
 
 /**
@@ -145,17 +145,17 @@ export const validateTrainingRegistrarIdParam = (id: any): ValidationResult => {
 };
 
 /**
- * Validates training notes field (optional)
+ * Validates training description field (optional)
  */
-export const validateTrainingNotes = (value: any): ValidationResult => {
+export const validateTrainingDescription = (value: any): ValidationResult => {
   if (value === undefined || value === null || value === '') {
-    return { isValid: true }; // Notes are optional
+    return { isValid: true }; // Description is optional
   }
 
-  return validateString(value, 'Training notes', {
+  return validateString(value, 'Training description', {
     required: false,
-    minLength: TRAINING_VALIDATION_LIMITS.NOTES.MIN,
-    maxLength: TRAINING_VALIDATION_LIMITS.NOTES.MAX,
+    minLength: TRAINING_VALIDATION_LIMITS.DESCRIPTION.MIN,
+    maxLength: TRAINING_VALIDATION_LIMITS.DESCRIPTION.MAX,
     trimWhitespace: true
   });
 };
@@ -170,7 +170,7 @@ export const createTrainingRegistrarSchema = {
   numberOfPeople: validateNumberOfPeople,
   provider: validateTrainingProvider,
   status: validateTrainingStatus,
-  notes: validateTrainingNotes
+  description: validateTrainingDescription
 };
 
 /**
@@ -184,7 +184,7 @@ export const updateTrainingRegistrarSchema = {
   numberOfPeople: validateNumberOfPeople,
   provider: validateTrainingProvider,
   status: validateTrainingStatus,
-  notes: validateTrainingNotes
+  description: validateTrainingDescription
 };
 
 /**

@@ -23,23 +23,57 @@ export const MODEL_INVENTORY_VALIDATION_LIMITS = {
   MODEL: { MIN: 2, MAX: 100 },
   VERSION: { MIN: 1, MAX: 50 },
   APPROVER: { MIN: 2, MAX: 100 },
-  CAPABILITIES: { MIN: 10, MAX: 2000 },
-  SECURITY_ASSESSMENT: { MIN: 10, MAX: 2000 }
+  CAPABILITIES: { MIN_ITEMS: 1, MAX_ITEMS: 10 },
+  // SECURITY_ASSESSMENT is now a boolean field
 } as const;
 
 /**
  * Model inventory status enum values
+ *
+ * Status Flow:
+ * - Pending: Initial status for new models awaiting review
+ * - Approved: Models that have passed all security and compliance checks (security_assessment = true required)
+ * - Restricted: Models approved with limited usage restrictions (security_assessment = true required)
+ * - Blocked: Models that have failed review or pose security risks (security_assessment may be false)
  */
 export const MODEL_INVENTORY_STATUS_ENUM = [
-  'Development',
-  'Testing',
-  'Staging',
-  'Production',
-  'Deprecated',
-  'Archived',
-  'Under Review',
   'Approved',
-  'Rejected'
+  'Restricted',
+  'Pending',
+  'Blocked'
+] as const;
+
+/**
+ * Model capabilities enum values
+ *
+ * Capabilities are organized into categories:
+ * - Primary modalities: Vision, Audio, Video, Text Generation
+ * - Specialized tasks: Translation, Summarization, Question Answering, etc.
+ * - Technical features: Caching, Tools, Code, Multimodal
+ * - Analysis capabilities: Sentiment Analysis, Named Entity Recognition, etc.
+ * - Prediction capabilities: Recommendation, Anomaly Detection, Forecasting
+ */
+export const MODEL_CAPABILITIES_ENUM = [
+  "Vision",
+  "Caching",
+  "Tools",
+  "Code",
+  "Multimodal",
+  "Audio",
+  "Video",
+  "Text Generation",
+  "Translation",
+  "Summarization",
+  "Question Answering",
+  "Sentiment Analysis",
+  "Named Entity Recognition",
+  "Image Classification",
+  "Object Detection",
+  "Speech Recognition",
+  "Text-to-Speech",
+  "Recommendation",
+  "Anomaly Detection",
+  "Forecasting"
 ] as const;
 
 /**
@@ -122,27 +156,88 @@ export const validateApprover = (value: any): ValidationResult => {
 };
 
 /**
- * Validates capabilities field
+ * Validates capabilities field (array of enum values)
  */
 export const validateCapabilities = (value: any): ValidationResult => {
-  return validateString(value, 'Capabilities', {
-    required: true,
-    minLength: MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MIN,
-    maxLength: MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MAX,
-    trimWhitespace: true
-  });
+  if (value === undefined || value === null) {
+    return {
+      isValid: false,
+      message: 'Capabilities are required',
+      code: 'REQUIRED_FIELD'
+    };
+  }
+
+  if (!Array.isArray(value)) {
+    return {
+      isValid: false,
+      message: 'Capabilities must be an array',
+      code: 'INVALID_CAPABILITIES_TYPE'
+    };
+  }
+
+  if (value.length < MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MIN_ITEMS) {
+    return {
+      isValid: false,
+      message: `Capabilities array must contain at least ${MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MIN_ITEMS} item(s)`,
+      code: 'INSUFFICIENT_CAPABILITIES'
+    };
+  }
+
+  if (value.length > MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MAX_ITEMS) {
+    return {
+      isValid: false,
+      message: `Capabilities array cannot exceed ${MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MAX_ITEMS} items`,
+      code: 'TOO_MANY_CAPABILITIES'
+    };
+  }
+
+  // Validate each capability
+  for (let i = 0; i < value.length; i++) {
+    const capability = value[i];
+    if (!MODEL_CAPABILITIES_ENUM.includes(capability as any)) {
+      return {
+        isValid: false,
+        message: `Invalid capability: "${capability}". Must be one of: ${MODEL_CAPABILITIES_ENUM.join(', ')}`,
+        code: 'INVALID_CAPABILITY'
+      };
+    }
+  }
+
+  // Check for duplicates
+  const uniqueCapabilities = [...new Set(value)];
+  if (uniqueCapabilities.length !== value.length) {
+    return {
+      isValid: false,
+      message: 'Capabilities array cannot contain duplicates',
+      code: 'DUPLICATE_CAPABILITIES'
+    };
+  }
+
+  return { isValid: true };
 };
 
 /**
- * Validates security assessment field
+ * Validates security assessment field (boolean)
  */
 export const validateSecurityAssessment = (value: any): ValidationResult => {
-  return validateString(value, 'Security assessment', {
-    required: true,
-    minLength: MODEL_INVENTORY_VALIDATION_LIMITS.SECURITY_ASSESSMENT.MIN,
-    maxLength: MODEL_INVENTORY_VALIDATION_LIMITS.SECURITY_ASSESSMENT.MAX,
-    trimWhitespace: true
-  });
+  // Security assessment is now a boolean field
+  if (value === undefined || value === null) {
+    return {
+      isValid: false,
+      message: 'Security assessment is required',
+      code: 'REQUIRED_FIELD'
+    };
+  }
+
+  if (typeof value !== 'boolean') {
+    return {
+      isValid: false,
+      message: 'Security assessment must be a boolean value',
+      code: 'INVALID_TYPE'
+    };
+  }
+
+  return { isValid: true };
 };
 
 /**
@@ -283,49 +378,141 @@ export const validateModelInventoryCreationBusinessRules = (data: any): Validati
 
   // Validate status transitions for new models
   if (data.status) {
-    const validInitialStatuses = ['Development', 'Under Review'];
+    const validInitialStatuses = ['Pending'];
     if (!validInitialStatuses.includes(data.status)) {
       errors.push({
         field: 'status',
-        message: 'New model inventory items should start with "Development" or "Under Review" status',
+        message: 'New model inventory items should start with "Pending" status',
         code: 'INVALID_INITIAL_STATUS'
       });
     }
   }
 
-  // Validate security assessment requirements for production models
-  if (data.status === 'Production' && data.security_assessment) {
-    if (data.security_assessment.length < 100) {
+  // Validate security assessment requirements for approved models
+  if (data.status === 'Approved') {
+    if (data.security_assessment !== true) {
       errors.push({
         field: 'security_assessment',
-        message: 'Production models require comprehensive security assessment (minimum 100 characters)',
-        code: 'INSUFFICIENT_SECURITY_ASSESSMENT'
+        message: 'Approved models must have security assessment completed (true)',
+        code: 'SECURITY_ASSESSMENT_REQUIRED'
       });
     }
   }
 
-  // Validate capabilities description
-  if (data.capabilities) {
-    const requiredKeywords = ['text', 'generation', 'processing', 'analysis', 'prediction', 'classification'];
-    const hasRequiredKeyword = requiredKeywords.some(keyword =>
-      data.capabilities.toLowerCase().includes(keyword)
-    );
-    if (!hasRequiredKeyword) {
+  // Validate security assessment for restricted models
+  if (data.status === 'Restricted') {
+    if (data.security_assessment !== true) {
+      errors.push({
+        field: 'security_assessment',
+        message: 'Restricted models must have security assessment completed (true)',
+        code: 'SECURITY_ASSESSMENT_REQUIRED'
+      });
+    }
+  }
+
+  // Validate security assessment for blocked models
+  if (data.status === 'Blocked') {
+    // Blocked models may have security_assessment as false, indicating failed assessment
+    // This is acceptable for blocked status
+  }
+
+  // Validate capabilities selection
+  if (data.capabilities && Array.isArray(data.capabilities)) {
+    // Check for logical capability combinations
+    const hasVision = data.capabilities.includes('Vision');
+    const hasMultimodal = data.capabilities.includes('Multimodal');
+    const hasAudio = data.capabilities.includes('Audio');
+    const hasVideo = data.capabilities.includes('Video');
+
+    // If model has Vision, it should probably be Multimodal too (unless it's vision-only)
+    if (hasVision && !hasMultimodal && !data.capabilities.includes('Image Classification') && !data.capabilities.includes('Object Detection')) {
+      // This is just a warning-level validation, not an error
+    }
+
+    // Validate that multimodal models have at least 2 modalities
+    if (hasMultimodal) {
+      const modalityCount = [hasVision, hasAudio, hasVideo, data.capabilities.includes('Text Generation')].filter(Boolean).length;
+      if (modalityCount < 2) {
+        errors.push({
+          field: 'capabilities',
+          message: 'Multimodal models should have capabilities for at least 2 different modalities',
+          code: 'INSUFFICIENT_MULTIMODAL_CAPABILITIES'
+        });
+      }
+    }
+
+    // Validate common capability combinations
+    if (data.capabilities.includes('Object Detection') && !data.capabilities.includes('Vision')) {
       errors.push({
         field: 'capabilities',
-        message: 'Capabilities should describe model functionality (text processing, generation, analysis, etc.)',
-        code: 'VAGUE_CAPABILITIES_DESCRIPTION'
+        message: 'Object Detection requires Vision capability',
+        code: 'MISSING_VISION_FOR_OBJECT_DETECTION'
+      });
+    }
+
+    if (data.capabilities.includes('Image Classification') && !data.capabilities.includes('Vision')) {
+      errors.push({
+        field: 'capabilities',
+        message: 'Image Classification requires Vision capability',
+        code: 'MISSING_VISION_FOR_IMAGE_CLASSIFICATION'
+      });
+    }
+
+    if (data.capabilities.includes('Speech Recognition') && !data.capabilities.includes('Audio')) {
+      errors.push({
+        field: 'capabilities',
+        message: 'Speech Recognition requires Audio capability',
+        code: 'MISSING_AUDIO_FOR_SPEECH_RECOGNITION'
+      });
+    }
+
+    if (data.capabilities.includes('Text-to-Speech') && !data.capabilities.includes('Audio')) {
+      errors.push({
+        field: 'capabilities',
+        message: 'Text-to-Speech requires Audio capability',
+        code: 'MISSING_AUDIO_FOR_TTS'
+      });
+    }
+
+    // Validate that models have at least one primary capability
+    const primaryCapabilities = [
+      'Text Generation', 'Vision', 'Audio', 'Video', 'Code',
+      'Translation', 'Summarization', 'Question Answering',
+      'Image Classification', 'Object Detection', 'Speech Recognition',
+      'Text-to-Speech', 'Recommendation', 'Anomaly Detection', 'Forecasting'
+    ];
+    const hasPrimaryCapability = data.capabilities.some((cap: string) => primaryCapabilities.includes(cap));
+    if (!hasPrimaryCapability) {
+      errors.push({
+        field: 'capabilities',
+        message: 'Model must have at least one primary capability (not just auxiliary capabilities like Caching, Tools)',
+        code: 'MISSING_PRIMARY_CAPABILITY'
       });
     }
   }
 
   // Validate demo flag consistency
-  if (data.is_demo === true && data.status === 'Production') {
+  if (data.is_demo === true && data.status === 'Approved') {
     errors.push({
       field: 'is_demo',
-      message: 'Demo models cannot have Production status',
-      code: 'DEMO_PRODUCTION_CONFLICT'
+      message: 'Demo models cannot have Approved status',
+      code: 'DEMO_APPROVED_CONFLICT'
     });
+  }
+
+  // Validate security assessment consistency with status
+  if (data.security_assessment === false && (data.status === 'Approved' || data.status === 'Restricted')) {
+    errors.push({
+      field: 'security_assessment',
+      message: 'Models with failed security assessment cannot be Approved or Restricted',
+      code: 'FAILED_SECURITY_ASSESSMENT_CONFLICT'
+    });
+  }
+
+  // Validate that pending models don't claim completed security assessment prematurely
+  if (data.status === 'Pending' && data.security_assessment === true) {
+    // This is actually fine - pending models can have completed security assessment
+    // They just haven't been reviewed for final approval yet
   }
 
   // Validate approver field format
@@ -351,12 +538,38 @@ export const validateModelInventoryUpdateBusinessRules = (data: any, existingDat
   // Validate status transitions
   if (data.status && existingData?.status) {
     const invalidTransitions = [
-      { from: 'Production', to: 'Development', message: 'Cannot move production model back to development' },
-      { from: 'Production', to: 'Testing', message: 'Cannot move production model back to testing' },
-      { from: 'Archived', to: 'Production', message: 'Cannot reactivate archived model to production' },
-      { from: 'Rejected', to: 'Production', message: 'Rejected models cannot be moved to production without re-approval' },
-      { from: 'Deprecated', to: 'Production', message: 'Deprecated models cannot be moved back to production' }
+      { from: 'Approved', to: 'Pending', message: 'Cannot move approved model back to pending' },
+      { from: 'Blocked', to: 'Approved', message: 'Blocked models cannot be moved to approved without review' },
+      { from: 'Blocked', to: 'Restricted', message: 'Blocked models cannot be moved to restricted without review' }
     ];
+
+    // Additional validation for new status model
+    if (existingData.status === 'Pending' && data.status === 'Blocked') {
+      // Allow this transition but log it for auditing
+    }
+
+    if (existingData.status === 'Pending' && data.status === 'Approved') {
+      // Ensure security assessment is completed for approval
+      if (data.security_assessment !== true) {
+        errors.push({
+          field: 'security_assessment',
+          message: 'Security assessment must be completed (true) for approval',
+          code: 'SECURITY_ASSESSMENT_REQUIRED_FOR_APPROVAL'
+        });
+      }
+    }
+
+    if (existingData.status === 'Pending' && data.status === 'Restricted') {
+      // This is a valid transition
+    }
+
+    if (existingData.status === 'Restricted' && data.status === 'Approved') {
+      // Restricted models can be promoted to approved after review
+    }
+
+    if (existingData.status === 'Restricted' && data.status === 'Blocked') {
+      // Restricted models can be blocked if issues are found
+    }
 
     const invalidTransition = invalidTransitions.find(
       t => t.from === existingData.status && t.to === data.status
@@ -394,24 +607,24 @@ export const validateModelInventoryUpdateBusinessRules = (data: any, existingDat
     }
   }
 
-  // Validate security assessment for production promotion
-  if (data.status === 'Production' && data.security_assessment) {
-    if (data.security_assessment.length < 100) {
+  // Validate security assessment for approved promotion
+  if (data.status === 'Approved') {
+    if (data.security_assessment !== true) {
       errors.push({
         field: 'security_assessment',
-        message: 'Production models require comprehensive security assessment (minimum 100 characters)',
-        code: 'INSUFFICIENT_SECURITY_ASSESSMENT'
+        message: 'Approved models must have security assessment completed (true)',
+        code: 'SECURITY_ASSESSMENT_REQUIRED'
       });
     }
   }
 
   // Validate demo flag changes
   if (data.is_demo !== undefined && existingData?.is_demo !== undefined) {
-    if (existingData.is_demo === false && data.is_demo === true && existingData.status === 'Production') {
+    if (existingData.is_demo === false && data.is_demo === true && existingData.status === 'Approved') {
       errors.push({
         field: 'is_demo',
-        message: 'Cannot mark production model as demo without changing status first',
-        code: 'PRODUCTION_TO_DEMO_INVALID'
+        message: 'Cannot mark approved model as demo without changing status first',
+        code: 'APPROVED_TO_DEMO_INVALID'
       });
     }
   }

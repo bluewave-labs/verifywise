@@ -62,12 +62,6 @@ export const validateActionPlan = (value: any): ValidationResult => {
   });
 };
 
-/**
- * Validates impact enum field
- */
-export const validateImpact = (value: any): ValidationResult => {
-  return validateEnum(value, 'Impact', VENDOR_RISK_ENUMS.IMPACT, true);
-};
 
 /**
  * Validates likelihood enum field
@@ -84,7 +78,7 @@ export const validateRiskSeverity = (value: any): ValidationResult => {
 };
 
 /**
- * Validates risk level field
+ * Validates risk level field (required - calculated in backend and validated for correctness)
  */
 export const validateRiskLevel = (value: any): ValidationResult => {
   return validateString(value, 'Risk level', {
@@ -132,7 +126,6 @@ export const createVendorRiskSchema = {
   vendor_id: validateVendorId,
   risk_description: validateRiskDescription,
   impact_description: validateImpactDescription,
-  impact: validateImpact,
   likelihood: validateLikelihood,
   risk_severity: validateRiskSeverity,
   risk_level: validateRiskLevel,
@@ -148,7 +141,6 @@ export const updateVendorRiskSchema = {
   vendor_id: (value: any) => value !== undefined ? validateVendorId(value) : { isValid: true },
   risk_description: (value: any) => value !== undefined ? validateRiskDescription(value) : { isValid: true },
   impact_description: (value: any) => value !== undefined ? validateImpactDescription(value) : { isValid: true },
-  impact: (value: any) => value !== undefined ? validateImpact(value) : { isValid: true },
   likelihood: (value: any) => value !== undefined ? validateLikelihood(value) : { isValid: true },
   risk_severity: (value: any) => value !== undefined ? validateRiskSeverity(value) : { isValid: true },
   risk_level: (value: any) => value !== undefined ? validateRiskLevel(value) : { isValid: true },
@@ -169,7 +161,7 @@ export const validateCreateVendorRisk = (data: any): ValidationError[] => {
 export const validateUpdateVendorRisk = (data: any): ValidationError[] => {
   // Check if at least one field is provided for update
   const updateFields = [
-    'vendor_id', 'risk_description', 'impact_description', 'impact',
+    'vendor_id', 'risk_description', 'impact_description',
     'likelihood', 'risk_severity', 'risk_level', 'action_plan', 'action_owner'
   ];
 
@@ -205,72 +197,80 @@ export const validateProjectIdParam = (id: any): ValidationResult => {
  */
 
 /**
- * Validates that risk level is consistent with impact and likelihood
- * This is a business rule validation
+ * Risk level calculation matrix - returns the exact calculated risk level
  */
-export const validateRiskLevelConsistency = (
-  impact: string,
-  likelihood: string,
-  riskLevel: string
-): ValidationResult => {
-  // Define risk level matrix (simplified example)
-  const riskMatrix: Record<string, Record<string, string[]>> = {
-    'Negligible': {
-      'Rare': ['Low', 'Negligible'],
-      'Unlikely': ['Low', 'Negligible'],
-      'Possible': ['Low', 'Minor'],
-      'Likely': ['Low', 'Minor'],
-      'Almost certain': ['Minor', 'Moderate']
-    },
-    'Minor': {
-      'Rare': ['Low', 'Minor'],
-      'Unlikely': ['Low', 'Minor'],
-      'Possible': ['Minor', 'Moderate'],
-      'Likely': ['Moderate', 'Major'],
-      'Almost certain': ['Major', 'High']
-    },
-    'Moderate': {
-      'Rare': ['Minor', 'Moderate'],
-      'Unlikely': ['Moderate', 'Major'],
-      'Possible': ['Major', 'High'],
-      'Likely': ['High', 'Critical'],
-      'Almost certain': ['Critical', 'Very High']
-    },
-    'Major': {
-      'Rare': ['Moderate', 'Major'],
-      'Unlikely': ['Major', 'High'],
-      'Possible': ['High', 'Critical'],
-      'Likely': ['Critical', 'Very High'],
-      'Almost certain': ['Very High', 'Extreme']
-    },
-    'Critical': {
-      'Rare': ['Major', 'High'],
-      'Unlikely': ['High', 'Critical'],
-      'Possible': ['Critical', 'Very High'],
-      'Likely': ['Very High', 'Extreme'],
-      'Almost certain': ['Extreme', 'Extreme']
-    }
-  };
-
-  const expectedLevels = riskMatrix[impact]?.[likelihood];
-
-  if (!expectedLevels) {
-    return { isValid: true }; // Skip validation if matrix not defined
+const RISK_CALCULATION_MATRIX: Record<string, Record<string, string>> = {
+  'Negligible': {
+    'Rare': 'Very Low',
+    'Unlikely': 'Low',
+    'Possible': 'Low',
+    'Likely': 'Medium',
+    'Almost certain': 'Medium'
+  },
+  'Minor': {
+    'Rare': 'Low',
+    'Unlikely': 'Low',
+    'Possible': 'Medium',
+    'Likely': 'Medium',
+    'Almost certain': 'High'
+  },
+  'Moderate': {
+    'Rare': 'Low',
+    'Unlikely': 'Medium',
+    'Possible': 'Medium',
+    'Likely': 'High',
+    'Almost certain': 'High'
+  },
+  'Major': {
+    'Rare': 'Medium',
+    'Unlikely': 'Medium',
+    'Possible': 'High',
+    'Likely': 'High',
+    'Almost certain': 'Very High'
+  },
+  'Catastrophic': {
+    'Rare': 'Medium',
+    'Unlikely': 'High',
+    'Possible': 'High',
+    'Likely': 'Very High',
+    'Almost certain': 'Very High'
   }
+};
 
-  // Check if the provided risk level is within expected range
-  const normalizedRiskLevel = riskLevel.toLowerCase();
-  const normalizedExpected = expectedLevels.map(level => level.toLowerCase());
+/**
+ * Calculates the correct risk level based on risk_severity and likelihood
+ */
+export const calculateRiskLevel = (
+  riskSeverity: string,
+  likelihood: string
+): string | null => {
+  return RISK_CALCULATION_MATRIX[riskSeverity]?.[likelihood] || null;
+};
 
-  const isConsistent = normalizedExpected.some(level =>
-    normalizedRiskLevel.includes(level) || level.includes(normalizedRiskLevel)
-  );
+/**
+ * Validates that the provided risk level matches the calculated risk level
+ * This ensures the backend calculation is correct
+ */
+export const validateRiskLevelCalculation = (
+  riskSeverity: string,
+  likelihood: string,
+  providedRiskLevel: string
+): ValidationResult => {
+  const calculatedRiskLevel = calculateRiskLevel(riskSeverity, likelihood);
 
-  if (!isConsistent) {
+  if (!calculatedRiskLevel) {
     return {
       isValid: false,
-      message: `Risk level "${riskLevel}" is not consistent with impact "${impact}" and likelihood "${likelihood}". Expected levels: ${expectedLevels.join(' or ')}`,
-      code: 'INCONSISTENT_RISK_LEVEL'
+      message: `Cannot calculate risk level for risk severity "${riskSeverity}" and likelihood "${likelihood}"`,
+      code: 'INVALID_RISK_CALCULATION_INPUTS'
+    };
+  }
+
+  if (providedRiskLevel !== calculatedRiskLevel) {
+    return {
+      isValid: false,
+      message: `Risk level "${providedRiskLevel}" is incorrect. Expected "${calculatedRiskLevel}" for risk severity "${riskSeverity}" and likelihood "${likelihood}"`,
+      code: 'INCORRECT_RISK_LEVEL_CALCULATION'
     };
   }
 
@@ -304,18 +304,18 @@ export const validateCompleteVendorRisk = (data: any): ValidationError[] => {
   const errors = validateCreateVendorRisk(data);
 
   // Add business rule validations if basic validation passes
-  if (errors.length === 0 && data.impact && data.likelihood && data.risk_level) {
-    const consistencyResult = validateRiskLevelConsistency(
-      data.impact,
+  if (errors.length === 0 && data.risk_severity && data.likelihood && data.risk_level) {
+    const calculationResult = validateRiskLevelCalculation(
+      data.risk_severity,
       data.likelihood,
       data.risk_level
     );
 
-    if (!consistencyResult.isValid) {
+    if (!calculationResult.isValid) {
       errors.push({
         field: 'risk_level',
-        message: consistencyResult.message || 'Risk level is inconsistent',
-        code: consistencyResult.code || 'BUSINESS_RULE_VIOLATION'
+        message: calculationResult.message || 'Risk level calculation is incorrect',
+        code: calculationResult.code || 'INCORRECT_CALCULATION'
       });
     }
   }

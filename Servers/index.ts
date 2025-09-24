@@ -90,7 +90,7 @@ try {
   app.use(cookieParser());
 
   // Routes
-  app.use("/api/users", userRoutes); // **
+  app.use("/api/users", userRoutes);
   app.use("/api/vendorRisks", vendorRiskRoutes);
   app.use("/api/vendors", vendorRoutes);
   app.use("/api/projects", projectRoutes);
@@ -113,8 +113,8 @@ try {
   app.use("/api/iso-42001", isoRoutes); // **
   app.use("/api/iso-27001", iso27001Routes); // **
   app.use("/api/training", trainingRoutes);
-  app.use("/api/bias_and_fairness", biasAndFairnessRoutes()); // **
-  app.use("/api/aiTrustCentre", aiTrustCentreRoutes); // **
+  app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
+  app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
   app.use("/api/logger", loggerRoutes);
   app.use("/api/modelInventory", modelInventoryRoutes);
   app.use("/api/modelRisks", modelRiskRoutes);

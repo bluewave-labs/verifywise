@@ -161,12 +161,16 @@ export const validateProjectId = (value: any): ValidationResult => {
 };
 
 /**
- * Validates projects array field
+ * Validates projects array field (required)
  */
 export const validateProjects = (value: any): ValidationResult => {
-  // Projects field is optional
+  // Projects field is required
   if (value === undefined || value === null) {
-    return { isValid: true };
+    return {
+      isValid: false,
+      message: 'Projects is required',
+      code: 'REQUIRED_FIELD'
+    };
   }
 
   // Must be an array
@@ -175,6 +179,15 @@ export const validateProjects = (value: any): ValidationResult => {
       isValid: false,
       message: 'Projects must be an array',
       code: 'INVALID_ARRAY'
+    };
+  }
+
+  // Array cannot be empty since it's required
+  if (value.length === 0) {
+    return {
+      isValid: false,
+      message: 'Projects array cannot be empty',
+      code: 'EMPTY_REQUIRED_ARRAY'
     };
   }
 

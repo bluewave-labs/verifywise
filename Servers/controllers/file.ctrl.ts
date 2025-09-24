@@ -232,7 +232,7 @@ export async function postFileContent(
   res: Response
 ): Promise<any> {
   // Validate file upload request
-  const validationErrors = validateCompleteFileUpload(req.body, req.files);
+  const validationErrors = await validateCompleteFileUpload(req.body, req.files, req.tenantId!);
   if (validationErrors.length > 0) {
     await logFailure({
       eventType: "Create",

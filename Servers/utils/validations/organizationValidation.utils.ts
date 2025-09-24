@@ -10,28 +10,20 @@ import {
   ValidationResult,
   ValidationError
 } from './validation.utils';
+import {
+  validateUserEmail,
+  validateName,
+  validateSurname,
+  validateUserPassword
+} from './userValidation.utils';
 
 /**
  * Validation constants for organizations
  */
 export const ORGANIZATION_VALIDATION_LIMITS = {
   NAME: { MIN: 2, MAX: 255 },
-  LOGO: { MIN: 1, MAX: 500 },
-  USER_NAME: { MIN: 1, MAX: 100 },
-  USER_SURNAME: { MIN: 1, MAX: 100 },
-  USER_EMAIL: { MIN: 5, MAX: 254 },
-  USER_PASSWORD: { MIN: 8, MAX: 128 }
+  LOGO: { MIN: 1, MAX: 500 }
 } as const;
-
-/**
- * Email validation pattern
- */
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/**
- * Password validation pattern (at least one uppercase, lowercase, number)
- */
-const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
 
 /**
  * Validates organization name field
@@ -69,52 +61,35 @@ export const validateOrganizationIdParam = (id: any): ValidationResult => {
 };
 
 /**
- * Validates user email field
+ * Validates user email field for organization creation
+ * Uses the same validation as user registration
  */
-export const validateUserEmail = (value: any): ValidationResult => {
-  return validateString(value, 'User email', {
-    required: true,
-    pattern: EMAIL_PATTERN,
-    minLength: ORGANIZATION_VALIDATION_LIMITS.USER_EMAIL.MIN,
-    maxLength: ORGANIZATION_VALIDATION_LIMITS.USER_EMAIL.MAX,
-    trimWhitespace: true
-  });
+export const validateOrgUserEmail = (value: any): ValidationResult => {
+  return validateUserEmail(value);
 };
 
 /**
- * Validates user name field
+ * Validates user name field for organization creation
+ * Uses the same validation as user registration
  */
-export const validateUserName = (value: any): ValidationResult => {
-  return validateString(value, 'User name', {
-    required: true,
-    minLength: ORGANIZATION_VALIDATION_LIMITS.USER_NAME.MIN,
-    maxLength: ORGANIZATION_VALIDATION_LIMITS.USER_NAME.MAX,
-    trimWhitespace: true
-  });
+export const validateOrgUserName = (value: any): ValidationResult => {
+  return validateName(value);
 };
 
 /**
- * Validates user surname field
+ * Validates user surname field for organization creation
+ * Uses the same validation as user registration
  */
-export const validateUserSurname = (value: any): ValidationResult => {
-  return validateString(value, 'User surname', {
-    required: true,
-    minLength: ORGANIZATION_VALIDATION_LIMITS.USER_SURNAME.MIN,
-    maxLength: ORGANIZATION_VALIDATION_LIMITS.USER_SURNAME.MAX,
-    trimWhitespace: true
-  });
+export const validateOrgUserSurname = (value: any): ValidationResult => {
+  return validateSurname(value);
 };
 
 /**
- * Validates user password field
+ * Validates user password field for organization creation
+ * Uses the same comprehensive validation as user registration including special characters
  */
-export const validateUserPassword = (value: any): ValidationResult => {
-  return validateString(value, 'User password', {
-    required: true,
-    pattern: PASSWORD_PATTERN,
-    minLength: ORGANIZATION_VALIDATION_LIMITS.USER_PASSWORD.MIN,
-    maxLength: ORGANIZATION_VALIDATION_LIMITS.USER_PASSWORD.MAX
-  });
+export const validateOrgUserPassword = (value: any): ValidationResult => {
+  return validateUserPassword(value);
 };
 
 /**
@@ -123,10 +98,10 @@ export const validateUserPassword = (value: any): ValidationResult => {
 export const createOrganizationSchema = {
   name: validateOrganizationName,
   logo: validateOrganizationLogo,
-  userEmail: validateUserEmail,
-  userName: validateUserName,
-  userSurname: validateUserSurname,
-  userPassword: validateUserPassword
+  userEmail: validateOrgUserEmail,
+  userName: validateOrgUserName,
+  userSurname: validateOrgUserSurname,
+  userPassword: validateOrgUserPassword
 };
 
 /**
@@ -229,31 +204,8 @@ export const validateOrganizationCreationBusinessRules = (data: any): Validation
     });
   }
 
-  // Additional password strength validation
+  // Check for common weak passwords (additional security on top of comprehensive validation)
   if (data.userPassword) {
-    if (!/(?=.*[a-z])/.test(data.userPassword)) {
-      errors.push({
-        field: 'userPassword',
-        message: 'Password must contain at least one lowercase letter',
-        code: 'PASSWORD_MISSING_LOWERCASE'
-      });
-    }
-    if (!/(?=.*[A-Z])/.test(data.userPassword)) {
-      errors.push({
-        field: 'userPassword',
-        message: 'Password must contain at least one uppercase letter',
-        code: 'PASSWORD_MISSING_UPPERCASE'
-      });
-    }
-    if (!/(?=.*\d)/.test(data.userPassword)) {
-      errors.push({
-        field: 'userPassword',
-        message: 'Password must contain at least one number',
-        code: 'PASSWORD_MISSING_NUMBER'
-      });
-    }
-
-    // Check for common weak passwords
     const weakPasswords = ['password', '12345678', 'qwerty', 'admin123', 'password123'];
     if (weakPasswords.includes(data.userPassword.toLowerCase())) {
       errors.push({

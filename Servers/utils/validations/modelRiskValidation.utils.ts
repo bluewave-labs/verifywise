@@ -239,27 +239,27 @@ export const validateModelRiskCreationBusinessRules = (data: any): ValidationErr
     }
   }
 
-  // Validate category and description alignment
-  if (data.riskCategory && data.description) {
-    const categoryKeywords = {
-      'Performance': ['accuracy', 'precision', 'recall', 'performance', 'degradation', 'drift'],
-      'Bias & Fairness': ['bias', 'fairness', 'discrimination', 'equity', 'disparity', 'representation'],
-      'Security': ['security', 'attack', 'adversarial', 'vulnerability', 'breach', 'privacy'],
-      'Data Quality': ['data', 'quality', 'completeness', 'accuracy', 'consistency', 'validity'],
-      'Compliance': ['compliance', 'regulation', 'legal', 'audit', 'policy', 'requirement']
-    };
+  // // Validate category and description alignment
+  // if (data.riskCategory && data.description) {
+  //   const categoryKeywords = {
+  //     'Performance': ['accuracy', 'precision', 'recall', 'performance', 'degradation', 'drift'],
+  //     'Bias & Fairness': ['bias', 'fairness', 'discrimination', 'equity', 'disparity', 'representation'],
+  //     'Security': ['security', 'attack', 'adversarial', 'vulnerability', 'breach', 'privacy'],
+  //     'Data Quality': ['data', 'quality', 'completeness', 'accuracy', 'consistency', 'validity'],
+  //     'Compliance': ['compliance', 'regulation', 'legal', 'audit', 'policy', 'requirement']
+  //   };
 
-    const keywords = categoryKeywords[data.riskCategory as keyof typeof categoryKeywords];
-    if (keywords && !keywords.some(keyword =>
-      data.description.toLowerCase().includes(keyword.toLowerCase())
-    )) {
-      errors.push({
-        field: 'description',
-        message: `Description should relate to ${data.riskCategory} category concerns`,
-        code: 'CATEGORY_DESCRIPTION_MISMATCH'
-      });
-    }
-  }
+  //   const keywords = categoryKeywords[data.riskCategory as keyof typeof categoryKeywords];
+  //   if (keywords && !keywords.some(keyword =>
+  //     data.description.toLowerCase().includes(keyword.toLowerCase())
+  //   )) {
+  //     errors.push({
+  //       field: 'description',
+  //       message: `Description should relate to ${data.riskCategory} category concerns`,
+  //       code: 'CATEGORY_DESCRIPTION_MISMATCH'
+  //     });
+  //   }
+  // }
 
   // Validate owner format (should include full name)
   if (data.owner) {

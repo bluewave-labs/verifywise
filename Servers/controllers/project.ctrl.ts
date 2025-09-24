@@ -28,7 +28,8 @@ import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
 import {
   validateCompleteProjectWithBusinessRules,
   validateUpdateProjectWithBusinessRules,
-  validateProjectIdParam
+  validateProjectIdParam,
+  sanitizeProjectDataForOrganizational
 } from '../utils/validations/projectValidation.utils';
 import {
   ValidationException,
@@ -160,6 +161,10 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     });
   }
 
+  // Sanitize project data for organizational projects
+  // This ensures ai_risk_classification and type_of_high_risk_role are null for organizational projects
+  const sanitizedProjectData = sanitizeProjectDataForOrganizational(projectData);
+
   logProcessing({
     description: "starting createProject",
     functionName: "createProject",
@@ -171,7 +176,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       members: number[] | undefined;
       framework: number[];
       enable_ai_data_insertion: boolean;
-    } = projectData;
+    } = sanitizedProjectData;
 
     const createdProject = await createNewProjectQuery(
       newProject,
@@ -347,7 +352,11 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       });
     }
 
-    const updatedProject: Partial<ProjectModel> & { members?: number[] } = updateData;
+    // Sanitize project update data for organizational projects
+    // This ensures ai_risk_classification and type_of_high_risk_role are null if project becomes organizational
+    const sanitizedUpdateData = sanitizeProjectDataForOrganizational(updateData);
+
+    const updatedProject: Partial<ProjectModel> & { members?: number[] } = sanitizedUpdateData;
     const members = updatedProject.members || [];
 
     delete updatedProject.members;

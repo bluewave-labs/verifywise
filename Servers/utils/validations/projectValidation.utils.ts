@@ -78,15 +78,43 @@ export const validateStartDate = (value: any): ValidationResult => {
 
 /**
  * Validates AI risk classification enum field
+ * For organizational projects, this should be null
  */
-export const validateAiRiskClassification = (value: any): ValidationResult => {
+export const validateAiRiskClassification = (value: any, isOrganizational?: boolean): ValidationResult => {
+  // For organizational projects, ai_risk_classification should be null
+  if (isOrganizational) {
+    if (value !== null && value !== undefined) {
+      return {
+        isValid: false,
+        message: 'AI risk classification must be null for organizational projects',
+        code: 'ORGANIZATIONAL_PROJECT_AI_RISK_NOT_NULL'
+      };
+    }
+    return { isValid: true };
+  }
+
+  // For non-organizational projects, validation is required
   return validateEnum(value, 'AI risk classification', AI_RISK_CLASSIFICATION_ENUM, true);
 };
 
 /**
  * Validates type of high risk role enum field
+ * For organizational projects, this should be null
  */
-export const validateTypeOfHighRiskRole = (value: any): ValidationResult => {
+export const validateTypeOfHighRiskRole = (value: any, isOrganizational?: boolean): ValidationResult => {
+  // For organizational projects, type_of_high_risk_role should be null
+  if (isOrganizational) {
+    if (value !== null && value !== undefined) {
+      return {
+        isValid: false,
+        message: 'Type of high risk role must be null for organizational projects',
+        code: 'ORGANIZATIONAL_PROJECT_HIGH_RISK_ROLE_NOT_NULL'
+      };
+    }
+    return { isValid: true };
+  }
+
+  // For non-organizational projects, validation is required
   return validateEnum(value, 'Type of high risk role', HIGH_RISK_ROLE_ENUM, true);
 };
 
@@ -225,13 +253,12 @@ export const validateProjectId = (value: any): ValidationResult => {
 
 /**
  * Validation schema for creating a new project
+ * Note: ai_risk_classification and type_of_high_risk_role are validated conditionally
  */
 export const createProjectSchema = {
   project_title: validateProjectTitle,
   owner: validateOwner,
   start_date: validateStartDate,
-  ai_risk_classification: validateAiRiskClassification,
-  type_of_high_risk_role: validateTypeOfHighRiskRole,
   goal: validateGoal,
   is_organizational: validateIsOrganizational,
   framework: validateFramework,
@@ -243,13 +270,12 @@ export const createProjectSchema = {
  * Validation schema for updating a project
  * All fields are optional for updates
  * Note: framework is not included as it's only set during project creation
+ * Note: ai_risk_classification and type_of_high_risk_role are validated conditionally
  */
 export const updateProjectSchema = {
   project_title: (value: any) => value !== undefined ? validateProjectTitle(value) : { isValid: true },
   owner: (value: any) => value !== undefined ? validateOwner(value) : { isValid: true },
   start_date: (value: any) => value !== undefined ? validateStartDate(value) : { isValid: true },
-  ai_risk_classification: (value: any) => value !== undefined ? validateAiRiskClassification(value) : { isValid: true },
-  type_of_high_risk_role: (value: any) => value !== undefined ? validateTypeOfHighRiskRole(value) : { isValid: true },
   goal: (value: any) => value !== undefined ? validateGoal(value) : { isValid: true },
   is_organizational: (value: any) => value !== undefined ? validateIsOrganizational(value) : { isValid: true },
   members: (value: any) => value !== undefined ? validateMembers(value) : { isValid: true },
@@ -259,29 +285,62 @@ export const updateProjectSchema = {
 
 /**
  * Validates a complete project object for creation
+ * Handles conditional validation of AI risk fields based on organizational status
  */
 export const validateCompleteProject = (data: any): ValidationError[] => {
-  return validateSchema(data, createProjectSchema);
+  const errors = validateSchema(data, createProjectSchema);
+
+  // Conditional validation for AI risk fields based on organizational status
+  const isOrganizational = data.is_organizational;
+
+  // Validate ai_risk_classification conditionally
+  const aiRiskValidation = validateAiRiskClassification(data.ai_risk_classification, isOrganizational);
+  if (!aiRiskValidation.isValid) {
+    errors.push({
+      field: 'ai_risk_classification',
+      message: aiRiskValidation.message || 'AI risk classification validation failed',
+      code: aiRiskValidation.code || 'VALIDATION_FAILED'
+    });
+  }
+
+  // Validate type_of_high_risk_role conditionally
+  const highRiskRoleValidation = validateTypeOfHighRiskRole(data.type_of_high_risk_role, isOrganizational);
+  if (!highRiskRoleValidation.isValid) {
+    errors.push({
+      field: 'type_of_high_risk_role',
+      message: highRiskRoleValidation.message || 'Type of high risk role validation failed',
+      code: highRiskRoleValidation.code || 'VALIDATION_FAILED'
+    });
+  }
+
+  return errors;
+};
+
+/**
+ * Sanitizes project data for organizational projects by setting AI risk fields to null
+ */
+export const sanitizeProjectDataForOrganizational = (data: any): any => {
+  const sanitizedData = { ...data };
+
+  if (data.is_organizational) {
+    // For organizational projects, set AI risk fields to null
+    sanitizedData.ai_risk_classification = null;
+    sanitizedData.type_of_high_risk_role = null;
+  }
+
+  return sanitizedData;
 };
 
 /**
  * Validates a project object for updates
+ * Handles conditional validation of AI risk fields based on organizational status
  */
-export const validateUpdateProject = (data: any): ValidationError[] => {
-  // // Check if framework field is being passed (not allowed in updates)
-  // if (data.framework !== undefined) {
-  //   return [{
-  //     field: 'framework',
-  //     message: 'Framework cannot be updated after project creation',
-  //     code: 'FRAMEWORK_UPDATE_NOT_ALLOWED'
-  //   }];
-  // }
-
+export const validateUpdateProject = (data: any, currentProject?: any): ValidationError[] => {
   // Check if at least one field is provided for update
   const updateFields = [
     'project_title', 'owner', 'start_date', 'ai_risk_classification',
     'type_of_high_risk_role', 'goal', 'members', 'enable_ai_data_insertion',
-    'last_updated_by'
+    'last_updated_by', 'is_organizational'
   ];
 
   const hasUpdateField = updateFields.some(field => data[field] !== undefined);
@@ -294,7 +353,38 @@ export const validateUpdateProject = (data: any): ValidationError[] => {
     }];
   }
 
-  return validateSchema(data, updateProjectSchema);
+  const errors = validateSchema(data, updateProjectSchema);
+
+  // Conditional validation for AI risk fields based on organizational status
+  // Use updated organizational status if provided, otherwise use current project status
+  const isOrganizational = data.is_organizational !== undefined
+    ? data.is_organizational
+    : currentProject?.is_organizational;
+
+  // Only validate AI risk fields if they are being updated
+  if (data.ai_risk_classification !== undefined) {
+    const aiRiskValidation = validateAiRiskClassification(data.ai_risk_classification, isOrganizational);
+    if (!aiRiskValidation.isValid) {
+      errors.push({
+        field: 'ai_risk_classification',
+        message: aiRiskValidation.message || 'AI risk classification validation failed',
+        code: aiRiskValidation.code || 'VALIDATION_FAILED'
+      });
+    }
+  }
+
+  if (data.type_of_high_risk_role !== undefined) {
+    const highRiskRoleValidation = validateTypeOfHighRiskRole(data.type_of_high_risk_role, isOrganizational);
+    if (!highRiskRoleValidation.isValid) {
+      errors.push({
+        field: 'type_of_high_risk_role',
+        message: highRiskRoleValidation.message || 'Type of high risk role validation failed',
+        code: highRiskRoleValidation.code || 'VALIDATION_FAILED'
+      });
+    }
+  }
+
+  return errors;
 };
 
 /**
@@ -456,8 +546,8 @@ export const validateCompleteProjectWithBusinessRules = (data: any): ValidationE
       }
     }
 
-    // Check risk classification consistency
-    if (data.ai_risk_classification && data.type_of_high_risk_role) {
+    // Check risk classification consistency (only for non-organizational projects)
+    if (!data.is_organizational && data.ai_risk_classification && data.type_of_high_risk_role) {
       const consistencyCheck = validateRiskClassificationConsistency(
         data.ai_risk_classification,
         data.type_of_high_risk_role
@@ -482,7 +572,7 @@ export const validateUpdateProjectWithBusinessRules = (
   data: any,
   currentProject?: any
 ): ValidationError[] => {
-  const errors = validateUpdateProject(data);
+  const errors = validateUpdateProject(data, currentProject);
 
   // Add business rule validations if basic validation passes
   if (errors.length === 0 && currentProject) {
@@ -502,7 +592,10 @@ export const validateUpdateProjectWithBusinessRules = (
     // Note: Framework consistency validation is not performed during updates
     // as frameworks are set only during project creation and cannot be changed
 
-    // Check risk classification consistency
+    // Check risk classification consistency (only for non-organizational projects)
+    const newIsOrganizational = data.is_organizational !== undefined
+      ? data.is_organizational
+      : currentProject.is_organizational;
     const newAiRiskClassification = data.ai_risk_classification !== undefined
       ? data.ai_risk_classification
       : currentProject.ai_risk_classification;
@@ -510,7 +603,8 @@ export const validateUpdateProjectWithBusinessRules = (
       ? data.type_of_high_risk_role
       : currentProject.type_of_high_risk_role;
 
-    if (newAiRiskClassification && newTypeOfHighRiskRole) {
+    // Only check risk classification consistency for non-organizational projects
+    if (!newIsOrganizational && newAiRiskClassification && newTypeOfHighRiskRole) {
       const consistencyCheck = validateRiskClassificationConsistency(
         newAiRiskClassification,
         newTypeOfHighRiskRole

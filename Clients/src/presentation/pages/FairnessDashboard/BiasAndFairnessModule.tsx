@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
@@ -360,33 +361,46 @@ export default function BiasAndFairnessModule() {
       )}
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4}>
-        <Button
-          variant="contained"
-          startIcon={<AddCircleOutlineIcon />}
-          onClick={() => {
-            setDialogOpen(true);
-            setShowAdvancedSettings(false);
-          }}
-          sx={{
-            backgroundColor: "#13715B",
-            color: "white",
-            textTransform: "none",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            padding: "8px 20px",
-            borderRadius: "6px"
-          }}
-        >
-          New Evaluation
-        </Button>
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => navigate("/fairness-dashboard/bias-fairness-results-demo")}
-          sx={{ ml: 1 }}
-        >
-          Demo
-        </Button>
+        <Box display="flex" alignItems="center" gap={1}>
+          <IconButton
+            onClick={() => console.log("Settings clicked")} // Placeholder for settings functionality
+            sx={{
+              backgroundColor: "white",
+              boxShadow: 1,
+              "&:hover": { backgroundColor: "#f3f4f6" }
+            }}
+            title="Settings"
+          >
+            <SettingsIcon sx={{ fontSize: "20px", color: "#667085" }} />
+          </IconButton>
+          <Button
+            variant="contained"
+            startIcon={<AddCircleOutlineIcon />}
+            onClick={() => {
+              setDialogOpen(true);
+              setShowAdvancedSettings(false);
+            }}
+            sx={{
+              backgroundColor: "#13715B",
+              color: "white",
+              textTransform: "none",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              padding: "8px 20px",
+              borderRadius: "6px"
+            }}
+          >
+            New Evaluation
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate("/fairness-dashboard/bias-fairness-results-demo")}
+            sx={{ ml: 1 }}
+          >
+            Demo
+          </Button>
+        </Box>
       </Box>
 
       {/* Evaluation Results Table */}

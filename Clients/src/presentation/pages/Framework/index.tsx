@@ -762,8 +762,7 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <EditIcon
-                      fontSize="small"
-                      sx={{
+                      style={{
                         color: "text.secondary",
                         fontSize: "16px",
                       }}

@@ -26,6 +26,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation } from "react-router-dom";
 import { DeploymentManager } from "./application/utils/deploymentHelpers";
 import CommandPalette from "./presentation/components/CommandPalette";
+import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
 import useCommandPalette from "./application/hooks/useCommandPalette";
 
 // Component to conditionally apply theme based on route
@@ -180,10 +181,12 @@ function App() {
                   onClick={() => setAlert(null)}
                 />
               )}
-              <CommandPalette
-                open={commandPalette.isOpen}
-                onOpenChange={commandPalette.close}
-              />
+              <CommandPaletteErrorBoundary>
+                <CommandPalette
+                  open={commandPalette.isOpen}
+                  onOpenChange={commandPalette.close}
+                />
+              </CommandPaletteErrorBoundary>
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>

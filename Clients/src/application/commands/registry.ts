@@ -200,11 +200,34 @@ class CommandRegistryImpl implements CommandRegistry {
 
       // Check specific scope permissions
       if (command.scope) {
-        const [resource, action] = command.scope.split('.')
-        const resourcePermissions = (allowedRoles as any)[resource]
-        if (resourcePermissions && resourcePermissions[action]) {
-          const hasPermission = resourcePermissions[action].includes(context.userRole)
+        const scopeParts = command.scope.split('.')
+        if (scopeParts.length !== 2) {
+          console.error(`Invalid command scope format: ${command.scope}. Expected format: 'resource.action'`)
+          return false
+        }
+
+        const [resource, action] = scopeParts
+
+        try {
+          const resourcePermissions = allowedRoles[resource as keyof typeof allowedRoles]
+
+          if (!resourcePermissions) {
+            console.error(`Unknown resource in scope: ${resource}`)
+            return false
+          }
+
+          const actionPermissions = resourcePermissions[action as keyof typeof resourcePermissions]
+          if (!actionPermissions) {
+            console.error(`Unknown action in scope: ${action}`)
+            return false
+          }
+
+          const hasPermission = Array.isArray(actionPermissions) &&
+                               actionPermissions.includes(context.userRole)
           if (!hasPermission) return false
+        } catch (error) {
+          console.error(`Error checking permissions for scope: ${command.scope}`, error)
+          return false
         }
       }
 
@@ -225,8 +248,41 @@ class CommandRegistryImpl implements CommandRegistry {
   }
 
   registerCommand(command: Command): void {
+    // Validate required fields
+    if (!command.id?.trim()) {
+      throw new Error('Command ID is required and cannot be empty')
+    }
+
+    if (!command.label?.trim()) {
+      throw new Error('Command label is required and cannot be empty')
+    }
+
+    if (!command.action?.type) {
+      throw new Error('Command action type is required')
+    }
+
+    // Validate action type
+    const validActionTypes = ['navigate', 'modal', 'function', 'filter', 'export'] as const
+    if (!validActionTypes.includes(command.action.type)) {
+      throw new Error(`Invalid action type: ${command.action.type}. Valid types: ${validActionTypes.join(', ')}`)
+    }
+
+    // Validate group exists
+    if (!this._groups.some(g => g.id === command.group.id)) {
+      console.warn(`Command group "${command.group.id}" not found in registry. Available groups: ${this._groups.map(g => g.id).join(', ')}`)
+    }
+
+    // Validate scope format if provided
+    if (command.scope) {
+      const scopeParts = command.scope.split('.')
+      if (scopeParts.length !== 2) {
+        throw new Error(`Invalid scope format: ${command.scope}. Expected format: 'resource.action'`)
+      }
+    }
+
     const existingIndex = this._commands.findIndex(c => c.id === command.id)
     if (existingIndex >= 0) {
+      console.info(`Replacing existing command: ${command.id}`)
       this._commands[existingIndex] = command
     } else {
       this._commands.push(command)

@@ -5,7 +5,7 @@ export interface Command {
   keywords?: string[]
   group: CommandGroup
   action: CommandAction
-  icon?: React.ComponentType<any>
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
   shortcut?: string[]
   requiredRole?: string[]
   scope?: string
@@ -17,9 +17,36 @@ export interface CommandGroup {
   priority: number
 }
 
+// Specific payload types for better type safety
+export interface NavigatePayload {
+  path: string
+}
+
+export interface ModalPayload {
+  modalType: string
+  data?: Record<string, unknown>
+}
+
+export interface FunctionPayload {
+  name: string
+  params?: Record<string, unknown>
+}
+
+export interface FilterPayload {
+  type: string
+  value: unknown
+}
+
+export interface ExportPayload {
+  format: string
+  data?: Record<string, unknown>
+}
+
+export type CommandPayload = NavigatePayload | ModalPayload | FunctionPayload | FilterPayload | ExportPayload | string
+
 export interface CommandAction {
   type: 'navigate' | 'modal' | 'function' | 'filter' | 'export'
-  payload?: any
+  payload?: CommandPayload
 }
 
 export interface CommandContext {

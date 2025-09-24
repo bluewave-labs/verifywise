@@ -233,14 +233,46 @@
   }
 }
 
+/* Screen reader only content */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 /* Focus styles for accessibility */
 .command-input:focus-visible {
-  outline: none;
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
 }
 
 .command-item:focus-visible {
-  outline: 2px solid #000;
+  outline: 2px solid #007acc;
   outline-offset: -2px;
+  background: #f0f8ff;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .command-dialog-content {
+    border: 2px solid;
+  }
+
+  .command-item[data-selected="true"] {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .command-item:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
 }
 
 /* Loading state */

@@ -59,21 +59,21 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     return Array.from(groups.values()).sort((a, b) => a.group.priority - b.group.priority)
   }, [commands])
 
-  // Command action handlers
-  const actionHandlers: CommandActionHandlers = {
-    navigate: useCallback((path: string) => {
+  // Command action handlers - memoized to prevent unnecessary re-renders
+  const actionHandlers: CommandActionHandlers = useMemo(() => ({
+    navigate: (path: string) => {
       navigate(path)
       onOpenChange(false)
-    }, [navigate, onOpenChange]),
+    },
 
-    modal: useCallback((modalType: string) => {
+    modal: (modalType: string) => {
       // This will be implemented to trigger modals
       console.log('Open modal:', modalType)
       onOpenChange(false)
       // TODO: Implement modal triggers based on your modal system
-    }, [onOpenChange]),
+    },
 
-    function: useCallback((funcName: string, params?: any) => {
+    function: (funcName: string, params?: unknown) => {
       switch (funcName) {
         case 'navigateToSettingsTab':
           // Navigate to settings page with specific tab
@@ -83,20 +83,20 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
           console.log('Execute function:', funcName, params)
       }
       onOpenChange(false)
-    }, [navigate, onOpenChange]),
+    },
 
-    filter: useCallback((filterConfig: any) => {
+    filter: (filterConfig: unknown) => {
       // This will be implemented for filtering
       console.log('Apply filter:', filterConfig)
       onOpenChange(false)
-    }, [onOpenChange]),
+    },
 
-    export: useCallback((exportType: string) => {
+    export: (exportType: string) => {
       // This will be implemented for exports
       console.log('Export:', exportType)
       onOpenChange(false)
-    }, [onOpenChange])
-  }
+    }
+  }), [navigate, onOpenChange])
 
   const actionHandler = useMemo(() => new CommandActionHandler(actionHandlers), [actionHandlers])
 
@@ -118,14 +118,35 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
       onOpenChange={onOpenChange}
       className="command-dialog"
       onKeyDown={handleKeyDown}
+      aria-label="Command palette"
+      aria-describedby="command-palette-description"
     >
-      <div className="command-dialog-content">
+      <div
+        className="command-dialog-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="command-palette-title"
+      >
+        <div id="command-palette-description" className="sr-only">
+          Search for commands, navigate to pages, or perform actions using keyboard shortcuts.
+          Use arrow keys to navigate, Enter to select, and Escape to close.
+        </div>
+
         <Command.Input
           value={search}
           onValueChange={setSearch}
           placeholder="Search for commands, pages, or actions..."
           className="command-input"
+          aria-label="Search commands"
+          aria-describedby="command-palette-help"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
         />
+
+        <div id="command-palette-help" className="sr-only">
+          {commands.length} commands available. Type to filter commands.
+        </div>
 
         <Command.List className="command-list">
           <Command.Empty className="command-empty">
@@ -136,21 +157,31 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
 
           {/* What's New Section - Only show when no search and not dismissed */}
           {!search && whatsNewData && showWhatsNew && (
-            <div className="whats-new-section">
+            <div className="whats-new-section" role="region" aria-labelledby="whats-new-title">
               <div className="whats-new-big-block">
                 <Box sx={{ padding: '20px 24px' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <Typography variant="h6" fontWeight={600} sx={{ color: '#fff', fontSize: '18px' }}>
+                      <Typography
+                        id="whats-new-title"
+                        variant="h6"
+                        fontWeight={600}
+                        sx={{ color: '#fff', fontSize: '18px' }}
+                      >
                         {whatsNewData.title}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px' }}
+                        aria-label={`Release date: ${whatsNewData.date}`}
+                      >
                         {whatsNewData.date}
                       </Typography>
                     </Box>
                     <IconButton
                       size="small"
                       onClick={() => setShowWhatsNew(false)}
+                      aria-label="Dismiss what's new section"
                       sx={{
                         color: 'rgba(255, 255, 255, 0.7)',
                         '&:hover': {
@@ -184,6 +215,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                   value={`${command.label} ${command.description} ${command.keywords?.join(' ')}`}
                   onSelect={() => handleCommandSelect(command)}
                   className="command-item"
+                  role="option"
+                  aria-describedby={command.description ? `desc-${command.id}` : undefined}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
                     {command.icon && (
@@ -194,6 +227,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                           strokeWidth: 0.5,
                           opacity: 0.8
                         }}
+                        aria-hidden="true"
                       />
                     )}
                     <Typography variant="body2" fontWeight={500} sx={{ flex: 0, whiteSpace: 'nowrap' }}>
@@ -201,18 +235,20 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                     </Typography>
                     {command.description && (
                       <Typography
+                        id={`desc-${command.id}`}
                         variant="caption"
                         sx={{
                           marginLeft: 'auto',
                           color: '#999',
                           opacity: 0.8
                         }}
+                        aria-label={`Description: ${command.description}`}
                       >
                         {command.description}
                       </Typography>
                     )}
                     {command.shortcut && (
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <Box sx={{ display: 'flex', gap: 0.5 }} aria-label={`Keyboard shortcut: ${command.shortcut.join(' ')}`}>
                         {command.shortcut.map((key: string, index: number) => (
                           <Typography
                             key={index}
@@ -223,6 +259,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                               borderRadius: '4px',
                               fontSize: '11px'
                             }}
+                            aria-hidden="true"
                           >
                             {key}
                           </Typography>

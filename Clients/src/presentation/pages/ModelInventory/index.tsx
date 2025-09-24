@@ -779,6 +779,10 @@ const ModelInventory: React.FC = () => {
                       .toISOString()
                       .split("T")[0]
                   : new Date().toISOString().split("T")[0],
+               reference_link: selectedModelInventory.reference_link || "",
+               biases: selectedModelInventory.biases || "",
+               limitations: selectedModelInventory.limitations || "",
+               hosting_provider: selectedModelInventory.hosting_provider || "",
               }
             : undefined
         }

@@ -12,6 +12,7 @@ import {
   Typography,
   TableFooter,
   Chip,
+  Tooltip,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
@@ -56,6 +57,10 @@ const TABLE_COLUMNS = [
   { id: "security_assessment", label: "SECURITY ASSESSMENT" },
   { id: "status", label: "STATUS" },
   { id: "status_date", label: "STATUS DATE" },
+  { id: "reference_link", label: "REFERENCE LINK" },
+  { id: "biases", label: "BIASES" },
+  { id: "limitations", label: "LIMITATIONS" },
+  { id: "hosting_provider", label: "HOSTING PROVIDER" },
   { id: "actions", label: "" },
 ];
 
@@ -70,9 +75,13 @@ interface ModelInventoryTableProps {
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
-  status,
-}) => {
+const TooltipCell: React.FC<{ value: string | null | undefined }> = ({ value }) => (
+  <Tooltip title={value || "-"} arrow>
+    <span>{value || "-"}</span>
+  </Tooltip>
+);
+
+const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({ status }) => {
   return <span style={statusBadgeStyle(status)}>{status}</span>;
 };
 
@@ -228,35 +237,47 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   onEdit?.(modelInventory.id?.toString() || "");
                 }}
               >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.provider || "-"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.provider} />
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.model} />
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.version} />
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={userMap.get(modelInventory.approver.toString())} />
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.model || "-"}
+                  <CapabilitiesChips capabilities={modelInventory.capabilities} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.version || "-"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <SecurityAssessmentBadge assessment={modelInventory.security_assessment} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {userMap.get(modelInventory.approver.toString())}
-                </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  <CapabilitiesChips
-                    capabilities={modelInventory.capabilities}
-                  />
-                </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  <SecurityAssessmentBadge
-                    assessment={modelInventory.security_assessment}
-                  />
-                </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
                   <StatusBadge status={modelInventory.status} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.status_date
-                    ? new Date(modelInventory.status_date).toLocaleDateString()
-                    : "-"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell
+                    value={
+                      modelInventory.status_date
+                        ? new Date(modelInventory.status_date).toLocaleDateString()
+                        : "-"
+                    }
+                  />
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.reference_link} />
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.biases} />
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.limitations} />
+                </TableCell>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.hosting_provider} />
                 </TableCell>
                 <TableCell
                   sx={{
@@ -341,7 +362,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   }
 
   return (
-    <TableContainer sx={{ overflowX: "auto" }}>
+    <TableContainer sx={{ overflowX: "auto", width: "1150px" }}>
       <Table sx={singleTheme.tableStyles.primary.frame}>
         {tableHeader}
         {tableBody}

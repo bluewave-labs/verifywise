@@ -255,6 +255,60 @@ class MetricRunner:
         # Unknown type
         return None
 
+    def _compute_by_attribute(
+        self,
+        *,
+        df: pd.DataFrame,
+        param_name: str,
+        attribute_type: str,
+        fn,
+        accepts,
+        common: Dict[str, Any],
+        extra_params: Optional[Dict[str, Any]] = None,
+        res: Dict[str, Any],
+        metric_name: str,
+    ) -> None:
+        """Compute per-attribute results for a given attribute dataframe and parameter name.
+
+        Args:
+            df: DataFrame containing attribute columns.
+            param_name: Name of the parameter the metric function accepts (e.g., 'protected_attributes').
+            attribute_type: Label used in warnings ('attribute'|'legitimate').
+            fn: Metric function to call.
+            accepts: Set of accepted parameter names for the metric function.
+            common: Common kwargs (y_true, y_pred, etc.).
+            res: Result dict to mutate.
+            metric_name: Name of the metric (for logging).
+        """
+        if not isinstance(df, pd.DataFrame) or df.empty or (param_name not in accepts):
+            return
+
+        for attr in df.columns:
+            try:
+                attr_array = df[attr].to_numpy()
+                raw = self._safe_call(
+                    fn,
+                    **{
+                        **common,
+                        **(extra_params or {}),
+                        param_name: attr_array,
+                    },
+                )
+
+                if res["result_type"] == "unknown":
+                    res["result_type"] = self._infer_result_type_hint(raw)
+
+                normalized = self._normalize_by_attribute(raw)
+                res["by_attribute"][attr] = normalized
+
+                if res["result_type"] == "scalar" and res["summary"] is None:
+                    res["summary"] = self._maybe_float(raw)
+            except Exception as exc:
+                self.logger.warning(
+                    f"By-{attribute_type}-attribute computation failed for metric '{metric_name}' on '{attr}': {exc}"
+                )
+                res["by_attribute"][attr] = None
+
     def run(self, data: EvalData, selected_metrics: Optional[Union[str, List[str]]] = None) -> Dict[str, Any]:
         """Execute metric computations and prepare outputs.
 
@@ -286,6 +340,7 @@ class MetricRunner:
         y_pred = data.y_pred
         y_prob = data.y_prob
         protected_attributes = data.protected_attributes_df
+        legitimate_attributes = getattr(data, "legitimate_attributes_df", None)
 
         # Determine full ordered list of metric names to run
         if selected_metrics is not None:
@@ -319,6 +374,24 @@ class MetricRunner:
                 common["y_pred"] = y_pred
             if "y_pred_proba" in accepts:
                 common["y_pred_proba"] = y_prob
+
+            # Pre-check for metrics that also require legitimate attributes
+            needs_legit = ("legitimate_attributes" in accepts)
+            fixed: Dict[str, Any] = {}
+            if needs_legit:
+                if (
+                    hasattr(data, "legitimate_attributes_df")
+                    and isinstance(legitimate_attributes, pd.DataFrame)
+                    and not legitimate_attributes.empty
+                ):
+                    fixed["legitimate_attributes"] = legitimate_attributes.to_numpy()
+                else:
+                    self.logger.warning(
+                        f"Metric '{metric_name}' requires legitimate_attributes but none were provided."
+                    )
+                    results[metric_name] = self._empty_result("unknown")
+                    results[metric_name]["notes"]["error"] = "missing_legitimate_attributes"
+                    continue
             
             res = self._empty_result(self._infer_result_type_hint(None))  # type filled after first success
             res["notes"]["disparity_reference"] = data.meta.disparity_reference or "worst"
@@ -342,37 +415,31 @@ class MetricRunner:
                     )
                     res["overall"] = None
 
-            # Compute per-attribute fairness if attributes exist and metric accepts them
-            if (
-                hasattr(data, "protected_attributes_df")
-                and isinstance(protected_attributes, pd.DataFrame)
-                and not protected_attributes.empty
-                and "protected_attributes" in accepts
-            ):
-                for attr in protected_attributes.columns:
-                    try:
-                        attr_array = protected_attributes[attr].to_numpy()
-                        raw = self._safe_call(
-                            fn,
-                            **{
-                                **common,
-                                "protected_attributes": attr_array,
-                            },
-                        )
+            # Compute per-attribute fairness when metric accepts protected attributes; require data presence
+            if "protected_attributes" in accepts:
+                if (
+                    getattr(data, "protected_attributes_df", None) is None
+                    or not isinstance(protected_attributes, pd.DataFrame)
+                    or protected_attributes.empty
+                ):
+                    self.logger.warning(
+                        f"Metric '{metric_name}' requires protected_attributes but none were provided."
+                    )
+                    results[metric_name] = self._empty_result("unknown")
+                    results[metric_name]["notes"]["error"] = "missing_protected_attributes"
+                    continue
 
-                        if res["result_type"] == "unknown":
-                            res["result_type"] = self._infer_result_type_hint(raw)
-
-                        normalized = self._normalize_by_attribute(raw)
-                        res["by_attribute"][attr] = normalized
-
-                        if res["result_type"] == "scalar" and res["summary"] is None:
-                            res["summary"] = self._maybe_float(raw)
-                    except Exception as exc:
-                        self.logger.warning(
-                            f"By-attribute computation failed for metric '{metric_name}' on '{attr}': {exc}"
-                        )
-                        res["by_attribute"][attr] = None
+                self._compute_by_attribute(
+                    df=protected_attributes,
+                    param_name="protected_attributes",
+                    attribute_type="attribute",
+                    fn=fn,
+                    accepts=accepts,
+                    common=common,
+                    extra_params=fixed if needs_legit else None,
+                    res=res,
+                    metric_name=metric_name,
+                )
 
             results[metric_name] = res
 

@@ -453,7 +453,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       getOptionLabel={(option) =>
                         typeof option === "string" ? option : option.name
                       }
-                      onChange={(event, newValue) => {
+                      onChange={(_event, newValue) => {
                         // Handle both option object and free text
                         if (typeof newValue === "string") {
                           setValues({ ...values, model: newValue });
@@ -463,7 +463,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                           setValues({ ...values, model: "" });
                         }
                       }}
-                      onInputChange={(event, newInputValue, reason) => {
+                      onInputChange={(_event, newInputValue, reason) => {
                         if (reason === "input") {
                           setValues({ ...values, model: newInputValue });
                         }

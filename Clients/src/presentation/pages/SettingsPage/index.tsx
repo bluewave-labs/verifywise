@@ -12,34 +12,39 @@ import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import Slack from "./Slack";
+// import Slack from "./Slack";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 
 export default function ProfilePage() {
+  const authorizedActiveTabs = ["profile", "password", "team", "organization"];
   const { userRoleName } = useAuth();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
-  const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
+  // const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab");
 
   useEffect(() => {
-    if (activeSetting) {
+    if (activeSetting && authorizedActiveTabs.includes(activeSetting)) {
       setActiveTab(activeSetting);
+    } else {
+      searchParams.delete("activeTab");
+      setSearchParams(searchParams);
+      setActiveTab("profile");
     }
   }, [activeSetting]);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue);
     if (activeSetting) {
       searchParams.delete("activeTab");
       setSearchParams(searchParams);
     }
+    setActiveTab(newValue);
   };
 
   return (
@@ -128,13 +133,13 @@ export default function ProfilePage() {
               disableRipple
               sx={settingTabStyle}
             />
-            <Tab
+            {/* <Tab
               label="Slack"
               value="slack"
               disableRipple
               sx={settingTabStyle}
               disabled={isSlackTabDisabled}
-            />
+            /> */}
           </TabList>
         </Box>
 
@@ -154,9 +159,10 @@ export default function ProfilePage() {
           <Organization />
         </TabPanel>
 
-        <TabPanel value="slack">
+        {/* Hiding the slack until all the Slack work has been resolved */}
+        {/* <TabPanel value="slack">
           <Slack />
-        </TabPanel>
+        </TabPanel> */}
       </TabContext>
     </Stack>
   );

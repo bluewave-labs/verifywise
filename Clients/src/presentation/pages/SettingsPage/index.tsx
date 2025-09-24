@@ -164,6 +164,9 @@ export default function ProfilePage() {
 
         <TabPanel value="organization">
           {activeTab === "organization" && <Organization />}
+        </TabPanel>
+
+        <TabPanel value="subscription">
           {activeTab === "subscription" && <Subscription />}
         </TabPanel>
 

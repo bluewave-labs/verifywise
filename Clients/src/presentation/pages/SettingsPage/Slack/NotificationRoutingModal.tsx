@@ -6,31 +6,44 @@ import {
   Autocomplete,
   TextField,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/style";
 import { ReactComponent as ExpandMoreIcon } from "../../../assets/icons/expand-down.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { updateSlackIntegration } from "../../../../application/repository/slack.integration.repository";
+import { useAuth } from "../../../../application/hooks/useAuth";
+import useSlackIntegrations, {
+  SlackRoutingType,
+} from "../../../../application/hooks/useSlackIntegrations";
 
 type IntegrationList = { channel: string; teamName: string; id: number };
+
 interface NotificationRoutingModalProps {
   setIsOpen: (value: null | HTMLElement) => void;
   integrations: IntegrationList[];
+  showAlert: (
+    variant: "success" | "info" | "warning" | "error",
+    title: string,
+    body: string,
+  ) => void;
 }
 
 const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
   setIsOpen,
   integrations,
+  showAlert,
 }) => {
   const theme = useTheme();
-  const [routingData, setRoutingData] = useState<
-    { routingType: string; id: number[] }[]
-  >([
-    { routingType: "Membership and roles", id: [] },
-    { routingType: "Policy reminders and status", id: [] },
-    { routingType: "Evidence and task alerts", id: [] },
-    { routingType: "Control or policy changes", id: [] },
-  ]);
+  const { userId } = useAuth();
+  const { refreshSlackIntegrations, routingData: slackRoutingTypes } =
+    useSlackIntegrations(userId);
+  const [routingData, setRoutingData] =
+    useState<SlackRoutingType[]>(slackRoutingTypes);
+
+  useEffect(() => {
+    setRoutingData(slackRoutingTypes);
+  }, [slackRoutingTypes]);
 
   const handleOnSelectChange = (type: string, newValue: IntegrationList[]) => {
     const data = [...routingData];
@@ -47,9 +60,46 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
   };
 
   const handleNotificationRouting = async () => {
-    console.log("Routing Data:", routingData);
-    setIsOpen(null);
-    return;
+    const transformedData = routingData.reduce(
+      (acc: { id: number; routingType: string[] }[], item) => {
+        item.id.forEach((id) => {
+          const existing = acc.find(
+            (entry: { id: number; routingType: string[] }) => entry.id === id,
+          );
+          if (existing) {
+            existing.routingType.push(item.routingType);
+          } else {
+            acc.push({ id, routingType: [item.routingType] });
+          }
+        });
+        return acc;
+      },
+      [],
+    );
+    try {
+      await Promise.all(
+        transformedData.map((item: { routingType: string[]; id: number }) =>
+          updateSlackIntegration({
+            id: item.id,
+            body: { routing_type: item.routingType },
+          }),
+        ),
+      );
+      showAlert(
+        "success",
+        "Success",
+        "Notification Routing type updated successfully to the Slack channel.",
+      );
+      refreshSlackIntegrations();
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Error updating routing types to Slack.: ${error}`,
+      );
+    } finally {
+      setIsOpen(null);
+    }
   };
 
   const NOTIFICATIONS_TYPES = [

@@ -16,7 +16,7 @@ router.get("/:id", authenticateJWT, getSlackWebhookById);
 
 // POST, PUT, DELETE requests
 router.post("/", authenticateJWT, createNewSlackWebhook);
-router.put("/:id", authenticateJWT, updateSlackWebhookById);
+router.patch("/:id", authenticateJWT, updateSlackWebhookById);
 
 // Send slack message
 router.post("/:id/send", authenticateJWT, sendSlackMessage);

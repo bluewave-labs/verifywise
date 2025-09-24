@@ -330,17 +330,8 @@ export async function updateSlackWebhookById(
 
     // Update slackWebhook using the enhanced method
     await existingSlackWebhook.updateSlackWebhook({
-      access_token: updateData.access_token,
-      scope: updateData.scope,
-      team_name: updateData.team_name,
-      team_id: updateData.team_id,
-      channel: updateData.channel,
-      channel_id: updateData.channel_id,
-      configuration_url: updateData.configuration_url,
-      url: updateData.url,
-      user_id: updateData.user_id,
-      created_at: updateData.created_at,
       is_active: updateData.is_active,
+      routing_type: updateData.routing_type,
     });
 
     // Validate updated data

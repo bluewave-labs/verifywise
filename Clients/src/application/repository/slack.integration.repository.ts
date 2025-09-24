@@ -49,7 +49,7 @@ export async function updateSlackIntegration({
   id,
   body,
 }: {
-  id: string;
+  id: number;
   body: any;
 }): Promise<any> {
   const response = await apiServices.patch(`/slackWebhooks/${id}`, body);

@@ -220,15 +220,19 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
                     {command.icon && (
-                      <command.icon
+                      <Box
                         sx={{
                           fontSize: 18,
                           color: '#7B9A7A',
                           strokeWidth: 0.5,
-                          opacity: 0.8
+                          opacity: 0.8,
+                          display: 'flex',
+                          alignItems: 'center'
                         }}
                         aria-hidden="true"
-                      />
+                      >
+                        <command.icon />
+                      </Box>
                     )}
                     <Typography variant="body2" fontWeight={500} sx={{ flex: 0, whiteSpace: 'nowrap' }}>
                       {command.label}

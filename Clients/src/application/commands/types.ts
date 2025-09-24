@@ -5,7 +5,7 @@ export interface Command {
   keywords?: string[]
   group: CommandGroup
   action: CommandAction
-  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  icon?: React.ComponentType<any>
   shortcut?: string[]
   requiredRole?: string[]
   scope?: string
@@ -29,7 +29,7 @@ export interface ModalPayload {
 
 export interface FunctionPayload {
   name: string
-  params?: Record<string, unknown>
+  params?: unknown
 }
 
 export interface FilterPayload {

@@ -23,7 +23,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
 
 # *.dev
 *.prod
+
+*.tsbuildinfo
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo

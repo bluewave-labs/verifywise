@@ -12,14 +12,14 @@ import {
 } from "@mui/material";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import DropDowns from "../../Inputs/Dropdowns";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
 import { Subcontrol } from "../../../../domain/types/Subcontrol";
 import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 
 import {
@@ -33,6 +33,7 @@ import LinkedRisksPopup from "../../LinkedRisks";
 import AuditRiskPopup from "../../RiskPopup/AuditRiskPopup";
 import { updateControl } from "../../../../application/repository/control_eu_act.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { useSearchParams } from "react-router-dom";
 
 const tabStyle = {
   textTransform: "none",
@@ -88,6 +89,9 @@ const NewControlPane = ({
     !allowedRoles.frameworks.edit.includes(userRoleName);
   const isAuditingDisabled =
     !allowedRoles.frameworks.audit.includes(userRoleName);
+  const [searchParams] = useSearchParams();
+  const subControlId = searchParams.get("subControlId");
+  const isEvidence = searchParams.get("isEvidence");
 
   const sanitizeField = (value: string | undefined | null): string => {
     if (!value || value === "undefined") {
@@ -135,6 +139,28 @@ const NewControlPane = ({
     risks: data.risks || [],
   }));
 
+  useEffect(() => {
+    if (subControlId && data.subControls && data.subControls?.length > 0) {
+      const subControl = data.subControls.find(
+        (sc) => sc.id === Number(subControlId),
+      );
+      if (subControl) {
+        const sorted = (data.subControls || [])
+          .slice()
+          .sort((a, b) => (a.order_no ?? 0) - (b.order_no ?? 0));
+        const idx = sorted.findIndex((sc) => sc.id === subControl.id);
+        setSelectedTab(idx >= 0 ? idx : 0);
+        setActiveSection(
+          isEvidence === null
+            ? "Overview"
+            : isEvidence === "true"
+            ? "Evidence"
+            : "Auditor Feedback",
+        );
+      }
+    }
+  }, [subControlId, data, isEvidence]);
+
   const handleSelectedTab = (_: React.SyntheticEvent, newValue: number) => {
     setState((prevState) => ({
       ...prevState,
@@ -165,11 +191,11 @@ const NewControlPane = ({
 
   const handleSubControlStateChange = (
     index: number,
-    newState: Partial<Subcontrol>
+    newState: Partial<Subcontrol>,
   ) => {
     setState((prevState) => {
       const updatedSubControls = prevState.subControls!.map((sc, i) =>
-        i === index ? { ...sc, ...newState } : { ...sc }
+        i === index ? { ...sc, ...newState } : { ...sc },
       );
       return { ...prevState, subControls: updatedSubControls };
     });
@@ -192,7 +218,7 @@ const NewControlPane = ({
 
   const getUploadFilesForSubcontrol = (
     subcontrolId: string,
-    type: "evidence" | "feedback"
+    type: "evidence" | "feedback",
   ) => {
     return uploadFiles[subcontrolId]?.[type] || [];
   };
@@ -200,7 +226,7 @@ const NewControlPane = ({
   const setUploadFilesForSubcontrol = (
     subcontrolId: string,
     type: "evidence" | "feedback",
-    files: FileData[]
+    files: FileData[],
   ) => {
     setUploadFiles((prev) => ({
       ...prev,
@@ -236,11 +262,11 @@ const NewControlPane = ({
         "due_date",
         state.due_date
           ? new Date(state.due_date).toISOString().split("T")[0]
-          : ""
+          : "",
       );
       formData.append(
         "implementation_details",
-        state.implementation_details || ""
+        state.implementation_details || "",
       );
       formData.append("order_no", state.order_no?.toString() || "");
 
@@ -518,7 +544,7 @@ const NewControlPane = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -593,7 +619,7 @@ const NewControlPane = ({
                 >
                   {section}
                 </Button>
-              )
+              ),
             )}
           </Stack>
           <Box>
@@ -659,13 +685,13 @@ const NewControlPane = ({
                 onDeletedFilesChange={setDeletedFilesIds}
                 uploadFiles={getUploadFilesForSubcontrol(
                   state.subControls![selectedTab].id?.toString() || "",
-                  "evidence"
+                  "evidence",
                 )}
                 onUploadFilesChange={(files) =>
                   setUploadFilesForSubcontrol(
                     state.subControls![selectedTab].id?.toString() || "",
                     "evidence",
-                    files
+                    files,
                   )
                 }
                 readOnly={isEditingDisabled}
@@ -698,13 +724,13 @@ const NewControlPane = ({
                 onDeletedFilesChange={setDeletedFilesIds}
                 uploadFiles={getUploadFilesForSubcontrol(
                   state.subControls![selectedTab].id?.toString() || "",
-                  "feedback"
+                  "feedback",
                 )}
                 onUploadFilesChange={(files) =>
                   setUploadFilesForSubcontrol(
                     state.subControls![selectedTab].id?.toString() || "",
                     "feedback",
-                    files
+                    files,
                   )
                 }
                 readOnly={isAuditingDisabled}
@@ -728,7 +754,7 @@ const NewControlPane = ({
                 gap: 2,
               }}
               onClick={confirmSave}
-              icon={<SaveIcon />}
+              icon={<SaveIconSVGWhite />}
             />
           </Stack>
         </Stack>
@@ -751,6 +777,7 @@ const NewControlPane = ({
               .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
+            projectId={projectId}
           />
         </Suspense>
       </Dialog>

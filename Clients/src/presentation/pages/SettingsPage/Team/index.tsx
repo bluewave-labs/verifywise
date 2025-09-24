@@ -2,7 +2,6 @@ import React, {
   useState,
   useCallback,
   useMemo,
-  useContext,
   lazy,
   Suspense,
 } from "react";
@@ -28,10 +27,9 @@ import {
 import GroupsIcon from "@mui/icons-material/Groups";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -80,7 +78,6 @@ const TeamManagement: React.FC = (): JSX.Element => {
   const [filter, setFilter] = useState(0);
 
   const [page, setPage] = useState(0); // Current page
-  const { dashboardValues } = useContext(VerifyWiseContext);
   const { userId } = useAuth();
   const { users, refreshUsers } = useUsers();
 
@@ -478,7 +475,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 disableRipple
                                 disabled={member.id === userId}
                               >
-                                <DeleteOutlineOutlinedIcon />
+                                <DeleteIconGrey />
                               </IconButton>
                             </TableCell>
                           </TableRow>
@@ -499,11 +496,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   <TableFooter>
                     <TableRow>
                       <TablePagination
-                        count={
-                          dashboardValues.vendors
-                            ? dashboardValues.vendors.length
-                            : 0
-                        }
+                        count={filteredMembers.length}
                         page={page}
                         onPageChange={handleChangePage}
                         rowsPerPage={rowsPerPage}

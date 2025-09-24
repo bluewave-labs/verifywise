@@ -17,7 +17,6 @@ import {
   paginationStyle,
 } from "../styles";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { useSearchParams } from "react-router-dom";
 
 interface ProjectRiskMitigationTableBodyProps {
   rows: ProjectRiskMitigation[];
@@ -35,7 +34,6 @@ export const ProjectRiskMitigationTableBody: React.FC<
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const theme = useTheme();
-  const [searchParams] = useSearchParams();
 
   const handleChangePage = useCallback(
     (_: unknown, newPage: number) => {
@@ -61,33 +59,37 @@ export const ProjectRiskMitigationTableBody: React.FC<
     if (riskId) {
       if (riskData.type === "annexcategory") {
         navigteToNewTab(
-          `/project-view?projectId=${searchParams.get(
-            "projectId"
-          )}&tab=frameworks&framework=iso-42001&annexId=${
+          `/framework?framework=iso-42001&annexId=${
             riskData.parent_id
           }&annexCategoryId=${riskData.meta_id}`
         );
       } else if (riskData.type === "subclause") {
         navigteToNewTab(
-          `/project-view?projectId=${searchParams.get(
-            "projectId"
-          )}&tab=frameworks&framework=iso-42001&clauseId=${
+          `/framework?framework=iso-42001&clauseId=${
             riskData.parent_id
           }&subClauseId=${riskData.meta_id}`
         );
       } else if (riskData.type === "control") {
         navigteToNewTab(
-          `/project-view?projectId=${searchParams.get(
-            "projectId"
-          )}&tab=frameworks&framework=eu-ai-act&controlId=${riskData.meta_id}`
+          `/project-view?projectId=${riskData.project_id}&tab=frameworks&framework=eu-ai-act&controlId=${riskData.meta_id}`
         );
       } else if (riskData.type === "assessment") {
         navigteToNewTab(
-          `/project-view?projectId=${searchParams.get(
-            "projectId"
-          )}&tab=frameworks&framework=eu-ai-act&topicId=${
+          `/project-view?projectId=${riskData.project_id}&tab=frameworks&framework=eu-ai-act&topicId=${
             riskData.sup_id
           }&questionId=${riskData.meta_id}`
+        );
+      } else if (riskData.type === "annexcontrol_27001") {
+        navigteToNewTab(
+          `/framework?framework=iso-27001&annex27001Id=${
+            riskData.parent_id
+          }&annexControl27001Id=${riskData.meta_id}`
+        );
+      } else if (riskData.type === "annexsubclause_27001") {
+        navigteToNewTab(
+          `/framework?framework=iso-27001&clause27001Id=${
+            riskData.parent_id
+          }&subClause27001Id=${riskData.meta_id}`
         );
       }
     }
@@ -126,6 +128,10 @@ export const ProjectRiskMitigationTableBody: React.FC<
                     ? "ISO42001: Sub-Clause"
                     : row.type === "assessment"
                     ? "EU-AI-Act: Assessment"
+                    : row.type === "annexcontrol_27001"
+                    ? "ISO27001: Annex Control"
+                    : row.type === "annexsubclause_27001"
+                    ? "ISO27001: Sub-Clause"
                     : "EU-AI-Act: Control"}
                 </TableCell>
                 <TableCell>

@@ -34,7 +34,16 @@ const ReportTableBody: React.FC<TableProps> = ({
         rows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+            <TableRow 
+              key={index} 
+              sx={{
+                ...singleTheme.tableStyles.primary.body.row,
+                "&:hover": {
+                  backgroundColor: "#fafafa",
+                  cursor: "default"
+                }
+              }}
+            >
               <TableCell sx={cellStyle}>
                 {row.filename ? row.filename : '-'}
               </TableCell>

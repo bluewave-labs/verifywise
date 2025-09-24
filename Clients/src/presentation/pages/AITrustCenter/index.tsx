@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Typography, Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -11,8 +11,6 @@ import AITrustCenterSubprocessors from "./Subprocessors";
 import AITrustCenterSettings from "./Settings";
 import AITrustCenterOverview from "./Overview";
 import {
-  aiTrustCenterHeaderTitle,
-  aiTrustCenterHeaderDesc,
   aiTrustCenterTabStyle,
   aiTrustCenterTabPanelStyle,
   aiTrustCenterTabListStyle,
@@ -21,9 +19,9 @@ import {
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import aiTrustCenterHelpContent from "../../../presentation/helpers/ai-trust-center-help.html?raw";
+import PageHeader from "../../components/Layout/PageHeader";
 
 const AITrustCenter: React.FC = () => {
   const [tabValue, setTabValue] = React.useState("overview");
@@ -52,29 +50,58 @@ const AITrustCenter: React.FC = () => {
   };
 
   return (
-    <Stack className="vw-project-view" overflow={"hidden"}>
+    <Stack className="vwhome" gap={"24px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={aiTrustCenterHelpContent}
-        pageTitle="AI Trust Center"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="AI trust center"
+        description="Build transparency and trust through your public-facing governance portal"
+        whatItDoes="Create a **public trust center** showcasing your *AI governance commitments*, **certifications**, and *responsible AI practices*. Share **policies**, *compliance status*, and **transparency reports** with stakeholders and customers."
+        whyItMatters="**Trust centers** demonstrate your commitment to *responsible AI* and help build **confidence** with customers, partners, and regulators. They provide *transparency* into your **AI governance practices** and differentiate you as a *trusted AI provider*."
+        quickActions={[
+          {
+            label: "Customize Trust Center",
+            description: "Configure your public portal content and branding",
+            primary: true
+          },
+          {
+            label: "Preview Public View",
+            description: "See how your trust center appears to external visitors"
+          }
+        ]}
+        useCases={[
+          "**Public-facing portal** for customers to review your *AI ethics* and **governance practices**",
+          "**Compliance demonstration hub** for sharing *certifications* and **audit reports**"
+        ]}
+        keyFeatures={[
+          "**Customizable public portal** with your *branding* and **messaging**",
+          "**Automated updates** from your *internal governance systems*",
+          "**Resource library** for sharing *whitepapers* and **compliance documentation**"
+        ]}
+        tips={[
+          "Keep your trust center updated with **latest certifications** and *policy changes*",
+          "Include **clear contact information** for *stakeholder questions* and concerns",
+          "**Regularly review analytics** to understand what information *visitors seek most*"
+        ]}
       />
-      <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={aiTrustCenterHeaderTitle}>AI trust center</Typography>
-          <HelperIcon
-            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-            size="small"
-          />
-        </Stack>
-        <Typography sx={aiTrustCenterHeaderDesc}>
-          AI Trust Center centralizes your AI policies, certifications, and
-          subprocessors to demonstrate responsible, transparent, and compliant
-          AI practices.
-        </Typography>
-      </Stack>
-      <Stack className="vw-project-view-body">
+
+        <PageHeader
+               title="AI trust center"
+               description="AI Trust Center centralizes your AI policies, certifications, and
+               subprocessors to demonstrate responsible, transparent, and compliant AI practices."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
+      
+
+      <Stack>
         <TabContext value={tabValue}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList

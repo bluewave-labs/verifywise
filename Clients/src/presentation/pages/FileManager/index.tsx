@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useMemo, forwardRef } from "react";
-import { Stack, Box, Typography, useTheme, Theme } from "@mui/material";
+import React, { useState, useEffect, useMemo } from "react";
+import { Stack, Box, Typography } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
 import CustomizableSkeleton from "../../components/Skeletons";
-import { vwhomeHeading } from "../Home/1.0Home/style";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
-import ProjectFilterDropdown from "../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import Select from "../../components/Inputs/Select";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import evidencesHelpContent from "../../../presentation/helpers/evidences-help.html?raw";
 import { Project } from "../../../domain/types/Project";
+import PageHeader from "../../components/Layout/PageHeader";
 
 const COLUMN_NAMES = [
   "File",
@@ -47,9 +46,8 @@ const COLUMNS: Column[] = COLUMN_NAMES.map((name, index) => ({
  * @returns {JSX.Element} The FileManager component.
  */
 const FileManager: React.FC = (): JSX.Element => {
-  const theme = useTheme();
   const [runFileTour, setRunFileTour] = useState(false);
-  const { refs, allVisible } = useMultipleOnScreen<HTMLDivElement>({
+  const { allVisible } = useMultipleOnScreen<HTMLDivElement>({
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
@@ -89,7 +87,7 @@ const FileManager: React.FC = (): JSX.Element => {
   }, [allVisible]);
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <PageTour
         steps={FileSteps}
@@ -101,14 +99,39 @@ const FileManager: React.FC = (): JSX.Element => {
         tourKey="file-tour"
       />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={evidencesHelpContent}
-        pageTitle="Evidences & Documents"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Evidences & documents"
+        description="Centralize compliance documentation and audit evidence management"
+        whatItDoes="Store and organize all **governance documentation**, *audit evidence*, and **compliance artifacts**. Track *document versions*, maintain **chain of custody**, and ensure easy retrieval during audits."
+        whyItMatters="Proper **evidence management** is critical for demonstrating *compliance* during **audits** and *regulatory reviews*. It provides a **single source of truth** for documentation and ensures *evidence integrity* throughout its lifecycle."
+        quickActions={[
+          {
+            label: "Upload Evidence",
+            description: "Add new compliance documents or audit evidence to the repository",
+            primary: true
+          },
+          {
+            label: "Download Reports",
+            description: "Export evidence packages for auditors and stakeholders"
+          }
+        ]}
+        useCases={[
+          "**Audit evidence collection** including *policies*, *procedures*, and **control test results**",
+          "**Compliance certificates** and *third-party assessment reports* from vendors"
+        ]}
+        keyFeatures={[
+          "**Secure document storage** with *version control* and **access tracking**",
+          "**Metadata tagging** for easy *search and retrieval* during audits",
+          "**Integration** with project management for *context-aware evidence organization*"
+        ]}
+        tips={[
+          "Maintain **consistent naming conventions** to simplify *evidence retrieval*",
+          "Tag documents with *relevant frameworks* and **controls** for better organization",
+          "**Regular archival** of outdated documents helps maintain a *clean repository*"
+        ]}
       />
       <FileManagerHeader
-        theme={theme}
-        ref={refs[0]}
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
       />
       {/* Project filter dropdown */}
@@ -121,19 +144,31 @@ const FileManager: React.FC = (): JSX.Element => {
           />
         </>
       ) : (
-        <>
-          <ProjectFilterDropdown
-            projects={projects.map((project: Project) => ({
-              id: project.id.toString(),
-              name: project.project_title,
-            }))}
-            selectedProject={selectedProject}
-            onChange={setSelectedProject}
-          />
+        <Stack gap={"16px"}>
+          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
+            <Select
+              id="project-filter"
+              value={selectedProject || "all"}
+              items={[
+                { _id: "all", name: "All projects" },
+                ...projects.map((project: Project) => ({
+                  _id: project.id.toString(),
+                  name: project.project_title,
+                }))
+              ]}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              sx={{
+                width: "fit-content",
+                minWidth: "200px",
+                height: "34px",
+                bgcolor: "#fff",
+              }}
+            />
+          </Box>
           <Box sx={boxStyles}>
             <FileTable cols={COLUMNS} files={filteredFiles} />
           </Box>
-        </>
+        </Stack>
       )}
     </Stack>
   );
@@ -143,28 +178,20 @@ const FileManager: React.FC = (): JSX.Element => {
  * Header component for the FileManager.
  * Uses React.forwardRef to handle the ref passed from the parent component.
  */
-const FileManagerHeader = forwardRef<
-  HTMLDivElement,
-  { theme: Theme; onHelperClick?: () => void }
->(({ theme, onHelperClick }, ref) => (
-  <Stack
-    className="vwhome-header"
-    ref={ref}
-    data-joyride-id="file-manager-title"
-  >
-    <Stack direction="row" alignItems="center" spacing={1}>
-      <Typography sx={vwhomeHeading}>Evidences & documents</Typography>
-      {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
-    </Stack>
-    <Typography
-      sx={{
-        color: theme.palette.text.secondary,
-        fontSize: theme.typography.fontSize,
-      }}
-    >
-      This table lists all the files uploaded to the system.
-    </Typography>
-  </Stack>
-));
+interface FileManagerHeaderProps {
+  onHelperClick?: () => void;
+}
+
+const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
+  onHelperClick,
+}) => (
+  <PageHeader
+    title="Evidences & documents"
+    description="This table lists all the files uploaded to the system."
+    rightContent={
+      onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />
+    }
+  />
+);
 
 export default FileManager;

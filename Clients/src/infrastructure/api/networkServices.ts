@@ -97,12 +97,7 @@ export const apiServices = {
       };
     } catch (error) {
       const requestedAPIError = handleError(error);
-      return {
-        data: undefined,
-        status: requestedAPIError.status ?? 500,
-        statusText: requestedAPIError.message,
-        headers: {},
-      } as ApiResponse<T>;
+      throw requestedAPIError;
     }
   },
 
@@ -132,16 +127,7 @@ export const apiServices = {
       };
     } catch (error) {
       const requestedAPIError = handleError(error);
-      let errorData = {};
-      if (axios.isAxiosError(error)) {
-        errorData = error.response?.data ?? {};
-      }
-      return {
-        data: errorData,
-        status: requestedAPIError.status ?? 500,
-        statusText: "Error",
-        headers: {},
-      } as ApiResponse<T>;
+      throw requestedAPIError;
     }
   },
 
@@ -169,8 +155,8 @@ export const apiServices = {
         statusText: response.statusText,
       };
     } catch (error) {
-      handleError(error);
-      return undefined as unknown as ApiResponse<T>;
+      const requestedAPIError = handleError(error);
+      throw requestedAPIError;
     }
   },
 
@@ -188,18 +174,18 @@ export const apiServices = {
     data: any = {},
     config: RequestParams = {}
   ): Promise<ApiResponse<T>> {
-    logRequest("patch", endpoint, undefined, data);
+    logRequest("put", endpoint, undefined, data);
     try {
       const response = await CustomAxios.put(endpoint, data, config);
-      logResponse("patch", endpoint, response);
+      logResponse("put", endpoint, response);
       return {
         data: response.data,
         status: response.status,
         statusText: response.statusText,
       };
     } catch (error) {
-      handleError(error);
-      return undefined as unknown as ApiResponse<T>;
+      const requestedAPIError = handleError(error);
+      throw requestedAPIError;
     }
   },
 
@@ -225,8 +211,8 @@ export const apiServices = {
         statusText: response.data.message,
       };
     } catch (error) {
-      handleError(error);
-      return undefined as unknown as ApiResponse<T>;
+      const requestedAPIError = handleError(error);
+      throw requestedAPIError;
     }
   },
 };

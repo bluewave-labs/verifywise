@@ -53,7 +53,6 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
   const styles = useMemo(
     () => ({
       block: {
-        border: `1px solid ${theme.palette.border.light}`,
         borderRadius: 2,
         backgroundColor: theme.palette.background.main,
         minWidth: 228,

@@ -1746,8 +1746,241 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
+  # Model Risks
+  /modelRisks:
+    get:
+      summary: Get all model risks
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: List of model risks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModelRisk'
+        '204':
+          description: No model risks found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    post:
+      summary: Create model risk
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRiskInput'
+      responses:
+        '201':
+          description: Model risk created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /modelRisks/{id}:
+    get:
+      summary: Get model risk by ID
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      responses:
+        '200':
+          description: Model risk found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    put:
+      summary: Update model risk
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRiskInput'
+      responses:
+        '200':
+          description: Model risk updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    patch:
+      summary: Update model risk (partial)
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRiskInput'
+      responses:
+        '200':
+          description: Model risk updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelRisk'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    delete:
+      summary: Delete model risk
+      tags: [Model Risks]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model risk ID
+      responses:
+        '200':
+          description: Model risk deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model risk not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
   # Model Inventory
   /model-inventory:
+    get:
+      summary: Get all model inventory entries
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: List of model inventory entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModelInventory'
+        '204':
+          description: No model inventory entries found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
     post:
       summary: Create model inventory entry
       tags: [Model Inventory]
@@ -1767,8 +2000,122 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
 
+  /model-inventory/{id}:
+    get:
+      summary: Get model inventory entry by ID
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model inventory entry ID
+      responses:
+        '200':
+          description: Model inventory entry found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ModelInventory'
+        '204':
+          description: Model inventory entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    patch:
+      summary: Update model inventory entry
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model inventory entry ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelInventory'
+      responses:
+        '200':
+          description: Model inventory entry updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model inventory entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+    delete:
+      summary: Delete model inventory entry
+      tags: [Model Inventory]
+      security:
+        - JWTAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Model inventory entry ID
+      responses:
+        '200':
+          description: Model inventory entry deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Model inventory entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
   # Training
   /training:
+    get:
+      summary: Get all training records
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: List of training records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Training'
+        '204':
+          description: No training records found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
     post:
       summary: Create training registry entry
       tags: [Training]
@@ -1779,10 +2126,113 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Training'
+              $ref: '#/components/schemas/TrainingInput'
       responses:
         '201':
           description: Training registry entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /training/training-id/{id}:
+    get:
+      summary: Get training record by ID
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Training record ID
+      responses:
+        '200':
+          description: Training record details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Training'
+        '404':
+          description: Training record not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /training/{id}:
+    patch:
+      summary: Update training record
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Training record ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingUpdate'
+      responses:
+        '202':
+          description: Training record updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Training record not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+    delete:
+      summary: Delete training record
+      tags: [Training]
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Training record ID
+      responses:
+        '202':
+          description: Training record deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Training record not found
           content:
             application/json:
               schema:
@@ -3082,14 +3532,48 @@ components:
       properties:
         id:
           type: integer
-        model_name:
+        provider_model:
           type: string
-        model_version:
+          description: Combined provider and model name (for backward compatibility)
+        provider:
           type: string
-        model_type:
+          description: Model provider organization
+        model:
           type: string
+          description: Model name
+        version:
+          type: string
+          description: Model version
+        approver:
+          type: string
+          description: Person who approved the model
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: List of model capabilities
+        security_assessment:
+          type: boolean
+          description: Whether security assessment has been completed
         status:
           type: string
+          enum: ["Approved", "Restricted", "Pending", "Blocked"]
+          description: Model approval status
+        status_date:
+          type: string
+          format: date-time
+          description: Date when status was last updated
+        is_demo:
+          type: boolean
+          description: Whether this is a demo entry
+        created_at:
+          type: string
+          format: date-time
+          description: Entry creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Entry last update timestamp
 
     Training:
       type: object
@@ -3098,13 +3582,82 @@ components:
           type: integer
         training_name:
           type: string
-        description:
+        duration:
           type: string
+          description: Duration of the training (e.g., "2 days", "8 hours")
+        provider:
+          type: string
+          description: Training provider organization
+        department:
+          type: string
+          description: Target department for the training
         status:
           type: string
-        completion_date:
+          enum: ["Planned", "In Progress", "Completed"]
+        people:
+          type: integer
+          description: Number of participants
+        description:
           type: string
-          format: date
+          description: Detailed description of the training
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TrainingInput:
+      type: object
+      required: [training_name, duration, provider, department, status, numberOfPeople]
+      properties:
+        training_name:
+          type: string
+          minLength: 1
+        duration:
+          type: string
+          minLength: 1
+        provider:
+          type: string
+          minLength: 1
+        department:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: ["Planned", "In Progress", "Completed"]
+        numberOfPeople:
+          type: integer
+          minimum: 1
+          description: Number of participants (mapped to 'people' in database)
+        description:
+          type: string
+
+    TrainingUpdate:
+      type: object
+      required: [training_name, duration, provider, department, status, numberOfPeople]
+      properties:
+        training_name:
+          type: string
+          minLength: 1
+        duration:
+          type: string
+          minLength: 1
+        provider:
+          type: string
+          minLength: 1
+        department:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: ["Planned", "In Progress", "Completed"]
+        numberOfPeople:
+          type: integer
+          minimum: 1
+          description: Number of participants (mapped to 'people' in database)
+        description:
+          type: string
 
     Answer:
       type: object
@@ -3199,3 +3752,162 @@ components:
         status:
           type: string
           enum: [In Progress, Completed, Failed]
+
+    ModelRisk:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the model risk
+        riskName:
+          type: string
+          description: Name of the model risk
+        riskCategory:
+          $ref: '#/components/schemas/ModelRiskCategory'
+        riskLevel:
+          $ref: '#/components/schemas/ModelRiskLevel'
+        status:
+          $ref: '#/components/schemas/ModelRiskStatus'
+        owner:
+          type: string
+          description: Person responsible for managing the risk
+        targetDate:
+          type: string
+          format: date
+          description: Target date for risk resolution
+        description:
+          type: string
+          description: Detailed description of the risk
+        mitigationPlan:
+          type: string
+          description: Plan to mitigate or manage the risk
+        impact:
+          type: string
+          description: Potential impact of the risk
+        likelihood:
+          type: string
+          description: Likelihood of the risk occurring
+        keyMetrics:
+          type: string
+          description: Key performance metrics related to the risk
+        currentValues:
+          type: string
+          description: Current values of the key metrics
+        threshold:
+          type: string
+          description: Threshold values that trigger risk alerts
+        modelId:
+          type: integer
+          description: Associated model inventory ID (optional)
+        modelName:
+          type: string
+          description: Name of the associated model (optional)
+        createdDate:
+          type: string
+          format: date-time
+          description: Date when the risk was created
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Date when the risk was last updated
+        created_at:
+          type: string
+          format: date-time
+          description: Database creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Database update timestamp
+
+    ModelRiskInput:
+      type: object
+      required: [riskName, riskCategory, riskLevel, status, owner, targetDate]
+      properties:
+        riskName:
+          type: string
+          minLength: 1
+          description: Name of the model risk
+          example: "Model accuracy decline"
+        riskCategory:
+          $ref: '#/components/schemas/ModelRiskCategory'
+        riskLevel:
+          $ref: '#/components/schemas/ModelRiskLevel'
+        status:
+          $ref: '#/components/schemas/ModelRiskStatus'
+        owner:
+          type: string
+          minLength: 1
+          description: Person responsible for managing the risk
+          example: "John Doe"
+        targetDate:
+          type: string
+          format: date
+          description: Target date for risk resolution
+          example: "2024-12-31"
+        description:
+          type: string
+          description: Detailed description of the risk
+          example: "The model's accuracy has been declining over the past month"
+        mitigationPlan:
+          type: string
+          description: Plan to mitigate or manage the risk
+          example: "Retrain the model with recent data and implement monitoring"
+        impact:
+          type: string
+          description: Potential impact of the risk
+          example: "Reduced prediction accuracy may affect business decisions"
+        likelihood:
+          type: string
+          description: Likelihood of the risk occurring
+          example: "High"
+        keyMetrics:
+          type: string
+          description: Key performance metrics related to the risk
+          example: "Model accuracy, precision, recall"
+        currentValues:
+          type: string
+          description: Current values of the key metrics
+          example: "Accuracy: 85%, Precision: 80%, Recall: 78%"
+        threshold:
+          type: string
+          description: Threshold values that trigger risk alerts
+          example: "Accuracy below 90%"
+        modelId:
+          type: integer
+          description: Associated model inventory ID (optional)
+          example: 123
+        modelName:
+          type: string
+          description: Name of the associated model (optional)
+          example: "Customer Segmentation Model v2.1"
+
+    ModelRiskCategory:
+      type: string
+      enum:
+        - "Performance"
+        - "Bias & Fairness"
+        - "Security"
+        - "Data Quality"
+        - "Compliance"
+      description: Category classification for model risks
+      example: "Performance"
+
+    ModelRiskLevel:
+      type: string
+      enum:
+        - "Low"
+        - "Medium"
+        - "High"
+        - "Critical"
+      description: Severity level of the model risk
+      example: "Medium"
+
+    ModelRiskStatus:
+      type: string
+      enum:
+        - "Open"
+        - "In Progress"
+        - "Resolved"
+        - "Accepted"
+      description: Current status of the model risk
+      example: "Open"

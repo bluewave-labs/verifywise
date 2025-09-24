@@ -18,6 +18,7 @@ import {
   BasicModalCancelButtonStyle,
   BasicModalDeleteButtonStyle,
 } from "./style";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 const BasicModal: React.FC<BasicModalProps> = ({
   isOpen,
@@ -29,18 +30,35 @@ const BasicModal: React.FC<BasicModalProps> = ({
   type,
 }) => {
   const theme = useTheme();
+
+  useModalKeyHandling({
+    isOpen,
+    onClose: () => setIsOpen(false)
+  });
+
   return (
-    <Modal open={isOpen} onClose={setIsOpen}>
+    <Modal
+      open={isOpen}
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          setIsOpen(false);
+        }
+      }}
+    >
       <Stack
         gap={theme.spacing(2)}
         color={theme.palette.text.secondary}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
         sx={{
           position: "absolute",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: 450,
-          bgcolor: theme.palette.background.main,
+          bgcolor: theme.palette.background.modal,
           border: 1,
           borderColor: theme.palette.border.dark,
           borderRadius: theme.shape.borderRadius,
@@ -51,7 +69,11 @@ const BasicModal: React.FC<BasicModalProps> = ({
           },
         }}
       >
-        <Typography id="modal-delete-vendor" fontSize={16} fontWeight={600}>
+        <Typography
+          id="modal-delete-vendor"
+          fontSize={16}
+          fontWeight={600}
+        >
           {warningTitle}
         </Typography>
         <Typography

@@ -12,7 +12,7 @@ import DatePicker from "../Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import { User } from "../../../domain/types/User";
 import useUsers from "../../../application/hooks/useUsers";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { ReactComponent as GreyDownArrowIcon } from "../../assets/icons/chevron-down-grey.svg";
 import { useCallback } from "react";
 import { FormErrors } from "./PolicyDetailsModal";
 
@@ -135,7 +135,7 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               );
             }}
             filterSelectedOptions
-            popupIcon={<KeyboardArrowDown />}
+            popupIcon={<GreyDownArrowIcon />}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -161,6 +161,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
                   borderColor: "#888",
                   borderWidth: "1px",
                 },
+              },
+              "& .MuiChip-root": {
+                borderRadius: theme.shape.borderRadius,
               },
             }}
             slotProps={{
@@ -215,7 +218,7 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               );
             }}
             filterSelectedOptions
-            popupIcon={<KeyboardArrowDown />}
+            popupIcon={<GreyDownArrowIcon />}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -241,6 +244,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
                   borderColor: "#888",
                   borderWidth: "1px",
                 },
+              },
+              "& .MuiChip-root": {
+                borderRadius: theme.shape.borderRadius,
               },
             }}
             slotProps={{

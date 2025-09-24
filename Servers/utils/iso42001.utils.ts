@@ -18,6 +18,7 @@ import { Clauses } from "../structures/ISO-42001/clauses/clauses.struct";
 import { Annex } from "../structures/ISO-42001/annex/annex.struct";
 import { STATUSES } from "../types/status.type";
 import { SubClauseISORisks } from "../domain.layer/frameworks/ISO-42001/subClauseISORisks.model";
+import { validateRiskArray } from "./utility.utils";
 
 const getDemoSubClauses = (): Object[] => {
   const subClauses = [];
@@ -78,9 +79,9 @@ export const countAnnexCategoriesISOByProjectId = async (
       replacements: { projects_frameworks_id: projectFrameworkId },
     }
   )) as [
-    { totalAnnexcategories: string; doneAnnexcategories: string }[],
-    number,
-  ];
+      { totalAnnexcategories: string; doneAnnexcategories: string }[],
+      number,
+    ];
   return result[0][0];
 };
 
@@ -353,9 +354,9 @@ export const getAllAnnexesWithCategoriesQuery = async (
         ...(transaction ? { transaction } : {}),
       }
     )) as [
-      Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
-      number,
-    ];
+        Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
+        number,
+      ];
     (
       annex as AnnexStructISOModel & {
         annexCategories: Partial<
@@ -451,9 +452,9 @@ export const getAnnexCategoriesByIdQuery = async (
       ...(transaction ? { transaction } : {}),
     }
   )) as [
-    Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
-    number,
-  ];
+      Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
+      number,
+    ];
   const annexCategory = annexCategories[0][0];
   (annexCategory as any).risks = [];
   const risks = (await sequelize.query(
@@ -775,7 +776,7 @@ export const updateSubClauseQuery = async (
         acc.push(`${field} = :${field}`);
       } else if (subClause[field as keyof SubClauseISO] != undefined) {
         let value = subClause[field as keyof SubClauseISO];
-        
+
         // Handle empty strings for integer fields
         if (["owner", "reviewer", "approver"].includes(field)) {
           if (value === "" || value === null || value === undefined) {
@@ -787,7 +788,7 @@ export const updateSubClauseQuery = async (
           }
           value = numValue;
         }
-        
+
         updateSubClause[field as keyof SubClauseISO] = value;
         acc.push(`${field} = :${field}`);
       }
@@ -814,10 +815,12 @@ export const updateSubClauseQuery = async (
   (subClauseResult as any).risks = [];
 
   // update the risks
-  const risksDeleted = JSON.parse(subClause.risksDelete || "[]") as number[];
-  const risksMitigated = JSON.parse(
-    subClause.risksMitigated || "[]"
-  ) as number[];
+  const risksDeletedRaw = JSON.parse(subClause.risksDelete || "[]");
+  const risksMitigatedRaw = JSON.parse(subClause.risksMitigated || "[]");
+
+  // Validate that both arrays contain only valid integers
+  const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
+  const risksMitigated = validateRiskArray(risksMitigatedRaw, "risksMitigated");
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".subclauses_iso__risks WHERE subclause_id = :id`,
     {
@@ -836,13 +839,21 @@ export const updateSubClauseQuery = async (
       transaction,
     }
   );
-  const subClauseRisksInsert = currentRisks
-    .map((risk) => `(${id}, ${risk})`)
-    .join(", ");
-  if (subClauseRisksInsert) {
+  if (currentRisks.length > 0) {
+    // Create parameterized placeholders for safe insertion
+    const placeholders = currentRisks.map((_, i) => `(:subclause_id${i}, :projects_risks_id${i})`).join(", ");
+    const replacements: { [key: string]: any } = {};
+
+    // Build replacement parameters safely
+    currentRisks.forEach((risk, i) => {
+      replacements[`subclause_id${i}`] = id;
+      replacements[`projects_risks_id${i}`] = risk;
+    });
+
     const subClauseRisksInsertResult = (await sequelize.query(
-      `INSERT INTO "${tenant}".subclauses_iso__risks (subclause_id, projects_risks_id) VALUES ${subClauseRisksInsert} RETURNING projects_risks_id;`,
+      `INSERT INTO "${tenant}".subclauses_iso__risks (subclause_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
       {
+        replacements,
         transaction,
       }
     )) as [{ projects_risks_id: number }[], number];
@@ -915,7 +926,7 @@ export const updateAnnexCategoryQuery = async (
         annexCategory[field as keyof AnnexCategoryISO]
       ) {
         let value = annexCategory[field as keyof AnnexCategoryISO];
-        
+
         // Handle empty strings for integer fields
         if (["owner", "reviewer", "approver"].includes(field)) {
           if (value === "" || value === null || value === undefined) {
@@ -927,7 +938,7 @@ export const updateAnnexCategoryQuery = async (
           }
           value = numValue;
         }
-        
+
         updateAnnexCategory[field as keyof AnnexCategoryISO] = value;
         acc.push(`${field} = :${field}`);
       }
@@ -952,12 +963,12 @@ export const updateAnnexCategoryQuery = async (
   (annexCategoryResult as any).risks = [];
 
   // update the risks
-  const risksDeleted = JSON.parse(
-    annexCategory.risksDelete || "[]"
-  ) as number[];
-  const risksMitigated = JSON.parse(
-    annexCategory.risksMitigated || "[]"
-  ) as number[];
+  const risksDeletedRaw = JSON.parse(annexCategory.risksDelete || "[]");
+  const risksMitigatedRaw = JSON.parse(annexCategory.risksMitigated || "[]");
+
+  // Validate that both arrays contain only valid integers
+  const risksDeleted = validateRiskArray(risksDeletedRaw, "risksDelete");
+  const risksMitigated = validateRiskArray(risksMitigatedRaw, "risksMitigated");
   const risks = (await sequelize.query(
     `SELECT projects_risks_id FROM "${tenant}".annexcategories_iso__risks WHERE annexcategory_id = :id`,
     {
@@ -976,13 +987,21 @@ export const updateAnnexCategoryQuery = async (
       transaction,
     }
   );
-  const annexCategoryRisksInsert = currentRisks
-    .map((risk) => `(${id}, ${risk})`)
-    .join(", ");
-  if (annexCategoryRisksInsert) {
+  if (currentRisks.length > 0) {
+    // Create parameterized placeholders for safe insertion
+    const placeholders = currentRisks.map((_, i) => `(:annexcategory_id${i}, :projects_risks_id${i})`).join(", ");
+    const replacements: { [key: string]: any } = {};
+
+    // Build replacement parameters safely
+    currentRisks.forEach((risk, i) => {
+      replacements[`annexcategory_id${i}`] = id;
+      replacements[`projects_risks_id${i}`] = risk;
+    });
+
     const annexCategoryRisksInsertResult = (await sequelize.query(
-      `INSERT INTO "${tenant}".annexcategories_iso__risks (annexcategory_id, projects_risks_id) VALUES ${annexCategoryRisksInsert} RETURNING projects_risks_id;`,
+      `INSERT INTO "${tenant}".annexcategories_iso__risks (annexcategory_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
       {
+        replacements,
         transaction,
       }
     )) as [{ projects_risks_id: number }[], number];

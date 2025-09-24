@@ -18,7 +18,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -42,7 +42,7 @@ export const inputStyles = {
 
 interface VWISO27001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (event?: any, reason?: string) => void;
   subClause: any;
   clause: any;
   evidenceFiles?: FileData[];
@@ -460,7 +460,7 @@ const VWISO27001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Stack>
             <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
@@ -622,7 +622,7 @@ const VWISO27001ClauseDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -686,6 +686,8 @@ const VWISO27001ClauseDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={3}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>
@@ -695,7 +697,7 @@ const VWISO27001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"
@@ -819,7 +821,7 @@ const VWISO27001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

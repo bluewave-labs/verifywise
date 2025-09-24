@@ -18,7 +18,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -44,7 +44,7 @@ export const inputStyles = {
 
 interface VWISO42001ClauseDrawerDialogProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (event?: any, reason?: string) => void;
   subClause: any;
   clause: any;
   evidenceFiles?: FileData[];
@@ -155,11 +155,6 @@ const VWISO42001ClauseDrawerDialog = ({
             // Set the date if it exists in the fetched data
             if (response.data.due_date) {
               setDate(response.data.due_date);
-            }
-
-            // Set risks in state
-            if (response.data.risks) {
-              setSelectedRisks(response.data.risks);
             }
           }
 
@@ -467,7 +462,7 @@ const VWISO42001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Stack>
             <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
@@ -502,6 +497,10 @@ const VWISO42001ClauseDrawerDialog = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -629,7 +628,7 @@ const VWISO42001ClauseDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -693,6 +692,8 @@ const VWISO42001ClauseDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={2}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>
@@ -702,7 +703,7 @@ const VWISO42001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"
@@ -823,7 +824,7 @@ const VWISO42001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

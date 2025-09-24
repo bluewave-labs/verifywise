@@ -4,7 +4,6 @@ import {
   SelectChangeEvent,
   Stack,
   Tab,
-  Typography,
   useTheme,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -12,7 +11,6 @@ import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import { Suspense, useEffect, useState, useMemo } from "react";
 import AddNewVendor from "../../components/Modals/NewVendor";
-import singleTheme from "../../themes/v1SingleTheme";
 import { useSelector } from "react-redux";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { AppState } from "../../../application/interfaces/appStates";
@@ -26,19 +24,17 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../components/Skeletons";
 import CustomizableToast from "../../components/Toast";
 import RisksCard from "../../components/Cards/RisksCard";
-import { vwhomeHeading } from "../Home/1.0Home/style";
 import useVendorRisks from "../../../application/hooks/useVendorRisks";
 import Select from "../../components/Inputs/Select";
 import allowedRoles from "../../../application/constants/permissions";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import vendorHelpContent from "../../../presentation/helpers/vendor-help.html?raw";
 import {
   useVendors,
   useDeleteVendor,
@@ -48,6 +44,7 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
 import { getVendorById } from "../../../application/repository/vendor.repository";
 import { getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
+import PageHeader from "../../components/Layout/PageHeader";
 
 interface ExistingRisk {
   id?: number;
@@ -358,13 +355,54 @@ const Vendors = () => {
   }, [selectedProjectId, vendorOptions, selectedVendorId]);
 
   return (
-    <div className="vendors-page">
-      <PageBreadcrumbs />
+    <Stack className="vwhome" gap={0}>
+     <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={vendorHelpContent}
-        pageTitle="Vendor Management"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Vendor management"
+        description="Manage your AI vendors and their associated risks"
+        whatItDoes="Track and manage **external entities** that provide AI-related products, services, or components to your organization. Monitor their *compliance status* and assess **associated risks**."
+        whyItMatters="Vendor management is crucial for maintaining *supply chain security*, ensuring **compliance**, and mitigating **third-party risks** in your AI ecosystem."
+        quickActions={[
+          {
+            label: "Add Your First Vendor",
+            description: "Start by adding a key AI vendor to track their services and compliance",
+            primary: true,
+            action: () => {
+              setIsHelperDrawerOpen(false);
+              setIsOpen(true);
+            }
+          },
+          {
+            label: "Add Vendor Risk",
+            description: "Quickly assess vendor risks using our pre-built risk templates",
+            action: () => {
+              setIsHelperDrawerOpen(false);
+              setIsRiskModalOpen(true);
+            }
+          }
+        ]}
+        useCases={[
+          "**AI model vendors** providing machine learning algorithms and *pre-trained models*",
+          "**Cloud AI platforms** offering infrastructure and *development environments*",
+          "**Data processing services** handling *sensitive or regulated information*",
+          "**Third-party analytics tools** integrated with your AI systems"
+        ]}
+        keyFeatures={[
+          "Centralized vendor database with contact and contract information",
+          "Risk assessment workflows with customizable scoring criteria",
+          "Compliance tracking and certification management",
+          "Integration with project management and audit trails"
+        ]}
+        tips={[
+          "Start with your **most critical AI vendors** - those providing *core ML services* or data",
+          "**Regular vendor assessments** help maintain compliance and identify risks early",
+          "Use *vendor risk scoring* to prioritize your management efforts",
+          "Document all vendor communications and maintain **audit trails**",
+          "Set up *automated reminders* for contract renewals and **compliance reviews**",
+          "Establish clear **escalation procedures** for vendor-related incidents"
+        ]}
       />
       <PageTour
         steps={VendorsSteps}
@@ -375,7 +413,7 @@ const Vendors = () => {
         }}
         tourKey="vendor-tour"
       />
-      <Stack gap={theme.spacing(10)} maxWidth={1400}>
+      <Stack gap={"16px"} maxWidth={1400}>
         {value === "1" ? (
           <>
             {alert && (
@@ -389,20 +427,18 @@ const Vendors = () => {
                 />
               </Suspense>
             )}
-            <Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography sx={vwhomeHeading}>Vendor list</Typography>
-                <HelperIcon
-                  onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-                  size="small"
-                />
-              </Stack>
-              <Typography sx={singleTheme.textStyles.pageDescription}>
-                This table includes a list of external entities that provides
-                AI-related products, services, or components. You can create and
-                manage all vendors here.
-              </Typography>
-            </Stack>
+             <PageHeader
+               title="Vendor list"
+               description="This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(true)
+                     }
+                     size="small"
+                    />
+                 }
+             />
           </>
         ) : (
           <>
@@ -418,13 +454,10 @@ const Vendors = () => {
               </Suspense>
             )}
 
-            <Stack>
-              <Typography sx={vwhomeHeading}>Vendor risks list</Typography>
-              <Typography sx={singleTheme.textStyles.pageDescription}>
-                This table includes a list of risks related to a vendor. You can
-                create and manage all vendor risks here.
-              </Typography>
-            </Stack>
+            <PageHeader
+                title="Vendor risks list"
+                description="This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+                />
           </>
         )}
         <TabContext value={value}>
@@ -464,7 +497,6 @@ const Vendors = () => {
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
-                mb={2}
               >
                 <Select
                   id="projects"
@@ -517,7 +549,6 @@ const Vendors = () => {
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
-                mb={2}
               >
                 <Stack direction="row" gap={8} alignItems="center">
                   <Select
@@ -637,7 +668,7 @@ const Vendors = () => {
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-    </div>
+    </Stack>
   );
 };
 

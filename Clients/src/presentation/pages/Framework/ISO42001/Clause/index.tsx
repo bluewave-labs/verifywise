@@ -10,7 +10,7 @@ import { GetClausesByProjectFrameworkId } from "../../../../../application/repos
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
 import { useCallback, useEffect, useState } from "react";
 import { styles } from "../../ISO27001/Clause/style";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
 import { GetSubClausesById } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
@@ -29,10 +29,14 @@ const ISO42001Clause = ({
   project,
   projectFrameworkId,
   statusFilter,
+  initialClauseId,
+  initialSubClauseId
 }: {
   project: Project;
   projectFrameworkId: number | string;
   statusFilter?: string;
+  initialClauseId?: string | null;
+  initialSubClauseId?: string | null;
 }) => {
   const { userId, userRoleName } = useAuth();
   const [clauses, setClauses] = useState<ClauseStructISO[]>([]);
@@ -45,7 +49,7 @@ const ISO42001Clause = ({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
   const [subClausesMap, setSubClausesMap] = useState<{ [key: number]: any[] }>(
-    {}
+    {},
   );
   const [loadingSubClauses, setLoadingSubClauses] = useState<{
     [key: number]: boolean;
@@ -55,8 +59,8 @@ const ISO42001Clause = ({
     doneSubclauses: number;
   }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const clauseId = searchParams.get("clauseId");
-  const subClauseId = searchParams.get("subClauseId");
+  const clauseId = initialClauseId;
+  const subClauseId = initialSubClauseId;
 
   const fetchClauses = useCallback(async () => {
     try {
@@ -91,7 +95,7 @@ const ISO42001Clause = ({
 
         const mergedSubClauses = detailedSubClauses.map((detailed: any) => {
           const match = clauseSubClausesWithStatus.find(
-            (s) => s.id === detailed.id
+            (s) => s.id === detailed.id,
           );
           return {
             ...detailed,
@@ -106,7 +110,7 @@ const ISO42001Clause = ({
         setLoadingSubClauses((prev) => ({ ...prev, [clauseId]: false }));
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -130,7 +134,7 @@ const ISO42001Clause = ({
       setSelectedIndex(index);
       setDrawerOpen(true);
     },
-    []
+    [],
   );
 
   const handleDrawerClose = () => {
@@ -140,6 +144,7 @@ const ISO42001Clause = ({
     if (clauseId && subClauseId) {
       searchParams.delete("clauseId");
       searchParams.delete("subClauseId");
+      searchParams.delete("framework");
       setSearchParams(searchParams);
     }
   };
@@ -147,7 +152,7 @@ const ISO42001Clause = ({
   const handleSaveSuccess = async (
     success: boolean,
     message?: string,
-    savedSubClauseId?: number
+    savedSubClauseId?: number,
   ) => {
     handleAlert({
       variant: success ? "success" : "error",
@@ -165,7 +170,10 @@ const ISO42001Clause = ({
     }
   };
 
-  const handleStatusChange = async (subClause: any, newStatus: string): Promise<boolean> => {
+  const handleStatusChange = async (
+    subClause: any,
+    newStatus: string,
+  ): Promise<boolean> => {
     try {
       const success = await updateISO42001ClauseStatus({
         id: subClause.id,
@@ -184,7 +192,7 @@ const ISO42001Clause = ({
 
         setFlashingRowId(subClause.id);
         setTimeout(() => setFlashingRowId(null), 2000);
-        
+
         setRefreshTrigger((prev) => prev + 1);
       } else {
         handleAlert({
@@ -213,7 +221,7 @@ const ISO42001Clause = ({
     const filteredSubClauses =
       statusFilter && statusFilter !== ""
         ? subClauses.filter(
-            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase()
+            (sc) => sc.status?.toLowerCase() === statusFilter.toLowerCase(),
           )
         : subClauses;
 
@@ -232,7 +240,7 @@ const ISO42001Clause = ({
               }}
               sx={styles.subClauseRow(
                 filteredSubClauses.length - 1 === index,
-                flashingRowId === subClause.id
+                flashingRowId === subClause.id,
               )}
             >
               <Typography fontSize={13}>
@@ -241,7 +249,9 @@ const ISO42001Clause = ({
               </Typography>
               <StatusDropdown
                 currentStatus={subClause.status ?? "Not started"}
-                onStatusChange={(newStatus) => handleStatusChange(subClause, newStatus)}
+                onStatusChange={(newStatus) =>
+                  handleStatusChange(subClause, newStatus)
+                }
                 size="small"
                 allowedRoles={allowedRoles.frameworks.edit}
                 userRole={userRoleName}
@@ -260,27 +270,10 @@ const ISO42001Clause = ({
   useEffect(() => {
     if (clauseId && subClauseId && clauses.length > 0) {
       const clause = clauses.find((c) => c.id === parseInt(clauseId));
-      async function fetchSubClause() {
-        try {
-          const response = await getEntityById({
-            routeUrl: `/iso-42001/subClause/byId/${clauseId}?projectFrameworkId=${projectFrameworkId}`,
-          });
-          setSelectedSubClause({
-            ...response.data,
-            id: response.data.clause_id,
-          });
-          if (clause && clauseId) {
-            handleSubClauseClick(
-              clause,
-              { ...response.data, id: response.data.clause_id },
-              parseInt(clauseId)
-            );
-          }
-        } catch (error) {
-          console.error("Error fetching subclause:", error);
-        }
-      }
-      fetchSubClause();
+      const idx = clause?.subClauses.findIndex(
+        (sc: any) => sc.id === parseInt(subClauseId),
+      );
+      handleSubClauseClick(clause, {id: parseInt(subClauseId)}, idx ?? 0);
     }
   }, [clauseId, subClauseId, clauses]);
 
@@ -308,8 +301,8 @@ const ISO42001Clause = ({
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <ExpandMoreIcon
-                  sx={styles.expandIcon(expanded === clause.id)}
+                <RightArrowBlack
+                  style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
                   {clause.arrangement} {clause.title}
@@ -322,7 +315,12 @@ const ISO42001Clause = ({
       {drawerOpen && (
         <VWISO42001ClauseDrawerDialog
           open={drawerOpen}
-          onClose={handleDrawerClose}
+          onClose={(_event?: any, reason?: string) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleDrawerClose();
+          }}
           subClause={selectedSubClause}
           clause={selectedClause}
           projectFrameworkId={Number(projectFrameworkId)}

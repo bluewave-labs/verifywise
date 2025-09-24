@@ -10,6 +10,7 @@ import { ENV_VARs } from "../../../../../env.vars";
 import Alert from "../../../components/Alert";
 import { vwhomeHeading } from "../../Home/1.0Home/style";
 import allowedRoles from "../../../../application/constants/permissions";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const SlackIntegrations = lazy(() => import("./SlackIntegrations"));
 
@@ -158,7 +159,11 @@ const Slack = () => {
         mt: 20,
       }}
     >
-      <Typography sx={vwhomeHeading}>Connect your Slack workspace</Typography>
+      <Typography sx={vwhomeHeading}>Slack Integration</Typography>
+      <Typography sx={singleTheme.textStyles.pageDescription}>
+        Connect you Slack workspace and route VerifyWise notifications to
+        specific channels.
+      </Typography>
       {/* This is embeddable html provided by Slack */}
       <a href={`${url}`}>
         <img

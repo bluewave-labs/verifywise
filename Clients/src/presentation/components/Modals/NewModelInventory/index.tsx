@@ -28,7 +28,7 @@ import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInven
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { KeyboardArrowDown } from "@mui/icons-material";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../../../../Servers/templates/model-inventory.json";
 

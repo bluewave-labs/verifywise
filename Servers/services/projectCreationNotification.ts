@@ -19,12 +19,6 @@ export interface ProjectCreatedNotificationData {
 export const sendProjectCreatedNotification = async (
   data: ProjectCreatedNotificationData
 ): Promise<void> => {
-  logProcessing({
-    description: `Sending project creation notification for project: ${data.projectName}`,
-    functionName: "sendProjectCreatedNotification",
-    fileName: "projectCreationNotification.ts",
-  });
-
   try {
     // Get admin user details
     const adminUser = await getUserByIdQuery(data.adminId);
@@ -56,20 +50,7 @@ export const sendProjectCreatedNotification = async (
       templateData
     );
 
-    await logSuccess({
-      eventType: "Create",
-      description: `Project creation notification sent to ${adminUser.email}`,
-      functionName: "sendProjectCreatedNotification",
-      fileName: "projectCreationNotification.ts",
-    });
   } catch (error) {
-    await logFailure({
-      eventType: "Create",
-      description: `Failed to send project creation notification`,
-      functionName: "sendProjectCreatedNotification",
-      fileName: "projectCreationNotification.ts",
-      error: error as Error,
-    });
     throw error;
   }
 };

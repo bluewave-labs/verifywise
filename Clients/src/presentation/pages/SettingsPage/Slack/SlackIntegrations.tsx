@@ -92,7 +92,7 @@ const SlackIntegrations = ({
       showAlert(
         "error",
         "Error",
-        "Error sending test message to the Slack channel.",
+        `Error sending test message to the Slack channel.: ${error}`,
       );
     }
   };
@@ -110,6 +110,7 @@ const SlackIntegrations = ({
                 teamName: item.teamName,
                 id: item.id,
               }))}
+              showAlert={showAlert}
             />
           }
           openPopupButtonName="Save Changes"

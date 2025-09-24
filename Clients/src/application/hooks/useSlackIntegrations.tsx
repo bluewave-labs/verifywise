@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { getSlackIntegrations } from "../repository/slack.integration.repository";
 
+export enum SlackNotificationRoutingType {
+  MEMBERSHIP_AND_ROLES = "Membership and roles",
+  POLICY_REMINDERS_AND_STATUS = "Policy reminders and status",
+  EVIDENCE_AND_TASK_ALERTS = "Evidence and task alerts",
+  CONTROL_OR_POLICY_CHANGES = "Control or policy changes",
+}
+
 interface ISlackWebhook {
-  id?: number;
+  id: number;
   access_token_iv?: string;
   access_token: string;
   scope: string;
@@ -16,9 +23,10 @@ interface ISlackWebhook {
   url: string; // URL of the slack workspace
   created_at?: string;
   is_active?: boolean;
+  routing_type?: SlackNotificationRoutingType[];
 }
 export interface SlackWebhook {
-  id?: number;
+  id: number;
   scope: string;
   teamName: string;
   teamId: string;
@@ -26,16 +34,20 @@ export interface SlackWebhook {
   channelId: string;
   createdAt?: string;
   isActive?: boolean;
+  routingType: SlackNotificationRoutingType[];
 }
 
 interface ApiResponse {
   data: ISlackWebhook[];
 }
 
+export type SlackRoutingType = { routingType: string; id: number[] };
+
 const useSlackIntegrations = (userId: number | null) => {
   const [slackIntegrations, setSlackIntegrations] = useState<SlackWebhook[]>(
     [],
   );
+  const [routingData, setRoutingData] = useState<SlackRoutingType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,10 +68,29 @@ const useSlackIntegrations = (userId: number | null) => {
           channelId: item.channel_id,
           createdAt: item.created_at,
           isActive: item.is_active,
+          routingType: item.routing_type ?? [],
         }),
       );
 
+      const notificationRoutingData = integrations.reduce(
+        (acc: SlackRoutingType[], item: SlackWebhook) => {
+          item?.routingType?.forEach((routingType) => {
+            const existing: SlackRoutingType | undefined = acc.find(
+              (entry: SlackRoutingType) => entry.routingType === routingType,
+            );
+            if (existing) {
+              existing.id.push(item.id);
+            } else {
+              acc.push({ routingType, id: [item.id] });
+            }
+          });
+          return acc;
+        },
+        [],
+      );
+
       setSlackIntegrations(integrations);
+      setRoutingData(notificationRoutingData);
       setError(null);
     } catch (err) {
       setError(
@@ -78,6 +109,7 @@ const useSlackIntegrations = (userId: number | null) => {
 
   return {
     slackIntegrations,
+    routingData,
     loading,
     error,
     refreshSlackIntegrations: fetchSlackIntegrations,

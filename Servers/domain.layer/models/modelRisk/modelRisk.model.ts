@@ -140,16 +140,16 @@ export class ModelRiskModel
   @Column({
     type: DataType.VIRTUAL,
     get() {
-      return this.getDataValue('created_at')?.toISOString();
-    }
+      return this.getDataValue("created_at")?.toISOString();
+    },
   })
   createdDate?: string;
 
   @Column({
     type: DataType.VIRTUAL,
     get() {
-      return this.getDataValue('updated_at')?.toISOString();
-    }
+      return this.getDataValue("updated_at")?.toISOString();
+    },
   })
   lastUpdated?: string;
 
@@ -190,11 +190,7 @@ export class ModelRiskModel
     }
 
     if (!this.owner || !String(this.owner).trim()) {
-      throw new ValidationException(
-        "Owner is required",
-        "owner",
-        this.owner
-      );
+      throw new ValidationException("Owner is required", "owner", this.owner);
     }
 
     if (!this.targetDate) {
@@ -252,9 +248,7 @@ export class ModelRiskModel
   /**
    * Create a new ModelRiskModel instance
    */
-  static createNewModelRisk(
-    data: Partial<IModelRisk>
-  ): ModelRiskModel {
+  static createNewModelRisk(data: Partial<IModelRisk>): ModelRiskModel {
     const modelRisk = new ModelRiskModel({
       riskName: data.riskName || "",
       riskCategory: data.riskCategory || ModelRiskCategory.PERFORMANCE,

@@ -35,7 +35,7 @@ interface FormErrors {
 }
 
 const initialState: FormValues = {
-  report_type: "Project risks report",
+  report_type: "Risks report",
   report_name: "",
   project: 1,
   framework: 1,
@@ -123,6 +123,11 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     );
   }, [projectFrameworks, values.framework]);
 
+  // Force EU AI Act framework for filtered projects
+  useEffect(() => {
+    setValues((prev) => ({ ...prev, framework: 1 }));
+  }, [values.project]);
+
   const handleFormSubmit = () => {
     const newValues = {
       ...values,
@@ -131,12 +136,16 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     onGenerate(newValues);
   };
 
+  const euActProjects = dashboardValues.projects?.filter(
+    (project: { framework: [{ framework_id: number }] }) => project.framework.some(f => f.framework_id === 1)
+  );
+
   return (
     <Stack sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Stack>
-        <Typography sx={styles.titleText}>Generate Report</Typography>
+        <Typography sx={styles.titleText}>Generate Project Report</Typography>
         <Typography sx={styles.baseText}>
-          Pick the kind of report you want to create.
+          Pick the project you want to generate a report for.
         </Typography>
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>
@@ -147,7 +156,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
               value={values.project}
               onChange={handleOnSelectChange("project")}
               items={
-                dashboardValues.projects?.map(
+                euActProjects?.map(
                   (project: { id: any; project_title: any }) => ({
                     _id: project.id,
                     name: project.project_title,
@@ -163,30 +172,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
             />
           </Suspense>
         </Stack>
-        <Stack sx={{ paddingTop: theme.spacing(8) }}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="framework-input"
-              label="Framework"
-              placeholder="Select framework"
-              value={values.framework}
-              onChange={handleOnSelectChange("framework")}
-              items={
-                projectFrameworks?.map((framework) => ({
-                  _id: framework.framework_id,
-                  name: framework.name,
-                  projectFrameworkId: framework.project_framework_id,
-                })) || []
-              }
-              sx={{
-                width: "100%",
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.framework}
-              isRequired
-            />
-          </Suspense>
-        </Stack>
+
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>

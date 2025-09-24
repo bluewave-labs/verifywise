@@ -34,7 +34,7 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
             border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
           }}
           variant="contained"
-          text="Generate your report"
+          text="Generate project report"
           onClick={() => setIsModalOpen(true)}
           isDisabled={isDisabled}
         />

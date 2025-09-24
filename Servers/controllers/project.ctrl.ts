@@ -185,92 +185,41 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     }
 
     if (createdProject) {
+      await transaction.commit();
 
       await logSuccess({
         eventType: "Create",
-        description: "Created new project, sending notification email",
+        description: "Created new project",
         functionName: "createProject",
         fileName: "project.ctrl.ts",
         userId: req.userId!,
         tenantId: req.tenantId!,
       });
-      await transaction.commit();
+
+      // Send project creation notification to admin (fire-and-forget, don't block response)
+      sendProjectCreatedNotification({
+        projectId: createdProject.id!,
+        projectName: createdProject.project_title,
+        adminId: createdProject.owner,
+      }).catch(async (emailError) => {
+        // Log the email error but don't fail the project creation
+        await logFailure({
+          eventType: "Create",
+          description: "Failed to send project creation notification email",
+          functionName: "createProject",
+          fileName: "project.ctrl.ts",
+          error: emailError as Error,
+          userId: req.userId!,
+          tenantId: req.tenantId!,
+        });
+      });
+
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
           frameworks,
         })
       );
-
-      // try {
-      //   await sendProjectCreatedNotification({
-      //     projectId: createdProject.id!,
-      //     projectName: createdProject.project_title,
-      //     adminId: createdProject.owner,
-      //   });
-      //   await logSuccess({
-      //     eventType: "Create",
-      //     description: "Project creation notification email sent",
-      //     functionName: "createProject",
-      //     fileName: "project.ctrl.ts",
-      //     userId: req.userId!,
-      //     tenantId: req.tenantId!,
-      //   });
-      //   await transaction.commit();
-      //   return res.status(201).json(
-      //     STATUS_CODE[201]({
-      //       project: createdProject,
-      //       frameworks,
-      //     })
-      //   );
-      // } catch (error) {
-      //   // await transaction.rollback();
-      //   await logFailure({
-      //     eventType: "Create",
-      //     description: "Failed to send project creation notification email",
-      //     functionName: "createProject",
-      //     fileName: "project.ctrl.ts",
-      //     userId: req.userId!,
-      //     tenantId: req.tenantId!,
-      //     error: error as Error,
-      //   });
-      //   throw error;
-      // }
-
-      // // Send project creation notification to admin (fire-and-forget, don't block response)
-      // sendProjectCreatedNotification({
-      //   projectId: createdProject.id!,
-      //   projectName: createdProject.project_title,
-      //   adminId: createdProject.owner,
-      // }).catch(async (emailError) => {
-      //   // Log the email error but don't fail the project creation
-      //   await transaction.rollback();
-      //   await logFailure({
-      //     eventType: "Create",
-      //     description: "Failed to send project creation notification email",
-      //     functionName: "createProject",
-      //     fileName: "project.ctrl.ts",
-      //     error: emailError as Error,
-      //     userId: req.userId!,
-      //     tenantId: req.tenantId!,
-      //   });
-      // }).then(async () => {
-      //   await logSuccess({
-      //     eventType: "Create",
-      //     description: "Project creation notification email sent",
-      //     functionName: "createProject",
-      //     fileName: "project.ctrl.ts",
-      //     userId: req.userId!,
-      //     tenantId: req.tenantId!,
-      //   });
-      //   await transaction.commit();
-      //   return res.status(201).json(
-      //     STATUS_CODE[201]({
-      //       project: createdProject,
-      //       frameworks,
-      //     })
-      //   );
-      // });
     }
 
     await transaction.rollback();

@@ -140,7 +140,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
               <div className="whats-new-big-block">
                 <Box sx={{ padding: '20px 24px' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                       <Typography variant="h6" fontWeight={600} sx={{ color: '#fff', fontSize: '18px' }}>
                         {whatsNewData.title}
                       </Typography>

@@ -14,11 +14,7 @@ import {
   AssignmentOutlined,
   PolicyOutlined,
   VerifiedUserOutlined,
-  AddCircleOutlineOutlined,
-  FileDownloadOutlined,
-  FilterAltOutlined,
-  GroupOutlined,
-  AssessmentOutlined
+  GroupOutlined
 } from '@mui/icons-material'
 
 // Define command groups
@@ -152,75 +148,11 @@ const NAVIGATION_COMMANDS: Command[] = [
   }
 ]
 
-// Quick action commands
-const ACTION_COMMANDS: Command[] = [
-  {
-    id: 'action-create-risk',
-    label: 'Create New Risk',
-    description: 'Add a new risk to the system',
-    keywords: ['new', 'add', 'create', 'risk'],
-    group: COMMAND_GROUPS[1],
-    icon: AddCircleOutlineOutlined,
-    action: { type: 'modal', payload: 'create-risk' },
-    requiredRole: ['Admin', 'Editor'],
-    scope: 'projectRisks.create'
-  },
-  {
-    id: 'action-create-vendor',
-    label: 'Create New Vendor',
-    description: 'Add a new vendor',
-    keywords: ['new', 'add', 'create', 'vendor'],
-    group: COMMAND_GROUPS[1],
-    icon: AddCircleOutlineOutlined,
-    action: { type: 'modal', payload: 'create-vendor' },
-    requiredRole: ['Admin', 'Editor'],
-    scope: 'vendors.create'
-  },
-  {
-    id: 'action-create-project',
-    label: 'Create New Project',
-    description: 'Start a new project',
-    keywords: ['new', 'add', 'create', 'project'],
-    group: COMMAND_GROUPS[1],
-    icon: AddCircleOutlineOutlined,
-    action: { type: 'modal', payload: 'create-project' },
-    requiredRole: ['Admin', 'Editor'],
-    scope: 'projects.create'
-  },
-  {
-    id: 'action-ai-risks',
-    label: 'Import from AI Risk Database',
-    description: 'Add risks from MIT AI database',
-    keywords: ['import', 'ai', 'database', 'mit'],
-    group: COMMAND_GROUPS[1],
-    icon: FileDownloadOutlined,
-    action: { type: 'modal', payload: 'ai-risk-import' },
-    requiredRole: ['Admin', 'Editor'],
-    scope: 'projectRisks.create'
-  }
-]
+// Quick action commands - will be implemented later
+const ACTION_COMMANDS: Command[] = []
 
-// Filter commands
-const FILTER_COMMANDS: Command[] = [
-  {
-    id: 'filter-high-risks',
-    label: 'Show High Priority Risks',
-    description: 'Filter risks by high priority',
-    keywords: ['filter', 'high', 'priority', 'critical'],
-    group: COMMAND_GROUPS[3],
-    icon: FilterAltOutlined,
-    action: { type: 'filter', payload: { type: 'risk-level', value: 'high' } }
-  },
-  {
-    id: 'filter-pending-vendors',
-    label: 'Show Pending Vendors',
-    description: 'Filter vendors pending review',
-    keywords: ['filter', 'pending', 'review'],
-    group: COMMAND_GROUPS[3],
-    icon: FilterAltOutlined,
-    action: { type: 'filter', payload: { type: 'vendor-status', value: 'pending' } }
-  }
-]
+// Filter commands - will be implemented later
+const FILTER_COMMANDS: Command[] = []
 
 // Admin commands
 const ADMIN_COMMANDS: Command[] = [
@@ -234,16 +166,6 @@ const ADMIN_COMMANDS: Command[] = [
     action: { type: 'function', payload: { name: 'navigateToSettingsTab', params: 'team' } },
     requiredRole: ['Admin'],
     scope: 'projects.editTeamMembers'
-  },
-  {
-    id: 'admin-export-data',
-    label: 'Export System Data',
-    description: 'Generate system report',
-    keywords: ['export', 'data', 'report'],
-    group: COMMAND_GROUPS[4],
-    icon: AssessmentOutlined,
-    action: { type: 'export', payload: 'system-report' },
-    requiredRole: ['Admin']
   }
 ]
 

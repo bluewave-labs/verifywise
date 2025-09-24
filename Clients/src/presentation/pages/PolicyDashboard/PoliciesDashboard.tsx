@@ -9,12 +9,11 @@ import {
   InputBase,
   useTheme,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import policyManagerHelpContent from "../../../presentation/helpers/policy-manager-help.html?raw";
 import {
   deletePolicy,
   getAllPolicies,
@@ -110,17 +109,44 @@ const PolicyDashboard: React.FC = () => {
   }, [policies, statusFilter, searchTerm]);
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
         <HelperDrawer
-          isOpen={isHelperDrawerOpen}
-          onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-          helpContent={policyManagerHelpContent}
-          pageTitle="Policy Manager"
+          open={isHelperDrawerOpen}
+          onClose={() => setIsHelperDrawerOpen(false)}
+          title="Policy manager"
+          description="Create and maintain AI governance policies aligned with regulatory requirements"
+          whatItDoes="Centralize **policy creation**, *version control*, and **distribution** for all *AI-related governance documentation*. Track **policy reviews**, *approvals*, and **acknowledgments** across your organization."
+          whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to **responsible AI**, ensure *consistent practices* across teams, and satisfy **regulatory requirements** for documented controls."
+          quickActions={[
+            {
+              label: "Create New Policy",
+              description: "Draft governance policies using templates and best practices",
+              primary: true
+            },
+            {
+              label: "Review Policy Status",
+              description: "Check approval status and track policy acknowledgments"
+            }
+          ]}
+          useCases={[
+            "**AI ethics policies** defining *acceptable use* and **development principles**",
+            "**Data governance policies** for handling *sensitive information* in **AI systems**"
+          ]}
+          keyFeatures={[
+            "**Policy lifecycle management** from *draft* through **approval** to *retirement*",
+            "**Version control** with *change tracking* and **approval workflows**",
+            "**Distribution tracking** to ensure all *stakeholders* have **acknowledged current policies**"
+          ]}
+          tips={[
+            "Start with **template policies** and customize them to your *organization's needs*",
+            "Schedule **regular policy reviews** to ensure they remain *current and relevant*",
+            "Track **acknowledgments** to demonstrate *policy awareness* across your teams"
+          ]}
         />
 
         <PageHeader
-          title="Policy Manager"
+          title="Policy manager"
           description="Policy Manager lets you create and update company AI policies in one
                place to stay compliant and consistent."
           rightContent={
@@ -131,107 +157,104 @@ const PolicyDashboard: React.FC = () => {
           }
         />
 
-        <Stack
-        direction={{ xs: "column", md: "row" }}
-        justifyContent="space-between"
-        alignItems="flex-end" // ✅ bottom alignment
-        mb={8}
-        mt={10}
-        gap={4}
-      >
         {/* Policy by Status Cards */}
         {policies.length > 0 && (
-          <Box sx={{ flex: 1 }}>
+          <Box>
             <PolicyStatusCard policies={policies} />
           </Box>
         )}
 
-        {/* Add New Policy Button */}
-        <CustomizableButton
-          variant="contained"
-          text="Add new policy"
-          sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
-            gap: 3,
-            height: "fit-content", // ✅ keeps button compact
-          }}
-          icon={<AddCircleOutlineIcon />}
-          onClick={handleAddNewPolicy}
-        />
-      </Stack>
-
-      {/* Filter + Search row */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={4}
-        alignItems="center"
-        mb={8}
-      >
-        {/* Dropdown Filter */}
-        <Select
-          id="policy-status"
-          value={statusFilter}
-          items={statusOptions}
-          onChange={(e: any) => setStatusFilter(e.target.value)}
-          sx={{
-            minWidth: "180px",
-            height: "40px",
-            bgcolor: "#fff",
-          }}
-        />
-
-        {/* Expandable Search */}
-        <Box sx={searchBoxStyle(isSearchBarVisible)}>
-          <IconButton
-            disableRipple
-            disableFocusRipple
-            sx={{ "&:hover": { backgroundColor: "transparent" } }}
-            aria-label="Toggle policy search"
-            aria-expanded={isSearchBarVisible}
-            onClick={() => setIsSearchBarVisible((prev) => !prev)}
-          >
-            <SearchIcon />
-          </IconButton>
-
-          {isSearchBarVisible && (
-            <InputBase
-              autoFocus
-              placeholder="Search policies..."
-              inputProps={{ "aria-label": "Search policies" }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={inputStyle(isSearchBarVisible)}
+        {/* Filter + Search + Add Button row */}
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={4}
+          sx={{ width: "100%" }}
+        >
+          {/* Left side: Dropdown + Search together */}
+          <Stack direction="row" spacing={4} alignItems="center">
+            {/* Dropdown Filter */}
+            <Select
+              id="policy-status"
+              value={statusFilter}
+              items={statusOptions}
+              onChange={(e: any) => setStatusFilter(e.target.value)}
+              sx={{
+                minWidth: "180px",
+                height: "34px",
+                bgcolor: "#fff",
+              }}
             />
-          )}
-        </Box>
-      </Stack>
+
+            {/* Expandable Search */}
+            <Box sx={searchBoxStyle(isSearchBarVisible)}>
+              <IconButton
+                disableRipple
+                disableFocusRipple
+                sx={{ "&:hover": { backgroundColor: "transparent" } }}
+                aria-label="Toggle policy search"
+                aria-expanded={isSearchBarVisible}
+                onClick={() => setIsSearchBarVisible((prev) => !prev)}
+              >
+                <SearchIcon />
+              </IconButton>
+
+              {isSearchBarVisible && (
+                <InputBase
+                  autoFocus
+                  placeholder="Search policies..."
+                  inputProps={{ "aria-label": "Search policies" }}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={inputStyle(isSearchBarVisible)}
+                />
+              )}
+            </Box>
+          </Stack>
+
+          {/* Right side: Add New Policy Button */}
+          <CustomizableButton
+            variant="contained"
+            text="Add new policy"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 3,
+              height: "fit-content",
+            }}
+            icon={<AddCircleOutlineIcon />}
+            onClick={handleAddNewPolicy}
+          />
+        </Stack>
 
       {/* Table / Empty state */}
-      {filteredPolicies.length === 0 ? (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={emptyStateContainerStyle(theme)}
-        >
-          <img src={placeholderImage} alt="Placeholder" />
-          <Typography sx={emptyStateTextStyle}>
-            {
-              searchTerm
-                ? "No matching policies found." // Search active
-                : statusFilter !== "all"
-                ? "No matching policies found." // Status filter active
-                : "There is currently no data in this table." // Table empty
-            }
-          </Typography>
-        </Stack>
-      ) : (
-        <PolicyTable
-          data={filteredPolicies}
-          onOpen={handleOpen}
-          onDelete={handleDelete}
-        />
-      )}
+      <Box sx={{ mt: 1 }}>
+        {filteredPolicies.length === 0 ? (
+          <Stack
+            alignItems="center"
+            justifyContent="center"
+            sx={emptyStateContainerStyle(theme)}
+          >
+            <img src={placeholderImage} alt="Placeholder" />
+            <Typography sx={emptyStateTextStyle}>
+              {
+                searchTerm
+                  ? "No matching policies found." // Search active
+                  : statusFilter !== "all"
+                  ? "No matching policies found." // Status filter active
+                  : "There is currently no data in this table." // Table empty
+              }
+            </Typography>
+          </Stack>
+        ) : (
+          <PolicyTable
+            data={filteredPolicies}
+            onOpen={handleOpen}
+            onDelete={handleDelete}
+          />
+        )}
+      </Box>
 
       {/* Modal */}
       {showModal && tags.length > 0 && (

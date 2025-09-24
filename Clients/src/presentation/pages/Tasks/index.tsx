@@ -3,7 +3,6 @@ import {
   Box,
   Stack,
   Typography,
-  InputBase,
   Collapse,
   Paper,
   Chip,
@@ -13,7 +12,7 @@ import {
   Autocomplete,
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { SearchBox } from "../../components/Search";
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
 import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
@@ -22,9 +21,8 @@ import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import taskManagementHelpContent from "../../helpers/task-management-help.html?raw";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   ITask,
@@ -50,7 +48,6 @@ import {
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
-import { searchBoxStyle, searchInputStyle } from "./style";
 import DatePicker from "../../components/Inputs/Datepicker";
 import dayjs from "dayjs";
 import Toggle from "../../components/Toggle";
@@ -355,19 +352,46 @@ const Tasks: React.FC = () => {
     };
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={taskManagementHelpContent}
-        pageTitle="Task Management"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Task management"
+        description="Coordinate AI governance activities and compliance tasks across your teams"
+        whatItDoes="Centralize **task assignment** and tracking for *AI governance activities*. Manage deadlines, priorities, and progress for **compliance requirements**, *audits*, and **implementation projects**."
+        whyItMatters="Effective **task management** ensures nothing falls through the cracks in your *AI governance program*. It provides **accountability** and visibility into team workload, helping meet *compliance deadlines* and **implementation milestones**."
+        quickActions={[
+          {
+            label: "Create New Task",
+            description: "Assign a governance or compliance task to team members",
+            primary: true
+          },
+          {
+            label: "View My Tasks",
+            description: "Filter tasks assigned to you and track your progress"
+          }
+        ]}
+        useCases={[
+          "**Compliance activities** like *framework implementation steps* and **audit preparations**",
+          "**Risk remediation tasks** arising from *vendor assessments* and **model evaluations**"
+        ]}
+        keyFeatures={[
+          "**Priority-based task queuing** with *due date tracking* and automated reminders",
+          "**Assignment to individuals or teams** with *progress monitoring*",
+          "**Integration** with project timelines and *compliance calendars*"
+        ]}
+        tips={[
+          "Break down **large compliance projects** into *manageable tasks* with **clear owners**",
+          "Set *realistic deadlines* considering **team capacity** and other commitments",
+          "**Regular task reviews** help identify *bottlenecks* and **resource constraints** early"
+        ]}
       />
 
         {/* Page Header */}
         <Stack sx={vwhomeBody}>
           <PageHeader
-            title="Task Management"
+            title="Task management"
             description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
             rightContent={
               <HelperIcon
@@ -393,7 +417,7 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Header Cards */}
-        <Stack sx={{ ...vwhomeHeaderCards, mt: 8 }}>
+        <Stack sx={vwhomeHeaderCards}>
           <HeaderCard title="Tasks" count={summary.total} />
           <HeaderCard title="Overdue" count={summary.overdue} />
           <HeaderCard title="In progress" count={summary.inProgress} />
@@ -401,48 +425,44 @@ const Tasks: React.FC = () => {
         </Stack>
 
         {/* Search, Filter, and Sort Controls  */}
-        <Box sx={{ mt: 8, mb: 8 }}>
+        <Box sx={{ mt: 6, mb: 6 }}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
             mb={2}
           >
-            <Box sx={searchBoxStyle}>
-              <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
-              <InputBase
-                placeholder="Search tasks by title or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={searchInputStyle}
-                inputProps={{ "aria-label": "Search tasks" }}
-              />
-            </Box>
+            <SearchBox
+              placeholder="Search tasks by title or description..."
+              value={searchQuery}
+              onChange={setSearchQuery}
+              sx={{ mr: 2 }}
+              inputProps={{ "aria-label": "Search tasks" }}
+            />
 
-            <Stack direction="row" spacing={3} alignItems="center">
-              <CustomSelect
-                currentValue={sortBy}
-                onValueChange={async (newSort: string) => {
-                  setSortBy(newSort);
-                  return true;
-                }}
-                options={["Newest", "Oldest", "Priority", "Due date"]}
-                sx={{ minWidth: 150 }}
-              />
-            </Stack>
+          <Stack direction="row" spacing={3} alignItems="center">
+            <CustomSelect
+              currentValue={sortBy}
+              onValueChange={async (newSort: string) => {
+                setSortBy(newSort);
+                return true;
+              }}
+              options={["Newest", "Oldest", "Priority", "Due date"]}
+              sx={{ minWidth: 150 }}
+            />
           </Stack>
+        </Stack>
 
-          <Paper
-            elevation={0}
-            sx={{
-              mb: 2,
-              mt: 8,
-              border: "1px solid #E5E7EB",
-              borderRadius: 2,
-              backgroundColor: "transparent",
-              boxShadow: "none",
-            }}
-          >
+        {/* Filter Block */}
+        <Paper
+          elevation={0}
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            backgroundColor: "transparent",
+            boxShadow: "none",
+          }}
+        >
             {/* Filter Header */}
             <Box
               sx={{
@@ -744,7 +764,7 @@ const Tasks: React.FC = () => {
         </Box>
 
         {/* Content Area */}
-        <Box sx={{ mt: 8 }}>
+        <Box>
           {isLoading && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <Typography>Loading tasks...</Typography>
@@ -768,6 +788,7 @@ const Tasks: React.FC = () => {
                 (status) => STATUS_DISPLAY_MAP[status as TaskStatus] || status
               )}
               isUpdateDisabled={isCreatingDisabled}
+              onRowClick={handleEditTask}
             />
           )}
         </Box>

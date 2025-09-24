@@ -10,7 +10,7 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repos
 import { useCallback, useEffect, useState } from "react";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../Clause/style";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
 import VWISO27001AnnexDrawerDialog from "../../../../components/Drawer/ISO27001AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
@@ -237,10 +237,12 @@ const ISO27001Annex = ({
                   sx={styles.accordion}
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
-                    <ExpandMoreIcon
-                      sx={styles.expandIcon(expanded === annex.id)}
+                    <RightArrowBlack
+                      style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
                     />
-                    {annex.arrangement}.{annex.order_no} {annex.title}
+                    <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>
+                      {annex.arrangement}.{annex.order_no} {annex.title}
+                    </Typography>
                   </AccordionSummary>
                   <AccordionDetails sx={{ padding: 0 }}>
                     {(() => {

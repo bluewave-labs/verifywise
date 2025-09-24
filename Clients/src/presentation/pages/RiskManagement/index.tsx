@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
-import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -20,6 +20,8 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import useUsers from "../../../application/hooks/useUsers";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
+import HelperDrawer from "../../components/HelperDrawer";
+import HelperIcon from "../../components/HelperIcon";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -54,7 +56,6 @@ const rowStyle = {
 };
 
 const RiskManagement = () => {
-  const theme = useTheme();
   const { userRoleName } = useAuth();
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
@@ -94,6 +95,7 @@ const RiskManagement = () => {
   // State for filtering
   const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
   const [, setActiveFilters] = useState<any>(null);
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -292,13 +294,52 @@ const RiskManagement = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"24px"}>
       <PageBreadcrumbs />
+      <HelperDrawer
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Risk management & mitigation"
+        description="Identify, assess, and mitigate risks across your AI projects and operations"
+        whatItDoes="Manage **risk lifecycle** from *identification* to **mitigation** across all AI projects. Track **risk severity**, *likelihood assessments*, and **mitigation strategies**. Maintain comprehensive **risk registers** with *ownership assignments* and **progress monitoring**."
+        whyItMatters="Effective **risk management** is crucial for maintaining *operational resilience* and **regulatory compliance**. Proactive risk identification and mitigation help prevent incidents, protect assets, and ensure **business continuity** while meeting *governance requirements*."
+        quickActions={[
+          {
+            label: "Add New Risk",
+            description: "Identify and document new risks with assessment details",
+            primary: true
+          },
+          {
+            label: "Import AI Risks",
+            description: "Add risks from the MIT AI Risk Database for comprehensive coverage"
+          }
+        ]}
+        useCases={[
+          "**Operational risk assessment** for *AI model deployments* and **data processing activities**",
+          "**Regulatory compliance** tracking for *governance frameworks* like **EU AI Act** and ISO standards"
+        ]}
+        keyFeatures={[
+          "**Comprehensive risk assessment** with *severity* and **likelihood scoring**",
+          "**MIT AI Risk Database** integration for *industry-standard risk templates*",
+          "**Risk visualization** and *filtering* with **real-time dashboard updates**"
+        ]}
+        tips={[
+          "**Regular risk reviews** help identify *emerging threats* before they impact operations",
+          "Use **risk categories** to organize threats by *impact area* and **regulatory requirements**",
+          "Set **clear ownership** and *target dates* for effective **risk mitigation tracking**"
+        ]}
+      />
 
-      <Stack gap={theme.spacing(2)} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"24px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"
+          rightContent={
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          }
         />
 
       {alert && (
@@ -325,22 +366,19 @@ const RiskManagement = () => {
           onFilterChange={handleRiskFilterChange}
         />
       </Stack>
-      <br />
       <Stack
         className="risk-management-row"
         sx={{
           gap: 10,
-          mb: 10,
+          mb: 1,
+          mt: 2,
         }}
       >
         <Stack
           direction="row"
-          justifyContent="space-between"
+          justifyContent="flex-end"
           alignItems="center"
         >
-          <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>
-            All Risks
-          </Typography>
           <Stack direction="row" gap={10}>
             <CustomizableButton
               variant="contained"

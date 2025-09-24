@@ -52,7 +52,7 @@ export const commonStyles = {
   } as SxProps<Theme>,
 
   expandIcon: (expanded: boolean) => ({
-    transform: expanded ? "rotate(180deg)" : "rotate(270deg)",
+    transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
     transition: "transform 0.5s ease-in",
   }) as SxProps<Theme>,
 };

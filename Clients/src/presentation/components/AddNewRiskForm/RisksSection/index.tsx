@@ -59,6 +59,7 @@ const getAutocompleteStyles = (theme: any) => ({
     color: theme.palette.background.main,
     fontSize: "12px",
     height: "24px",
+    borderRadius: "4px",
     "& .MuiChip-deleteIcon": {
       display: "flex",
       color: theme.palette.background.main,
@@ -274,6 +275,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   ...autocompleteStyles,
                   width: "100%",
                   "& .MuiChip-root": {
+                    borderRadius: "4px",
                     "& .MuiChip-deleteIcon": {
                       display: "flex",
                     },
@@ -379,6 +381,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   ...autocompleteStyles,
                   width: "100%",
                   "& .MuiChip-root": {
+                    borderRadius: "4px",
                     "& .MuiChip-deleteIcon": {
                       display: "flex",
                     },
@@ -549,6 +552,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                   sx={{
                     ...autocompleteStyles,
                     "& .MuiChip-root": {
+                      borderRadius: "4px",
                       "& .MuiChip-deleteIcon": {
                         display:
                           riskValues.riskCategory.length === 1

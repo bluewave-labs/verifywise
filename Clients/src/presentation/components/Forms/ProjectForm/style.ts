@@ -43,6 +43,9 @@ export const teamMembersSxStyle = {
       borderWidth: "1px",
     },
   },
+  "& .MuiChip-root": {
+    borderRadius: "4px",
+  },
 };
 
 export const teamMembersSlotProps = {

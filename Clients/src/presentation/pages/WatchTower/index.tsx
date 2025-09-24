@@ -1,4 +1,4 @@
-import { Stack, useTheme, Box } from "@mui/material";
+import { Stack, Box } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { useState } from "react";
 import TabContext from "@mui/lab/TabContext";
@@ -7,9 +7,8 @@ import TabPanel from "@mui/lab/TabPanel";
 import { Tab } from "@mui/material";
 import WatchTowerEvents from "./Events";
 import WatchTowerLogs from "./Loggings";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import eventTrackerHelpContent from "../../helpers/event-tracker-help.html?raw";
 import PageHeader from "../../components/Layout/PageHeader";
 
 // Tab styles similar to Vendors page
@@ -31,7 +30,6 @@ const tabPanelStyle = {
 };
 
 const WatchTower = () => {
-  const theme = useTheme();
   const [value, setValue] = useState("1");
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
@@ -40,16 +38,43 @@ const WatchTower = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
+    <Stack className="vwhome" gap={"24px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={eventTrackerHelpContent}
-        pageTitle="Event Tracker"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Event tracker & audit logs"
+        description="Monitor system activities and maintain comprehensive audit trails"
+        whatItDoes="Track all **system events** and *user activities* across your **AI governance platform**. Capture detailed *audit logs* for **compliance monitoring**, *security analysis*, and **operational oversight**."
+        whyItMatters="**Audit trails** are essential for demonstrating *compliance*, investigating incidents, and maintaining **accountability**. They provide *forensic evidence* for security reviews and help identify patterns in **system usage** and potential anomalies."
+        quickActions={[
+          {
+            label: "View Recent Events",
+            description: "Monitor latest system activities and user actions",
+            primary: true
+          },
+          {
+            label: "Export Audit Logs",
+            description: "Generate compliance reports for specific time periods"
+          }
+        ]}
+        useCases={[
+          "**Compliance auditing** to demonstrate *control effectiveness* and **user activities**",
+          "**Security investigations** when analyzing potential incidents or *unauthorized access*"
+        ]}
+        keyFeatures={[
+          "**Real-time event monitoring** with *filtering* and **search capabilities**",
+          "**Immutable audit logs** with *timestamps* and **user attribution**",
+          "**Export functionality** for *compliance reporting* and **external analysis**"
+        ]}
+        tips={[
+          "Set up **alerts** for *critical events* like **permission changes** or data exports",
+          "**Regular log reviews** can help identify *unusual patterns* before they become issues",
+          "Archive older logs according to your **retention policy** while maintaining *accessibility*"
+        ]}
       />
     
-      <Stack gap={theme.spacing(10)} maxWidth={1400}>
+      <Stack gap={"24px"} maxWidth={1400}>
       <PageHeader
                title="Event Tracker"
                description="Event Tracker gives you a live window into VerifyWise. It records

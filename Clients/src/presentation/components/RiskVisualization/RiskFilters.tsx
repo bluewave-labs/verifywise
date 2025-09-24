@@ -294,9 +294,10 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
       }}
     >
       {/* Filter Header */}
-      <Box 
-        sx={{ 
-          p: 2, 
+      <Box
+        sx={{
+          p: 2,
+          pl: 6,
           borderBottom: expanded ? "1px solid #E5E7EB" : "none",
           display: "flex",
           justifyContent: "space-between",
@@ -358,10 +359,10 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
 
       {/* Filter Content */}
       <Collapse in={expanded}>
-        <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
+        <Box sx={{ p: 3, pl: 9, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
           {/* Dropdown Filters */}
           <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing="12px" sx={{ ml: "12px" }}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing="18px">
               <Select
                 id="risk-level-filter"
                 label="Risk Level"

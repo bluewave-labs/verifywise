@@ -462,7 +462,7 @@ const VWISO42001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Stack>
             <Typography fontSize={13} sx={{ marginBottom: "5px" }}>
@@ -497,6 +497,10 @@ const VWISO42001ClauseDrawerDialog = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -624,7 +628,7 @@ const VWISO42001ClauseDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -699,7 +703,7 @@ const VWISO42001ClauseDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"

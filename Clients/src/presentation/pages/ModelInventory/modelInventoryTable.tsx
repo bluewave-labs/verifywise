@@ -11,7 +11,6 @@ import {
   Stack,
   Typography,
   TableFooter,
-  Chip,
   Tooltip,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
@@ -32,9 +31,6 @@ import { getPaginationRowCount, setPaginationRowCount } from "../../../applicati
 import {
   statusBadgeStyle,
   securityAssessmentBadgeStyle,
-  capabilitiesChipContainerStyle,
-  capabilityChipStyle,
-  capabilityChipExtraStyle,
   tableRowHoverStyle,
   tableRowDeletingStyle,
   loadingContainerStyle,
@@ -71,11 +67,19 @@ interface ModelInventoryTableProps {
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const TooltipCell: React.FC<{ value: string | null | undefined }> = ({ value }) => (
-  <Tooltip title={value || "-"} arrow>
-    <span>{value || "-"}</span>
-  </Tooltip>
-);
+const TooltipCell: React.FC<{ value: string | null | undefined }> = ({ value }) => {
+  const displayValue = value || "-";
+  const shouldShowTooltip = displayValue.length > 24;
+
+  return shouldShowTooltip ? (
+    <Tooltip title={displayValue} arrow>
+      <span>{displayValue}</span>
+    </Tooltip>
+  ) : (
+    <span>{displayValue}</span>
+  );
+};
+
 
 const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({ status }) => {
   return <span style={statusBadgeStyle(status)}>{status}</span>;
@@ -91,29 +95,29 @@ const SecurityAssessmentBadge: React.FC<{ assessment: boolean }> = ({
   );
 };
 
-const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({
-  capabilities,
-}) => {
-  return (
-    <Stack direction="row" flexWrap="wrap" sx={capabilitiesChipContainerStyle}>
-      {capabilities.slice(0, 3).map((capability, index) => (
-        <Chip
-          key={index}
-          label={capability}
-          size="small"
-          sx={capabilityChipStyle}
-        />
-      ))}
-      {capabilities.length > 3 && (
-        <Chip
-          label={`+${capabilities.length - 3}`}
-          size="small"
-          sx={capabilityChipExtraStyle}
-        />
-      )}
-    </Stack>
-  );
-};
+// const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({
+//   capabilities,
+// }) => {
+//   return (
+//     <Stack direction="row" flexWrap="wrap" sx={capabilitiesChipContainerStyle}>
+//       {capabilities.slice(0, 3).map((capability, index) => (
+//         <Chip
+//           key={index}
+//           label={capability}
+//           size="small"
+//           sx={capabilityChipStyle}
+//         />
+//       ))}
+//       {capabilities.length > 3 && (
+//         <Chip
+//           label={`+${capabilities.length - 3}`}
+//           size="small"
+//           sx={capabilityChipExtraStyle}
+//         />
+//       )}
+//     </Stack>
+//   );
+// };
 
 const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   data,

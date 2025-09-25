@@ -18,7 +18,6 @@ import {
 } from "@mui/material";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import CloseIcon from "@mui/icons-material/Close";
-import SettingIcon from "../../assets/icons/setting.svg";
 import { useNavigate } from "react-router-dom";
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
@@ -361,37 +360,25 @@ export default function BiasAndFairnessModule() {
       )}
 
       <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4}>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Button
-            variant="contained"
-            startIcon={<AddCircleOutlineIcon />}
-            onClick={() => {
-              setDialogOpen(true);
-              setShowAdvancedSettings(false);
-            }}
-            sx={{
-              backgroundColor: "#13715B",
-              color: "white",
-              textTransform: "none",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              padding: "8px 20px",
-              borderRadius: "6px"
-            }}
-          >
-            New Evaluation
-          </Button>
-          <IconButton
-            onClick={() => console.log("Settings clicked")} // Placeholder for settings functionality
-            sx={{
-              "&:hover": { backgroundColor: "#f3f4f6" },
-              ml: 1
-            }}
-            title="Settings"
-          >
-            <img src={SettingIcon} alt="Settings" style={{ width: "20px", height: "20px" }} />
-          </IconButton>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={() => {
+            setDialogOpen(true);
+            setShowAdvancedSettings(false);
+          }}
+          sx={{
+            backgroundColor: "#13715B",
+            color: "white",
+            textTransform: "none",
+            fontSize: "0.875rem",
+            fontWeight: 500,
+            padding: "8px 20px",
+            borderRadius: "6px"
+          }}
+        >
+          New Evaluation
+        </Button>
       </Box>
 
       {/* Evaluation Results Table */}

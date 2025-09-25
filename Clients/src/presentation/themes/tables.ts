@@ -54,6 +54,19 @@ export const tableStyles = {
           width: "120px",
         },
       },
+      button: {
+        fontSize: fontSizes.medium,
+        padding: "2px 8px",
+        textTransform: "none",
+        borderRadius: "4px",
+        "&:hover": {
+          opacity: 0.9,
+          backgroundColor: "#13715B",
+          color: "#fff",
+          border: "1px solid #13715B",
+          cursor: "pointer",
+        },
+      }
     },
   },
 };

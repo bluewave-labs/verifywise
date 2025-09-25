@@ -17,7 +17,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { ReactComponent as CheckCircleIcon } from "../../assets/icons/check-circle-white.svg";
 import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import { ReactComponent as BlueInfoIcon } from "../../assets/icons/info-circle-blue.svg";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -818,7 +818,7 @@ export default function BiasAndFairnessResultsPage() {
                 variant="outlined" 
                 size="small" 
                 onClick={handleCopyJSON}
-                startIcon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+                startIcon={<CheckCircleIcon />}
               >
                 Copy
               </Button>

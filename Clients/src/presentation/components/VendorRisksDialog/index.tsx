@@ -19,7 +19,7 @@ import { useState, useEffect } from "react";
 import React from "react";
 import { ClearIcon } from "@mui/x-date-pickers/icons";
 import { getSeverityColorByText, getRiskChipStyle } from "../RiskLevel/constants";
-import { getVendorRisksByVendorId, getVendorRiskById } from "../../../application/repository/vendorRisk.repository";
+import { getVendorRisksByVendorId } from "../../../application/repository/vendorRisk.repository";
 import AddNewRisk from "../Modals/NewRisk";
 import { useVendors } from "../../../application/hooks/useVendors";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -112,11 +112,11 @@ const VendorRisksDialog: React.FC<VendorRisksDialogProps> = ({
     }
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 

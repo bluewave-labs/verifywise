@@ -142,6 +142,15 @@ class ArtifactsConfig(BaseModel):
     )
 
 
+class VisualizationItem(BaseModel):
+    """Specification for a single visualization to generate."""
+
+    type: str = Field(..., description="Plot type identifier")
+    attribute: Optional[str] = Field(
+        default=None, description="Protected attribute column for the plot"
+    )
+
+
 class PromptingDefaults(BaseModel):
     """Defaults applied across formatters unless overridden by formatter-specific config."""
 
@@ -205,6 +214,10 @@ class Config(BaseModel):
     metrics: MetricsConfig
     post_processing: PostProcessingConfig
     artifacts: ArtifactsConfig
+    visualizations: List["VisualizationItem"] = Field(
+        default_factory=list,
+        description="List of visualization specifications to generate",
+    )
 
 
 class ConfigManager:
@@ -292,6 +305,10 @@ class ConfigManager:
             PromptingConfig: The prompt input and formatter configuration.
         """
         return self.config.prompting
+
+    def get_visualizations(self) -> List["VisualizationItem"]:
+        """Get visualization specifications from configuration."""
+        return self.config.visualizations
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

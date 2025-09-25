@@ -10,8 +10,8 @@ dataset:
     - "race"
   target_column: "income"
   sampling:
-    enabled: false
-    n_samples: 500 # Number of samples to use for quick experiments
+    enabled: true
+    n_samples: 20 # Number of samples to use for quick experiments
     random_seed: 42
 
 # Post-processing Configuration
@@ -26,7 +26,7 @@ post_processing:
       unprivileged: ["Female"]
     race:
       privileged: ["White"]
-      unprivileged: ["Black", "Other"]
+      unprivileged: ['Black', 'Asian-Pac-Islander', 'Amer-Indian-Eskimo', 'Other']
 
 # Model Configuration
 model:
@@ -45,7 +45,7 @@ model:
 
 # Prompting Configuration
 prompting:
-  formatter: "openai-chat-json"   # <- change only this to switch
+  formatter: "tinyllama-chat"   # <- change only this to switch
   defaults:                       # optional, shared across formatters
     instruction: "Given the following demographic information about a person:"
     system_prompt: null
@@ -64,8 +64,12 @@ metrics:
     enabled: true
     metrics:
       - "demographic_parity"
-      # - "equalized_odds"
-      #- "balance_negative_class"
+      - "equalized_odds"
+      - "equalized_opportunity"
+      - "predictive_equality"
+      - "predictive_parity"
+      - "conditional_use_accuracy_equality"
+      - "balance_negative_class"
 
   # Performance metrics
   performance:
@@ -75,5 +79,10 @@ metrics:
       - "precision"
 
 artifacts:
-  inference_results_path: "artifacts/inference_results.csv"
+  inference_results_path: "artifacts/inference_results_new.csv"
   postprocessed_results_path: "artifacts/base_test_metrics.csv"
+
+# Visualizations Configuration
+visualizations:
+  - type: "demographic_parity_bar"
+    attribute: "sex"

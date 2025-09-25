@@ -11,10 +11,14 @@ import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/style";
 import { ReactComponent as ExpandMoreIcon } from "../../../assets/icons/expand-down.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { updateSlackIntegration } from "../../../../application/repository/slack.integration.repository";
+import {
+  sendSlackMessage,
+  updateSlackIntegration,
+} from "../../../../application/repository/slack.integration.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useSlackIntegrations, {
   SlackRoutingType,
+  SlackNotificationRoutingType,
 } from "../../../../application/hooks/useSlackIntegrations";
 
 type IntegrationList = { channel: string; teamName: string; id: number };
@@ -102,12 +106,33 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
     }
   };
 
-  const NOTIFICATIONS_TYPES = [
-    "Membership and roles",
-    "Policy reminders and status",
-    "Evidence and task alerts",
-    "Control or policy changes",
-  ];
+  const handleSendTestNotification = async (
+    type: SlackNotificationRoutingType,
+  ) => {
+    try {
+      const ids =
+        routingData.find((data) => data.routingType === type)?.id ?? [];
+      await Promise.all(
+        ids.map((id: number) =>
+          sendSlackMessage({
+            id,
+          }),
+        ),
+      );
+
+      showAlert(
+        "success",
+        "Success",
+        "Test message sent successfully to the Slack channel.",
+      );
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Error sending test message to the Slack channel.: ${error}`,
+      );
+    }
+  };
 
   return (
     <Stack
@@ -117,7 +142,7 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
         paddingTop: theme.spacing(12),
       }}
     >
-      {NOTIFICATIONS_TYPES.map((type) => (
+      {Object.values(SlackNotificationRoutingType).map((type) => (
         <Stack
           key={type}
           gap={2}
@@ -256,10 +281,14 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
             <Box>
               <CustomizableButton
                 variant="outlined"
-                onClick={() => {}}
+                onClick={() => handleSendTestNotification(type)}
                 size="medium"
                 text="Send Test"
                 sx={viewProjectButtonStyle}
+                isDisabled={
+                  routingData.filter((data) => data.routingType === type)
+                    .length === 0
+                }
               />
             </Box>
           </Stack>

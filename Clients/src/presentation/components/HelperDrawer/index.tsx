@@ -6,7 +6,7 @@ import {
   Stack,
   IconButton,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import {ReactComponent as CloseIcon} from "../../assets/icons/close-grey.svg"
 
 // Simple markdown parser for **bold** and *italic*
 const parseMarkdown = (text: string) => {

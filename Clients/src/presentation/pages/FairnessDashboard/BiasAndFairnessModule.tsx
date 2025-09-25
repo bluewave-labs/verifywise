@@ -17,7 +17,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
-import CloseIcon from "@mui/icons-material/Close";
+import {ReactComponent as CloseIcon} from "../../assets/icons/close-grey.svg"
 import { useNavigate } from "react-router-dom";
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";

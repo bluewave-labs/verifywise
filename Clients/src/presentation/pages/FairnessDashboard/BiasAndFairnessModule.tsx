@@ -109,7 +109,6 @@ export default function BiasAndFairnessModule() {
   const loadEvaluations = async () => {
     try {
       const data = await biasAndFairnessService.getAllBiasFairnessEvaluations();
-      console.log("Loaded evaluations:", data);
       setEvaluations(data);
       
       // Check for any pending/running evaluations and poll their status
@@ -118,7 +117,6 @@ export default function BiasAndFairnessModule() {
       );
       
       if (pendingEvaluations.length > 0) {
-        console.log(`Found ${pendingEvaluations.length} pending/running evaluations`);
         // Poll status for pending evaluations
         pendingEvaluations.forEach(evaluation => {
           if (evaluation.eval_id) {
@@ -127,7 +125,6 @@ export default function BiasAndFairnessModule() {
         });
       }
     } catch (error) {
-      console.error("Failed to load evaluations:", error);
       setError("Failed to load evaluations. Please refresh the page.");
       // For now, use empty array if API fails
       setEvaluations([]);
@@ -255,7 +252,6 @@ export default function BiasAndFairnessModule() {
       };
 
       // Start the evaluation with the new API
-      console.log("apiPayload", apiPayload);
       const response = await biasAndFairnessService.createConfigAndEvaluate(apiPayload);
       
       setSuccess("Evaluation started successfully!");
@@ -270,7 +266,6 @@ export default function BiasAndFairnessModule() {
         pollEvaluationStatus(response.eval_id);
       }
     } catch (error) {
-      console.error("Evaluation error:", error);
       setError("Failed to start evaluation. Please try again.");
     } finally {
       setLoading(false);
@@ -284,7 +279,6 @@ export default function BiasAndFairnessModule() {
       // Reload evaluations to get updated status
       await loadEvaluations();
     } catch (error) {
-      console.error("Error polling status:", error);
     }
   };
 
@@ -315,27 +309,22 @@ export default function BiasAndFairnessModule() {
 
   const handleRemoveModel = async (id: string) => {
     try {
-      console.log("Deleting evaluation with ID:", id);
       
       // Optimistically remove the item from the local state for immediate UI feedback
       setEvaluations((prevEvaluations) => {
         const newEvaluations = prevEvaluations.filter((evaluation) => evaluation.eval_id !== id);
-        console.log("Optimistic update: removed evaluation", id, "New evaluations length:", newEvaluations.length);
         return newEvaluations;
       });
 
       // Perform the actual delete operation
       await biasAndFairnessService.deleteBiasFairnessEvaluation(id);
-      console.log("Delete API call successful");
 
       // Fetch fresh data to ensure consistency with server
       await loadEvaluations();
-      console.log("Fresh data fetched, UI updated");
 
       setSuccess("Evaluation deleted successfully!");
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      console.error("Failed to delete evaluation:", error);
       
       // If delete failed, revert the optimistic update by fetching fresh data
       await loadEvaluations();

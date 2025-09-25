@@ -284,6 +284,18 @@ const VWProjectRisksTableBody = ({
                   type: "control",
                 })) || []
               }
+              annexControls_27001={
+                showMitigationProjectRisk?.annexControls_27001?.map((item) => ({
+                  ...item,
+                  type: "annexcontrol_27001",
+                })) || []
+              }
+              subClauses_27001={
+                showMitigationProjectRisk?.subClauses_27001?.map((item) => ({
+                  ...item,
+                  type: "annexsubclause_27001",
+                })) || []
+              }
               onClose={() => {
                 setShowMitigations(false);
                 setShowMitigationProjectRisk(null);

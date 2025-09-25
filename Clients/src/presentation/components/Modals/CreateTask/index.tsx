@@ -19,7 +19,7 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
@@ -297,7 +297,7 @@ const CreateTask: FC<CreateTaskProps> = ({
           width: "fit-content",
           maxWidth: "760px",
           maxHeight: "90vh",
-          backgroundColor: theme.palette.background.main,
+          backgroundColor: theme.palette.background.modal,
           borderRadius: theme.shape.borderRadius,
           boxShadow: 24,
           padding: theme.spacing(10),
@@ -422,7 +422,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         : "No options"
                     }
                     filterSelectedOptions
-                    popupIcon={<KeyboardArrowDown />}
+                    popupIcon={<GreyDownArrowIcon />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -451,6 +451,9 @@ const CreateTask: FC<CreateTaskProps> = ({
                           borderColor: "#888",
                           borderWidth: "1px",
                         },
+                      },
+                      "& .MuiChip-root": {
+                        borderRadius: theme.shape.borderRadius,
                       },
                     }}
                     slotProps={{
@@ -527,7 +530,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                       }}
                       getOptionLabel={(option: string) => option}
                       filterSelectedOptions
-                      popupIcon={<KeyboardArrowDown />}
+                      popupIcon={<GreyDownArrowIcon />}
                       renderInput={(params) => (
                         <TextField
                           {...params}

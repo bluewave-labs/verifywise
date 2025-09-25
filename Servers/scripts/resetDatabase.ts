@@ -3,7 +3,7 @@ import { createNewUserQuery } from "../utils/user.utils";
 import bcrypt from "bcrypt";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { insertMockData } from "../driver/autoDriver.driver";
+import { insertMockData } from "../infrastructure.layer/driver/autoDriver.driver";
 import { QueryTypes } from "sequelize";
 import { UserModel } from "../domain.layer/models/user/user.model";
 
@@ -72,6 +72,7 @@ async function resetDatabase() {
         "Admin",
         "verifywise@email.com",
         "MyJH4rTm!@.45L0wm",
+        1,
         1
       ),
       transaction,
@@ -81,7 +82,7 @@ async function resetDatabase() {
     console.log("Default admin user created.");
 
     // Insert mock data (awaiting it to complete)
-    await insertMockData(admin.id);
+    await insertMockData("public", 1, admin.id);
     console.log("Mock data inserted.");
 
     // Fetch the first project to get its ID

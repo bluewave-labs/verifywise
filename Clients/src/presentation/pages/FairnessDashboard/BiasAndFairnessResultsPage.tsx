@@ -53,20 +53,6 @@ const COLORS = {
   BACKGROUND_HOVER: '#f3f4f6',
 } as const;
 
-// Color palette for different metrics
-const METRIC_COLORS = [
-  '#3b82f6', // Blue
-  '#10b981', // Green
-  '#f59e0b', // Orange
-  '#ef4444', // Red
-  '#8b5cf6', // Purple
-  '#06b6d4', // Cyan
-  '#84cc16', // Lime
-  '#f97316', // Orange-red
-  '#ec4899', // Pink
-  '#14b8a6', // Teal
-] as const;
-
 // Reusable styles
 const STYLES = {
   card: {
@@ -318,29 +304,6 @@ export default function BiasAndFairnessResultsPage() {
   const handleMetricInfoClick = useCallback((metricName: string) => {
     setShowMetricTooltip(showMetricTooltip === metricName ? null : metricName);
   }, [showMetricTooltip]);
-
-  // Get unique metric names for charting
-  const getUniqueMetricNames = useCallback(() => {
-    const names = new Set<string>();
-    
-    if (metrics?.results?.fairness_metrics) {
-      Object.keys(metrics.results.fairness_metrics).forEach(key => {
-        const parts = key.split('_');
-        if (parts.length > 1) {
-          names.add(parts.slice(0, -1).join('_'));
-        }
-      });
-    }
-    
-    return Array.from(names);
-  }, [metrics]);
-
-  const uniqueMetrics = useMemo(() => getUniqueMetricNames(), [getUniqueMetricNames]);
-
-  // Helper function to get consistent colors for metrics
-  const getMetricColors = useCallback((metricNames: string[]) => {
-    return metricNames.map((metric, index) => METRIC_COLORS[index % METRIC_COLORS.length]);
-  }, []);
 
   // Get currently selected metrics for descriptions
   const getSelectedMetricsForDescriptions = useCallback(() => {

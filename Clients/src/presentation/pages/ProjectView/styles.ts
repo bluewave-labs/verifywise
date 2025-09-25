@@ -85,11 +85,15 @@ export const tabContainerStyle: SxProps<Theme> = {
 };
 
 export const tabListContainerStyle: SxProps<Theme> = {
-  borderBottom: 1,
-  borderColor: "divider",
+  // borderBottom: 1,
+  // borderColor: "divider",
 };
 
 export const tabListStyle: SxProps<Theme> = {
   minHeight: "20px",
+  borderBottom: "none",
   "& .MuiTabs-flexContainer": { columnGap: "34px" },
+  "& .MuiTabs-indicator": {
+    backgroundColor: "#13715B",
+  },
 };

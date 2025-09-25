@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -137,7 +137,7 @@ export default function FairnessResultsPage() {
                 sx={{ fontSize: 13 }}
               >
                 <IconButton size="small" sx={{ ml: 1 }}>
-                  <InfoOutlinedIcon fontSize="small" />
+                  <GreyCircleInfoIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -186,7 +186,7 @@ export default function FairnessResultsPage() {
                 sx={{ fontSize: 13 }}
               >
                 <IconButton size="small" sx={{ ml: 1 }}>
-                  <InfoOutlinedIcon fontSize="small" />
+                  <GreyCircleInfoIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -235,7 +235,7 @@ export default function FairnessResultsPage() {
                   sx={{ fontSize: 13 }}
                 >
                   <IconButton size="small" sx={{ ml: 1 }}>
-                    <InfoOutlinedIcon fontSize="small" />
+                    <GreyCircleInfoIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </Box>

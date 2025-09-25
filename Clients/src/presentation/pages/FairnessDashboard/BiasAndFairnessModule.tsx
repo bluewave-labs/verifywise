@@ -16,7 +16,7 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import CloseIcon from "@mui/icons-material/Close";
 import SettingIcon from "../../assets/icons/setting.svg";
 import { useNavigate } from "react-router-dom";

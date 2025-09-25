@@ -6,8 +6,7 @@ const ReportLists = lazy(() => import("./Reports"));
 const ReportingHeader = lazy(
   () => import("../../components/Reporting/ReportOverviewHeader")
 );
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
-import reportingHelpContent from "../../../presentation/helpers/reporting-help.html?raw";
+import HelperDrawer from "../../components/HelperDrawer";
 
 const Reporting = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
@@ -19,13 +18,40 @@ const Reporting = () => {
   }, []);
 
   return (
-    <Stack className="vwhome" gap={"20px"}>
-     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }} > <PageBreadcrumbs /> </Stack>
+    <Stack className="vwhome" gap={"24px"}>
+    <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={reportingHelpContent}
-        pageTitle="Reporting Dashboard"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Reporting & analytics"
+        description="Generate comprehensive governance reports and compliance documentation"
+        whatItDoes="Create **automated reports** for *governance activities*, **compliance assessments**, and *audit documentation*. Generate **executive summaries**, *detailed compliance reports*, and **risk assessments** from your governance data."
+        whyItMatters="**Reporting** is essential for demonstrating *compliance*, communicating **governance status** to stakeholders, and supporting *audit requirements*. **Well-structured reports** provide evidence of *due diligence* and **continuous improvement** in your AI governance program."
+        quickActions={[
+          {
+            label: "Generate Report",
+            description: "Create a new compliance or governance report",
+            primary: true
+          },
+          {
+            label: "View Reports",
+            description: "Access previously generated reports and templates"
+          }
+        ]}
+        useCases={[
+          "**Quarterly compliance reports** for *board* and **regulatory submissions**",
+          "**Audit documentation packages** with *evidence* and **control attestations**"
+        ]}
+        keyFeatures={[
+          "**Automated report generation** from *governance data* with **customizable templates**",
+          "**Multiple export formats** for different *stakeholder needs*",
+          "**Historical report archive** for *trend analysis* and **audit trails**"
+        ]}
+        tips={[
+          "**Schedule regular reports** to maintain *consistent stakeholder communication*",
+          "Use **report templates** to ensure *consistency* across different reporting periods",
+          "**Archive all generated reports** for *audit trail* and **historical reference**"
+        ]}
       />
 
       <Suspense fallback={"loading..."}>

@@ -128,10 +128,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".projectrisks
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".risks
     (
       id serial NOT NULL,
-      project_id integer NOT NULL,
       risk_name character varying(255) NOT NULL,
       risk_owner integer,
       ai_lifecycle_phase enum_projectrisks_ai_lifecycle_phase NOT NULL,
@@ -159,9 +158,6 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       is_demo boolean NOT NULL DEFAULT false,
       created_at timestamp without time zone NOT NULL DEFAULT now(),
       CONSTRAINT projectrisks_pkey PRIMARY KEY (id),
-      CONSTRAINT projectrisks_project_id_fkey FOREIGN KEY (project_id)
-        REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT projectrisks_risk_owner_fkey FOREIGN KEY (risk_owner)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL,
@@ -169,6 +165,22 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL
     );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".projects_risks (
+      risk_id INTEGER NOT NULL,
+      project_id INTEGER NOT NULL,
+      CONSTRAINT projects_risks_pkey PRIMARY KEY (risk_id, project_id),
+      CONSTRAINT projects_risks_risk_id_fkey FOREIGN KEY (risk_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      CONSTRAINT projects_risks_project_id_fkey FOREIGN KEY (project_id) REFERENCES "${tenantHash}".projects(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".frameworks_risks (
+      risk_id INTEGER NOT NULL,
+      framework_id INTEGER NOT NULL,
+        CONSTRAINT frameworks_risks_pkey PRIMARY KEY (risk_id, framework_id),
+        CONSTRAINT frameworks_risks_risk_id_fkey FOREIGN KEY (risk_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT frameworks_risks_framework_id_fkey FOREIGN KEY (framework_id) REFERENCES public.frameworks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      );`, { transaction });
 
     await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".files
     (
@@ -416,14 +428,14 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       projects_risks_id INTEGER NOT NULL,
       PRIMARY KEY (control_id, projects_risks_id),
       FOREIGN KEY (control_id) REFERENCES "${tenantHash}".controls_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
-      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
     );`, { transaction });
     await sequelize.query(`CREATE TABLE "${tenantHash}".answers_eu__risks (
       answer_id INTEGER NOT NULL,
       projects_risks_id INTEGER NOT NULL,
       PRIMARY KEY (answer_id, projects_risks_id),
       FOREIGN KEY (answer_id) REFERENCES "${tenantHash}".answers_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
       );`, { transaction });
 
     await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".annexcategories_iso
@@ -470,7 +482,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES "${tenantHash}".annexcategories_iso (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT annexcategories_iso__risks_projects_risks_id_fkey FOREIGN KEY (projects_risks_id)
-        REFERENCES "${tenantHash}".projectrisks (id) MATCH SIMPLE
+        REFERENCES "${tenantHash}".risks (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
@@ -479,7 +491,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       projects_risks_id INTEGER NOT NULL,
       PRIMARY KEY (subclause_id, projects_risks_id),
       FOREIGN KEY (subclause_id) REFERENCES "${tenantHash}".subclauses_iso(id) ON DELETE CASCADE ON UPDATE CASCADE,
-      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
     );`, { transaction });
 
     await Promise.all([
@@ -591,7 +603,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         subclause_id INT,
         projects_risks_id INT PRIMARY KEY,
         FOREIGN KEY (subclause_id) REFERENCES "${tenantHash}".subclauses_iso27001(id) ON DELETE CASCADE,
-        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE
       );`, { transaction });
 
     await sequelize.query(
@@ -621,7 +633,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         annexcontrol_id INT,
         projects_risks_id INT PRIMARY KEY,
         FOREIGN KEY (annexcontrol_id) REFERENCES "${tenantHash}".annexcontrols_iso27001(id) ON DELETE CASCADE,
-        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE
       );`, { transaction });
 
     await sequelize.query(

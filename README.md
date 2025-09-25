@@ -1,5 +1,4 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
-![](https://img.shields.io/github/license/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/repo-size/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/commit-activity/m/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/last-commit/bluewave-labs/verifywise)

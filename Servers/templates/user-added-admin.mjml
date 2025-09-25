@@ -7,8 +7,8 @@
       <mj-section padding="0px"></mj-section>
     </mj-attributes>
   </mj-head>
-  <mj-body>
-    <mj-section text-align="left">
+  <mj-body width="100%">
+    <mj-section text-align="left" padding="0px">
       <mj-column width="100%" vertical-align="top">
         <mj-text align="left">
           <h2 style="color: #2c3e50; margin-bottom: 20px;">You are now a project admin</h2>

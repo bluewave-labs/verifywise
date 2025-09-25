@@ -9,8 +9,8 @@
     </mj-attributes>
   </mj-head>
   <mj-body>
-    <mj-section text-align="left">
-      <mj-column width="100%" vertical-align="top">
+  <mj-body width="100%">
+    <mj-section text-align="left" padding="0px">
         <mj-text align="left">
           <h2 style="color: #2c3e50; margin-bottom: 20px;">{{project_name}} is created in VerifyWise</h2>
           <p>Hi {{admin_name}},</p>

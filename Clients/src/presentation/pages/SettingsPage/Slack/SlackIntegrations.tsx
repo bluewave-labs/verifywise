@@ -76,10 +76,6 @@ const SlackIntegrations = ({
     try {
       const msg = await sendSlackMessage({
         id,
-        body: {
-          title: "Welcome to Verifywise",
-          message: "This is a test message from VerifyWise.",
-        },
       });
       if (msg.data.success) {
         showAlert(

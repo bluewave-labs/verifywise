@@ -56,13 +56,14 @@ export async function updateSlackIntegration({
   return response;
 }
 
-export async function sendSlackMessage({
-  id,
-  body,
-}: {
-  id: number;
-  body: { title: string; message: string };
-}): Promise<any> {
-  const response = await apiServices.post(`/slackWebhooks/${id}/send`, body);
+export async function sendSlackMessage({ id }: { id: number }): Promise<any> {
+  const messageBody = {
+    title: "Welcome to Verifywise",
+    message: "This is a test message from VerifyWise.",
+  };
+  const response = await apiServices.post(
+    `/slackWebhooks/${id}/send`,
+    messageBody,
+  );
   return response.data;
 }

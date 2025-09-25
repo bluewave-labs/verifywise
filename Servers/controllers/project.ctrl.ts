@@ -278,7 +278,7 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         sendUserAddedAdminNotification({
           projectId: projectId,
           projectName: project.project_title,
-          adminId: currentProject.owner, // Person who made the change
+          adminId: req.userId!,          // Actor who made the change
           userId: updatedProject.owner!  // New admin receiving notification
         }).catch(async (emailError) => {
           await logFailure({

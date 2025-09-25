@@ -17,12 +17,16 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
   onReportGenerated,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedReportType, setSelectedReportType] = useState<'project' | 'organization' | null>(null);
   const { data: projects } = useProjects();
   const isDisabled = projects?.length && projects?.length > 0 ? false : true;
 
   useModalKeyHandling({
     isOpen: isModalOpen,
-    onClose: () => setIsModalOpen(false),
+    onClose: () => {
+      setIsModalOpen(false);
+      setSelectedReportType(null);
+    },
   });
 
   return (
@@ -36,7 +40,10 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
           }}
           variant="contained"
           text="Generate Project Report"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedReportType('project');
+            setIsModalOpen(true);
+          }}
           isDisabled={isDisabled}
         />
 
@@ -48,7 +55,10 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
           }}
           variant="contained"
           text="Generate Organization Report"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedReportType('organization');
+            setIsModalOpen(true);
+          }}
           isDisabled={isDisabled}
         />
         {/* Render generate report status */}
@@ -61,13 +71,18 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
         onClose={(_event, reason) => {
           if (reason !== 'backdropClick') {
             setIsModalOpen(false);
+            setSelectedReportType(null);
           }
         }}
       >
         <Suspense fallback={"loading..."}>
           <GenerateReportPopup
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedReportType(null);
+            }}
             onReportGenerated={onReportGenerated}
+            reportType={selectedReportType}
           />
         </Suspense>
       </Dialog>

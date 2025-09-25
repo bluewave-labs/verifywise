@@ -24,6 +24,7 @@ interface FormValues {
   project: number;
   framework: number;
   projectFrameworkId: number;
+  reportType?: 'project' | 'organization' | null;
 }
 
 interface FormErrors {
@@ -59,9 +60,10 @@ const initialFrameworkValue: FrameworkValues = {
 
 interface ReportProps {
   onGenerate: (formValues: any) => void;
+  reportType: 'project' | 'organization' | null;
 }
 
-const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
+const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>({
     ...initialState,
@@ -132,6 +134,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     const newValues = {
       ...values,
       projectFrameworkId: projectFrameworkId,
+      reportType: reportType,
     };
     onGenerate(newValues);
   };
@@ -143,36 +146,69 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   return (
     <Stack sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Stack>
-        <Typography sx={styles.titleText}>Generate Project Report</Typography>
-        <Typography sx={styles.baseText}>
-          Pick the project you want to generate a report for.
+        <Typography sx={styles.titleText}>
+          Generate {reportType === 'organization' ? 'Organization' : 'Project'} Report
         </Typography>
-        <Stack sx={{ paddingTop: theme.spacing(8) }}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="project-input"
-              label="Project"
-              placeholder="Select project"
-              value={values.project}
-              onChange={handleOnSelectChange("project")}
+        <Typography sx={styles.baseText}>
+          {reportType === 'organization' 
+            ? 'Generate a comprehensive report for your entire organization.'
+            : 'Pick the project you want to generate a report for.'
+          }
+        </Typography>
+        {reportType === 'project' && (
+          <Stack sx={{ paddingTop: theme.spacing(8) }}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Select
+                id="project-input"
+                label="Project"
+                placeholder="Select project"
+                value={values.project}
+                onChange={handleOnSelectChange("project")}
+                items={
+                  euActProjects?.map(
+                    (project: { id: any; project_title: any }) => ({
+                      _id: project.id,
+                      name: project.project_title,
+                    })
+                  ) || []
+                }
+                sx={{
+                  width: "100%",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                error={errors.project}
+                isRequired
+              />
+            </Suspense>
+          </Stack>
+        )}
+
+        {reportType === 'organization' && (
+          <Stack sx={{ paddingTop: theme.spacing(8) }}>
+            <Suspense fallback={<div>Loading...</div>}>
+            <Select 
+              id="framework-input"
+              label="Framework"
+              placeholder="Select Framework"
+              value={values.framework}
+              onChange={handleOnSelectChange("framework")}
               items={
-                euActProjects?.map(
-                  (project: { id: any; project_title: any }) => ({
-                    _id: project.id,
-                    name: project.project_title,
-                  })
-                ) || []
+                projectFrameworks?.map((framework) => ({
+                  _id: framework.framework_id,
+                  name: framework.name,
+                  projectFrameworkId: framework.project_framework_id,
+                })) || []
               }
               sx={{
                 width: "100%",
                 backgroundColor: theme.palette.background.main,
               }}
-              error={errors.project}
+              error={errors.framework}
               isRequired
             />
-          </Suspense>
-        </Stack>
-
+            </Suspense>
+          </Stack>
+        )}
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>

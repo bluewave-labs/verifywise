@@ -545,16 +545,16 @@ export const deleteProjectByIdQuery = async (
     }
   );
   const dependantEntities = [
-    {
-      vendors: {
-        foreignKey: "project_id",
-        model: VendorModel,
-        vendorrisks: {
-          foreignKey: "vendor_id",
-          model: VendorRiskModel,
-        },
-      },
-    },
+    // {
+    //   vendors: {
+    //     foreignKey: "project_id",
+    //     model: VendorModel,
+    //     vendorrisks: {
+    //       foreignKey: "vendor_id",
+    //       model: VendorRiskModel,
+    //     },
+    //   },
+    // },
     { files: { foreignKey: "project_id", model: FileModel } },
     { projects_risks: { foreignKey: "project_id", model: RiskModel } },
     {

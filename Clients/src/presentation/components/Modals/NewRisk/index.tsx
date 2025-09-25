@@ -165,11 +165,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
         ...prevValues,
         risk_description: existingRisk.risk_description,
         impact_description: existingRisk.impact_description,
-        action_owner: String(
-          formattedUsers?.find(
-            (user) => String(user._id) === String(existingRisk.action_owner)
-          )?._id || ""
-        ),
+        action_owner: String(existingRisk.action_owner) || "",
         risk_severity: Number(
           RISK_SEVERITY_OPTIONS.find(
             (r) => r.name === existingRisk.risk_severity

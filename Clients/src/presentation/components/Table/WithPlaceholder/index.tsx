@@ -10,15 +10,17 @@ import {
   Stack,
   Typography,
   TableFooter,
+  Box,
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
+import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
-import RiskChip from "../../RiskLevel/RiskChip";
+import VendorRisksDialog from "../../VendorRisksDialog";
 import { VendorDetails } from "../../../pages/Vendors";
 import { User } from "../../../../domain/types/User";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -47,12 +49,14 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   onEdit,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useAuth();   
+  const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
     null
   );
+  const [showVendorRisks, setShowVendorRisks] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState<{ id: number; name: string } | null>(null);
   const formattedUsers = users?.map((user:any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -76,6 +80,16 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
 
   const handleDropdownClose = useCallback(() => {
     setDropdownAnchor(null);
+  }, []);
+
+  const openVendorRisksDialog = useCallback((vendorId: number, vendorName: string) => {
+    setSelectedVendor({ id: vendorId, name: vendorName });
+    setShowVendorRisks(true);
+  }, []);
+
+  const closeVendorRisksDialog = useCallback(() => {
+    setShowVendorRisks(false);
+    setSelectedVendor(null);
   }, []);
 
   const getRange = useMemo(() => {
@@ -140,14 +154,27 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 </TableCell>
                 <TableCell sx={cellStyle}>
                   {
-                    formattedUsers?.find(
-                      (user:any) => user._id === row.assignee
-                    )?.name
+                    row.assignee
+                      ? formattedUsers?.find(
+                          (user:any) => user._id === row.assignee
+                        )?.name || "Unassigned"
+                      : "Unassigned"
                   }
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.review_status}</TableCell>
                 <TableCell sx={cellStyle}>
-                  <RiskChip label={row.risk_status} />
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {/* <RiskChip label={row.risk_status} /> */}
+                    <CustomizableButton
+                      sx={singleTheme.tableStyles.primary.body.button}
+                      variant="contained"
+                      text="View risks"
+                      onClick={(e: React.MouseEvent<HTMLElement>) => {
+                        e.stopPropagation();
+                        openVendorRisksDialog(row.id, row.vendor_name);
+                      }}
+                    />
+                  </Box>
                 </TableCell>
                 <TableCell sx={cellStyle}>
                   {row.review_date
@@ -185,6 +212,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
       cellStyle,
       dropdownAnchor,
       handleDropdownClose,
+      openVendorRisksDialog,
     ]
   );
 
@@ -301,6 +329,16 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
             </TableFooter>
           </Table>
         </TableContainer>
+      )}
+
+      {/* Vendor Risks Dialog */}
+      {showVendorRisks && selectedVendor && (
+        <VendorRisksDialog
+          open={showVendorRisks}
+          onClose={closeVendorRisksDialog}
+          vendorId={selectedVendor.id}
+          vendorName={selectedVendor.name}
+        />
       )}
     </>
   );

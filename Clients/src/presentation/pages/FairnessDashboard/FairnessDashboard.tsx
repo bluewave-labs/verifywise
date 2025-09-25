@@ -341,7 +341,7 @@ export default function FairnessDashboard() {
               sx={{ textTransform: "none !important" }}
             />
             <Tab
-              label="Bias & Fairness Module"
+              label="Bias & Fairness Module (beta)"
               value="biasModule"
               disableRipple
               sx={{ textTransform: "none !important" }}

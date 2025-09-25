@@ -1,13 +1,8 @@
-import Queue from "bull";
-import redis from "redis";
 import logger from "../utils/logger/fileLogger";
 import { decryptText } from "../tools/createSecureValue";
 import { WebClient } from "@slack/web-api";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
-
-let redisClient;
-let notificationQueue: any;
-const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
+import { getSlackWebhookByIdAndRoutingType } from "../utils/slackWebhook.utils";
 
 const getClient = (accessToken: string, iv: string) => {
   const { data, success, error } = decryptText({ iv: iv, value: accessToken });
@@ -15,6 +10,25 @@ const getClient = (accessToken: string, iv: string) => {
     throw new Error(`Failed to decrypt Slack access token: ${error}`);
   }
   return new WebClient(data);
+};
+
+export const sendSlackNotification = async (
+  params: { userId: number; routingType: string },
+  message: any,
+) => {
+  try {
+    const { userId, routingType } = params;
+    const slackIntegrations: ISlackWebhook[] =
+      await getSlackWebhookByIdAndRoutingType(userId, routingType);
+    await Promise.all(
+      slackIntegrations.map((integration) =>
+        sendImmediateMessage(integration, message),
+      ),
+    );
+  } catch (error) {
+    logger.error("Error sending Slack Notification:", error);
+    throw error;
+  }
 };
 
 export const sendImmediateMessage = async (
@@ -53,20 +67,20 @@ export const sendImmediateMessage = async (
 
 export const formatSlackMessage = (data: any) => {
   return {
-    text: `🚨 *Immediate Alert from VerifyWise*`,
+    text: `A message from VerifyWise`,
     blocks: [
       {
         type: "header",
         text: {
           type: "plain_text",
-          text: "🚨 Immediate Alert",
+          text: `${data.title}`,
         },
       },
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*${data.title}*\n${data.message}`,
+          text: `${data.message}`,
         },
       },
       {

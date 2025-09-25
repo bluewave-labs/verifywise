@@ -32,6 +32,21 @@ export const getSlackWebhookByIdAndChannelQuery = async (
   return result;
 };
 
+export const getSlackWebhookByIdAndRoutingType = async (
+  id: number,
+  routing_type: string,
+): Promise<ISlackWebhook[]> => {
+  const result = await sequelize.query(
+    `SELECT * FROM public.slack_webhooks WHERE user_id = :id AND routing_type && :routing_type`,
+    {
+      replacements: { id, routing_type: `{${routing_type}}` },
+      mapToModel: true,
+      model: SlackWebhookModel,
+    },
+  );
+  return result;
+};
+
 export const createNewSlackWebhookQuery = async (
   data: Partial<ISlackWebhook>,
   transaction: Transaction,

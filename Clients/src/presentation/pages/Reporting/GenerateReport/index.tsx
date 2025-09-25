@@ -27,14 +27,27 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
 
   return (
     <>
-      <Stack sx={styles.container}>
+      <Stack sx={styles.container} direction="row" spacing={2}>
         <CustomizableButton
           sx={{
             ...styles.buttonStyle,
+            width: "fit-content",
             border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
           }}
           variant="contained"
-          text="Generate project report"
+          text="Generate Project Report"
+          onClick={() => setIsModalOpen(true)}
+          isDisabled={isDisabled}
+        />
+
+        <CustomizableButton
+          sx={{
+            ...styles.buttonStyle,
+            width: "fit-content",
+            border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
+          }}
+          variant="contained"
+          text="Generate Organization Report"
           onClick={() => setIsModalOpen(true)}
           isDisabled={isDisabled}
         />

@@ -39,7 +39,7 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
             border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
           }}
           variant="contained"
-          text="Generate Project Report"
+          text="Generate project report"
           onClick={() => {
             setSelectedReportType('project');
             setIsModalOpen(true);
@@ -54,7 +54,7 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
             border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
           }}
           variant="contained"
-          text="Generate Organization Report"
+          text="Generate organization report"
           onClick={() => {
             setSelectedReportType('organization');
             setIsModalOpen(true);

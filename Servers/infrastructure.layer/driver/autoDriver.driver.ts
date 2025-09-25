@@ -86,6 +86,7 @@ export async function insertMockData(
         }, []),
         [1], // frameworks
         tenant,
+        users[0].id!,
         transaction,
         true // is demo
       );
@@ -119,6 +120,7 @@ export async function insertMockData(
           }, []),
           [2, 3], // frameworks
           tenant,
+          users[0].id!,
           transaction,
           true // is demo
         );

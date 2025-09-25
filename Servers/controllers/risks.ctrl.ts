@@ -18,6 +18,13 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import {
+  validateCompleteRiskWithBusinessRules,
+  validateUpdateRiskWithBusinessRules,
+  validateRiskIdParam,
+  validateProjectIdParam,
+  validateFrameworkIdParam
+} from '../utils/validations/riskValidation.utils';
 
 export async function getAllRisks(
   req: Request,
@@ -71,6 +78,24 @@ export async function getRisksByProject(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id as string);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid project ID parameter: ${req.params.id}`,
+      "getRisksByProject",
+      "risks.ctrl.ts"
+    );
+    await logEvent("Error", `Invalid project ID parameter: ${req.params.id}`);
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
     `fetching risks for project ID: ${projectId}`,
@@ -122,6 +147,24 @@ export async function getRisksByFramework(
   res: Response
 ): Promise<any> {
   const frameworkId = parseInt(req.params.id as string);
+
+  // Validate framework ID parameter
+  const frameworkIdValidation = validateFrameworkIdParam(frameworkId);
+  if (!frameworkIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid framework ID parameter: ${req.params.id}`,
+      "getRisksByFramework",
+      "risks.ctrl.ts"
+    );
+    await logEvent("Error", `Invalid framework ID parameter: ${req.params.id}`);
+    return res.status(400).json({
+      status: 'error',
+      message: frameworkIdValidation.message || 'Invalid framework ID',
+      code: frameworkIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
     `fetching risks for framework ID: ${frameworkId}`,
@@ -173,11 +216,29 @@ export async function getRiskById(
   res: Response
 ): Promise<any> {
   const projectRiskId = parseInt(req.params.id);
+
+  // Validate risk ID parameter
+  const riskIdValidation = validateRiskIdParam(projectRiskId);
+  if (!riskIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid risk ID parameter: ${req.params.id}`,
+      "getRiskById",
+      "risks.ctrl.ts"
+    );
+    await logEvent("Error", `Invalid risk ID parameter: ${req.params.id}`);
+    return res.status(400).json({
+      status: 'error',
+      message: riskIdValidation.message || 'Invalid risk ID',
+      code: riskIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
     `fetching project risk by ID: ${projectRiskId}`,
-    "getProjectRiskById",
-    "projectRisks.ctrl.ts"
+    "getRiskById",
+    "risks.ctrl.ts"
   );
   logger.debug(`🔍 Looking up project risk with ID: ${projectRiskId}`);
   try {
@@ -224,15 +285,38 @@ export async function createRisk(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const riskData = req.body;
+
+  // Validate request body with business rules
+  const validationErrors = await validateCompleteRiskWithBusinessRules(riskData, req.tenantId!);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      `Validation failed for createRisk: ${validationErrors.map(e => e.message).join(', ')}`,
+      "createRisk",
+      "risks.ctrl.ts"
+    );
+    await logEvent("Error", `Risk creation validation failed: ${validationErrors.map(e => e.message).join(', ')}`);
+    return res.status(400).json({
+      status: 'error',
+      message: 'Validation failed',
+      errors: validationErrors.map(err => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   logStructured(
     "processing",
-    "starting createProjectRisk",
-    "createProjectRisk",
-    "projectRisks.ctrl.ts"
+    "starting createRisk",
+    "createRisk",
+    "risks.ctrl.ts"
   );
   logger.debug("🛠️ Creating new project risk");
   try {
-    const projectRiskData = req.body as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
+    const projectRiskData = riskData as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
 
     const newProjectRisk = await createRiskQuery(
       { ...projectRiskData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
@@ -320,15 +404,55 @@ export async function updateRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectRiskId = parseInt(req.params.id);
+  const updateData = req.body;
+
+  // Validate risk ID parameter
+  const riskIdValidation = validateRiskIdParam(projectRiskId);
+  if (!riskIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid risk ID parameter: ${req.params.id}`,
+      "updateRiskById",
+      "risks.ctrl.ts"
+    );
+    await logEvent("Error", `Invalid risk ID parameter: ${req.params.id}`);
+    return res.status(400).json({
+      status: 'error',
+      message: riskIdValidation.message || 'Invalid risk ID',
+      code: riskIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Validate request body with business rules
+  const validationErrors = await validateUpdateRiskWithBusinessRules(updateData, req.tenantId!);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      `Validation failed for updateRiskById: ${validationErrors.map(e => e.message).join(', ')}`,
+      "updateRiskById",
+      "risks.ctrl.ts"
+    );
+    await logEvent("Error", `Risk update validation failed: ${validationErrors.map(e => e.message).join(', ')}`);
+    return res.status(400).json({
+      status: 'error',
+      message: 'Validation failed',
+      errors: validationErrors.map(err => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   logStructured(
     "processing",
     `updating project risk ID: ${projectRiskId}`,
-    "updateProjectRiskById",
-    "projectRisks.ctrl.ts"
+    "updateRiskById",
+    "risks.ctrl.ts"
   );
   logger.debug(`✏️ Update requested for project risk ID: ${projectRiskId}`);
   try {
-    const updateData = req.body as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
+    const updateDataTyped = updateData as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
 
     // if (!existingProjectRisk) {
     //   logStructured(
@@ -354,7 +478,7 @@ export async function updateRiskById(
 
     const updatedProjectRisk = await updateRiskByIdQuery(
       projectRiskId,
-      { ...updateData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
+      { ...updateDataTyped, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
       req.tenantId!,
       transaction
     );
@@ -434,11 +558,29 @@ export async function deleteRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectRiskId = parseInt(req.params.id);
+
+  // Validate risk ID parameter
+  const riskIdValidation = validateRiskIdParam(projectRiskId);
+  if (!riskIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid risk ID parameter: ${req.params.id}`,
+      "deleteRiskById",
+      "risks.ctrl.ts"
+    );
+    await logEvent("Error", `Invalid risk ID parameter: ${req.params.id}`);
+    return res.status(400).json({
+      status: 'error',
+      message: riskIdValidation.message || 'Invalid risk ID',
+      code: riskIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
     `attempting to delete project risk ID ${projectRiskId}`,
-    "deleteProjectRiskById",
-    "projectRisks.ctrl.ts"
+    "deleteRiskById",
+    "risks.ctrl.ts"
   );
   logger.debug(`🗑️ Delete request for project risk ID ${projectRiskId}`);
   try {

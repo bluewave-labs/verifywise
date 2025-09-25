@@ -23,14 +23,14 @@ router.get("/:id", authenticateJWT, getAssessmentById);
 router.get("/project/byid/:id", authenticateJWT, getAssessmentByProjectId);
 
 // POSTs
-router.post("/", authenticateJWT, createAssessment);
+// router.post("/", authenticateJWT, createAssessment);
 // router.post("/saveAnswers", authenticateJWT, upload.any("files"), saveAnswers);
 
 // PUTs
-router.put("/:id", authenticateJWT, updateAssessmentById);
+// router.put("/:id", authenticateJWT, updateAssessmentById);
 // router.put("/updateAnswers/:id", authenticateJWT, updateAnswers);
 
 // DELETEs
-router.delete("/:id", authenticateJWT, deleteAssessmentById);
+// router.delete("/:id", authenticateJWT, deleteAssessmentById);
 
 export default router;

@@ -22,6 +22,13 @@ import {
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import {
+  validateCompleteReportGenerationWithRules,
+  validateReportIdParam,
+  validateUserId,
+  validateCompleteReportDeletion
+} from "../utils/validations/reportingValidation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 function mapReportTypeToFileSource(
   reportType: string
@@ -57,6 +64,44 @@ export async function generateReports(
   req: Request,
   res: Response
 ): Promise<any> {
+  // Validate report generation request
+  const validationErrors = validateCompleteReportGenerationWithRules(req.body);
+  if (validationErrors.length > 0) {
+    await logFailure({
+      eventType: "Create",
+      description: "Report generation validation failed",
+      functionName: "generateReports",
+      fileName: "reporting.ctrl.ts",
+      error: new Error("Validation failed")
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: 'Report generation validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
+  // Validate user ID
+  const userIdValidation = validateUserId(req.userId);
+  if (!userIdValidation.isValid) {
+    await logFailure({
+      eventType: "Create",
+      description: `Invalid user ID: ${req.userId}`,
+      functionName: "generateReports",
+      fileName: "reporting.ctrl.ts",
+      error: new Error("Invalid user ID")
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: userIdValidation.message || 'Invalid user ID',
+      code: userIdValidation.code || 'INVALID_USER_ID'
+    });
+  }
+
   const {
     projectId: projectIdRaw,
     reportType,
@@ -80,28 +125,9 @@ export async function generateReports(
   );
 
   try {
-    if (isNaN(projectId)) {
-      await logFailure({
-        eventType: "Create",
-        description: `Invalid project ID: ${projectIdRaw}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-        error: new Error("Invalid project ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
-    }
-    if (typeof userId !== "number" || isNaN(userId)) {
-      await logFailure({
-        eventType: "Create",
-        description: `Invalid user ID: ${userId}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-        error: new Error("Invalid user ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
-    }
+    // Project ID and User ID validation already handled by the validation utilities above
 
-    const user = await getUserByIdQuery(userId);
+    const user = await getUserByIdQuery(userId!);
     if (!user) {
       await logFailure({
         eventType: "Create",
@@ -146,7 +172,7 @@ export async function generateReports(
     try {
       uploadedFile = await uploadFile(
         docFile,
-        userId,
+        userId!,
         projectId,
         mapReportTypeToFileSource(reportType),
         req.tenantId!
@@ -269,8 +295,43 @@ export async function deleteGeneratedReportById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const transaction = await sequelize.transaction();
   const reportId = parseInt(req.params.id);
+
+  // Validate report ID parameter
+  const reportIdValidation = validateReportIdParam(reportId);
+  if (!reportIdValidation.isValid) {
+    await logFailure({
+      eventType: "Delete",
+      description: `Invalid report ID parameter: ${req.params.id}`,
+      functionName: "deleteGeneratedReportById",
+      fileName: "reporting.ctrl.ts",
+      error: new Error("Invalid report ID")
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: reportIdValidation.message || 'Invalid report ID',
+      code: reportIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Validate user ID
+  const userIdValidation = validateUserId(req.userId);
+  if (!userIdValidation.isValid) {
+    await logFailure({
+      eventType: "Delete",
+      description: `Invalid user ID: ${req.userId}`,
+      functionName: "deleteGeneratedReportById",
+      fileName: "reporting.ctrl.ts",
+      error: new Error("Invalid user ID")
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: userIdValidation.message || 'Invalid user ID',
+      code: userIdValidation.code || 'INVALID_USER_ID'
+    });
+  }
+
+  const transaction = await sequelize.transaction();
   const userId = req.userId;
 
   logProcessing({
@@ -281,26 +342,6 @@ export async function deleteGeneratedReportById(
   logger.debug(`🗑️ Deleting generated report ID ${reportId}`);
 
   try {
-    if (isNaN(reportId)) {
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid report ID: ${req.params.id}`,
-        functionName: "deleteGeneratedReportById",
-        fileName: "reporting.ctrl.ts",
-        error: new Error("Invalid report ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid report ID"));
-    }
-    if (typeof userId !== "number" || isNaN(userId)) {
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid user ID: ${userId}`,
-        functionName: "deleteGeneratedReportById",
-        fileName: "reporting.ctrl.ts",
-        error: new Error("Invalid user ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
-    }
 
     const report = await getReportByIdQuery(reportId, req.tenantId!); // get report detail
     if (!report) {
@@ -312,6 +353,30 @@ export async function deleteGeneratedReportById(
         error: new Error("Report not found"),
       });
       return res.status(404).json(STATUS_CODE[404]("Report not found"));
+    }
+
+    // Validate business rules for report deletion
+    const deletionValidationErrors = validateCompleteReportDeletion(
+      report,
+      { userId: req.userId, role: req.role }
+    );
+    if (deletionValidationErrors.length > 0) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Report deletion validation failed for ID ${reportId}`,
+        functionName: "deleteGeneratedReportById",
+        fileName: "reporting.ctrl.ts",
+        error: new Error("Deletion validation failed")
+      });
+      return res.status(403).json({
+        status: 'error',
+        message: 'Report deletion validation failed',
+        errors: deletionValidationErrors.map((err: ValidationError) => ({
+          field: err.field,
+          message: err.message,
+          code: err.code
+        }))
+      });
     }
 
     const deletedReport = await deleteReportByIdQuery(

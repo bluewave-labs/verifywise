@@ -7,6 +7,37 @@ import { IProjectFrameworks } from "../domain.layer/interfaces/i.projectFramewor
 
 type Mitigation = { id: number, meta_id: number, parent_id: number, sup_id: string, title: string, sub_id: number, project_id: number };
 
+export const validateRiskFrameworksQuery = async (
+  frameworks: number[]
+): Promise<boolean> => {
+  const result = await sequelize.query(
+    `SELECT id FROM public.frameworks WHERE is_organizational = true;`,
+  ) as [{ id: number }[], number];
+  const orgFrameworks = result[0].map(f => f.id);
+  for (let f of frameworks) {
+    if (!orgFrameworks.includes(f)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export const validateRiskProjectsQuery = async (
+  projects: number[],
+  tenant: string
+): Promise<boolean> => {
+  const result = await sequelize.query(
+    `SELECT id FROM "${tenant}".projects WHERE is_organizational = false;`,
+  ) as [{ id: number }[], number];
+  const nonOrgProjects = result[0].map(p => p.id);
+  for (let p of projects) {
+    if (!nonOrgProjects.includes(p)) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const getAllRisksQuery = async (
   tenant: string
 ): Promise<IRisk[]> => {

@@ -63,11 +63,15 @@ const checkFrameworkExistsQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const [[{ exists }]] = (await sequelize.query(
-    `SELECT EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
+  // const [[{ exists }]] = (await sequelize.query(
+  //   `SELECT EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
+  //   { replacements: { projectId, frameworkId }, transaction }
+  // )) as [[{ exists: boolean }], number];
+  const [[{ canRemove }]] = (await sequelize.query(
+    `SELECT (SELECT COUNT(*) FROM "${tenant}".projects_frameworks WHERE project_id = :projectId) > 1 AND EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS canRemove;`,
     { replacements: { projectId, frameworkId }, transaction }
-  )) as [[{ exists: boolean }], number];
-  return exists;
+  )) as [[{ canRemove: boolean }], number];
+  return canRemove;
 }
 
 export const canAddFrameworkToProjectQuery = async (

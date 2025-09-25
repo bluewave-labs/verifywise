@@ -138,7 +138,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectData = {
     ...req.body,
-    framework: req.body.framework ?? [1],
+    framework: req.body.framework,
   };
 
   // Validate request body with business rules
@@ -178,12 +178,14 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       framework: number[];
       enable_ai_data_insertion: boolean;
     } = sanitizedProjectData;
+    console.log("New Project Data:", newProject); // Debug log
 
     const createdProject = await createNewProjectQuery(
       newProject,
       newProject.members ?? [],
       newProject.framework,
       req.tenantId!,
+      req.userId!,
       transaction
     );
     const frameworks: { [key: string]: Object } = {};

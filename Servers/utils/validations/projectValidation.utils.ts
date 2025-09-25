@@ -146,13 +146,16 @@ export const validateIsOrganizational = (value: any): ValidationResult => {
 
 /**
  * Validates framework array field
- * Note: Specific framework ID validation (1,2,3) and organizational consistency
- * is handled by validateOrganizationalFrameworkConsistency in business rules
+ * Framework is required for all projects and must contain valid framework IDs
  */
 export const validateFramework = (value: any): ValidationResult => {
-  // Framework field is optional
-  if (value === undefined || value === null) {
-    return { isValid: true };
+  // Framework field is required
+  if (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
+    return {
+      isValid: false,
+      message: 'Framework is required and must contain at least one framework ID',
+      code: 'REQUIRED_FIELD'
+    };
   }
 
   // Must be an array
@@ -164,6 +167,9 @@ export const validateFramework = (value: any): ValidationResult => {
     };
   }
 
+  // Valid framework IDs: 1=EU AI Act, 2=ISO 42001, 3=ISO 27001
+  const validFrameworkIds = [1, 2, 3];
+
   // Validate each framework ID in the array
   for (let i = 0; i < value.length; i++) {
     const frameworkId = value[i];
@@ -173,6 +179,15 @@ export const validateFramework = (value: any): ValidationResult => {
       return {
         isValid: false,
         message: `Framework ID at index ${i} must be a positive integer`,
+        code: 'INVALID_FRAMEWORK_ID'
+      };
+    }
+
+    // Check if it's a valid framework ID
+    if (!validFrameworkIds.includes(frameworkId)) {
+      return {
+        isValid: false,
+        message: `Framework ID ${frameworkId} is not valid. Valid IDs are: 1 (EU AI Act), 2 (ISO 42001), 3 (ISO 27001)`,
         code: 'INVALID_FRAMEWORK_ID'
       };
     }
@@ -269,7 +284,6 @@ export const createProjectSchema = {
 /**
  * Validation schema for updating a project
  * All fields are optional for updates
- * Note: framework is not included as it's only set during project creation
  * Note: ai_risk_classification and type_of_high_risk_role are validated conditionally
  */
 export const updateProjectSchema = {
@@ -277,10 +291,7 @@ export const updateProjectSchema = {
   owner: (value: any) => value !== undefined ? validateOwner(value) : { isValid: true },
   start_date: (value: any) => value !== undefined ? validateStartDate(value) : { isValid: true },
   goal: (value: any) => value !== undefined ? validateGoal(value) : { isValid: true },
-  is_organizational: (value: any) => value !== undefined ? validateIsOrganizational(value) : { isValid: true },
   members: (value: any) => value !== undefined ? validateMembers(value) : { isValid: true },
-  enable_ai_data_insertion: (value: any) => value !== undefined ? validateEnableAiDataInsertion(value) : { isValid: true },
-  last_updated_by: (value: any) => value !== undefined ? validateLastUpdatedBy(value) : { isValid: true }
 };
 
 /**
@@ -339,8 +350,7 @@ export const validateUpdateProject = (data: any, currentProject?: any): Validati
   // Check if at least one field is provided for update
   const updateFields = [
     'project_title', 'owner', 'start_date', 'ai_risk_classification',
-    'type_of_high_risk_role', 'goal', 'members', 'enable_ai_data_insertion',
-    'last_updated_by', 'is_organizational'
+    'type_of_high_risk_role', 'goal', 'members', 'enable_ai_data_insertion'
   ];
 
   const hasUpdateField = updateFields.some(field => data[field] !== undefined);
@@ -419,13 +429,19 @@ export const validateStartDateReasonable = (startDate: Date): ValidationResult =
 
 /**
  * Validates that frameworks are consistent with organizational status
+ * This validation is required and frameworks cannot be empty
  */
 export const validateOrganizationalFrameworkConsistency = (
   isOrganizational: boolean,
   frameworks: number[]
 ): ValidationResult => {
+  // Framework validation is mandatory
   if (!frameworks || frameworks.length === 0) {
-    return { isValid: true }; // Skip validation if no frameworks provided
+    return {
+      isValid: false,
+      message: 'Framework array is required and cannot be empty',
+      code: 'REQUIRED_FRAMEWORKS'
+    };
   }
 
   // Organizational frameworks: ISO-42001 (2), ISO-27001 (3)
@@ -437,19 +453,21 @@ export const validateOrganizationalFrameworkConsistency = (
     // For organizational projects, only allow frameworks 2 and 3
     const hasInvalidFramework = frameworks.some(id => !organizationalFrameworks.includes(id));
     if (hasInvalidFramework) {
+      const invalidFrameworks = frameworks.filter(id => !organizationalFrameworks.includes(id));
       return {
         isValid: false,
-        message: 'Organizational projects can only use organizational frameworks: ISO-42001 (2) or ISO-27001 (3)',
+        message: `Organizational projects can only use organizational frameworks: ISO 42001 (2) or ISO 27001 (3). Invalid framework IDs: ${invalidFrameworks.join(', ')}`,
         code: 'INVALID_ORGANIZATIONAL_FRAMEWORK'
       };
     }
   } else {
-    // For non-organizational projects, only allow framework 1
+    // For non-organizational (AI) projects, only allow framework 1
     const hasInvalidFramework = frameworks.some(id => !nonOrganizationalFrameworks.includes(id));
     if (hasInvalidFramework) {
+      const invalidFrameworks = frameworks.filter(id => !nonOrganizationalFrameworks.includes(id));
       return {
         isValid: false,
-        message: 'Non-organizational projects can only use EU-AI-Act framework (1)',
+        message: `Non-organizational (AI) projects can only use EU AI Act framework (1). Invalid framework IDs: ${invalidFrameworks.join(', ')}`,
         code: 'INVALID_NON_ORGANIZATIONAL_FRAMEWORK'
       };
     }
@@ -532,18 +550,19 @@ export const validateCompleteProjectWithBusinessRules = (data: any): ValidationE
     }
 
     // Check organizational framework consistency
-    if (data.is_organizational !== undefined && data.framework) {
-      const frameworkConsistencyCheck = validateOrganizationalFrameworkConsistency(
-        data.is_organizational,
-        data.framework
-      );
-      if (!frameworkConsistencyCheck.isValid) {
-        errors.push({
-          field: 'framework',
-          message: frameworkConsistencyCheck.message || 'Framework is inconsistent with organizational status',
-          code: frameworkConsistencyCheck.code || 'BUSINESS_RULE_VIOLATION'
-        });
-      }
+    // This validation is mandatory for all projects
+    const isOrganizational = data.is_organizational !== undefined ? data.is_organizational : false;
+    const frameworks = data.framework || [];
+    const frameworkConsistencyCheck = validateOrganizationalFrameworkConsistency(
+      isOrganizational,
+      frameworks
+    );
+    if (!frameworkConsistencyCheck.isValid) {
+      errors.push({
+        field: 'framework',
+        message: frameworkConsistencyCheck.message || 'Framework is inconsistent with organizational status',
+        code: frameworkConsistencyCheck.code || 'BUSINESS_RULE_VIOLATION'
+      });
     }
 
     // Check risk classification consistency (only for non-organizational projects)
@@ -589,13 +608,29 @@ export const validateUpdateProjectWithBusinessRules = (
       }
     }
 
-    // Note: Framework consistency validation is not performed during updates
-    // as frameworks are set only during project creation and cannot be changed
-
-    // Check risk classification consistency (only for non-organizational projects)
+    // Check framework consistency validation for updates
     const newIsOrganizational = data.is_organizational !== undefined
       ? data.is_organizational
       : currentProject.is_organizational;
+    const newFramework = data.framework !== undefined
+      ? data.framework
+      : currentProject.framework;
+
+    if (newFramework && newFramework.length > 0) {
+      const frameworkConsistencyCheck = validateOrganizationalFrameworkConsistency(
+        newIsOrganizational,
+        newFramework
+      );
+      if (!frameworkConsistencyCheck.isValid) {
+        errors.push({
+          field: data.framework !== undefined ? 'framework' : 'is_organizational',
+          message: frameworkConsistencyCheck.message || 'Framework is inconsistent with organizational status',
+          code: frameworkConsistencyCheck.code || 'BUSINESS_RULE_VIOLATION'
+        });
+      }
+    }
+
+    // Check risk classification consistency (only for non-organizational projects)
     const newAiRiskClassification = data.ai_risk_classification !== undefined
       ? data.ai_risk_classification
       : currentProject.ai_risk_classification;

@@ -479,8 +479,6 @@ async function updateUserById(req: Request, res: Response) {
         {
           name: user.name,
           surname: user.surname,
-          email: user.email,
-          role_id: roleId ?? user.role_id,
           last_login: last_login ?? user.last_login,
         },
         transaction

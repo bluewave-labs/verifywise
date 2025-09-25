@@ -368,13 +368,11 @@ export default function BiasAndFairnessResultsPage() {
       setError(null);
 
       if (isDemo) {
-        // Load mock data shipped with the app (structure matches clean_results.json)
-        const resp = await fetch('/mock/clean_results.json');
-        if (!resp.ok) {
-          throw new Error(`HTTP error! status: ${resp.status}`);
-        }
-        const data = await resp.json();
-        setMetrics({ results: data, status: 'completed' });
+        // Demo mode - show placeholder data or message
+        setMetrics({ 
+          results: {}, 
+          status: 'demo_mode'
+        });
       } else {
         const data = await biasAndFairnessService.getBiasFairnessEvaluation(id as string);
         setMetrics(data);

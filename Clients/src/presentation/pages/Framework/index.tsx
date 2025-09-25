@@ -16,7 +16,7 @@ import { useContext, useEffect, useState, useMemo } from "react";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
 import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
-import EditIcon from "@mui/icons-material/Edit";
+import {ReactComponent as EditIconGrey} from "../../assets/icons/edit.svg";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -761,7 +761,7 @@ const Framework = () => {
                   disabled={!allowedRoles.projects.edit.includes(userRoleName)}
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <EditIcon
+                    <EditIconGrey
                       style={{
                         color: "text.secondary",
                         fontSize: "16px",

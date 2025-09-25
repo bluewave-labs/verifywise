@@ -10,9 +10,8 @@ import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
 import Select from "../../components/Inputs/Select";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import evidencesHelpContent from "../../../presentation/helpers/evidences-help.html?raw";
 import { Project } from "../../../domain/types/Project";
 import PageHeader from "../../components/Layout/PageHeader";
 
@@ -100,10 +99,37 @@ const FileManager: React.FC = (): JSX.Element => {
         tourKey="file-tour"
       />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={evidencesHelpContent}
-        pageTitle="Evidences & Documents"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Evidences & documents"
+        description="Centralize compliance documentation and audit evidence management"
+        whatItDoes="Store and organize all **governance documentation**, *audit evidence*, and **compliance artifacts**. Track *document versions*, maintain **chain of custody**, and ensure easy retrieval during audits."
+        whyItMatters="Proper **evidence management** is critical for demonstrating *compliance* during **audits** and *regulatory reviews*. It provides a **single source of truth** for documentation and ensures *evidence integrity* throughout its lifecycle."
+        quickActions={[
+          {
+            label: "Upload Evidence",
+            description: "Add new compliance documents or audit evidence to the repository",
+            primary: true
+          },
+          {
+            label: "Download Reports",
+            description: "Export evidence packages for auditors and stakeholders"
+          }
+        ]}
+        useCases={[
+          "**Audit evidence collection** including *policies*, *procedures*, and **control test results**",
+          "**Compliance certificates** and *third-party assessment reports* from vendors"
+        ]}
+        keyFeatures={[
+          "**Secure document storage** with *version control* and **access tracking**",
+          "**Metadata tagging** for easy *search and retrieval* during audits",
+          "**Integration** with project management for *context-aware evidence organization*"
+        ]}
+        tips={[
+          "Maintain **consistent naming conventions** to simplify *evidence retrieval*",
+          "Tag documents with *relevant frameworks* and **controls** for better organization",
+          "**Regular archival** of outdated documents helps maintain a *clean repository*"
+        ]}
       />
       <FileManagerHeader
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

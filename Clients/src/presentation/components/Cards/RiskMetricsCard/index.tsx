@@ -1,5 +1,5 @@
 import { Typography, Box, Grid } from "@mui/material";
-import SpeedIcon from "@mui/icons-material/Speed";
+import {ReactComponent as SpeedGreenIcon} from "../../../assets/icons/speed.svg";
 import { RiskMetrics } from "../../../../domain/interfaces/iRiskSummary";
 
 interface RiskMetricsCardProps {
@@ -51,7 +51,7 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
           gap: 1,
         }}
       >
-        <SpeedIcon sx={{ fontSize: 18, color: "#13715B" }} />
+        <SpeedGreenIcon style={{ fontSize: 18}} />
         Risk Intelligence
       </Typography>
 

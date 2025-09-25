@@ -1,6 +1,6 @@
 import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import {
   priorities,
   PriorityLevel,
@@ -262,7 +262,7 @@ const QuestionFrame = ({
                   },
                 }}
               >
-                <InfoOutlinedIcon fontSize="inherit" />
+                <GreyCircleInfoIcon fontSize="inherit" />
               </Tooltip>
             </Box>
           )}

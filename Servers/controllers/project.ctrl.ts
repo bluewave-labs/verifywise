@@ -35,6 +35,7 @@ import {
   ValidationException,
   BusinessLogicException
 } from "../domain.layer/exceptions/custom.exception";
+import { sendProjectCreatedNotification } from "../services/projectCreationNotification";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -222,6 +223,22 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         description: "Created new project",
         functionName: "createProject",
         fileName: "project.ctrl.ts",
+      });
+
+      // Send project creation notification to admin (fire-and-forget, don't block response)
+      sendProjectCreatedNotification({
+        projectId: createdProject.id!,
+        projectName: createdProject.project_title,
+        adminId: createdProject.owner,
+      }).catch(async (emailError) => {
+        // Log the email error but don't fail the project creation
+        await logFailure({
+          eventType: "Create",
+          description: "Failed to send project creation notification email",
+          functionName: "createProject",
+          fileName: "project.ctrl.ts",
+          error: emailError as Error,
+        });
       });
 
       return res.status(201).json(

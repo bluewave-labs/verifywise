@@ -26,9 +26,8 @@ import { IModelRisk, IModelRiskFormData } from "../../../domain/interfaces/i.mod
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
 import {
   mainStackStyle,
   filterButtonRowStyle,
@@ -50,7 +49,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import Tab from "@mui/material/Tab";
 import { IconButton, InputBase } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import { searchBoxStyle, inputStyle } from "./style";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
@@ -549,10 +548,37 @@ const ModelInventory: React.FC = () => {
       <PageBreadcrumbs />
 
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={modelInventoryHelpContent}
-        pageTitle="Model Inventory"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Model inventory & risk management"
+        description="Track and assess AI models and their associated risks throughout their lifecycle"
+        whatItDoes="Maintain a **comprehensive inventory** of AI models including their *metadata*, *performance metrics*, and **deployment status**. Track *model versions*, dependencies, and **associated risks**."
+        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and **risk mitigation**. It provides **visibility into your AI assets** and helps identify potential issues before they impact production systems."
+        quickActions={[
+          {
+            label: "Add New Model",
+            description: "Register a new AI model with comprehensive metadata and risk assessment",
+            primary: true
+          },
+          {
+            label: "Assess Model Risk",
+            description: "Evaluate potential risks for existing models using our assessment framework"
+          }
+        ]}
+        useCases={[
+          "**Machine learning models** in production environments requiring *monitoring and governance*",
+          "**Pre-trained models** from external vendors that need *risk assessment* and **compliance tracking**"
+        ]}
+        keyFeatures={[
+          "**Complete model lifecycle tracking** from *development* to retirement",
+          "**Automated risk scoring** based on *model characteristics* and deployment context",
+          "**Integration** with model deployment pipelines and *monitoring systems*"
+        ]}
+        tips={[
+          "Start with your **production models** first - these carry the *highest operational risk*",
+          "**Regular model performance reviews** help catch *drift and degradation* early",
+          "Document **model lineage** and dependencies for better *impact assessment*"
+        ]}
       />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
@@ -649,7 +675,7 @@ const ModelInventory: React.FC = () => {
                     aria-expanded={isSearchBarVisible}
                     onClick={() => setIsSearchBarVisible((prev) => !prev)}
                   >
-                    <SearchIcon sx={{ml: 2}}/>
+                    <SearchIcon/>
                   </IconButton>
 
                   {isSearchBarVisible && (

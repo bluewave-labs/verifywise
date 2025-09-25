@@ -11,7 +11,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import RichTextEditor from "../../../../components/RichTextEditor";
 import { priorities, PriorityLevel } from "../priorities";
 import { Topic } from "../../../../../application/hooks/useAssessmentAnswers";
@@ -104,7 +104,7 @@ const AssessmentQuestions = ({
                           },
                         }}
                       >
-                        <InfoOutlinedIcon fontSize="inherit" />
+                        <GreyCircleInfoIcon fontSize="inherit" />
                       </Tooltip>
                     </Box>
                   )}

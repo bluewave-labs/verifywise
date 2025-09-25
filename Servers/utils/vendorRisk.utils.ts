@@ -20,6 +20,21 @@ export const getVendorRisksByProjectIdQuery = async (
   return vendorRisks;
 };
 
+export const getVendorRisksByVendorIdQuery = async (
+  vendorId: number,
+  tenant: string
+): Promise<IVendorRisk[]> => {
+  const vendorRisks = await sequelize.query(
+    `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id = :vendor_id ORDER BY created_at DESC, id ASC;`,
+    {
+      replacements: { vendor_id: vendorId },
+      mapToModel: true,
+      model: VendorRiskModel,
+    }
+  );
+  return vendorRisks;
+};
+
 export const getVendorRiskByIdQuery = async (
   id: number,
   tenant: string

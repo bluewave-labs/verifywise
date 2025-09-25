@@ -24,6 +24,19 @@ export async function getVendorRisksByProjectId({
   return response.data
 }
 
+export async function getVendorRisksByVendorId({
+  vendorId,
+  signal,
+}: {
+  vendorId: number;
+  signal?: AbortSignal;
+}): Promise<any> {
+  const response = await apiServices.get(`/vendorRisks/by-vendorid/${vendorId}`, {
+    signal,
+  });
+  return response.data;
+}
+
 export async function getVendorRiskById({
   id,
   signal,

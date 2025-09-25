@@ -17,5 +17,6 @@ export const ReportType = Object.freeze({
   CLAUSES_AND_ANNEXES_REPORT: 'Clauses and annexes report',
   CLAUSES_REPORT: 'Clauses report',
   ANNEXES_REPORT: 'Annexes report',
+  MODEL_REPORT: 'Models and risks report',
   ALL_REPORT: 'All reports'
 });

@@ -12,6 +12,6 @@ export const ISO_REPORT_TYPES = [
   "Vendors and risks report",
   "Training Registry",
   "Policy Manager",
-  "Model and risks report",
+  "Models and risks report",
   "All reports combined in one file"
 ]

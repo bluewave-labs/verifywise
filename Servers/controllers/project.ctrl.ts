@@ -252,7 +252,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       await sendSlackNotification(
         {
           userId: actor.id!,
-          routingType: SlackNotificationRoutingType.MEMBERSHIP_AND_ROLES,
+          routingType: SlackNotificationRoutingType.PROJECTS_AND_ORGANIZATIONS,
         },
         {
           title: `Project created`,

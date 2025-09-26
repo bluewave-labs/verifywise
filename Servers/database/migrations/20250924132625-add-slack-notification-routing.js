@@ -10,12 +10,7 @@ module.exports = {
         "routing_type",
         {
           type: Sequelize.DataTypes.ARRAY(
-            Sequelize.DataTypes.ENUM(
-              "Membership and roles",
-              "Policy reminders and status",
-              "Evidence and task alerts",
-              "Control or policy changes",
-            ),
+            Sequelize.DataTypes.TEXT,
           ),
         },
         { transaction },

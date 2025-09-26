@@ -11,12 +11,11 @@ import {
     Box
   } from "@mui/material";
   import { Suspense, lazy, useMemo, useState, useCallback } from "react";
-  // import TablePaginationActions from "../../TablePagination";
+  import TablePaginationActions from "../../TablePagination";
   import TableHeader from "../TableHead";
   import placeholderImage from "../../../assets/imgs/empty-state.svg";
+  import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
   import {
-    paginationStatus,
-    paginationStyle,
     emptyData
   } from "./styles";
   import singleTheme from '../../../themes/v1SingleTheme';
@@ -92,19 +91,78 @@ import {
                                     paddingX: theme.spacing(8),
                                     paddingY: theme.spacing(4),
                                     }}}>
-                            <TableCell sx={paginationStatus} color="text.secondary">
-                            Showing {getRange} of {rows.length} rows
+                            <TableCell
+                              sx={{ 
+                                paddingX: theme.spacing(2),
+                                fontSize: 12,
+                                opacity: 0.7 }}
+                            >
+                              Showing {getRange} of {rows.length} evaluation{rows.length !== 1 ? "s" : ""}
                             </TableCell>
                             <TablePagination
-                            count={rows.length}
-                            page={page}
-                            onPageChange={handleChangePage}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                            // ActionsComponent={TablePaginationActions}
-                            sx={paginationStyle}
-                            labelRowsPerPage="Rows per page:"
-                            labelDisplayedRows={() => `${getRange} of ${rows.length}`}
+                              count={rows.length}
+                              page={page}
+                              onPageChange={handleChangePage}
+                              rowsPerPage={rowsPerPage}
+                              rowsPerPageOptions={[5, 10, 15, 25]}
+                              onRowsPerPageChange={handleChangeRowsPerPage}
+                              ActionsComponent={(props) => (
+                                <TablePaginationActions {...props} />
+                              )}
+                              labelRowsPerPage="Rows per page"
+                              labelDisplayedRows={({ page, count }) =>
+                                `Page ${page + 1} of ${Math.max(
+                                  0,
+                                  Math.ceil(count / rowsPerPage)
+                                )}`
+                              }
+                              sx={{
+                                "& .MuiTablePagination-select": {
+                                  borderRadius: theme.shape.borderRadius,
+                                  border: `1px solid ${theme.palette.border.light}`,
+                                  padding: theme.spacing(1),
+                                  minWidth: theme.spacing(8),
+                                },
+                                "& .MuiSelect-icon": {
+                                  width: "24px",
+                                  height: "fit-content",
+                                },
+                              }}
+                              slotProps={{
+                                select: {
+                                  MenuProps: {
+                                    keepMounted: true,
+                                    PaperProps: {
+                                      className: "pagination-dropdown",
+                                      sx: {
+                                        mt: 0,
+                                        mb: theme.spacing(2),
+                                      },
+                                    },
+                                    transformOrigin: {
+                                      vertical: "bottom",
+                                      horizontal: "left",
+                                    },
+                                    anchorOrigin: {
+                                      vertical: "top",
+                                      horizontal: "left",
+                                    },
+                                    sx: { mt: theme.spacing(-2) },
+                                  },
+                                  inputProps: { id: "pagination-dropdown" },
+                                  IconComponent: SelectorVertical,
+                                  sx: {
+                                    ml: theme.spacing(4),
+                                    mr: theme.spacing(12),
+                                    minWidth: theme.spacing(20),
+                                    textAlign: "left",
+                                    border: "none",
+                                    "&.Mui-focused > div": {
+                                      backgroundColor: theme.palette.background.main,
+                                    },
+                                  },
+                                },
+                              }}
                             />
                             </TableRow>
                         </TableFooter>

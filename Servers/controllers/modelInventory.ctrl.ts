@@ -118,6 +118,10 @@ export async function createNewModelInventory(req: Request, res: Response) {
     security_assessment,
     status,
     status_date,
+    reference_link,
+    biases,
+    limitations,
+    hosting_provider,
     is_demo,
   } = req.body;
 
@@ -143,6 +147,10 @@ export async function createNewModelInventory(req: Request, res: Response) {
       security_assessment,
       status,
       status_date,
+      reference_link,
+      biases,
+      limitations,
+      hosting_provider,
       is_demo,
     });
 
@@ -198,6 +206,10 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     security_assessment,
     status,
     status_date,
+    reference_link,
+    biases,
+    limitations,
+    hosting_provider,
     is_demo,
   } = req.body;
 
@@ -243,6 +255,10 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         security_assessment,
         status,
         status_date,
+        reference_link,
+        biases,
+        limitations,
+        hosting_provider,
         is_demo,
       }
     );

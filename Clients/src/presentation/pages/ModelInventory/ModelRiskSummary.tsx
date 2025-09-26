@@ -23,7 +23,7 @@ const ModelRiskSummary: React.FC<ModelRiskSummaryProps> = ({ modelRisks }) => {
   // Count how many risks per level
   const riskCounts = riskLevels.map((level) => ({
     ...level,
-    count: modelRisks.filter((risk) => risk.riskLevel === level.key).length,
+    count: modelRisks.filter((risk) => risk.risk_level === level.key).length,
   }));
 
   return (

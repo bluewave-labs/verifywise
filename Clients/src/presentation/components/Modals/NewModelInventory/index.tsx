@@ -28,9 +28,10 @@ import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInven
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
+import { KeyboardArrowDown } from "@mui/icons-material";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-
+import modelInventoryOptions from "../../../../../../Servers/templates/model-inventory.json";
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -50,6 +51,10 @@ interface NewModelInventoryFormValues {
   security_assessment: boolean;
   status: ModelInventoryStatus;
   status_date: string;
+  reference_link: string,
+  biases: string,
+  limitations: string,
+  hosting_provider: string,
 }
 
 interface NewModelInventoryFormErrors {
@@ -73,6 +78,10 @@ const initialState: NewModelInventoryFormValues = {
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,
   status_date: new Date().toISOString().split("T")[0],
+  reference_link: "",
+  biases:  "",
+  limitations: "",
+  hosting_provider: "",
 };
 
 const statusOptions = [
@@ -170,6 +179,16 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     }));
   }, [users]);
 
+  const modelInventoryList = useMemo(() => {
+    return modelInventoryOptions.map((u) => ({
+      _id: u.model,          
+      name: `${u.provider} - ${u.model}`,
+      surname: u.model,
+      email: u.model
+    }));
+  }, []);  
+  
+
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +220,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     if (newDate?.isValid()) {
       setValues((prev) => ({
         ...prev,
-        status_date: newDate ? newDate.toISOString().split("T")[0] : "",
+        status_date: newDate ? newDate.format('YYYY-MM-DD') : "",
       }));
       setErrors((prev) => ({ ...prev, status_date: "" }));
     }
@@ -354,7 +373,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "fit-content",
-          maxHeight: "80vh",
+          maxHeight: "fit-content",
           display: "flex",
           flexDirection: "column",
           bgcolor: theme.palette.background.modal,
@@ -425,17 +444,97 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   />
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="model"
-                    label="Model"
-                    width={220}
-                    value={values.model}
-                    onChange={handleOnTextFieldChange("model")}
-                    error={errors.model}
-                    isRequired
-                    sx={fieldStyle}
-                    placeholder="eg. GPT-4"
-                  />
+              
+               <Box sx={{ display: 'flex', flexDirection: 'column', width: 220 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 2, fontWeight: 450, color: theme.palette.text.primary }}
+                  >
+                    Model <Typography component="span" color="black">*</Typography>
+                  </Typography>
+                  <Autocomplete
+                      id="model-input"
+                      size="small"
+                      freeSolo
+                      value={values.model}
+                      options={modelInventoryList || []}
+                      getOptionLabel={(option) =>
+                        typeof option === "string" ? option : option.name
+                      }
+                      onChange={(_event, newValue) => {
+                        // Handle both option object and free text
+                        if (typeof newValue === "string") {
+                          setValues({ ...values, model: newValue });
+                        } else if (newValue && typeof newValue === "object") {
+                          setValues({ ...values, model: newValue.name });
+                        } else {
+                          setValues({ ...values, model: "" });
+                        }
+                      }}
+                      onInputChange={(_event, newInputValue, reason) => {
+                        if (reason === "input") {
+                          setValues({ ...values, model: newInputValue });
+                        }
+                      }}
+                      renderOption={(props, option) => (
+                        <Box component="li" {...props}>
+                          <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
+                            {option.name}
+                          </Typography>
+                        </Box>
+                      )}
+                      popupIcon={<KeyboardArrowDown />}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Select or enter model"
+                          error={Boolean(errors.model)}
+                          helperText={errors.model}
+                          variant="outlined"
+                          sx={{
+                            "& .MuiInputBase-root": {
+                              height: 34,
+                              minHeight: 34,
+                              borderRadius: 2,
+                            },
+                            "& .MuiInputBase-input": {
+                              padding: "0 8px",
+                              fontSize: 13,
+                            },
+                          }}
+                        />
+                      )}
+                      // noOptionsText="No matching models"
+                      filterOptions={(options, state) => {
+                        const filtered = options.filter((option) =>
+                          option.name.toLowerCase().includes(state.inputValue.toLowerCase())
+                        );
+
+                        if (filtered.length === 0) {
+                          return [];
+                        }
+
+                        return filtered;
+                      }}
+                      slotProps={{
+                        paper: {
+                          sx: {
+                            "& .MuiAutocomplete-listbox": {
+                              "& .MuiAutocomplete-option": {
+                                fontSize: 13,
+                                color: theme.palette.text.primary,
+                                padding: "8px 12px",
+                              },
+                              "& .MuiAutocomplete-option.Mui-focused": {
+                                backgroundColor: theme.palette.background.accent,
+                              },
+                            },
+                          },
+                        },
+                      }}
+                      disabled={isLoadingUsers}
+                    />
+                </Box>
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
@@ -560,6 +659,63 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     {errors.capabilities}
                   </Typography>
                 )}
+              </Stack>
+
+              <Stack
+                direction={"row"}
+                gap={theme.spacing(8)}
+              >
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
+                    id="reference_link"
+                    label="Reference link"
+                    width={"50%"}
+                    value={values.reference_link}
+                    onChange={handleOnTextFieldChange("reference_link")}
+                    sx={fieldStyle}
+                    placeholder="eg. www.org.ca"
+                  />
+                </Suspense>
+                <Suspense fallback={<div>Loading...</div>}>
+
+                <Field
+                    id="biases"
+                    label="Biases"
+                    width={"50%"}
+                    value={values.biases}
+                    onChange={handleOnTextFieldChange("biases")}
+                    sx={fieldStyle}
+                    placeholder="Biases"
+                  />
+                </Suspense>
+              </Stack>
+
+              <Stack
+                direction={"row"}
+                gap={theme.spacing(8)}
+              >
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
+                    id="hosting_provider"
+                    label="Hosting provider"
+                    value={values.hosting_provider}
+                    width={"50%"}
+                    onChange={handleOnTextFieldChange("hosting_provider")}
+                    sx={fieldStyle}
+                    placeholder="eg. OpenAI"
+                  />
+                </Suspense>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Field
+                    id="limitations"
+                    label="Limitations"
+                    width={"50%"}
+                    value={values.limitations}
+                    onChange={handleOnTextFieldChange("limitations")}
+                    sx={fieldStyle}
+                    placeholder="Limitation"
+                  />
+                </Suspense>
               </Stack>
 
               {/* Security Assessment Section */}

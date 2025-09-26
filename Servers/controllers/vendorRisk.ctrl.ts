@@ -7,6 +7,7 @@ import {
   getAllVendorRisksAllProjectsQuery,
   getVendorRiskByIdQuery,
   getVendorRisksByProjectIdQuery,
+  getVendorRisksByVendorIdQuery,
   updateVendorRiskByIdQuery,
 } from "../utils/vendorRisk.utils";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
@@ -94,6 +95,49 @@ export async function getAllVendorRisks(
       fileName: 'vendorRisk.ctrl.ts',
       userId: req.userId!,
       tenantId: req.tenantId!,
+      error: error as Error
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function getAllVendorRisksByVendorId(
+  req: Request,
+  res: Response
+) {
+  const vendorId = parseInt(req.params.id);
+  logProcessing({
+    description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId}`,
+    functionName: 'getAllVendorRisksByVendorId',
+    fileName: 'vendorRisk.ctrl.ts'
+  });
+
+  try {
+    const vendorRisks = await getVendorRisksByVendorIdQuery(vendorId, req.tenantId!);
+
+    if (vendorRisks) {
+      await logSuccess({
+        eventType: 'Read',
+        description: `Retrieved vendor risks for vendor ID ${vendorId}`,
+        functionName: 'getAllVendorRisksByVendorId',
+        fileName: 'vendorRisk.ctrl.ts'
+      });
+      return res.status(200).json(STATUS_CODE[200](vendorRisks));
+    }
+
+    await logSuccess({
+      eventType: 'Read',
+      description: `No vendor risks found for vendor ID ${vendorId}`,
+      functionName: 'getAllVendorRisksByVendorId',
+      fileName: 'vendorRisk.ctrl.ts'
+    });
+    return res.status(204).json(STATUS_CODE[204](vendorRisks));
+  } catch (error) {
+    await logFailure({
+      eventType: 'Read',
+      description: 'Failed to retrieve vendor risks by vendor ID',
+      functionName: 'getAllVendorRisksByVendorId',
+      fileName: 'vendorRisk.ctrl.ts',
       error: error as Error
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));

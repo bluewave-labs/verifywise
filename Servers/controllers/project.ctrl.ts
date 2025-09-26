@@ -25,6 +25,8 @@ import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
+import { sendSlackNotification } from "../services/slackNotificationService";
+import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -176,6 +178,19 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         functionName: "createProject",
         fileName: "project.ctrl.ts",
       });
+
+      const actor = await getUserByIdQuery(req.userId!);
+
+      await sendSlackNotification(
+        {
+          userId: actor.id!,
+          routingType: SlackNotificationRoutingType.MEMBERSHIP_AND_ROLES,
+        },
+        {
+          title: `Project created`,
+          message: `${actor.name} ${actor.surname} created Project ${createdProject.project_title}.`,
+        },
+      );
 
       return res.status(201).json(
         STATUS_CODE[201]({

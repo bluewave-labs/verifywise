@@ -36,6 +36,9 @@ import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
+import { sendSlackNotification } from "../services/slackNotificationService";
+import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
+import { getRoleByIdQuery } from "../utils/role.utils";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');
@@ -410,6 +413,21 @@ async function updateUserById(req: Request, res: Response) {
       )) as UserModel;
 
       await transaction.commit();
+
+      const actor = await getUserByIdQuery(req.userId!);
+      const role = await getRoleByIdQuery(updatedUser.role_id);
+
+      await sendSlackNotification(
+        {
+          userId: actor.id!,
+          routingType: SlackNotificationRoutingType.MEMBERSHIP_AND_ROLES,
+        },
+        {
+          title: `Membership update`,
+          message: `${updatedUser.name} ${updatedUser.surname} is now *Project ${role?.name}* (added by ${actor.name} ${actor.surname}).`,
+        },
+      );
+
       logStructured('successful', `user updated: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
       await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`);
       return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));

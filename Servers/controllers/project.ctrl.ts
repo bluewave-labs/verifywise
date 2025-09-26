@@ -39,6 +39,8 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
 import { sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/userAddedToProjectNotification"
+import { sendSlackNotification } from "../services/slackNotificationService";
+import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -245,6 +247,18 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           error: emailError as Error,
         });
       });
+      const actor = await getUserByIdQuery(req.userId!);
+
+      await sendSlackNotification(
+        {
+          userId: actor.id!,
+          routingType: SlackNotificationRoutingType.MEMBERSHIP_AND_ROLES,
+        },
+        {
+          title: `Project created`,
+          message: `${actor.name} ${actor.surname} created Project ${createdProject.project_title}.`,
+        },
+      );
 
       return res.status(201).json(
         STATUS_CODE[201]({

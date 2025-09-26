@@ -1,7 +1,7 @@
 import { Stack, Typography, Tooltip, Box } from "@mui/material";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
-import TrendingFlatIcon from "@mui/icons-material/TrendingFlat";
+import {ReactComponent as TrendingUpRedIcon} from "../../../assets/icons/trendingUp.svg";
+import {ReactComponent as TrendingDownGreenIcon} from "../../../assets/icons/trendingDown.svg";
+import {ReactComponent as TrendingFlatGreyIcon} from "../../../assets/icons/trendingFlat.svg";
 import {
   projectRisksCard,
   projectRisksTileCard,
@@ -25,7 +25,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     if (!trend || trend.direction === 'stable') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingFlatIcon sx={trendIconStable} />
+          <TrendingFlatGreyIcon style={trendIconStable} />
           <span style={{ color: "#6B7280" }}>
             {trend?.change === 0 ? "0" : "—"}
           </span>
@@ -36,7 +36,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
     if (trend.direction === 'up') {
       return (
         <Typography sx={trendIndicator}>
-          <TrendingUpIcon sx={trendIconUp} />
+          <TrendingUpRedIcon style={trendIconUp} />
           <span style={{ color: "#EF4444" }}>
             +{trend.change}
           </span>
@@ -46,7 +46,7 @@ const RisksCard = ({ risksSummary }: RisksCardProps) => {
 
     return (
       <Typography sx={trendIndicator}>
-        <TrendingDownIcon sx={trendIconDown} />
+        <TrendingDownGreenIcon style={trendIconDown} />
         <span style={{ color: "#10B981" }}>
           -{Math.abs(trend.change)}
         </span>

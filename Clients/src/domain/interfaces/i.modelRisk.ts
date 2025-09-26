@@ -22,38 +22,37 @@ export enum ModelRiskStatus {
 
 export interface IModelRisk {
   id?: number;
-  riskName: string;
-  riskCategory: ModelRiskCategory;
-  riskLevel: ModelRiskLevel;
+  risk_name: string;
+  risk_category: ModelRiskCategory;
+  risk_level: ModelRiskLevel;
   status: ModelRiskStatus;
   owner: string;
-  createdDate: string;
-  targetDate: string;
-  lastUpdated: string;
+  target_date: string;
   description?: string;
-  mitigationPlan?: string;
+  mitigation_plan?: string;
   impact?: string;
   likelihood?: string;
-  keyMetrics?: string;
-  currentValues?: string;
+  key_metrics?: string;
+  current_values?: string;
   threshold?: string;
-  modelId?: number; // Optional link to specific model
-  modelName?: string; // For display purposes
+  model_id?: number;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface IModelRiskFormData {
-  riskName: string;
-  riskCategory: ModelRiskCategory;
-  riskLevel: ModelRiskLevel;
+  risk_name: string;
+  risk_category: ModelRiskCategory;
+  risk_level: ModelRiskLevel;
   status: ModelRiskStatus;
   owner: string;
-  targetDate: string;
+  target_date: string;
   description?: string;
-  mitigationPlan?: string;
+  mitigation_plan?: string;
   impact?: string;
   likelihood?: string;
-  keyMetrics?: string;
-  currentValues?: string;
+  key_metrics?: string;
+  current_values?: string;
   threshold?: string;
-  modelId?: number;
+  model_id?: number;
 }

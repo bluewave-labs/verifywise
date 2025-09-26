@@ -7,13 +7,15 @@ import {
   getAllVendorRisks,
   getVendorRiskById,
   updateVendorRiskById,
-  getAllVendorRisksAllProjects 
+  getAllVendorRisksAllProjects, 
+  getAllVendorRisksByVendorId
 } from "../controllers/vendorRisk.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
 
 // GET requests
 router.get("/by-projid/:id", authenticateJWT, getAllVendorRisks);
+router.get("/by-vendorid/:id", authenticateJWT, getAllVendorRisksByVendorId);
 router.get("/all",authenticateJWT,  getAllVendorRisksAllProjects);
 router.get("/:id", authenticateJWT, getVendorRiskById);
 

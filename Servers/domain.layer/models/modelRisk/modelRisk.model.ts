@@ -11,8 +11,7 @@ import { ValidationException } from "../../exceptions/custom.exception";
 })
 export class ModelRiskModel
   extends Model<ModelRiskModel>
-  implements IModelRisk
-{
+  implements IModelRisk {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -25,21 +24,21 @@ export class ModelRiskModel
     allowNull: false,
     field: "risk_name",
   })
-  riskName!: string;
+  risk_name!: string;
 
   @Column({
     type: DataType.ENUM(...Object.values(ModelRiskCategory)),
     allowNull: false,
     field: "risk_category",
   })
-  riskCategory!: ModelRiskCategory;
+  risk_category!: ModelRiskCategory;
 
   @Column({
     type: DataType.ENUM(...Object.values(ModelRiskLevel)),
     allowNull: false,
     field: "risk_level",
   })
-  riskLevel!: ModelRiskLevel;
+  risk_level!: ModelRiskLevel;
 
   @Column({
     type: DataType.ENUM(...Object.values(ModelRiskStatus)),
@@ -59,7 +58,7 @@ export class ModelRiskModel
     allowNull: false,
     field: "target_date",
   })
-  targetDate!: string;
+  target_date!: string;
 
   @Column({
     type: DataType.TEXT,
@@ -72,7 +71,7 @@ export class ModelRiskModel
     allowNull: true,
     field: "mitigation_plan",
   })
-  mitigationPlan?: string;
+  mitigation_plan?: string;
 
   @Column({
     type: DataType.TEXT,
@@ -91,14 +90,14 @@ export class ModelRiskModel
     allowNull: true,
     field: "key_metrics",
   })
-  keyMetrics?: string;
+  key_metrics?: string;
 
   @Column({
     type: DataType.TEXT,
     allowNull: true,
     field: "current_values",
   })
-  currentValues?: string;
+  current_values?: string;
 
   @Column({
     type: DataType.STRING,
@@ -111,21 +110,9 @@ export class ModelRiskModel
     allowNull: true,
     field: "model_id",
   })
-  modelId?: number;
+  model_id?: number;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "model_name",
-  })
-  modelName?: string;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "tenant_id",
-  })
-  tenantId!: number;
 
   @Column({
     type: DataType.DATE,
@@ -157,27 +144,27 @@ export class ModelRiskModel
    * Validate model risk data before saving
    */
   async validateModelRiskData(): Promise<void> {
-    if (!this.riskName || !String(this.riskName).trim()) {
+    if (!this.risk_name || !String(this.risk_name).trim()) {
       throw new ValidationException(
         "Risk name is required",
-        "riskName",
-        this.riskName
+        "risk_name",
+        this.risk_name
       );
     }
 
-    if (!this.riskCategory) {
+    if (!this.risk_category) {
       throw new ValidationException(
         "Risk category is required",
-        "riskCategory",
-        this.riskCategory
+        "risk_category",
+        this.risk_category
       );
     }
 
-    if (!this.riskLevel) {
+    if (!this.risk_level) {
       throw new ValidationException(
         "Risk level is required",
-        "riskLevel",
-        this.riskLevel
+        "risk_level",
+        this.risk_level
       );
     }
 
@@ -193,19 +180,11 @@ export class ModelRiskModel
       throw new ValidationException("Owner is required", "owner", this.owner);
     }
 
-    if (!this.targetDate) {
+    if (!this.target_date) {
       throw new ValidationException(
         "Target date is required",
-        "targetDate",
-        this.targetDate
-      );
-    }
-
-    if (!this.tenantId) {
-      throw new ValidationException(
-        "Tenant ID is required",
-        "tenantId",
-        this.tenantId
+        "target_date",
+        this.target_date
       );
     }
   }
@@ -216,25 +195,22 @@ export class ModelRiskModel
   toSafeJSON(): any {
     return {
       id: this.id,
-      riskName: this.riskName,
-      riskCategory: this.riskCategory,
-      riskLevel: this.riskLevel,
+      risk_name: this.risk_name,
+      risk_category: this.risk_category,
+      risk_level: this.risk_level,
       status: this.status,
       owner: this.owner,
-      createdDate: this.created_at?.toISOString(),
-      targetDate: this.targetDate,
-      lastUpdated: this.updated_at?.toISOString(),
+      target_date: this.target_date,
       description: this.description,
-      mitigationPlan: this.mitigationPlan,
+      mitigation_plan: this.mitigation_plan,
       impact: this.impact,
       likelihood: this.likelihood,
-      keyMetrics: this.keyMetrics,
-      currentValues: this.currentValues,
+      key_metrics: this.key_metrics,
+      current_values: this.current_values,
       threshold: this.threshold,
-      modelId: this.modelId,
-      modelName: this.modelName,
-      created_at: this.created_at?.toISOString(),
-      updated_at: this.updated_at?.toISOString(),
+      model_id: this.model_id,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
     };
   }
 
@@ -250,22 +226,20 @@ export class ModelRiskModel
    */
   static createNewModelRisk(data: Partial<IModelRisk>): ModelRiskModel {
     const modelRisk = new ModelRiskModel({
-      riskName: data.riskName || "",
-      riskCategory: data.riskCategory || ModelRiskCategory.PERFORMANCE,
-      riskLevel: data.riskLevel || ModelRiskLevel.MEDIUM,
+      risk_name: data.risk_name || "",
+      risk_category: data.risk_category || ModelRiskCategory.PERFORMANCE,
+      risk_level: data.risk_level || ModelRiskLevel.MEDIUM,
       status: data.status || ModelRiskStatus.OPEN,
       owner: data.owner || "",
-      targetDate: data.targetDate || new Date().toISOString(),
+      target_date: data.target_date || new Date().toISOString(),
       description: data.description || "",
-      mitigationPlan: data.mitigationPlan || "",
+      mitigation_plan: data.mitigation_plan || "",
       impact: data.impact || "",
       likelihood: data.likelihood || "",
-      keyMetrics: data.keyMetrics || "",
-      currentValues: data.currentValues || "",
+      key_metrics: data.key_metrics || "",
+      current_values: data.current_values || "",
       threshold: data.threshold || "",
-      modelId: data.modelId || undefined,
-      modelName: data.modelName || "",
-      tenantId: data.tenantId || 1,
+      model_id: data.model_id || undefined,
       created_at: new Date(),
       updated_at: new Date(),
     });

@@ -332,7 +332,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "fit-content",
-          maxHeight: "80vh",
+          maxHeight: "fit-content",
           display: "flex",
           flexDirection: "column",
           bgcolor: theme.palette.background.modal,

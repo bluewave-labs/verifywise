@@ -4,24 +4,20 @@ import { ModelRiskStatus } from "../enums/model-risk-status.enum";
 
 export interface IModelRisk {
   id?: number;
-  riskName: string;
-  riskCategory: ModelRiskCategory;
-  riskLevel: ModelRiskLevel;
+  risk_name: string;
+  risk_category: ModelRiskCategory;
+  risk_level: ModelRiskLevel;
   status: ModelRiskStatus;
   owner: string;
-  createdDate?: string;
-  targetDate: string;
-  lastUpdated?: string;
+  target_date: string;
   description?: string;
-  mitigationPlan?: string;
+  mitigation_plan?: string;
   impact?: string;
   likelihood?: string;
-  keyMetrics?: string;
-  currentValues?: string;
+  key_metrics?: string;
+  current_values?: string;
   threshold?: string;
-  modelId?: number;
-  modelName?: string;
-  tenantId?: number;
+  model_id?: number;
   created_at?: Date;
   updated_at?: Date;
 }

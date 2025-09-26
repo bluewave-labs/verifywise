@@ -7,7 +7,6 @@ import React, {
   Suspense,
 } from "react";
 import {
-  useTheme,
   Modal,
   Stack,
   Box,
@@ -42,26 +41,26 @@ interface NewModelRiskProps {
 }
 
 interface NewModelRiskFormErrors {
-  riskName?: string;
-  riskCategory?: string;
-  riskLevel?: string;
+  risk_name?: string;
+  risk_category?: string;
+  risk_level?: string;
   status?: string;
   owner?: string;
-  targetDate?: string;
+  target_date?: string;
   description?: string;
-  mitigationPlan?: string;
+  mitigation_plan?: string;
   impact?: string;
 }
 
 const initialState: IModelRiskFormData = {
-  riskName: "",
-  riskCategory: ModelRiskCategory.PERFORMANCE,
-  riskLevel: ModelRiskLevel.MEDIUM,
+  risk_name: "",
+  risk_category: ModelRiskCategory.PERFORMANCE,
+  risk_level: ModelRiskLevel.MEDIUM,
   status: ModelRiskStatus.OPEN,
   owner: "",
-  targetDate: new Date().toISOString().split("T")[0],
+  target_date: new Date().toISOString().split("T")[0],
   description: "",
-  mitigationPlan: "",
+  mitigation_plan: "",
   impact: "",
 };
 
@@ -94,7 +93,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   initialData,
   isEdit = false,
 }) => {
-  const theme = useTheme();
+  // const theme = useTheme();
   const [values, setValues] = useState<IModelRiskFormData>(
     initialData || initialState
   );
@@ -129,6 +128,19 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
       fetchModels();
     }
   }, [isOpen]);
+
+  // Transform owner ID to proper format when editing a model risk
+  useEffect(() => {
+    if (initialData && users && users.length > 0 && isEdit) {
+      const ownerUser = users.find((user) => String(user.id) === String(initialData.owner));
+      if (ownerUser) {
+        setValues(prev => ({
+          ...prev,
+          owner: String(ownerUser.id),
+        }));
+      }
+    }
+  }, [initialData, users, isEdit]);
 
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
@@ -230,16 +242,16 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   const validateForm = (): boolean => {
     const newErrors: NewModelRiskFormErrors = {};
 
-    if (!values.riskName || !String(values.riskName).trim()) {
-      newErrors.riskName = "Risk name is required.";
+    if (!values.risk_name || !String(values.risk_name).trim()) {
+      newErrors.risk_name = "Risk name is required.";
     }
 
-    if (!values.riskCategory) {
-      newErrors.riskCategory = "Risk category is required.";
+    if (!values.risk_category) {
+      newErrors.risk_category = "Risk category is required.";
     }
 
-    if (!values.riskLevel) {
-      newErrors.riskLevel = "Risk level is required.";
+    if (!values.risk_level) {
+      newErrors.risk_level = "Risk level is required.";
     }
 
     if (!values.status) {
@@ -250,8 +262,8 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
       newErrors.owner = "Owner is required.";
     }
 
-    if (!values.targetDate) {
-      newErrors.targetDate = "Target date is required.";
+    if (!values.target_date) {
+      newErrors.target_date = "Target date is required.";
     }
 
     setErrors(newErrors);
@@ -277,40 +289,34 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     }
   };
 
-  const fieldStyle = useMemo(
-    () => ({
-      backgroundColor: theme.palette.background.main,
-      "& input": {
-        padding: "0 14px",
-      },
-    }),
-    [theme.palette.background.main]
-  );
+  const fieldStyle = {
+    backgroundColor: "#FFFFFF",
+    "& input": {
+      padding: "0 14px",
+    },
+  };
 
-  const textAreaStyle = useMemo(
-    () => ({
-      backgroundColor: theme.palette.background.main,
-      "& .MuiOutlinedInput-root": {
-        borderRadius: theme.shape.borderRadius,
-        fontSize: "13px",
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderColor: theme.palette.border.dark,
-          borderWidth: "1px",
-        },
-        "&:hover .MuiOutlinedInput-notchedOutline": {
-          borderColor: theme.palette.border.dark,
-        },
-        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-          borderColor: theme.palette.border.dark,
-          borderWidth: "1px",
-        },
+  const textAreaStyle = {
+    backgroundColor: "#FFFFFF",
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "4px",
+      fontSize: "13px",
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#D0D5DD",
+        borderWidth: "1px",
       },
-      "& .MuiOutlinedInput-input::placeholder": {
-        fontSize: "13px",
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#D0D5DD",
       },
-    }),
-    [theme.palette.background.main, theme.shape.borderRadius, theme.palette.border.dark]
-  );
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+        borderColor: "#888",
+        borderWidth: "1px",
+      },
+    },
+    "& .MuiOutlinedInput-input::placeholder": {
+      fontSize: "13px",
+    },
+  };
 
   return (
     <Modal
@@ -323,24 +329,18 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
       sx={{ overflowY: "scroll" }}
     >
       <Stack
-        gap={theme.spacing(2)}
-        color={theme.palette.text.secondary}
+        gap={8}
         sx={{
-          backgroundColor: "#D9D9D9",
           position: "absolute",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "fit-content",
           maxHeight: "80vh",
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: theme.palette.background.modal,
-          border: 1,
-          borderColor: theme.palette.border,
-          borderRadius: theme.shape.borderRadius,
-          boxShadow: 24,
-          p: theme.spacing(15),
+          backgroundColor: "#FCFCFD",
+          borderRadius: "4px",
+          padding: 10,
+          maxWidth: "760px",
           "&:focus": {
             outline: "none",
           },
@@ -348,13 +348,16 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
       >
         <form onSubmit={handleSubmit}>
           <Stack
-            display={"flex"}
-            flexDirection={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            marginBottom={theme.spacing(5)}
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
-            <Typography fontSize={16} fontWeight={600}>
+            <Typography
+              sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
+            >
               {isEdit ? "Edit Model Risk" : "Add a new model risk"}
             </Typography>
             <Box
@@ -367,9 +370,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
               }}
               sx={{
                 cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                padding: "8px",
+                color: "#98A2B3",
                 "&:hover": {
                   opacity: 0.8,
                 },
@@ -379,24 +380,23 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
             </Box>
           </Stack>
 
-          <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(8) }}
-          >
-            <Stack gap={theme.spacing(8)}>
+          <Stack sx={{ gap: 8 }}>
               {/* First Row: Risk Name, Category, Risk Level */}
               <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                gap={theme.spacing(8)}
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 8,
+                }}
               >
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="riskName"
                     label="Risk name"
                     width={220}
-                    value={values.riskName}
-                    onChange={handleOnTextFieldChange("riskName")}
-                    error={errors.riskName}
+                    value={values.risk_name}
+                    onChange={handleOnTextFieldChange("risk_name")}
+                    error={errors.risk_name}
                     isRequired
                     sx={fieldStyle}
                     placeholder="e.g., Model accuracy decline"
@@ -405,32 +405,34 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <SelectComponent
                   id="riskCategory"
                   label="Risk category"
-                  value={values.riskCategory}
-                  error={errors.riskCategory}
+                  value={values.risk_category}
+                  error={errors.risk_category}
                   isRequired
                   sx={{ width: 220 }}
                   items={riskCategoryOptions}
-                  onChange={handleOnSelectChange("riskCategory")}
+                  onChange={handleOnSelectChange("risk_category")}
                   placeholder="Select category"
                 />
                 <SelectComponent
                   id="riskLevel"
                   label="Risk level"
-                  value={values.riskLevel}
-                  error={errors.riskLevel}
+                  value={values.risk_level}
+                  error={errors.risk_level}
                   isRequired
                   sx={{ width: 220 }}
                   items={riskLevelOptions}
-                  onChange={handleOnSelectChange("riskLevel")}
+                  onChange={handleOnSelectChange("risk_level")}
                   placeholder="Select risk level"
                 />
               </Stack>
 
               {/* Second Row: Status, Owner, Target Date */}
               <Stack
-                direction={"row"}
-                justifyContent={"flex-start"}
-                gap={theme.spacing(8)}
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 8,
+                }}
               >
                 <SelectComponent
                   id="status"
@@ -459,34 +461,36 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                   <DatePicker
                     label="Target date"
                     date={
-                      values.targetDate
-                        ? dayjs(values.targetDate)
+                      values.target_date
+                        ? dayjs(values.target_date)
                         : dayjs(new Date())
                     }
                     handleDateChange={handleDateChange}
                     sx={{
                       width: 220,
-                      backgroundColor: theme.palette.background.main,
+                      backgroundColor: "#FFFFFF",
                     }}
                     isRequired
-                    error={errors.targetDate}
+                    error={errors.target_date}
                   />
                 </Suspense>
               </Stack>
 
               {/* Third Row: Model (Optional) */}
               <Stack
-                direction={"row"}
-                justifyContent={"flex-start"}
-                gap={theme.spacing(8)}
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 8,
+                }}
               >
                 <SelectComponent
                   id="modelId"
                   label="Associated model (optional)"
-                  value={values.modelId || ""}
+                  value={values.model_id || ""}
                   sx={{ width: 220 }}
                   items={modelOptions}
-                  onChange={handleOnSelectChange("modelId")}
+                  onChange={handleOnSelectChange("model_id")}
                   placeholder="Select model"
                   disabled={isLoadingModels}
                 />
@@ -497,9 +501,8 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <Typography
                   sx={{
                     fontSize: 13,
-                    fontWeight: 400,
-                    mb: theme.spacing(2),
-                    color: theme.palette.text.secondary,
+                    fontWeight: 500,
+                    mb: 2,
                   }}
                 >
                   Description
@@ -521,9 +524,8 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <Typography
                   sx={{
                     fontSize: 13,
-                    fontWeight: 400,
-                    mb: theme.spacing(2),
-                    color: theme.palette.text.secondary,
+                    fontWeight: 500,
+                    mb: 2,
                   }}
                 >
                   Impact
@@ -545,9 +547,8 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <Typography
                   sx={{
                     fontSize: 13,
-                    fontWeight: 400,
-                    mb: theme.spacing(2),
-                    color: theme.palette.text.secondary,
+                    fontWeight: 500,
+                    mb: 2,
                   }}
                 >
                   Mitigation plan
@@ -555,21 +556,23 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <TextField
                   multiline
                   rows={2}
-                  value={values.mitigationPlan}
-                  onChange={handleOnTextFieldChange("mitigationPlan")}
+                  value={values.mitigation_plan}
+                  onChange={handleOnTextFieldChange("mitigation_plan")}
                   placeholder="Describe the plan to mitigate this risk"
-                  error={!!errors.mitigationPlan}
-                  helperText={errors.mitigationPlan}
+                  error={!!errors.mitigation_plan}
+                  helperText={errors.mitigation_plan}
                   sx={textAreaStyle}
                 />
               </Stack>
             </Stack>
-          </Box>
 
           <Stack
             sx={{
-              alignItems: "flex-end",
-              marginTop: "auto",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              mt: 6,
             }}
           >
             <CustomizableButton

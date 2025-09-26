@@ -2,7 +2,7 @@ import {
   ModelRiskCategory,
   ModelRiskLevel,
   ModelRiskStatus,
-} from "../../interfaces/i.modelRisk";
+} from "../../../interfaces/i.modelRisk";
 
 export class ModelRiskModel {
   id?: number;

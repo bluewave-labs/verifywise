@@ -1,4 +1,4 @@
-import { ModelInventoryStatus } from "../../interfaces/i.modelInventory";
+import { ModelInventoryStatus } from "../../../interfaces/i.modelInventory";
 
 export class ModelInventoryModel {
   id?: number;

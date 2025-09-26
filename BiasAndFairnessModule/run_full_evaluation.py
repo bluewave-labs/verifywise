@@ -15,6 +15,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import json
+import traceback
+import re
 
 # Add the src directory to Python path
 current_dir = Path(__file__).parent
@@ -282,7 +284,6 @@ def _normalize_predictions_to_tokens(config) -> None:
         print(f"   ❌ Prediction normalization skipped: file not found at {results_path}")
         return
 
-    import re
 
     def extract_numeric_value(text: str) -> float:
         """Extract a numeric value from text; understands '55K' and '50,000' forms.
@@ -411,7 +412,6 @@ def main():
         return results
     except Exception as e:
         print(f"\n❌ Pipeline execution failed: {str(e)}")
-        import traceback
         traceback.print_exc()
         raise
 

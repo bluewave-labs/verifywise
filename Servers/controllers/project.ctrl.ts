@@ -27,6 +27,7 @@ import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
 import { sendSlackNotification } from "../services/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
+import { sendProjectCreatedNotification } from "../services/projectCreationNotification";
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -177,6 +178,22 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         description: "Created new project",
         functionName: "createProject",
         fileName: "project.ctrl.ts",
+      });
+
+      // Send project creation notification to admin (fire-and-forget, don't block response)
+      sendProjectCreatedNotification({
+        projectId: createdProject.id!,
+        projectName: createdProject.project_title,
+        adminId: createdProject.owner,
+      }).catch(async (emailError) => {
+        // Log the email error but don't fail the project creation
+        await logFailure({
+          eventType: "Create",
+          description: "Failed to send project creation notification email",
+          functionName: "createProject",
+          fileName: "project.ctrl.ts",
+          error: emailError as Error,
+        });
       });
 
       const actor = await getUserByIdQuery(req.userId!);

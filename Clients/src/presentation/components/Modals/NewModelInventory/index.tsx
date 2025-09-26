@@ -31,7 +31,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
-import modelInventoryOptions from "../../../../../../Servers/templates/model-inventory.json";
+import modelInventoryOptions from "../../../utils/model-inventory.json";
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -180,7 +180,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   }, [users]);
 
   const modelInventoryList = useMemo(() => {
-    return modelInventoryOptions.map((u) => ({
+    return modelInventoryOptions.map((u: {
+      model: string;
+      provider: string;
+    }) => ({
       _id: u.model,          
       name: `${u.provider} - ${u.model}`,
       surname: u.model,

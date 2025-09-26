@@ -45,6 +45,10 @@ import {
   paginationSelectStyle,
   paginationStyle,
 } from "./style";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 // Constants for table
 const TABLE_COLUMNS = [
@@ -255,7 +259,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 </TableCell>
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {modelInventory.status_date
-                    ? new Date(modelInventory.status_date).toLocaleDateString()
+                    ? dayjs.utc(modelInventory.status_date).format("YYYY-MM-DD")
                     : "-"}
                 </TableCell>
                 <TableCell

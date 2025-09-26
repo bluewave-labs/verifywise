@@ -201,7 +201,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     if (newDate?.isValid()) {
       setValues((prev) => ({
         ...prev,
-        status_date: newDate ? newDate.toISOString().split("T")[0] : "",
+        status_date: newDate ? newDate.format('YYYY-MM-DD') : "",
       }));
       setErrors((prev) => ({ ...prev, status_date: "" }));
     }

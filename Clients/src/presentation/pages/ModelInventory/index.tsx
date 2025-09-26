@@ -280,7 +280,6 @@ const ModelInventory: React.FC = () => {
           const response = await getEntityById({
             routeUrl: `/modelInventory/${selectedModelInventoryId}`,
           });
-          console.log("Fetching model inventory details:", response);
           if (response?.data) {
             setSelectedModelInventory(response.data);
           }
@@ -305,7 +304,6 @@ const ModelInventory: React.FC = () => {
           const response = await getEntityById({
             routeUrl: `/modelRisks/${selectedModelRiskId}`,
           });
-          console.log("Fetching model risk details:", response);
           if (response?.data) {
             setSelectedModelRisk(response.data);
           }
@@ -332,7 +330,6 @@ const ModelInventory: React.FC = () => {
     try {
       if (selectedModelInventory) {
         // Update existing model inventory
-        console.log("Updating model inventory with data:", formData);
         await updateEntityById({
           routeUrl: `/modelInventory/${selectedModelInventory.id}`,
           body: formData,
@@ -363,31 +360,22 @@ const ModelInventory: React.FC = () => {
 
   const handleDeleteModelInventory = async (id: string) => {
     try {
-      console.log("Deleting model inventory with ID:", id);
       setDeletingId(id);
 
       // Optimistically remove the item from the local state for immediate UI feedback
       setModelInventoryData((prevData) => {
         const newData = prevData.filter((item) => item.id?.toString() !== id);
-        console.log(
-          "Optimistic update: removed item",
-          id,
-          "New data length:",
-          newData.length
-        );
         return newData;
       });
 
       // Perform the actual delete operation
       await deleteEntityById({ routeUrl: `/modelInventory/${id}` });
-      console.log("Delete API call successful");
 
       // Fetch fresh data to ensure consistency with server (without loading state)
       await fetchModelInventoryData(false);
 
       // Force a smooth table re-render after the data update
       setTableKey((prev) => prev + 1);
-      console.log("Fresh data fetched, UI updated");
 
       setAlert({
         variant: "success",
@@ -434,11 +422,11 @@ const ModelInventory: React.FC = () => {
     let filtered = modelRisksData;
 
     if (modelRiskCategoryFilter !== "all") {
-      filtered = filtered.filter((risk) => risk.riskCategory === modelRiskCategoryFilter);
+      filtered = filtered.filter((risk) => risk.risk_category === modelRiskCategoryFilter);
     }
 
     if (modelRiskLevelFilter !== "all") {
-      filtered = filtered.filter((risk) => risk.riskLevel === modelRiskLevelFilter);
+      filtered = filtered.filter((risk) => risk.risk_level === modelRiskLevelFilter);
     }
 
     return filtered;
@@ -818,20 +806,20 @@ const ModelInventory: React.FC = () => {
         initialData={
           selectedModelRisk
             ? {
-                riskName: selectedModelRisk.riskName || "",
-                riskCategory: selectedModelRisk.riskCategory,
-                riskLevel: selectedModelRisk.riskLevel,
+                risk_name: selectedModelRisk.risk_name || "",
+                risk_category: selectedModelRisk.risk_category,
+                risk_level: selectedModelRisk.risk_level,
                 status: selectedModelRisk.status,
                 owner: selectedModelRisk.owner,
-                targetDate: selectedModelRisk.targetDate
-                  ? new Date(selectedModelRisk.targetDate)
+                target_date: selectedModelRisk.target_date
+                  ? new Date(selectedModelRisk.target_date)
                       .toISOString()
                       .split("T")[0]
                   : new Date().toISOString().split("T")[0],
                 description: selectedModelRisk.description || "",
-                mitigationPlan: selectedModelRisk.mitigationPlan || "",
+                mitigation_plan: selectedModelRisk.mitigation_plan || "",
                 impact: selectedModelRisk.impact || "",
-                modelId: selectedModelRisk.modelId,
+                model_id: selectedModelRisk.model_id,
               }
             : undefined
         }

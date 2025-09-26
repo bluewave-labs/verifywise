@@ -49,7 +49,7 @@ export async function getAllModelInventories(req: Request, res: Response) {
       "getAllModelInventories",
       "modelInventory.ctrl.ts"
     );
-    return res.status(204).json(STATUS_CODE[204](modelInventories));
+    return res.status(200).json(STATUS_CODE[200](modelInventories));
   } catch (error) {
     logStructured(
       "error",
@@ -306,6 +306,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
 
 export async function deleteModelInventoryById(req: Request, res: Response) {
   const id = req.params.id;
+  const deleteRisks = req.query.deleteRisks === "true";
 
   logStructured(
     "processing",
@@ -338,7 +339,7 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
 
     // Use the existing database query approach for deleting
     transaction = await sequelize.transaction();
-    await deleteModelInventoryByIdQuery(Number(id), req.tenantId!, transaction);
+    await deleteModelInventoryByIdQuery(Number(id), deleteRisks, req.tenantId!, transaction);
     await transaction.commit();
 
     logStructured(

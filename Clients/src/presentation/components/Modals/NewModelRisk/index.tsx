@@ -7,7 +7,6 @@ import React, {
   Suspense,
 } from "react";
 import {
-  useTheme,
   Modal,
   Stack,
   Box,

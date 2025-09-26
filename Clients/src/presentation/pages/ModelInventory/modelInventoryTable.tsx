@@ -11,7 +11,7 @@ import {
   Stack,
   Typography,
   TableFooter,
-  Chip,
+  Tooltip,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
@@ -31,9 +31,6 @@ import { getPaginationRowCount, setPaginationRowCount } from "../../../applicati
 import {
   statusBadgeStyle,
   securityAssessmentBadgeStyle,
-  capabilitiesChipContainerStyle,
-  capabilityChipStyle,
-  capabilityChipExtraStyle,
   tableRowHoverStyle,
   tableRowDeletingStyle,
   loadingContainerStyle,
@@ -56,7 +53,7 @@ const TABLE_COLUMNS = [
   { id: "model", label: "MODEL" },
   { id: "version", label: "VERSION" },
   { id: "approver", label: "APPROVER" },
-  { id: "capabilities", label: "CAPABILITIES" },
+  // { id: "capabilities", label: "CAPABILITIES" },
   { id: "security_assessment", label: "SECURITY ASSESSMENT" },
   { id: "status", label: "STATUS" },
   { id: "status_date", label: "STATUS DATE" },
@@ -74,9 +71,21 @@ interface ModelInventoryTableProps {
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
-  status,
-}) => {
+const TooltipCell: React.FC<{ value: string | null | undefined }> = ({ value }) => {
+  const displayValue = value || "-";
+  const shouldShowTooltip = displayValue.length > 24;
+
+  return shouldShowTooltip ? (
+    <Tooltip title={displayValue} arrow>
+      <span>{displayValue}</span>
+    </Tooltip>
+  ) : (
+    <span>{displayValue}</span>
+  );
+};
+
+
+const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({ status }) => {
   return <span style={statusBadgeStyle(status)}>{status}</span>;
 };
 
@@ -90,29 +99,29 @@ const SecurityAssessmentBadge: React.FC<{ assessment: boolean }> = ({
   );
 };
 
-const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({
-  capabilities,
-}) => {
-  return (
-    <Stack direction="row" flexWrap="wrap" sx={capabilitiesChipContainerStyle}>
-      {capabilities.slice(0, 3).map((capability, index) => (
-        <Chip
-          key={index}
-          label={capability}
-          size="small"
-          sx={capabilityChipStyle}
-        />
-      ))}
-      {capabilities.length > 3 && (
-        <Chip
-          label={`+${capabilities.length - 3}`}
-          size="small"
-          sx={capabilityChipExtraStyle}
-        />
-      )}
-    </Stack>
-  );
-};
+// const CapabilitiesChips: React.FC<{ capabilities: string[] }> = ({
+//   capabilities,
+// }) => {
+//   return (
+//     <Stack direction="row" flexWrap="wrap" sx={capabilitiesChipContainerStyle}>
+//       {capabilities.slice(0, 3).map((capability, index) => (
+//         <Chip
+//           key={index}
+//           label={capability}
+//           size="small"
+//           sx={capabilityChipStyle}
+//         />
+//       ))}
+//       {capabilities.length > 3 && (
+//         <Chip
+//           label={`+${capabilities.length - 3}`}
+//           size="small"
+//           sx={capabilityChipExtraStyle}
+//         />
+//       )}
+//     </Stack>
+//   );
+// };
 
 const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   data,
@@ -232,35 +241,33 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   onEdit?.(modelInventory.id?.toString() || "");
                 }}
               >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.provider || "-"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.provider} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.model || "-"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.model} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.version || "-"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={modelInventory.version} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {userMap.get(modelInventory.approver.toString())}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell value={userMap.get(modelInventory.approver.toString())} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  <CapabilitiesChips
-                    capabilities={modelInventory.capabilities}
-                  />
+                {/* <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                  <CapabilitiesChips capabilities={modelInventory.capabilities} />
+                </TableCell> */}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <SecurityAssessmentBadge assessment={modelInventory.security_assessment} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  <SecurityAssessmentBadge
-                    assessment={modelInventory.security_assessment}
-                  />
-                </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
                   <StatusBadge status={modelInventory.status} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                  {modelInventory.status_date
-                    ? dayjs.utc(modelInventory.status_date).format("YYYY-MM-DD")
-                    : "-"}
+                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                  <TooltipCell
+                    value={modelInventory.status_date
+                      ? dayjs.utc(modelInventory.status_date).format("YYYY-MM-DD")
+                      : "-"}
+                  />
                 </TableCell>
                 <TableCell
                   sx={{

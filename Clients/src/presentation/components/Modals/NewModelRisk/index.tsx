@@ -94,7 +94,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   initialData,
   isEdit = false,
 }) => {
-  const theme = useTheme();
+  // const theme = useTheme();
   const [values, setValues] = useState<IModelRiskFormData>(
     initialData || initialState
   );

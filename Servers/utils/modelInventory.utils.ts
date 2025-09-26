@@ -40,8 +40,8 @@ export const createNewModelInventoryQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, is_demo, created_at, updated_at)
-        VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :is_demo, :created_at, :updated_at) RETURNING *`,
+      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, is_demo, created_at, updated_at)       
+      VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {
           provider_model: modelInventory.provider_model || '',
@@ -55,6 +55,10 @@ export const createNewModelInventoryQuery = async (
           security_assessment: modelInventory.security_assessment,
           status: modelInventory.status,
           status_date: modelInventory.status_date,
+          reference_link: modelInventory.reference_link,
+          biases: modelInventory.biases,
+          limitations: modelInventory.limitations,
+          hosting_provider: modelInventory.hosting_provider,
           is_demo: modelInventory.is_demo,
           created_at: created_at,
           updated_at: created_at,
@@ -64,7 +68,6 @@ export const createNewModelInventoryQuery = async (
         transaction,
       }
     );
-
     return result[0];
   } catch (error) {
     console.error("Error creating new model inventory:", error);
@@ -83,7 +86,7 @@ export const updateModelInventoryByIdQuery = async (
   try {
     // First update the record
     await sequelize.query(
-      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
+      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, reference_link = :reference_link, biases = :biases, limitations = :limitations,  hosting_provider = :hosting_provider, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
       {
         replacements: {
           id,
@@ -98,6 +101,10 @@ export const updateModelInventoryByIdQuery = async (
           security_assessment: modelInventory.security_assessment,
           status: modelInventory.status,
           status_date: modelInventory.status_date,
+          reference_link: modelInventory.reference_link,
+          biases: modelInventory.biases,
+          limitations: modelInventory.limitations,
+          hosting_provider: modelInventory.hosting_provider,
           is_demo: modelInventory.is_demo,
           updated_at,
         },

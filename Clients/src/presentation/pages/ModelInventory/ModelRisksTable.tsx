@@ -143,14 +143,14 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
               >
                 <TableCell sx={cellStyle}>
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
-                    {row.riskName}
+                    {row.risk_name}
                   </Typography>
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {row.riskCategory}
+                  {row.risk_category}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  <RiskChip label={row.riskLevel} />
+                  <RiskChip label={row.risk_level} />
                 </TableCell>
                 <TableCell sx={cellStyle}>
                   <Box
@@ -181,7 +181,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                   {getOwnerName(row.owner)}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {formatDate(row.targetDate)}
+                  {formatDate(row.target_date)}
                 </TableCell>
                 <TableCell
                   sx={{

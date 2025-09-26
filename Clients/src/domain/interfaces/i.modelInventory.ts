@@ -9,6 +9,10 @@ export interface IModelInventory {
   security_assessment: boolean;
   status: ModelInventoryStatus;
   status_date: Date;
+  reference_link?: string;
+  biases?: string;
+  limitations?: string;
+  hosting_provider?: string;
   is_demo?: boolean;
   created_at?: Date;
   updated_at?: Date;

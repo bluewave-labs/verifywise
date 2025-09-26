@@ -677,6 +677,27 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
           ON UPDATE NO ACTION ON DELETE SET NULL
       );`, { transaction });
 
+    await sequelize.query(`
+      CREATE TABLE "${tenantHash}".model_risks (
+        id SERIAL PRIMARY KEY,
+        risk_name VARCHAR(255) NOT NULL,
+        risk_category enum_model_risks_risk_category NOT NULL,
+        risk_level enum_model_risks_risk_level NOT NULL,
+        status enum_model_risks_status NOT NULL DEFAULT 'Open',
+        owner INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        target_date TIMESTAMP NOT NULL,
+        description TEXT,
+        mitigation_plan TEXT,
+        impact TEXT,
+        likelihood VARCHAR(255),
+        key_metrics TEXT,
+        current_values TEXT,
+        threshold VARCHAR(255),
+        model_id INTEGER REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );`, { transaction });
+
     // Create task ENUM types if they don't exist
     await sequelize.query(`
       DO $$ 

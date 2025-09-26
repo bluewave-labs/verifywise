@@ -37,7 +37,6 @@ export const createNewModelInventoryQuery = async (
   transaction: Transaction
 ) => {
   const created_at = new Date();
-  const status_date = new Date();
 
   try {
     const result = await sequelize.query(
@@ -55,7 +54,7 @@ export const createNewModelInventoryQuery = async (
             : modelInventory.capabilities,
           security_assessment: modelInventory.security_assessment,
           status: modelInventory.status,
-          status_date: status_date,
+          status_date: modelInventory.status_date,
           reference_link: modelInventory.reference_link,
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,

@@ -77,7 +77,7 @@ const ProjectForm = ({
       return {
         project_title: projectToEdit.project_title || "",
         owner: projectToEdit.owner || 0,
-        members: projectToEdit.members || [],
+        members: [], // Will be populated in useEffect when users data is available
         start_date: projectToEdit.start_date || "",
         ai_risk_classification: projectToEdit.ai_risk_classification || 0,
         type_of_high_risk_role: projectToEdit.type_of_high_risk_role || 0,
@@ -109,6 +109,29 @@ const ProjectForm = ({
       setCurrentStep(2);
     }
   }, [defaultFrameworkType, projectToEdit]);
+
+  // Transform member IDs to User objects when editing a project
+  useEffect(() => {
+    if (projectToEdit && users && users.length > 0) {
+      const memberUsers = projectToEdit.members?.map((memberId: number | string) => {
+        const user = users.find((u: any) => u.id === Number(memberId));
+        if (user) {
+          return {
+            _id: String(user.id),
+            name: user.name || '',
+            surname: user.surname || '',
+            email: user.email || '',
+          };
+        }
+        return null;
+      }).filter(Boolean) || [];
+
+      setValues(prev => ({
+        ...prev,
+        members: memberUsers,
+      }));
+    }
+  }, [projectToEdit, users]);
 
   // Filter frameworks based on framework type
   const filteredFrameworks = useMemo(() => {
@@ -621,93 +644,107 @@ const ProjectForm = ({
         </Stack>
         <Stack className="vwproject-form-body-end" sx={{ gap: 8 }}>
           <Suspense fallback={<div>Loading...</div>}>
-            {values.framework_type === FrameworkTypeEnum.ProjectBased && (
-              <Stack>
-                <Typography
-                  sx={{
-                    fontSize: theme.typography.fontSize,
-                    fontWeight: 500,
-                    mb: 2,
-                  }}
-                >
-                  Team members
-                </Typography>
-                <Autocomplete
-                  multiple
-                  id="users-input"
-                  size="small"
-                  value={values.members.map((user) => ({
-                    _id: Number(user._id),
-                    name: user.name,
-                    surname: user.surname,
-                    email: user.email,
-                  }))}
-                  options={
-                    users
-                      ?.filter(
-                        (user) =>
-                          !values.members.some(
-                            (selectedUser) =>
-                              String(selectedUser._id) === String(user.id)
-                          ) && values.owner !== user.id
-                      )
-                      .map((user) => ({
-                        _id: user.id,
-                        name: user.name,
-                        surname: user.surname,
-                        email: user.email,
-                      })) || []
-                  }
-                  noOptionsText={
-                    values.members.length === users.length
-                      ? "All members selected"
-                      : "No options"
-                  }
-                  onChange={handleOnMultiSelect("members")}
-                  getOptionLabel={(user) => `${user.name} ${user.surname}`}
-                  renderOption={(props, option) => {
-                    const { key, ...optionProps } = props;
-                    const userEmail =
-                      option.email.length > 30
-                        ? `${option.email.slice(0, 30)}...`
-                        : option.email;
-                    return (
-                      <Box key={key} component="li" {...optionProps}>
-                        <Typography sx={{ fontSize: "13px" }}>
-                          {option.name} {option.surname}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: "11px",
-                            color: "rgb(157, 157, 157)",
-                            position: "absolute",
-                            right: "9px",
-                          }}
-                        >
-                          {userEmail}
-                        </Typography>
-                      </Box>
-                    );
-                  }}
-                  filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Select Users"
-                      error={!!errors.members}
-                      sx={teamMembersRenderInputStyle}
-                    />
-                  )}
-                  sx={{
-                    backgroundColor: theme.palette.background.main,
-                    ...teamMembersSxStyle,
-                  }}
-                  slotProps={teamMembersSlotProps}
-                />
-              </Stack>
-            )}
-            {!projectToEdit && (
+            <Stack>
+              <Typography
+                sx={{
+                  fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
+                  mb: 2,
+                }}
+              >
+                Team members
+              </Typography>
+              <Autocomplete
+                multiple
+                id="users-input"
+                size="small"
+                value={values.members.map((user) => ({
+                  _id: Number(user._id),
+                  name: user.name,
+                  surname: user.surname,
+                  email: user.email,
+                }))}
+                options={
+                  users
+                    ?.filter(
+                      (user) =>
+                        !values.members.some(
+                          (selectedUser) =>
+                            String(selectedUser._id) === String(user.id)
+                        ) && values.owner !== user.id
+                    )
+                    .map((user) => ({
+                      _id: user.id,
+                      name: user.name,
+                      surname: user.surname,
+                      email: user.email,
+                    })) || []
+                }
+                noOptionsText={
+                  values.members.length === users.length
+                    ? "All members selected"
+                    : "No options"
+                }
+                onChange={handleOnMultiSelect("members")}
+                getOptionLabel={(user) => `${user.name} ${user.surname}`}
+                renderOption={(props, option) => {
+                  const { key, ...optionProps } = props;
+                  const userEmail =
+                    option.email.length > 30
+                      ? `${option.email.slice(0, 30)}...`
+                      : option.email;
+                  return (
+                    <Box key={key} component="li" {...optionProps}>
+                      <Typography sx={{ fontSize: "13px" }}>
+                        {option.name} {option.surname}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "11px",
+                          color: "rgb(157, 157, 157)",
+                          position: "absolute",
+                          right: "9px",
+                        }}
+                      >
+                        {userEmail}
+                      </Typography>
+                    </Box>
+                  );
+                }}
+                filterSelectedOptions
+                popupIcon={<GreyDownArrowIcon />}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select Users"
+                    error={!!errors.members}
+                    sx={teamMembersRenderInputStyle}
+                  />
+                )}
+                sx={{
+                  backgroundColor: theme.palette.background.main,
+                  ...teamMembersSxStyle,
+                }}
+                slotProps={teamMembersSlotProps}
+              />
+            </Stack>
+          <DatePicker
+            label="Start date"
+            date={
+              values.start_date ? dayjs(values.start_date) : dayjs(new Date())
+            }
+            handleDateChange={handleDateChange}
+            sx={{
+              ...datePickerStyle,
+              ...(projectToEdit && {
+                width: "350px",
+                "& input": { width: "300px" },
+              }),
+            }}
+            isRequired
+            error={errors.startDate}
+          />
+            {!projectToEdit && values.framework_type !== FrameworkTypeEnum.OrganizationWide && (
               <Stack>
                 <Typography
                   sx={{
@@ -796,22 +833,6 @@ const ProjectForm = ({
               </Stack>
             )}
           </Suspense>
-          <DatePicker
-            label="Start date"
-            date={
-              values.start_date ? dayjs(values.start_date) : dayjs(new Date())
-            }
-            handleDateChange={handleDateChange}
-            sx={{
-              ...datePickerStyle,
-              ...(projectToEdit && {
-                width: "350px",
-                "& input": { width: "300px" },
-              }),
-            }}
-            isRequired
-            error={errors.startDate}
-          />
           {/* Goal field - only for project-based frameworks */}
           {values.framework_type === FrameworkTypeEnum.ProjectBased && (
             <Field
@@ -833,6 +854,95 @@ const ProjectForm = ({
 
       {/* Goal field - full width only for organization-wide frameworks */}
       {values.framework_type === FrameworkTypeEnum.OrganizationWide && (
+        <Stack>
+          {!projectToEdit && <Stack
+          sx={{ mb: 2 }}>
+            <Typography
+              sx={{
+                fontSize: theme.typography.fontSize,
+                fontWeight: 500,
+                mb: 2,
+              }}
+            >
+              Monitored regulations and standards *
+            </Typography>
+            <Autocomplete
+              multiple
+              id="monitored-regulations-and-standards-input"
+              size="small"
+              value={values.monitored_regulations_and_standards}
+              options={filteredFrameworks}
+              onChange={handleOnMultiSelect(
+                "monitored_regulations_and_standards"
+              )}
+              getOptionLabel={(item) => item.name}
+              noOptionsText={
+                values.monitored_regulations_and_standards.length ===
+                filteredFrameworks.length
+                  ? "All regulations selected"
+                  : "No options"
+              }
+              renderOption={(props, option) => {
+                const isComingSoon = option.name.includes("coming soon");
+                return (
+                  <Box
+                    component="li"
+                    {...props}
+                    sx={{
+                      opacity: isComingSoon ? 0.5 : 1,
+                      cursor: isComingSoon ? "not-allowed" : "pointer",
+                      "&:hover": {
+                        backgroundColor: isComingSoon
+                          ? "transparent"
+                          : undefined,
+                      },
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "13px",
+                        color: isComingSoon
+                          ? "text.secondary"
+                          : "text.primary",
+                      }}
+                    >
+                      {option.name}
+                    </Typography>
+                  </Box>
+                );
+              }}
+              isOptionEqualToValue={(option, value) =>
+                option._id === value._id
+              }
+              getOptionDisabled={(option) =>
+                option.name.includes("coming soon")
+              }
+              filterSelectedOptions
+              popupIcon={<GreyDownArrowIcon />}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  error={!!errors.frameworks}
+                  placeholder="Select regulations and standards"
+                  sx={teamMembersRenderInputStyle}
+                />
+              )}
+              sx={{
+                backgroundColor: theme.palette.background.main,
+                ...teamMembersSxStyle,
+                width: "100%",
+              }}
+              slotProps={teamMembersSlotProps}
+            />
+            {frameworkRequired && (
+              <Typography
+                variant="caption"
+                sx={{ mt: 4, color: "#f04438", fontWeight: 300 }}
+              >
+                {errors.frameworks}
+              </Typography>
+            )}
+          </Stack>}
         <Field
           id="goal-input"
           label="Goal"
@@ -846,8 +956,9 @@ const ProjectForm = ({
           isRequired
           error={errors.goal}
         />
+        </Stack>
       )}
-      {!projectToEdit && (
+      {!projectToEdit && values.framework_type === FrameworkTypeEnum.ProjectBased && (
         <Stack>
           <Checkbox
             size="small"

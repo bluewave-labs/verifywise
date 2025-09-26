@@ -40,7 +40,7 @@ export const createNewModelInventoryQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, is_demo, created_at, updated_at)       
+      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, used_in_projects, is_demo, created_at, updated_at)       
       VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :used_in_projects, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {

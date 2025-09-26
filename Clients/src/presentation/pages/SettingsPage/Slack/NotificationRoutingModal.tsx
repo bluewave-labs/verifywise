@@ -6,7 +6,7 @@ import {
   Autocomplete,
   TextField,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/style";
 import { ReactComponent as ExpandMoreIcon } from "../../../assets/icons/expand-down.svg";
@@ -43,7 +43,11 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
   const { refreshSlackIntegrations, routingData: slackRoutingTypes } =
     useSlackIntegrations(userId);
   const [routingData, setRoutingData] =
-    useState<SlackRoutingType[]>(slackRoutingTypes);
+    useState<SlackRoutingType[]>([...slackRoutingTypes]);
+  
+  const originalIds = useMemo(() => {
+    return [...new Set(slackRoutingTypes.flatMap(item => item.id))]
+  }, [slackRoutingTypes])
 
   useEffect(() => {
     setRoutingData(slackRoutingTypes);
@@ -80,6 +84,11 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
       },
       [],
     );
+
+    // Handling the removed slack integration IDs
+    const transformedIds = [...new Set(routingData.flatMap(item => item.id))];
+    const missingIds = originalIds.filter(item => !transformedIds.includes(item));
+    missingIds.forEach(id => transformedData.push({id, routingType: []}));
     try {
       await Promise.all(
         transformedData.map((item: { routingType: string[]; id: number }) =>

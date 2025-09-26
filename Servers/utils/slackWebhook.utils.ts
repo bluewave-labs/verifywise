@@ -94,12 +94,11 @@ export const updateSlackWebhookByIdQuery = async (
     .filter((f) => {
       if (
         f == "routing_type" &&
-        updateData.routing_type &&
-        updateData.routing_type.length > 0
+        updateData.routing_type 
       ) {
         // Mapping this as Postgres takes the array of string as {a, b, c }
         updateSlackWebhookData["routing_type"] =
-          `{${updateData.routing_type.map((item) => `"${item}"`).join(",")}}`;
+          updateData.routing_type?.length > 0 ? `{${updateData.routing_type.map((item) => `"${item}"`).join(",")}}`: `{}`;
         return true;
       }
       if (updateData[f as keyof SlackWebhookModel] !== undefined) {

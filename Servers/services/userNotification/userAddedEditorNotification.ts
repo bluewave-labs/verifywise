@@ -8,7 +8,7 @@ import {
 } from "../../utils/logger/logHelper";
 
 
-export interface UserAddedAdminNotification {
+export interface UserAddedEditorNotification {
   projectId: number;
   projectName: string;
   adminId: number;
@@ -16,13 +16,13 @@ export interface UserAddedAdminNotification {
 }
 
 
-export const sendUserAddedAdminNotification = async(
-  data: UserAddedAdminNotification
+export const sendUserAddedEditorNotification = async(
+  data: UserAddedEditorNotification
 ): Promise<void> => {
   logProcessing({
-    description: `Sending user added as admin notification for project: ${data.projectName}`,
-    functionName: "sendUserAddedAdminNotification",
-    fileName: "userAddedAdminNotification.ts",
+    description: `Sending user added as a editor notification for project: ${data.projectName}`,
+    functionName: "sendUserAddedEditorNotification",
+    fileName: "UserAddedEditorNotification.ts",
   });
 
   try{
@@ -55,26 +55,26 @@ export const sendUserAddedAdminNotification = async(
     };
 
     // Send the email using core notification service
-    const subject = `You are now a project admin for ${data.projectName}`;
+    const subject = `You are now a project editor for ${data.projectName}`;
     await notificationService.sendEmailWithTemplate(
       user.email,
       subject,
-      "user-added-project-admin.mjml",
+      "user-added-project-editor.mjml",
       templateData
     );
 
     await logSuccess({
-      eventType: "Update",
+      eventType: "Create",
       description: `Added as Admin notification sent to ${user.email}`,
-      functionName: "sendUserAddedAdminNotification",
-      fileName: "userAddedAdminNotification.ts",
+      functionName: "sendUserAddedEditorNotification",
+      fileName: "UserAddedEditorNotification.ts",
     });
   } catch (error) {
     await logFailure({
-      eventType: "Update",
+      eventType: "Create",
       description: `Failed to send user added as admin notification`,
-      functionName: "sendUserAddedAdminNotification",
-      fileName: "userAddedAdminNotification.ts",
+      functionName: "sendUserAddedEditorNotification",
+      fileName: "UserAddedEditorNotification.ts",
       error: error as Error,
     });
     throw error;

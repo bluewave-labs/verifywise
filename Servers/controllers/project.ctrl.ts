@@ -27,6 +27,7 @@ import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
 import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
+import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
 
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
@@ -273,7 +274,27 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         fileName: "project.ctrl.ts",
       });
 
-      // Send notification if owner changed (fire-and-forget, don't block response)
+        // Send notification if user added as a project editor (fire-and-forget, don't block response)
+        // Send notification(s) if users were added as project editors
+        for (const memberId of members) {
+            sendUserAddedEditorNotification({
+                projectId: projectId,
+                projectName: project.project_title,
+                adminId: req.userId!,     // Actor who made the change
+                userId: memberId          // New editor receiving notification
+            }).catch(async (emailError) => {
+                await logFailure({
+                    eventType: "Update",
+                    description: `Failed to send user added as editor notification email to user ${memberId}`,
+                    functionName: "updateProjectById",
+                    fileName: "project.ctrl.ts",
+                    error: emailError as Error,
+                });
+            });
+        }
+
+
+        // Send notification if owner changed (fire-and-forget, don't block response)
       if (ownerChanged && currentProject) {
         sendUserAddedAdminNotification({
           projectId: projectId,

@@ -64,7 +64,8 @@ interface ModelInventoryTableProps {
   data: IModelInventory[];
   isLoading?: boolean;
   onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string, deleteRisks?: boolean) => void;
+  onCheckModelHasRisks?: (id: string) => Promise<boolean>;
   paginated?: boolean;
   deletingId?: string | null;
 }
@@ -128,6 +129,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   isLoading,
   onEdit,
   onDelete,
+  onCheckModelHasRisks,
   paginated = true,
   deletingId,
 }) => {
@@ -294,6 +296,8 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                       warningTitle="Delete this model?"
                       warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
                       type=""
+                      checkForRisks={onCheckModelHasRisks ? () => onCheckModelHasRisks(modelInventory.id?.toString() || "0") : undefined}
+                      onDeleteWithRisks={onDelete ? (deleteRisks: boolean) => onDelete(modelInventory.id?.toString() || "", deleteRisks) : undefined}
                     />
                   )}
                 </TableCell>

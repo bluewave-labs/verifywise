@@ -223,6 +223,12 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   const handleOnSelectChange = useCallback(
     (prop: keyof IModelRiskFormData) => (event: any) => {
       const value = event.target.value;
+      if (prop === "model_id" && value === "") {
+        // Allow clearing the model selection - explicitly set to null
+        setValues((prev) => ({ ...prev, [prop]: null }));
+        setErrors((prev) => ({ ...prev, [prop]: "" }));
+        return;
+      }
       setValues((prev) => ({ ...prev, [prop]: value }));
       setErrors((prev) => ({ ...prev, [prop]: "" }));
     },
@@ -487,7 +493,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <SelectComponent
                   id="modelId"
                   label="Associated model (optional)"
-                  value={values.model_id || ""}
+                  value={values.model_id ?? ""}
                   sx={{ width: 220 }}
                   items={modelOptions}
                   onChange={handleOnSelectChange("model_id")}

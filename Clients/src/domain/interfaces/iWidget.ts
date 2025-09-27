@@ -26,6 +26,8 @@ export interface IconButtonProps {
   onDownload?: () => void;
   isVisible?: boolean;
   canDelete?: boolean;
+  checkForRisks?: () => Promise<boolean>;
+  onDeleteWithRisks?: (deleteRisks: boolean) => void;
 }
 
 export interface AutoCompleteOption {

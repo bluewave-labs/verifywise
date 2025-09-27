@@ -132,10 +132,22 @@ export const updateModelInventoryByIdQuery = async (
 
 export const deleteModelInventoryByIdQuery = async (
   id: number,
+  deleteRisks: boolean,
   tenant: string,
   transaction: Transaction
 ) => {
   try {
+    if (deleteRisks) {
+      // Delete associated model risks first
+      await sequelize.query(
+        `DELETE FROM "${tenant}".model_risks WHERE model_id = :id`,
+        {
+          replacements: { id },
+          transaction,
+        }
+      );
+    }
+
     const result = await sequelize.query(
       `DELETE FROM "${tenant}".model_inventories WHERE id = :id`,
       {

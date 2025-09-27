@@ -15,7 +15,9 @@ import {
   updateEntityById,
   createNewUser,
 } from "../../../application/repository/entity.repository";
-import { createModelInventory } from "../../../application/repository/modelInventory.repository";
+import {
+  createModelInventory,
+} from "../../../application/repository/modelInventory.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
@@ -358,7 +360,7 @@ const ModelInventory: React.FC = () => {
     }
   };
 
-  const handleDeleteModelInventory = async (id: string) => {
+  const handleDeleteModelInventory = async (id: string, deleteRisks: boolean = false) => {
     try {
       setDeletingId(id);
 
@@ -368,24 +370,40 @@ const ModelInventory: React.FC = () => {
         return newData;
       });
 
-      // Perform the actual delete operation
-      await deleteEntityById({ routeUrl: `/modelInventory/${id}` });
+      // If deleting risks, also optimistically remove related risks from the risks table
+      if (deleteRisks) {
+        setModelRisksData((prevData) =>
+          prevData.filter((risk) => risk.model_id?.toString() !== id)
+        );
+      }
+
+      await deleteEntityById({ routeUrl: `/modelInventory/${id}${deleteRisks ? "?deleteRisks=true" : ""}` });
 
       // Fetch fresh data to ensure consistency with server (without loading state)
       await fetchModelInventoryData(false);
+
+      // If risks were deleted, also refresh the model risks data
+      if (deleteRisks) {
+        await fetchModelRisksData(false);
+      }
 
       // Force a smooth table re-render after the data update
       setTableKey((prev) => prev + 1);
 
       setAlert({
         variant: "success",
-        body: "Model inventory deleted successfully!",
+        body: deleteRisks
+          ? "Model inventory and associated risks deleted successfully!"
+          : "Model inventory deleted successfully!",
       });
     } catch (error) {
       console.error("Error deleting model inventory:", error);
 
       // If delete failed, revert the optimistic update by fetching fresh data (without loading state)
       await fetchModelInventoryData(false);
+      if (deleteRisks) {
+        await fetchModelRisksData(false);
+      }
 
       setAlert({
         variant: "error",
@@ -393,6 +411,23 @@ const ModelInventory: React.FC = () => {
       });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleCheckModelHasRisks = async (id: string): Promise<boolean> => {
+    try {
+      // First check local data for immediate response
+      const numericId = parseInt(id);
+      const hasLocalRisks = modelRisksData.some(risk => risk.model_id === numericId);
+
+      // If local data shows risks, return true immediately
+      if (hasLocalRisks) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking model risks:", error);
+      return false;
     }
   };
 
@@ -696,6 +731,7 @@ const ModelInventory: React.FC = () => {
               isLoading={isLoading}
               onEdit={handleEditModelInventory}
               onDelete={handleDeleteModelInventory}
+              onCheckModelHasRisks={handleCheckModelHasRisks}
               deletingId={deletingId}
             />
           </>

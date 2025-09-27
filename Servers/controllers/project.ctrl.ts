@@ -11,6 +11,7 @@ import {
   getAllProjectsQuery,
   getProjectByIdQuery,
   updateProjectByIdQuery,
+  getCurrentProjectMembers
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
@@ -252,9 +253,22 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       );
     }
 
-    // Get current project to check if owner changed
+    // Get current project and members to check for changes
     const currentProject = await getProjectByIdQuery(projectId, req.tenantId!);
     const ownerChanged = currentProject && currentProject.owner !== updatedProject.owner;
+
+    // Get current members before update to identify newly added ones
+    const currentMembers = await getCurrentProjectMembers(projectId, req.tenantId!, transaction);
+    const newMembers = members.filter((m) => !currentMembers.includes(m));
+
+    // Calculate re-added members (users who were in currentMembers but would be re-added)
+    // This happens when the same user is removed and added back in the same request
+    // Since we process all changes in one transaction, we need a different approach
+
+    // For re-additions, we don't have a reliable way to detect them in the current transaction
+    // Instead, we'll send notifications to ALL members who end up in the final members list
+    // and have Editor role, treating this as "ensuring they know they're project editors"
+    const membersToNotify = members;
 
     const project = await updateProjectByIdQuery(
       projectId,
@@ -274,9 +288,8 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         fileName: "project.ctrl.ts",
       });
 
-        // Send notification if user added as a project editor (fire-and-forget, don't block response)
-        // Send notification(s) if users were added as project editors
-        for (const memberId of members) {
+        // Send notification only if new user added as a project editor (fire-and-forget, don't block response)
+        for (const memberId of newMembers) {
             try {
                 // Get user details to check their role
                 const memberUser = await getUserByIdQuery(memberId);

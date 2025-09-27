@@ -94,6 +94,9 @@ const EvaluationTableBody: React.FC<EvaluationTableBodyProps> = ({
               textTransform: "none",
               opacity: row.status !== "Completed" ? 0.5 : 1,
               pointerEvents: row.status !== "Completed" ? "none" : "auto",
+              '&:hover': {
+                backgroundColor: "#13715B"
+              }
             }}
             >
               Show

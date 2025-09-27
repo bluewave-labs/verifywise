@@ -11,11 +11,14 @@ import {
   Stack,
   Alert,
   Tooltip,
+  IconButton,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";
-import SaveIcon from "@mui/icons-material/Save";
-import DownloadIcon from "@mui/icons-material/Download";
+import { ReactComponent as CopyIcon } from "../../assets/icons/copy.svg";
+import { ReactComponent as DownloadIcon } from "../../assets/icons/download.svg";
+import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-more.svg";
+import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-less.svg";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
@@ -58,13 +61,13 @@ const STYLES = {
     border: `1px solid ${COLORS.BORDER}`,
     borderRadius: 2,
     backgroundColor: COLORS.BACKGROUND,
-    padding: "8px 36px 14px 14px",
+    padding: "11px 36px 11px 14px",
   },
   cardWithFlex: {
     border: `1px solid ${COLORS.BORDER}`,
     borderRadius: 2,
     backgroundColor: COLORS.BACKGROUND,
-    padding: "8px 36px 14px 14px",
+    padding: "11px 36px 11px 14px",
     display: 'flex',
     alignItems: 'center',
     gap: 1,
@@ -203,7 +206,7 @@ export default function BiasAndFairnessResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
-  const isDemo = !id;
+  const isDemo = id === 'demo';
   const [tab, setTab] = useState("overview");
   // Applied selection affects charts; draft holds checkbox changes until user clicks Select
   const [appliedSelection, setAppliedSelection] = useState<Record<string, boolean>>({});
@@ -312,15 +315,54 @@ export default function BiasAndFairnessResultsPage() {
     setShowMetricTooltip(showMetricTooltip === metricName ? null : metricName);
   }, [showMetricTooltip]);
 
-  // Get currently selected metrics for descriptions
-  const getSelectedMetricsForDescriptions = useCallback(() => {
-    const selectedMetricNames = Object.keys(appliedSelection).filter(k => appliedSelection[k]);
-    if (selectedMetricNames.length === 0) {
-      // If no metrics are selected, show all available metrics
-      return getMetricsToDisplay();
+  // Get specialized metric descriptions for specific attributes
+  const getSpecializedMetricDescription = useCallback((metric: string, attribute: 'sex' | 'race'): string => {
+    const baseDescription = metricDescriptions[metric as keyof typeof metricDescriptions] || "No description available.";
+    
+    // Define privileged and unprivileged groups for each attribute
+    const groupDefinitions = {
+      sex: {
+        privileged: "male",
+        unprivileged: "female"
+      },
+      race: {
+        privileged: "white",
+        unprivileged: "other groups"
+      }
+    };
+
+    const groups = groupDefinitions[attribute];
+    
+    // Specialize the description based on the attribute
+    if (baseDescription.includes("privileged and unprivileged groups")) {
+      return baseDescription.replace(
+        "privileged and unprivileged groups", 
+        `${groups.privileged} and ${groups.unprivileged} groups`
+      );
     }
-    return selectedMetricNames;
-  }, [appliedSelection, getMetricsToDisplay]);
+    
+    if (baseDescription.includes("between groups")) {
+      return baseDescription.replace(
+        "between groups", 
+        `between ${groups.privileged} and ${groups.unprivileged} groups`
+      );
+    }
+    
+    if (baseDescription.includes("across groups")) {
+      return baseDescription.replace(
+        "across groups", 
+        `across ${groups.privileged} and ${groups.unprivileged} groups`
+      );
+    }
+
+    // For metrics that don't have group-specific language, add context
+    if (baseDescription.includes("Measures")) {
+      return `${baseDescription} Specifically comparing ${groups.privileged} vs ${groups.unprivileged} groups.`;
+    }
+
+    return baseDescription;
+  }, []);
+
 
   const handleCopyJSON = useCallback(async () => {
     try {
@@ -368,11 +410,22 @@ export default function BiasAndFairnessResultsPage() {
       setError(null);
 
       if (isDemo) {
-        // Demo mode - show placeholder data or message
-        setMetrics({ 
-          results: {}, 
-          status: 'demo_mode'
-        });
+        // Demo mode - load mock data from clean_results.json
+        try {
+          const response = await fetch('/mock/clean_results.json');
+          if (response.ok) {
+            const mockData = await response.json();
+            setMetrics({ 
+              results: mockData, 
+              status: 'demo_mode'
+            });
+          } else {
+            throw new Error('Failed to load demo data');
+          }
+        } catch (error) {
+          console.error('Failed to load demo data:', error);
+          setError('Failed to load demo data. Please try again.');
+        }
       } else {
         const data = await biasAndFairnessService.getBiasFairnessEvaluation(id as string);
         setMetrics(data);
@@ -550,7 +603,9 @@ export default function BiasAndFairnessResultsPage() {
                   Performance metrics
                 </Typography>
                 <Grid container spacing={3}>
-                  {Object.entries(performance).map(([metric, value]) => {
+                  {['accuracy', 'precision', 'recall', 'f1_score'].map((metric) => {
+                    const value = performance[metric];
+                    if (value === undefined) return null;
                     const numericValue = typeof value === 'number' ? value * 100 : 0;
                     const isGood = numericValue >= PERFORMANCE_THRESHOLD;
                     
@@ -630,63 +685,109 @@ export default function BiasAndFairnessResultsPage() {
                       >
                         Sex attribute fairness metrics
                       </Typography>
-                  {Plot ? (
-                    <Plot
-                      data={[{
-                        type: 'bar',
-                        x: Object.keys(sexMetrics).map(key => key.replace(/_/g, ' ')),
-                        y: Object.values(sexMetrics),
-                        marker: { 
-                          color: Object.values(sexMetrics).map(v => {
-                            const numValue = typeof v === 'number' ? v : 0;
-                            return Math.abs(numValue) > FAIRNESS_THRESHOLD_SIGNIFICANT ? COLORS.ERROR : 
-                                   Math.abs(numValue) > FAIRNESS_THRESHOLD_MODERATE ? COLORS.WARNING : COLORS.SUCCESS;
-                          }),
-                          line: { color: '#ffffff', width: 1 }
-                        },
-                        text: Object.values(sexMetrics).map(v => typeof v === 'number' ? v.toFixed(4) : 'N/A'),
-                        textposition: 'outside',
-                      }]}
-                      layout={{ 
-                        width: '100%', 
-                        height: CHART_HEIGHT, 
-                        margin: CHART_MARGIN, 
-                        xaxis: { 
-                          tickangle: 45,
-                          title: { text: 'Fairness Metrics', font: { size: 13, color: '#374151' }, standoff: 2 },
-                          tickfont: { size: 12 },
-                          automargin: true
-                        },
-                        yaxis: { 
-                          title: { text: 'Metric Value', font: { size: 13, color: '#374151' }, standoff: 20 },
-                          range: getYAxisRange(sexMetrics)
-                        },
-                        plot_bgcolor: 'rgba(0,0,0,0)',
-                        paper_bgcolor: 'rgba(0,0,0,0)',
-                        font: { family: 'Inter, sans-serif', size: CHART_FONT_SIZE }
-                      }}
-                      config={{ responsive: true, displayModeBar: false }}
-                      aria-label="Sex attribute fairness metrics chart"
-                    />
-                  ) : (
-                    <BarChart
-                      xAxis={[{ 
-                        scaleType: 'band', 
-                        data: Object.keys(sexMetrics).map(key => key.replace(/_/g, ' ')), 
-                        tickLabelStyle: { angle: 45, textAnchor: 'start', fontSize: 10 } 
-                      }]}
-                      series={[{ 
-                        data: Object.values(sexMetrics), 
-                        label: 'Sex Metrics', 
-                        valueFormatter: (v) => (typeof v === 'number' ? v.toFixed(4) : 'N/A'), 
-                        color: COLORS.SEX_METRICS 
-                      }]}
-                      height={CHART_HEIGHT}
-                      yAxis={[{ max: getYAxisRange(sexMetrics)[1] }]}
-                      sx={{ width: '100%' }}
-                      aria-label="Sex attribute fairness metrics chart"
-                    />
-                  )}
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} lg={8}>
+                          {Plot ? (
+                            <Plot
+                              data={[{
+                                type: 'bar',
+                                x: Object.keys(sexMetrics).map(key => key.replace(/_/g, ' ')),
+                                y: Object.values(sexMetrics),
+                                marker: { 
+                                  color: Object.values(sexMetrics).map(v => {
+                                    const numValue = typeof v === 'number' ? v : 0;
+                                    return Math.abs(numValue) > FAIRNESS_THRESHOLD_SIGNIFICANT ? COLORS.ERROR : 
+                                           Math.abs(numValue) > FAIRNESS_THRESHOLD_MODERATE ? COLORS.WARNING : COLORS.SUCCESS;
+                                  }),
+                                  line: { color: '#ffffff', width: 1 }
+                                },
+                                text: Object.values(sexMetrics).map(v => typeof v === 'number' ? v.toFixed(4) : 'N/A'),
+                                textposition: 'outside',
+                              }]}
+                              layout={{ 
+                                width: '100%', 
+                                height: CHART_HEIGHT, 
+                                margin: CHART_MARGIN, 
+                                xaxis: { 
+                                  tickangle: 45,
+                                  title: { text: 'Fairness Metrics', font: { size: 13, color: '#374151' }, standoff: 2 },
+                                  tickfont: { size: 12 },
+                                  automargin: true
+                                },
+                                yaxis: { 
+                                  title: { text: 'Metric Value', font: { size: 13, color: '#374151' }, standoff: 20 },
+                                  range: getYAxisRange(sexMetrics)
+                                },
+                                plot_bgcolor: 'rgba(0,0,0,0)',
+                                paper_bgcolor: 'rgba(0,0,0,0)',
+                                font: { family: 'Inter, sans-serif', size: CHART_FONT_SIZE }
+                              }}
+                              config={{ responsive: true, displayModeBar: false }}
+                              aria-label="Sex attribute fairness metrics chart"
+                            />
+                          ) : (
+                            <BarChart
+                              xAxis={[{ 
+                                scaleType: 'band', 
+                                data: Object.keys(sexMetrics).map(key => key.replace(/_/g, ' ')), 
+                                tickLabelStyle: { angle: 45, textAnchor: 'start', fontSize: 10 } 
+                              }]}
+                              series={[{ 
+                                data: Object.values(sexMetrics), 
+                                label: 'Sex Metrics', 
+                                valueFormatter: (v) => (typeof v === 'number' ? v.toFixed(4) : 'N/A'), 
+                                color: COLORS.SEX_METRICS 
+                              }]}
+                              height={CHART_HEIGHT}
+                              yAxis={[{ max: getYAxisRange(sexMetrics)[1] }]}
+                              sx={{ width: '100%' }}
+                              aria-label="Sex attribute fairness metrics chart"
+                            />
+                          )}
+                        </Grid>
+                        <Grid item xs={12} lg={4}>
+                          <Typography
+                            variant="h3"
+                            component="div"
+                            sx={{
+                              mb: 2,
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              color: COLORS.TEXT_PRIMARY,
+                            }}
+                          >
+                            Metric descriptions
+                          </Typography>
+                          <Stack spacing={2}>
+                            {Object.keys(sexMetrics).map((metric) => (
+                              <Box key={metric} sx={{
+                                p: 2,
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: 1,
+                                border: '1px solid #e9ecef'
+                              }}>
+                                <Typography sx={{ 
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  color: COLORS.TEXT_PRIMARY,
+                                  mb: 0.5,
+                                  lineHeight: 1.2
+                                }}>
+                                  {metric.replace(/_/g, ' ').charAt(0).toUpperCase() + metric.replace(/_/g, ' ').slice(1)}
+                                </Typography>
+                                <Typography sx={{ 
+                                  fontSize: '12px',
+                                  fontWeight: 400,
+                                  color: COLORS.TEXT_SECONDARY,
+                                  lineHeight: 1.4
+                                }}>
+                                  {getSpecializedMetricDescription(metric, 'sex')}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Stack>
+                        </Grid>
+                      </Grid>
                     </Paper>
                   </Box>
                 )}
@@ -713,118 +814,114 @@ export default function BiasAndFairnessResultsPage() {
                       >
                         Race attribute fairness metrics
                       </Typography>
-                  {Plot ? (
-                    <Plot
-                      data={[{
-                        type: 'bar',
-                        x: Object.keys(raceMetrics).map(key => key.replace(/_/g, ' ')),
-                        y: Object.values(raceMetrics),
-                        marker: { 
-                          color: Object.values(raceMetrics).map(v => {
-                            const numValue = typeof v === 'number' ? v : 0;
-                            return Math.abs(numValue) > FAIRNESS_THRESHOLD_SIGNIFICANT ? COLORS.ERROR : 
-                                   Math.abs(numValue) > FAIRNESS_THRESHOLD_MODERATE ? COLORS.WARNING : COLORS.SUCCESS;
-                          }),
-                          line: { color: '#ffffff', width: 1 }
-                        },
-                        text: Object.values(raceMetrics).map(v => typeof v === 'number' ? v.toFixed(4) : 'N/A'),
-                        textposition: 'outside',
-                      }]}
-                      layout={{ 
-                        width: '100%', 
-                        height: CHART_HEIGHT, 
-                        margin: CHART_MARGIN, 
-                        xaxis: { 
-                          tickangle: 45,
-                          title: { text: 'Fairness Metrics', font: { size: 13, color: '#374151' }, standoff: 2 },
-                          tickfont: { size: 12 },
-                          automargin: true
-                        },
-                        yaxis: { 
-                          title: { text: 'Metric Value', font: { size: 13, color: '#374151' }, standoff: 20 },
-                          range: getYAxisRange(raceMetrics)
-                        },
-                        plot_bgcolor: 'rgba(0,0,0,0)',
-                        paper_bgcolor: 'rgba(0,0,0,0)',
-                        font: { family: 'Inter, sans-serif', size: CHART_FONT_SIZE }
-                      }}
-                      config={{ responsive: true, displayModeBar: false }}
-                      aria-label="Race attribute fairness metrics chart"
-                    />
-                  ) : (
-                    <BarChart
-                      xAxis={[{ 
-                        scaleType: 'band', 
-                        data: Object.keys(raceMetrics).map(key => key.replace(/_/g, ' ')), 
-                        tickLabelStyle: { angle: 45, textAnchor: 'start', fontSize: 10 } 
-                      }]}
-                      series={[{ 
-                        data: Object.values(raceMetrics), 
-                        label: 'Race Metrics', 
-                        valueFormatter: (v) => (typeof v === 'number' ? v.toFixed(4) : 'N/A'), 
-                        color: COLORS.RACE_METRICS 
-                      }]}
-                      height={CHART_HEIGHT}
-                      yAxis={[{ max: getYAxisRange(raceMetrics)[1] }]}
-                      sx={{ width: '100%' }}
-                      aria-label="Race attribute fairness metrics chart"
-                    />
-                  )}
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} lg={8}>
+                          {Plot ? (
+                            <Plot
+                              data={[{
+                                type: 'bar',
+                                x: Object.keys(raceMetrics).map(key => key.replace(/_/g, ' ')),
+                                y: Object.values(raceMetrics),
+                                marker: { 
+                                  color: Object.values(raceMetrics).map(v => {
+                                    const numValue = typeof v === 'number' ? v : 0;
+                                    return Math.abs(numValue) > FAIRNESS_THRESHOLD_SIGNIFICANT ? COLORS.ERROR : 
+                                           Math.abs(numValue) > FAIRNESS_THRESHOLD_MODERATE ? COLORS.WARNING : COLORS.SUCCESS;
+                                  }),
+                                  line: { color: '#ffffff', width: 1 }
+                                },
+                                text: Object.values(raceMetrics).map(v => typeof v === 'number' ? v.toFixed(4) : 'N/A'),
+                                textposition: 'outside',
+                              }]}
+                              layout={{ 
+                                width: '100%', 
+                                height: CHART_HEIGHT, 
+                                margin: CHART_MARGIN, 
+                                xaxis: { 
+                                  tickangle: 45,
+                                  title: { text: 'Fairness Metrics', font: { size: 13, color: '#374151' }, standoff: 2 },
+                                  tickfont: { size: 12 },
+                                  automargin: true
+                                },
+                                yaxis: { 
+                                  title: { text: 'Metric Value', font: { size: 13, color: '#374151' }, standoff: 20 },
+                                  range: getYAxisRange(raceMetrics)
+                                },
+                                plot_bgcolor: 'rgba(0,0,0,0)',
+                                paper_bgcolor: 'rgba(0,0,0,0)',
+                                font: { family: 'Inter, sans-serif', size: CHART_FONT_SIZE }
+                              }}
+                              config={{ responsive: true, displayModeBar: false }}
+                              aria-label="Race attribute fairness metrics chart"
+                            />
+                          ) : (
+                            <BarChart
+                              xAxis={[{ 
+                                scaleType: 'band', 
+                                data: Object.keys(raceMetrics).map(key => key.replace(/_/g, ' ')), 
+                                tickLabelStyle: { angle: 45, textAnchor: 'start', fontSize: 10 } 
+                              }]}
+                              series={[{ 
+                                data: Object.values(raceMetrics), 
+                                label: 'Race Metrics', 
+                                valueFormatter: (v) => (typeof v === 'number' ? v.toFixed(4) : 'N/A'), 
+                                color: COLORS.RACE_METRICS 
+                              }]}
+                              height={CHART_HEIGHT}
+                              yAxis={[{ max: getYAxisRange(raceMetrics)[1] }]}
+                              sx={{ width: '100%' }}
+                              aria-label="Race attribute fairness metrics chart"
+                            />
+                          )}
+                        </Grid>
+                        <Grid item xs={12} lg={4}>
+                          <Typography
+                            variant="h3"
+                            component="div"
+                            sx={{
+                              mb: 2,
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              color: COLORS.TEXT_PRIMARY,
+                            }}
+                          >
+                            Metric descriptions
+                          </Typography>
+                          <Stack spacing={2}>
+                            {Object.keys(raceMetrics).map((metric) => (
+                              <Box key={metric} sx={{
+                                p: 2,
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: 1,
+                                border: '1px solid #e9ecef'
+                              }}>
+                                <Typography sx={{ 
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  color: COLORS.TEXT_PRIMARY,
+                                  mb: 0.5,
+                                  lineHeight: 1.2
+                                }}>
+                                  {metric.replace(/_/g, ' ').charAt(0).toUpperCase() + metric.replace(/_/g, ' ').slice(1)}
+                                </Typography>
+                                <Typography sx={{ 
+                                  fontSize: '12px',
+                                  fontWeight: 400,
+                                  color: COLORS.TEXT_SECONDARY,
+                                  lineHeight: 1.4
+                                }}>
+                                  {getSpecializedMetricDescription(metric, 'race')}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Stack>
+                        </Grid>
+                      </Grid>
                     </Paper>
                   </Box>
                 )}
 
 
-                {/* Metric Descriptions - Dynamic based on selected metrics */}
-                {getSelectedMetricsForDescriptions().length > 0 && (
-                  <Box mt={4}>
-                    <Typography
-                      variant="h2"
-                      component="div"
-                      sx={{
-                        mt: 4,
-                        mb: 3,
-                        ...STYLES.sectionTitle,
-                      }}
-                    >
-                      Metric descriptions
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {getSelectedMetricsForDescriptions().map((metric) => (
-                        <Grid item xs={12} md={6} key={metric}>
-                          <Box sx={{
-                            ...STYLES.card,
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'flex-start'
-                          }}>
-                            <Typography sx={{ 
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              color: COLORS.TEXT_PRIMARY,
-                              pb: "4px",
-                              lineHeight: 1.2
-                            }}>
-                              {(() => {
-                                const formattedMetric = metric.replace(/_/g, ' ');
-                                return formattedMetric.charAt(0).toUpperCase() + formattedMetric.slice(1);
-                              })()}
-                            </Typography>
-                            <Typography sx={{ 
-                              fontSize: '13px',
-                              fontWeight: 400,
-                              color: COLORS.TEXT_SECONDARY,
-                              lineHeight: 1.4
-                            }}>
-                              {metricDescriptions[metric as keyof typeof metricDescriptions] || "No description available."}
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                )}
               </Box>
             )}
 
@@ -833,23 +930,31 @@ export default function BiasAndFairnessResultsPage() {
               <Box>
                 <Box sx={{ 
                   ...STYLES.card,
-                  textAlign: 'center'
+                  textAlign: 'left'
                 }}>
-                  <Typography sx={{ ...STYLES.mutedText, pb: "2px" }}>
+                  <Typography sx={{ 
+                    fontSize: '15px', 
+                    fontWeight: 600, 
+                    color: COLORS.TEXT_PRIMARY, 
+                    pb: "2px",
+                    textAlign: 'center'
+                  }}>
                     Evaluation data quality
                   </Typography>
-                  <Typography sx={{ ...STYLES.bodyText, mb: 1 }}>
-                    {data_quality.data_quality_score ? (data_quality.data_quality_score * 100).toFixed(1) : 'N/A'}%
-                  </Typography>
-                  <Typography sx={{ ...STYLES.secondaryText, mt: 1 }}>
+                  <Typography sx={{ 
+                    fontSize: '13px', 
+                    color: COLORS.TEXT_PRIMARY, 
+                    mb: 1,
+                    textAlign: 'center'
+                  }}>
                     {data_quality.data_quality_score ? (
                       data_quality.data_quality_score >= 0.8 ? 'Excellent' : 
                       data_quality.data_quality_score >= 0.6 ? 'Good' : 
                       data_quality.data_quality_score >= 0.4 ? 'Fair' : 'Poor'
-                    ) : 'Unknown'} quality assessment
+                    ) : 'Unknown'} quality {data_quality.data_quality_score ? (data_quality.data_quality_score * 100).toFixed(1) : 'N/A'}%
                   </Typography>
                   {data_quality.flagged_metrics && Object.keys(data_quality.flagged_metrics).length > 0 && (
-                    <Typography sx={{ ...STYLES.secondaryText, color: COLORS.WARNING, mt: 1 }}>
+                    <Typography sx={{ ...STYLES.secondaryText, color: COLORS.WARNING, mt: 1, textAlign: 'center' }}>
                       {Object.keys(data_quality.flagged_metrics).length} flagged metrics were not calculated
                     </Typography>
                   )}
@@ -870,14 +975,14 @@ export default function BiasAndFairnessResultsPage() {
             </Typography>
           <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
-              <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>User-selected</Typography>
+              <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Chosen</Typography>
               <Stack spacing={3}>
                 {(metricsCfg.user_selected_metrics || []).map(m => (
                   <Box key={m} sx={{ 
                     border: '1px solid #eaecf0',
                     borderRadius: 2,
                     backgroundColor: "#FFFFFF",
-                    padding: "8px 36px 14px 14px",
+                    padding: "11px 36px 11px 14px",
                     display: 'flex',
                     alignItems: 'center',
                     gap: 0.5
@@ -890,7 +995,7 @@ export default function BiasAndFairnessResultsPage() {
                       aria-describedby={`${m}-description`}
                       style={{ marginRight: '8px' }}
                     />
-                    <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '15px', fontWeight: 500, flex: 1, textAlign: 'center' }}>{m.replace(/_/g, ' ')}</Typography>
+                    <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
                     <Tooltip 
                       title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                       placement="top"
@@ -911,7 +1016,7 @@ export default function BiasAndFairnessResultsPage() {
                     border: '1px solid #eaecf0',
                     borderRadius: 2,
                     backgroundColor: "#FFFFFF",
-                    padding: "8px 36px 14px 14px",
+                    padding: "11px 36px 11px 14px",
                     display: 'flex',
                     alignItems: 'center',
                     gap: 0.5
@@ -922,7 +1027,7 @@ export default function BiasAndFairnessResultsPage() {
                       onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} 
                       style={{ marginRight: '8px' }}
                     />
-                    <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, flex: 1, textAlign: 'center' }}>{m.replace(/_/g, ' ')}</Typography>
+                    <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
                     <Tooltip 
                       title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                       placement="top"
@@ -936,14 +1041,14 @@ export default function BiasAndFairnessResultsPage() {
               </Stack>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>All Available</Typography>
+              <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Available</Typography>
                 <Stack spacing={3}>
                   {(metricsCfg.all_available_metrics || []).map(m => (
                     <Box key={m} sx={{ 
                       border: '1px solid #eaecf0',
                       borderRadius: 2,
                       backgroundColor: "#FFFFFF",
-                      padding: "8px 36px 14px 14px",
+                      padding: "11px 36px 11px 14px",
                       display: 'flex',
                       alignItems: 'center',
                       gap: 0.5
@@ -954,7 +1059,7 @@ export default function BiasAndFairnessResultsPage() {
                         onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} 
                         style={{ marginRight: '8px' }}
                       />
-                      <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, flex: 1, textAlign: 'center' }}>{m.replace(/_/g, ' ')}</Typography>
+                      <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
                       <Tooltip 
                         title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                         placement="top"
@@ -969,7 +1074,7 @@ export default function BiasAndFairnessResultsPage() {
             </Grid>
           </Grid>
           <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 6, pt: 3, borderTop: '1px solid #e5e7eb' }}>
-            <Typography variant="body2" sx={{ color: '#6b7280' }}>Select metrics to include/exclude them from charts on the Plots & Graphs tab.</Typography>
+            <Typography variant="body2" sx={{ color: '#6b7280' }}>Select metrics to include/exclude on the Plots & Graphs.</Typography>
             <Button 
               variant="contained" 
               onClick={handleApplySelection} 
@@ -978,7 +1083,7 @@ export default function BiasAndFairnessResultsPage() {
               sx={{ 
                 px: 3, 
                 py: 1, 
-                fontSize: '13px',
+                fontSize: '15px',
                 boxShadow: 'none !important',
                 '&:hover': {
                   boxShadow: 'none !important'
@@ -990,40 +1095,42 @@ export default function BiasAndFairnessResultsPage() {
           </Box>
           
           {/* Raw JSON Section */}
-          <Box mt={6}>
+          <Box mt={20}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6" sx={STYLES.bodyText}>Raw JSON data</Typography>
-              <Box display="flex" gap={1}>
-                <Button 
-                  variant="outlined" 
-                  size="small" 
+              <Box display="flex" gap={2}>
+                <IconButton
                   onClick={handleCopyJSON}
-                  startIcon={<SaveIcon sx={{ fontSize: 16 }} />}
-                  sx={{ 
-                    fontSize: '13px',
-                    boxShadow: 'none !important',
+                  sx={{
+                    width: '36px',
+                    height: '36px',
+                    backgroundColor: COLORS.PRIMARY,
+                    color: 'white',
+                    borderRadius: '8px',
                     '&:hover': {
-                      boxShadow: 'none !important'
+                      backgroundColor: COLORS.PRIMARY,
+                      opacity: 0.9
                     }
                   }}
                 >
-                  Copy
-                </Button>
-                <Button 
-                  variant="contained" 
-                  size="small" 
+                  <CopyIcon style={{ width: 24, height: 24 }} />
+                </IconButton>
+                <IconButton
                   onClick={handleDownloadJSON}
-                  startIcon={<DownloadIcon sx={{ fontSize: 16 }} />}
-                  sx={{ 
-                    fontSize: '13px',
-                    boxShadow: 'none !important',
+                  sx={{
+                    width: '36px',
+                    height: '36px',
+                    backgroundColor: COLORS.PRIMARY,
+                    color: 'white',
+                    borderRadius: '8px',
                     '&:hover': {
-                      boxShadow: 'none !important'
+                      backgroundColor: COLORS.PRIMARY,
+                      opacity: 0.9
                     }
                   }}
                 >
-                  Download
-                </Button>
+                  <DownloadIcon style={{ width: 24, height: 24 }} />
+                </IconButton>
               </Box>
             </Box>
             <Divider sx={{ mb: 2 }} />
@@ -1048,50 +1155,40 @@ export default function BiasAndFairnessResultsPage() {
               </pre>
               {!showFullJSON && (
                 <Box display="flex" justifyContent="center" mt={2}>
-                  <Button 
-                    variant="text" 
-                    size="small"
+                  <IconButton
                     onClick={() => setShowFullJSON(true)}
-                    sx={{ 
-                      color: COLORS.PRIMARY,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      fontSize: '13px',
-                      backgroundColor: 'transparent',
-                      boxShadow: 'none !important',
+                    sx={{
+                      width: '40px',
+                      height: '40px',
+                      backgroundColor: COLORS.PRIMARY,
+                      color: 'white',
+                      borderRadius: '50%',
                       '&:hover': {
-                        backgroundColor: 'transparent',
-                        color: COLORS.PRIMARY,
-                        boxShadow: 'none !important'
+                        backgroundColor: COLORS.PRIMARY
                       }
                     }}
                   >
-                    View Full
-                  </Button>
+                    <ExpandMoreIcon style={{ width: 20, height: 20, marginTop: '3px', marginLeft: '4px' }} />
+                  </IconButton>
                 </Box>
               )}
               {showFullJSON && (
                 <Box display="flex" justifyContent="center" mt={2}>
-                  <Button 
-                    variant="text" 
-                    size="small"
+                  <IconButton
                     onClick={() => setShowFullJSON(false)}
-                    sx={{ 
-                      color: COLORS.PRIMARY,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      fontSize: '13px',
-                      backgroundColor: 'transparent',
-                      boxShadow: 'none !important',
+                    sx={{
+                      width: '40px',
+                      height: '40px',
+                      backgroundColor: COLORS.PRIMARY,
+                      color: 'white',
+                      borderRadius: '50%',
                       '&:hover': {
-                        backgroundColor: 'transparent',
-                        color: COLORS.PRIMARY,
-                        boxShadow: 'none !important'
+                        backgroundColor: COLORS.PRIMARY
                       }
                     }}
                   >
-                    Show Less
-                  </Button>
+                    <ExpandLessIcon style={{ width: 20, height: 20, marginRight: '3px', marginTop: '-2px' }} />
+                  </IconButton>
                 </Box>
               )}
             </Box>

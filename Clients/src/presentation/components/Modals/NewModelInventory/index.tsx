@@ -32,6 +32,8 @@ import { KeyboardArrowDown } from "@mui/icons-material";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
+import {getAllProjects} from "../../../../application/repository/project.repository"
+import { Project } from "../../../../domain/types/Project";
 
 interface NewModelInventoryProps {
   isOpen: boolean;
@@ -51,10 +53,11 @@ interface NewModelInventoryFormValues {
   security_assessment: boolean;
   status: ModelInventoryStatus;
   status_date: string;
-  reference_link: string,
-  biases: string,
-  limitations: string,
-  hosting_provider: string,
+  reference_link: string;
+  biases: string;
+  limitations: string;
+  hosting_provider: string;
+  used_in_projects: string[]
 }
 
 interface NewModelInventoryFormErrors {
@@ -66,6 +69,7 @@ interface NewModelInventoryFormErrors {
   capabilities?: string;
   status?: string;
   status_date?: string;
+  used_in_projects?: string;
 }
 
 const initialState: NewModelInventoryFormValues = {
@@ -82,6 +86,7 @@ const initialState: NewModelInventoryFormValues = {
   biases:  "",
   limitations: "",
   hosting_provider: "",
+  used_in_projects : [],
 };
 
 const statusOptions = [
@@ -170,6 +175,41 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     }
   };
 
+  const [projectList, setProjects] = useState<Project[]>([]);
+  const [, setProjectsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setProjectsLoading(true);
+        const response = await getAllProjects();
+        if (response?.data) {
+          setProjects(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+  
+    fetchProjects();
+  }, []);
+
+  const combinedList = useMemo(() => {
+    const targetFrameworks = ["ISO 42001", "ISO 27001"];
+  
+    return projectList.flatMap((project) => {
+      // Get enabled framework names for this project
+      const enabledFrameworks = project.framework?.map((f) => f.name) || [];
+  
+      // Only include target frameworks that are enabled
+      return targetFrameworks
+        .filter((fw) => enabledFrameworks.includes(fw))
+        .map((fw) => `${project.project_title.trim()} - ${fw}`);
+    });
+  }, [projectList]);
+
   // Transform users to the format expected by SelectComponent
   const userOptions = useMemo(() => {
     return users.map((user) => ({
@@ -215,6 +255,14 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     (_event: React.SyntheticEvent, newValue: string[]) => {
       setValues((prev) => ({ ...prev, capabilities: newValue }));
       setErrors((prev) => ({ ...prev, capabilities: "" }));
+    },
+    []
+  );
+
+  const handleSelectUsedInProjectChange = useCallback(
+    (_event: React.SyntheticEvent, newValue: string[]) => {
+      setValues((prev) => ({ ...prev, used_in_projects: newValue }));
+      setErrors((prev) => ({ ...prev, used_in_projects: "" }));
     },
     []
   );
@@ -663,6 +711,68 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   </Typography>
                 )}
               </Stack>
+
+              <Stack>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 400,
+                    mb: theme.spacing(2),
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  Used in projects
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="projects-framework"
+                  size="small"
+                  value={values.used_in_projects}
+                  options={combinedList}
+                  onChange={handleSelectUsedInProjectChange}
+                  getOptionLabel={(option) => option}
+                  noOptionsText={
+                    values.used_in_projects.length === combinedList.length
+                      ? "All projects selected"
+                      : "No options"
+                  }
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                        {option}
+                      </Typography>
+                    </Box>
+                  )}
+                  filterSelectedOptions
+                  popupIcon={<GreyDownArrowIcon />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.used_in_projects}
+                      placeholder="Select projects-framework"
+                      sx={capabilitiesRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...capabilitiesSxStyle,
+                  }}
+                  slotProps={capabilitiesSlotProps}
+                />
+                {errors.used_in_projects && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 1,
+                      color: "#f04438",
+                      fontWeight: 300,
+                      fontSize: 11,
+                    }}
+                  >
+                    {errors.used_in_projects}
+                  </Typography>
+                )}
+          </Stack>
 
               <Stack
                 direction={"row"}

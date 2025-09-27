@@ -797,6 +797,7 @@ const ModelInventory: React.FC = () => {
                biases: selectedModelInventory.biases || "",
                limitations: selectedModelInventory.limitations || "",
                hosting_provider: selectedModelInventory.hosting_provider || "",
+               used_in_projects: selectedModelInventory.used_in_projects,
               }
             : undefined
         }

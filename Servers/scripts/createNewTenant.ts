@@ -667,6 +667,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         biases VARCHAR(255) NOT NULL,
         limitations VARCHAR(255) NOT NULL,
         hosting_provider VARCHAR(255) NOT NULL,
+        used_in_projects TEXT NOT NULL,
         is_demo BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL,

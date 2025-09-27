@@ -31,6 +31,18 @@ import {sendUserAddedAdminNotification} from "../services/userNotification/userA
 import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
 
 
+/**
+ * Retrieve all projects accessible to the requesting user.
+ *
+ * The handler reads `req.userId`, `req.role`, and `req.tenantId` to determine scope and returns project data relevant to that user.
+ *
+ * @param req - Express request; must include `userId`, `role`, and `tenantId` on the request object
+ * @param res - Express response used to send JSON results
+ * @returns JSON with one of:
+ *   - 200: an array of project objects for the user
+ *   - 401: `{ message: "Unauthorized" }` when `userId` or `role` is missing
+ *   - 500: an error message string when retrieval fails
+ */
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllProjects",
@@ -229,6 +241,13 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   }
 }
 
+/**
+ * Update an existing project by ID, apply member changes, and trigger notifications for newly added editors and owner changes.
+ *
+ * Performs validation of required fields, applies updates within a transaction, commits on success, and sends fire-and-forget notifications to users who were added as editors and to the new owner if ownership changed.
+ *
+ * @returns The updated project object when the update succeeds (HTTP 202). Returns a 400 response if required fields are missing, 404 if the project was not found, and 500 with an error message on failure.
+ */
 export async function updateProjectById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);

@@ -168,7 +168,8 @@ export class NotificationService {
         fileName: "NotificationService.ts",
         error: sanitized,
       });
-      throw error;
+      (sanitized as any).cause = error;
+      throw sanitized;
     }
   }
 }

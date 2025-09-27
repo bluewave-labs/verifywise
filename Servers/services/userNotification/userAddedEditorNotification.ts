@@ -65,14 +65,14 @@ export const sendUserAddedEditorNotification = async(
 
     await logSuccess({
       eventType: "Create",
-      description: `Added as Admin notification sent to ${user.email}`,
+      description: `Added as a project editor notification sent to ${user.email}`,
       functionName: "sendUserAddedEditorNotification",
       fileName: "UserAddedEditorNotification.ts",
     });
   } catch (error) {
     await logFailure({
       eventType: "Create",
-      description: `Failed to send user added as admin notification`,
+      description: `Failed to send user added as a project editor notification`,
       functionName: "sendUserAddedEditorNotification",
       fileName: "UserAddedEditorNotification.ts",
       error: error as Error,

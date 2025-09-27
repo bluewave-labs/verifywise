@@ -277,20 +277,35 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         // Send notification if user added as a project editor (fire-and-forget, don't block response)
         // Send notification(s) if users were added as project editors
         for (const memberId of members) {
-            sendUserAddedEditorNotification({
-                projectId: projectId,
-                projectName: project.project_title,
-                adminId: req.userId!,     // Actor who made the change
-                userId: memberId          // New editor receiving notification
-            }).catch(async (emailError) => {
+            try {
+                // Get user details to check their role
+                const memberUser = await getUserByIdQuery(memberId);
+                // Check if user has Editor role (role_id = 3)
+                if (memberUser && memberUser.role_id === 3) {
+                    sendUserAddedEditorNotification({
+                        projectId: projectId,
+                        projectName: project.project_title,
+                        adminId: req.userId!,     // Actor who made the change
+                        userId: memberId          // Editor receiving notification
+                    }).catch(async (emailError) => {
+                        await logFailure({
+                            eventType: "Update",
+                            description: `Failed to send user added as editor notification email to user ${memberId}`,
+                            functionName: "updateProjectById",
+                            fileName: "project.ctrl.ts",
+                            error: emailError as Error,
+                        });
+                    });
+                }
+            } catch (userLookupError) {
                 await logFailure({
                     eventType: "Update",
-                    description: `Failed to send user added as editor notification email to user ${memberId}`,
+                    description: `Failed to lookup user role for member ${memberId}`,
                     functionName: "updateProjectById",
                     fileName: "project.ctrl.ts",
-                    error: emailError as Error,
+                    error: userLookupError as Error,
                 });
-            });
+            }
         }
 
 

@@ -662,8 +662,10 @@ const ProjectSettings = React.memo(
         },
       }).then((response) => {
         if (response.status === 202) {
-          // Update initialValuesRef to reflect the saved state
-          initialValuesRef.current = { ...values };
+          // Create new values reference and update both ref and form state
+          const newValues = { ...values };
+          initialValuesRef.current = newValues;
+          setValues(newValues);
 
           setAlert({
             variant: "success",

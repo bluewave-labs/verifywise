@@ -1,45 +1,21 @@
 import { ModelRiskModel } from "../domain.layer/models/modelRisk/modelRisk.model";
 import { IModelRisk } from "../domain.layer/interfaces/i.modelRisk";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
+import { sequelize } from "../database/db";
+import { QueryTypes } from "sequelize";
 
 /**
  * Get all model risks for a tenant
  */
-export async function getAllModelRisksQuery(tenantId: number): Promise<ModelRiskModel[]> {
-  try {
-    const modelRisks = await ModelRiskModel.findAll({
-      where: { tenantId },
-      order: [['created_at', 'DESC']],
-      attributes: [
-        'id',
-        'riskName',
-        'riskCategory',
-        'riskLevel',
-        'status',
-        'owner',
-        'targetDate',
-        'description',
-        'mitigationPlan',
-        'impact',
-        'likelihood',
-        'keyMetrics',
-        'currentValues',
-        'threshold',
-        'modelId',
-        'modelName',
-        'tenantId',
-        'created_at',
-        'updated_at'
-      ],
-    });
-    return modelRisks;
-  } catch (error) {
-    throw new ValidationException(
-      `Failed to retrieve model risks: ${error}`,
-      "getAllModelRisks",
-      error
-    );
-  }
+export async function getAllModelRisksQuery(tenant: string): Promise<ModelRiskModel[]> {
+  const modelRisks = await sequelize.query(
+    `SELECT * FROM "${tenant}".model_risks ORDER BY created_at DESC, id ASC`,
+    {
+      mapToModel: true,
+      model: ModelRiskModel,
+    }
+  );
+  return modelRisks;
 }
 
 /**
@@ -47,20 +23,20 @@ export async function getAllModelRisksQuery(tenantId: number): Promise<ModelRisk
  */
 export async function getModelRiskByIdQuery(
   id: number,
-  tenantId: number
+  tenant: string
 ): Promise<ModelRiskModel | null> {
-  try {
-    const modelRisk = await ModelRiskModel.findOne({
-      where: { id, tenantId },
-    });
-    return modelRisk;
-  } catch (error) {
-    throw new ValidationException(
-      `Failed to retrieve model risk: ${error}`,
-      "getModelRiskById",
-      error
-    );
-  }
+  const modelRisk = await sequelize.query(
+    `SELECT * FROM "${tenant}".model_risks WHERE id = :id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: ModelRiskModel,
+    }
+  );
+
+  if (!modelRisk.length) return null;
+
+  return modelRisk[0];
 }
 
 /**
@@ -68,25 +44,37 @@ export async function getModelRiskByIdQuery(
  */
 export async function createNewModelRiskQuery(
   data: Partial<IModelRisk>,
-  tenantId: number
+  tenant: string
 ): Promise<ModelRiskModel> {
-  try {
-    const modelRiskData = {
-      ...data,
-      tenantId,
-    };
+  const created_at = new Date();
+  const result = await sequelize.query(
+    `INSERT INTO "${tenant}".model_risks (risk_name, risk_category, risk_level, status, owner, target_date, description, mitigation_plan, impact, likelihood, key_metrics, current_values, threshold, model_id, created_at, updated_at)
+        VALUES (:risk_name, :risk_category, :risk_level, :status, :owner, :target_date, :description, :mitigation_plan, :impact, :likelihood, :key_metrics, :current_values, :threshold, :model_id, :created_at, :updated_at) RETURNING *`,
+    {
+      replacements: {
+        risk_name: data.risk_name || '',
+        risk_category: data.risk_category,
+        risk_level: data.risk_level,
+        status: data.status || 'Open',
+        owner: data.owner,
+        target_date: data.target_date,
+        description: data.description || '',
+        mitigation_plan: data.mitigation_plan || '',
+        impact: data.impact || '',
+        likelihood: data.likelihood || '',
+        key_metrics: data.key_metrics || '',
+        current_values: data.current_values || '',
+        threshold: data.threshold || '',
+        model_id: data.model_id || null,
+        created_at: created_at,
+        updated_at: created_at,
+      },
+      mapToModel: true,
+      model: ModelRiskModel,
+    }
+  );
 
-    const modelRisk = ModelRiskModel.createNewModelRisk(modelRiskData);
-    await modelRisk.validateModelRiskData();
-    await modelRisk.save();
-    return modelRisk;
-  } catch (error) {
-    throw new ValidationException(
-      `Failed to create model risk: ${error}`,
-      "createNewModelRisk",
-      error
-    );
-  }
+  return result[0];
 }
 
 /**
@@ -94,38 +82,48 @@ export async function createNewModelRiskQuery(
  */
 export async function updateModelRiskByIdQuery(
   id: number,
-  data: Partial<IModelRisk>,
-  tenantId: number
+  updatedModelRisk: Partial<IModelRisk>,
+  tenant: string
 ): Promise<ModelRiskModel | null> {
-  try {
-    const modelRisk = await ModelRiskModel.findOne({
-      where: { id, tenantId },
-    });
-
-    if (!modelRisk) {
-      return null;
+  const updated_at = new Date();
+  const updateModelRisk: Partial<IModelRisk> = { updated_at };
+  const setClause = [
+    "risk_name",
+    "risk_category",
+    "risk_level",
+    "status",
+    "owner",
+    "target_date",
+    "description",
+    "mitigation_plan",
+    "impact",
+    "likelihood",
+    "key_metrics",
+    "current_values",
+    "threshold",
+    "model_id",
+  ].filter((field) => {
+    if (updatedModelRisk[field as keyof IModelRisk] !== undefined) {
+      (updateModelRisk as any)[field] = updatedModelRisk[field as keyof IModelRisk];
+      return true;
     }
+    return false;
+  }).map((field) => `${field} = :${field}`).join(", ");
 
-    // Use update method instead of save to avoid INSERT
-    const updatedData = { ...data, updated_at: new Date() };
-
-    await ModelRiskModel.update(updatedData, {
-      where: { id, tenantId },
-    });
-
-    // Fetch the updated record
-    const updatedModelRisk = await ModelRiskModel.findOne({
-      where: { id, tenantId },
-    });
-
-    return updatedModelRisk;
-  } catch (error) {
-    throw new ValidationException(
-      `Failed to update model risk: ${error}`,
-      "updateModelRiskById",
-      error
-    );
+  if (!setClause) {
+    return getModelRiskByIdQuery(id, tenant); // No fields to update, return current state
   }
+
+  updateModelRisk.id = id;
+
+  const query = `UPDATE "${tenant}".model_risks SET ${setClause} WHERE id = :id RETURNING *`;
+
+  const result = await sequelize.query(query, {
+    replacements: updateModelRisk,
+    mapToModel: true,
+    model: ModelRiskModel,
+  });
+  return result[0] || null;
 }
 
 /**
@@ -133,18 +131,16 @@ export async function updateModelRiskByIdQuery(
  */
 export async function deleteModelRiskByIdQuery(
   id: number,
-  tenantId: number
+  tenant: string
 ): Promise<boolean> {
-  try {
-    const result = await ModelRiskModel.destroy({
-      where: { id, tenantId },
-    });
-    return result > 0;
-  } catch (error) {
-    throw new ValidationException(
-      `Failed to delete model risk: ${error}`,
-      "deleteModelRiskById",
-      error
-    );
-  }
+  const result = await sequelize.query(
+    `DELETE FROM "${tenant}".model_risks WHERE id = :id RETURNING id`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: ModelRiskModel,
+      type: QueryTypes.DELETE,
+    }
+  );
+  return result.length > 0; // Returns true if a row was deleted
 }

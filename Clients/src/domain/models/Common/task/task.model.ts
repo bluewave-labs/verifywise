@@ -1,4 +1,4 @@
-import { TaskPriority, TaskStatus } from "../../interfaces/i.task";
+import { TaskPriority, TaskStatus } from "../../../interfaces/i.task";
 
 export class TaskModel {
   id?: number;

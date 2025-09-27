@@ -448,6 +448,7 @@ const ProjectSettings = React.memo(
               ...prevValues,
               [prop]: newValue.map((user) => user.id),
             }));
+            setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
           }
         },
       [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
@@ -661,6 +662,9 @@ const ProjectSettings = React.memo(
         },
       }).then((response) => {
         if (response.status === 202) {
+          // Update initialValuesRef to reflect the saved state
+          initialValuesRef.current = { ...values };
+
           setAlert({
             variant: "success",
             body: "Project updated successfully",

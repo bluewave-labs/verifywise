@@ -401,6 +401,7 @@ export const updateProjectByIdQuery = async (
     "goal",
     "last_updated",
     "last_updated_by",
+    "status",
   ]
     .filter((f) => {
       if (

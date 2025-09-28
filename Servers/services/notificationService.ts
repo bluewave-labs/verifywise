@@ -17,7 +17,7 @@ interface QueuedEmail {
 }
 
 // Process-rooted templates directory for security and post-transpile compatibility
-const templatesDir = path.resolve(process.cwd(), "templates");
+const templatesDir = path.resolve(process.cwd(), "Servers/templates");
 
 // Rate limiting state file for persistence across restarts
 const rateLimitStateFile = path.resolve(process.cwd(), ".rate-limit-state.json");

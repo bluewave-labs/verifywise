@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme, Alert as MuiAlert, Box, Link, CircularProgress } from "@mui/material";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
@@ -14,6 +14,7 @@ import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser } from "../../../../application/repository/user.repository";
+import SSOButton from "../../../components/SSOButton";
 import axios from "axios";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
@@ -35,6 +36,15 @@ interface UserOrgInfo {
     tenantId: string;
   };
   preferredAuthMethod?: 'sso' | 'password';
+}
+
+// SSO Provider interface
+interface SSOProvider {
+  organizationId: number;
+  organizationName: string;
+  providerType: 'azure_ad';
+  authMethodPolicy: 'sso_only' | 'password_only' | 'both';
+  loginUrl: string;
 }
 
 // Form values interface
@@ -64,6 +74,8 @@ const Login: React.FC = () => {
   // Organization and SSO state
   const [userOrgInfo, setUserOrgInfo] = useState<UserOrgInfo | null>(null);
   const [checkingOrganization, setCheckingOrganization] = useState(false);
+  const [availableSSOProviders, setAvailableSSOProviders] = useState<SSOProvider[]>([]);
+  const [loadingSSOProviders, setLoadingSSOProviders] = useState(false);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,6 +88,32 @@ const Login: React.FC = () => {
   const loginText = isDemoApp
     ? "Click on Continue button directly to proceed"
     : "Log in to your account";
+
+  // Load available SSO providers on component mount
+  useEffect(() => {
+    const loadSSOProviders = async () => {
+      setLoadingSSOProviders(true);
+      try {
+        const response = await axios.get(`${ENV_VARs.URL}/api/sso-auth/available-providers`);
+        if (response.data.success) {
+          setAvailableSSOProviders(response.data.providers || []);
+        }
+      } catch (error) {
+        console.error('Error loading SSO providers:', error);
+        setAvailableSSOProviders([]);
+      } finally {
+        setLoadingSSOProviders(false);
+      }
+    };
+
+    loadSSOProviders();
+  }, []);
+
+  // Handle direct SSO login
+  const handleDirectSSOLogin = (provider: SSOProvider) => {
+    // Redirect directly to SSO login endpoint
+    window.location.href = `${ENV_VARs.URL}${provider.loginUrl}`;
+  };
 
   // Handle input changes
   const handleChange =
@@ -318,6 +356,30 @@ const Login: React.FC = () => {
         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
           {loginText}
         </Typography>
+
+        {/* SSO Buttons */}
+        {availableSSOProviders.length > 0 && !isDemoApp && (
+          <Stack sx={{ gap: theme.spacing(2.5), alignItems: 'center', width: 360 }}>
+            {availableSSOProviders.map((provider) => (
+              <SSOButton
+                key={`${provider.providerType}-${provider.organizationId}`}
+                provider="microsoft"
+                onClick={() => handleDirectSSOLogin(provider)}
+                disabled={loadingSSOProviders}
+                fullWidth
+              />
+            ))}
+
+            {/* Divider */}
+            <Stack direction="row" alignItems="center" sx={{ width: '100%', my: 1 }}>
+              <Box sx={{ flex: 1, height: '1px', backgroundColor: theme.palette.divider }} />
+              <Typography variant="body2" color="text.secondary" sx={{ mx: 2 }}>
+                or
+              </Typography>
+              <Box sx={{ flex: 1, height: '1px', backgroundColor: theme.palette.divider }} />
+            </Stack>
+          </Stack>
+        )}
 
         {/* Step 1: Email Input */}
         {currentStep === 'email' && (

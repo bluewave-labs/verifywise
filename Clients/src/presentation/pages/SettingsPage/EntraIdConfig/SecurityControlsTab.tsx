@@ -35,7 +35,7 @@ const SecurityControlsTab: React.FC = () => {
   };
 
   const handleSelectChange = (field: keyof SecurityConfig) => (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: any
   ) => {
     setConfig(prev => ({ ...prev, [field]: event.target.value }));
   };

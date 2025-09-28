@@ -134,18 +134,13 @@ const SsoConfigTab: React.FC = () => {
     }
   };
 
-  const handleFieldBlur = (field: keyof ValidationErrors) => (
-    event: React.FocusEvent<HTMLInputElement>
-  ) => {
-    validateField(field, event.target.value);
-  };
 
   const handleToggleChange = (field: keyof SsoConfig) => (checked: boolean) => {
     setConfig(prev => ({ ...prev, [field]: checked }));
   };
 
   const handleSelectChange = (field: keyof SsoConfig) => (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: any
   ) => {
     setConfig(prev => ({ ...prev, [field]: event.target.value }));
   };
@@ -234,7 +229,6 @@ const SsoConfigTab: React.FC = () => {
                 placeholder="Enter your Azure AD Tenant ID"
                 value={config.tenantId}
                 onChange={handleFieldChange('tenantId')}
-                onBlur={handleFieldBlur('tenantId')}
                 error={errors.tenantId}
                 isRequired
                 sx={{ width: '100%' }}
@@ -250,7 +244,6 @@ const SsoConfigTab: React.FC = () => {
                 placeholder="Enter your Application (client) ID"
                 value={config.clientId}
                 onChange={handleFieldChange('clientId')}
-                onBlur={handleFieldBlur('clientId')}
                 error={errors.clientId}
                 isRequired
                 sx={{ width: '100%' }}
@@ -269,7 +262,6 @@ const SsoConfigTab: React.FC = () => {
                 placeholder="Enter your client secret"
                 value={config.clientSecret}
                 onChange={handleFieldChange('clientSecret')}
-                onBlur={handleFieldBlur('clientSecret')}
                 error={errors.clientSecret}
                 isRequired
                 sx={{ width: '100%' }}

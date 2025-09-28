@@ -585,6 +585,49 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
 };
 
 /**
+ * Get available SSO providers for login page
+ * GET /api/sso-auth/available-providers
+ */
+export const getAvailableSSOProviders = async (req: Request, res: Response) => {
+  try {
+    // Find all organizations with enabled SSO configurations
+    const ssoConfigs = await SSOConfigurationModel.findAll({
+      where: {
+        is_enabled: true
+      },
+      include: [{
+        model: OrganizationModel,
+        as: 'organization',
+        attributes: ['id', 'name']
+      }],
+      attributes: ['organization_id', 'auth_method_policy']
+    });
+
+    // Group by provider type and return available providers
+    const providers = ssoConfigs.map(config => ({
+      organizationId: config.organization_id,
+      organizationName: (config as any).organization?.name || 'Unknown',
+      providerType: 'azure_ad',
+      authMethodPolicy: config.auth_method_policy,
+      loginUrl: `/api/sso-auth/${config.organization_id}/login`
+    }));
+
+    res.status(200).json({
+      success: true,
+      providers,
+      hasAvailableSSO: providers.length > 0
+    });
+
+  } catch (error) {
+    console.error('Error getting available SSO providers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get available SSO providers'
+    });
+  }
+};
+
+/**
  * Get organization SSO configuration details
  * GET /api/sso-auth/:organizationId/config
  */

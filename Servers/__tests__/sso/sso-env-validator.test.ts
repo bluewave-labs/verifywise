@@ -333,7 +333,7 @@ describe('SSOEnvironmentValidator', () => {
       const summary = SSOEnvironmentValidator.getEnvironmentSummary();
 
       expect(summary.NODE_ENV).toBe('production');
-      expect(summary.SSO_STATE_SECRET).toMatch(/^\*\*\*123$/); // Masked with last 4 chars
+      expect(summary.SSO_STATE_SECRET).toMatch(/^\*\*\*t123$/); // Masked with last 4 chars
       expect(summary.JWT_SECRET).toMatch(/^\*\*\*456$/);
       expect(summary.BACKEND_URL).toBe('https://api.example.com/**');
       expect(summary.REDIS_URL).toBe('redis://redis.example.com:6379/**');

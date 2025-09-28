@@ -10,6 +10,10 @@ import { Request } from 'express';
 import { RedisRateLimiter } from '../../utils/redis-rate-limiter.utils';
 import Redis from 'ioredis';
 
+// Set required environment variables for SSO tests
+process.env.SSO_STATE_SECRET = 'test-state-secret-for-tests';
+process.env.JWT_SECRET = 'test-jwt-secret';
+
 // Mock Redis client
 jest.mock('ioredis');
 const MockedRedis = Redis as jest.MockedClass<typeof Redis>;
@@ -59,7 +63,7 @@ describe('RedisRateLimiter', () => {
       },
       socket: {
         remoteAddress: '192.168.1.1'
-      }
+      } as any
     };
   });
 
@@ -234,7 +238,7 @@ describe('RedisRateLimiter', () => {
 
     it('should handle missing IP information', async () => {
       mockRequest.headers = {};
-      mockRequest.socket = {};
+      mockRequest.socket = {} as any;
 
       const mockPipeline = mockRedis.pipeline();
       (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);

@@ -17,6 +17,7 @@ import {
   checkSSOAvailability,
   getOrganizationSSOConfig,
   checkUserOrganization,
+  getAvailableSSOProviders,
 } from "../controllers/ssoAuth.ctrl";
 
 import {
@@ -27,6 +28,9 @@ import {
 
 // Public SSO availability check (no organization ID needed)
 router.get("/check-availability", generalSsoRateLimit, checkSSOAvailability);
+
+// Get available SSO providers for login page
+router.get("/available-providers", generalSsoRateLimit, getAvailableSSOProviders);
 
 // Email-based user organization and SSO check
 router.get("/check-user-organization", generalSsoRateLimit, checkUserOrganization);

@@ -9,6 +9,10 @@ import request from 'supertest';
 import express from 'express';
 import ssoHealthRoutes from '../../routes/sso-health.route';
 
+// Set required environment variables for SSO tests
+process.env.SSO_STATE_SECRET = 'test-state-secret-for-tests';
+process.env.JWT_SECRET = 'test-jwt-secret';
+
 // Mock dependencies
 jest.mock('../../utils/redis-rate-limiter.utils');
 jest.mock('../../factories/sso-provider.factory');

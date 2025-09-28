@@ -225,7 +225,12 @@ export class NotificationService {
       }
     }
 
+    // Release the lock, but if new items arrived while winding down, resume.
+    const hasPending = this.emailQueue.length > 0;
     this.isProcessing = false;
+    if (hasPending) {
+      setImmediate(() => { void this.processQueue(); });
+    }
   }
 
   /**

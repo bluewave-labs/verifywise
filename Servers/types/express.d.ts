@@ -4,7 +4,8 @@ declare module 'express' {
   interface Request {
     userId?: number;
     role?: string;
-    tenantId?: string
+    tenantId?: string;
     organizationId?: number;
+    ssoEnabled?: boolean;
   }
 }

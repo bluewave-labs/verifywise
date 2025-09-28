@@ -63,6 +63,7 @@ import { SubscriptionModel } from "../domain.layer/models/subscriptions/subscrip
 import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
+import { SSOConfigurationModel } from "../domain.layer/models/sso/ssoConfiguration.model";
 
 dotenv.config();
 
@@ -135,6 +136,7 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     TasksModel,
     TaskAssigneesModel,
     SlackWebhookModel,
+    SSOConfigurationModel,
   ],
 }) as Sequelize;
 

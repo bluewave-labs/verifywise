@@ -77,6 +77,25 @@ export class UserModel extends Model<UserModel> {
   })
   organization_id?: number;
 
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  sso_enabled?: boolean;
+
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: true,
+  })
+  azure_ad_object_id?: string;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  sso_last_login?: Date;
+
   static async createNewUser(
     name: string,
     surname: string,

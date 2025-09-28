@@ -47,8 +47,8 @@ const EntraIdConfig: React.FC = () => {
               "& .MuiTabs-flexContainer": { columnGap: "34px" },
             }}
           >
-            <Tab label="SSO Configuration" value="1" sx={tabStyle} disableRipple />
-            <Tab label="Security Controls" value="2" sx={tabStyle} disableRipple />
+            <Tab label="SSO configuration" value="1" sx={tabStyle} disableRipple />
+            <Tab label="Security controls" value="2" sx={tabStyle} disableRipple />
           </TabList>
         </Box>
 

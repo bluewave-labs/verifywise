@@ -42,9 +42,9 @@ describe('SSOEnvironmentValidator', () => {
     });
 
     it('should pass with all required variables set', () => {
-      process.env.SSO_STATE_SECRET = 'a'.repeat(64);
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
       process.env.BACKEND_URL = 'https://api.example.com';
-      process.env.JWT_SECRET = 'b'.repeat(64);
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.REDIS_URL = 'redis://localhost:6379';
 
       const result = SSOEnvironmentValidator.validateEnvironment();
@@ -107,8 +107,8 @@ describe('SSOEnvironmentValidator', () => {
   describe('URL Validation', () => {
     beforeEach(() => {
       // Set minimum required vars
-      process.env.SSO_STATE_SECRET = 'a'.repeat(64);
-      process.env.JWT_SECRET = 'b'.repeat(64);
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.REDIS_URL = 'redis://localhost:6379';
     });
 
@@ -143,7 +143,10 @@ describe('SSOEnvironmentValidator', () => {
 
     it('should accept valid HTTPS URLs', () => {
       process.env.NODE_ENV = 'production';
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.BACKEND_URL = 'https://api.verifywise.com';
+      process.env.REDIS_URL = 'redis://redis.verifywise.com:6379';
 
       const result = SSOEnvironmentValidator.validateEnvironment();
 
@@ -154,8 +157,8 @@ describe('SSOEnvironmentValidator', () => {
   describe('Redis Configuration Validation', () => {
     beforeEach(() => {
       // Set minimum required vars
-      process.env.SSO_STATE_SECRET = 'a'.repeat(64);
-      process.env.JWT_SECRET = 'b'.repeat(64);
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.BACKEND_URL = 'https://api.example.com';
     });
 
@@ -223,7 +226,7 @@ describe('SSOEnvironmentValidator', () => {
     });
 
     it('should require different secrets for SSO_STATE_SECRET and JWT_SECRET', () => {
-      const sameSecret = 'a'.repeat(64);
+      const sameSecret = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
       process.env.SSO_STATE_SECRET = sameSecret;
       process.env.JWT_SECRET = sameSecret;
 
@@ -235,8 +238,8 @@ describe('SSOEnvironmentValidator', () => {
 
     it('should reject localhost URLs in production', () => {
       process.env.NODE_ENV = 'production';
-      process.env.SSO_STATE_SECRET = 'a'.repeat(64);
-      process.env.JWT_SECRET = 'b'.repeat(64);
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.BACKEND_URL = 'https://localhost:3000';
       process.env.REDIS_URL = 'redis://localhost:6379';
 
@@ -260,8 +263,8 @@ describe('SSOEnvironmentValidator', () => {
   describe('Warning Generation', () => {
     beforeEach(() => {
       // Set valid configuration
-      process.env.SSO_STATE_SECRET = 'a'.repeat(64);
-      process.env.JWT_SECRET = 'b'.repeat(64);
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.BACKEND_URL = 'https://api.example.com';
       process.env.REDIS_URL = 'redis://localhost:6379';
     });
@@ -308,8 +311,8 @@ describe('SSOEnvironmentValidator', () => {
     });
 
     it('should not throw when validation passes', () => {
-      process.env.SSO_STATE_SECRET = 'a'.repeat(64);
-      process.env.JWT_SECRET = 'b'.repeat(64);
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.BACKEND_URL = 'https://api.example.com';
       process.env.REDIS_URL = 'redis://localhost:6379';
 
@@ -334,7 +337,7 @@ describe('SSOEnvironmentValidator', () => {
 
       expect(summary.NODE_ENV).toBe('production');
       expect(summary.SSO_STATE_SECRET).toMatch(/^\*\*\*t123$/); // Masked with last 4 chars
-      expect(summary.JWT_SECRET).toMatch(/^\*\*\*456$/);
+      expect(summary.JWT_SECRET).toMatch(/^\*\*\*t456$/);
       expect(summary.BACKEND_URL).toBe('https://api.example.com/**');
       expect(summary.REDIS_URL).toBe('redis://redis.example.com:6379/**');
     });
@@ -384,8 +387,8 @@ describe('SSOEnvironmentValidator', () => {
     });
 
     it('should handle invalid URL with valid format but bad content', () => {
-      process.env.SSO_STATE_SECRET = 'a'.repeat(64);
-      process.env.JWT_SECRET = 'b'.repeat(64);
+      process.env.SSO_STATE_SECRET = 'Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#eF2$gH9@iJ5*kL8!mN1%oP6^';
+      process.env.JWT_SECRET = 'dF2$gH9@iJ5*kL8!mN1%oP6^Kj8#mP9$nQ2@vR5*wS1!xT6&yU3%zV0^aB4&cD7#';
       process.env.BACKEND_URL = 'https://';
       process.env.REDIS_URL = 'redis://localhost:6379';
 

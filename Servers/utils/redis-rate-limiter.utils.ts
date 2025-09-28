@@ -61,16 +61,16 @@ export class RedisRateLimiter {
           family: 4,
         });
       }
-
-      // Handle Redis connection events
-      this.redis.on('error', (error) => {
-        console.error('Redis rate limiter connection error:', error);
-      });
-
-      this.redis.on('connect', () => {
-        console.log('Redis rate limiter connected successfully');
-      });
     }
+
+    // Handle Redis connection events (set up for all Redis clients)
+    this.redis.on('error', (error) => {
+      console.error('Redis rate limiter connection error:', error);
+    });
+
+    this.redis.on('connect', () => {
+      console.log('Redis rate limiter connected successfully');
+    });
   }
 
   /**

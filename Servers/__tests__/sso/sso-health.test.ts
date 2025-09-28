@@ -129,6 +129,16 @@ describe('SSO Health Check Routes', () => {
 
   describe('GET /api/sso-health/detailed', () => {
     it('should return comprehensive health information', async () => {
+      // Mock normal memory usage to ensure healthy status
+      const originalMemoryUsage = process.memoryUsage;
+      process.memoryUsage = jest.fn().mockReturnValue({
+        rss: 200 * 1024 * 1024, // 200 MB
+        heapTotal: 200 * 1024 * 1024,
+        heapUsed: 200 * 1024 * 1024, // Normal memory usage
+        external: 20 * 1024 * 1024,
+        arrayBuffers: 5 * 1024 * 1024
+      }) as any;
+
       const response = await request(app)
         .get('/api/sso-health/detailed')
         .expect(200);
@@ -145,6 +155,9 @@ describe('SSO Health Check Routes', () => {
       expect(response.body.checks.environment.responseTime).toBeDefined();
       expect(response.body.checks.redis.responseTime).toBeDefined();
       expect(response.body.checks.overall.responseTime).toBeDefined();
+
+      // Restore original function
+      process.memoryUsage = originalMemoryUsage;
     });
 
     it('should detect Redis connectivity issues', async () => {

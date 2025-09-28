@@ -43,11 +43,6 @@ const SsoConfigTab: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [connectionResult, setConnectionResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const theme = useTheme();
 
@@ -110,20 +105,6 @@ const SsoConfigTab: React.FC = () => {
     setConfig(prev => ({ ...prev, [field]: checked }));
   };
 
-  const handleEnableSSO = async () => {
-    // TODO: API call to enable/disable SSO
-    if (config.isEnabled) {
-      // Disable SSO
-      setConfig(prev => ({ ...prev, isEnabled: false }));
-    } else {
-      // Enable SSO (validate configuration first)
-      if (!config.tenantId || !config.clientId || !config.clientSecret) {
-        // Show validation error
-        return;
-      }
-      setConfig(prev => ({ ...prev, isEnabled: true }));
-    }
-  };
 
   const handleSelectChange = (field: keyof SsoConfig) => (
     event: any
@@ -131,32 +112,6 @@ const SsoConfigTab: React.FC = () => {
     setConfig(prev => ({ ...prev, [field]: event.target.value }));
   };
 
-  const testConnection = async () => {
-    setIsTestingConnection(true);
-    setConnectionResult(null);
-
-    try {
-      // Simulate API call for testing connection
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mock response - replace with actual API call
-      const success = Math.random() > 0.3; // 70% success rate for demo
-
-      setConnectionResult({
-        success,
-        message: success
-          ? "Connection successful! Azure AD configuration is valid."
-          : "Connection failed. Please verify your credentials and try again."
-      });
-    } catch (error) {
-      setConnectionResult({
-        success: false,
-        message: "Network error occurred while testing connection."
-      });
-    } finally {
-      setIsTestingConnection(false);
-    }
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -182,7 +137,7 @@ const SsoConfigTab: React.FC = () => {
   const cardStyles = {
     backgroundColor: theme.palette.background.paper,
     borderRadius: theme.shape.borderRadius,
-    border: `1.5px solid ${theme.palette.border?.light || theme.palette.divider}`,
+    border: `1.5px solid ${theme.palette.divider}`,
     padding: theme.spacing(5, 6), // 40px top/bottom, 48px left/right - same as AI Trust Center
     boxShadow: 'none',
   };

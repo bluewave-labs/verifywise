@@ -57,6 +57,7 @@ export class NotificationService {
   private static instance: NotificationService;
   private emailQueue: QueuedEmail[] = [];
   private isProcessing = false;
+  private readonly initialization: Promise<void>;
 
   // Token bucket rate limiting (2 requests per second, burst of 3)
   private readonly MAX_TOKENS = 3;
@@ -72,7 +73,7 @@ export class NotificationService {
   };
 
   private constructor() {
-    this.loadRateLimitState();
+      this.initialization = this.loadRateLimitState();
   }
 
   public static getInstance(): NotificationService {
@@ -93,7 +94,10 @@ export class NotificationService {
       // Validate and merge with defaults
       this.rateLimitState = {
         lastSendTimestamp: loadedState.lastSendTimestamp || 0,
-        tokens: Math.min(loadedState.tokens || this.MAX_TOKENS, this.MAX_TOKENS),
+        tokens: Math.min(
+          Math.max(0, loadedState.tokens ?? this.MAX_TOKENS),
+          this.MAX_TOKENS
+        ),
         lastTokenRefill: loadedState.lastTokenRefill || Date.now(),
         consecutiveFailures: loadedState.consecutiveFailures || 0
       };
@@ -180,6 +184,7 @@ export class NotificationService {
   }
 
   private async processQueue(): Promise<void> {
+    await this.initialization;
     if (this.isProcessing || this.emailQueue.length === 0) {
       return;
     }
@@ -232,6 +237,7 @@ export class NotificationService {
     templateFileName: string,
     templateData: Record<string, string>
   ): Promise<void> {
+    await this.initialization;
     return new Promise((resolve, reject) => {
       this.emailQueue.push({
         recipientEmail,

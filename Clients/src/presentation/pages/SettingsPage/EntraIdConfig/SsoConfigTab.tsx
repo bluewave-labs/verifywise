@@ -11,20 +11,13 @@ import Alert from "../../../components/Alert";
 import Button from "../../../components/Button";
 import Select from "../../../components/Inputs/Select";
 
-// State interface for SSO Configuration
+// State interface for SSO Configuration (MVP)
 interface SsoConfig {
   tenantId: string;
   clientId: string;
   clientSecret: string;
   cloudEnvironment: string;
-  emailClaim: string;
-  nameClaim: string;
-  adminGroups: string;
-  autoCreateUsers: boolean;
-  defaultRole: string;
-  postLogoutRedirectUri: string;
-  oauthScopes: string;
-  customClaims: string;
+  isEnabled: boolean;
 }
 
 // Validation errors interface
@@ -40,35 +33,13 @@ const cloudEnvironments = [
   { _id: "AzureGovernment", name: "Azure Government" }
 ];
 
-// Default role options
-const defaultRoles = [
-  { _id: "Reviewer", name: "Reviewer" },
-  { _id: "Editor", name: "Editor" },
-  { _id: "Auditor", name: "Auditor" },
-  { _id: "Admin", name: "Admin" }
-];
-
-// Token lifetime options for reuse in SecurityControlsTab
-export const tokenLifetimes = [
-  { _id: "1 Hour", name: "1 Hour" },
-  { _id: "8 Hours", name: "8 Hours" },
-  { _id: "24 Hours", name: "24 Hours" }
-];
-
 const SsoConfigTab: React.FC = () => {
   const [config, setConfig] = useState<SsoConfig>({
     tenantId: "",
     clientId: "",
     clientSecret: "",
     cloudEnvironment: "AzurePublic",
-    emailClaim: "",
-    nameClaim: "",
-    adminGroups: "",
-    autoCreateUsers: false,
-    defaultRole: "Reviewer",
-    postLogoutRedirectUri: "",
-    oauthScopes: "",
-    customClaims: "",
+    isEnabled: false,
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -137,6 +108,21 @@ const SsoConfigTab: React.FC = () => {
 
   const handleToggleChange = (field: keyof SsoConfig) => (checked: boolean) => {
     setConfig(prev => ({ ...prev, [field]: checked }));
+  };
+
+  const handleEnableSSO = async () => {
+    // TODO: API call to enable/disable SSO
+    if (config.isEnabled) {
+      // Disable SSO
+      setConfig(prev => ({ ...prev, isEnabled: false }));
+    } else {
+      // Enable SSO (validate configuration first)
+      if (!config.tenantId || !config.clientId || !config.clientSecret) {
+        // Show validation error
+        return;
+      }
+      setConfig(prev => ({ ...prev, isEnabled: true }));
+    }
   };
 
   const handleSelectChange = (field: keyof SsoConfig) => (
@@ -215,10 +201,10 @@ const SsoConfigTab: React.FC = () => {
 
       <Box sx={{ height: '16px' }} />
 
-      {/* Connection Settings Card */}
+      {/* Simplified SSO Configuration Card */}
       <Box sx={cardStyles}>
         <Typography fontSize={15} fontWeight={700} gutterBottom>
-          Connection settings
+          SSO configuration
         </Typography>
 
         <Stack spacing={0}>
@@ -281,154 +267,22 @@ const SsoConfigTab: React.FC = () => {
             </Box>
           </Stack>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', marginBottom: '16px' }}>
-            <Button
-              variant="contained"
-              onClick={testConnection}
-              disabled={isTestingConnection || !config.tenantId || !config.clientId || !config.clientSecret}
-              sx={{ height: '34px', fontSize: 13, fontWeight: 400, textTransform: 'none' }}
-            >
-              {isTestingConnection ? "Testing connection..." : "Test connection"}
-            </Button>
-          </Box>
-
-          {connectionResult && (
-            <Alert
-              variant={connectionResult.success ? "success" : "error"}
-              body={connectionResult.message}
-              sx={{ position: 'static' }}
-              isToast={false}
-            />
-          )}
-        </Stack>
-      </Box>
-
-      <Box sx={{ height: '16px' }} />
-
-      {/* User Mapping Card */}
-      <Box sx={cardStyles}>
-        <Typography fontSize={15} fontWeight={700} gutterBottom>
-          User mapping
-        </Typography>
-
-        <Stack spacing={0}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ marginBottom: theme.spacing(10) }}>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Email claim"
-                placeholder="email"
-                value={config.emailClaim}
-                onChange={handleFieldChange('emailClaim')}
-                sx={{ width: '100%' }}
-              />
-            </Box>
-
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Name claim"
-                placeholder="name"
-                value={config.nameClaim}
-                onChange={handleFieldChange('nameClaim')}
-                sx={{ width: '100%' }}
-              />
-            </Box>
-          </Stack>
-
           <Box sx={{ marginBottom: theme.spacing(10) }}>
-            <Field
-              label="Admin groups"
-              placeholder="group1,group2,group3"
-              value={config.adminGroups}
-              onChange={handleFieldChange('adminGroups')}
-              sx={{ width: '100%' }}
-            />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '12px' }}>
-              Comma-separated list of Azure AD group names that should have admin access
-            </Typography>
-          </Box>
-
-          <Box sx={{ marginBottom: theme.spacing(10) }}>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ marginBottom: theme.spacing(2) }}>
+            <Stack direction="row" alignItems="center" spacing={2}>
               <Toggle
-                checked={config.autoCreateUsers}
-                onChange={handleToggleChange('autoCreateUsers')}
+                checked={config.isEnabled}
+                onChange={handleToggleChange('isEnabled')}
               />
-              <Typography>Auto-create users</Typography>
+              <Typography sx={{ fontSize: 13 }}>Enable SSO authentication for this organization</Typography>
             </Stack>
-            {config.autoCreateUsers && (
+            {config.isEnabled && (
               <Alert
                 variant="warning"
-                body="Auto-creating users allows anyone who can authenticate to your Entra ID to access VerifyWise. Consider using Entra ID's 'User assignment required' setting to restrict access."
-                sx={{ position: 'static' }}
+                body="Enabling SSO will disable username/password login for all users in this organization. Users will need to authenticate through Azure AD."
+                sx={{ position: 'static', mt: 2 }}
                 isToast={false}
               />
             )}
-          </Box>
-
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-            <Box sx={{ flex: 1, maxWidth: { md: '50%' } }}>
-              <Select
-                id="default-role"
-                label="Default role"
-                value={config.defaultRole}
-                items={defaultRoles}
-                onChange={handleSelectChange('defaultRole')}
-                getOptionValue={(option) => option._id}
-                sx={{ width: '100%' }}
-              />
-            </Box>
-          </Stack>
-
-        </Stack>
-      </Box>
-
-      <Box sx={{ height: '16px' }} />
-
-      {/* Advanced Configuration */}
-      <Box sx={cardStyles}>
-        <Typography fontSize={15} fontWeight={700} gutterBottom>
-          Advanced configuration
-        </Typography>
-
-        <Stack spacing={0}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ marginBottom: theme.spacing(10) }}>
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="OAuth scopes"
-                placeholder="openid profile email groups"
-                value={config.oauthScopes}
-                onChange={handleFieldChange('oauthScopes')}
-                sx={{ width: '100%' }}
-              />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '12px' }}>
-                Space-separated scopes. 'groups' required for admin groups, 'User.Read' for profile data
-              </Typography>
-            </Box>
-
-            <Box sx={{ flex: 1 }}>
-              <Field
-                label="Post logout redirect URI"
-                placeholder="https://your-domain.com/logged-out"
-                value={config.postLogoutRedirectUri}
-                onChange={handleFieldChange('postLogoutRedirectUri')}
-                sx={{ width: '100%' }}
-              />
-            </Box>
-          </Stack>
-
-          <Box>
-            <Field
-              label="Custom claims mapping"
-              type="description"
-              rows={4}
-              placeholder='{"department": "extension_Department", "role": "jobTitle"}'
-              value={config.customClaims}
-              onChange={handleFieldChange('customClaims')}
-              sx={{ width: '100%' }}
-            />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '12px' }}>
-              JSON format mapping of custom claims from Azure AD to VerifyWise user attributes
-            </Typography>
           </Box>
         </Stack>
       </Box>

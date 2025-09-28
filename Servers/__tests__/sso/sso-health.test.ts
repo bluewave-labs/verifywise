@@ -189,7 +189,7 @@ describe('SSO Health Check Routes', () => {
         heapUsed: 600 * 1024 * 1024, // High memory usage
         external: 50 * 1024 * 1024,
         arrayBuffers: 10 * 1024 * 1024
-      });
+      }) as any;
 
       const response = await request(app)
         .get('/api/sso-health/detailed')

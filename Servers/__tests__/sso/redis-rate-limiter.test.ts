@@ -42,7 +42,7 @@ describe('RedisRateLimiter', () => {
     // Mock pipeline
     const mockPipeline = {
       hgetall: jest.fn().mockReturnThis(),
-      exec: jest.fn()
+      exec: jest.fn().mockResolvedValue([[null, {}]])
     };
     mockRedis.pipeline.mockReturnValue(mockPipeline as any);
 
@@ -71,7 +71,7 @@ describe('RedisRateLimiter', () => {
     it('should allow first request within limits', async () => {
       // Mock pipeline execution - no existing data
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, {}]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -91,7 +91,7 @@ describe('RedisRateLimiter', () => {
 
       // Mock pipeline execution - existing data
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, existingData]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, existingData]]);
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -116,7 +116,7 @@ describe('RedisRateLimiter', () => {
 
       // Mock pipeline execution
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, existingData]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, existingData]]);
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -139,7 +139,7 @@ describe('RedisRateLimiter', () => {
 
       // Mock pipeline execution
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, existingData]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, existingData]]);
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -171,7 +171,7 @@ describe('RedisRateLimiter', () => {
     it('should handle callback operation with different limits', async () => {
       // Mock pipeline execution - no existing data
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, {}]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'callback', 'azure_ad');
 
@@ -183,7 +183,7 @@ describe('RedisRateLimiter', () => {
     it('should handle token operation with different limits', async () => {
       // Mock pipeline execution - no existing data
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, {}]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'token', 'azure_ad');
 
@@ -207,7 +207,7 @@ describe('RedisRateLimiter', () => {
       };
 
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, {}]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);
 
       await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -225,7 +225,7 @@ describe('RedisRateLimiter', () => {
       };
 
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, {}]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);
 
       await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -237,7 +237,7 @@ describe('RedisRateLimiter', () => {
       mockRequest.socket = {};
 
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, {}]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);
 
       await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -259,7 +259,7 @@ describe('RedisRateLimiter', () => {
     it('should handle pipeline execution errors', async () => {
       mockRedis.get.mockResolvedValue(null); // No existing block
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockRejectedValue(new Error('Pipeline execution failed'));
+      (mockPipeline.exec as jest.Mock).mockRejectedValue(new Error('Pipeline execution failed'));
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');
 
@@ -268,7 +268,7 @@ describe('RedisRateLimiter', () => {
 
     it('should handle hmset errors gracefully', async () => {
       const mockPipeline = mockRedis.pipeline();
-      mockPipeline.exec.mockResolvedValue([[null, {}]]);
+      (mockPipeline.exec as jest.Mock).mockResolvedValue([[null, {}]]);
       mockRedis.hmset.mockRejectedValue(new Error('HMSET failed'));
 
       const result = await rateLimiter.checkRateLimit(mockRequest as Request, 'login', 'azure_ad');

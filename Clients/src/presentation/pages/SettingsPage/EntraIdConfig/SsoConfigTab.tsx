@@ -18,6 +18,7 @@ interface SsoConfig {
   clientSecret: string;
   cloudEnvironment: string;
   isEnabled: boolean;
+  authMethodPolicy: 'sso_only' | 'password_only' | 'both';
 }
 
 // Validation errors interface
@@ -33,6 +34,13 @@ const cloudEnvironments = [
   { _id: "AzureGovernment", name: "Azure Government" }
 ];
 
+// Authentication method policy options
+const authMethodPolicies = [
+  { _id: "both", name: "Allow both SSO and password authentication" },
+  { _id: "sso_only", name: "Require SSO authentication only" },
+  { _id: "password_only", name: "Allow password authentication only" }
+];
+
 const SsoConfigTab: React.FC = () => {
   const [config, setConfig] = useState<SsoConfig>({
     tenantId: "",
@@ -40,6 +48,7 @@ const SsoConfigTab: React.FC = () => {
     clientSecret: "",
     cloudEnvironment: "AzurePublic",
     isEnabled: false,
+    authMethodPolicy: "both",
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -223,6 +232,21 @@ const SsoConfigTab: React.FC = () => {
           </Stack>
 
           <Box sx={{ marginBottom: theme.spacing(10) }}>
+            <Select
+              id="auth-method-policy"
+              label="Authentication method policy"
+              value={config.authMethodPolicy}
+              items={authMethodPolicies}
+              onChange={handleSelectChange('authMethodPolicy')}
+              getOptionValue={(option) => option._id}
+              sx={{ width: '100%' }}
+            />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '12px' }}>
+              Controls which authentication methods are allowed for users in this organization
+            </Typography>
+          </Box>
+
+          <Box sx={{ marginBottom: theme.spacing(10) }}>
             <Stack direction="row" alignItems="center" spacing={2}>
               <Toggle
                 checked={config.isEnabled}
@@ -230,10 +254,26 @@ const SsoConfigTab: React.FC = () => {
               />
               <Typography sx={{ fontSize: 13 }}>Enable SSO authentication for this organization</Typography>
             </Stack>
-            {config.isEnabled && (
+            {config.isEnabled && config.authMethodPolicy === 'sso_only' && (
               <Alert
                 variant="warning"
-                body="Enabling SSO will disable username/password login for all users in this organization. Users will need to authenticate through Azure AD."
+                body="SSO-only policy: Users will be required to authenticate through Azure AD. Password authentication will be disabled."
+                sx={{ position: 'static', mt: 2 }}
+                isToast={false}
+              />
+            )}
+            {config.isEnabled && config.authMethodPolicy === 'both' && (
+              <Alert
+                variant="info"
+                body="Flexible authentication: Users can choose between SSO and password authentication methods."
+                sx={{ position: 'static', mt: 2 }}
+                isToast={false}
+              />
+            )}
+            {config.authMethodPolicy === 'password_only' && (
+              <Alert
+                variant="info"
+                body="Password-only policy: Users will authenticate using username/password. SSO options will be hidden."
                 sx={{ position: 'static', mt: 2 }}
                 isToast={false}
               />

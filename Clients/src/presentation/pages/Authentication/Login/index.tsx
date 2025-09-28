@@ -1,5 +1,5 @@
 import { Button, Stack, Typography, useTheme, Alert as MuiAlert, Box, Link, CircularProgress } from "@mui/material";
-import React, { Suspense, useState, useEffect } from "react";
+import React, { Suspense, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
@@ -93,7 +93,7 @@ const Login: React.FC = () => {
     setCheckingOrganization(true);
     try {
       const response = await axios.get(
-        `${ENV_VARs.API_BASE_URL}/api/sso-auth/check-user-organization?email=${encodeURIComponent(email)}`
+        `${ENV_VARs.URL}/api/sso-auth/check-user-organization?email=${encodeURIComponent(email)}`
       );
 
       if (response.data.success) {
@@ -165,7 +165,7 @@ const Login: React.FC = () => {
     }
 
     // Redirect to SSO login endpoint
-    const ssoLoginUrl = `${ENV_VARs.API_BASE_URL}/api/sso-auth/${userOrgInfo.organization.id}/login`;
+    const ssoLoginUrl = `${ENV_VARs.URL}/api/sso-auth/${userOrgInfo.organization.id}/login`;
     window.location.href = ssoLoginUrl;
   };
 

@@ -79,9 +79,30 @@ const highRiskRoleItems = [
   { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
 ];
 
+enum ProjectStatusEnum {
+  NotStarted = "Not started",
+  InProgress = "In progress",
+  UnderReview = "Under review",
+  Completed = "Completed",
+  Closed = "Closed",
+  OnHold = "On hold",
+  Rejected = "Rejected",
+}
+
+const projectStatusItems = [
+  { _id: 1, name: ProjectStatusEnum.NotStarted },
+  { _id: 2, name: ProjectStatusEnum.InProgress },
+  { _id: 3, name: ProjectStatusEnum.UnderReview },
+  { _id: 4, name: ProjectStatusEnum.Completed },
+  { _id: 5, name: ProjectStatusEnum.Closed },
+  { _id: 6, name: ProjectStatusEnum.OnHold },
+  { _id: 7, name: ProjectStatusEnum.Rejected },
+];
+
 interface FormValues {
   projectTitle: string;
   goal: string;
+  status: number;
   owner: number;
   members: number[];
   startDate: string;
@@ -98,6 +119,7 @@ interface FormValues {
 interface FormErrors {
   projectTitle?: string;
   goal?: string;
+  status?: string;
   owner?: string;
   startDate?: string;
   members?: string;
@@ -109,6 +131,7 @@ interface FormErrors {
 const initialState: FormValues = {
   projectTitle: "",
   goal: "",
+  status: 1,
   owner: 0,
   members: [],
   startDate: "",
@@ -163,6 +186,7 @@ const ProjectSettings = React.memo(
       const basicFieldsModified =
         values.projectTitle !== initialValuesRef.current.projectTitle ||
         values.goal !== initialValuesRef.current.goal ||
+        values.status !== initialValuesRef.current.status ||
         values.owner !== initialValuesRef.current.owner ||
         JSON.stringify(values.members) !==
           JSON.stringify(initialValuesRef.current.members) ||
@@ -243,6 +267,12 @@ const ProjectSettings = React.memo(
           ...initialState,
           projectTitle: project.project_title ?? "",
           goal: project.goal ?? "",
+          status:
+            projectStatusItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                (project.status || "Not started").toLowerCase()
+            )?._id || 1,
           owner: project.owner ?? 0,
           startDate: project.start_date
             ? dayjs(project.start_date).toISOString()
@@ -300,7 +330,7 @@ const ProjectSettings = React.memo(
               return;
             }
           }
-          setValues({ ...values, [prop]: event.target.value });
+          setValues({ ...values, [prop]: selectedValue });
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
       [users, values]
@@ -553,6 +583,10 @@ const ProjectSettings = React.memo(
       if (!goal.accepted) {
         newErrors.goal = goal.message;
       }
+      const status = selectValidation("Project status", values.status);
+      if (!status.accepted) {
+        newErrors.status = status.message;
+      }
       const startDate = checkStringValidation(
         "Start date",
         values.startDate,
@@ -637,6 +671,8 @@ const ProjectSettings = React.memo(
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
+      const selectedStatus =
+        projectStatusItems.find((item) => item._id === values.status)?.name || "";
       const selectedRegulations = values.monitoredRegulationsAndStandards.map(
         (reg) => reg.name
       );
@@ -652,6 +688,7 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
           last_updated_by: userId,
@@ -779,6 +816,19 @@ const ProjectSettings = React.memo(
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.goal}
+              isRequired
+            />
+            <Select
+              id="project-status"
+              label="Project status"
+              value={values.status || 1}
+              onChange={handleOnSelectChange("status")}
+              items={projectStatusItems}
+              sx={{
+                width: 357,
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.status}
               isRequired
             />
             <Select

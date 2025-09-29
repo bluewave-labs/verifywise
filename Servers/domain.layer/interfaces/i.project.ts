@@ -1,5 +1,6 @@
 import { AiRiskClassification } from "../enums/ai-risk-classification.enum";
 import { HighRiskRole } from "../enums/high-risk-role.enum";
+import { ProjectStatus } from "../enums/project-status.enum";
 import { IProjectFramework } from "./i.projectFramework";
 
 export interface IProjectAttributes {
@@ -15,6 +16,7 @@ export interface IProjectAttributes {
   created_at?: Date;
   framework?: IProjectFramework[];
   is_organizational?: boolean;
+  status?: ProjectStatus;
 
   // Statistical fields
   doneSubcontrols?: number;

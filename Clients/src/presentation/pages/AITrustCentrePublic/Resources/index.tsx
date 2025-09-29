@@ -44,7 +44,7 @@ const Resources = ({ data, loading, error, hash }: { data: any; loading: boolean
               <TableRow key={idx}>
                 <TableCell sx={aiTrustCenterTableCell}>
                   <Box display="flex" alignItems="center" gap={1}>
-                    <CheckCircleOutlineIcon style={{ fontSize: 24 }} />
+                    <CheckCircleOutlineIcon style={{ width: "24px", height:"24px" }} />
                     <Typography  color="#344054" sx={{ fontSize: 13 }}>{resource.name}</Typography>
                   </Box>
                 </TableCell>

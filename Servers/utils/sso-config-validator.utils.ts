@@ -1,24 +1,96 @@
 /**
- * SSO Configuration Validator Utility
+ * @fileoverview SSO Configuration Validator Utilities
  *
- * Provides comprehensive validation for SSO configurations including:
- * - Azure AD configuration validation
- * - Tenant ID and Client ID format validation
- * - Client secret strength validation
- * - Cloud environment validation
- * - Authentication policy validation
- * - Email domain validation
+ * Comprehensive validation system for Azure AD Single Sign-On configurations.
+ * Provides multi-layered validation including format validation, security checks,
+ * MSAL configuration testing, and organizational readiness assessment.
+ *
+ * This utility ensures that SSO configurations are:
+ * - Correctly formatted according to Azure AD requirements
+ * - Secure and follow best practices
+ * - Functionally valid through MSAL integration testing
+ * - Appropriate for the organization's current state
+ *
+ * Validation Layers:
+ * 1. Format Validation - GUID patterns, string formats, enum values
+ * 2. Security Validation - Weak password detection, placeholder identification
+ * 3. Business Logic Validation - Policy combinations, domain restrictions
+ * 4. Technical Validation - MSAL client creation, Azure AD connectivity
+ * 5. Organizational Validation - User readiness, migration considerations
+ *
+ * Security Features:
+ * - Detects common weak passwords and placeholders
+ * - Validates Azure AD GUID formats to prevent injection
+ * - Warns about insecure authentication policies
+ * - Identifies potentially problematic email domain configurations
+ * - Provides organizational readiness assessment for SSO migration
+ *
+ * Error Categorization:
+ * - Errors: Configuration issues that prevent SSO functionality
+ * - Warnings: Potential security or usability concerns that should be addressed
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
+ * @see {@link https://docs.microsoft.com/en-us/azure/active-directory/develop/} Azure AD Developer Documentation
+ * @see {@link https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview} MSAL Documentation
+ *
+ * @module utils/sso-config-validator
  */
 
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import { SSOErrorHandler, SSOErrorCodes } from './sso-error-handler.utils';
 
+/**
+ * Standardized validation result interface
+ *
+ * Provides structured validation feedback with clear separation between
+ * blocking errors and advisory warnings for SSO configuration validation.
+ *
+ * @interface ValidationResult
+ * @property {boolean} isValid - Whether validation passed (no errors)
+ * @property {string[]} errors - Blocking issues that prevent SSO functionality
+ * @property {string[]} warnings - Advisory issues that should be addressed
+ *
+ * @example
+ * ```typescript
+ * const result = await SSOConfigValidator.validateAzureADConfig(config);
+ * if (!result.isValid) {
+ *   console.error('Validation failed:', result.errors);
+ * }
+ * if (result.warnings.length > 0) {
+ *   console.warn('Validation warnings:', result.warnings);
+ * }
+ * ```
+ */
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
   warnings: string[];
 }
 
+/**
+ * Azure AD configuration interface for validation
+ *
+ * Defines the structure of Azure AD configuration data required
+ * for comprehensive SSO validation including MSAL testing.
+ *
+ * @interface AzureADValidationConfig
+ * @property {string} tenant_id - Azure AD tenant identifier (GUID format)
+ * @property {string} client_id - Azure AD application client identifier (GUID format)
+ * @property {string} client_secret - Azure AD application client secret
+ * @property {'AzurePublic' | 'AzureGovernment'} cloud_environment - Azure cloud environment
+ *
+ * @example
+ * ```typescript
+ * const config: AzureADValidationConfig = {
+ *   tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+ *   client_id: 'yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy',
+ *   client_secret: 'secure_client_secret_from_azure',
+ *   cloud_environment: 'AzurePublic'
+ * };
+ * ```
+ */
 export interface AzureADValidationConfig {
   tenant_id: string;
   client_id: string;
@@ -28,15 +100,92 @@ export interface AzureADValidationConfig {
 
 /**
  * SSO Configuration Validator Class
+ *
+ * Comprehensive validation system for Azure AD SSO configurations with multi-layered
+ * validation approach. Provides static methods for validating different aspects of
+ * SSO configuration from basic format validation to complex organizational readiness.
+ *
+ * Key Features:
+ * - Multi-layer validation (format, security, business logic, technical, organizational)
+ * - Azure AD GUID format validation with security checks
+ * - Client secret strength validation and placeholder detection
+ * - MSAL configuration testing for technical validation
+ * - Organizational readiness assessment for SSO migration
+ * - Comprehensive error and warning categorization
+ *
+ * Validation Philosophy:
+ * - Errors block SSO functionality and must be fixed
+ * - Warnings indicate potential issues but don't prevent configuration
+ * - All validations return structured ValidationResult for consistent handling
+ * - Security-first approach with placeholder and weak password detection
+ *
+ * @class SSOConfigValidator
+ * @static
+ *
+ * @example
+ * ```typescript
+ * // Validate complete SSO configuration
+ * const result = await SSOConfigValidator.validateSSOConfiguration({
+ *   azure_tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+ *   azure_client_id: 'yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy',
+ *   azure_client_secret: 'secure_secret_from_azure',
+ *   cloud_environment: 'AzurePublic',
+ *   auth_method_policy: 'both'
+ * });
+ *
+ * if (!result.isValid) {
+ *   console.error('Configuration errors:', result.errors);
+ * }
+ * ```
  */
 export class SSOConfigValidator {
-  // Regex patterns for validation
+  /** Azure AD tenant ID GUID pattern (RFC 4122 compliant) */
   private static readonly AZURE_TENANT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  /** Azure AD client ID GUID pattern (RFC 4122 compliant) */
   private static readonly AZURE_CLIENT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  /** Email domain validation pattern (RFC 1035 compliant) */
   private static readonly EMAIL_DOMAIN_PATTERN = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
   /**
-   * Validate complete Azure AD SSO configuration
+   * Validates complete Azure AD SSO configuration with comprehensive multi-layer validation
+   *
+   * Performs comprehensive validation of Azure AD configuration including format validation,
+   * security checks, and MSAL integration testing. This is the primary validation method
+   * for Azure AD configurations and should be used before saving configurations.
+   *
+   * @static
+   * @async
+   * @param {AzureADValidationConfig} config - Azure AD configuration to validate
+   * @returns {Promise<ValidationResult>} Comprehensive validation result with errors and warnings
+   *
+   * @validation_layers
+   * 1. Tenant ID validation (GUID format, placeholder detection)
+   * 2. Client ID validation (GUID format, placeholder detection)
+   * 3. Client secret validation (strength, length, placeholder detection)
+   * 4. Cloud environment validation (supported environments)
+   * 5. MSAL configuration testing (client creation, authority validation)
+   *
+   * @example
+   * ```typescript
+   * const config: AzureADValidationConfig = {
+   *   tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+   *   client_id: 'yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy',
+   *   client_secret: 'secure_client_secret_from_azure',
+   *   cloud_environment: 'AzurePublic'
+   * };
+   *
+   * const result = await SSOConfigValidator.validateAzureADConfig(config);
+   * if (!result.isValid) {
+   *   console.error('Azure AD configuration errors:', result.errors);
+   *   // Handle configuration errors before proceeding
+   * }
+   * if (result.warnings.length > 0) {
+   *   console.warn('Configuration warnings:', result.warnings);
+   *   // Consider addressing warnings for better security
+   * }
+   * ```
    */
   static async validateAzureADConfig(config: AzureADValidationConfig): Promise<ValidationResult> {
     const errors: string[] = [];
@@ -86,7 +235,29 @@ export class SSOConfigValidator {
   }
 
   /**
-   * Validate Azure AD Tenant ID format
+   * Validates Azure AD Tenant ID format and detects common issues
+   *
+   * Performs comprehensive validation of Azure AD tenant ID including GUID format
+   * validation and detection of common placeholder or test values that would
+   * prevent successful Azure AD authentication.
+   *
+   * @static
+   * @param {string} tenantId - Azure AD tenant ID to validate
+   * @returns {ValidationResult} Validation result with specific tenant ID errors
+   *
+   * @validation_checks
+   * - Required field validation
+   * - GUID format validation (RFC 4122)
+   * - Placeholder value detection (common test GUIDs)
+   * - Reserved Azure AD values detection (common, organizations, consumers)
+   *
+   * @example
+   * ```typescript
+   * const result = SSOConfigValidator.validateTenantId('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx');
+   * if (!result.isValid) {
+   *   console.error('Invalid tenant ID:', result.errors);
+   * }
+   * ```
    */
   static validateTenantId(tenantId: string): ValidationResult {
     const errors: string[] = [];
@@ -359,7 +530,50 @@ export class SSOConfigValidator {
   }
 
   /**
-   * Validate complete SSO configuration object
+   * Validates complete SSO configuration object with all components
+   *
+   * Master validation method that validates all aspects of an SSO configuration
+   * including Azure AD settings, authentication policies, and domain restrictions.
+   * This is the recommended method for validating SSO configurations before
+   * saving to the database or enabling SSO for an organization.
+   *
+   * @static
+   * @async
+   * @param {Object} config - Complete SSO configuration object
+   * @param {string} config.azure_tenant_id - Azure AD tenant ID (GUID format)
+   * @param {string} config.azure_client_id - Azure AD client ID (GUID format)
+   * @param {string} config.azure_client_secret - Azure AD client secret
+   * @param {string} config.cloud_environment - Azure cloud environment
+   * @param {string} config.auth_method_policy - Authentication method policy
+   * @param {string[]} [config.allowed_domains] - Optional allowed email domains
+   * @returns {Promise<ValidationResult>} Comprehensive validation result
+   *
+   * @validation_scope
+   * - Complete Azure AD configuration validation
+   * - Authentication method policy validation
+   * - Email domain restrictions validation (if provided)
+   * - Cross-component validation for policy consistency
+   *
+   * @example
+   * ```typescript
+   * const ssoConfig = {
+   *   azure_tenant_id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+   *   azure_client_id: 'yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy',
+   *   azure_client_secret: 'secure_secret_from_azure',
+   *   cloud_environment: 'AzurePublic',
+   *   auth_method_policy: 'both',
+   *   allowed_domains: ['company.com', 'subsidiary.com']
+   * };
+   *
+   * const result = await SSOConfigValidator.validateSSOConfiguration(ssoConfig);
+   * if (result.isValid) {
+   *   // Save configuration to database
+   *   await saveSSOConfiguration(ssoConfig);
+   * } else {
+   *   // Display errors to user
+   *   showValidationErrors(result.errors);
+   * }
+   * ```
    */
   static async validateSSOConfiguration(config: {
     azure_tenant_id: string;

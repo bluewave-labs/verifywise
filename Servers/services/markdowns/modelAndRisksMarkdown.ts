@@ -1,6 +1,6 @@
 /**
  * Generates a markdown report for model inventory
- * @param organization_id - The ID of the organization
+ * @param tenant - The tenant identifier for the organization
  * @param data - Project metadata including organization name and owner
  * @returns Promise<string> - Markdown formatted model inventory report
  */

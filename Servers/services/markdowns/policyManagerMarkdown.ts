@@ -1,6 +1,6 @@
 /**
  * Generates a markdown report for policy manager
- * @param organization_id - The ID of the organization
+ * @param tenant - The tenant identifier for the organization
  * @param data - Project metadata including organization name and owner
  * @returns Promise<string> - Markdown formatted policy manager report
  */

@@ -1,8 +1,35 @@
 /**
- * Azure AD SSO Provider
+ * @fileoverview Azure AD (Entra ID) SSO Provider Implementation
  *
- * Implementation of Azure Active Directory SSO using the new provider interface.
- * Refactored from the original SSO controller to use the unified provider architecture.
+ * This module provides a comprehensive Azure Active Directory integration for Single Sign-On (SSO)
+ * authentication. It implements the unified SSO provider interface to support multi-cloud
+ * environments and various Azure AD configurations.
+ *
+ * Key Features:
+ * - Full OAuth 2.0 Authorization Code Flow implementation
+ * - Support for Azure Public Cloud and Azure Government Cloud
+ * - Rate limiting and security validation
+ * - Automatic user provisioning and attribute mapping
+ * - Comprehensive error handling and audit logging
+ * - CSRF protection with secure state token management
+ *
+ * Architecture:
+ * - Extends BaseSSOProvider for consistent behavior across providers
+ * - Uses Microsoft Authentication Library (MSAL) for Azure AD integration
+ * - Implements tenant-specific configuration and validation
+ * - Provides both login initiation and callback handling
+ *
+ * Security Features:
+ * - Client secret encryption and secure storage
+ * - GUID validation for Azure AD identifiers
+ * - Rate limiting to prevent abuse
+ * - Comprehensive audit logging for security monitoring
+ * - State token validation for CSRF protection
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
+ * @see {@link https://docs.microsoft.com/en-us/azure/active-directory/develop/} Azure AD Developer Documentation
  */
 
 import { Request } from 'express';
@@ -22,59 +49,120 @@ import { SSOStateTokenManager } from '../utils/sso-state-token.utils';
 
 /**
  * Azure AD specific configuration interface
+ *
+ * Extends the base SSO provider configuration with Azure AD-specific parameters
+ * required for proper authentication and tenant isolation.
+ *
+ * @interface AzureADConfig
+ * @extends {SSOProviderConfig}
  */
 interface AzureADConfig extends SSOProviderConfig {
+  /** Azure AD tenant identifier (GUID format) */
   tenantId: string;
+  /** Azure cloud environment for government or public cloud deployment */
   cloudEnvironment: CloudEnvironment.AZURE_PUBLIC | CloudEnvironment.AZURE_GOVERNMENT;
 }
 
 /**
  * Azure AD SSO Provider implementation
+ *
+ * Provides complete Azure Active Directory (Entra ID) Single Sign-On integration
+ * with support for multiple cloud environments and comprehensive security features.
+ *
+ * This class handles:
+ * - OAuth 2.0 authorization code flow with Azure AD
+ * - MSAL (Microsoft Authentication Library) integration
+ * - Tenant-specific authentication and user provisioning
+ * - Rate limiting and security validation
+ * - Error handling and audit logging
+ *
+ * @class AzureADSSOProvider
+ * @extends {BaseSSOProvider}
+ *
+ * @example
+ * ```typescript
+ * const provider = new AzureADSSOProvider('azure-ad-org-123');
+ * await provider.initialize({
+ *   clientId: 'app-client-id',
+ *   clientSecret: 'encrypted-secret',
+ *   tenantId: 'tenant-guid',
+ *   cloudEnvironment: CloudEnvironment.AZURE_PUBLIC
+ * });
+ * const loginUrl = await provider.getLoginUrl(req, organizationId);
+ * ```
  */
 export class AzureADSSOProvider extends BaseSSOProvider {
+  /** Microsoft Authentication Library client for Azure AD integration */
   private msalClient?: ConfidentialClientApplication;
+
+  /** Azure AD-specific configuration including tenant and cloud settings */
   private azureConfig?: AzureADConfig;
 
+  /**
+   * Creates a new Azure AD SSO provider instance
+   *
+   * @param {string} providerId - Unique identifier for this provider instance
+   */
   constructor(providerId: string) {
     super(SSOProviderType.AZURE_AD, providerId);
   }
 
   /**
-   * Provider-specific initialization logic
+   * Provider-specific initialization logic for Azure AD
+   *
+   * Configures the Microsoft Authentication Library (MSAL) client with Azure AD-specific
+   * settings including tenant authority URLs and authentication parameters.
+   *
+   * @protected
+   * @async
+   * @param {SSOProviderConfig} config - Azure AD configuration parameters
+   * @throws {Error} If MSAL client initialization fails
    */
   protected async onInitialize(config: SSOProviderConfig): Promise<void> {
     this.azureConfig = config as AzureADConfig;
 
-    // Create MSAL client configuration
+    // Configure MSAL client for Azure AD authentication
+    // Authority URL determines the Azure AD endpoint for tenant-specific authentication
     const msalConfig = {
       auth: {
-        clientId: config.clientId,
-        clientSecret: config.clientSecret,
-        authority: `${this.getAzureADBaseUrl()}/${config.tenantId}`
+        clientId: config.clientId,           // Azure AD Application (client) ID
+        clientSecret: config.clientSecret,  // Application secret for confidential client flow
+        authority: `${this.getAzureADBaseUrl()}/${config.tenantId}` // Tenant-specific authority URL
       }
     };
 
+    // Initialize MSAL confidential client for server-side OAuth flow
     this.msalClient = new ConfidentialClientApplication(msalConfig);
   }
 
   /**
-   * Provider-specific configuration validation
+   * Azure AD-specific configuration validation
+   *
+   * Validates Azure AD configuration parameters including GUID formats for tenant ID
+   * and client ID, as well as cloud environment settings.
+   *
+   * @protected
+   * @async
+   * @param {Partial<SSOProviderConfig>} config - Configuration to validate
+   * @returns {Promise<string[]>} Array of validation error messages
    */
   protected async validateProviderSpecificConfig(config: Partial<SSOProviderConfig>): Promise<string[]> {
     const errors: string[] = [];
 
+    // Validate Azure AD Tenant ID (required)
     if (!config.tenantId) {
       errors.push('Azure AD Tenant ID is required');
     } else {
-      // Validate GUID format
+      // Azure AD tenant IDs must be in GUID format (RFC 4122)
       const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!guidRegex.test(config.tenantId)) {
         errors.push('Azure AD Tenant ID must be a valid GUID format');
       }
     }
 
+    // Validate Azure AD Client ID format (if provided)
     if (config.clientId) {
-      // Validate GUID format for client ID
+      // Azure AD application IDs must also be in GUID format
       const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!guidRegex.test(config.clientId)) {
         errors.push('Azure AD Client ID must be a valid GUID format');
@@ -91,7 +179,26 @@ export class AzureADSSOProvider extends BaseSSOProvider {
   }
 
   /**
-   * Generate login URL for SSO initiation
+   * Generates Azure AD login URL for SSO initiation
+   *
+   * Creates an OAuth 2.0 authorization URL for Azure AD authentication with comprehensive
+   * security validation including rate limiting, input validation, and CSRF protection.
+   *
+   * @async
+   * @param {Request} req - Express request object for rate limiting and logging
+   * @param {string} organizationId - Organization identifier for tenant isolation
+   * @param {Record<string, string>} [additionalParams] - Optional additional OAuth parameters
+   * @returns {Promise<SSOLoginResult>} Login result containing authorization URL
+   *
+   * @throws {SSOError} RATE_LIMIT_EXCEEDED - When rate limits are exceeded
+   * @throws {SSOError} CONFIGURATION_ERROR - When organization ID is invalid
+   * @throws {SSOError} PROVIDER_ERROR - When Azure AD URL generation fails
+   *
+   * @example
+   * ```typescript
+   * const result = await provider.getLoginUrl(req, '123');
+   * // Redirect user to result.authUrl for Azure AD authentication
+   * ```
    */
   async getLoginUrl(req: Request, organizationId: string, additionalParams?: Record<string, string>): Promise<SSOLoginResult> {
     this.ensureInitialized();

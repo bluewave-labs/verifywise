@@ -11,8 +11,29 @@ import * as jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 
 /**
- * SSO Authentication Controller
- * Handles Azure AD OAuth flow for SSO authentication
+ * @fileoverview SSO Authentication Controller for Azure AD (Entra ID) Integration
+ *
+ * This controller manages the complete OAuth 2.0 authorization code flow with Azure Active Directory.
+ * It handles user authentication, organization-specific SSO configurations, and secure token management
+ * for multi-tenant applications requiring enterprise identity integration.
+ *
+ * Key Features:
+ * - Organization-specific SSO configuration management
+ * - Secure state token validation (CSRF protection)
+ * - Azure AD OAuth 2.0 flow implementation
+ * - Automatic user provisioning and organization mapping
+ * - Comprehensive audit logging for security monitoring
+ * - Error handling with detailed security event tracking
+ *
+ * Security Considerations:
+ * - All SSO configurations use encrypted client secrets
+ * - State tokens provide CSRF protection during OAuth flow
+ * - Audit logs track all authentication attempts and failures
+ * - Tenant isolation ensures organization data separation
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
  */
 
 // Configuration Constants
@@ -26,21 +47,59 @@ const ROLE_MAP = new Map([
 ]);
 
 /**
- * Initiate SSO login - redirects user to Azure AD
+ * Initiates Azure AD SSO authentication flow for an organization
+ *
+ * This function handles the first step of the OAuth 2.0 authorization code flow by:
+ * 1. Validating the organization's SSO configuration
+ * 2. Creating a secure MSAL client with encrypted credentials
+ * 3. Generating CSRF-protected state tokens
+ * 4. Redirecting users to Azure AD for authentication
+ *
+ * @async
+ * @function initiateSSOLogin
+ * @param {Request} req - Express request object
+ * @param {string} req.params.organizationId - Organization ID for SSO configuration lookup
+ * @param {Response} res - Express response object
+ *
+ * @returns {Promise<Response>} JSON response with Azure AD authorization URL or error
+ *
+ * @throws {404} SSO not configured or enabled for organization
+ * @throws {500} SSO configuration errors (decryption failures, invalid Azure config)
+ *
+ * @security
+ * - Validates organization-specific SSO configuration
+ * - Uses encrypted client secrets for Azure AD authentication
+ * - Generates cryptographically secure state tokens for CSRF protection
+ * - Logs all authentication attempts for security monitoring
+ *
+ * @example
+ * GET /api/sso-auth/123/login
+ * Response: {
+ *   "success": true,
+ *   "data": {
+ *     "authUrl": "https://login.microsoftonline.com/tenant-id/oauth2/v2.0/authorize?..."
+ *   }
+ * }
+ *
+ * @see {@link SSOConfigurationModel} For SSO configuration management
+ * @see {@link SSOStateTokenManager} For secure state token generation
+ * @see {@link SSOAuditLogger} For security event logging
  */
 export const initiateSSOLogin = async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
 
-    // Find SSO configuration for the organization
+    // Step 1: Retrieve and validate organization's SSO configuration
+    // Only active SSO configurations are considered for authentication
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
-        is_enabled: true
+        is_enabled: true                    // Ensure SSO is actively enabled
       }
     });
 
     if (!ssoConfig) {
+      // Log security event for monitoring unauthorized SSO attempts
       SSOAuditLogger.logAuthenticationFailure(req, organizationId, 'SSO not configured or enabled');
       return res.status(404).json({
         success: false,
@@ -48,9 +107,11 @@ export const initiateSSOLogin = async (req: Request, res: Response) => {
       });
     }
 
-    // Get the decrypted client secret
+    // Step 2: Decrypt client secret for Azure AD authentication
+    // Client secrets are encrypted at rest for security
     const clientSecret = ssoConfig.getDecryptedSecret();
     if (!clientSecret) {
+      // Critical security failure - unable to access authentication credentials
       SSOAuditLogger.logAuthenticationFailure(req, organizationId, 'SSO configuration error - failed to decrypt client secret');
       return res.status(500).json({
         success: false,
@@ -58,7 +119,8 @@ export const initiateSSOLogin = async (req: Request, res: Response) => {
       });
     }
 
-    // Get Azure AD configuration
+    // Step 3: Extract and validate Azure AD configuration parameters
+    // This includes client_id, tenant_id, and other Azure-specific settings
     const azureConfig = ssoConfig.getAzureAdConfig();
     if (!azureConfig) {
       SSOAuditLogger.logAuthenticationFailure(req, organizationId, 'Invalid Azure AD configuration');
@@ -68,32 +130,35 @@ export const initiateSSOLogin = async (req: Request, res: Response) => {
       });
     }
 
-    // Create MSAL client configuration
+    // Step 4: Configure Microsoft Authentication Library (MSAL) client
+    // MSAL handles the OAuth 2.0 flow with Azure AD
     const msalConfig = {
       auth: {
-        clientId: azureConfig.client_id,
-        clientSecret: clientSecret,
-        authority: `${ssoConfig.getAzureADBaseUrl()}/${azureConfig.tenant_id}`
+        clientId: azureConfig.client_id,        // Azure AD application ID
+        clientSecret: clientSecret,             // Decrypted client secret
+        authority: `${ssoConfig.getAzureADBaseUrl()}/${azureConfig.tenant_id}` // Tenant-specific authority URL
       }
     };
 
     const cca = new ConfidentialClientApplication(msalConfig);
 
-    // Generate secure state token with CSRF protection
+    // Step 5: Generate secure state token for CSRF protection
+    // State token links the request with the callback to prevent CSRF attacks
     const secureState = SSOStateTokenManager.generateStateToken(organizationId);
 
-    // Define the authorization URL parameters
+    // Step 6: Configure OAuth 2.0 authorization parameters
     const authCodeUrlParameters = {
-      scopes: ['openid', 'profile', 'email'],
+      scopes: ['openid', 'profile', 'email'], // Minimal required scopes for user identification
       redirectUri: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/sso-auth/${organizationId}/callback`,
-      state: secureState // Use cryptographically secure state token
+      state: secureState                      // CSRF protection token
     };
 
     try {
-      // Get authorization URL
+      // Step 7: Generate Azure AD authorization URL
+      // This URL redirects users to Azure AD for authentication
       const authUrl = await cca.getAuthCodeUrl(authCodeUrlParameters);
 
-      // Log successful login initiation
+      // Step 8: Log successful SSO initiation for security monitoring
       SSOAuditLogger.logLoginInitiation(req, organizationId, true);
 
       return res.json({
@@ -120,28 +185,62 @@ export const initiateSSOLogin = async (req: Request, res: Response) => {
 };
 
 /**
- * Handle SSO callback from Azure AD
+ * Handles Azure AD OAuth callback and completes user authentication
+ *
+ * This function processes the OAuth 2.0 authorization code flow callback from Azure AD:
+ * 1. Validates CSRF state tokens for security
+ * 2. Exchanges authorization code for access tokens
+ * 3. Extracts user information from Azure AD response
+ * 4. Creates or updates user accounts with SSO information
+ * 5. Generates application JWT tokens for session management
+ *
+ * @async
+ * @function handleSSOCallback
+ * @param {Request} req - Express request object
+ * @param {string} req.params.organizationId - Organization ID from URL
+ * @param {string} req.query.code - Authorization code from Azure AD
+ * @param {string} req.query.state - State token for CSRF protection
+ * @param {string} req.query.error - Optional error from Azure AD
+ * @param {Response} res - Express response object
+ *
+ * @returns {Promise<Response>} Redirect to frontend with authentication result
+ *
+ * @security
+ * - Validates state tokens to prevent CSRF attacks
+ * - Uses encrypted client secrets for token exchange
+ * - Logs all authentication attempts for security monitoring
+ * - Handles Azure AD errors gracefully with appropriate redirects
+ *
+ * @example
+ * GET /api/sso-auth/123/callback?code=auth_code&state=secure_token
+ * Redirects to: http://frontend.com/dashboard (success)
+ * Redirects to: http://frontend.com/login?error=sso_failed (failure)
+ *
+ * @see {@link SSOStateTokenManager.validateStateToken} For CSRF protection validation
+ * @see {@link ConfidentialClientApplication.acquireTokenByCode} For token exchange
  */
 export const handleSSOCallback = async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
     const { code, state, error: authError } = req.query;
 
-    // Check if Azure AD returned an error
+    // Step 1: Check for Azure AD authentication errors
+    // Azure AD redirects here with error parameter if authentication fails
     if (authError) {
       console.error('Azure AD authentication error:', authError);
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=sso_failed`);
     }
 
-    // Validate secure state token with CSRF protection
+    // Step 2: Validate CSRF state token for security
+    // This prevents cross-site request forgery attacks during OAuth flow
     try {
       const validatedState = SSOStateTokenManager.validateStateToken(state as string, organizationId);
-      // SECURITY: Only log in development mode, never expose nonce in production
+      // SECURITY: Only log sensitive information in development environment
       if (process.env.NODE_ENV !== 'production') {
         console.log(`Valid state token for organization ${organizationId}, nonce: ${validatedState.nonce}`);
       }
     } catch (error) {
-      // SECURITY: Log error details only in development
+      // SECURITY: Limit error exposure in production for security
       if (process.env.NODE_ENV !== 'production') {
         console.error('State token validation failed:', error);
       } else {
@@ -150,11 +249,14 @@ export const handleSSOCallback = async (req: Request, res: Response) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=invalid_state`);
     }
 
+    // Step 3: Validate authorization code presence
+    // Authorization code is required to exchange for access tokens
     if (!code) {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=no_auth_code`);
     }
 
-    // Find SSO configuration
+    // Step 4: Retrieve SSO configuration for token exchange
+    // Same organization validation as in initiation step
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
@@ -166,13 +268,13 @@ export const handleSSOCallback = async (req: Request, res: Response) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=sso_not_configured`);
     }
 
-    // Get the decrypted client secret
+    // Step 5: Decrypt client secret for Azure AD token exchange
     const clientSecret = ssoConfig.getDecryptedSecret();
     if (!clientSecret) {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=sso_config_error`);
     }
 
-    // Get Azure AD configuration
+    // Step 6: Extract Azure AD configuration for MSAL client
     const azureConfig = ssoConfig.getAzureAdConfig();
     if (!azureConfig) {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=sso_config_error`);

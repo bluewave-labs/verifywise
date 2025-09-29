@@ -1,7 +1,7 @@
 // AlertBody.tsx
 import React, { useState } from "react";
 import { Box, IconButton, Typography } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import {ReactComponent as ContentCopyIcon} from "../../assets/icons/contentCopy.svg";
 
 interface AlertBodyProps {
   body: string;
@@ -61,7 +61,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                   </Typography>
                 ) : (
                   <ContentCopyIcon
-                    sx={{ fontSize: "13px", color: textColor }}
+                     style={{ width: "13px", height:"13px" , color: textColor }}
                   />
                 )}
               </Box>

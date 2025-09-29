@@ -1,6 +1,6 @@
 import { Box, Paper, Typography, Stack, Button } from "@mui/material";
 import CustomTextField from "../Components/CustomTextField/CustomTextField";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import {ReactComponent as CheckCircleOutlineIcon} from '../../../assets/icons/check-circle-green.svg';
 import { downloadResource } from "../../../../application/tools/downloadResource";
 
 const Overview = ({
@@ -154,7 +154,7 @@ const Overview = ({
                 >
                   <Box display="flex" alignItems="center" gap={1}>
                     <CheckCircleOutlineIcon
-                      sx={{ color: "#28A745", fontSize: 28 }}
+                      style={{ height: "24px", width: "24px" }}
                     />
                     <Typography variant="body2">{resource.name}</Typography>
                   </Box>

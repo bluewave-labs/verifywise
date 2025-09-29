@@ -16,7 +16,7 @@ import {
   getSlackWebhookByIdAndChannelQuery,
 } from "../utils/slackWebhook.utils";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
-import { sendImmediateMessage } from "../services/slackNotificationService";
+import { inviteBotToChannel, sendImmediateMessage } from "../services/slackNotificationService";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 
 const fileName = "slackWebhook.ctrl.ts";
@@ -215,6 +215,8 @@ export async function createNewSlackWebhook(
       slackWebhookModel,
       transaction,
     );
+
+    await inviteBotToChannel(slackWebhookData.authed_user.access_token, slackWebhookData.incoming_webhook.channel_id, slackWebhookData.bot_user_id);
 
     if (newSlackWebhook) {
       await transaction.commit();

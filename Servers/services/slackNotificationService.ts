@@ -4,6 +4,39 @@ import { WebClient } from "@slack/web-api";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 import { getSlackWebhookByIdAndRoutingType } from "../utils/slackWebhook.utils";
 
+export const inviteBotToChannel = async (accessToken: string, channelId: string, botUserId: string) => {
+  // Use the USER token (not bot token) to invite the bot
+  const userClient = new WebClient(accessToken);
+  
+  try {
+    // First, verify the channel exists and is accessible
+    const channelInfo = await userClient.conversations.info({
+      channel: channelId
+    });
+
+    if (channelInfo.channel?.is_private) {
+      // Invite the bot to the channel
+      await userClient.conversations.invite({
+        channel: channelId,
+        users: botUserId!,
+      });
+      
+      logger.info(`Bot successfully invited to channel ${channelId}:`, {
+        channel: channelId,
+      });
+    }
+    
+    return { success: true };
+  } catch (error: any) {
+    logger.info(`Error inviting bot to ${channelId}:`, {
+        messageId: error.message,
+        channel: channelId,
+    });
+    
+    throw error;
+  }
+}
+
 const getClient = (accessToken: string, iv: string) => {
   const { data, success, error } = decryptText({ iv: iv, value: accessToken });
   if (!success) {
@@ -41,7 +74,7 @@ export const sendImmediateMessage = async (
       integration.access_token_iv as string,
     );
 
-    const channel = integration.channel;
+    const channel = integration.channel_id;
     const msg = formatSlackMessage(message);
 
     const result = await client.chat.postMessage({

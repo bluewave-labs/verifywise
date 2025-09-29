@@ -1,8 +1,48 @@
 /**
- * Base SSO Provider Abstract Class
+ * @fileoverview Base SSO Provider Abstract Class
  *
- * Provides common functionality and structure for all SSO providers.
- * All provider implementations should extend this base class.
+ * Foundational abstract class providing common functionality, security features,
+ * and standardized patterns for all SSO provider implementations. This class
+ * implements the Template Method pattern to ensure consistent behavior while
+ * allowing provider-specific customization through abstract methods.
+ *
+ * This base class provides:
+ * - Standardized initialization and validation patterns
+ * - Security-focused email domain validation with timing-safe comparisons
+ * - Comprehensive audit logging integration
+ * - Rate limiting support with Redis integration
+ * - Common error handling and normalization
+ * - Configuration management and validation
+ * - Health checking infrastructure
+ *
+ * Security Features:
+ * - Timing-safe domain comparison to prevent timing attacks
+ * - Wildcard domain support with secure pattern matching
+ * - Input sanitization for user data normalization
+ * - Comprehensive audit logging for security monitoring
+ * - Rate limiting integration for abuse prevention
+ * - Secure configuration validation and management
+ *
+ * Architecture Pattern:
+ * - Template Method: Defines algorithm structure with customizable steps
+ * - Abstract Factory: Requires implementation of provider-specific methods
+ * - Strategy Pattern: Allows different validation and processing strategies
+ * - Observer Pattern: Integrates with audit logging for event tracking
+ *
+ * Extension Guidelines:
+ * - Extend this class for all new SSO provider implementations
+ * - Implement all abstract methods with provider-specific logic
+ * - Use provided helper methods for security and consistency
+ * - Follow the established patterns for error handling and logging
+ * - Leverage rate limiting and validation infrastructure
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
+ * @see {@link ISSOProvider} Core SSO provider interface
+ * @see {@link SSOAuditLogger} Audit logging integration
+ *
+ * @module abstracts/base-sso-provider
  */
 
 import { Request } from 'express';
@@ -21,10 +61,59 @@ import {
 import { SSOAuditLogger } from '../utils/sso-audit-logger.utils';
 import { getRedisRateLimiter } from '../utils/redis-rate-limiter.utils';
 
+/**
+ * Base abstract class for all SSO provider implementations
+ *
+ * Provides foundational functionality and security patterns that all SSO providers
+ * should implement. Uses the Template Method pattern to define the overall structure
+ * while allowing provider-specific customization through abstract methods.
+ *
+ * Key Features:
+ * - Standardized initialization and validation lifecycle
+ * - Security-focused domain validation with timing-safe comparisons
+ * - Integrated audit logging and rate limiting
+ * - Common error handling and configuration management
+ * - Helper methods for data sanitization and normalization
+ *
+ * @abstract
+ * @class BaseSSOProvider
+ * @implements {ISSOProvider}
+ *
+ * @example
+ * ```typescript
+ * class AzureADProvider extends BaseSSOProvider {
+ *   constructor() {
+ *     super(SSOProviderType.AZURE_AD, 'azure-ad-main');
+ *   }
+ *
+ *   protected async onInitialize(config: SSOProviderConfig): Promise<void> {
+ *     // Initialize Azure AD MSAL client
+ *     this.msalApp = new ConfidentialClientApplication({
+ *       auth: {
+ *         clientId: config.clientId,
+ *         clientSecret: config.clientSecret,
+ *         authority: `https://login.microsoftonline.com/${config.tenantId}`
+ *       }
+ *     });
+ *   }
+ *
+ *   // Implement other abstract methods...
+ * }
+ * ```
+ */
 export abstract class BaseSSOProvider implements ISSOProvider {
+  /** Provider configuration (set during initialization) */
   protected config?: SSOProviderConfig;
+
+  /** Initialization state flag */
   protected initialized: boolean = false;
 
+  /**
+   * Creates a new SSO provider instance
+   *
+   * @param {SSOProviderType} providerType - Type of SSO provider (immutable)
+   * @param {string} providerId - Unique identifier for this provider instance (immutable)
+   */
   constructor(
     public readonly providerType: SSOProviderType,
     public readonly providerId: string
@@ -50,7 +139,30 @@ export abstract class BaseSSOProvider implements ISSOProvider {
   }
 
   /**
-   * Provider-specific initialization logic
+   * Provider-specific initialization logic (must be implemented by subclasses)
+   *
+   * Called after common validation passes during the initialization process.
+   * Implement provider-specific setup such as OAuth client creation,
+   * SAML configuration, or API client initialization.
+   *
+   * @protected
+   * @abstract
+   * @param {SSOProviderConfig} config - Validated provider configuration
+   * @returns {Promise<void>} Resolves when provider-specific initialization completes
+   *
+   * @example
+   * ```typescript
+   * // Azure AD implementation
+   * protected async onInitialize(config: SSOProviderConfig): Promise<void> {
+   *   this.msalApp = new ConfidentialClientApplication({
+   *     auth: {
+   *       clientId: config.clientId,
+   *       clientSecret: config.clientSecret,
+   *       authority: `https://login.microsoftonline.com/${config.tenantId}`
+   *     }
+   *   });
+   * }
+   * ```
    */
   protected abstract onInitialize(config: SSOProviderConfig): Promise<void>;
 
@@ -117,7 +229,28 @@ export abstract class BaseSSOProvider implements ISSOProvider {
   abstract getMetadataUrls(): { authUrl?: string; tokenUrl?: string; userInfoUrl?: string; logoutUrl?: string };
 
   /**
-   * Validate email domain against provider configuration
+   * Validates email domain against provider configuration with security-focused implementation
+   *
+   * Implements timing-safe domain comparison to prevent timing attacks that could
+   * be used to enumerate allowed domains. Supports wildcard subdomains and
+   * comprehensive domain validation patterns.
+   *
+   * @param {string} email - User email address to validate
+   * @returns {Promise<boolean>} True if domain is allowed, false otherwise
+   *
+   * @security
+   * - Uses timing-safe comparison to prevent enumeration attacks
+   * - Supports wildcard subdomain patterns (*.company.com)
+   * - Normalizes domains to lowercase for consistent comparison
+   * - Implements constant-time algorithm to prevent information leakage
+   *
+   * @example
+   * ```typescript
+   * // Configuration: allowedDomains: ['company.com', '*.partner.org']
+   * await provider.isEmailDomainAllowed('user@company.com');     // true
+   * await provider.isEmailDomainAllowed('user@sub.partner.org'); // true
+   * await provider.isEmailDomainAllowed('user@other.com');       // false
+   * ```
    */
   async isEmailDomainAllowed(email: string): Promise<boolean> {
     if (!this.config) {
@@ -291,7 +424,37 @@ export abstract class BaseSSOProvider implements ISSOProvider {
   }
 
   /**
-   * Check rate limiting for a specific operation using Redis
+   * Checks rate limiting for SSO operations using Redis-based rate limiting
+   *
+   * Implements distributed rate limiting to prevent abuse of SSO endpoints.
+   * Integrates with Redis for cluster-wide rate limiting and provides
+   * graceful degradation when Redis is unavailable.
+   *
+   * @protected
+   * @param {Request} req - HTTP request for client identification
+   * @param {'login'|'callback'|'token'} operation - Type of SSO operation
+   * @returns {Promise<{allowed: boolean; retryAfter?: number}>} Rate limit result
+   *
+   * @rate_limits
+   * - login: Prevents brute force login attempts
+   * - callback: Prevents callback endpoint abuse
+   * - token: Prevents token exchange abuse
+   *
+   * @fail_safe
+   * - Fails open when Redis is unavailable (logs error, allows request)
+   * - Logs rate limit violations for security monitoring
+   * - Provides retry-after timing for client backoff
+   *
+   * @example
+   * ```typescript
+   * const rateLimit = await this.checkRateLimit(req, 'login');
+   * if (!rateLimit.allowed) {
+   *   return res.status(429).json({
+   *     error: 'Rate limit exceeded',
+   *     retryAfter: rateLimit.retryAfter
+   *   });
+   * }
+   * ```
    */
   protected async checkRateLimit(
     req: Request,

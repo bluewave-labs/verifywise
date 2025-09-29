@@ -1,5 +1,5 @@
 import { Link, Stack, Tooltip, Typography } from "@mui/material";
-import QuestionMarkIcon from "../../../assets/icons/questionMark.svg";
+import {ReactComponent as QuestionMarkIcon} from "../../../assets/icons/questionMark.svg";
 import { GuiderStyler } from "./style";
 
 const Guider = ({

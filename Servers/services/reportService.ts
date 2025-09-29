@@ -9,6 +9,7 @@ import { getAssessmentTrackerMarkdown } from "./markdowns/assessmentTrackerMarkd
 import { getClausesAndAnnexesMarkdown } from "./markdowns/annexesMarkdown";
 import { getComplianceMarkdown } from "./markdowns/complianceMarkdown";
 import { getModelReportMarkdown } from "./markdowns/modelAndRisksMarkdown";
+import { getTrainingRegistryMarkdown } from "./markdowns/trainingRegistryMarkdown";
 import { getAllReportMarkdown } from "./markdowns/allReportMarkdown";
 
 export interface ReportBodyData {
@@ -131,6 +132,12 @@ export async function getReportData(
       break;
     case ReportType.MODEL_REPORT:
       markdownFormattedData = await getModelReportMarkdown(
+        reportBody,
+        tenant
+      );
+      break;
+    case ReportType.TRAINING_REGISTRY_REPORT:
+      markdownFormattedData = await getTrainingRegistryMarkdown(
         reportBody,
         tenant
       );

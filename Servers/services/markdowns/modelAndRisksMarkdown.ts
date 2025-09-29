@@ -1,8 +1,8 @@
 /**
  * Generates a markdown report for model inventory
  * @param organization_id - The ID of the organization
- * @param data - Project metadata including title and owner
- * @returns Promise<string> - Markdown formatted assessment tracker report
+ * @param data - Project metadata including organization name and owner
+ * @returns Promise<string> - Markdown formatted model inventory report
  */
 
 import { ReportBodyData } from "../reportService";

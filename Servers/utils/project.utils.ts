@@ -633,3 +633,28 @@ export const calculateVendirRisks = async (
   );
   return result;
 };
+
+
+/**
+ * Gets current project members to identify newly added ones
+ * @param projectId - The project ID to get members for
+ * @param tenant - The tenant name for schema
+ * @param transaction - Optional transaction for database consistency
+ * @returns Array of user IDs that are currently members of the project
+ */
+export const getCurrentProjectMembers = async (
+    projectId: number,
+    tenant: string,
+    transaction?: Transaction
+): Promise<number[]> => {
+    const currentMembersResult = await sequelize.query(
+        `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
+        {
+            replacements: { project_id: projectId },
+            type: QueryTypes.SELECT,
+            transaction,
+        }
+    );
+    return (currentMembersResult as any[]).map((m) => m.user_id);
+};
+

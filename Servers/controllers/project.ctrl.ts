@@ -11,6 +11,7 @@ import {
   getAllProjectsQuery,
   getProjectByIdQuery,
   updateProjectByIdQuery,
+  getCurrentProjectMembers
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
@@ -28,6 +29,7 @@ import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
 import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
 import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
+import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
 
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
@@ -252,9 +254,12 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       );
     }
 
-    // Get current project to check if owner changed
+    // Get current project and members to check for changes
     const currentProject = await getProjectByIdQuery(projectId, req.tenantId!);
     const ownerChanged = currentProject && currentProject.owner !== updatedProject.owner;
+
+    // Get current members before update to identify newly added ones
+    const currentMembers = await getCurrentProjectMembers(projectId, req.tenantId!, transaction);
 
     const project = await updateProjectByIdQuery(
       projectId,
@@ -274,7 +279,46 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         fileName: "project.ctrl.ts",
       });
 
-      // Send notification if owner changed (fire-and-forget, don't block response)
+      // Calculate which members actually got added (both new and re-added)
+      // This includes users who weren't in currentMembers but are now in the final project
+      const finalMembers = project.members || [];
+      const addedMembers = finalMembers.filter((m) => !currentMembers.includes(m));
+
+        // Send notification to users who were added as project editors (fire-and-forget, don't block response)
+        for (const memberId of addedMembers) {
+            try {
+                // Get user details to check their role
+                const memberUser = await getUserByIdQuery(memberId);
+                // Check if user has Editor role (role_id = 3)
+                if (memberUser && memberUser.role_id === 3) {
+                    sendUserAddedEditorNotification({
+                        projectId: projectId,
+                        projectName: project.project_title,
+                        adminId: req.userId!,     // Actor who made the change
+                        userId: memberId          // Editor receiving notification
+                    }).catch(async (emailError) => {
+                        await logFailure({
+                            eventType: "Update",
+                            description: `Failed to send user added as editor notification email to user ${memberId}`,
+                            functionName: "updateProjectById",
+                            fileName: "project.ctrl.ts",
+                            error: emailError as Error,
+                        });
+                    });
+                }
+            } catch (userLookupError) {
+                await logFailure({
+                    eventType: "Update",
+                    description: `Failed to lookup user role for member ${memberId}`,
+                    functionName: "updateProjectById",
+                    fileName: "project.ctrl.ts",
+                    error: userLookupError as Error,
+                });
+            }
+        }
+
+
+        // Send notification if owner changed (fire-and-forget, don't block response)
       if (ownerChanged && currentProject) {
         sendUserAddedAdminNotification({
           projectId: projectId,

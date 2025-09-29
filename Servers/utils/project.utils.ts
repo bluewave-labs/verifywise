@@ -236,10 +236,10 @@ export const createNewProjectQuery = async (
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
       project_title, owner, start_date, ai_risk_classification, 
-      type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo, is_organizational
+      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational
     ) VALUES (
       :project_title, :owner, :start_date, :ai_risk_classification, 
-      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by, :is_demo, :is_organizational
+      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational
     ) RETURNING *`,
     {
       replacements: {
@@ -249,6 +249,7 @@ export const createNewProjectQuery = async (
         ai_risk_classification: project.ai_risk_classification || null,
         type_of_high_risk_role: project.type_of_high_risk_role || null,
         goal: project.goal || null,
+        status: project.status || "Not started",
         last_updated: new Date(Date.now()),
         last_updated_by: project.last_updated_by,
         is_demo: isDemo,

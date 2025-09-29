@@ -80,6 +80,7 @@ const ProjectForm = ({
         members: [], // Will be populated in useEffect when users data is available
         start_date: projectToEdit.start_date || "",
         ai_risk_classification: projectToEdit.ai_risk_classification || 0,
+        status: projectToEdit.status || 1,
         type_of_high_risk_role: projectToEdit.type_of_high_risk_role || 0,
         goal: projectToEdit.goal || "",
         enable_ai_data_insertion:
@@ -182,6 +183,19 @@ const ProjectForm = ({
       { _id: 4, name: HighRiskRoleEnum.Importer },
       { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
       { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+    ],
+    []
+  );
+
+  const projectStatusItems = useMemo(
+    () => [
+      { _id: 1, name: "Not started" },
+      { _id: 2, name: "In progress" },
+      { _id: 3, name: "Under review" },
+      { _id: 4, name: "Completed" },
+      { _id: 5, name: "Closed" },
+      { _id: 6, name: "On hold" },
+      { _id: 7, name: "Rejected" },
     ],
     []
   );
@@ -303,6 +317,7 @@ const ProjectForm = ({
       }
     }
 
+
     // Validate frameworks for both framework types, but skip when editing
     if (
       !projectToEdit &&
@@ -325,6 +340,7 @@ const ProjectForm = ({
       try {
         const body: any = {
           ...values,
+          status: projectStatusItems.find((item) => item._id === values.status)?.name,
           last_updated: values.start_date,
           last_updated_by: userInfo?.id,
           members: teamMember,
@@ -626,6 +642,19 @@ const ProjectForm = ({
                 isRequired
               />
               <Select
+                id="project-status-input"
+                label="Project status"
+                placeholder="Select status"
+                value={values.status || ""}
+                onChange={handleOnSelectChange("status")}
+                items={projectStatusItems}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                error={errors.status}
+              />
+              <Select
                 id="type-of-high-risk-role-input"
                 label="Type of high risk role"
                 placeholder="Select an option"
@@ -843,6 +872,7 @@ const ProjectForm = ({
               onChange={handleOnTextFieldChange("goal")}
               sx={{
                 backgroundColor: theme.palette.background.main,
+                marginTop: "4px",
                 ...(projectToEdit && { width: "350px" }), // Fix width when editing
               }}
               isRequired

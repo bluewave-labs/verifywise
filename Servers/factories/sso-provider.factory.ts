@@ -1,8 +1,47 @@
 /**
- * SSO Provider Factory
+ * @fileoverview SSO Provider Factory Implementation
  *
- * Factory pattern implementation for creating SSO provider instances.
- * Handles provider registration, creation, and lifecycle management.
+ * Comprehensive factory implementation using the Factory and Singleton patterns
+ * for creating, managing, and orchestrating multiple SSO provider instances.
+ * Provides a centralized registry for all supported SSO providers with
+ * configuration validation, health checking, and resilient initialization.
+ *
+ * This factory enables:
+ * - Dynamic provider registration and lifecycle management
+ * - Type-safe provider creation with configuration validation
+ * - Resilient initialization with retry logic and error handling
+ * - Provider health monitoring and status reporting
+ * - Batch operations for multi-provider environments
+ * - Configuration templates for rapid provider setup
+ *
+ * Architecture Patterns:
+ * - Factory Pattern: Creates provider instances based on configuration
+ * - Singleton Pattern: Ensures single factory instance across application
+ * - Registry Pattern: Maintains central provider type registration
+ * - Template Method: Provides configuration templates for providers
+ * - Strategy Pattern: Allows different provider implementations
+ *
+ * Key Features:
+ * - Provider registry with enable/disable capabilities
+ * - Configuration validation before provider creation
+ * - Exponential backoff retry logic for resilient initialization
+ * - Comprehensive error categorization and handling
+ * - Health checking for all registered providers
+ * - Batch provider creation with error collection
+ *
+ * Security Features:
+ * - Configuration validation prevents invalid provider creation
+ * - Error handling prevents sensitive information disclosure
+ * - Provider isolation through instance creation
+ * - Secure configuration templates with appropriate defaults
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
+ * @see {@link ISSOProviderFactory} Factory interface specification
+ * @see {@link BaseSSOProvider} Base provider implementation
+ *
+ * @module factories/sso-provider
  */
 
 import {
@@ -20,14 +59,28 @@ import { AzureADSSOProvider } from '../providers/azure-ad-sso.provider';
 // import { SAMLSSOProvider } from '../providers/saml-sso.provider';
 
 /**
- * Provider constructor interface
+ * Provider constructor interface for type-safe instantiation
+ *
+ * Defines the constructor signature required for all SSO provider classes
+ * to ensure consistent instantiation patterns across different providers.
+ *
+ * @interface ProviderConstructor
  */
 interface ProviderConstructor {
   new (providerId: string): ISSOProvider;
 }
 
 /**
- * Provider registry entry
+ * Provider registry entry containing metadata and constructor
+ *
+ * Registry entry structure that stores provider metadata, capabilities,
+ * and constructor reference for factory-based provider instantiation.
+ *
+ * @interface ProviderRegistryEntry
+ * @property {ProviderConstructor} constructor - Provider class constructor
+ * @property {boolean} isEnabled - Whether provider is available for use
+ * @property {string} description - Human-readable provider description
+ * @property {string[]} supportedEnvironments - Supported cloud environments
  */
 interface ProviderRegistryEntry {
   constructor: ProviderConstructor;
@@ -37,10 +90,53 @@ interface ProviderRegistryEntry {
 }
 
 /**
- * SSO Provider Factory implementation
+ * SSO Provider Factory implementation using Singleton and Factory patterns
+ *
+ * Centralized factory for creating and managing SSO provider instances across
+ * the application. Implements singleton pattern to ensure consistent provider
+ * registry and factory methods throughout the application lifecycle.
+ *
+ * Features:
+ * - Singleton pattern for application-wide factory consistency
+ * - Provider registry with dynamic registration and management
+ * - Type-safe provider creation with comprehensive validation
+ * - Resilient initialization with exponential backoff retry logic
+ * - Batch operations for multi-provider environments
+ * - Health checking and monitoring capabilities
+ *
+ * @class SSOProviderFactory
+ * @implements {ISSOProviderFactory}
+ * @singleton
+ *
+ * @example
+ * ```typescript
+ * // Get factory instance
+ * const factory = SSOProviderFactory.getInstance();
+ *
+ * // Create Azure AD provider
+ * const azureProvider = await factory.createProvider({
+ *   providerType: SSOProviderType.AZURE_AD,
+ *   providerId: 'azure-main',
+ *   organizationId: 123,
+ *   clientId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+ *   clientSecret: 'encrypted_secret',
+ *   tenantId: 'yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy',
+ *   isEnabled: true,
+ *   cloudEnvironment: CloudEnvironment.AZURE_PUBLIC
+ * });
+ *
+ * // Validate configuration before creation
+ * const validation = await factory.validateProviderConfig(config);
+ * if (!validation.valid) {
+ *   console.error('Configuration errors:', validation.errors);
+ * }
+ * ```
  */
 export class SSOProviderFactory implements ISSOProviderFactory {
+  /** Singleton instance */
   private static instance: SSOProviderFactory;
+
+  /** Provider registry mapping provider types to their implementations */
   private providerRegistry: Map<SSOProviderType, ProviderRegistryEntry> = new Map();
 
   /**
@@ -104,7 +200,45 @@ export class SSOProviderFactory implements ISSOProviderFactory {
   }
 
   /**
-   * Create a provider instance
+   * Creates a fully initialized SSO provider instance from configuration
+   *
+   * Main factory method that creates, validates, and initializes SSO provider
+   * instances. Includes comprehensive error handling, retry logic, and
+   * validation to ensure robust provider creation.
+   *
+   * @async
+   * @param {SSOProviderConfig} config - Complete provider configuration
+   * @returns {Promise<ISSOProvider>} Fully initialized provider instance
+   * @throws {SSOError} Configuration, network, or provider-specific errors
+   *
+   * @process
+   * 1. Validates provider type support and configuration
+   * 2. Creates provider instance using registered constructor
+   * 3. Initializes provider with retry logic for resilience
+   * 4. Returns ready-to-use provider instance
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const provider = await factory.createProvider({
+   *     providerType: SSOProviderType.AZURE_AD,
+   *     providerId: 'azure-primary',
+   *     organizationId: 123,
+   *     clientId: 'client-id-here',
+   *     clientSecret: 'encrypted-secret',
+   *     tenantId: 'tenant-id-here',
+   *     isEnabled: true,
+   *     cloudEnvironment: CloudEnvironment.AZURE_PUBLIC
+   *   });
+   *
+   *   // Provider is ready for authentication
+   *   const loginUrl = await provider.getLoginUrl(req, '123');
+   * } catch (error) {
+   *   if (error instanceof SSOError) {
+   *     console.error(`SSO Error: ${error.message} (${error.errorType})`);
+   *   }
+   * }
+   * ```
    */
   async createProvider(config: SSOProviderConfig): Promise<ISSOProvider> {
     // Validate provider type

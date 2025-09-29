@@ -134,6 +134,9 @@ class PostProcessingConfig(BaseModel):
 class ArtifactsConfig(BaseModel):
     """Configuration for on-disk artifact paths."""
 
+    reports_dir: Path = Field(
+        ..., description="Directory to save evaluation result JSON and summaries"
+    )
     inference_results_path: Path = Field(
         ..., description="Path to save raw inference results"
     )

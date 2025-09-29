@@ -1,17 +1,82 @@
 /**
- * SSO Environment Variable Validator
+ * @fileoverview SSO Environment Variable Validator Utilities
  *
- * Validates all required environment variables for SSO functionality
- * at application startup. Provides clear error messages and security
- * checks for sensitive configuration values.
+ * Comprehensive environment validation system for Azure AD Single Sign-On configuration.
+ * Validates all required environment variables, performs security checks, and ensures
+ * proper configuration at application startup to prevent runtime failures.
+ *
+ * This utility provides:
+ * - Required environment variable validation
+ * - Security-focused validation for secrets and URLs
+ * - Production vs development environment checks
+ * - Redis configuration validation for rate limiting
+ * - Environment summary generation for debugging
+ * - Clear error messaging for configuration issues
+ *
+ * Validation Categories:
+ * 1. Required Variables - Essential for SSO functionality
+ * 2. Conditional Variables - Required based on configuration choices
+ * 3. Security Variables - Secrets requiring strength validation
+ * 4. Environment-Specific - Production vs development requirements
+ * 5. Integration Variables - External service configurations
+ *
+ * Security Features:
+ * - Secret strength validation (length, entropy, weak password detection)
+ * - URL security validation (HTTPS in production, localhost detection)
+ * - Separate secret validation for JWT and SSO state tokens
+ * - Production environment hardening checks
+ * - Sensitive data masking in environment summaries
+ *
+ * Usage Patterns:
+ * - Application startup validation with validateOrThrow()
+ * - Runtime configuration checks with validateEnvironment()
+ * - Development debugging with getEnvironmentSummary()
+ * - Feature availability checks (isRedisConfigured, isProduction)
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
+ * @see {@link https://12factor.net/config} The Twelve-Factor App Configuration
+ * @see {@link https://owasp.org/www-project-application-security-verification-standard/} OWASP ASVS Configuration Requirements
+ *
+ * @module utils/sso-env-validator
  */
 
+/**
+ * Validation result interface for environment variable validation
+ *
+ * Provides structured feedback about environment configuration validation
+ * with clear separation between blocking errors and advisory warnings.
+ *
+ * @interface ValidationResult
+ * @property {boolean} valid - Whether validation passed with no errors
+ * @property {string[]} errors - Blocking configuration issues that prevent startup
+ * @property {string[]} warnings - Advisory issues that should be addressed
+ */
 interface ValidationResult {
   valid: boolean;
   errors: string[];
   warnings: string[];
 }
 
+/**
+ * Environment configuration interface for SSO-related variables
+ *
+ * Defines the structure of environment variables used by the SSO system,
+ * including required secrets, URLs, and Redis configuration for rate limiting.
+ *
+ * @interface EnvironmentConfig
+ * @property {string} [SSO_STATE_SECRET] - Secret for signing OAuth state tokens (32+ chars)
+ * @property {string} [BACKEND_URL] - Backend server URL for redirects and callbacks
+ * @property {string} [REDIS_URL] - Complete Redis connection URL
+ * @property {string} [REDIS_CONNECTION_STRING] - Alternative Redis connection string
+ * @property {string} [REDIS_HOST] - Redis server hostname
+ * @property {string} [REDIS_PORT] - Redis server port number
+ * @property {string} [REDIS_PASSWORD] - Redis authentication password
+ * @property {string} [REDIS_DB] - Redis database number (0-15)
+ * @property {string} [JWT_SECRET] - Secret for signing JWT tokens (32+ chars)
+ * @property {string} [NODE_ENV] - Environment type (development, production, etc.)
+ */
 interface EnvironmentConfig {
   // Core SSO configuration
   SSO_STATE_SECRET?: string;
@@ -32,18 +97,63 @@ interface EnvironmentConfig {
   NODE_ENV?: string;
 }
 
+/**
+ * SSO Environment Variable Validator Class
+ *
+ * Comprehensive validation system for environment variables required by the SSO system.
+ * Performs startup validation, security checks, and provides configuration debugging
+ * utilities to ensure proper SSO functionality across all environments.
+ *
+ * Key Features:
+ * - Required variable validation with clear error messages
+ * - Security-focused secret validation (length, entropy, weak passwords)
+ * - Production environment hardening checks
+ * - Redis configuration validation for rate limiting
+ * - Environment-specific warnings and recommendations
+ * - Sensitive data masking for debugging and logging
+ *
+ * Validation Philosophy:
+ * - Fail fast at startup if critical configuration is missing
+ * - Provide clear, actionable error messages for developers
+ * - Separate blocking errors from advisory warnings
+ * - Enforce security best practices for production environments
+ * - Support flexible Redis configuration options
+ *
+ * @class SSOEnvironmentValidator
+ * @static
+ *
+ * @example
+ * ```typescript
+ * // Validate environment at application startup
+ * try {
+ *   SSOEnvironmentValidator.validateOrThrow();
+ *   console.log('Environment validation passed');
+ * } catch (error) {
+ *   console.error('Environment validation failed:', error.message);
+ *   process.exit(1);
+ * }
+ *
+ * // Check specific configurations
+ * if (SSOEnvironmentValidator.isRedisConfigured()) {
+ *   console.log('Rate limiting is available');
+ * }
+ * ```
+ */
 export class SSOEnvironmentValidator {
+  /** Environment variables required for basic SSO functionality */
   private static readonly REQUIRED_VARS = [
     'SSO_STATE_SECRET',
     'BACKEND_URL',
     'JWT_SECRET'
   ];
 
+  /** Conditional variable groups where at least one is required */
   private static readonly CONDITIONAL_VARS = {
     // If no REDIS_URL, then REDIS_HOST is required
     REDIS_CONDITIONAL: ['REDIS_URL', 'REDIS_CONNECTION_STRING', 'REDIS_HOST']
   };
 
+  /** Variables containing sensitive information requiring security validation */
   private static readonly SECRET_VARS = [
     'SSO_STATE_SECRET',
     'JWT_SECRET',
@@ -51,7 +161,34 @@ export class SSOEnvironmentValidator {
   ];
 
   /**
-   * Validate all SSO-related environment variables
+   * Validates all SSO-related environment variables comprehensively
+   *
+   * Performs complete validation of environment configuration including required
+   * variables, conditional dependencies, security checks, and environment-specific
+   * requirements. Returns detailed feedback for both blocking errors and warnings.
+   *
+   * @static
+   * @returns {ValidationResult} Comprehensive validation result with errors and warnings
+   *
+   * @validation_steps
+   * 1. Required variable presence validation
+   * 2. Variable-specific format and security validation
+   * 3. Conditional dependency checking (Redis configuration)
+   * 4. Security validation (secret strength, URL security)
+   * 5. Environment-specific warnings generation
+   *
+   * @example
+   * ```typescript
+   * const result = SSOEnvironmentValidator.validateEnvironment();
+   * if (!result.valid) {
+   *   console.error('Configuration errors:', result.errors);
+   *   // Fix configuration before proceeding
+   * }
+   * if (result.warnings.length > 0) {
+   *   console.warn('Configuration warnings:', result.warnings);
+   *   // Consider addressing warnings for better security
+   * }
+   * ```
    */
   static validateEnvironment(): ValidationResult {
     const env = process.env as EnvironmentConfig;
@@ -251,7 +388,35 @@ export class SSOEnvironmentValidator {
   }
 
   /**
-   * Validate environment and throw error if invalid
+   * Validates environment configuration and throws descriptive error if invalid
+   *
+   * Convenience method for application startup validation that performs complete
+   * environment validation and throws a detailed error message if any blocking
+   * issues are found. Logs warnings for non-blocking issues but allows startup.
+   *
+   * @static
+   * @throws {Error} Detailed error message with all configuration issues
+   * @returns {void}
+   *
+   * @usage_pattern
+   * - Call at application startup before initializing SSO functionality
+   * - Use in server.js or app.js initialization sequence
+   * - Ensures SSO system won't fail at runtime due to configuration
+   *
+   * @example
+   * ```typescript
+   * // In application startup (server.js)
+   * try {
+   *   SSOEnvironmentValidator.validateOrThrow();
+   *   console.log('✅ Environment validation passed');
+   *
+   *   // Continue with SSO initialization
+   *   initializeSSO();
+   * } catch (error) {
+   *   console.error('❌ Environment validation failed:', error.message);
+   *   process.exit(1);
+   * }
+   * ```
    */
   static validateOrThrow(): void {
     const result = this.validateEnvironment();

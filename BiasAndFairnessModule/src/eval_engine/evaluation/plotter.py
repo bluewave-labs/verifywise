@@ -25,9 +25,10 @@ class Plotter:
     `plot_demographic_parity` from `visualizations.plots`.
     """
 
-    def __init__(self, config_manager: ConfigManager, plots_dir: str) -> None:
+    def __init__(self, config_manager: ConfigManager) -> None:
         self.config_manager = config_manager
-        self.plots_dir = plots_dir
+        # Read plots_dir strictly from configuration
+        self.plots_dir = str(self.config_manager.get_artifacts_config().plots_dir)
         self.logger = get_logger("eval.plotter")
 
         # Registry of plot handlers by key

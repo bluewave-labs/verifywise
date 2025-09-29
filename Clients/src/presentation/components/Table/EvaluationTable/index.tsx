@@ -16,9 +16,14 @@ import {
   import placeholderImage from "../../../assets/imgs/empty-state.svg";
   import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
   import {
-    emptyData
+    emptyData,
+    paginationStatus,
+    paginationStyle,
+    paginationDropdown,
+    paginationSelect
   } from "./styles";
   import singleTheme from '../../../themes/v1SingleTheme';
+  import { getPaginationRowCount, setPaginationRowCount } from '../../../../application/utils/paginationStorage';
   
   const EvaluationTableBody = lazy(() => import("./TableBody"));
   
@@ -48,7 +53,9 @@ import {
     setCurrentPagingation,
     onShowDetails
   }) => {
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(() => 
+      getPaginationRowCount('evaluation', 10)
+    );
 
     const theme = useTheme();
   
@@ -64,7 +71,9 @@ import {
   
     const handleChangeRowsPerPage = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
+        const newRowsPerPage = parseInt(event.target.value, 10);
+        setRowsPerPage(newRowsPerPage);
+        setPaginationRowCount('evaluation', newRowsPerPage);
         setCurrentPagingation(0);
       },
       [setRowsPerPage, setCurrentPagingation]
@@ -91,76 +100,37 @@ import {
                                     paddingX: theme.spacing(8),
                                     paddingY: theme.spacing(4),
                                     }}}>
-                            <TableCell
-                              sx={{ 
-                                paddingX: theme.spacing(2),
-                                fontSize: 12,
-                                opacity: 0.7 }}
-                            >
-                              Showing {getRange} of {rows.length} evaluation{rows.length !== 1 ? "s" : ""}
+                            <TableCell sx={paginationStatus(theme)}>
+                              Showing {getRange} of {rows?.length} evaluation{rows?.length !== 1 ? "s" : ""}
                             </TableCell>
                             <TablePagination
                               count={rows.length}
                               page={page}
                               onPageChange={handleChangePage}
                               rowsPerPage={rowsPerPage}
-                              rowsPerPageOptions={[5, 10, 15, 25]}
+                              rowsPerPageOptions={[5, 10, 15, 20, 25]}
                               onRowsPerPageChange={handleChangeRowsPerPage}
-                              ActionsComponent={(props) => (
-                                <TablePaginationActions {...props} />
-                              )}
-                              labelRowsPerPage="Rows per page"
+                              ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                              labelRowsPerPage="Evaluations per page"
                               labelDisplayedRows={({ page, count }) =>
-                                `Page ${page + 1} of ${Math.max(
-                                  0,
-                                  Math.ceil(count / rowsPerPage)
-                                )}`
+                                `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
                               }
-                              sx={{
-                                "& .MuiTablePagination-select": {
-                                  borderRadius: theme.shape.borderRadius,
-                                  border: `1px solid ${theme.palette.border.light}`,
-                                  padding: theme.spacing(1),
-                                  minWidth: theme.spacing(8),
-                                },
-                                "& .MuiSelect-icon": {
-                                  width: "24px",
-                                  height: "fit-content",
-                                },
-                              }}
+                              sx={paginationStyle(theme)}
                               slotProps={{
                                 select: {
                                   MenuProps: {
                                     keepMounted: true,
                                     PaperProps: {
                                       className: "pagination-dropdown",
-                                      sx: {
-                                        mt: 0,
-                                        mb: theme.spacing(2),
-                                      },
+                                      sx: paginationDropdown(theme),
                                     },
-                                    transformOrigin: {
-                                      vertical: "bottom",
-                                      horizontal: "left",
-                                    },
-                                    anchorOrigin: {
-                                      vertical: "top",
-                                      horizontal: "left",
-                                    },
+                                    transformOrigin: { vertical: "bottom", horizontal: "left" },
+                                    anchorOrigin: { vertical: "top", horizontal: "left" },
                                     sx: { mt: theme.spacing(-2) },
                                   },
                                   inputProps: { id: "pagination-dropdown" },
                                   IconComponent: SelectorVertical,
-                                  sx: {
-                                    ml: theme.spacing(4),
-                                    mr: theme.spacing(12),
-                                    minWidth: theme.spacing(20),
-                                    textAlign: "left",
-                                    border: "none",
-                                    "&.Mui-focused > div": {
-                                      backgroundColor: theme.palette.background.main,
-                                    },
-                                  },
+                                  sx: paginationSelect(theme),
                                 },
                               }}
                             />

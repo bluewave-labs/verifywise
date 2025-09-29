@@ -69,7 +69,7 @@ export interface BreadcrumbsProps {
  */
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   items,
-  separator = <ChevronRightGreyIcon fontSize="small" />,
+  separator = <ChevronRightGreyIcon style={{ width: '80%', height: 'auto' }} />,
   maxItems = 8,
   sx,
   autoGenerate = false,

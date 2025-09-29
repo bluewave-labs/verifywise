@@ -20,6 +20,7 @@ export type Project = {
   framework: {
     project_framework_id: number;
     framework_id: number;
+    name: string;
   }[];
   monitored_regulations_and_standards: string[];
   is_organizational?: boolean;

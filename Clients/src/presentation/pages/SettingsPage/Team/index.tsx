@@ -24,7 +24,7 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import GroupsIcon from "@mui/icons-material/Groups";
+import {ReactComponent as GroupsIcon} from "../../../assets/icons/group.svg";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";

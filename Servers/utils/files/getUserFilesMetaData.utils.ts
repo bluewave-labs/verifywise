@@ -80,7 +80,8 @@ const getUserFilesMetaDataQuery = async (
           break;
         }
         case "Compliance tracker group": {
-          const subControlQuery = `SELECT s.* FROM "${tenant}".subcontrols_eu s
+          const subControlQuery = `SELECT s.id as meta_id, s.evidence_files as evidences, c.control_meta_id as parent_id FROM "${tenant}".subcontrols_eu s 
+          JOIN "${tenant}".controls_eu c ON s.control_id = c.id
           WHERE (
             s.evidence_files @> jsonb_build_array(jsonb_build_object('id', :fileId::text))
             OR s.feedback_files @> jsonb_build_array(jsonb_build_object('id', :fileId::text))
@@ -88,15 +89,15 @@ const getUserFilesMetaDataQuery = async (
           LIMIT 1;`;
           let subControlResult = (await sequelize.query(subControlQuery, {
             replacements: { fileId: result.id },
-          })) as [SubcontrolEUModel[], number];
+          })) as [any[], number];
 
           let subControl = subControlResult[0][0];
           if (subControl) {
-            result.is_evidence = subControl.evidence_files?.some(
+            result.is_evidence = subControl.evidences?.some(
               (file: any) => Number(file.id) === Number(result.id),
             );
-            result.parent_id = subControl.control_id;
-            result.meta_id = subControl.subcontrol_meta_id;
+            result.parent_id = subControl.parent_id;
+            result.meta_id = subControl.meta_id;
           }
           break;
         }

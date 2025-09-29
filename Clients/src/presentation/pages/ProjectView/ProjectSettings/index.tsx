@@ -448,6 +448,7 @@ const ProjectSettings = React.memo(
               ...prevValues,
               [prop]: newValue.map((user) => user.id),
             }));
+            setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
           }
         },
       [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
@@ -661,6 +662,11 @@ const ProjectSettings = React.memo(
         },
       }).then((response) => {
         if (response.status === 202) {
+          // Create new values reference and update both ref and form state
+          const newValues = { ...values };
+          initialValuesRef.current = newValues;
+          setValues(newValues);
+
           setAlert({
             variant: "success",
             body: "Project updated successfully",

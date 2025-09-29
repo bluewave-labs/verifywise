@@ -1,10 +1,10 @@
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
+from pathlib import Path
 
 import numpy as np
 
-from ...core.config import ConfigManager
 from .data_models import EvalData, PlotArtifact
-from .utils import get_logger, save_plotly
+from .utils import get_logger, save_plotly, safe_mkdirs
 from visualizations.plots import (
     plot_demographic_parity,
     plot_calibration_by_group,
@@ -25,10 +25,17 @@ class Plotter:
     `plot_demographic_parity` from `visualizations.plots`.
     """
 
-    def __init__(self, config_manager: ConfigManager) -> None:
+    def __init__(self, config_manager, run_output_dir: Optional[str] = None) -> None:
+        # Keep config_manager for retrieving visualization specs
         self.config_manager = config_manager
-        # Read plots_dir strictly from configuration
-        self.plots_dir = str(self.config_manager.get_artifacts_config().plots_dir)
+        # Use per-run plots directory inside the unique run folder if provided;
+        # otherwise, fall back to a conventional default under artifacts.
+        if run_output_dir:
+            self.plots_dir = str(Path(run_output_dir) / "plots")
+        else:
+            self.plots_dir = str(Path("artifacts") / "plots")
+        # Ensure directory exists
+        safe_mkdirs(self.plots_dir)
         self.logger = get_logger("eval.plotter")
 
         # Registry of plot handlers by key

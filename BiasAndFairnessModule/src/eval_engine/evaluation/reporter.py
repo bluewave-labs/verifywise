@@ -8,7 +8,6 @@ from pathlib import Path
 import logging
 import json
 from typing import Any, Dict
-from ...core.config import ConfigManager
 from .data_models import EvalResult
 
 
@@ -20,16 +19,13 @@ class Reporter:
     related artifacts.
     """
 
-    def __init__(self, config_manager: ConfigManager) -> None:
+    def __init__(self, reports_dir: str) -> None:
         """Create a new instance of Reporter.
 
         Args:
-            config_manager: Configuration manager to read artifact locations from.
+            reports_dir: Directory to write reports into.
         """
-        self.config_manager = config_manager
-        self.reports_dir: Path = Path(
-            str(self.config_manager.get_artifacts_config().reports_dir)
-        )
+        self.reports_dir: Path = Path(reports_dir)
         # Ensure the output directory exists to avoid errors on first write.
         self.reports_dir.mkdir(parents=True, exist_ok=True)
 

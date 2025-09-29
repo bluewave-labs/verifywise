@@ -143,9 +143,6 @@ class ArtifactsConfig(BaseModel):
     postprocessed_results_path: Path = Field(
         ..., description="Path to save post-processed results"
     )
-    plots_dir: Path = Field(
-        ..., description="Directory to save evaluation plots"
-    )
 
 
 class VisualizationItem(BaseModel):

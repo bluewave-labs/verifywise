@@ -82,7 +82,6 @@ artifacts:
   reports_dir: "artifacts/eval_results"
   inference_results_path: "artifacts/inference_results_new.csv"
   postprocessed_results_path: "artifacts/base_test_metrics.csv"
-  plots_dir: "artifacts/plots"
 
 # Visualizations Configuration
 visualizations:

@@ -9,12 +9,10 @@ import {
   Collapse,
   IconButton,
 } from "@mui/material";
-import {
-  FilterList as FilterIcon,
-  Clear as ClearIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-} from "@mui/icons-material";
+import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
+import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
+import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
+import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.svg";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
@@ -307,7 +305,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
         onClick={() => handleExpandedChange(!expanded)}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          <FilterIcon sx={{ color: "#13715B", fontSize: 20 }} />
+          <FilterIcon style={{ color: "#13715B", height: "20px", width:"20px" }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
             Filters
           </Typography>

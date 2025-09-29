@@ -36,6 +36,7 @@ import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
+import { SSOConfigurationModel } from "../domain.layer/models/sso/ssoConfiguration.model";
 
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');
@@ -232,6 +233,27 @@ async function loginUser(req: Request, res: Response): Promise<any> {
     const userData = await getUserByEmailQuery(email);
 
     if (userData) {
+      // Check organization's authentication policy before allowing password login
+      const organizationId = (userData as any).organization_id;
+      if (organizationId) {
+        const ssoConfig = await SSOConfigurationModel.findOne({
+          where: {
+            organization_id: organizationId,
+            provider_id: 1 // Azure AD provider
+          }
+        });
+
+        // If organization has SSO-only policy, deny password login
+        if (ssoConfig && ssoConfig.auth_method_policy === 'sso_only') {
+          logStructured('error', `password login denied - SSO-only policy for ${email}`, 'loginUser', 'user.ctrl.ts');
+          return res.status(403).json({
+            success: false,
+            error: 'This organization requires SSO authentication. Please use SSO to log in.',
+            authMethodPolicy: 'sso_only',
+            ssoRequired: true
+          });
+        }
+      }
       let user: UserModel;
       if (userData instanceof UserModel) {
         user = userData;

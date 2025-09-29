@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   Box,
   Stack,
@@ -10,6 +10,11 @@ import Toggle from "../../../components/Toggle";
 import Alert from "../../../components/Alert";
 import Button from "../../../components/Button";
 import Select from "../../../components/Inputs/Select";
+import { useAuth } from "../../../../application/hooks/useAuth";
+import {
+  ssoConfigurationService,
+  CreateUpdateSSOConfigurationPayload
+} from "../../../../infrastructure/api/ssoConfigurationService";
 
 // State interface for SSO Configuration (MVP)
 interface SsoConfig {
@@ -42,6 +47,8 @@ const authMethodPolicies = [
 ];
 
 const SsoConfigTab: React.FC = () => {
+  const { organizationId } = useAuth();
+
   const [config, setConfig] = useState<SsoConfig>({
     tenantId: "",
     clientId: "",
@@ -53,6 +60,9 @@ const SsoConfigTab: React.FC = () => {
 
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const theme = useTheme();
 
   // Validation functions
@@ -61,8 +71,9 @@ const SsoConfigTab: React.FC = () => {
     return uuidRegex.test(value);
   };
 
-  const validateField = useCallback((field: keyof ValidationErrors, value: string) => {
-    const newErrors = { ...errors };
+  const validateField = useCallback((field: keyof ValidationErrors, value: string, currentErrors?: ValidationErrors) => {
+    const errorsToUse = currentErrors || errors;
+    const newErrors = { ...errorsToUse };
 
     switch (field) {
       case 'tenantId':
@@ -95,6 +106,7 @@ const SsoConfigTab: React.FC = () => {
     }
 
     setErrors(newErrors);
+    return newErrors;
   }, [errors]);
 
   const handleFieldChange = (field: keyof SsoConfig) => (
@@ -121,22 +133,94 @@ const SsoConfigTab: React.FC = () => {
     setConfig(prev => ({ ...prev, [field]: event.target.value }));
   };
 
+  // Load existing SSO configuration on component mount
+  useEffect(() => {
+    const loadSSOConfiguration = async () => {
+      if (!organizationId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await ssoConfigurationService.getSSOConfiguration(organizationId.toString());
+
+        if (response.success && response.data.exists) {
+          setConfig({
+            tenantId: response.data.azure_tenant_id || "",
+            clientId: response.data.azure_client_id || "",
+            clientSecret: "", // Never populate client secret from API
+            cloudEnvironment: response.data.cloud_environment || "AzurePublic",
+            isEnabled: response.data.is_enabled || false,
+            authMethodPolicy: response.data.auth_method_policy || "both",
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load SSO configuration:', error);
+        setSaveError('Failed to load existing SSO configuration. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSSOConfiguration();
+  }, [organizationId]);
+
 
   const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // Validate all required fields
-      validateField('tenantId', config.tenantId);
-      validateField('clientId', config.clientId);
-      validateField('clientSecret', config.clientSecret);
+    if (!organizationId) {
+      setSaveError('Organization ID not found. Please refresh the page and try again.');
+      return;
+    }
 
-      if (Object.keys(errors).length === 0) {
-        // Simulate API call for saving configuration
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        // Success handling would go here
+    setIsSaving(true);
+    setSaveSuccess(false);
+    setSaveError(null);
+
+    try {
+      // Validate all required fields and collect errors synchronously
+      let currentErrors = {};
+      currentErrors = validateField('tenantId', config.tenantId, currentErrors);
+      currentErrors = validateField('clientId', config.clientId, currentErrors);
+      currentErrors = validateField('clientSecret', config.clientSecret, currentErrors);
+
+      if (Object.keys(currentErrors).length > 0) {
+        setSaveError('Please fix the validation errors before saving.');
+        return;
       }
-    } catch (error) {
-      // Error handling would go here
+
+      // Prepare payload for API
+      const payload: CreateUpdateSSOConfigurationPayload = {
+        azure_tenant_id: config.tenantId,
+        azure_client_id: config.clientId,
+        azure_client_secret: config.clientSecret,
+        cloud_environment: config.cloudEnvironment as 'AzurePublic' | 'AzureGovernment',
+        auth_method_policy: config.authMethodPolicy as 'sso_only' | 'password_only' | 'both'
+      };
+
+      // Call API to save configuration
+      const response = await ssoConfigurationService.createOrUpdateSSOConfiguration(
+        organizationId.toString(),
+        payload
+      );
+
+      if (response.success) {
+        setSaveSuccess(true);
+        // Update local state with response data
+        setConfig(prev => ({
+          ...prev,
+          isEnabled: response.data.is_enabled,
+          clientSecret: "", // Clear client secret after successful save
+        }));
+
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        setSaveError('Failed to save SSO configuration. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Failed to save SSO configuration:', error);
+      setSaveError(error.message || 'Failed to save SSO configuration. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -151,9 +235,36 @@ const SsoConfigTab: React.FC = () => {
     boxShadow: 'none',
   };
 
+  if (isLoading) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Typography>Loading SSO configuration...</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Box sx={{ height: '16px' }} />
+
+      {/* Success/Error Messages */}
+      {saveSuccess && (
+        <Alert
+          variant="success"
+          body="SSO configuration saved successfully!"
+          sx={{ position: 'static', mb: 2 }}
+          isToast={false}
+        />
+      )}
+
+      {saveError && (
+        <Alert
+          variant="error"
+          body={saveError}
+          sx={{ position: 'static', mb: 2 }}
+          isToast={false}
+        />
+      )}
 
       {/* Setup Guide Alert */}
       <Alert

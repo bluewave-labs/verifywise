@@ -1,3 +1,31 @@
+/**
+ * @fileoverview SSO Configuration Management Controller
+ *
+ * This controller handles comprehensive CRUD operations for Azure AD Single Sign-On
+ * configurations, providing secure organization-scoped configuration management,
+ * validation, testing, and administrative controls.
+ *
+ * Key Features:
+ * - Complete CRUD operations for SSO configurations
+ * - Administrative access control with organization isolation
+ * - Comprehensive validation and testing endpoints
+ * - Secure client secret handling with encryption
+ * - Transaction-based operations for data consistency
+ * - Enhanced error handling with detailed feedback
+ *
+ * Security Features:
+ * - Organization-scoped access control
+ * - Admin-only operations for configuration changes
+ * - Client secret encryption and secure storage
+ * - Comprehensive input validation
+ * - Database transaction rollback on errors
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
+ * @see {@link https://docs.microsoft.com/en-us/azure/active-directory/develop/} Azure AD Documentation
+ */
+
 import { Request, Response } from 'express';
 import '../types/express';
 import { SSOConfigurationModel, IAzureAdConfig } from '../domain.layer/models/sso/ssoConfiguration.model';
@@ -7,12 +35,44 @@ import { SSOConfigValidator } from '../utils/sso-config-validator.utils';
 import { sequelize } from '../database/db';
 
 /**
- * SSO Configuration Controller
- * Handles CRUD operations for SSO configuration
- */
-
-/**
- * Get SSO configuration for an organization
+ * Retrieves Azure AD SSO configuration for an organization
+ *
+ * Fetches the complete SSO configuration for the specified organization,
+ * including Azure AD settings, enabled status, and authentication policies.
+ * Client secrets are never returned for security reasons.
+ *
+ * @async
+ * @function getSSOConfiguration
+ * @param {Request} req - Express request object containing organization ID in params
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON response with configuration data or error
+ *
+ * @security
+ * - Requires admin role within the target organization
+ * - Organization-scoped access control prevents cross-tenant access
+ * - Client secrets are excluded from response for security
+ *
+ * @response_format
+ * Success: { success: true, data: { exists: true, azure_tenant_id, azure_client_id, ... } }
+ * Not Found: { success: true, data: { exists: false, is_enabled: false } }
+ * Error: { success: false, error: string }
+ *
+ * @example
+ * ```typescript
+ * // GET /api/sso-configuration/123
+ * // Returns:
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "exists": true,
+ *     "azure_tenant_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+ *     "azure_client_id": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+ *     "cloud_environment": "AzurePublic",
+ *     "is_enabled": true,
+ *     "auth_method_policy": "both"
+ *   }
+ * }
+ * ```
  */
 export const getSSOConfiguration = async (req: Request, res: Response) => {
   try {
@@ -85,7 +145,63 @@ export const getSSOConfiguration = async (req: Request, res: Response) => {
 };
 
 /**
- * Create or update SSO configuration
+ * Creates or updates Azure AD SSO configuration for an organization
+ *
+ * Handles both creation of new SSO configurations and updates to existing ones.
+ * Performs comprehensive validation, encrypts client secrets, and maintains
+ * transaction integrity throughout the operation.
+ *
+ * @async
+ * @function createOrUpdateSSOConfiguration
+ * @param {Request} req - Express request object with organization ID and SSO configuration data
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON response with operation result and configuration data
+ *
+ * @request_body
+ * - azure_tenant_id: string (required, GUID format)
+ * - azure_client_id: string (required, GUID format)
+ * - azure_client_secret: string (required, min 10 chars)
+ * - cloud_environment: 'AzurePublic' | 'AzureGovernment' (default: 'AzurePublic')
+ * - auth_method_policy: 'sso_only' | 'password_only' | 'both' (default: 'both')
+ *
+ * @security
+ * - Requires admin role within the target organization
+ * - Comprehensive input validation using SSOConfigValidator
+ * - Client secret encryption before database storage
+ * - Database transactions with automatic rollback on errors
+ * - New configurations are created in disabled state for safety
+ *
+ * @validation
+ * - GUID format validation for Azure AD tenant and client IDs
+ * - Client secret strength requirements
+ * - Cloud environment and authentication policy validation
+ * - Domain validation if allowed_domains are specified
+ *
+ * @example
+ * ```typescript
+ * // POST /api/sso-configuration/123
+ * // Body:
+ * {
+ *   "azure_tenant_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+ *   "azure_client_id": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+ *   "azure_client_secret": "secure_client_secret",
+ *   "cloud_environment": "AzurePublic",
+ *   "auth_method_policy": "both"
+ * }
+ *
+ * // Response:
+ * {
+ *   "success": true,
+ *   "message": "SSO configuration created successfully",
+ *   "data": {
+ *     "azure_tenant_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+ *     "azure_client_id": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+ *     "cloud_environment": "AzurePublic",
+ *     "is_enabled": false,
+ *     "auth_method_policy": "both"
+ *   }
+ * }
+ * ```
  */
 export const createOrUpdateSSOConfiguration = async (req: Request, res: Response) => {
   const transaction = await sequelize.transaction();
@@ -357,8 +473,61 @@ export const enableSSO = async (req: Request, res: Response) => {
 };
 
 /**
- * Validate SSO configuration without saving
- * POST /api/sso-configuration/:organizationId/validate
+ * Validates Azure AD SSO configuration without saving to database
+ *
+ * Performs comprehensive validation of SSO configuration parameters
+ * without persisting the data. Useful for frontend validation feedback
+ * and pre-save configuration testing.
+ *
+ * @async
+ * @function validateSSOConfiguration
+ * @param {Request} req - Express request object with organization ID and configuration to validate
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON response with detailed validation results
+ *
+ * @endpoint POST /api/sso-configuration/:organizationId/validate
+ *
+ * @request_body
+ * - azure_tenant_id: string (required, GUID format)
+ * - azure_client_id: string (required, GUID format)
+ * - azure_client_secret: string (required, strength validation)
+ * - cloud_environment: 'AzurePublic' | 'AzureGovernment' (default: 'AzurePublic')
+ * - auth_method_policy: 'sso_only' | 'password_only' | 'both' (default: 'both')
+ * - allowed_domains: string[] (optional, domain format validation)
+ *
+ * @security
+ * - Requires admin role within the target organization
+ * - No data persistence - validation only
+ * - Uses SSOConfigValidator for comprehensive checks
+ *
+ * @response_format
+ * ```typescript
+ * {
+ *   success: true,
+ *   validation: {
+ *     isValid: boolean,
+ *     errors: string[],
+ *     warnings: string[]
+ *   },
+ *   message: string
+ * }
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // POST /api/sso-configuration/123/validate
+ * // Body: { azure_tenant_id: "invalid-guid", ... }
+ * // Response:
+ * {
+ *   "success": true,
+ *   "validation": {
+ *     "isValid": false,
+ *     "errors": ["Azure tenant ID must be a valid GUID format"],
+ *     "warnings": []
+ *   },
+ *   "message": "SSO configuration has validation errors"
+ * }
+ * ```
  */
 export const validateSSOConfiguration = async (req: Request, res: Response) => {
   try {
@@ -424,8 +593,80 @@ export const validateSSOConfiguration = async (req: Request, res: Response) => {
 };
 
 /**
- * Test SSO configuration connectivity
- * POST /api/sso-configuration/:organizationId/test
+ * Tests Azure AD SSO configuration connectivity and validity
+ *
+ * Performs live testing of SSO configuration by attempting to create
+ * an MSAL client and validate connectivity to Azure AD endpoints.
+ * Provides immediate feedback on configuration correctness.
+ *
+ * @async
+ * @function testSSOConfiguration
+ * @param {Request} req - Express request object with organization ID and configuration to test
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON response with test results and connectivity status
+ *
+ * @endpoint POST /api/sso-configuration/:organizationId/test
+ *
+ * @request_body
+ * - azure_tenant_id: string (required, GUID format)
+ * - azure_client_id: string (required, GUID format)
+ * - azure_client_secret: string (required)
+ * - cloud_environment: 'AzurePublic' | 'AzureGovernment' (default: 'AzurePublic')
+ *
+ * @security
+ * - Requires admin role within the target organization
+ * - No data persistence - testing only
+ * - Uses actual MSAL client creation for validation
+ * - Enhanced error handling for MSAL-specific issues
+ *
+ * @testing_process
+ * 1. Validates configuration format and requirements
+ * 2. Constructs appropriate Azure AD authority URL
+ * 3. Attempts MSAL ConfidentialClientApplication creation
+ * 4. Verifies client initialization success
+ * 5. Returns detailed test results with connectivity status
+ *
+ * @response_format
+ * ```typescript
+ * {
+ *   success: boolean,
+ *   testPassed: boolean,
+ *   message?: string,
+ *   error?: string,
+ *   errorCode?: string,
+ *   details: {
+ *     authority?: string,
+ *     clientConfigured?: boolean,
+ *     warnings?: string[]
+ *   }
+ * }
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // POST /api/sso-configuration/123/test
+ * // Body: { azure_tenant_id: "valid-guid", azure_client_id: "valid-guid", ... }
+ * // Success Response:
+ * {
+ *   "success": true,
+ *   "testPassed": true,
+ *   "message": "SSO configuration test passed",
+ *   "details": {
+ *     "authority": "https://login.microsoftonline.com/tenant-id",
+ *     "clientConfigured": true,
+ *     "warnings": []
+ *   }
+ * }
+ *
+ * // Failure Response:
+ * {
+ *   "success": false,
+ *   "testPassed": false,
+ *   "error": "MSAL client configuration failed",
+ *   "errorCode": "INVALID_CLIENT_CONFIG",
+ *   "details": ["MSAL client configuration failed. Please verify your Azure AD application settings."]
+ * }
+ * ```
  */
 export const testSSOConfiguration = async (req: Request, res: Response) => {
   try {

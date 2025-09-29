@@ -16,23 +16,28 @@ import {
   deleteSSOConfiguration,
   enableSSO,
   disableSSO,
+  validateSSOConfiguration,
+  testSSOConfiguration,
 } from "../controllers/ssoConfiguration.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
-import { ssoConfigRateLimit } from "../middleware/rateLimiting.middleware";
 
 // GET requests
-router.get("/:organizationId", ssoConfigRateLimit, authenticateJWT, getSSOConfiguration);
+router.get("/:organizationId", authenticateJWT, getSSOConfiguration);
 
 // POST/PUT requests
-router.post("/:organizationId", ssoConfigRateLimit, authenticateJWT, createOrUpdateSSOConfiguration);
-router.put("/:organizationId", ssoConfigRateLimit, authenticateJWT, createOrUpdateSSOConfiguration);
+router.post("/:organizationId", authenticateJWT, createOrUpdateSSOConfiguration);
+router.put("/:organizationId", authenticateJWT, createOrUpdateSSOConfiguration);
 
 // DELETE requests
-router.delete("/:organizationId", ssoConfigRateLimit, authenticateJWT, deleteSSOConfiguration);
+router.delete("/:organizationId", authenticateJWT, deleteSSOConfiguration);
 
 // SSO Control requests
-router.post("/:organizationId/enable", ssoConfigRateLimit, authenticateJWT, enableSSO);
-router.post("/:organizationId/disable", ssoConfigRateLimit, authenticateJWT, disableSSO);
+router.post("/:organizationId/enable", authenticateJWT, enableSSO);
+router.post("/:organizationId/disable", authenticateJWT, disableSSO);
+
+// SSO Validation and Testing requests
+router.post("/:organizationId/validate", authenticateJWT, validateSSOConfiguration);
+router.post("/:organizationId/test", authenticateJWT, testSSOConfiguration);
 
 export default router;

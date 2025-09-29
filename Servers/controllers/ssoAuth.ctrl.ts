@@ -5,6 +5,7 @@ import { UserModel } from '../domain.layer/models/user/user.model';
 import { OrganizationModel } from '../domain.layer/models/organization/organization.model';
 import { SSOStateTokenManager } from '../utils/sso-state-token.utils';
 import { SSOAuditLogger } from '../utils/sso-audit-logger.utils';
+import { SSOErrorHandler, SSOErrorCodes } from '../utils/sso-error-handler.utils';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 
@@ -30,10 +31,11 @@ export const initiateSSOLogin = async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
 
-    // Find SSO configuration for the organization
+    // Find SSO configuration for the organization (Azure AD provider)
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
+        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -56,12 +58,22 @@ export const initiateSSOLogin = async (req: Request, res: Response) => {
       });
     }
 
+    // Get Azure AD configuration
+    const azureConfig = ssoConfig.getAzureAdConfig();
+    if (!azureConfig) {
+      SSOAuditLogger.logAuthenticationFailure(req, organizationId, 'Invalid Azure AD configuration');
+      return res.status(500).json({
+        success: false,
+        error: 'Invalid SSO configuration'
+      });
+    }
+
     // Create MSAL client configuration
     const msalConfig = {
       auth: {
-        clientId: ssoConfig.azure_client_id,
+        clientId: azureConfig.client_id,
         clientSecret: clientSecret,
-        authority: `${ssoConfig.getAzureADBaseUrl()}/${ssoConfig.azure_tenant_id}`
+        authority: `${ssoConfig.getAzureADBaseUrl()}/${azureConfig.tenant_id}`
       }
     };
 
@@ -142,10 +154,11 @@ export const handleSSOCallback = async (req: Request, res: Response) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=no_auth_code`);
     }
 
-    // Find SSO configuration
+    // Find SSO configuration (Azure AD provider)
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
+        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -160,12 +173,18 @@ export const handleSSOCallback = async (req: Request, res: Response) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=sso_config_error`);
     }
 
+    // Get Azure AD configuration
+    const azureConfig = ssoConfig.getAzureAdConfig();
+    if (!azureConfig) {
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=sso_config_error`);
+    }
+
     // Create MSAL client configuration
     const msalConfig = {
       auth: {
-        clientId: ssoConfig.azure_client_id,
+        clientId: azureConfig.client_id,
         clientSecret: clientSecret,
-        authority: `${ssoConfig.getAzureADBaseUrl()}/${ssoConfig.azure_tenant_id}`
+        authority: `${ssoConfig.getAzureADBaseUrl()}/${azureConfig.tenant_id}`
       }
     };
 
@@ -346,12 +365,53 @@ export const handleSSOCallback = async (req: Request, res: Response) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/dashboard?sso=success`);
 
     } catch (msalError) {
-      console.error('MSAL token exchange error:', msalError);
-      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=token_exchange_failed`);
+      // Use enhanced MSAL error handling
+      const { userMessage, errorCode, shouldRedirect } = SSOErrorHandler.handleMSALError(msalError, 'token exchange');
+
+      SSOErrorHandler.logSecurityEvent('sso_token_exchange', false, {
+        organizationId,
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent'),
+        error: errorCode
+      });
+
+      const redirectUrl = SSOErrorHandler.createErrorRedirectUrl(
+        process.env.FRONTEND_URL || 'http://localhost:3001',
+        errorCode,
+        userMessage
+      );
+
+      return res.redirect(redirectUrl);
     }
   } catch (error) {
-    console.error('Error handling SSO callback:', error);
-    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=callback_error`);
+    const { organizationId } = req.params;
+
+    // Enhanced error logging and handling
+    SSOErrorHandler.logSecurityEvent('sso_callback', false, {
+      organizationId,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+      error: (error as Error)?.message || 'Unknown callback error'
+    });
+
+    // Handle database connection errors specifically
+    if ((error as any)?.name?.includes('Sequelize')) {
+      const redirectUrl = SSOErrorHandler.createErrorRedirectUrl(
+        process.env.FRONTEND_URL || 'http://localhost:3001',
+        SSOErrorCodes.DATABASE_ERROR,
+        'Service temporarily unavailable. Please try again later.'
+      );
+      return res.redirect(redirectUrl);
+    }
+
+    // Generic internal error
+    const redirectUrl = SSOErrorHandler.createErrorRedirectUrl(
+      process.env.FRONTEND_URL || 'http://localhost:3001',
+      SSOErrorCodes.INTERNAL_ERROR,
+      'Authentication failed. Please try again.'
+    );
+
+    return res.redirect(redirectUrl);
   }
 };
 
@@ -362,10 +422,11 @@ export const getSSOLoginUrl = async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
 
-    // Check if SSO is enabled for this organization
+    // Check if SSO is enabled for this organization (Azure AD provider)
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
+        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -455,10 +516,11 @@ export const checkSSOAvailability = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if organization has SSO enabled
+    // Check if organization has SSO enabled (Azure AD provider)
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organization.id,
+        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -502,32 +564,79 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
   try {
     const { email } = req.query;
 
+    // Enhanced email validation
     if (!email || typeof email !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'Email is required',
-      });
+      return SSOErrorHandler.handleValidationError(
+        res,
+        ['Email parameter is required'],
+        'Email is required'
+      );
     }
 
-    // Find user by email and include organization
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email) || email.length > 320) {
+      return SSOErrorHandler.handleValidationError(
+        res,
+        ['Invalid email format or email too long (max 320 characters)'],
+        'Invalid email format'
+      );
+    }
+
+    // Find user by email
     const user = await UserModel.findOne({
       where: { email: email.toLowerCase().trim() },
-      include: [{
-        model: OrganizationModel,
-        as: 'organization',
-        attributes: ['id', 'name'],
-        include: [{
-          model: SSOConfigurationModel,
-          as: 'ssoConfiguration',
-          where: { is_enabled: true },
-          required: false,
-          attributes: ['azure_tenant_id', 'is_enabled', 'auth_method_policy']
-        }]
-      }],
       attributes: ['id', 'email', 'organization_id', 'sso_enabled']
     });
 
     if (!user) {
+      // For new users, try to find an organization by email domain
+      // that has SSO enabled and allows this email domain
+      const emailDomain = email.split('@')[1]?.toLowerCase();
+
+      if (emailDomain) {
+        // Find organizations with SSO configurations that allow this email domain
+        const ssoConfigs = await SSOConfigurationModel.findAll({
+          where: {
+            provider_id: 1, // Azure AD provider
+            is_enabled: true
+          },
+          include: [{
+            model: OrganizationModel,
+            as: 'organization',
+            attributes: ['id', 'name']
+          }],
+          attributes: ['organization_id', 'allowed_domains', 'auth_method_policy', 'provider_config']
+        });
+
+        // Check if any SSO configuration allows this email domain
+        for (const ssoConfig of ssoConfigs) {
+          if (ssoConfig.isEmailDomainAllowed(email)) {
+            const organization = (ssoConfig as any).organization;
+            return res.status(200).json({
+              success: true,
+              data: {
+                userExists: false,
+                hasOrganization: true,
+                ssoAvailable: true,
+                canCreateUser: true,
+                organization: {
+                  id: organization.id,
+                  name: organization.name
+                },
+                sso: {
+                  tenantId: ssoConfig.getAzureAdConfig()?.tenant_id || null,
+                  loginUrl: `/api/sso-auth/${organization.id}/login`
+                },
+                authMethodPolicy: ssoConfig.auth_method_policy,
+                preferredAuthMethod: 'sso',
+                message: 'New user can be created via SSO for this organization'
+              }
+            });
+          }
+        }
+      }
+
       return res.status(200).json({
         success: true,
         data: {
@@ -535,12 +644,13 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
           hasOrganization: false,
           ssoAvailable: false,
           authMethodPolicy: 'both',
-          message: 'User not found'
+          message: 'User not found and email domain not allowed for any SSO organization'
         }
       });
     }
 
-    if (!user.organization_id || !(user as any).organization) {
+    // Check if user has an organization
+    if (!user.organization_id) {
       return res.status(200).json({
         success: true,
         data: {
@@ -553,8 +663,33 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
       });
     }
 
-    const organization = (user as any).organization;
-    const ssoConfig = organization.ssoConfiguration;
+    // Fetch organization and SSO configuration for existing user
+    const organization = await OrganizationModel.findByPk(user.organization_id, {
+      attributes: ['id', 'name']
+    });
+
+    if (!organization) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          userExists: true,
+          hasOrganization: false,
+          ssoAvailable: false,
+          authMethodPolicy: 'both',
+          message: 'User organization not found'
+        }
+      });
+    }
+
+    const ssoConfig = await SSOConfigurationModel.findOne({
+      where: {
+        organization_id: user.organization_id,
+        provider_id: 1, // Azure AD provider
+        is_enabled: true
+      },
+      attributes: ['provider_config', 'is_enabled', 'auth_method_policy']
+    });
+
     const ssoAvailable = !!(ssoConfig && ssoConfig.is_enabled);
 
     res.status(200).json({
@@ -568,7 +703,8 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
           name: organization.name
         },
         sso: ssoAvailable ? {
-          tenantId: ssoConfig.azure_tenant_id
+          tenantId: ssoConfig.getAzureAdConfig()?.tenant_id || null,
+          loginUrl: `/api/sso-auth/${organization.id}/login`
         } : null,
         authMethodPolicy: ssoConfig ? ssoConfig.auth_method_policy : 'both',
         preferredAuthMethod: ssoAvailable && user.sso_enabled ? 'sso' : 'password'
@@ -576,11 +712,12 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error('Error checking user organization:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error while checking user organization'
-    });
+    // Use enhanced error handling for database operations
+    return SSOErrorHandler.handleDatabaseError(
+      res,
+      error,
+      'user organization lookup'
+    );
   }
 };
 
@@ -590,9 +727,10 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
  */
 export const getAvailableSSOProviders = async (req: Request, res: Response) => {
   try {
-    // Find all organizations with enabled SSO configurations
+    // Find all organizations with enabled SSO configurations (Azure AD provider)
     const ssoConfigs = await SSOConfigurationModel.findAll({
       where: {
+        provider_id: 1, // Azure AD provider
         is_enabled: true
       },
       include: [{
@@ -628,6 +766,108 @@ export const getAvailableSSOProviders = async (req: Request, res: Response) => {
 };
 
 /**
+ * Discover organization for new user by email domain
+ * GET /api/sso-auth/discover-organization?email={email}
+ */
+export const discoverOrganizationForNewUser = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.query;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      });
+    }
+
+    const emailDomain = email.split('@')[1]?.toLowerCase();
+    if (!emailDomain) {
+      return res.status(400).json({
+        success: false,
+        error: 'Could not extract domain from email'
+      });
+    }
+
+    // Find organizations with SSO configurations that allow this email domain
+    const ssoConfigs = await SSOConfigurationModel.findAll({
+      where: {
+        provider_id: 1, // Azure AD provider
+        is_enabled: true
+      },
+      include: [{
+        model: OrganizationModel,
+        as: 'organization',
+        attributes: ['id', 'name']
+      }],
+      attributes: ['organization_id', 'allowed_domains', 'auth_method_policy', 'provider_config']
+    });
+
+    const matchingOrganizations = [];
+
+    // Check if any SSO configuration allows this email domain
+    for (const ssoConfig of ssoConfigs) {
+      if (ssoConfig.isEmailDomainAllowed(email)) {
+        const organization = (ssoConfig as any).organization;
+        const azureConfig = ssoConfig.getAzureAdConfig();
+
+        matchingOrganizations.push({
+          organizationId: organization.id,
+          organizationName: organization.name,
+          authMethodPolicy: ssoConfig.auth_method_policy,
+          ssoLoginUrl: `/api/sso-auth/${organization.id}/login`,
+          tenantId: azureConfig?.tenant_id || null,
+          allowedDomains: ssoConfig.allowed_domains
+        });
+      }
+    }
+
+    if (matchingOrganizations.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          found: false,
+          emailDomain,
+          message: 'No organizations found that allow this email domain for SSO'
+        }
+      });
+    }
+
+    // If multiple organizations match, return all of them
+    // Frontend can present options to user or use business logic to select
+    return res.status(200).json({
+      success: true,
+      data: {
+        found: true,
+        emailDomain,
+        organizations: matchingOrganizations,
+        recommendedAction: matchingOrganizations.length === 1
+          ? 'auto_redirect'
+          : 'show_selection',
+        message: matchingOrganizations.length === 1
+          ? `Found organization: ${matchingOrganizations[0].organizationName}`
+          : `Found ${matchingOrganizations.length} organizations that allow this email domain`
+      }
+    });
+
+  } catch (error) {
+    console.error('Error discovering organization for new user:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to discover organization for email'
+    });
+  }
+};
+
+/**
  * Get organization SSO configuration details
  * GET /api/sso-auth/:organizationId/config
  */
@@ -655,10 +895,11 @@ export const getOrganizationSSOConfig = async (req: Request, res: Response) => {
       });
     }
 
-    // Get SSO configuration
+    // Get SSO configuration (Azure AD provider)
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
-        organization_id: parseInt(organizationId)
+        organization_id: parseInt(organizationId),
+        provider_id: 1 // Azure AD provider
       }
     });
 
@@ -676,7 +917,7 @@ export const getOrganizationSSOConfig = async (req: Request, res: Response) => {
         organizationId: ssoConfig.organization_id,
         isEnabled: ssoConfig.is_enabled,
         provider: 'azure_ad',
-        cloudEnvironment: ssoConfig.cloud_environment,
+        cloudEnvironment: ssoConfig.getAzureAdConfig()?.cloud_environment || 'AzurePublic',
         allowedDomains: ssoConfig.allowed_domains || [],
         defaultRoleId: ssoConfig.default_role_id || 2,
         loginUrl: ssoConfig.is_enabled ? `/api/sso-auth/${organizationId}/login` : null,

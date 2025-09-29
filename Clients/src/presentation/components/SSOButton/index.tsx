@@ -1,7 +1,39 @@
+/**
+ * @fileoverview SSO Authentication Button Component
+ *
+ * Provides a reusable, branded authentication button component supporting
+ * multiple SSO providers (Microsoft, Google) with provider-specific styling,
+ * icons, and interaction states. Designed for OAuth 2.0 authentication flows.
+ *
+ * Features:
+ * - Multi-provider support with provider-specific branding
+ * - Authentic provider styling matching official design guidelines
+ * - Loading and disabled states for authentication flows
+ * - Accessible button design with proper focus and hover states
+ * - Responsive design with flexible width options
+ *
+ * Provider Support:
+ * - Microsoft/Azure AD: Official Microsoft branding and colors
+ * - Google: Official Google branding and colors (future implementation)
+ *
+ * @author VerifyWise Development Team
+ * @since 2024-09-28
+ * @version 1.0.0
+ * @see {@link https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-add-branding-in-azure-ad-apps} Microsoft Branding Guidelines
+ */
+
 import React from 'react';
 import { Button, Box, Typography, SvgIcon } from '@mui/material';
 
-// Microsoft logo SVG component
+/**
+ * Microsoft logo SVG icon component
+ *
+ * Renders the official Microsoft logo using the correct colors and proportions
+ * as specified in Microsoft's brand guidelines.
+ *
+ * @component MicrosoftIcon
+ * @returns {JSX.Element} Microsoft logo SVG icon
+ */
 const MicrosoftIcon = () => (
   <SvgIcon viewBox="0 0 23 23" sx={{ width: 18, height: 18 }}>
     <rect x="1" y="1" width="10" height="10" fill="#f25022"/>
@@ -11,7 +43,15 @@ const MicrosoftIcon = () => (
   </SvgIcon>
 );
 
-// Google logo SVG component (for future use)
+/**
+ * Google logo SVG icon component
+ *
+ * Renders the official Google logo using the correct colors and proportions
+ * as specified in Google's brand guidelines. Currently for future use.
+ *
+ * @component GoogleIcon
+ * @returns {JSX.Element} Google logo SVG icon
+ */
 const GoogleIcon = () => (
   <SvgIcon viewBox="0 0 24 24" sx={{ width: 18, height: 18 }}>
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -21,14 +61,78 @@ const GoogleIcon = () => (
   </SvgIcon>
 );
 
+/**
+ * Props interface for the SSO authentication button component
+ *
+ * @interface SSOButtonProps
+ * @since 1.0.0
+ */
 interface SSOButtonProps {
+  /** SSO provider type determining button styling and branding */
   provider: 'microsoft' | 'google';
+
+  /** Click handler function triggered when the button is clicked */
   onClick: () => void;
+
+  /** Whether the button is disabled (prevents user interaction) */
   disabled?: boolean;
+
+  /** Whether the button should take full width of its container */
   fullWidth?: boolean;
+
+  /** Whether the button is in a loading state (shows loading indicator) */
   loading?: boolean;
 }
 
+/**
+ * SSO Authentication Button Component
+ *
+ * A comprehensive, reusable button component for SSO authentication flows.
+ * Provides provider-specific branding, authentic styling, and proper interaction
+ * states for OAuth 2.0 authentication with multiple identity providers.
+ *
+ * @component SSOButton
+ * @param {SSOButtonProps} props - Component properties
+ * @returns {JSX.Element} Rendered SSO authentication button
+ *
+ * @features
+ * - Provider-specific branding (Microsoft, Google)
+ * - Authentic styling matching official provider guidelines
+ * - Loading and disabled states for authentication flows
+ * - Accessible design with proper ARIA attributes
+ * - Responsive design with flexible width options
+ * - Hover and focus states matching provider designs
+ *
+ * @accessibility
+ * - Proper button semantics and keyboard navigation
+ * - Focus indicators matching provider accessibility standards
+ * - Disabled state properly communicated to screen readers
+ * - Loading state indication for user feedback
+ *
+ * @example
+ * ```tsx
+ * // Microsoft SSO button
+ * <SSOButton
+ *   provider="microsoft"
+ *   onClick={handleMicrosoftLogin}
+ *   loading={isAuthenticating}
+ *   disabled={!isConfigured}
+ * />
+ *
+ * // Google SSO button (future implementation)
+ * <SSOButton
+ *   provider="google"
+ *   onClick={handleGoogleLogin}
+ *   fullWidth={false}
+ * />
+ * ```
+ *
+ * @provider_styling
+ * - Microsoft: White background, gray border, Microsoft logo, official colors
+ * - Google: White background, light gray border, Google logo, official colors
+ *
+ * @since 1.0.0
+ */
 const SSOButton: React.FC<SSOButtonProps> = ({
   provider,
   onClick,

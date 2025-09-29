@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
+import '../types/express';
 import { SSOConfigurationModel, IAzureAdConfig } from '../domain.layer/models/sso/ssoConfiguration.model';
-import { SSOProviderModel } from '../domain.layer/models/sso/ssoProvider.model';
 import { decryptSecret } from '../utils/sso-encryption.utils';
 import { SSOErrorHandler, SSOErrorCodes } from '../utils/sso-error-handler.utils';
 import { SSOConfigValidator } from '../utils/sso-config-validator.utils';
@@ -33,11 +33,10 @@ export const getSSOConfiguration = async (req: Request, res: Response) => {
       });
     }
 
-    // Find SSO configuration for Azure AD provider (assuming provider_id 1 is Azure AD)
+    // Find SSO configuration for the organization
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
-        organization_id: organizationId,
-        provider_id: 1 // Azure AD provider
+        organization_id: organizationId
       }
     });
 
@@ -155,15 +154,17 @@ export const createOrUpdateSSOConfiguration = async (req: Request, res: Response
     // Check if configuration exists
     const existingConfig = await SSOConfigurationModel.findOne({
       where: {
-        organization_id: organizationId,
-        provider_id: 1 // Azure AD provider
+        organization_id: organizationId
       },
       transaction
     });
 
     if (existingConfig) {
       // Update existing configuration
-      existingConfig.provider_config = azureConfig;
+      existingConfig.azure_tenant_id = azureConfig.tenant_id;
+      existingConfig.azure_client_id = azureConfig.client_id;
+      existingConfig.azure_client_secret = azureConfig.client_secret;
+      existingConfig.cloud_environment = azureConfig.cloud_environment;
       existingConfig.auth_method_policy = auth_method_policy;
       await existingConfig.save({ transaction });
 
@@ -186,8 +187,10 @@ export const createOrUpdateSSOConfiguration = async (req: Request, res: Response
       // Create new configuration
       const newConfig = await SSOConfigurationModel.create({
         organization_id: parseInt(organizationId),
-        provider_id: 1, // Azure AD provider
-        provider_config: azureConfig,
+        azure_tenant_id: azureConfig.tenant_id,
+        azure_client_id: azureConfig.client_id,
+        azure_client_secret: azureConfig.client_secret,
+        cloud_environment: azureConfig.cloud_environment,
         auth_method_policy,
         is_enabled: false // Always start with SSO disabled
       } as any, { transaction });
@@ -250,8 +253,7 @@ export const deleteSSOConfiguration = async (req: Request, res: Response) => {
     // Find and delete configuration
     const deletedCount = await SSOConfigurationModel.destroy({
       where: {
-        organization_id: organizationId,
-        provider_id: 1 // Azure AD provider
+        organization_id: organizationId
       },
       transaction
     });
@@ -305,8 +307,7 @@ export const enableSSO = async (req: Request, res: Response) => {
     // Find configuration
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
-        organization_id: organizationId,
-        provider_id: 1 // Azure AD provider
+        organization_id: organizationId
       }
     });
 
@@ -554,8 +555,7 @@ export const disableSSO = async (req: Request, res: Response) => {
     // Find configuration
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
-        organization_id: organizationId,
-        provider_id: 1 // Azure AD provider
+        organization_id: organizationId
       }
     });
 

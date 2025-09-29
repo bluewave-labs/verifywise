@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import * as crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
 
 const STATE_TOKEN_SECRET = process.env.SSO_STATE_SECRET;
 const STATE_TOKEN_EXPIRY = 10 * 60 * 1000; // 10 minutes

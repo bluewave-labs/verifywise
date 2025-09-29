@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import '../types/express';
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import { SSOConfigurationModel } from '../domain.layer/models/sso/ssoConfiguration.model';
 import { UserModel } from '../domain.layer/models/user/user.model';
@@ -6,7 +7,7 @@ import { OrganizationModel } from '../domain.layer/models/organization/organizat
 import { SSOStateTokenManager } from '../utils/sso-state-token.utils';
 import { SSOAuditLogger } from '../utils/sso-audit-logger.utils';
 import { SSOErrorHandler, SSOErrorCodes } from '../utils/sso-error-handler.utils';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 
 /**
@@ -31,11 +32,10 @@ export const initiateSSOLogin = async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
 
-    // Find SSO configuration for the organization (Azure AD provider)
+    // Find SSO configuration for the organization
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
-        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -154,11 +154,10 @@ export const handleSSOCallback = async (req: Request, res: Response) => {
       return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3001'}/login?error=no_auth_code`);
     }
 
-    // Find SSO configuration (Azure AD provider)
+    // Find SSO configuration
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
-        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -422,11 +421,10 @@ export const getSSOLoginUrl = async (req: Request, res: Response) => {
   try {
     const { organizationId } = req.params;
 
-    // Check if SSO is enabled for this organization (Azure AD provider)
+    // Check if SSO is enabled for this organization
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organizationId,
-        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -516,11 +514,10 @@ export const checkSSOAvailability = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if organization has SSO enabled (Azure AD provider)
+    // Check if organization has SSO enabled
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: organization.id,
-        provider_id: 1, // Azure AD provider
         is_enabled: true
       }
     });
@@ -598,7 +595,6 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
         // Find organizations with SSO configurations that allow this email domain
         const ssoConfigs = await SSOConfigurationModel.findAll({
           where: {
-            provider_id: 1, // Azure AD provider
             is_enabled: true
           },
           include: [{
@@ -606,7 +602,7 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
             as: 'organization',
             attributes: ['id', 'name']
           }],
-          attributes: ['organization_id', 'allowed_domains', 'auth_method_policy', 'provider_config']
+          attributes: ['organization_id', 'allowed_domains', 'auth_method_policy', 'azure_tenant_id', 'azure_client_id', 'cloud_environment']
         });
 
         // Check if any SSO configuration allows this email domain
@@ -684,10 +680,9 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: user.organization_id,
-        provider_id: 1, // Azure AD provider
         is_enabled: true
       },
-      attributes: ['provider_config', 'is_enabled', 'auth_method_policy']
+      attributes: ['azure_tenant_id', 'azure_client_id', 'cloud_environment', 'is_enabled', 'auth_method_policy']
     });
 
     const ssoAvailable = !!(ssoConfig && ssoConfig.is_enabled);
@@ -727,10 +722,9 @@ export const checkUserOrganization = async (req: Request, res: Response) => {
  */
 export const getAvailableSSOProviders = async (req: Request, res: Response) => {
   try {
-    // Find all organizations with enabled SSO configurations (Azure AD provider)
+    // Find all organizations with enabled SSO configurations
     const ssoConfigs = await SSOConfigurationModel.findAll({
       where: {
-        provider_id: 1, // Azure AD provider
         is_enabled: true
       },
       include: [{
@@ -800,7 +794,6 @@ export const discoverOrganizationForNewUser = async (req: Request, res: Response
     // Find organizations with SSO configurations that allow this email domain
     const ssoConfigs = await SSOConfigurationModel.findAll({
       where: {
-        provider_id: 1, // Azure AD provider
         is_enabled: true
       },
       include: [{
@@ -899,7 +892,7 @@ export const getOrganizationSSOConfig = async (req: Request, res: Response) => {
     const ssoConfig = await SSOConfigurationModel.findOne({
       where: {
         organization_id: parseInt(organizationId),
-        provider_id: 1 // Azure AD provider
+        
       }
     });
 

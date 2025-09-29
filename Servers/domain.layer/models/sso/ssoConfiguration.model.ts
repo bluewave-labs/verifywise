@@ -16,7 +16,7 @@
 import { Column, DataType, Model, Table, ForeignKey, BelongsTo } from "sequelize-typescript";
 import { OrganizationModel } from "../organization/organization.model";
 import { encryptSecret, decryptSecret, isEncrypted } from "../../../utils/sso-encryption.utils";
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export interface ISSOConfiguration {
   organization_id: number;
@@ -28,6 +28,14 @@ export interface ISSOConfiguration {
   auth_method_policy: 'sso_only' | 'password_only' | 'both';
   created_at?: Date;
   updated_at?: Date;
+}
+
+export interface IAzureAdConfig {
+  tenant_id: string;
+  client_id: string;
+  client_secret: string;
+  cloud_environment: 'AzurePublic' | 'AzureGovernment';
+  redirect_uri?: string;
 }
 
 @Table({
@@ -275,6 +283,18 @@ export class SSOConfigurationModel
       });
 
     this.allowed_domains = validDomains.length > 0 ? validDomains : undefined;
+  }
+
+  /**
+   * Get Azure AD configuration object for MSAL
+   */
+  public getAzureAdConfig(): IAzureAdConfig {
+    return {
+      tenant_id: this.azure_tenant_id,
+      client_id: this.azure_client_id,
+      client_secret: this.getDecryptedSecret(),
+      cloud_environment: this.cloud_environment
+    };
   }
 
   /**

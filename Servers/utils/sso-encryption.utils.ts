@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 /**
  * Utility functions for encrypting and decrypting SSO secrets

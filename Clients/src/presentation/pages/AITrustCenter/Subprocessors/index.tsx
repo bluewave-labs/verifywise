@@ -58,20 +58,25 @@ const SubprocessorTableRow: React.FC<{
   const theme = useTheme();
   const styles = useStyles(theme);
 
+  const handleRowClick = () => {
+    onEdit(subprocessor.id);
+  };
+
+
   return (
     <>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
         <Typography sx={styles.tableDataCell}>{subprocessor.name}</Typography>
       </TableCell>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
         <Typography sx={styles.tableDataCell}>{subprocessor.url}</Typography>
       </TableCell>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
         <Typography sx={styles.tableDataCell}>
           {subprocessor.purpose}
         </Typography>
       </TableCell>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer" , textTransform: "none !important",}}>
         <Typography sx={styles.tableDataCell}>
           {subprocessor.location}
         </Typography>

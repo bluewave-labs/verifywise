@@ -3,3 +3,9 @@ export enum Status {
   Inactive = "inactive",
   Canceled = "canceled",
 }
+
+export enum TrainingStatus {
+  Planned = "Planned",
+  InProgress = "In Progress",
+  Completed = "Completed",
+}

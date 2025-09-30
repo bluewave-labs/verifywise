@@ -59,7 +59,7 @@ export const sendUserAddedAdminNotification = async(
     await notificationService.sendEmailWithTemplate(
       user.email,
       subject,
-      "user-added-admin.mjml",
+      "user-added-project-admin.mjml",
       templateData
     );
 

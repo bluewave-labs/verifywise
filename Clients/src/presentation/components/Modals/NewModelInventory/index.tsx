@@ -24,7 +24,7 @@ import SelectComponent from "../../Inputs/Select";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";
+import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
@@ -32,7 +32,7 @@ import { KeyboardArrowDown } from "@mui/icons-material";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
-import {getAllProjects} from "../../../../application/repository/project.repository"
+import { getAllProjects } from "../../../../application/repository/project.repository";
 import { Project } from "../../../../domain/types/Project";
 
 interface NewModelInventoryProps {
@@ -57,7 +57,7 @@ interface NewModelInventoryFormValues {
   biases: string;
   limitations: string;
   hosting_provider: string;
-  used_in_projects: string[]
+  used_in_projects: string[];
 }
 
 interface NewModelInventoryFormErrors {
@@ -83,10 +83,10 @@ const initialState: NewModelInventoryFormValues = {
   status: ModelInventoryStatus.PENDING,
   status_date: new Date().toISOString().split("T")[0],
   reference_link: "",
-  biases:  "",
+  biases: "",
   limitations: "",
   hosting_provider: "",
-  used_in_projects : [],
+  used_in_projects: [],
 };
 
 const statusOptions = [
@@ -177,7 +177,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
   const [projectList, setProjects] = useState<Project[]>([]);
   const [, setProjectsLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -192,17 +192,17 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         setProjectsLoading(false);
       }
     };
-  
+
     fetchProjects();
   }, []);
 
   const combinedList = useMemo(() => {
     const targetFrameworks = ["ISO 42001", "ISO 27001"];
-  
+
     return projectList.flatMap((project) => {
       // Get enabled framework names for this project
       const enabledFrameworks = project.framework?.map((f) => f.name) || [];
-  
+
       // Only include target frameworks that are enabled
       return targetFrameworks
         .filter((fw) => enabledFrameworks.includes(fw))
@@ -220,17 +220,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   }, [users]);
 
   const modelInventoryList = useMemo(() => {
-    return modelInventoryOptions.map((u: {
-      model: string;
-      provider: string;
-    }) => ({
-      _id: u.model,          
-      name: `${u.provider} - ${u.model}`,
-      surname: u.model,
-      email: u.model
-    }));
-  }, []);  
-  
+    return modelInventoryOptions.map(
+      (u: { model: string; provider: string }) => ({
+        _id: u.model,
+        name: `${u.provider} - ${u.model}`,
+        surname: u.model,
+        email: u.model,
+      })
+    );
+  }, []);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
@@ -271,7 +269,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     if (newDate?.isValid()) {
       setValues((prev) => ({
         ...prev,
-        status_date: newDate ? newDate.format('YYYY-MM-DD') : "",
+        status_date: newDate ? newDate.format("YYYY-MM-DD") : "",
       }));
       setErrors((prev) => ({ ...prev, status_date: "" }));
     }
@@ -405,13 +403,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal 
-      open={isOpen} 
+    <Modal
+      open={isOpen}
       onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
+        if (reason !== "backdropClick") {
           handleClose();
         }
-      }} 
+      }}
       sx={{ overflowY: "scroll" }}
     >
       <Stack
@@ -495,15 +493,27 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   />
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
-              
-               <Box sx={{ display: 'flex', flexDirection: 'column', width: 220 }}>
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 2, fontWeight: 450, color: theme.palette.text.primary }}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      width: 220,
+                    }}
                   >
-                    Model <Typography component="span" color="black">*</Typography>
-                  </Typography>
-                  <Autocomplete
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 450,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Model{" "}
+                      <Typography component="span" color="black">
+                        *
+                      </Typography>
+                    </Typography>
+                    <Autocomplete
                       id="model-input"
                       size="small"
                       freeSolo
@@ -529,7 +539,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       }}
                       renderOption={(props, option) => (
                         <Box component="li" {...props}>
-                          <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
+                          <Typography
+                            sx={{
+                              fontSize: 13,
+                              color: theme.palette.text.primary,
+                            }}
+                          >
                             {option.name}
                           </Typography>
                         </Box>
@@ -558,7 +573,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       // noOptionsText="No matching models"
                       filterOptions={(options, state) => {
                         const filtered = options.filter((option) =>
-                          option.name.toLowerCase().includes(state.inputValue.toLowerCase())
+                          option.name
+                            .toLowerCase()
+                            .includes(state.inputValue.toLowerCase())
                         );
 
                         if (filtered.length === 0) {
@@ -577,7 +594,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                                 padding: "8px 12px",
                               },
                               "& .MuiAutocomplete-option.Mui-focused": {
-                                backgroundColor: theme.palette.background.accent,
+                                backgroundColor:
+                                  theme.palette.background.accent,
                               },
                             },
                           },
@@ -585,7 +603,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       }}
                       disabled={isLoadingUsers}
                     />
-                </Box>
+                  </Box>
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
@@ -772,12 +790,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     {errors.used_in_projects}
                   </Typography>
                 )}
-          </Stack>
+              </Stack>
 
-              <Stack
-                direction={"row"}
-                gap={theme.spacing(8)}
-              >
+              <Stack direction={"row"} gap={theme.spacing(8)}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="reference_link"
@@ -790,8 +805,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   />
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
-
-                <Field
+                  <Field
                     id="biases"
                     label="Biases"
                     width={"50%"}
@@ -803,10 +817,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 </Suspense>
               </Stack>
 
-              <Stack
-                direction={"row"}
-                gap={theme.spacing(8)}
-              >
+              <Stack direction={"row"} gap={theme.spacing(8)}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="hosting_provider"

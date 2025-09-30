@@ -1,4 +1,11 @@
-import React, { FC, useState, useMemo, useCallback, Suspense, lazy } from "react";
+import React, {
+  FC,
+  useState,
+  useMemo,
+  useCallback,
+  Suspense,
+  lazy,
+} from "react";
 import {
   Button,
   SelectChangeEvent,
@@ -17,10 +24,6 @@ import selectValidation from "../../../application/validations/selectValidation"
 import { extractUserToken } from "../../../application/tools/extractToken";
 import useUsers from "../../../application/hooks/useUsers";
 import {
-  HighRiskRoleEnum,
-  RiskClassificationEnum,
-} from "../../../domain/enums/risk";
-import {
   CreateProjectFormErrors,
   CreateProjectFormValues,
 } from "../../../domain/interfaces/iForm";
@@ -30,6 +33,8 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { createProject } from "../../../application/repository/project.repository";
 import { Project } from "../../../domain/types/Project";
 import { createProjectFormStyles } from "./styles";
+import { AiRiskClassification } from "../../../domain/enums/aiRiskClassification.enum";
+import { HighRiskRole } from "../../../domain/enums/highRiskRole.enum";
 
 const Select = lazy(() => import("../Inputs/Select"));
 const DatePicker = lazy(() => import("../Inputs/Datepicker"));
@@ -44,7 +49,6 @@ const initialState: CreateProjectFormValues = {
   type_of_high_risk_role: 0,
   goal: "",
 };
-
 
 interface ProjectResponse {
   status: number;
@@ -95,8 +99,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   const handleOnSelectChange = useCallback(
     (prop: keyof CreateProjectFormValues) =>
       (event: SelectChangeEvent<string | number>) => {
-        setValues(prevValues => ({ ...prevValues, [prop]: event.target.value }));
-        setErrors(prevErrors => ({ ...prevErrors, [prop]: "" }));
+        setValues((prevValues) => ({
+          ...prevValues,
+          [prop]: event.target.value,
+        }));
+        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -104,8 +111,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   const handleOnTextFieldChange = useCallback(
     (prop: keyof CreateProjectFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValues(prevValues => ({ ...prevValues, [prop]: event.target.value }));
-        setErrors(prevErrors => ({ ...prevErrors, [prop]: "" }));
+        setValues((prevValues) => ({
+          ...prevValues,
+          [prop]: event.target.value,
+        }));
+        setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
       },
     []
   );
@@ -187,11 +197,11 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           members: teamMember,
         },
       });
-      
+
       setValues(initialState);
       setErrors({});
       closePopup();
-      
+
       if (response.status === 201) {
         onNewProject({
           isNewProject: true,
@@ -199,27 +209,27 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
         });
       }
     } catch (error) {
-      console.error('Error creating project:', error);
+      console.error("Error creating project:", error);
     }
   };
 
   const riskClassificationItems = useMemo(
     () => [
-      { _id: 1, name: RiskClassificationEnum.HighRisk },
-      { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-      { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+      { _id: 1, name: AiRiskClassification.HIGH_RISK },
+      { _id: 2, name: AiRiskClassification.LIMITED_RISK },
+      { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
     ],
     []
   );
 
   const highRiskRoleItems = useMemo(
     () => [
-      { _id: 1, name: HighRiskRoleEnum.Deployer },
-      { _id: 2, name: HighRiskRoleEnum.Provider },
-      { _id: 3, name: HighRiskRoleEnum.Distributor },
-      { _id: 4, name: HighRiskRoleEnum.Importer },
-      { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-      { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+      { _id: 1, name: HighRiskRole.DEPLOYER },
+      { _id: 2, name: HighRiskRole.PROVIDER },
+      { _id: 3, name: HighRiskRole.DISTRIBUTOR },
+      { _id: 4, name: HighRiskRole.IMPORTER },
+      { _id: 5, name: HighRiskRole.PRODUCT_MANUFACTURER },
+      { _id: 6, name: HighRiskRole.AUTHORIZED_REPRESENTATIVE },
     ],
     []
   );
@@ -237,7 +247,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           [prop]: newValue,
         }));
         setMemberRequired(false);
-        setErrors(prevErrors => ({ ...prevErrors, members: "" }));
+        setErrors((prevErrors) => ({ ...prevErrors, members: "" }));
       },
     []
   );
@@ -245,13 +255,8 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
   return (
     <Stack>
       <Stack component="form" onSubmit={handleSubmit}>
-        <Stack
-          direction="row"
-          sx={createProjectFormStyles.formContainer}
-        >
-          <Stack
-            sx={createProjectFormStyles.leftColumn}
-          >
+        <Stack direction="row" sx={createProjectFormStyles.formContainer}>
+          <Stack sx={createProjectFormStyles.leftColumn}>
             <Suspense fallback={<div>Loading...</div>}>
               <Field
                 id="project-title-input"
@@ -320,14 +325,14 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           </Stack>
           <Stack>
             <Suspense fallback={<div>Loading...</div>}>
-              <Typography
-                sx={createProjectFormStyles.teamMembersTitle(theme)}
-              >
+              <Typography sx={createProjectFormStyles.teamMembersTitle(theme)}>
                 Team members *
               </Typography>
               <Autocomplete
                 multiple
-                readOnly={!allowedRoles.projects.editTeamMembers.includes(userRoleName)}
+                readOnly={
+                  !allowedRoles.projects.editTeamMembers.includes(userRoleName)
+                }
                 id="users-input"
                 size="small"
                 value={values.members}
@@ -339,12 +344,15 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                           (selectedUser) => selectedUser._id === user.id
                         )
                     )
-                    .map((user) => ({
-                      _id: user.id,
-                      name: user.name,
-                      surname: user.surname,
-                      email: user.email,
-                    } satisfies CreateProjectFormUser)) || []
+                    .map(
+                      (user) =>
+                        ({
+                          _id: user.id,
+                          name: user.name,
+                          surname: user.surname,
+                          email: user.email,
+                        } satisfies CreateProjectFormUser)
+                    ) || []
                 }
                 noOptionsText={
                   values.members.length === users?.length
@@ -361,7 +369,9 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                       : option.email;
                   return (
                     <Box key={key} component="li" {...optionProps}>
-                      <Typography sx={createProjectFormStyles.autocompleteOptionText}>
+                      <Typography
+                        sx={createProjectFormStyles.autocompleteOptionText}
+                      >
                         {option.name} {option.surname}
                       </Typography>
                       <Typography
@@ -394,9 +404,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 </Typography>
               )}
             </Suspense>
-            <Stack
-              sx={createProjectFormStyles.rightColumnContainer}
-            >
+            <Stack sx={createProjectFormStyles.rightColumnContainer}>
               <Suspense fallback={<div>Loading...</div>}>
                 <DatePicker
                   label="Start date"

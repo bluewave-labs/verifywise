@@ -1,14 +1,10 @@
-export interface TierFeatures {
-  seats: number;
-  projects: number;
-  frameworks: number;
-}
+import { TierFeatureModel } from "../tierFeature/tierFeature.model";
 
 export class TierModel {
   id?: number;
   name!: string;
   price!: number;
-  features!: TierFeatures;
+  features!: TierFeatureModel;
   created_at!: Date;
   updated_at!: Date;
 

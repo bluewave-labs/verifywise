@@ -1,21 +1,6 @@
 import { Theme } from "@mui/material";
 import { SxProps } from "@mui/material";
 
-export enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
-
-export enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
-}
-
 export enum FrameworkTypeEnum {
   ProjectBased = "project-based",
   OrganizationWide = "organization-wide",
@@ -34,6 +19,7 @@ export interface FormValues {
   members: User[];
   start_date: string;
   ai_risk_classification: number;
+  status: number;
   type_of_high_risk_role: number;
   goal: string;
   enable_ai_data_insertion: boolean;
@@ -48,6 +34,7 @@ export interface FormErrors {
   owner?: string;
   startDate?: string;
   riskClassification?: string;
+  status?: string;
   typeOfHighRiskRole?: string;
   goal?: string;
   frameworkType?: string;
@@ -59,6 +46,7 @@ export const initialState: FormValues = {
   owner: 0,
   start_date: new Date().toISOString(),
   ai_risk_classification: 0,
+  status: 1,
   type_of_high_risk_role: 0,
   goal: "",
   enable_ai_data_insertion: false,

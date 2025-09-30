@@ -11,7 +11,7 @@ import {
   getAllProjectsQuery,
   getProjectByIdQuery,
   updateProjectByIdQuery,
-  getCurrentProjectMembers,
+  getCurrentProjectMembers
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
@@ -24,23 +24,17 @@ import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
-import {
-  logProcessing,
-  logSuccess,
-  logFailure,
-} from "../utils/logger/logHelper";
+import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
-import { sendSlackNotification } from "../services/slackNotificationService";
-import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
-import { sendUserAddedAdminNotification } from "../services/userNotification/userAddedAdminNotification";
-import { sendUserAddedEditorNotification } from "../services/userNotification/userAddedEditorNotification";
+import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
+import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
+import { sendSlackNotification } from "../services/slackNotificationService";
+import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 
-export async function getAllProjects(
-  req: Request,
-  res: Response,
-): Promise<any> {
+
+export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllProjects",
     functionName: "getAllProjects",
@@ -53,10 +47,7 @@ export async function getAllProjects(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const projects = (await getAllProjectsQuery(
-      { userId, role },
-      req.tenantId!,
-    )) as IProjectAttributes[];
+    const projects = (await getAllProjectsQuery({ userId, role }, req.tenantId!)) as IProjectAttributes[];
 
     await logSuccess({
       eventType: "Read",
@@ -79,10 +70,7 @@ export async function getAllProjects(
   }
 }
 
-export async function getProjectById(
-  req: Request,
-  res: Response,
-): Promise<any> {
+export async function getProjectById(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
 
   logProcessing({
@@ -146,11 +134,9 @@ export async function createProject(req: Request, res: Response): Promise<any> {
     };
 
     if (!newProject.project_title || !newProject.owner) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({ message: "project_title and owner are required" }),
-        );
+      return res.status(400).json(
+        STATUS_CODE[400]({ message: "project_title and owner are required" })
+      );
     }
 
     const createdProject = await createNewProjectQuery(
@@ -158,7 +144,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       newProject.members ?? [],
       newProject.framework,
       req.tenantId!,
-      transaction,
+      transaction
     );
     const frameworks: { [key: string]: Object } = {};
     for (const framework of newProject.framework) {
@@ -167,7 +153,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           createdProject.id!,
           newProject.enable_ai_data_insertion,
           req.tenantId!,
-          transaction,
+          transaction
         );
         frameworks["eu"] = eu;
       } else if (framework === 2) {
@@ -175,7 +161,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           createdProject.id!,
           newProject.enable_ai_data_insertion,
           req.tenantId!,
-          transaction,
+          transaction
         );
         frameworks["iso42001"] = iso42001;
       } else if (framework === 3) {
@@ -183,7 +169,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           createdProject.id!,
           newProject.enable_ai_data_insertion,
           req.tenantId!,
-          transaction,
+          transaction
         );
         frameworks["iso27001"] = iso27001;
       }
@@ -232,7 +218,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
         STATUS_CODE[201]({
           project: createdProject,
           frameworks,
-        }),
+        })
       );
     }
 
@@ -259,10 +245,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   }
 }
 
-export async function updateProjectById(
-  req: Request,
-  res: Response,
-): Promise<any> {
+export async function updateProjectById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
 
@@ -281,31 +264,24 @@ export async function updateProjectById(
     delete updatedProject.id;
 
     if (!updatedProject.project_title || !updatedProject.owner) {
-      return res
-        .status(400)
-        .json(
-          STATUS_CODE[400]({ message: "project_title and owner are required" }),
-        );
+      return res.status(400).json(
+        STATUS_CODE[400]({ message: "project_title and owner are required" })
+      );
     }
 
     // Get current project and members to check for changes
     const currentProject = await getProjectByIdQuery(projectId, req.tenantId!);
-    const ownerChanged =
-      currentProject && currentProject.owner !== updatedProject.owner;
+    const ownerChanged = currentProject && currentProject.owner !== updatedProject.owner;
 
     // Get current members before update to identify newly added ones
-    const currentMembers = await getCurrentProjectMembers(
-      projectId,
-      req.tenantId!,
-      transaction,
-    );
+    const currentMembers = await getCurrentProjectMembers(projectId, req.tenantId!, transaction);
 
     const project = await updateProjectByIdQuery(
       projectId,
       updatedProject,
       members,
       req.tenantId!,
-      transaction,
+      transaction
     );
 
     if (project) {
@@ -321,55 +297,53 @@ export async function updateProjectById(
       // Calculate which members actually got added (both new and re-added)
       // This includes users who weren't in currentMembers but are now in the final project
       const finalMembers = project.members || [];
-      const addedMembers = finalMembers.filter(
-        (m) => !currentMembers.includes(m),
-      );
+      const addedMembers = finalMembers.filter((m) => !currentMembers.includes(m));
 
-      // Send notification to users who were added as project editors (fire-and-forget, don't block response)
-      for (const memberId of addedMembers) {
-        try {
-          // Get user details to check their role
-          const memberUser = await getUserByIdQuery(memberId);
-          // Check if user has Editor role (role_id = 3)
-          if (memberUser && memberUser.role_id === 3) {
-            sendUserAddedEditorNotification({
-              projectId: projectId,
-              projectName: project.project_title,
-              adminId: req.userId!, // Actor who made the change
-              userId: memberId, // Editor receiving notification
-            }).catch(async (emailError) => {
-              await logFailure({
-                eventType: "Update",
-                description: `Failed to send user added as editor notification email to user ${memberId}`,
-                functionName: "updateProjectById",
-                fileName: "project.ctrl.ts",
-                error: emailError as Error,
-              });
-            });
-          }
-        } catch (userLookupError) {
-          await logFailure({
-            eventType: "Update",
-            description: `Failed to lookup user role for member ${memberId}`,
-            functionName: "updateProjectById",
-            fileName: "project.ctrl.ts",
-            error: userLookupError as Error,
-          });
+        // Send notification to users who were added as project editors (fire-and-forget, don't block response)
+        for (const memberId of addedMembers) {
+            try {
+                // Get user details to check their role
+                const memberUser = await getUserByIdQuery(memberId);
+                // Check if user has Editor role (role_id = 3)
+                if (memberUser && memberUser.role_id === 3) {
+                    sendUserAddedEditorNotification({
+                        projectId: projectId,
+                        projectName: project.project_title,
+                        adminId: req.userId!,     // Actor who made the change
+                        userId: memberId          // Editor receiving notification
+                    }).catch(async (emailError) => {
+                        await logFailure({
+                            eventType: "Update",
+                            description: `Failed to send user added as editor notification email to user ${memberId}`,
+                            functionName: "updateProjectById",
+                            fileName: "project.ctrl.ts",
+                            error: emailError as Error,
+                        });
+                    });
+                }
+            } catch (userLookupError) {
+                await logFailure({
+                    eventType: "Update",
+                    description: `Failed to lookup user role for member ${memberId}`,
+                    functionName: "updateProjectById",
+                    fileName: "project.ctrl.ts",
+                    error: userLookupError as Error,
+                });
+            }
         }
-      }
 
-      // Send notification if owner changed (fire-and-forget, don't block response)
+
+        // Send notification if owner changed (fire-and-forget, don't block response)
       if (ownerChanged && currentProject) {
         sendUserAddedAdminNotification({
           projectId: projectId,
           projectName: project.project_title,
-          adminId: req.userId!, // Actor who made the change
-          userId: updatedProject.owner!, // New admin receiving notification
+          adminId: req.userId!,          // Actor who made the change
+          userId: updatedProject.owner!  // New admin receiving notification
         }).catch(async (emailError) => {
           await logFailure({
             eventType: "Update",
-            description:
-              "Failed to send user added as admin notification email",
+            description: "Failed to send user added as admin notification email",
             functionName: "updateProjectById",
             fileName: "project.ctrl.ts",
             error: emailError as Error,
@@ -379,6 +353,7 @@ export async function updateProjectById(
 
       return res.status(202).json(STATUS_CODE[202](project));
     }
+
 
     await logSuccess({
       eventType: "Update",
@@ -403,10 +378,7 @@ export async function updateProjectById(
   }
 }
 
-export async function deleteProjectById(
-  req: Request,
-  res: Response,
-): Promise<any> {
+export async function deleteProjectById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
 
@@ -417,11 +389,7 @@ export async function deleteProjectById(
   });
 
   try {
-    const deletedProject = await deleteProjectByIdQuery(
-      projectId,
-      req.tenantId!,
-      transaction,
-    );
+    const deletedProject = await deleteProjectByIdQuery(projectId, req.tenantId!, transaction);
 
     if (deletedProject) {
       await transaction.commit();
@@ -459,10 +427,7 @@ export async function deleteProjectById(
   }
 }
 
-export async function getProjectStatsById(
-  req: Request,
-  res: Response,
-): Promise<any> {
+export async function getProjectStatsById(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
   logProcessing({
     description: `starting getProjectStatsById for project ID ${projectId}`,
@@ -509,10 +474,7 @@ export async function getProjectStatsById(
   }
 }
 
-export async function getProjectRisksCalculations(
-  req: Request,
-  res: Response,
-): Promise<any> {
+export async function getProjectRisksCalculations(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
   logProcessing({
     description: `starting getProjectRisksCalculations for project ID ${projectId}`,
@@ -521,10 +483,7 @@ export async function getProjectRisksCalculations(
   });
 
   try {
-    const projectRisksCalculations = await calculateProjectRisks(
-      projectId,
-      req.tenantId!,
-    );
+    const projectRisksCalculations = await calculateProjectRisks(projectId, req.tenantId!);
 
     await logSuccess({
       eventType: "Read",
@@ -533,13 +492,9 @@ export async function getProjectRisksCalculations(
       fileName: "projec.ctrl.ts",
     });
 
-    return res
-      .status(projectRisksCalculations ? 200 : 204)
-      .json(
-        STATUS_CODE[projectRisksCalculations ? 200 : 204](
-          projectRisksCalculations,
-        ),
-      );
+    return res.status(projectRisksCalculations ? 200 : 204).json(
+      STATUS_CODE[projectRisksCalculations ? 200 : 204](projectRisksCalculations)
+    );
   } catch (error) {
     await logFailure({
       eventType: "Read",
@@ -553,10 +508,7 @@ export async function getProjectRisksCalculations(
   }
 }
 
-export async function getVendorRisksCalculations(
-  req: Request,
-  res: Response,
-): Promise<any> {
+export async function getVendorRisksCalculations(req: Request, res: Response): Promise<any> {
   const projectId = parseInt(req.params.id);
   logProcessing({
     description: `starting getVendorRisksCalculations for project ID ${projectId}`,
@@ -565,10 +517,7 @@ export async function getVendorRisksCalculations(
   });
 
   try {
-    const vendorRisksCalculations = await calculateVendirRisks(
-      projectId,
-      req.tenantId!,
-    );
+    const vendorRisksCalculations = await calculateVendirRisks(projectId, req.tenantId!);
 
     await logSuccess({
       eventType: "Read",
@@ -577,13 +526,9 @@ export async function getVendorRisksCalculations(
       fileName: "projec.ctrl.ts",
     });
 
-    return res
-      .status(vendorRisksCalculations ? 200 : 204)
-      .json(
-        STATUS_CODE[vendorRisksCalculations ? 200 : 204](
-          vendorRisksCalculations,
-        ),
-      );
+    return res.status(vendorRisksCalculations ? 200 : 204).json(
+      STATUS_CODE[vendorRisksCalculations ? 200 : 204](vendorRisksCalculations)
+    );
   } catch (error) {
     await logFailure({
       eventType: "Read",
@@ -609,25 +554,18 @@ export async function getCompliances(req: Request, res: Response) {
     const project = await getProjectByIdQuery(projectId, req.tenantId!);
     if (project) {
       const controlCategories = (await getControlCategoryByProjectIdQuery(
-        project.id!,
-        req.tenantId!,
+        project.id!, req.tenantId!
       )) as IControlCategory[];
       for (const category of controlCategories) {
         if (category) {
           const controls = (await getAllControlsByControlGroupQuery(
-            category.id,
-            req.tenantId!,
+            category.id, req.tenantId!
           )) as IControl[];
           for (const control of controls) {
             if (control && control.id) {
-              const subControls = await getAllSubcontrolsByControlIdQuery(
-                control.id,
-                req.tenantId!,
-              );
+              const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
               control.numberOfSubcontrols = subControls.length;
-              control.numberOfDoneSubcontrols = subControls.filter(
-                (sub) => sub.status === "Done",
-              ).length;
+              control.numberOfDoneSubcontrols = subControls.filter(sub => sub.status === "Done").length;
               control.subControls = subControls;
             }
           }
@@ -691,7 +629,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
         STATUS_CODE[200]({
           allsubControls: totalSubcontrols,
           allDonesubControls: doneSubcontrols,
-        }),
+        })
       );
     }
 
@@ -741,7 +679,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
         STATUS_CODE[200]({
           totalQuestions: totalAssessments,
           answeredQuestions: answeredAssessments,
-        }),
+        })
       );
     }
 
@@ -766,10 +704,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
   }
 }
 
-export async function allProjectsComplianceProgress(
-  req: Request,
-  res: Response,
-) {
+export async function allProjectsComplianceProgress(req: Request, res: Response) {
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
   logProcessing({
@@ -792,7 +727,7 @@ export async function allProjectsComplianceProgress(
             await countSubControlsByProjectId(project.id!, req.tenantId!);
           totalNumberOfSubcontrols += parseInt(totalSubcontrols);
           totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
-        }),
+        })
       );
 
       await logSuccess({
@@ -806,7 +741,7 @@ export async function allProjectsComplianceProgress(
         STATUS_CODE[200]({
           allsubControls: totalNumberOfSubcontrols,
           allDonesubControls: totalNumberOfDoneSubcontrols,
-        }),
+        })
       );
     }
 
@@ -831,10 +766,7 @@ export async function allProjectsComplianceProgress(
   }
 }
 
-export async function allProjectsAssessmentProgress(
-  req: Request,
-  res: Response,
-) {
+export async function allProjectsAssessmentProgress(req: Request, res: Response) {
   let totalNumberOfQuestions = 0;
   let totalNumberOfAnsweredQuestions = 0;
   logProcessing({
@@ -857,7 +789,7 @@ export async function allProjectsAssessmentProgress(
             await countAnswersByProjectId(project.id!, req.tenantId!);
           totalNumberOfQuestions += parseInt(totalAssessments);
           totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
-        }),
+        })
       );
 
       await logSuccess({
@@ -871,7 +803,7 @@ export async function allProjectsAssessmentProgress(
         STATUS_CODE[200]({
           totalQuestions: totalNumberOfQuestions,
           answeredQuestions: totalNumberOfAnsweredQuestions,
-        }),
+        })
       );
     }
 
@@ -896,10 +828,7 @@ export async function allProjectsAssessmentProgress(
   }
 }
 
-export async function updateProjectStatus(
-  req: Request,
-  res: Response,
-): Promise<any> {
+export async function updateProjectStatus(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
   const { status } = req.body;
@@ -913,9 +842,9 @@ export async function updateProjectStatus(
   try {
     // Validate status value
     if (!status || !Object.values(ProjectStatus).includes(status)) {
-      return res
-        .status(400)
-        .json(STATUS_CODE[400]({ message: "Valid status is required" }));
+      return res.status(400).json(
+        STATUS_CODE[400]({ message: "Valid status is required" })
+      );
     }
 
     // Check if project exists
@@ -937,7 +866,7 @@ export async function updateProjectStatus(
       { status, last_updated: new Date(), last_updated_by: req.userId! },
       [], // no members update
       req.tenantId!,
-      transaction,
+      transaction
     );
 
     if (updatedProject) {
@@ -954,9 +883,7 @@ export async function updateProjectStatus(
     }
 
     await transaction.rollback();
-    return res
-      .status(500)
-      .json(STATUS_CODE[500]("Failed to update project status"));
+    return res.status(500).json(STATUS_CODE[500]("Failed to update project status"));
   } catch (error) {
     await transaction.rollback();
 

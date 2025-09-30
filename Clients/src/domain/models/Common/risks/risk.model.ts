@@ -1,5 +1,6 @@
 import { AiLifeCyclePhase } from "../../../enums/aiLifeCyclePhase.enum";
 import { Likelihood } from "../../../enums/likelihood.enum";
+import { MitigationStatus } from "../../../enums/mitigitaion";
 import { RiskLevelAutoCalculated } from "../../../enums/riskLevelAutoCalculated.enum";
 import { Severity } from "../../../enums/severity.enum";
 
@@ -17,14 +18,7 @@ export class RiskModel {
   severity!: Severity;
   risk_level_autocalculated!: RiskLevelAutoCalculated;
   review_notes!: string;
-  mitigation_status!:
-    | "Not Started"
-    | "In Progress"
-    | "Completed"
-    | "On Hold"
-    | "Deferred"
-    | "Canceled"
-    | "Requires review";
+  mitigation_status!: MitigationStatus;
   current_risk_level!:
     | "Very Low risk"
     | "Low risk"

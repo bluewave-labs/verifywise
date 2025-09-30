@@ -63,11 +63,11 @@ const Slack = () => {
     "channels:write.invites",
     "groups:read",
     "groups:write.invites",
-    "channels:write", 
-    "chat:write", 
+    "channels:write",
+    "chat:write",
     "im:read",
     "mpim:read",
-  ].join(",")
+  ].join(",");
 
   const url = `${ENV_VARs.SLACK_URL}?client_id=${ENV_VARs.CLIENT_ID}&scope=${scopes}&user_scope=${userScopes}&redirect_uri=${window.location.origin}/setting/?activeTab=slack`;
 
@@ -205,6 +205,7 @@ const Slack = () => {
         <SlackIntegrations
           integrationData={integrationData}
           showAlert={showAlert}
+          refreshSlackIntegrations={refreshSlackIntegrations}
         />
       )}
     </Box>

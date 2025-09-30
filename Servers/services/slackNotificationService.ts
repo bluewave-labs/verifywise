@@ -3,6 +3,7 @@ import { decryptText } from "../tools/createSecureValue";
 import { WebClient } from "@slack/web-api";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 import { getSlackWebhookByIdAndRoutingType } from "../utils/slackWebhook.utils";
+import { disableSlackActivity } from "../controllers/slackWebhook.ctrl";
 
 export const inviteBotToChannel = async (accessToken: string, channelId: string, botUserId: string) => {
   // Use the USER token (not bot token) to invite the bot
@@ -58,9 +59,8 @@ export const sendSlackNotification = async (
         sendImmediateMessage(integration, message),
       ),
     );
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error sending Slack Notification:", error);
-    throw error;
   }
 };
 
@@ -94,6 +94,10 @@ export const sendImmediateMessage = async (
     };
   } catch (error: any) {
     logger.error("Error sending Slack message:", error);
+    const NOT_ACTIVE_ERRORS = ["channel_not_found", "is_archived"];
+    if (NOT_ACTIVE_ERRORS.includes(error.data.error)) {
+      await disableSlackActivity(integration.id!);
+    }
     throw error;
   }
 };

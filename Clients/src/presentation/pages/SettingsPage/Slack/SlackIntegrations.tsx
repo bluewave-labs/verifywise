@@ -33,15 +33,16 @@ interface SlackIntegrationsProps {
     title: string,
     body: string,
   ) => void;
+  refreshSlackIntegrations: () => void;
 }
 
 const SlackIntegrations = ({
   integrationData,
   showAlert,
+  refreshSlackIntegrations,
 }: SlackIntegrationsProps) => {
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
-
   const theme = useTheme();
 
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
@@ -85,11 +86,23 @@ const SlackIntegrations = ({
         );
       }
     } catch (error) {
-      showAlert(
-        "error",
-        "Error",
-        `Error sending test message to the Slack channel.: ${error}`,
-      );
+      if (error instanceof Error) {
+        let err: string = error.message;
+        if (error.message.includes("is_archived")) {
+          err = "The channel is archived.";
+        } else if (error.message.includes("channel_not_found")) {
+          err = "The channel is no longer active or available.";
+        }
+
+        refreshSlackIntegrations();
+        showAlert("error", "Error", `${err}`);
+      } else {
+        showAlert(
+          "error",
+          "Error",
+          `Error sending test message to the Slack channel.`,
+        );
+      }
     }
   };
 

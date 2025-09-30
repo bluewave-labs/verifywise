@@ -1,3 +1,34 @@
+/**
+ * @fileoverview Organization Management Controller
+ *
+ * Handles organization lifecycle operations including creation, retrieval, updates, and deletion.
+ * Implements multi-tenant architecture with automatic tenant provisioning and admin user creation
+ * during organization setup.
+ *
+ * Key Features:
+ * - Organization CRUD operations with validation
+ * - Automatic tenant database provisioning on creation
+ * - Admin user creation with JWT token generation
+ * - Transaction-based operations for data consistency
+ * - Multi-tenant isolation and data segregation
+ * - Comprehensive validation and error handling
+ *
+ * Security Features:
+ * - Transaction rollback on failures
+ * - Validation of organization data before persistence
+ * - Admin user automatically assigned to new organizations
+ * - Selective audit logging for critical operations
+ * - Organization-scoped data access
+ *
+ * Multi-Tenancy:
+ * - Each organization gets isolated tenant database
+ * - Tenant provisioning automated via createNewTenant()
+ * - Organization ID used for data segregation
+ * - Admin user linked to organization on creation
+ *
+ * @module controllers/organization
+ */
+
 import { Request, Response } from "express";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import { sequelize } from "../database/db";
@@ -23,11 +54,28 @@ import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
 
 /**
- * Get all organizations
+ * Retrieves all organizations from the system
  *
- * @param req Express request object
- * @param res Express response object
- * @returns Response with organizations or error
+ * Returns a complete list of all organizations in the system. This endpoint
+ * typically requires admin privileges to access.
+ *
+ * @async
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON array of organizations or appropriate status code
+ *
+ * @example
+ * GET /api/organizations
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": [
+ *     { "id": 1, "name": "Acme Corp", "logo": "..." },
+ *     { "id": 2, "name": "Tech Inc", "logo": "..." }
+ *   ]
+ * }
  */
 export async function getAllOrganizations(
   req: Request,
@@ -75,6 +123,26 @@ export async function getAllOrganizations(
   }
 }
 
+/**
+ * Checks if any organizations exist in the system
+ *
+ * Used for setup/initialization flows to determine if this is a fresh installation
+ * requiring initial organization setup.
+ *
+ * @async
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Boolean indicating organization existence
+ *
+ * @example
+ * GET /api/organizations/exists
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": true
+ * }
+ */
 export async function getOrganizationsExists(
   req: Request,
   res: Response
@@ -88,11 +156,29 @@ export async function getOrganizationsExists(
 }
 
 /**
- * Get organization by ID
+ * Retrieves a specific organization by its ID
  *
- * @param req Express request object with organization ID
- * @param res Express response object
- * @returns Response with organization or error
+ * Returns detailed information about a single organization.
+ *
+ * @async
+ * @param {Request} req - Express request with organization ID in params
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Organization object or 404 if not found
+ *
+ * @example
+ * GET /api/organizations/1
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": {
+ *     "id": 1,
+ *     "name": "Acme Corp",
+ *     "logo": "base64_encoded_logo",
+ *     "created_at": "2025-01-15T10:30:00Z"
+ *   }
+ * }
  */
 export async function getOrganizationById(
   req: Request,
@@ -141,11 +227,52 @@ export async function getOrganizationById(
 }
 
 /**
- * Create a new organization
+ * Creates a new organization with tenant provisioning and admin user
  *
- * @param req Express request object with organization data
- * @param res Express response object
- * @returns Response with created organization or error
+ * Implements a complete organization onboarding flow that:
+ * 1. Creates organization record with validation
+ * 2. Provisions isolated tenant database
+ * 3. Creates admin user for the organization
+ * 4. Generates authentication tokens for immediate login
+ *
+ * All operations are wrapped in a transaction to ensure atomicity.
+ *
+ * @async
+ * @param {Request} req - Express request with organization and admin user data
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Created organization with admin user and access token
+ *
+ * @security
+ * - Transaction-based to ensure atomic operations
+ * - Validation performed before database operations
+ * - Admin user created with hashed password
+ * - JWT tokens generated for immediate authenticated access
+ * - Tenant database isolated from other organizations
+ *
+ * @validation
+ * - Organization name required
+ * - Admin user email, name, surname, password required
+ * - All data validated via model methods
+ *
+ * @example
+ * POST /api/organizations
+ * {
+ *   "name": "Acme Corp",
+ *   "logo": "base64_encoded_logo",
+ *   "userEmail": "admin@acme.com",
+ *   "userName": "John",
+ *   "userSurname": "Doe",
+ *   "userPassword": "SecurePassword123!"
+ * }
+ *
+ * Response 201:
+ * {
+ *   "code": 201,
+ *   "data": {
+ *     "user": { "id": 1, "email": "admin@acme.com", ... },
+ *     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *   }
+ * }
  */
 export async function createOrganization(
   req: Request,
@@ -292,11 +419,44 @@ export async function createOrganization(
 }
 
 /**
- * Update an organization
+ * Updates an existing organization's information
  *
- * @param req Express request object with organization ID and updated data
- * @param res Express response object
- * @returns Response with updated organization or error
+ * Allows modification of organization details with comprehensive validation.
+ * Uses transaction to ensure data consistency.
+ *
+ * @async
+ * @param {Request} req - Express request with organization ID in params and update data in body
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Updated organization object or error status
+ *
+ * @security
+ * - Transaction-based update for atomicity
+ * - Validation performed before persistence
+ * - Organization ID verified before update
+ *
+ * @validation
+ * - Organization must exist
+ * - Updated data validated via model methods
+ * - Name and other fields validated for format/length
+ *
+ * @example
+ * PATCH /api/organizations/1
+ * Authorization: Bearer <jwt_token>
+ * {
+ *   "name": "Acme Corporation",
+ *   "logo": "new_base64_encoded_logo"
+ * }
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": {
+ *     "id": 1,
+ *     "name": "Acme Corporation",
+ *     "logo": "new_base64_encoded_logo",
+ *     "updated_at": "2025-01-15T12:00:00Z"
+ *   }
+ * }
  */
 export async function updateOrganizationById(
   req: Request,
@@ -405,11 +565,39 @@ export async function updateOrganizationById(
 }
 
 /**
- * Delete an organization
+ * Deletes an organization from the system
  *
- * @param req Express request object with organization ID
- * @param res Express response object
- * @returns Response with deleted organization or error
+ * Removes an organization and its associated data. This operation should be used
+ * with caution as it may impact associated users and tenant data.
+ *
+ * @async
+ * @param {Request} req - Express request with organization ID in params
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Deleted organization object or error status
+ *
+ * @security
+ * - Transaction-based deletion for atomicity
+ * - Organization existence verified before deletion
+ * - May cascade to related tenant data
+ *
+ * @warning
+ * Deleting an organization may impact:
+ * - All users associated with the organization
+ * - Tenant database data
+ * - Related projects and assessments
+ *
+ * @example
+ * DELETE /api/organizations/1
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": {
+ *     "id": 1,
+ *     "name": "Acme Corp"
+ *   }
+ * }
  */
 export async function deleteOrganizationById(
   req: Request,

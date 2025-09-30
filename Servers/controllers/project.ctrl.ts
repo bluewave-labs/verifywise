@@ -42,6 +42,10 @@ import { sendUserAddedToProjectNotification, ProjectRole } from "../services/use
 import { sendSlackNotification } from "../services/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 
+import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
+import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
+
+
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllProjects",
@@ -405,6 +409,13 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
     // }
 
     // Get current project and members to check for changes
+
+    if (!updatedProject.project_title || !updatedProject.owner) {
+      return res.status(400).json(
+        STATUS_CODE[400]({ message: "project_title and owner are required" })
+      );
+    }
+
     const ownerChanged = existingProject && existingProject.owner !== updatedProject.owner;
 
     // Get current members before update to identify newly added ones

@@ -6,7 +6,7 @@
  *
  * Database Schema:
  * - id: Auto-incrementing primary key
- * - name: Role name (required, unique)
+ * - name: Role name (required)
  * - description: Role description (required)
  * - is_demo: Flag for demo/sandbox roles
  * - created_at: Role creation timestamp

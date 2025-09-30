@@ -1,8 +1,4 @@
-export enum AiRiskClassification {
-  HIGH_RISK = "High risk",
-  LIMITED_RISK = "Limited risk",
-  MINIMAL_RISK = "Minimal risk",
-}
+import { AiRiskClassification } from "../../../enums/aiRiskClassification.enum";
 
 export enum HighRiskRole {
   DEPLOYER = "Deployer",

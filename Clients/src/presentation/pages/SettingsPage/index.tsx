@@ -20,7 +20,7 @@ import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 
 export default function ProfilePage() {
-  const authorizedActiveTabs = ["profile", "password", "team", "organization"];
+  const validTabs = ["profile", "password", "team", "organization", "slack"];
   const { userRoleName } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -29,10 +29,11 @@ export default function ProfilePage() {
   // const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeSetting = searchParams.get("activeTab");
+  const activeSetting = searchParams.get("activeTab") || "";
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   useEffect(() => {
-    if (activeSetting && authorizedActiveTabs.includes(activeSetting)) {
+    if (activeSetting && validTabs.includes(activeSetting)) {
       setActiveTab(activeSetting);
     } else {
       searchParams.delete("activeTab");
@@ -40,12 +41,10 @@ export default function ProfilePage() {
       setActiveTab("profile");
     }
   }, [activeSetting]);
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Handle navigation state from command palette
   useEffect(() => {
     if (location.state?.activeTab) {
-      const validTabs = ['profile', 'password', 'team', 'organization'];
       const requestedTab = location.state.activeTab;
 
       // Check if requested tab is valid and user has permission to access it
@@ -65,7 +64,7 @@ export default function ProfilePage() {
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     if (activeSetting) {
-      searchParams.delete("activeTab");
+      searchParams.set("activeTab", newValue);
       setSearchParams(searchParams);
     }
     setActiveTab(newValue);

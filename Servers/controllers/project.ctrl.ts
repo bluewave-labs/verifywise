@@ -203,7 +203,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
 
       const actor = await getUserByIdQuery(req.userId!);
 
-      await sendSlackNotification(
+      sendSlackNotification(
         {
           userId: actor.id!,
           routingType: SlackNotificationRoutingType.PROJECTS_AND_ORGANIZATIONS,
@@ -212,7 +212,15 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           title: `Project created`,
           message: `${actor.name} ${actor.surname} created Project ${createdProject.project_title}.`,
         },
-      );
+      ).catch(async (slackError) => {
+       await logFailure({
+         eventType: "Create",
+         description: "Failed to send Slack notification for project creation",
+         functionName: "createProject",
+         fileName: "project.ctrl.ts",
+         error: slackError as Error,
+       });
+     });;
 
       return res.status(201).json(
         STATUS_CODE[201]({

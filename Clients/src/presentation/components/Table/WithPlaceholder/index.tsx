@@ -213,6 +213,7 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
       dropdownAnchor,
       handleDropdownClose,
       openVendorRisksDialog,
+      formattedUsers,
     ]
   );
 

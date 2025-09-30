@@ -16,7 +16,8 @@ import {
   validateCompleteVendorRisk,
   validateUpdateVendorRisk,
   validateVendorRiskIdParam,
-  validateProjectIdParam
+  validateProjectIdParam,
+  validateVendorIdParam
 } from '../utils/validations/vendorRiskValidation.utils';
 
 export async function getAllVendorRisksAllProjects(
@@ -116,6 +117,24 @@ export async function getAllVendorRisksByVendorId(
   res: Response
 ) {
   const vendorId = parseInt(req.params.id);
+
+  // Validate vendor ID parameter
+  const vendorIdValidation = validateVendorIdParam(vendorId);
+  if (!vendorIdValidation.isValid) {
+    await logFailure({
+      eventType: 'Read',
+      description: `Invalid vendor ID parameter: ${req.params.id}`,
+      functionName: 'getAllVendorRisksByVendorId',
+      fileName: 'vendorRisk.ctrl.ts',
+      error: new Error(vendorIdValidation.message || 'Invalid vendor ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: vendorIdValidation.message || 'Invalid vendor ID',
+      code: vendorIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId}`,
     functionName: 'getAllVendorRisksByVendorId',

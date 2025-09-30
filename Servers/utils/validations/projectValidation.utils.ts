@@ -147,6 +147,9 @@ export const validateIsOrganizational = (value: any): ValidationResult => {
 /**
  * Validates framework array field
  * Framework is required for all projects and must contain valid framework IDs
+ * Handles two formats:
+ * 1. Creation: [1, 2, 3] (array of framework IDs)
+ * 2. Update: [{project_framework_id: 1, framework_id: 1}] (array of objects)
  */
 export const validateFramework = (value: any): ValidationResult => {
   // Framework field is required
@@ -170,9 +173,34 @@ export const validateFramework = (value: any): ValidationResult => {
   // Valid framework IDs: 1=EU AI Act, 2=ISO 42001, 3=ISO 27001
   const validFrameworkIds = [1, 2, 3];
 
-  // Validate each framework ID in the array
+  // Extract framework IDs based on format
+  const frameworkIds: number[] = [];
+
   for (let i = 0; i < value.length; i++) {
-    const frameworkId = value[i];
+    const item = value[i];
+    let frameworkId: number;
+
+    // Check if it's an object (update format) or number (creation format)
+    if (typeof item === 'object' && item !== null) {
+      // Update format: {project_framework_id: X, framework_id: Y}
+      if (!item.framework_id) {
+        return {
+          isValid: false,
+          message: `Framework object at index ${i} must have a framework_id property`,
+          code: 'MISSING_FRAMEWORK_ID'
+        };
+      }
+      frameworkId = item.framework_id;
+    } else if (typeof item === 'number') {
+      // Creation format: just the number
+      frameworkId = item;
+    } else {
+      return {
+        isValid: false,
+        message: `Framework at index ${i} must be either a number or an object with framework_id`,
+        code: 'INVALID_FRAMEWORK_FORMAT'
+      };
+    }
 
     // Check if it's a valid positive integer
     if (!Number.isInteger(frameworkId) || frameworkId <= 0) {
@@ -191,11 +219,13 @@ export const validateFramework = (value: any): ValidationResult => {
         code: 'INVALID_FRAMEWORK_ID'
       };
     }
+
+    frameworkIds.push(frameworkId);
   }
 
   // Check for duplicates
-  const uniqueFrameworkIds = [...new Set(value)];
-  if (uniqueFrameworkIds.length !== value.length) {
+  const uniqueFrameworkIds = [...new Set(frameworkIds)];
+  if (uniqueFrameworkIds.length !== frameworkIds.length) {
     return {
       isValid: false,
       message: 'Framework array cannot contain duplicate IDs',
@@ -269,6 +299,7 @@ export const validateProjectId = (value: any): ValidationResult => {
 /**
  * Validation schema for creating a new project
  * Note: ai_risk_classification and type_of_high_risk_role are validated conditionally
+ * Note: status is optional (defaults to "Not started" if not provided)
  */
 export const createProjectSchema = {
   project_title: validateProjectTitle,
@@ -278,7 +309,8 @@ export const createProjectSchema = {
   is_organizational: validateIsOrganizational,
   framework: validateFramework,
   members: validateMembers,
-  enable_ai_data_insertion: validateEnableAiDataInsertion
+  enable_ai_data_insertion: validateEnableAiDataInsertion,
+  status: (value: any) => validateProjectStatus(value, false) // Optional during creation
 };
 
 /**
@@ -292,6 +324,7 @@ export const updateProjectSchema = {
   start_date: (value: any) => value !== undefined ? validateStartDate(value) : { isValid: true },
   goal: (value: any) => value !== undefined ? validateGoal(value) : { isValid: true },
   members: (value: any) => value !== undefined ? validateMembers(value) : { isValid: true },
+  status: (value: any) => value !== undefined ? validateProjectStatus(value, false) : { isValid: true },
 };
 
 /**
@@ -405,8 +438,71 @@ export const validateProjectIdParam = (id: any): ValidationResult => {
 };
 
 /**
+ * Validates project status enum field
+ * @param required - Whether the status field is required (default: false for optional)
+ */
+export const validateProjectStatus = (value: any, required: boolean = false): ValidationResult => {
+  // Status is optional during creation (defaults to "Not started" in database)
+  if (!required && (value === undefined || value === null)) {
+    return { isValid: true };
+  }
+
+  // Import ProjectStatus enum values dynamically to avoid circular dependency
+  const PROJECT_STATUS_ENUM = [
+    "Not started",
+    "In progress",
+    "Under review",
+    "Completed",
+    "Closed",
+    "On hold",
+    "Rejected"
+  ] as const;
+
+  return validateEnum(value, 'Project status', PROJECT_STATUS_ENUM, required);
+};
+
+/**
+ * Validates project status update request body
+ * Status is REQUIRED for the dedicated status update endpoint
+ */
+export const validateProjectStatusUpdate = (data: any): ValidationError[] => {
+  const errors: ValidationError[] = [];
+
+  // Status is required for status update endpoint
+  const statusValidation = validateProjectStatus(data.status, true);
+  if (!statusValidation.isValid) {
+    errors.push({
+      field: 'status',
+      message: statusValidation.message || 'Invalid project status',
+      code: statusValidation.code || 'INVALID_STATUS'
+    });
+  }
+
+  return errors;
+};
+
+/**
  * Business logic validations
  */
+
+/**
+ * Helper function to extract framework IDs from both formats
+ * Handles: [1, 2, 3] or [{project_framework_id: 1, framework_id: 1}]
+ */
+export const extractFrameworkIds = (frameworks: any[]): number[] => {
+  if (!Array.isArray(frameworks)) {
+    return [];
+  }
+
+  return frameworks.map(item => {
+    if (typeof item === 'number') {
+      return item;
+    } else if (typeof item === 'object' && item !== null && item.framework_id) {
+      return item.framework_id;
+    }
+    return null;
+  }).filter((id): id is number => id !== null);
+};
 
 /**
  * Validates that start date is not in the future beyond reasonable limits
@@ -553,9 +649,10 @@ export const validateCompleteProjectWithBusinessRules = (data: any): ValidationE
     // This validation is mandatory for all projects
     const isOrganizational = data.is_organizational !== undefined ? data.is_organizational : false;
     const frameworks = data.framework || [];
+    const frameworkIds = extractFrameworkIds(frameworks);
     const frameworkConsistencyCheck = validateOrganizationalFrameworkConsistency(
       isOrganizational,
-      frameworks
+      frameworkIds
     );
     if (!frameworkConsistencyCheck.isValid) {
       errors.push({
@@ -617,9 +714,10 @@ export const validateUpdateProjectWithBusinessRules = (
       : currentProject.framework;
 
     if (newFramework && newFramework.length > 0) {
+      const newFrameworkIds = extractFrameworkIds(newFramework);
       const frameworkConsistencyCheck = validateOrganizationalFrameworkConsistency(
         newIsOrganizational,
-        newFramework
+        newFrameworkIds
       );
       if (!frameworkConsistencyCheck.isValid) {
         errors.push({

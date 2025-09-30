@@ -193,6 +193,13 @@ export const validateProjectIdParam = (id: any): ValidationResult => {
 };
 
 /**
+ * Validates vendor ID parameter (for querying vendor risks by vendor)
+ */
+export const validateVendorIdParam = (id: any): ValidationResult => {
+  return validateVendorId(id);
+};
+
+/**
  * Business logic validations
  */
 

@@ -30,13 +30,13 @@ import {
   validateCompleteProjectWithBusinessRules,
   validateUpdateProjectWithBusinessRules,
   validateProjectIdParam,
-  sanitizeProjectDataForOrganizational
+  sanitizeProjectDataForOrganizational,
+  validateProjectStatusUpdate
 } from '../utils/validations/projectValidation.utils';
 import {
   ValidationException,
   BusinessLogicException
 } from "../domain.layer/exceptions/custom.exception";
-import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
 import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
 import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
@@ -1100,6 +1100,45 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
 export async function updateProjectStatus(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Update",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "updateProjectStatus",
+      fileName: "project.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Validate request body
+  const validationErrors = validateProjectStatusUpdate(req.body);
+  if (validationErrors.length > 0) {
+    await logFailure({
+      eventType: "Update",
+      description: `Validation failed for updateProjectStatus: ${validationErrors.map(e => e.message).join(', ')}`,
+      functionName: "updateProjectStatus",
+      fileName: "project.ctrl.ts",
+      error: new Error('Validation failed')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: 'Validation failed',
+      errors: validationErrors.map(err => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   const { status } = req.body;
 
   logProcessing({
@@ -1109,12 +1148,6 @@ export async function updateProjectStatus(req: Request, res: Response): Promise<
   });
 
   try {
-    // Validate status value
-    if (!status || !Object.values(ProjectStatus).includes(status)) {
-      return res.status(400).json(
-        STATUS_CODE[400]({ message: "Valid status is required" })
-      );
-    }
 
     // Check if project exists
     const existingProject = await getProjectByIdQuery(projectId, req.tenantId!);

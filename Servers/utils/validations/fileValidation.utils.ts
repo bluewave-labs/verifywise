@@ -106,12 +106,12 @@ export const validateFileUploadBody = async (body: any, tenant: string): Promise
   const errors: ValidationError[] = [];
 
   // Validate question_id (required)
-  const questionIdValidation = validateForeignKey(body.question_id, 'Question ID', false);
+  const questionIdValidation = validateForeignKey(body.question_id, 'Question ID', true);
   if (!questionIdValidation.isValid) {
     errors.push({
       field: 'question_id',
-      message: questionIdValidation.message || 'Invalid question ID',
-      code: questionIdValidation.code || 'INVALID_QUESTION_ID'
+      message: questionIdValidation.message || 'Question ID is required',
+      code: questionIdValidation.code || 'MISSING_QUESTION_ID'
     });
   }
 

@@ -268,7 +268,7 @@ export async function postFileContent(
       delete: string;
     };
 
-    const filesToDelete = JSON.parse(body.delete) as number[];
+    const filesToDelete = JSON.parse(body.delete || "[]") as number[];
     for (let fileToDelete of filesToDelete) {
       await deleteFileById(fileToDelete, req.tenantId!, transaction);
     }

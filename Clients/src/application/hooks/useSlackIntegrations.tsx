@@ -108,8 +108,6 @@ const useSlackIntegrations = (userId: number | null) => {
     fetchSlackIntegrations();
   }, []);
 
-  console.log(routingData);
-
   return {
     slackIntegrations,
     routingData,

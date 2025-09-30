@@ -9,7 +9,7 @@
  * - id: Auto-incrementing primary key
  * - name: User's first name (min 2 chars)
  * - surname: User's last name (min 2 chars)
- * - email: Unique email address (validated format)
+ * - email: Email address (validated format)
  * - password_hash: Bcrypt hashed password (10 rounds)
  * - role_id: Foreign key to RoleModel
  * - created_at: Account creation timestamp

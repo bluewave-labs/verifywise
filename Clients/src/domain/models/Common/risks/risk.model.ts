@@ -1,4 +1,5 @@
 import { AiLifeCyclePhase } from "../../../enums/aiLifeCyclePhase.enum";
+import { Likelihood } from "../../../enums/likelihood.enum";
 
 export class RiskModel {
   id?: number;
@@ -10,7 +11,7 @@ export class RiskModel {
   impact!: string;
   assessment_mapping!: string;
   controls_mapping!: string;
-  likelihood!: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost Certain";
+  likelihood!: Likelihood;
   severity!: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
   risk_level_autocalculated!:
     | "No risk"

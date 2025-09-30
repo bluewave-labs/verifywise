@@ -3,6 +3,7 @@ import { CurrentRiskLevel } from "../../../enums/currentRiskLevel.enum";
 import { Likelihood } from "../../../enums/likelihood.enum";
 import { MitigationStatus } from "../../../enums/mitigitaion";
 import { RiskLevelAutoCalculated } from "../../../enums/riskLevelAutoCalculated.enum";
+import { RiskSeverity } from "../../../enums/riskSeverity.enum";
 import { Severity } from "../../../enums/severity.enum";
 
 export class RiskModel {
@@ -25,13 +26,8 @@ export class RiskModel {
   mitigation_plan!: string;
   implementation_strategy!: string;
   mitigation_evidence_document!: string;
-  likelihood_mitigation!:
-    | "Rare"
-    | "Unlikely"
-    | "Possible"
-    | "Likely"
-    | "Almost Certain";
-  risk_severity!: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
+  likelihood_mitigation!: Likelihood;
+  risk_severity!: RiskSeverity;
   final_risk_level!: string;
   risk_approval!: number;
   approval_status!: string;

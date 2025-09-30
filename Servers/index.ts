@@ -39,10 +39,14 @@ import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
+import ssoConfigurationRoutes from "./routes/ssoConfiguration.route";
+import ssoAuthRoutes from "./routes/ssoAuth.route";
+import ssoHealthRoutes from "./routes/sso-health.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 import { frontEndUrl } from "./config/constants";
+import { SSOEnvironmentValidator } from "./utils/sso-env-validator.utils";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -57,6 +61,15 @@ const host = process.env.HOST || DEFAULT_HOST;
 const port = parseInt(portString, 10); // Convert to number
 
 try {
+  // Validate SSO environment variables at startup
+  console.log('🔍 Validating SSO environment configuration...');
+  SSOEnvironmentValidator.validateOrThrow();
+
+  // Display environment summary for debugging
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔧 SSO Environment Summary:', SSOEnvironmentValidator.getEnvironmentSummary());
+  }
+
   // (async () => {
   //   await checkAndCreateTables();
   // })();
@@ -127,6 +140,9 @@ try {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
+  app.use("/api/sso-configuration", ssoConfigurationRoutes);
+  app.use("/api/sso-auth", ssoAuthRoutes);
+  app.use("/api/sso-health", ssoHealthRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

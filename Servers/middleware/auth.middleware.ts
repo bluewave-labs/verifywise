@@ -17,7 +17,15 @@ const authenticateJWT = async (
   res: Response,
   next: NextFunction
 ): Promise<void | Response> => {
-  const token = req.headers.authorization?.split(" ")[1];
+  // Check for token in Authorization header (regular auth) or cookies (SSO auth)
+  let token = req.headers.authorization?.split(" ")[1];
+  let isFromCookie = false;
+
+  // If no token in header, check httpOnly cookie (SSO authentication)
+  if (!token && req.cookies?.auth_token) {
+    token = req.cookies.auth_token;
+    isFromCookie = true;
+  }
 
   if (!token) {
     return res.status(400).json(
@@ -70,6 +78,7 @@ const authenticateJWT = async (
     req.role = decoded.roleName;
     req.tenantId = decoded.tenantId;
     req.organizationId = decoded.organizationId;
+    req.ssoEnabled = decoded.ssoEnabled || false;
 
     // Initialize AsyncLocalStorage context here
     asyncLocalStorage.run({ userId: decoded.id }, () => {

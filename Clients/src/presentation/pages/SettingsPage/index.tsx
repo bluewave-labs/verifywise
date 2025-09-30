@@ -11,6 +11,7 @@ import Password from "./Password/index";
 import TeamManagement from "./Team/index";
 import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
+import EntraIdConfig from "./EntraIdConfig/index";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 // import Slack from "./Slack";
@@ -20,7 +21,7 @@ import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 
 export default function ProfilePage() {
-  const authorizedActiveTabs = ["profile", "password", "team", "organization"];
+  const authorizedActiveTabs = ["profile", "password", "team", "organization", "entraid"];
   const { userRoleName } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -157,6 +158,12 @@ export default function ProfilePage() {
               disableRipple
               sx={settingTabStyle}
             />
+            <Tab
+              label="Entra ID"
+              value="entraid"
+              disableRipple
+              sx={settingTabStyle}
+            />
             {/* <Tab
               label="Slack"
               value="slack"
@@ -181,6 +188,10 @@ export default function ProfilePage() {
 
         <TabPanel value="organization">
           <Organization />
+        </TabPanel>
+
+        <TabPanel value="entraid">
+          <EntraIdConfig />
         </TabPanel>
 
         {/* Hiding the slack until all the Slack work has been resolved */}

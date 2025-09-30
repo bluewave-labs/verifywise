@@ -1,3 +1,5 @@
+import { ReviewStatus } from "../../../enums/status.enum";
+
 export class VendorModel {
   id?: number;
   order_no?: number;
@@ -7,11 +9,7 @@ export class VendorModel {
   website!: string;
   vendor_contact_person!: string;
   review_result!: string;
-  review_status!:
-    | "Not started"
-    | "In review"
-    | "Reviewed"
-    | "Requires follow-up";
+  review_status!: ReviewStatus;
   reviewer!: number;
   review_date!: Date;
   is_demo?: boolean;

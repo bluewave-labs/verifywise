@@ -35,7 +35,7 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite }from "../../../assets/icons/trash-filled-white.svg";
+import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -48,35 +48,22 @@ import {
   updateProject,
 } from "../../../../application/repository/project.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
-
-enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
+import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
+import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 
 const riskClassificationItems = [
-  { _id: 1, name: RiskClassificationEnum.HighRisk },
-  { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-  { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+  { _id: 1, name: AiRiskClassification.HIGH_RISK },
+  { _id: 2, name: AiRiskClassification.LIMITED_RISK },
+  { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
 ];
 
-enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
-}
-
 const highRiskRoleItems = [
-  { _id: 1, name: HighRiskRoleEnum.Deployer },
-  { _id: 2, name: HighRiskRoleEnum.Provider },
-  { _id: 3, name: HighRiskRoleEnum.Distributor },
-  { _id: 4, name: HighRiskRoleEnum.Importer },
-  { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-  { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+  { _id: 1, name: HighRiskRole.DEPLOYER },
+  { _id: 2, name: HighRiskRole.PROVIDER },
+  { _id: 3, name: HighRiskRole.DISTRIBUTOR },
+  { _id: 4, name: HighRiskRole.IMPORTER },
+  { _id: 5, name: HighRiskRole.PRODUCT_MANUFACTURER },
+  { _id: 6, name: HighRiskRole.AUTHORIZED_REPRESENTATIVE },
 ];
 
 interface FormValues {
@@ -1273,7 +1260,6 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
-
       </Stack>
     );
   }

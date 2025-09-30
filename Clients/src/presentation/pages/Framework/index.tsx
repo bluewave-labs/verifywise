@@ -41,6 +41,7 @@ import NoProject from "../../components/NoProject/NoProject";
 import { useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
+import ButtonToggle from "../../components/ButtonToggle";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -68,36 +69,6 @@ const tabListStyle = {
   },
 };
 
-// Framework toggle styles following ProjectFrameworks pattern
-const frameworkTabsContainerStyle = {
-  display: "flex",
-  border: (theme: any) => `1px solid ${theme.palette.divider}`,
-  borderRadius: "4px",
-  overflow: "hidden",
-  height: 43,
-  bgcolor: "background.paper",
-  width: "fit-content",
-};
-
-const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
-  cursor: "pointer",
-  px: 5,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  height: "100%",
-  bgcolor: isActive ? "background.paper" : "action.hover",
-  color: "text.primary",
-  fontFamily: (theme: any) => theme.typography.fontFamily,
-  fontSize: "13px",
-  borderRight: (theme: any) =>
-    isLast ? "none" : `1px solid ${theme.palette.divider}`,
-  fontWeight: (theme: any) => theme.typography.body2.fontWeight,
-  transition: "background 0.2s",
-  userSelect: "none",
-  width: "fit-content",
-  minWidth: "120px",
-});
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
@@ -656,20 +627,15 @@ const Framework = () => {
         >
           {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
           {organizationalProject && filteredFrameworks.length > 0 && (
-            <Box sx={frameworkTabsContainerStyle}>
-              {filteredFrameworks.map((framework, index) => (
-                <Box
-                  key={framework.id}
-                  onClick={() => handleFrameworkSelect(index)}
-                  sx={getFrameworkTabStyle(
-                    selectedFramework === index,
-                    index === filteredFrameworks.length - 1
-                  )}
-                >
-                  {framework.name}
-                </Box>
-              ))}
-            </Box>
+            <ButtonToggle
+              options={filteredFrameworks.map((framework, index) => ({
+                value: index.toString(),
+                label: framework.name,
+              }))}
+              value={selectedFramework.toString()}
+              onChange={(value) => handleFrameworkSelect(parseInt(value))}
+              height={34}
+            />
           )}
 
           {/* Manage Project Button */}

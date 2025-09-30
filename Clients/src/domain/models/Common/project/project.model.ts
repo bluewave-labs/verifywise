@@ -1,13 +1,5 @@
 import { AiRiskClassification } from "../../../enums/aiRiskClassification.enum";
-
-export enum HighRiskRole {
-  DEPLOYER = "Deployer",
-  PROVIDER = "Provider",
-  DISTRIBUTOR = "Distributor",
-  IMPORTER = "Importer",
-  PRODUCT_MANUFACTURER = "Product manufacturer",
-  AUTHORIZED_REPRESENTATIVE = "Authorized representative",
-}
+import { HighRiskRole } from "../../../enums/highRiskRole.enum";
 
 export class ProjectModel {
   id?: number;

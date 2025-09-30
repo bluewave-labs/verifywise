@@ -4,6 +4,7 @@ import {
   Stack,
   Typography,
   useTheme,
+  SelectChangeEvent,
 } from "@mui/material";
 import Toggle from "../../../components/Toggle";
 import Alert from "../../../components/Alert";
@@ -35,7 +36,7 @@ const SecurityControlsTab: React.FC = () => {
   };
 
   const handleSelectChange = (field: keyof SecurityConfig) => (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: SelectChangeEvent<string | number>
   ) => {
     setConfig(prev => ({ ...prev, [field]: event.target.value }));
   };

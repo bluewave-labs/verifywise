@@ -181,10 +181,10 @@ const CustomizableButton = memo(
       // Filter out any remaining problematic props that shouldn't reach DOM
       const filteredProps = Object.keys(rest).reduce((acc, key) => {
         if (!['textColor', 'indicator', 'selectionFollowsFocus'].includes(key)) {
-          acc[key] = rest[key];
+          (acc as any)[key] = (rest as any)[key];
         }
         return acc;
-      }, {} as any);
+      }, {} as Record<string, any>);
 
       return (
         <Button

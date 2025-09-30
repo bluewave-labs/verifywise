@@ -24,7 +24,7 @@ const Slack = () => {
   } = useSlackIntegrations(userId);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [integrationData, setIntegrationData] = useState<SlackWebhook[]>([]);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -102,9 +102,6 @@ const Slack = () => {
       const body = { code, userId };
       await createSlackIntegration({ body });
       refreshSlackIntegrations();
-
-      // Clear URL parameters
-      removeUnusedParams();
     } catch (error) {
       showAlert(
         "error",
@@ -112,18 +109,17 @@ const Slack = () => {
         `Failed to complete Slack integration: ${error}`,
       );
     } finally {
+      // Clear URL parameters
+      removeUnusedParams();
       setIsLoading(false);
     }
   };
 
-  const removeUnusedParams = () => {
-    // Preserve the activeTab query param when clearing others
-    const params = new URLSearchParams(window.location.search);
-    const activeTab = params.get("activeTab");
-    const newUrl = activeTab
-      ? `${window.location.pathname}?activeTab=${activeTab}`
-      : window.location.pathname;
-    window.history.replaceState({}, document.title, newUrl);
+  const removeUnusedParams = () => {  
+    searchParams.delete("code");
+    searchParams.delete("state");
+    searchParams.delete("error");
+    setSearchParams(searchParams);
   };
 
   /**
@@ -177,7 +173,7 @@ const Slack = () => {
     >
       <Typography sx={vwhomeHeading}>Slack Integration</Typography>
       <Typography sx={singleTheme.textStyles.pageDescription}>
-        Connect you Slack workspace and route VerifyWise notifications to
+        Connect your Slack workspace and route VerifyWise notifications to
         specific channels.
       </Typography>
       {/* This is embeddable html provided by Slack */}

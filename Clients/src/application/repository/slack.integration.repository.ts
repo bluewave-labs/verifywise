@@ -25,7 +25,7 @@ export async function getSlackIntegrationById({
   signal,
   responseType = "json",
 }: {
-  id: string;
+  id: number;
   signal?: AbortSignal;
   responseType?: string;
 }): Promise<any> {

@@ -294,10 +294,7 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
                 size="medium"
                 text="Send Test"
                 sx={viewProjectButtonStyle}
-                isDisabled={
-                  routingData.filter((data) => data.routingType === type)
-                    .length === 0
-                }
+                isDisabled={(routingData.find((data) => data.routingType === type)?.id.length ?? 0) === 0}
               />
             </Box>
           </Stack>

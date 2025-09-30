@@ -28,7 +28,6 @@ import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.en
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
-import { KeyboardArrowDown } from "@mui/icons-material";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
@@ -549,7 +548,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                           </Typography>
                         </Box>
                       )}
-                      popupIcon={<KeyboardArrowDown />}
+                      popupIcon={<GreyDownArrowIcon />}
                       renderInput={(params) => (
                         <TextField
                           {...params}

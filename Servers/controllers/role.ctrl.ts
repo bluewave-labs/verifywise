@@ -176,7 +176,7 @@ export async function getRoleById(req: Request, res: Response): Promise<any> {
  *
  * @validation
  * - Role name required and must be unique
- * - Description optional
+ * - Description required
  * - Name validated for length and format
  *
  * @example

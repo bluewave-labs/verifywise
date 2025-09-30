@@ -175,7 +175,7 @@ export async function getOrganizationsExists(
  *   "data": {
  *     "id": 1,
  *     "name": "Acme Corp",
- *     "logo": "base64_encoded_logo",
+ *     "logo": "https://example.com/logo.png",
  *     "created_at": "2025-01-15T10:30:00Z"
  *   }
  * }
@@ -258,7 +258,7 @@ export async function getOrganizationById(
  * POST /api/organizations
  * {
  *   "name": "Acme Corp",
- *   "logo": "base64_encoded_logo",
+ *   "logo": "https://example.com/logo.png",
  *   "userEmail": "admin@acme.com",
  *   "userName": "John",
  *   "userSurname": "Doe",
@@ -444,7 +444,7 @@ export async function createOrganization(
  * Authorization: Bearer <jwt_token>
  * {
  *   "name": "Acme Corporation",
- *   "logo": "new_base64_encoded_logo"
+ *   "logo": "https://example.com/new-logo.png"
  * }
  *
  * Response 200:
@@ -453,7 +453,7 @@ export async function createOrganization(
  *   "data": {
  *     "id": 1,
  *     "name": "Acme Corporation",
- *     "logo": "new_base64_encoded_logo",
+ *     "logo": "https://example.com/new-logo.png",
  *     "updated_at": "2025-01-15T12:00:00Z"
  *   }
  * }

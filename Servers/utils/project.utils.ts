@@ -237,10 +237,10 @@ export const createNewProjectQuery = async (
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".projects (
       project_title, owner, start_date, ai_risk_classification, 
-      type_of_high_risk_role, goal, last_updated, last_updated_by, is_demo, is_organizational
+      type_of_high_risk_role, goal, status, last_updated, last_updated_by, is_demo, is_organizational
     ) VALUES (
       :project_title, :owner, :start_date, :ai_risk_classification, 
-      :type_of_high_risk_role, :goal, :last_updated, :last_updated_by, :is_demo, :is_organizational
+      :type_of_high_risk_role, :goal, :status, :last_updated, :last_updated_by, :is_demo, :is_organizational
     ) RETURNING *`,
     {
       replacements: {
@@ -250,6 +250,7 @@ export const createNewProjectQuery = async (
         ai_risk_classification: project.ai_risk_classification || null,
         type_of_high_risk_role: project.type_of_high_risk_role || null,
         goal: project.goal || null,
+        status: project.status || "Not started",
         last_updated: new Date(Date.now()),
         last_updated_by: userId,
         is_demo: isDemo,
@@ -402,6 +403,7 @@ export const updateProjectByIdQuery = async (
     "goal",
     "last_updated",
     "last_updated_by",
+    "status",
   ]
     .filter((f) => {
       if (
@@ -546,16 +548,16 @@ export const deleteProjectByIdQuery = async (
     }
   );
   const dependantEntities = [
-    {
-      vendors: {
-        foreignKey: "project_id",
-        model: VendorModel,
-        vendorrisks: {
-          foreignKey: "vendor_id",
-          model: VendorRiskModel,
-        },
-      },
-    },
+    // {
+    //   vendors: {
+    //     foreignKey: "project_id",
+    //     model: VendorModel,
+    //     vendorrisks: {
+    //       foreignKey: "vendor_id",
+    //       model: VendorRiskModel,
+    //     },
+    //   },
+    // },
     { files: { foreignKey: "project_id", model: FileModel } },
     { projects_risks: { foreignKey: "project_id", model: RiskModel } },
     {
@@ -633,3 +635,28 @@ export const calculateVendirRisks = async (
   );
   return result;
 };
+
+
+/**
+ * Gets current project members to identify newly added ones
+ * @param projectId - The project ID to get members for
+ * @param tenant - The tenant name for schema
+ * @param transaction - Optional transaction for database consistency
+ * @returns Array of user IDs that are currently members of the project
+ */
+export const getCurrentProjectMembers = async (
+    projectId: number,
+    tenant: string,
+    transaction?: Transaction
+): Promise<number[]> => {
+    const currentMembersResult = await sequelize.query(
+        `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
+        {
+            replacements: { project_id: projectId },
+            type: QueryTypes.SELECT,
+            transaction,
+        }
+    );
+    return (currentMembersResult as any[]).map((m) => m.user_id);
+};
+

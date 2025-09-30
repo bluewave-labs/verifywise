@@ -93,17 +93,17 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
         break;
       case "Main clauses group":
         navigteToNewTab(
-          `/framework?frameworkName=iso-27001&clauseId=${item.parentId}&subClauseId=${item.metaId}`,
+          `/framework?frameworkName=iso-27001&clause27001Id=${item.parentId}&subClause27001Id=${item.metaId}`,
         );
         break;
       case "Reference controls group":
         navigteToNewTab(
-          `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexControlId=${item.metaId}`,
+          `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexCategoryId=${item.metaId}`,
         );
         break;
       case "Annex controls group":
         navigteToNewTab(
-          `/framework?frameworkName=iso-27001&annexId=${item.parentId}&annexControlId=${item.metaId}`,
+          `/framework?frameworkName=iso-27001&annex27001Id=${item.parentId}&annexControl27001Id=${item.metaId}`,
         );
         break;
       default:

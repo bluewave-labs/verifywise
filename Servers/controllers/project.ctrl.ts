@@ -11,6 +11,7 @@ import {
   getAllProjectsQuery,
   getProjectByIdQuery,
   updateProjectByIdQuery,
+  getCurrentProjectMembers
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
@@ -35,7 +36,11 @@ import {
   ValidationException,
   BusinessLogicException
 } from "../domain.layer/exceptions/custom.exception";
-import { sendProjectCreatedNotification } from "../services/projectCreationNotification";
+import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
+import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
+import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
+import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
+
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -381,6 +386,18 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
     delete updatedProject.members;
     delete updatedProject.id;
 
+    // if (!updatedProject.project_title || !updatedProject.owner) {
+    //   return res.status(400).json(
+    //     STATUS_CODE[400]({ message: "project_title and owner are required" })
+    //   );
+    // }
+
+    // Get current project and members to check for changes
+    const ownerChanged = existingProject && existingProject.owner !== updatedProject.owner;
+
+    // Get current members before update to identify newly added ones
+    const currentMembers = await getCurrentProjectMembers(projectId, req.tenantId!, transaction);
+
     const project = await updateProjectByIdQuery(
       projectId,
       updatedProject,
@@ -399,8 +416,66 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
         fileName: "project.ctrl.ts",
       });
 
+      // Calculate which members actually got added (both new and re-added)
+      // This includes users who weren't in currentMembers but are now in the final project
+      const finalMembers = project.members || [];
+      const addedMembers = finalMembers.filter((m) => !currentMembers.includes(m));
+
+        // Send notification to users who were added as project editors (fire-and-forget, don't block response)
+        for (const memberId of addedMembers) {
+            try {
+                // Get user details to check their role
+                const memberUser = await getUserByIdQuery(memberId);
+                // Check if user has Editor role (role_id = 3)
+                if (memberUser && memberUser.role_id === 3) {
+                    sendUserAddedEditorNotification({
+                        projectId: projectId,
+                        projectName: project.project_title,
+                        adminId: req.userId!,     // Actor who made the change
+                        userId: memberId          // Editor receiving notification
+                    }).catch(async (emailError) => {
+                        await logFailure({
+                            eventType: "Update",
+                            description: `Failed to send user added as editor notification email to user ${memberId}`,
+                            functionName: "updateProjectById",
+                            fileName: "project.ctrl.ts",
+                            error: emailError as Error,
+                        });
+                    });
+                }
+            } catch (userLookupError) {
+                await logFailure({
+                    eventType: "Update",
+                    description: `Failed to lookup user role for member ${memberId}`,
+                    functionName: "updateProjectById",
+                    fileName: "project.ctrl.ts",
+                    error: userLookupError as Error,
+                });
+            }
+        }
+
+
+        // Send notification if owner changed (fire-and-forget, don't block response)
+      if (ownerChanged && existingProject) {
+        sendUserAddedAdminNotification({
+          projectId: projectId,
+          projectName: project.project_title,
+          adminId: req.userId!,          // Actor who made the change
+          userId: updatedProject.owner!  // New admin receiving notification
+        }).catch(async (emailError) => {
+          await logFailure({
+            eventType: "Update",
+            description: "Failed to send user added as admin notification email",
+            functionName: "updateProjectById",
+            fileName: "project.ctrl.ts",
+            error: emailError as Error,
+          });
+        });
+      }
+
       return res.status(202).json(STATUS_CODE[202](project));
     }
+
 
     await logSuccess({
       eventType: "Update",
@@ -1014,6 +1089,77 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
       eventType: "Read",
       description: "Failed to get assessment progress for all projects",
       functionName: "allProjectsAssessmentProgress",
+      fileName: "project.ctrl.ts",
+      error: error as Error,
+    });
+
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+export async function updateProjectStatus(req: Request, res: Response): Promise<any> {
+  const transaction = await sequelize.transaction();
+  const projectId = parseInt(req.params.id);
+  const { status } = req.body;
+
+  logProcessing({
+    description: `starting updateProjectStatus for ID ${projectId}`,
+    functionName: "updateProjectStatus",
+    fileName: "project.ctrl.ts",
+  });
+
+  try {
+    // Validate status value
+    if (!status || !Object.values(ProjectStatus).includes(status)) {
+      return res.status(400).json(
+        STATUS_CODE[400]({ message: "Valid status is required" })
+      );
+    }
+
+    // Check if project exists
+    const existingProject = await getProjectByIdQuery(projectId, req.tenantId!);
+    if (!existingProject) {
+      await logSuccess({
+        eventType: "Update",
+        description: `Project not found for status update: ID ${projectId}`,
+        functionName: "updateProjectStatus",
+        fileName: "project.ctrl.ts",
+      });
+
+      return res.status(404).json(STATUS_CODE[404]({}));
+    }
+
+    // Update project status
+    const updatedProject = await updateProjectByIdQuery(
+      projectId,
+      { status, last_updated: new Date(), last_updated_by: req.userId! },
+      [], // no members update
+      req.tenantId!,
+      transaction
+    );
+
+    if (updatedProject) {
+      await transaction.commit();
+
+      await logSuccess({
+        eventType: "Update",
+        description: `Updated project status to ${status} for ID ${projectId}`,
+        functionName: "updateProjectStatus",
+        fileName: "project.ctrl.ts",
+      });
+
+      return res.status(200).json(STATUS_CODE[200](updatedProject));
+    }
+
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]("Failed to update project status"));
+  } catch (error) {
+    await transaction.rollback();
+
+    await logFailure({
+      eventType: "Update",
+      description: "Failed to update project status",
+      functionName: "updateProjectStatus",
       fileName: "project.ctrl.ts",
       error: error as Error,
     });

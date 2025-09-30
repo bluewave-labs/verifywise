@@ -29,7 +29,7 @@ export async function getAllModelRisks(req: Request, res: Response) {
 
   try {
     const modelRisks = await getAllModelRisksQuery(
-      req.organizationId!
+      req.tenantId!
     );
     if (modelRisks && modelRisks.length > 0) {
       logStructured(
@@ -97,7 +97,7 @@ export async function getModelRiskById(req: Request, res: Response) {
   logger.debug(`🔍 Looking up model risk with ID: ${id}`);
 
   try {
-    const modelRisk = await getModelRiskByIdQuery(modelRiskId, req.organizationId!);
+    const modelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
     if (modelRisk) {
       logStructured(
         "successful",
@@ -159,7 +159,7 @@ export async function createNewModelRisk(req: Request, res: Response) {
   const transaction: Transaction = await sequelize.transaction();
 
   try {
-    const modelRisk = await createNewModelRiskQuery(req.body, req.organizationId!);
+    const modelRisk = await createNewModelRiskQuery(req.body, req.tenantId!);
     await transaction.commit();
 
     logStructured(
@@ -206,7 +206,7 @@ export async function updateModelRiskById(req: Request, res: Response) {
   // Get existing model risk for business rule validation
   let existingModelRisk = null;
   try {
-    existingModelRisk = await getModelRiskByIdQuery(modelRiskId, req.organizationId!);
+    existingModelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
   } catch (error) {
     // Continue without existing data if query fails
   }
@@ -245,7 +245,7 @@ export async function updateModelRiskById(req: Request, res: Response) {
     const modelRisk = await updateModelRiskByIdQuery(
       modelRiskId,
       req.body,
-      req.organizationId!
+      req.tenantId!
     );
 
     if (!modelRisk) {
@@ -312,7 +312,7 @@ export async function deleteModelRiskById(req: Request, res: Response) {
   const transaction: Transaction = await sequelize.transaction();
 
   try {
-    const success = await deleteModelRiskByIdQuery(parseInt(id, 10), req.organizationId!);
+    const success = await deleteModelRiskByIdQuery(parseInt(id, 10), req.tenantId!);
 
     if (!success) {
       await transaction.rollback();

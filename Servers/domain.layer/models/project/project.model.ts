@@ -9,6 +9,7 @@ import { UserModel } from "../user/user.model";
 import { IProjectAttributes } from "../../interfaces/i.project";
 import { AiRiskClassification } from "../../enums/ai-risk-classification.enum";
 import { HighRiskRole } from "../../enums/high-risk-role.enum";
+import { ProjectStatus } from "../../enums/project-status.enum";
 
 @Table({
   tableName: "projects",
@@ -84,6 +85,13 @@ export class ProjectModel
     defaultValue: false,
   })
   is_organizational!: boolean;
+
+  @Column({
+    type: DataType.ENUM(...Object.values(ProjectStatus)),
+    allowNull: false,
+    defaultValue: ProjectStatus.NOT_STARTED,
+  })
+  status!: ProjectStatus;
 
   static async CreateNewProject(
     projectAttributes: Partial<IProjectAttributes>

@@ -253,16 +253,15 @@ const QuestionFrame = ({
             <Box component="span" ml={2}>
               <Tooltip
                 title={question.hint || ""}
-                sx={{ fontSize: 13 }}
-                componentsProps={{
+                slotProps={{
                   tooltip: {
-                    sx: {
-                      fontSize: 12,
-                    },
+                    sx: { fontSize: 12 },
                   },
                 }}
               >
-                <GreyCircleInfoIcon fontSize="inherit" />
+                <Box component="span" sx={{ display: "inline-flex", cursor: "pointer" }}>
+          <GreyCircleInfoIcon />
+        </Box>
               </Tooltip>
             </Box>
           )}

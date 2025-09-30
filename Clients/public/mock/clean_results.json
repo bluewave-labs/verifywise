@@ -4,7 +4,7 @@
     "dataset": "adult-census-income",
     "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     "model_task": "binary_classification",
-    "evaluation_timestamp": "2025-09-03T13:24:01.392514",
+    "evaluation_timestamp": "2025-09-19T13:31:19.941341",
     "total_samples": 50,
     "protected_attributes": [
       "sex",
@@ -43,104 +43,104 @@
     }
   },
   "performance": {
-    "accuracy": 0.5,
-    "precision": 0.125,
-    "recall": 0.42857142857142855,
-    "f1_score": 0.1935483870967742
+    "accuracy": 0.46,
+    "precision": 0.16666666666666666,
+    "recall": 0.7142857142857143,
+    "f1_score": 0.2702702702702703
   },
   "fairness_metrics": {
     "demographic_parity_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "demographic_parity_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "equalized_odds_sex": {
-      "value": 0.42857142857142855,
+      "value": 0.7142857142857143,
       "status": "valid",
       "confidence": "high"
     },
     "equalized_odds_race": {
-      "value": 0.6,
+      "value": 0.7142857142857143,
       "status": "valid",
       "confidence": "high"
     },
     "equalized_opportunity_sex": {
-      "value": 0.42857142857142855,
+      "value": 0.7142857142857143,
       "status": "valid",
       "confidence": "high"
     },
     "equalized_opportunity_race": {
-      "value": 0.42857142857142855,
+      "value": 0.7142857142857143,
       "status": "valid",
       "confidence": "high"
     },
     "predictive_equality_sex": {
-      "value": 0.021739130434782594,
+      "value": 0.05869565217391304,
       "status": "valid",
       "confidence": "high"
     },
     "predictive_equality_race": {
-      "value": 0.6,
+      "value": 0.25357142857142856,
       "status": "valid",
       "confidence": "high"
     },
     "conditional_use_accuracy_equality_sex": {
-      "value": 0.25,
+      "value": 0.2631578947368421,
       "status": "valid",
       "confidence": "high"
     },
     "conditional_use_accuracy_equality_race": {
-      "value": 0.2222222222222222,
+      "value": 0.18518518518518517,
       "status": "valid",
       "confidence": "high"
     },
     "accuracy_difference_sex": {
-      "value": 0.0,
+      "value": 0.016666666666666663,
       "status": "valid",
       "confidence": "high"
     },
     "accuracy_difference_race": {
-      "value": 0.5952380952380952,
+      "value": 0.19642857142857145,
       "status": "valid",
       "confidence": "high"
     },
     "precision_difference_sex": {
-      "value": 0.21428571428571427,
+      "value": 0.2631578947368421,
       "status": "valid",
       "confidence": "high"
     },
     "precision_difference_race": {
-      "value": 0.125,
+      "value": 0.18518518518518517,
       "status": "valid",
       "confidence": "high"
     },
     "recall_difference_sex": {
-      "value": 0.42857142857142855,
+      "value": 0.7142857142857143,
       "status": "valid",
       "confidence": "high"
     },
     "recall_difference_race": {
-      "value": 0.42857142857142855,
+      "value": 0.7142857142857143,
       "status": "valid",
       "confidence": "high"
     },
     "f1_difference_sex": {
-      "value": 0.2857142857142857,
+      "value": 0.38461538461538464,
       "status": "valid",
       "confidence": "high"
     },
     "f1_difference_race": {
-      "value": 0.1935483870967742,
+      "value": 0.29411764705882354,
       "status": "valid",
       "confidence": "high"
     },
     "equal_selection_parity_sex": {
-      "value": 4.0,
+      "value": 8.0,
       "status": "valid",
       "confidence": "high"
     },
@@ -150,136 +150,136 @@
       "confidence": "high"
     },
     "conditional_statistical_parity_sex": {
-      "value": 0.035714285714285726,
+      "value": 0.08133971291866027,
       "status": "valid",
       "confidence": "high"
     },
     "conditional_statistical_parity_race": {
-      "value": 0.09722222222222221,
+      "value": 0.05185185185185184,
       "status": "valid",
       "confidence": "high"
     },
     "calibration_sex": {
-      "value": 0.0,
+      "value": 0.01666666666666672,
       "status": "valid",
       "confidence": "high"
     },
     "calibration_race": {
-      "value": 0.5952380952380952,
+      "value": 0.1964285714285714,
       "status": "valid",
       "confidence": "high"
     },
     "balance_positive_class_sex": {
-      "value": 1.4285714285714286,
+      "value": 1.7142857142857144,
       "status": "flagged",
       "confidence": "low",
-      "warning": "Value 1.4285714285714286 outside expected range [0.0, 1.0]",
+      "warning": "Value 1.7142857142857144 outside expected range [0.0, 1.0]",
       "recommendation": "Review manually - value may be unreliable"
     },
     "balance_positive_class_race": {
-      "value": 1.4285714285714286,
+      "value": 1.7142857142857144,
       "status": "flagged",
       "confidence": "low",
-      "warning": "Value 1.4285714285714286 outside expected range [0.0, 1.0]",
+      "warning": "Value 1.7142857142857144 outside expected range [0.0, 1.0]",
       "recommendation": "Review manually - value may be unreliable"
     },
     "balance_negative_class_sex": {
-      "value": 0.021739130434782594,
+      "value": 0.05869565217391304,
       "status": "valid",
       "confidence": "high"
     },
     "balance_negative_class_race": {
-      "value": 0.6,
+      "value": 0.25357142857142856,
       "status": "valid",
       "confidence": "high"
     },
     "toxicity_gap_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "toxicity_gap_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "sentiment_gap_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "sentiment_gap_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "stereotype_gap_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "stereotype_gap_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "exposure_disparity_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "exposure_disparity_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "representation_disparity_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "representation_disparity_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "prompt_fairness_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "prompt_fairness_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "multiclass_demographic_parity_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333337,
       "status": "valid",
       "confidence": "high"
     },
     "multiclass_demographic_parity_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     },
     "multiclass_equalized_odds_sex": {
-      "value": 0.021739130434782594,
+      "value": 0.05869565217391304,
       "status": "valid",
       "confidence": "high"
     },
     "multiclass_equalized_odds_race": {
-      "value": 0.6,
+      "value": 0.25357142857142856,
       "status": "valid",
       "confidence": "high"
     },
     "regression_demographic_parity_sex": {
-      "value": 0.033333333333333326,
+      "value": 0.08333333333333326,
       "status": "valid",
       "confidence": "high"
     },
     "regression_demographic_parity_race": {
-      "value": 0.5714285714285714,
+      "value": 0.2678571428571429,
       "status": "valid",
       "confidence": "high"
     }
@@ -288,13 +288,13 @@
     "excluded_metrics": {},
     "flagged_metrics": {
       "balance_positive_class_sex": {
-        "reason": "Value 1.8571428571428572 outside expected range [0.0, 1.0]",
-        "value": 1.8571428571428572,
+        "reason": "Value 1.7142857142857144 outside expected range [0.0, 1.0]",
+        "value": 1.7142857142857144,
         "recommendation": "Review manually"
       },
       "balance_positive_class_race": {
-        "reason": "Value 1.8571428571428572 outside expected range [0.0, 1.0]",
-        "value": 1.8571428571428572,
+        "reason": "Value 1.7142857142857144 outside expected range [0.0, 1.0]",
+        "value": 1.7142857142857144,
         "recommendation": "Review manually"
       }
     },

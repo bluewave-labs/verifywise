@@ -188,7 +188,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           assignee:
             formattedUsers?.find(
               (user: any) => user._id === existingVendor.assignee
-            )?._id || " ",
+            )?._id || "",
           reviewDate: existingVendor.review_date,
         },
       }));
@@ -271,7 +271,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       "Vendor review result",
       values.vendorDetails.reviewResult,
       1,
-      64
+      256
     );
     if (!vendorReviewResult.accepted) {
       newErrors.reviewResult = vendorReviewResult.message;
@@ -286,7 +286,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       "Vendor Provides",
       values.vendorDetails.vendorProvides,
       1,
-      64
+      256
     );
     if (!vendorProvides.accepted) {
       newErrors.vendorProvides = vendorProvides.message;

@@ -1,21 +1,6 @@
 import { Theme } from "@mui/material";
 import { SxProps } from "@mui/material";
 
-export enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
-
-export enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
-}
-
 export enum FrameworkTypeEnum {
   ProjectBased = "project-based",
   OrganizationWide = "organization-wide",

@@ -1,17 +1,16 @@
+import { Likelihood } from "../../../enums/likelihood.enum";
+import { RiskSeverity } from "../../../enums/riskSeverity.enum";
+import { Severity } from "../../../enums/severity.enum";
+
 export class VendorRiskModel {
   id?: number;
   vendor_id!: number;
   order_no?: number;
   risk_description!: string;
   impact_description!: string;
-  impact!: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
-  likelihood!: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost certain";
-  risk_severity!:
-    | "Negligible"
-    | "Minor"
-    | "Moderate"
-    | "Major"
-    | "Catastrophic";
+  impact!: RiskSeverity;
+  likelihood!: Likelihood;
+  risk_severity!: Severity;
   action_plan!: string;
   action_owner!: number;
   risk_level!: string;

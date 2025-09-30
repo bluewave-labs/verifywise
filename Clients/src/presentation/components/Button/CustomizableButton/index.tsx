@@ -84,12 +84,6 @@ export interface CustomizableButtonProps {
   className?: string;
   /** Tooltip text */
   title?: string;
-  /** Text color (filtered out from DOM) */
-  textColor?: string;
-  /** Indicator prop (filtered out from DOM) */
-  indicator?: boolean;
-  /** Selection follows focus prop (filtered out from DOM) */
-  selectionFollowsFocus?: boolean;
 }
 
 /**
@@ -120,9 +114,6 @@ const CustomizableButton = memo(
         fullWidth = false,
         className,
         title,
-        textColor, // Extract textColor to prevent it from reaching DOM
-        indicator, // Extract indicator to prevent it from reaching DOM
-        selectionFollowsFocus, // Extract selectionFollowsFocus to prevent it from reaching DOM
         ...rest
       },
       ref
@@ -178,14 +169,6 @@ const CustomizableButton = memo(
         />
       );
 
-      // Filter out any remaining problematic props that shouldn't reach DOM
-      const filteredProps = Object.keys(rest).reduce((acc, key) => {
-        if (!['textColor', 'indicator', 'selectionFollowsFocus'].includes(key)) {
-          (acc as any)[key] = (rest as any)[key];
-        }
-        return acc;
-      }, {} as Record<string, any>);
-
       return (
         <Button
           ref={ref}
@@ -228,7 +211,7 @@ const CustomizableButton = memo(
             )
           }
           endIcon={!loading ? endIcon : undefined}
-          {...filteredProps}
+          {...rest}
         >
           {loading && !resolvedStartIcon && !endIcon && (
             <Box

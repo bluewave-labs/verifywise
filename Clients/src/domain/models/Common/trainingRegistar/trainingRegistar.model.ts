@@ -1,10 +1,12 @@
+import { TrainingStatus } from "../../../enums/status.enum";
+
 export class TrainingRegistarModel {
   id?: number;
   training_name!: string;
   duration!: string;
   provider!: string;
   department!: string;
-  status!: "Planned" | "In Progress" | "Completed";
+  status!: TrainingStatus;
   numberOfPeople!: number;
   description!: string;
 

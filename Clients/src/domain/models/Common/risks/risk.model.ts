@@ -1,15 +1,10 @@
+import { AiLifeCyclePhase } from "../../../enums/aiLifeCyclePhase.enum";
+
 export class RiskModel {
   id?: number;
   risk_name!: string;
   risk_owner!: number;
-  ai_lifecycle_phase!:
-    | "Problem definition & planning"
-    | "Data collection & processing"
-    | "Model development & training"
-    | "Model validation & testing"
-    | "Deployment & integration"
-    | "Monitoring & maintenance"
-    | "Decommissioning & retirement";
+  ai_lifecycle_phase!: AiLifeCyclePhase;
   risk_description!: string;
   risk_category!: string[];
   impact!: string;

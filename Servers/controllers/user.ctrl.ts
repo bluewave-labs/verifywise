@@ -14,12 +14,12 @@
  * - Progress tracking and analytics
  *
  * Security Features:
- * - Bcrypt password hashing with salt rounds
+ * - Bcrypt password hashing with automatic salt generation
  * - JWT access and refresh token generation
- * - Secure cookie-based refresh token storage
- * - Password comparison with timing-attack resistance
+ * - HTTP-only cookie-based refresh token storage
+ * - Constant-time password comparison via bcrypt
  * - Demo user protection from deletion
- * - Comprehensive audit logging
+ * - Selective audit logging for critical operations
  *
  * @module controllers/user
  */
@@ -335,11 +335,12 @@ async function createNewUser(req: Request, res: Response) {
  * @returns {Promise<Response>} JWT access token or error status
  *
  * @security
- * - Password verified using bcrypt with timing-attack resistance
+ * - Password verified using bcrypt (constant-time comparison)
  * - Fallback password comparison for backwards compatibility
- * - Refresh token stored in HTTP-only cookie
+ * - Refresh token stored in HTTP-only cookie (Secure flag in production only)
+ * - Cookie uses SameSite attribute and path restriction (/api/users)
  * - Access token returned in JSON response
- * - Last login timestamp updated on success
+ * - Last login timestamp updated in memory (not persisted immediately)
  * - Failed attempts logged for security monitoring
  *
  * @example
@@ -356,7 +357,7 @@ async function createNewUser(req: Request, res: Response) {
  *     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *   }
  * }
- * Set-Cookie: refresh_token=<refresh_token>; HttpOnly; Secure
+ * Set-Cookie: refresh_token=<token>; Path=/api/users; HttpOnly; Secure (prod); SameSite=none (prod) or lax (dev)
  */
 async function loginUser(req: Request, res: Response): Promise<any> {
   const { email, password } = req.body;

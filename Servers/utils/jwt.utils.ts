@@ -23,24 +23,25 @@ import Jwt from "jsonwebtoken";
 /**
  * Verifies and decodes an access token
  *
- * Validates the access token signature and expiration using JWT_SECRET.
- * Returns null if verification fails (invalid signature, expired, malformed).
+ * Validates the access token signature using JWT_SECRET.
+ * Returns null if verification fails (invalid signature, malformed).
+ * Note: Expiration must be checked separately using the returned expire timestamp.
  *
  * @param {string} token - JWT access token to verify
  * @returns {Object|null} Decoded token payload or null if invalid
  * @returns {number} returns.id - User ID
  * @returns {string} returns.email - User email
- * @returns {number} returns.expire - Expiration timestamp
+ * @returns {number} returns.expire - Expiration timestamp (must be checked by caller)
  *
  * @security
  * - Uses JWT_SECRET environment variable
- * - Automatically validates expiration
  * - Verifies HMAC-SHA256 signature
+ * - Caller must validate expire timestamp against Date.now()
  *
  * @example
  * const payload = getTokenPayload(accessToken);
- * if (payload) {
- *   console.log(`User ID: ${payload.id}, Expires: ${new Date(payload.expire)}`);
+ * if (payload && payload.expire > Date.now()) {
+ *   console.log(`User ID: ${payload.id}`);
  * } else {
  *   console.error('Invalid or expired token');
  * }
@@ -60,19 +61,20 @@ const getTokenPayload = (token: any): any => {
 /**
  * Verifies and decodes a refresh token
  *
- * Validates the refresh token signature and expiration using REFRESH_TOKEN_SECRET.
- * Returns null if verification fails (invalid signature, expired, malformed).
+ * Validates the refresh token signature using REFRESH_TOKEN_SECRET.
+ * Returns null if verification fails (invalid signature, malformed).
+ * Note: Expiration must be checked separately using the returned expire timestamp.
  *
  * @param {string} token - JWT refresh token to verify
  * @returns {Object|null} Decoded token payload or null if invalid
  * @returns {number} returns.id - User ID
  * @returns {string} returns.email - User email
- * @returns {number} returns.expire - Expiration timestamp
+ * @returns {number} returns.expire - Expiration timestamp (must be checked by caller)
  *
  * @security
  * - Uses REFRESH_TOKEN_SECRET environment variable
- * - Automatically validates expiration
  * - Verifies HMAC-SHA256 signature
+ * - Caller must validate expire timestamp against Date.now()
  * - Should only be used for refresh token operations
  *
  * @example

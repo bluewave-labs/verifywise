@@ -1,3 +1,5 @@
+import { TaskPriority, TaskStatus } from "../enums/task.enum";
+
 export interface ITask {
   id?: number;
   title: string;
@@ -22,19 +24,6 @@ export interface ITaskAssignee {
   assigned_at?: Date;
 }
 
-export enum TaskPriority {
-  LOW = "Low",
-  MEDIUM = "Medium", 
-  HIGH = "High",
-}
-
-export enum TaskStatus {
-  OPEN = "Open",
-  IN_PROGRESS = "In progress",
-  COMPLETED = "Completed",
-  OVERDUE = "Overdue",
-}
-
 export interface TaskSummary {
   total: number;
   open: number;
@@ -45,8 +34,8 @@ export interface TaskSummary {
 
 export interface TaskFilters {
   search: string;
-  status: 'all' | TaskStatus;
-  priority: 'all' | TaskPriority;
-  assignee: 'all' | string;
-  category: 'all' | string;
+  status: "all" | TaskStatus;
+  priority: "all" | TaskPriority;
+  assignee: "all" | string;
+  category: "all" | string;
 }

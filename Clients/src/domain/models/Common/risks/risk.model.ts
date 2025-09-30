@@ -1,55 +1,33 @@
+import { AiLifeCyclePhase } from "../../../enums/aiLifeCyclePhase.enum";
+import { CurrentRiskLevel } from "../../../enums/currentRiskLevel.enum";
+import { Likelihood } from "../../../enums/likelihood.enum";
+import { MitigationStatus } from "../../../enums/mitigitaion";
+import { RiskLevelAutoCalculated } from "../../../enums/riskLevelAutoCalculated.enum";
+import { RiskSeverity } from "../../../enums/riskSeverity.enum";
+import { Severity } from "../../../enums/severity.enum";
+
 export class RiskModel {
   id?: number;
   risk_name!: string;
   risk_owner!: number;
-  ai_lifecycle_phase!:
-    | "Problem definition & planning"
-    | "Data collection & processing"
-    | "Model development & training"
-    | "Model validation & testing"
-    | "Deployment & integration"
-    | "Monitoring & maintenance"
-    | "Decommissioning & retirement";
+  ai_lifecycle_phase!: AiLifeCyclePhase;
   risk_description!: string;
   risk_category!: string[];
   impact!: string;
   assessment_mapping!: string;
   controls_mapping!: string;
-  likelihood!: "Rare" | "Unlikely" | "Possible" | "Likely" | "Almost Certain";
-  severity!: "Negligible" | "Minor" | "Moderate" | "Major" | "Catastrophic";
-  risk_level_autocalculated!:
-    | "No risk"
-    | "Very low risk"
-    | "Low risk"
-    | "Medium risk"
-    | "High risk"
-    | "Very high risk";
+  likelihood!: Likelihood;
+  severity!: Severity;
+  risk_level_autocalculated!: RiskLevelAutoCalculated;
   review_notes!: string;
-  mitigation_status!:
-    | "Not Started"
-    | "In Progress"
-    | "Completed"
-    | "On Hold"
-    | "Deferred"
-    | "Canceled"
-    | "Requires review";
-  current_risk_level!:
-    | "Very Low risk"
-    | "Low risk"
-    | "Medium risk"
-    | "High risk"
-    | "Very high risk";
+  mitigation_status!: MitigationStatus;
+  current_risk_level!: CurrentRiskLevel;
   deadline!: Date;
   mitigation_plan!: string;
   implementation_strategy!: string;
   mitigation_evidence_document!: string;
-  likelihood_mitigation!:
-    | "Rare"
-    | "Unlikely"
-    | "Possible"
-    | "Likely"
-    | "Almost Certain";
-  risk_severity!: "Negligible" | "Minor" | "Moderate" | "Major" | "Critical";
+  likelihood_mitigation!: Likelihood;
+  risk_severity!: RiskSeverity;
   final_risk_level!: string;
   risk_approval!: number;
   approval_status!: string;

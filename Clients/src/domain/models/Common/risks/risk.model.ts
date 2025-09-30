@@ -1,5 +1,6 @@
 import { AiLifeCyclePhase } from "../../../enums/aiLifeCyclePhase.enum";
 import { Likelihood } from "../../../enums/likelihood.enum";
+import { RiskLevelAutoCalculated } from "../../../enums/riskLevelAutoCalculated.enum";
 import { Severity } from "../../../enums/severity.enum";
 
 export class RiskModel {
@@ -14,13 +15,7 @@ export class RiskModel {
   controls_mapping!: string;
   likelihood!: Likelihood;
   severity!: Severity;
-  risk_level_autocalculated!:
-    | "No risk"
-    | "Very low risk"
-    | "Low risk"
-    | "Medium risk"
-    | "High risk"
-    | "Very high risk";
+  risk_level_autocalculated!: RiskLevelAutoCalculated;
   review_notes!: string;
   mitigation_status!:
     | "Not Started"

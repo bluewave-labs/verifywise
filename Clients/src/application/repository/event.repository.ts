@@ -1,6 +1,5 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { RequestParams } from "../../domain/interfaces/iRequestParams";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Retrieves all events from the server.
@@ -10,12 +9,9 @@ import { getAuthToken } from "../redux/auth/getAuthToken";
  */
 export async function getAllEvents({
   routeUrl,
-  authToken = getAuthToken(),
 }: RequestParams): Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get(routeUrl);
     console.log(response);
     return response;
   } catch (error) {

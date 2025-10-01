@@ -36,6 +36,15 @@ import {
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import {
+  validateSubClauseIdParam,
+  validateAnnexCategoryIdParam,
+  validateProjectFrameworkIdParam,
+  validateCompleteSubClauseUpdate,
+  validateCompleteAnnexCategoryUpdate,
+  sanitizeAnnexCategoryData
+} from "../utils/validations/iso42001Validation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -538,35 +547,76 @@ export async function saveClauses(
   logger.debug(`💾 Saving clauses for sub-clause ID ${subClauseId}`);
 
   try {
+    // Validate subclause ID parameter
+    const subClauseIdValidation = validateSubClauseIdParam(subClauseId);
+    if (!subClauseIdValidation.isValid) {
+      await transaction.rollback();
+      await logFailure({
+        eventType: "Update",
+        description: `Invalid subclause ID parameter: ${req.params.id}`,
+        functionName: "saveClauses",
+        fileName: "iso42001.ctrl.ts",
+        error: new Error("Invalid subclause ID parameter"),
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: subClauseIdValidation.message || 'Invalid subclause ID',
+        code: subClauseIdValidation.code || 'INVALID_PARAMETER'
+      });
+    }
+
+    // Validate request body and files
+    const validationErrors = validateCompleteSubClauseUpdate(req.body, req.files as any[]);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      await logFailure({
+        eventType: "Update",
+        description: `Subclause update validation failed for subclause ID ${subClauseId}`,
+        functionName: "saveClauses",
+        fileName: "iso42001.ctrl.ts",
+        error: new Error("Subclause update validation failed"),
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Subclause update validation failed',
+        errors: validationErrors.map((err: ValidationError) => ({
+          field: err.field,
+          message: err.message,
+          code: err.code
+        }))
+      });
+    }
+
     const subClause = req.body as SubClauseISO & {
       user_id: string;
       delete: string;
       risksDelete: string;
       risksMitigated: string;
+      project_id: string;
     };
 
     const filesToDelete = JSON.parse(subClause.delete || "[]") as number[];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
-    // Get project_id from subclause
-    const projectIdResult = (await sequelize.query(
-      `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
-      {
-        replacements: { id: subClauseId },
-        transaction,
-      }
-    )) as [{ id: number }[], number];
+    // // Get project_id from subclause
+    // const projectIdResult = (await sequelize.query(
+    //   `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    //   {
+    //     replacements: { id: subClauseId },
+    //     transaction,
+    //   }
+    // )) as [{ id: number }[], number];
 
-    if (projectIdResult[0].length === 0) {
-      throw new Error("Project ID not found for subclause");
-    }
+    // if (projectIdResult[0].length === 0) {
+    //   throw new Error("Project ID not found for subclause");
+    // }
 
-    const projectId = projectIdResult[0][0].id;
+    // const projectId = projectIdResult[0][0].id;
 
     let uploadedFiles = await uploadFiles(
       req.files! as UploadedFile[],
       parseInt(subClause.user_id),
-      projectId,
+      parseInt(subClause.project_id),
       "Management system clauses group",
       req.tenantId!,
       transaction
@@ -626,7 +676,50 @@ export async function saveAnnexes(
   logger.debug(`💾 Saving annexes for annex category ID ${annexCategoryId}`);
 
   try {
-    const annexCategory = req.body as AnnexCategoryISO & {
+    // Validate annex category ID parameter
+    const annexCategoryIdValidation = validateAnnexCategoryIdParam(annexCategoryId);
+    if (!annexCategoryIdValidation.isValid) {
+      await transaction.rollback();
+      await logFailure({
+        eventType: "Update",
+        description: `Invalid annex category ID parameter: ${req.params.id}`,
+        functionName: "saveAnnexes",
+        fileName: "iso42001.ctrl.ts",
+        error: new Error("Invalid annex category ID parameter"),
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: annexCategoryIdValidation.message || 'Invalid annex category ID',
+        code: annexCategoryIdValidation.code || 'INVALID_PARAMETER'
+      });
+    }
+
+    // Validate request body and files
+    const validationErrors = validateCompleteAnnexCategoryUpdate(req.body, req.files as any[]);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      await logFailure({
+        eventType: "Update",
+        description: `Annex category update validation failed for annex category ID ${annexCategoryId}`,
+        functionName: "saveAnnexes",
+        fileName: "iso42001.ctrl.ts",
+        error: new Error("Annex category update validation failed"),
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Annex category update validation failed',
+        errors: validationErrors.map((err: ValidationError) => ({
+          field: err.field,
+          message: err.message,
+          code: err.code
+        }))
+      });
+    }
+
+    // Sanitize annex category data based on is_applicable value
+    const sanitizedBody = sanitizeAnnexCategoryData(req.body);
+
+    const annexCategory = sanitizedBody as AnnexCategoryISO & {
       user_id: string;
       project_id: string;
       delete: string;
@@ -702,6 +795,24 @@ export async function deleteManagementSystemClauses(
   );
 
   try {
+    // Validate project framework ID parameter
+    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
+    if (!projectFrameworkIdValidation.isValid) {
+      await transaction.rollback();
+      await logFailure({
+        eventType: "Delete",
+        description: `Invalid project framework ID parameter: ${req.params.id}`,
+        functionName: "deleteManagementSystemClauses",
+        fileName: "iso42001.ctrl.ts",
+        error: new Error("Invalid project framework ID parameter"),
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
+        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
+      });
+    }
+
     const result = await deleteSubClausesISOByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -758,6 +869,24 @@ export async function deleteReferenceControls(
   );
 
   try {
+    // Validate project framework ID parameter
+    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
+    if (!projectFrameworkIdValidation.isValid) {
+      await transaction.rollback();
+      await logFailure({
+        eventType: "Delete",
+        description: `Invalid project framework ID parameter: ${req.params.id}`,
+        functionName: "deleteReferenceControls",
+        fileName: "iso42001.ctrl.ts",
+        error: new Error("Invalid project framework ID parameter"),
+      });
+      return res.status(400).json({
+        status: 'error',
+        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
+        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
+      });
+    }
+
     const result = await deleteAnnexCategoriesISOByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,

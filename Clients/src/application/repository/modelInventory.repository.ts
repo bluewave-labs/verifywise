@@ -1,5 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Creates a new model inventory entry in the database.
@@ -12,15 +11,13 @@ import { getAuthToken } from "../redux/auth/getAuthToken";
 export async function createModelInventory(
   routeUrl: string,
   data: any,
-  authToken = getAuthToken()
 ): Promise<any> {
   try {
-    const response = await apiServices.post(routeUrl, data, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.post(routeUrl, data);
     return response.data;
   } catch (error) {
     console.error("Error creating model inventory:", error);
     throw error;
   }
 }
+

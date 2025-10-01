@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form, UploadFile, BackgroundTasks, Request, HTTPException
+from fastapi import APIRouter, Form, UploadFile, BackgroundTasks, Request, HTTPException, Body
 from controllers.bias_and_fairness import (
     handle_upload as handle_upload_controller, 
     get_metrics as get_metrics_controller, 
@@ -52,6 +52,21 @@ async def get_metrics(id: int, request: Request):
 async def delete_metrics(id: int, request: Request):
     return await delete_metrics_controller(id, request.headers["x-tenant-id"])
 
+@router.post("/evaluate/config")
+async def create_config_and_evaluate(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    config_data: dict = Body(...)
+):
+    """
+    Create config.yaml file and run bias and fairness evaluation.
+    """
+    print(f"Creating config and running evaluation for tenant: {request.headers['x-tenant-id']}")
+    return await create_config_and_run_evaluation_controller(
+        background_tasks=background_tasks,
+        config_data=config_data,
+        tenant=request.headers["x-tenant-id"]
+    )
 # New endpoints for Bias and Fairness Module
 @router.post("/evaluate")
 async def evaluate_model(
@@ -77,20 +92,7 @@ async def evaluate_model(
         tenant=request.headers["x-tenant-id"]
     )
 
-@router.post("/evaluate/config")
-async def create_config_and_evaluate(
-    request: Request,
-    background_tasks: BackgroundTasks,
-    config_data: dict
-):
-    """
-    Create config.yaml file and run bias and fairness evaluation.
-    """
-    return await create_config_and_run_evaluation_controller(
-        background_tasks=background_tasks,
-        config_data=config_data,
-        tenant=request.headers["x-tenant-id"]
-    )
+
 
 @router.get("/evaluate/status/{evaluation_id}")
 async def get_evaluation_status(evaluation_id: str, request: Request):
@@ -111,6 +113,7 @@ async def cancel_evaluation(evaluation_id: str, request: Request):
 @router.get("/evaluations")
 async def get_all_bias_fairness_evaluations(request: Request):
     """Get all bias and fairness evaluations for the current tenant."""
+    print(f"Getting all bias and fairness evaluations for tenant: {request.headers['x-tenant-id']}")
     return await get_all_bias_fairness_evaluations_controller(request.headers["x-tenant-id"])
 
 @router.get("/evaluations/{eval_id}")

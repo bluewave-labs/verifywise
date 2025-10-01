@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import React, {
   useState,
   useCallback,
@@ -24,7 +24,7 @@ import Select from "../../../components/Inputs/Select";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import Alert from "../../../components/Alert";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   assignFrameworkToProject,
   deleteEntityById,
@@ -33,11 +33,11 @@ import { logEngine } from "../../../../application/tools/log.engine";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CustomizableToast from "../../../vw-v2-components/Toast";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
+import CustomizableToast from "../../../components/Toast";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
 import { Framework } from "../../../../domain/types/Framework";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -47,40 +47,49 @@ import {
   deleteProject,
   updateProject,
 } from "../../../../application/repository/project.repository";
-
-enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
+import { useAuth } from "../../../../application/hooks/useAuth";
+import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
+import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 
 const riskClassificationItems = [
-  { _id: 1, name: RiskClassificationEnum.HighRisk },
-  { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-  { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+  { _id: 1, name: AiRiskClassification.HIGH_RISK },
+  { _id: 2, name: AiRiskClassification.LIMITED_RISK },
+  { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
 ];
 
-enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
+const highRiskRoleItems = [
+  { _id: 1, name: HighRiskRole.DEPLOYER },
+  { _id: 2, name: HighRiskRole.PROVIDER },
+  { _id: 3, name: HighRiskRole.DISTRIBUTOR },
+  { _id: 4, name: HighRiskRole.IMPORTER },
+  { _id: 5, name: HighRiskRole.PRODUCT_MANUFACTURER },
+  { _id: 6, name: HighRiskRole.AUTHORIZED_REPRESENTATIVE },
+];
+
+enum ProjectStatusEnum {
+  NotStarted = "Not started",
+  InProgress = "In progress",
+  UnderReview = "Under review",
+  Completed = "Completed",
+  Closed = "Closed",
+  OnHold = "On hold",
+  Rejected = "Rejected",
 }
 
-const highRiskRoleItems = [
-  { _id: 1, name: HighRiskRoleEnum.Deployer },
-  { _id: 2, name: HighRiskRoleEnum.Provider },
-  { _id: 3, name: HighRiskRoleEnum.Distributor },
-  { _id: 4, name: HighRiskRoleEnum.Importer },
-  { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-  { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+const projectStatusItems = [
+  { _id: 1, name: ProjectStatusEnum.NotStarted },
+  { _id: 2, name: ProjectStatusEnum.InProgress },
+  { _id: 3, name: ProjectStatusEnum.UnderReview },
+  { _id: 4, name: ProjectStatusEnum.Completed },
+  { _id: 5, name: ProjectStatusEnum.Closed },
+  { _id: 6, name: ProjectStatusEnum.OnHold },
+  { _id: 7, name: ProjectStatusEnum.Rejected },
 ];
 
 interface FormValues {
   projectTitle: string;
   goal: string;
+  status: number;
   owner: number;
   members: number[];
   startDate: string;
@@ -97,6 +106,7 @@ interface FormValues {
 interface FormErrors {
   projectTitle?: string;
   goal?: string;
+  status?: string;
   owner?: string;
   startDate?: string;
   members?: string;
@@ -108,6 +118,7 @@ interface FormErrors {
 const initialState: FormValues = {
   projectTitle: "",
   goal: "",
+  status: 1,
   owner: 0,
   members: [],
   startDate: "",
@@ -122,7 +133,8 @@ const ProjectSettings = React.memo(
   }: {
     triggerRefresh?: (isUpdate: boolean) => void;
   }) => {
-    const { userRoleName, userId, setProjects } = useContext(VerifyWiseContext);
+    const { setProjects } = useContext(VerifyWiseContext);
+    const { userRoleName, userId } = useAuth();
     const [searchParams] = useSearchParams();
     const projectId = searchParams.get("projectId") ?? "1"; // default project ID is 2
     const theme = useTheme();
@@ -161,6 +173,7 @@ const ProjectSettings = React.memo(
       const basicFieldsModified =
         values.projectTitle !== initialValuesRef.current.projectTitle ||
         values.goal !== initialValuesRef.current.goal ||
+        values.status !== initialValuesRef.current.status ||
         values.owner !== initialValuesRef.current.owner ||
         JSON.stringify(values.members) !==
           JSON.stringify(initialValuesRef.current.members) ||
@@ -214,6 +227,11 @@ const ProjectSettings = React.memo(
         listOfFrameworks: project?.framework || [],
       });
 
+    // Filter frameworks to only show non-organizational ones
+    const nonOrganizationalFrameworks = useMemo(
+      () => allFrameworks.filter((fw: Framework) => !fw.is_organizational),
+      [allFrameworks]
+    );
     useEffect(() => {
       setShowCustomizableSkeleton(true);
       if (project && monitoredFrameworks.length > 0) {
@@ -236,6 +254,12 @@ const ProjectSettings = React.memo(
           ...initialState,
           projectTitle: project.project_title ?? "",
           goal: project.goal ?? "",
+          status:
+            projectStatusItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                (project.status || "Not started").toLowerCase()
+            )?._id || 1,
           owner: project.owner ?? 0,
           startDate: project.start_date
             ? dayjs(project.start_date).toISOString()
@@ -293,7 +317,7 @@ const ProjectSettings = React.memo(
               return;
             }
           }
-          setValues({ ...values, [prop]: event.target.value });
+          setValues({ ...values, [prop]: selectedValue });
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
       [users, values]
@@ -441,6 +465,7 @@ const ProjectSettings = React.memo(
               ...prevValues,
               [prop]: newValue.map((user) => user.id),
             }));
+            setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
           }
         },
       [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
@@ -545,6 +570,10 @@ const ProjectSettings = React.memo(
       if (!goal.accepted) {
         newErrors.goal = goal.message;
       }
+      const status = selectValidation("Project status", values.status);
+      if (!status.accepted) {
+        newErrors.status = status.message;
+      }
       const startDate = checkStringValidation(
         "Start date",
         values.startDate,
@@ -629,6 +658,8 @@ const ProjectSettings = React.memo(
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
+      const selectedStatus =
+        projectStatusItems.find((item) => item._id === values.status)?.name || "";
       const selectedRegulations = values.monitoredRegulationsAndStandards.map(
         (reg) => reg.name
       );
@@ -644,6 +675,7 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
           last_updated_by: userId,
@@ -654,6 +686,11 @@ const ProjectSettings = React.memo(
         },
       }).then((response) => {
         if (response.status === 202) {
+          // Create new values reference and update both ref and form state
+          const newValues = { ...values };
+          initialValuesRef.current = newValues;
+          setValues(newValues);
+
           setAlert({
             variant: "success",
             body: "Project updated successfully",
@@ -769,6 +806,19 @@ const ProjectSettings = React.memo(
               isRequired
             />
             <Select
+              id="project-status"
+              label="Project status"
+              value={values.status || 1}
+              onChange={handleOnSelectChange("status")}
+              items={projectStatusItems}
+              sx={{
+                width: 357,
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.status}
+              isRequired
+            />
+            <Select
               id="owner"
               label="Owner"
               value={values.owner || ""}
@@ -833,7 +883,7 @@ const ProjectSettings = React.memo(
                   id="monitored-regulations-and-standards-input"
                   size="small"
                   value={values.monitoredRegulationsAndStandards}
-                  options={allFrameworks.map((fw: Framework) => ({
+                  options={nonOrganizationalFrameworks.map((fw: Framework) => ({
                     _id: Number(fw.id),
                     name: fw.name,
                   }))}
@@ -845,7 +895,7 @@ const ProjectSettings = React.memo(
                   }
                   noOptionsText={
                     values.monitoredRegulationsAndStandards.length ===
-                    allFrameworks.length
+                    nonOrganizationalFrameworks.length
                       ? "All regulations selected"
                       : "No options"
                   }
@@ -889,7 +939,7 @@ const ProjectSettings = React.memo(
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<KeyboardArrowDown />}
+                  popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -922,6 +972,7 @@ const ProjectSettings = React.memo(
                       },
                     },
                     "& .MuiChip-root": {
+                      borderRadius: "4px",
                       "& .MuiChip-deleteIcon": {
                         display:
                           values.monitoredRegulationsAndStandards.length === 1
@@ -1020,7 +1071,7 @@ const ProjectSettings = React.memo(
                     ? `${option.email.slice(0, 30)}...`
                     : option.email;
                 return (
-                  <Box key={key} component="li" {...optionProps}>
+                  <Box component="li" key={key} {...optionProps}>
                     <Typography sx={{ fontSize: "13px" }}>
                       {option.name} {option.surname}
                     </Typography>
@@ -1043,7 +1094,7 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<KeyboardArrowDown />}
+              popupIcon={<GreyDownArrowIcon />}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -1071,6 +1122,9 @@ const ProjectSettings = React.memo(
                     borderColor: "#888",
                     borderWidth: "1px",
                   },
+                },
+                "& .MuiChip-root": {
+                  borderRadius: "4px",
                 },
               }}
               slotProps={{
@@ -1168,7 +1222,7 @@ const ProjectSettings = React.memo(
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIcon />}
+                icon={<SaveIconSVGWhite />}
                 variant="contained"
                 onClick={(event: any) => {
                   handleSubmit(event);
@@ -1208,7 +1262,7 @@ const ProjectSettings = React.memo(
                   border: "1px solid #DB504A",
                   gap: 2,
                 }}
-                icon={<DeleteIcon />}
+                icon={<DeleteIconWhite />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete project"

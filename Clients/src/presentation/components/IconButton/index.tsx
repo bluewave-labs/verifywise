@@ -15,6 +15,7 @@ import {
 import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
+import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
 import { IconButtonProps } from "../../../domain/interfaces/iWidget";
@@ -31,11 +32,15 @@ const IconButton: React.FC<IconButtonProps> = ({
   onMakeVisible,
   onDownload,
   isVisible,
+  canDelete,
+  checkForRisks,
+  onDeleteWithRisks,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
+  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
@@ -75,7 +80,40 @@ const IconButton: React.FC<IconButtonProps> = ({
       closeDropDownMenu(e);
     }
   };
-  
+
+  const handleDeleteWithRiskCheck = async (e?: React.SyntheticEvent) => {
+    if (checkForRisks && onDeleteWithRisks) {
+      try {
+        const hasRisks = await checkForRisks();
+        if (hasRisks) {
+          setIsOpenRiskConfirmationModal(true);
+        } else {
+          onDeleteWithRisks(false);
+        }
+      } catch (error) {
+        console.error("Error checking for risks:", error);
+        onDeleteWithRisks(false);
+      }
+    } else {
+      onDelete();
+    }
+
+    setIsOpenRemoveModal(false);
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleRiskConfirmation = (deleteRisks: boolean) => {
+    if (onDeleteWithRisks) {
+      onDeleteWithRisks(deleteRisks);
+    }
+  };
+
+  const handleRiskConfirmationCancel = () => {
+    setIsOpenRiskConfirmationModal(false);
+  };
+
   const handleEdit = (e?: React.SyntheticEvent) => {
     onEdit();
     if (e) {
@@ -124,6 +162,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       return ["download"];
     } else if (type === "Resource") {
       return ["edit", "make visible", "download", "remove"];
+    } else if (type === "Vendor") {
+      return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
     } else {
       return ["edit", "remove"];
     }
@@ -137,6 +177,9 @@ const IconButton: React.FC<IconButtonProps> = ({
   const getMenuItemText = (item: string) => {
     if (item === "make visible") {
       return isVisible ? "Make Hidden" : "Make Visible";
+    }
+    if (item === "remove" && type === "Task") {
+      return "Archive";
     }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
@@ -178,8 +221,17 @@ const IconButton: React.FC<IconButtonProps> = ({
             } else if (item === "make visible") {
               handleMakeVisible(e);
             } else if (item === "remove") {
-              setIsOpenRemoveModal(true);
-              if (e) closeDropDownMenu(e);
+              if (warningTitle && warningMessage) {
+                setIsOpenRemoveModal(true);
+                if (e) closeDropDownMenu(e);
+              } else {
+                if (checkForRisks && onDeleteWithRisks) {
+                  handleDeleteWithRiskCheck(e);
+                } else {
+                  onDelete();
+                  if (e) closeDropDownMenu(e);
+                }
+              }
             }
           }}
           sx={item === "remove" ? { color: "#d32f2f" } : {}}
@@ -225,14 +277,22 @@ const IconButton: React.FC<IconButtonProps> = ({
     <>
       {customIconButtonAsSettings}
       {dropDownListOfOptions}
-      <BasicModal
-        isOpen={isOpenRemoveModal}
-        setIsOpen={() => setIsOpenRemoveModal(false)}
-        onDelete={(e) => handleDelete(e)}
-        warningTitle={warningTitle}
-        warningMessage={warningMessage}
-        onCancel={(e) => handleCancle(e)}
-        type={type}
+      {warningTitle && warningMessage && (
+        <BasicModal
+          isOpen={isOpenRemoveModal}
+          setIsOpen={() => setIsOpenRemoveModal(false)}
+          onDelete={(e) => checkForRisks && onDeleteWithRisks ? handleDeleteWithRiskCheck(e) : handleDelete(e)}
+          warningTitle={warningTitle}
+          warningMessage={warningMessage}
+          onCancel={(e) => handleCancle(e)}
+          type={type}
+        />
+      )}
+      <ModelRiskConfirmation
+        isOpen={isOpenRiskConfirmationModal}
+        setIsOpen={setIsOpenRiskConfirmationModal}
+        onConfirm={handleRiskConfirmation}
+        onCancel={handleRiskConfirmationCancel}
       />
       {alert && (
         <Alert

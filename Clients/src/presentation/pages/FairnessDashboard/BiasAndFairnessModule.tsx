@@ -13,14 +13,17 @@ import {
   FormControl,
   Select,
   MenuItem,
-  Alert,
   CircularProgress,
 } from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import {ReactComponent as CloseIcon} from "../../assets/icons/close-grey.svg"
+import { useNavigate } from "react-router-dom";
+import Alert from "../../components/Alert";
+import { Suspense } from "react";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
-import FairnessTable from "../../../presentation/components/Table/FairnessTable";
+import EvaluationTable from "../../../presentation/components/Table/EvaluationTable";
 
 interface BiasAndFairnessConfig {
   dataset: {
@@ -94,21 +97,44 @@ export default function BiasAndFairnessModule() {
     status: string;
   }>>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
+
+  const navigate = useNavigate();
 
   // Load evaluations from database
   useEffect(() => {
     loadEvaluations();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEvaluations = async () => {
     try {
       const data = await biasAndFairnessService.getAllBiasFairnessEvaluations();
       setEvaluations(data);
-    } catch (error) {
-      console.error("Failed to load evaluations:", error);
+      
+      // Check for any pending/running evaluations and poll their status
+      const pendingEvaluations = data.filter(evaluation => 
+        !evaluation.status || evaluation.status === "pending" || evaluation.status === "running"
+      );
+      
+      if (pendingEvaluations.length > 0) {
+        // Poll status for pending evaluations
+        pendingEvaluations.forEach(evaluation => {
+          if (evaluation.eval_id) {
+            pollEvaluationStatus(evaluation.eval_id);
+          }
+        });
+      }
+    } catch {
+      setAlert({
+        variant: "error",
+        body: "Failed to load evaluations. Please refresh the page.",
+      });
+      setTimeout(() => setAlert(null), 8000);
       // For now, use empty array if API fails
       setEvaluations([]);
     }
@@ -181,24 +207,31 @@ export default function BiasAndFairnessModule() {
       }
     });
     setShowAdvancedSettings(false);
-    setError(null);
-    setSuccess(null);
+    setAlert(null);
   };
 
   const handleStartEvaluation = async () => {
     if (!config.dataset.name || !config.dataset.source || !config.model.modelId) {
-      setError("Please fill in all required fields");
+      setAlert({
+        variant: "error",
+        body: "Please fill in all required fields",
+      });
+      setTimeout(() => setAlert(null), 5000);
       return;
     }
 
     // Check if target column is required for binary classification
     if (config.model.modelTask === "binary_classification" && !config.targetColumn) {
-      setError("Target column is required for binary classification tasks");
+      setAlert({
+        variant: "error",
+        body: "Target column is required for binary classification tasks",
+      });
+      setTimeout(() => setAlert(null), 5000);
       return;
     }
 
     setLoading(true);
-    setError(null);
+    setAlert(null);
 
     try {
       // Transform config to match API payload
@@ -237,7 +270,11 @@ export default function BiasAndFairnessModule() {
       // Start the evaluation with the new API
       const response = await biasAndFairnessService.createConfigAndEvaluate(apiPayload);
       
-      setSuccess("Evaluation started successfully!");
+      setAlert({
+        variant: "success",
+        body: "Evaluation started successfully!",
+      });
+      setTimeout(() => setAlert(null), 3000);
       setDialogOpen(false);
       resetForm();
       
@@ -248,9 +285,12 @@ export default function BiasAndFairnessModule() {
       if (response.eval_id) {
         pollEvaluationStatus(response.eval_id);
       }
-    } catch (error) {
-      console.error("Evaluation error:", error);
-      setError("Failed to start evaluation. Please try again.");
+    } catch {
+      setAlert({
+        variant: "error",
+        body: "Failed to start evaluation. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 5000);
     } finally {
       setLoading(false);
     }
@@ -262,20 +302,21 @@ export default function BiasAndFairnessModule() {
       
       // Reload evaluations to get updated status
       await loadEvaluations();
-    } catch (error) {
-      console.error("Error polling status:", error);
+    } catch {
+      // Silently handle polling errors
     }
   };
 
   // Transform evaluations for FairnessTable
   const tableRows = evaluations.map(evaluation => ({
-    id: evaluation.eval_id,
-    model: evaluation.model_name,
-    dataset: evaluation.dataset_name,
+    id: evaluation.eval_id || "Pending...",
+    model: evaluation.model_name || "Unknown Model",
+    dataset: evaluation.dataset_name || "Unknown Dataset",
     status: evaluation.status === "completed" ? "Completed" : 
             evaluation.status === "running" ? "In Progress" : 
-            evaluation.status === "failed" ? "Failed" : "Pending"
-  }));
+            evaluation.status === "failed" ? "Failed" : 
+            evaluation.status === "pending" ? "Pending" : "Pending"
+  } as { id: string; model: string; dataset: string; status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running" }));
 
   const tableColumns = [
     "EVAL ID",
@@ -287,59 +328,90 @@ export default function BiasAndFairnessModule() {
   ];
 
   const handleShowDetails = (evaluation: { id: string }) => {
-    // Navigate to the detailed results page
-    window.open(`/fairness-dashboard/bias-fairness-results/${evaluation.id}`, '_blank');
+    // Navigate to the detailed results page in the same tab
+    navigate(`/fairness-dashboard/bias-fairness-results/${evaluation.id}`);
   };
 
-  const handleRemoveModel = async (id: number) => {
+  const handleRemoveModel = async (id: string) => {
     try {
-      await biasAndFairnessService.deleteBiasFairnessEvaluation(id.toString());
-      await loadEvaluations(); // Reload the list
-    } catch (error) {
-      console.error("Failed to delete evaluation:", error);
-      setError("Failed to delete evaluation");
+      
+      // Optimistically remove the item from the local state for immediate UI feedback
+      setEvaluations((prevEvaluations) => {
+        const newEvaluations = prevEvaluations.filter((evaluation) => evaluation.eval_id !== id);
+        return newEvaluations;
+      });
+
+      // Perform the actual delete operation
+      await biasAndFairnessService.deleteBiasFairnessEvaluation(id);
+
+      // Fetch fresh data to ensure consistency with server
+      await loadEvaluations();
+
+      setAlert({
+        variant: "success",
+        body: "Evaluation deleted successfully!",
+      });
+      setTimeout(() => setAlert(null), 3000);
+    } catch {
+      
+      // If delete failed, revert the optimistic update by fetching fresh data
+      await loadEvaluations();
+      
+      setAlert({
+        variant: "error",
+        body: "Failed to delete evaluation. Please try again.",
+      });
+      setTimeout(() => setAlert(null), 5000);
     }
   };
 
   return (
     <Box>
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
+      {alert && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={true}
+            onClick={() => setAlert(null)}
+          />
+        </Suspense>
       )}
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
-          {success}
-        </Alert>
-      )}
-
-      <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4}>
-        <Button
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4} gap={2}>
+        <CustomizableButton
+          variant="outlined"
+          text="Demo"
+          sx={{
+            backgroundColor: "transparent",
+            border: "1px solid #13715B",
+            color: "#13715B",
+            gap: 2
+          }}
+          onClick={() => {
+            navigate('/fairness-dashboard/bias-fairness-results/demo');
+          }}
+        />
+        <CustomizableButton
           variant="contained"
-          startIcon={<AddCircleOutlineIcon />}
+          text="New Evaluation"
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+          }}
+          icon={<AddCircleOutlineIcon />}
           onClick={() => {
             setDialogOpen(true);
             setShowAdvancedSettings(false);
           }}
-          sx={{
-            backgroundColor: "#13715B",
-            color: "white",
-            textTransform: "none",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            padding: "8px 20px",
-            borderRadius: "6px"
-          }}
-        >
-          New Evaluation
-        </Button>
+        />
       </Box>
 
       {/* Evaluation Results Table */}
       <Box mb={4}>
-        <FairnessTable
+        <EvaluationTable
           columns={tableColumns}
           rows={tableRows}
           removeModel={{

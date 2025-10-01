@@ -10,19 +10,21 @@ import {
   Stack,
   Typography,
   TableFooter,
+  Box,
 } from "@mui/material";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import IconButton from "../../IconButton";
+import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
-import RiskChip from "../../RiskLevel/RiskChip";
+import VendorRisksDialog from "../../VendorRisksDialog";
 import { VendorDetails } from "../../../pages/Vendors";
 import { User } from "../../../../domain/types/User";
 import allowedRoles from "../../../../application/constants/permissions";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
+import { useAuth } from "../../../../application/hooks/useAuth";
 
 const titleOfTableColumns = [
   "name",
@@ -47,12 +49,14 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
   onEdit,
 }) => {
   const theme = useTheme();
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [dropdownAnchor, setDropdownAnchor] = useState<HTMLElement | null>(
     null
   );
+  const [showVendorRisks, setShowVendorRisks] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState<{ id: number; name: string } | null>(null);
   const formattedUsers = users?.map((user:any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -76,6 +80,16 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
 
   const handleDropdownClose = useCallback(() => {
     setDropdownAnchor(null);
+  }, []);
+
+  const openVendorRisksDialog = useCallback((vendorId: number, vendorName: string) => {
+    setSelectedVendor({ id: vendorId, name: vendorName });
+    setShowVendorRisks(true);
+  }, []);
+
+  const closeVendorRisksDialog = useCallback(() => {
+    setShowVendorRisks(false);
+    setSelectedVendor(null);
   }, []);
 
   const getRange = useMemo(() => {
@@ -131,21 +145,36 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
-                onClick={() => onEdit(row.id)}      
+                // onClick={() => onEdit(row.id)}  
+                // Removed row-level onClick to prevent accidental edit modal opening
+                // Editing is now handled only through the actions menu (IconButton)    
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {row.vendor_name}
                 </TableCell>
                 <TableCell sx={cellStyle}>
                   {
-                    formattedUsers?.find(
-                      (user:any) => user._id === row.assignee
-                    )?.name
+                    row.assignee
+                      ? formattedUsers?.find(
+                          (user:any) => user._id === row.assignee
+                        )?.name || "Unassigned"
+                      : "Unassigned"
                   }
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.review_status}</TableCell>
                 <TableCell sx={cellStyle}>
-                  <RiskChip label={row.risk_status} />
+                  <Box display="flex" alignItems="center" gap={1}>
+                    {/* <RiskChip label={row.risk_status} /> */}
+                    <CustomizableButton
+                      sx={singleTheme.tableStyles.primary.body.button}
+                      variant="contained"
+                      text="View risks"
+                      onClick={(e: React.MouseEvent<HTMLElement>) => {
+                        e.stopPropagation();
+                        openVendorRisksDialog(row.id, row.vendor_name);
+                      }}
+                    />
+                  </Box>
                 </TableCell>
                 <TableCell sx={cellStyle}>
                   {row.review_date
@@ -160,7 +189,6 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     zIndex: 10,
                   }}
                 >
-                  { isDeletingAllowed &&
                     <IconButton
                       id={row.id}
                       onDelete={() => onDelete(row.id)}
@@ -169,8 +197,9 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                       warningTitle="Delete this vendor?"
                       warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
                       type="Vendor"
-                    />
-                  }
+                      canDelete={isDeletingAllowed} // pass down as a prop
+                  />
+
                 </TableCell>
               </TableRow>
             ))}
@@ -183,6 +212,8 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
       cellStyle,
       dropdownAnchor,
       handleDropdownClose,
+      openVendorRisksDialog,
+      formattedUsers,
     ]
   );
 
@@ -299,6 +330,16 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
             </TableFooter>
           </Table>
         </TableContainer>
+      )}
+
+      {/* Vendor Risks Dialog */}
+      {showVendorRisks && selectedVendor && (
+        <VendorRisksDialog
+          open={showVendorRisks}
+          onClose={closeVendorRisksDialog}
+          vendorId={selectedVendor.id}
+          vendorName={selectedVendor.name}
+        />
       )}
     </>
   );

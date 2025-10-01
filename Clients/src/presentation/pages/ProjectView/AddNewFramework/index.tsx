@@ -7,8 +7,8 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { ReactComponent as CheckGreenIcon } from "../../../assets/icons/check-green.svg";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import {
@@ -27,15 +27,19 @@ import {
 } from "../../../../application/repository/entity.repository";
 import { logEngine } from "../../../../application/tools/log.engine";
 import Alert from "../../../components/Alert";
-import CustomizableToast from "../../../vw-v2-components/Toast";
-import DualButtonModal from "../../../vw-v2-components/Dialogs/DualButtonModal";
+import CustomizableToast from "../../../components/Toast";
+import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface AddFrameworkModalProps {
   open: boolean;
   onClose: () => void;
   frameworks: Framework[];
   project: Project;
-  onFrameworksChanged?: (action: "add" | "remove", frameworkId?: number) => void;
+  onFrameworksChanged?: (
+    action: "add" | "remove",
+    frameworkId?: number
+  ) => void;
 }
 
 const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
@@ -112,7 +116,8 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
           isToast: true,
           visible: true,
         });
-        if (onFrameworksChanged) onFrameworksChanged("remove", parseInt(frameworkToRemove.id));
+        if (onFrameworksChanged)
+          onFrameworksChanged("remove", parseInt(frameworkToRemove.id));
       } else {
         setAlert({
           variant: "error",
@@ -143,8 +148,20 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
   const isFrameworkAdded = (fw: Framework) =>
     project.framework?.some((pf) => Number(pf.framework_id) === Number(fw.id));
 
+  useModalKeyHandling({
+    isOpen: open,
+    onClose: () => onClose(),
+  });
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal 
+      open={open} 
+      onClose={(_event, reason) => {
+        if (reason !== 'backdropClick') {
+          onClose();
+        }
+      }}
+    >
       <Box sx={modalContainerStyle}>
         {/* Header */}
         <Box sx={modalHeaderStyle}>
@@ -156,7 +173,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
             onClick={onClose}
             sx={modalCloseButtonStyle}
           >
-            <CloseIcon fontSize="medium" />
+            <CloseGreyIcon/>
           </IconButton>
         </Box>
         {/* Description */}
@@ -196,7 +213,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
                           color: "#13715B",
                         }}
                       >
-                        <CheckIcon sx={{ color: "#13715B", fontSize: 18 }} />
+                        <CheckGreenIcon />
                         Added
                       </Box>
                     )}

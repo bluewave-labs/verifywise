@@ -1,14 +1,29 @@
 /**
- * Represents an organization in the system.
+ * @fileoverview Organization Model
  *
- * @type Organization
+ * Defines the Organization entity for multi-tenant architecture. Each organization
+ * represents an isolated tenant with its own users, projects, and data.
  *
- * @property {number} id - The unique identifier for the organization.
- * @property {string} name - The name of the organization.
- * @property {string} logo - The logo URL of the organization.
- * @property {number[]} members - Array of user IDs who are members of this organization.
- * @property {number[]} projects - Array of project IDs associated with this organization.
- * @property {Date} created_at - The date and time when the organization was created.
+ * Database Schema:
+ * - id: Auto-incrementing primary key
+ * - name: Organization name (2-255 chars, required)
+ * - logo: Logo URL (valid URL format, optional)
+ * - created_at: Organization creation timestamp
+ *
+ * Key Features:
+ * - Comprehensive name and logo validation
+ * - URL format validation for logos
+ * - Factory method for safe instance creation
+ * - Organization age calculation utilities
+ * - Safe JSON serialization
+ *
+ * Multi-Tenancy:
+ * - Each organization gets isolated tenant database
+ * - Users belong to single organization
+ * - Projects scoped to organization
+ * - Data segregation enforced at application level
+ *
+ * @module domain.layer/models/organization
  */
 
 import { Column, DataType, Model, Table } from "sequelize-typescript";
@@ -50,7 +65,31 @@ export class OrganizationModel
   created_at?: Date;
 
   /**
-   * Create a new organization with comprehensive validation
+   * Creates a new organization with validation
+   *
+   * Factory method that creates an OrganizationModel instance with validated data.
+   * Does NOT save to database - caller must persist using query utilities.
+   *
+   * @static
+   * @async
+   * @param {string} name - Organization name (2-255 chars)
+   * @param {string} [logo] - Logo URL (must be valid URL format)
+   * @param {number[]} [members] - Array of user IDs (unused, for future)
+   * @param {number[]} [projects] - Array of project IDs (unused, for future)
+   * @returns {Promise<OrganizationModel>} OrganizationModel instance (not yet persisted)
+   * @throws {ValidationException} If any field fails validation
+   *
+   * @validation
+   * - Name: Required, 2-255 chars
+   * - Logo: Optional, must be valid URL if provided
+   * - Members: Optional array of positive integers
+   * - Projects: Optional array of positive integers
+   *
+   * @example
+   * const org = await OrganizationModel.createNewOrganization(
+   *   'Acme Corp', 'https://example.com/logo.png'
+   * );
+   * // Org instance created but not saved to database yet
    */
   static async createNewOrganization(
     name: string,
@@ -149,7 +188,23 @@ export class OrganizationModel
   }
 
   /**
-   * Update organization information with validation
+   * Updates organization information with validation
+   *
+   * Allows partial updates of name and logo with field-level validation.
+   * Changes are applied to the instance but not persisted to database.
+   *
+   * @async
+   * @param {Object} updateData - Fields to update
+   * @param {string} [updateData.name] - New organization name (2-255 chars)
+   * @param {string} [updateData.logo] - New logo URL (valid URL format)
+   * @param {number[]} [updateData.members] - Member IDs (unused, for future)
+   * @param {number[]} [updateData.projects] - Project IDs (unused, for future)
+   * @returns {Promise<void>}
+   * @throws {ValidationException} If any field fails validation
+   *
+   * @example
+   * await org.updateOrganization({ name: 'New Name', logo: 'https://new.url' });
+   * // Org instance updated but not saved to database yet
    */
   async updateOrganization(updateData: {
     name?: string;
@@ -214,7 +269,22 @@ export class OrganizationModel
   }
 
   /**
-   * Validate organization data before saving
+   * Validates all organization data fields before persistence
+   *
+   * Performs comprehensive validation of all required fields.
+   * Should be called before saving organization to database.
+   *
+   * @async
+   * @returns {Promise<void>}
+   * @throws {ValidationException} If any required field is missing or invalid
+   *
+   * @validation
+   * - Name: Required, 2-255 chars
+   * - Logo: Optional, must be valid URL if provided
+   *
+   * @example
+   * await org.validateOrganizationData();
+   * // Throws ValidationException if any field is invalid
    */
   async validateOrganizationData(): Promise<void> {
     if (!this.name || this.name.trim().length === 0) {
@@ -305,7 +375,20 @@ export class OrganizationModel
   }
 
   /**
-   * Static method to find organization by ID with validation
+   * Finds organization by ID with validation
+   *
+   * Validates ID format and verifies organization exists before returning.
+   *
+   * @static
+   * @async
+   * @param {number} id - Organization ID (must be >= 1)
+   * @returns {Promise<OrganizationModel>} Organization instance
+   * @throws {ValidationException} If ID format is invalid
+   * @throws {NotFoundException} If organization not found
+   *
+   * @example
+   * const org = await OrganizationModel.findByIdWithValidation(1);
+   * // Returns organization or throws exception
    */
   static async findByIdWithValidation(id: number): Promise<OrganizationModel> {
     if (!numberValidation(id, 1)) {

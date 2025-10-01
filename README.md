@@ -1,7 +1,4 @@
-
-
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
-![](https://img.shields.io/github/license/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/repo-size/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/commit-activity/m/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/last-commit/bluewave-labs/verifywise)
@@ -11,9 +8,9 @@
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 
-[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
-We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance. 
+We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
 ## VerifyWise product line
 
@@ -26,15 +23,12 @@ VerifyWise also has additional products for end-to-end AI governance and managem
 ## Quick links
 
 - The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
-- The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
-- [Need to talk to someone](https://tidycal.com/verifywise/info-session)? Get with us to see the latest demo, or [click here](https://verifywise.ai/see-a-demo-of-verifywise/) to experience the demo yourself.
-- If you are looking for the FlagWise, the Shadow AI detection tool, [check this repository](https://github.com/bluewave-labs/flagwise).
+- [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
 
 ## Screenshot
 
 <img width="1319" height="740" alt="image" src="https://github.com/user-attachments/assets/576cf117-02a2-47e9-950f-e5b50c3b4005" />
-
 
 ## Who is it for?
 
@@ -48,10 +42,10 @@ VerifyWise is designed for:
 - **Legal and privacy teams**: Professionals addressing the legal and ethical implications of AI use.
 - **AI developers**: Teams working on AI projects who need to ensure compliance and responsible development.
 
-## Why now? 
+## Why now?
 
 - **Urgent need for regulatory compliance:** Regulations establish clear rules for AI applications, creating a need for organizations to comply with legal requirements.
-- **Complexity of compliance:** Companies will require governance tools to help them navigate a changing regulatory landscape. 
+- **Complexity of compliance:** Companies will require governance tools to help them navigate a changing regulatory landscape.
 - **Growing concerns for ethical AI:** There is a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
 - **Good timing with global AI expansion:** Launching an open-source AI governance application now aligns with the AI adoption trend across industries (e.g., healthcare, finance), addressing the need for a deployable governance solution.
 
@@ -60,36 +54,36 @@ VerifyWise is designed for:
 ![VerifyWise platform](https://github.com/user-attachments/assets/2d05cd1f-f67b-45d2-aca4-1fdcde287a44)
 
 - Option to host the application on-premises or in a private cloud
-- Open source with a copyleft license (AGPLv3). Dual licensing is also available for enterprises
+- Source available license (BSL 1.1). Dual licensing is also available for enterprises
 - Faster audits using AI-generated answers for compliance and assessment questions
 - Full access to the source code for transparency, security audits, and customization
 - Docker deployment (also deployable on render.com and similar platforms)
 - User registration, authentication, and role-based access control (RBAC) support
 - Major features:
-  - Multiple projects
-  - Support for EU AI Act and ISO 42001
+  - Support for EU AI Act, ISO 42001 and ISO 27001
   - Vendors & vendor risks
   - AI project risks
-  - Bias & fairness check of ML systems
+  - Tasks
+  - Bias & fairness check of LLM systems
   - Evidence center
-  - AI trust center
+  - AI trust center for public view
   - AI literacy training registery
   - Integration with MIT AI risk repository
-  - Model inventory that keeps a list of models used
+  - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
-  - Risk and control mappings for EU AI Act & ISO 42001
+  - Risk and control mappings for EU AI Act, ISO 42001 and ISO 27001
   - Detailed eports
   - Event logs (audits) for enterprise organizations
- 
-## Roadmap 
+  - Google OAuth2 support for authentication
 
-- More frameworks (eg. 27001 or AI regulatory frameworks)
+## Roadmap
+
+- More frameworks (eg. SOC2 and other AI regulatory frameworks)
 - Mappings between frameworks
-- Bias & fairness check of LLM models
-- Google OAuth2 support for authentication
 - Automated reports
 - Integration with 3rd party platforms
 - Slack notifications
+- Better email notifications
 
 ## Installation
 
@@ -97,7 +91,8 @@ The VerifyWise application has two components: a frontend built with React.js an
 
 ### Installation using npm (for development)
 
-Prerequisites: 
+Prerequisites:
+
 - npm and Docker
 - A running PostgreSQL, preferably as a Docker image (eg. using `docker pull postgres:latest`)
 - Available ports: 5173 (frontend), 8080 (backend), 5432 (database)
@@ -175,7 +170,7 @@ mkdir verifywise
 cd verifywise
 ```
 
-Download the required files using wget: 
+Download the required files using wget:
 
 ```
 curl -O https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/install.sh
@@ -186,7 +181,7 @@ Make sure to change the JWT_SECRET variable to your liking, and change `localhos
 
 ```
 BACKEND_URL=http://64.23.242.4:3000
-FRONTEND_URL=http://64.23.242.4:8080 
+FRONTEND_URL=http://64.23.242.4:8080
 ALLOWED_ORIGINS=["http://64.23.242.4:5173", "http://64.23.242.4:8080"]
 ```
 
@@ -217,10 +212,9 @@ docker-compose --env-file .env.prod down
 
 **Note:** Since no users exist by default, you'll see the admin registration page first. Register your admin account here. After registration, you'll be redirected to login, and will be able to use your new credentials.
 
-
 ### Installing SSL
 
-Here are the steps to enable SSL on your system. 
+Here are the steps to enable SSL on your system.
 
 1. Make sure to point domain to VM IP
 
@@ -231,13 +225,21 @@ sudo apt update
 sudo apt install nginx -y
 ```
 
-3. Create a config file  (`/etc/nginx/sites-available/verifywise`) with the following content. Change the domain name accordingly.
+3. Create a config file (`/etc/nginx/sites-available/verifywise`) with the following content. Change the domain name accordingly.
 
 ```
 server {
     server_name domainname.com;
-    
+
     client_max_body_size 200M;
+
+    # Custom error page for maintenance/upgrades
+    error_page 502 503 504 /upgrade.html;
+
+    location = /upgrade.html {
+        root /var/www/verifywise;
+        internal;
+    }
 
     location / {
         proxy_pass http://localhost:8080;
@@ -259,7 +261,14 @@ server {
  }
 ```
 
-4. Enable the config:
+4. Create the directory for custom error pages and copy the upgrade page:
+
+```
+sudo mkdir -p /var/www/verifywise
+sudo curl -o /var/www/verifywise/upgrade.html https://raw.githubusercontent.com/bluewave-labs/verifywise/develop/Clients/upgrade.html
+```
+
+5. Enable the config:
 
 ```
 sudo ln -s /etc/nginx/sites-available/verifywise /etc/nginx/sites-enabled/
@@ -267,19 +276,19 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-5. Install Certbot for SSL:
+6. Install Certbot for SSL:
 
 ```
 sudo apt install certbot python3-certbot-nginx -y
 ```
 
-6. Obtain SSL certificate. Change the domain name accordingly.
+7. Obtain SSL certificate. Change the domain name accordingly.
 
 ```
 sudo certbot --nginx -d domainname.com
 ```
 
-7. Update the `.env.prod` to point to correct domain. Change the domain name accordingly.
+8. Update the `.env.prod` to point to correct domain. Change the domain name accordingly.
 
 ```
 BACKEND_URL=https://domainname.com/api
@@ -287,17 +296,20 @@ FRONTEND_URL=https://domainname.com
 ALLOWED_ORIGINS=["https://domainname.com:5173", "https://domainname.com"]
 ```
 
-8. Restart the application
+9. Restart the application
 
 ```
 ./install.sh
 ```
 
+**Note:** The nginx configuration includes custom error pages that display a professional "upgrading" message instead of the default "502 Bad Gateway" error when the servers are not running or during maintenance.
+
 ### Integrating Resend (for email invitations)
 
 Ensure you have following things:
+
 > 1. You have created an account on [resend](https://resend.com/)
-> 
+>
 > 2. You have your app domain pointing to your server on DNS
 
 1. Create an [API Key](https://resend.com/api-keys) with `Sending Access`
@@ -309,14 +321,13 @@ Ensure you have following things:
 4. Add the provided `DNS Records` on your DNS config on your DNS provider
 
 5. Verify the DNS Records on Resend
-![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
+   ![verification](https://github.com/user-attachments/assets/b50dd353-0ba0-4740-96ae-a26cc6c9e11e)
 
 6. Update the `EMAIL_ID` in **env** file to `no-reply@your-domain`
 
 ### Ports
 
 You’ll need to open ports 80 and 443 so VerifyWise can be accessed from the internet.
-
 
 ## Security
 

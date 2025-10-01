@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { ProjectRiskModel } from "../../models/projectRisks/projectRisk.model";
+import { RiskModel } from "../../models/risks/risk.model";
 import { AnswerEUModel } from "./answerEU.model";
 
 export type AnswerEURisks = {
@@ -24,7 +24,7 @@ export class AnswerEURisksModel extends Model<AnswerEURisks> {
   })
   answer_id?: number;
 
-  @ForeignKey(() => ProjectRiskModel)
+  @ForeignKey(() => RiskModel)
   @Column({
     type: DataType.INTEGER,
     primaryKey: true,

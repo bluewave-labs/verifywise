@@ -2,7 +2,8 @@ import React from "react";
 import { Select, MenuItem, FormControl, useTheme } from "@mui/material";
 import { dropdownStyles, inputStyles } from "./style";
 import { ProjectFilterDropdownProps } from "../../../../../domain/interfaces/iDropdown";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon  } from "../../../../assets/icons/chevron-down-grey.svg";
+
 
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   projects,
@@ -21,7 +22,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
           value={selectedProject || ""}
           onChange={(e) => onChange(e.target.value)}
           displayEmpty
-          IconComponent={KeyboardArrowDownIcon}
+          IconComponent={GreyDownArrowIcon}
           sx={{
             ...inputStyles,
             ...dropdownStyles,
@@ -57,7 +58,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
           }}
         >     
           {projects.length > 0 ? 
-            <MenuItem value="all">All projects</MenuItem> : 
+            <MenuItem value="all">All</MenuItem> : 
             <MenuItem value="all">No project available</MenuItem>
           }
           {projects.map((project) => (

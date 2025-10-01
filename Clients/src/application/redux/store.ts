@@ -5,6 +5,32 @@ import uiSlice from "./ui/uiSlice";
 import authReducer from "./auth/authSlice";
 import fileReducer from "./file/fileSlice";
 
+// Version tracking for cache invalidation
+const APP_VERSION = __APP_VERSION__;
+const STORAGE_KEY = "root";
+
+// Check if stored version matches current version
+const checkVersionAndClearIfNeeded = () => {
+  try {
+    const storedVersion = localStorage.getItem(`${STORAGE_KEY}_version`);
+    if (storedVersion !== APP_VERSION) {
+      // Clear all persisted data if versions don't match
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('persist:')) {
+          localStorage.removeItem(key);
+        }
+      });
+      localStorage.setItem(`${STORAGE_KEY}_version`, APP_VERSION);
+      console.log(`🔄 App version updated to ${APP_VERSION}, cleared cache`);
+    }
+  } catch (error) {
+    console.error('Error checking app version:', error);
+  }
+};
+
+// Run version check before initializing store
+checkVersionAndClearIfNeeded();
+
 const persistConfig = {
   key: "root",
   storage,

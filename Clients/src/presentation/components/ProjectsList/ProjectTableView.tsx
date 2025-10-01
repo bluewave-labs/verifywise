@@ -9,7 +9,6 @@ import {
   TablePagination,
   TableFooter,
   Typography,
-  Chip,
   useTheme,
 } from "@mui/material";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
@@ -46,29 +45,33 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
   };
 
   const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case "high risk":
-        return { 
-          backgroundColor: theme.palette.status.error.bg, 
-          color: theme.palette.status.error.text 
-        };
-      case "limited risk":
-        return { 
-          backgroundColor: theme.palette.status.warning.bg, 
-          color: theme.palette.status.warning.text 
-        };
-      case "minimal risk":
-        return { 
-          backgroundColor: theme.palette.status.success.bg, 
-          color: theme.palette.status.success.text 
-        };
-      default:
-        return { 
-          backgroundColor: theme.palette.unresolved.bg, 
-          color: theme.palette.text.tertiary 
-        };
-    }
+    const style = (() => {
+      switch (risk.toLowerCase()) {
+        case "high risk":
+          return { bg: "#ffcdd2", color: "#c62828" };       // light red bg, dark red text
+        case "limited risk":
+          return { bg: "#fff3e0", color: "#b71c1c" };       // light orange bg, brown text
+        case "minimal risk":
+          return { bg: "#c8e6c9", color: "#388e3c" };       // light green bg, dark green text
+        default:
+          return { bg: "#f5f5f5", color: "#9e9e9e" };       // default grey
+      }
+    })();
+  
+    return {
+      backgroundColor: style.bg,
+      color: style.color,
+      padding: "4px 8px",
+      borderRadius: 12,
+      fontWeight: 500,
+      fontSize: "11px",
+      textTransform: "uppercase" as const,
+      display: "inline-block" as const,
+      letterSpacing: "0.5px",
+    };
   };
+  
+  
 
   const handleChangePage = useCallback((_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -181,20 +184,13 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
               <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontSize: "13px", fontWeight: 500 }}>
                 {project.project_title}
               </TableCell>
+
               <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
-                <Chip
-                  label={project.ai_risk_classification}
-                  size="small"
-                  sx={{
-                    ...getRiskColor(project.ai_risk_classification),
-                    fontWeight: 500,
-                    fontSize: "11px",
-                    height: "22px",
-                    textTransform: "capitalize",
-                    border: "none",
-                  }}
-                />
+                <span style={getRiskColor(project.ai_risk_classification)}>
+                  {project.ai_risk_classification}
+                </span>
               </TableCell>
+
               <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, fontSize: "13px", textTransform: "capitalize" }}>
                 {project.type_of_high_risk_role.replace(/_/g, " ")}
               </TableCell>

@@ -1,4 +1,5 @@
 import {
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -13,10 +14,12 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
+import {ReactComponent as OpenInNewIcon} from "../../../assets/icons/openInNewTab.svg";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 interface Column {
   id: number;
@@ -33,6 +36,9 @@ interface FileBasicTableProps {
   paginated?: boolean;
   table: string;
 }
+const navigteToNewTab = (url: string) => {
+  window.open(url, "_blank", "noopener,noreferrer");
+};
 
 const FileBasicTable: React.FC<FileBasicTableProps> = ({
   data,
@@ -42,7 +48,9 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('evidences', DEFAULT_ROWS_PER_PAGE)
+  );
 
   useEffect(() => setPage(0), [data]);
 
@@ -52,16 +60,56 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('evidences', newRowsPerPage);
       setPage(0);
     },
-    []
+    [],
   );
 
   const paginatedRows = bodyData.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
+
+  const handleRowClick = (item: FileData, event: React.MouseEvent) => {
+    event.stopPropagation();
+    switch (item.source) {
+      case "Assessment tracker group":
+        navigteToNewTab(
+          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&topicId=${item.parentId}&questionId=${item.metaId}`,
+        );
+        break;
+      case "Compliance tracker group":
+        navigteToNewTab(
+          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`,
+        );
+        break;
+      case "Management system clauses group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-42001&clauseId=${item.parentId}&subClauseId=${item.metaId}`,
+        );
+        break;
+      case "Main clauses group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-27001&clause27001Id=${item.parentId}&subClause27001Id=${item.metaId}`,
+        );
+        break;
+      case "Reference controls group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexCategoryId=${item.metaId}`,
+        );
+        break;
+      case "Annex controls group":
+        navigteToNewTab(
+          `/framework?frameworkName=iso-27001&annex27001Id=${item.parentId}&annexControl27001Id=${item.metaId}`,
+        );
+        break;
+      default:
+        console.warn("Unknown source type:", item.source);
+    }
+  };
 
   return (
     <>
@@ -101,7 +149,27 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                 <TableCell>{row.projectTitle}</TableCell>
                 <TableCell>{row.uploadDate}</TableCell>
                 <TableCell>{row.uploader}</TableCell>
-                <TableCell>{row.source}</TableCell>
+                <TableCell>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "flex-end",
+                      gap: "4px",
+                      textDecoration: "underline",
+                      "&:hover": {
+                        cursor: "pointer",
+                        "& svg": { visibility: "visible" },
+                      },
+                    }}
+                    onClick={(event) => handleRowClick(row, event)}
+                  >
+                    {row.source}
+                    <OpenInNewIcon
+                      fontSize="small"
+                      style={{ visibility: "hidden" }}
+                    />
+                  </Box>
+                </TableCell>
                 {/* Add any additional cells here */}
                 <TableCell>
                   <IconButton

@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import RichTextEditor from "../../../components/RichTextEditor/index";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import Alert from "../../../components/Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
@@ -102,7 +102,6 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
       const newUploadFiles = uploadFiles.filter((file) => file.id !== fileId);
       onUploadFilesChange(newUploadFiles);
     }
-
   };
 
   const closeFileUploadModal = () => {
@@ -149,12 +148,16 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           sx={{
             mt: 2,
             borderRadius: 2,
-            minWidth: 155,      // minimum width
+            minWidth: 155, // minimum width
             height: 25,
             fontSize: 11,
             border: "1px solid #D0D5DD",
             backgroundColor: "white",
             color: "#344054",
+            "&:hover": {
+              backgroundColor: "#F9FAFB",
+              border: "1px solid #D0D5DD",
+            },
           }}
           disableRipple={
             theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -162,7 +165,7 @@ const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
           onClick={() => setIsFileUploadOpen(true)}
           disabled={readOnly}
         >
-         Add, remove or download evidence
+          Add, remove or download evidence
         </Button>
         <Stack direction="row" spacing={10}>
           <Typography

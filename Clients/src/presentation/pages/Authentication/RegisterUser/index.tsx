@@ -15,7 +15,7 @@ import type {
 import useRegisterUser from "../../../../application/hooks/useRegisterUser";
 import { useNavigate } from "react-router-dom";
 import { logEngine } from "../../../../application/tools/log.engine";
-import CustomizableToast from "../../../vw-v2-components/Toast";
+import CustomizableToast from "../../../components/Toast";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSearchParams } from "react-router-dom";
 import { handleAlert } from "../../../../application/tools/alertUtils";
@@ -107,7 +107,9 @@ const RegisterUser: React.FC = () => {
         handleAlert({
           variant: "error",
           body:
-            isSuccess === 409 ? "This user already exists." : "Registration failed.",
+            isSuccess === 409
+              ? "This user already exists."
+              : "Registration failed.",
           setAlert,
         });
       }

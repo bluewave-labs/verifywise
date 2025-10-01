@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import SaveIcon from "@mui/icons-material/Save";
+import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 
 import {
@@ -25,8 +25,8 @@ import {
 } from "@mui/icons-material";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
+import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
   updatePolicy,
@@ -34,6 +34,7 @@ import {
 import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
+import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 
 interface Props {
   policy: Policy | null;
@@ -81,6 +82,11 @@ const PolicyDetailModal: React.FC<Props> = ({
       blockquote: false,
     }
   );
+
+  useModalKeyHandling({
+    isOpen: true,
+    onClose,
+  });
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -240,7 +246,11 @@ const PolicyDetailModal: React.FC<Props> = ({
       )} */}
       <Drawer
         open={true}
-        onClose={onClose}
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            onClose();
+          }
+        }}
         anchor="right"
         sx={{
           width: 800,
@@ -266,15 +276,17 @@ const PolicyDetailModal: React.FC<Props> = ({
               {isNew ? "Create new policy" : formData.title}
             </Typography>
           </Stack>
-          <CloseIcon
-            sx={{ color: "#98A2B3", cursor: "pointer" }}
+          <CloseGreyIcon
+            style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={onClose}
           />
         </Stack>
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={4}>
+        <Stack spacing={4} sx={{
+            paddingBottom: 30, // leaves space so content won't hide under Save button
+          }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -450,13 +462,16 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Box
           sx={{
-            position: "absolute",
-            bottom: 10,
-            right: 10,
-            width: "100%",
+            position: "fixed",            
+            bottom: 0,
+            right: 0,
+            width: 800,                     // same width as Drawer
             p: 2,
+            backgroundColor: "#fff",        // give it a background to overlap content
+            borderTop: "1px solid #E0E0E0", 
             display: "flex",
             justifyContent: "flex-end",
+            zIndex: 1201,                   // above Drawer content
           }}
         >
           <CustomizableButton
@@ -472,7 +487,7 @@ const PolicyDetailModal: React.FC<Props> = ({
               },
             }}
             onClick={save}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Box>
       </Drawer>

@@ -1,5 +1,5 @@
 import { Stack, Typography, Paper, Divider, useTheme } from "@mui/material";
-import { Assessment } from "@mui/icons-material";
+import {ReactComponent as Assessment } from "../assets/icons/assessment.svg";
 import Breadcrumbs, { BreadcrumbItem } from "../components/Breadcrumbs";
 
 const Playground = () => {
@@ -36,16 +36,6 @@ const Playground = () => {
       disabled: true, // This item will be disabled
     },
   ];
-
-  // Example 3: Custom route mapping for auto-generation
-  const customRouteMapping: Record<string, string> = {
-    "/project-view": "Project Overview",
-    "/project-view/risks": "Risk Management",
-    "/project-view/settings": "Project Settings",
-    "/model-inventory": "Model Inventory",
-    "/ai-trust-center": "AI Trust Center",
-    "/fairness-dashboard": "Fairness Dashboard",
-  };
 
   // Example 4: Long labels that will be truncated
   const longLabelBreadcrumbs: BreadcrumbItem[] = [
@@ -118,7 +108,7 @@ const Playground = () => {
           Breadcrumbs automatically generated from current route with custom
           mapping
         </Typography>
-        <Breadcrumbs autoGenerate={true} routeMapping={customRouteMapping} />
+        <Breadcrumbs autoGenerate={true} />
       </Paper>
 
       {/* Example 3: Breadcrumbs with disabled items */}

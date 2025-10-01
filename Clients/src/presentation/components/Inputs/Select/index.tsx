@@ -24,7 +24,7 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
 import { SelectProps } from "../../../../domain/interfaces/iWidget";
 
 const Select: React.FC<SelectProps> = ({
@@ -39,6 +39,7 @@ const Select: React.FC<SelectProps> = ({
   sx,
   getOptionValue,
   disabled,
+  customRenderValue,
 }) => {
   const theme = useTheme();
   const itemStyles = {
@@ -53,10 +54,17 @@ const Select: React.FC<SelectProps> = ({
     const selectedItem = items.find(
       (item) => (getOptionValue ? getOptionValue(item) : item._id) === selected
     );
-    const displayText = selectedItem
-      ? selectedItem.name +
-        (selectedItem.surname ? " " + selectedItem.surname : "")
-      : placeholder;
+
+    let displayText;
+    if (customRenderValue && selectedItem) {
+      displayText = customRenderValue(value, selectedItem);
+    } else {
+      displayText = selectedItem
+        ? selectedItem.name +
+          (selectedItem.surname ? " " + selectedItem.surname : "")
+        : placeholder;
+    }
+
     return (
       <span
         style={{
@@ -92,10 +100,14 @@ const Select: React.FC<SelectProps> = ({
     >
       {label && (
         <Typography
+          component="p"
+          variant="body1"
           color={theme.palette.text.secondary}
           fontWeight={500}
-          fontSize={13}
+          fontSize={"13px"}
           sx={{
+            margin: 0,
+            height: '22px',
             display: "flex",
             alignItems: "center",
           }}
@@ -119,7 +131,7 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         renderValue={renderValue}
-        IconComponent={KeyboardArrowDownIcon}
+        IconComponent={GreyDownArrowIcon}
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
@@ -150,15 +162,13 @@ const Select: React.FC<SelectProps> = ({
         sx={{
           fontSize: 13,
           minWidth: "125px",
+          backgroundColor: theme.palette.background.main,
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
             borderColor: theme.palette.border.dark,
           },
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,
-          },
-          "& svg path": {
-            fill: theme.palette.other.icon,
           },
           ...sx,
         }}

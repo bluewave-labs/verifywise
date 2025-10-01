@@ -11,8 +11,8 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 
 interface Props {
-  id: number;
-  onConfirm: (id: number) => void;
+  id: number | string;
+  onConfirm: (id: number | string) => void;
   title?: string;
   message?: string;
   customIcon?: React.ReactNode; // e.g., your <img src={trash} ... />

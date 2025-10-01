@@ -1,5 +1,4 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { getAuthToken } from "../redux/auth/getAuthToken";
 
 /**
  * Fetches the AI Trust Center overview data.
@@ -7,13 +6,9 @@ import { getAuthToken } from "../redux/auth/getAuthToken";
  * @param {string} [authToken=getAuthToken()] - Optional auth token.
  * @returns {Promise<any>} The AI Trust Center overview data.
  */
-export async function getAITrustCentreOverview(
-  authToken = getAuthToken()
-): Promise<any> {
+export async function getAITrustCentreOverview(): Promise<any> {
   try {
-    const response = await apiServices.get("/aiTrustCentre/overview", {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get("/aiTrustCentre/overview");
     return response.data;
   } catch (error) {
     console.error("Error fetching AI Trust Center overview:", error);
@@ -29,13 +24,10 @@ export async function getAITrustCentreOverview(
  * @returns {Promise<any>} The response from the API.
  */
 export async function updateAITrustCentreOverview(
-  data: any,
-  authToken = getAuthToken()
+  data: any
 ): Promise<any> {
   try {
-    const response = await apiServices.put("/aiTrustCentre/overview", data, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.put("/aiTrustCentre/overview", data);
     return response.data;
   } catch (error) {
     console.error("Error updating AI Trust Center overview:", error);
@@ -51,16 +43,14 @@ export async function updateAITrustCentreOverview(
  * @returns {Promise<any>} The response from the API.
  */
 export async function uploadAITrustCentreLogo(
-  logoFile: File,
-  authToken = getAuthToken()
+  logoFile: File
 ): Promise<any> {
   try {
     const formData = new FormData();
     formData.append('logo', logoFile);
 
     const response = await apiServices.post("/aiTrustCentre/logo", formData, {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
+      headers: {
         "Content-Type": "multipart/form-data"
       },
     });
@@ -77,13 +67,9 @@ export async function uploadAITrustCentreLogo(
  * @param {string} [authToken=getAuthToken()] - Optional auth token.
  * @returns {Promise<any>} The response from the API.
  */
-export async function deleteAITrustCentreLogo(
-  authToken = getAuthToken()
-): Promise<any> {
+export async function deleteAITrustCentreLogo(): Promise<any> {
   try {
-    const response = await apiServices.delete("/aiTrustCentre/logo", {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete("/aiTrustCentre/logo");
     return response.data;
   } catch (error) {
     console.error("Error deleting AI Trust Center logo:", error);
@@ -105,8 +91,7 @@ export async function createAITrustCentreResource(
   file: File,
   name: string,
   description: string,
-  visible: boolean = true,
-  authToken = getAuthToken()
+  visible: boolean = true
 ): Promise<any> {
   try {
     const formData = new FormData();
@@ -116,8 +101,7 @@ export async function createAITrustCentreResource(
     formData.append('visible', visible.toString());
 
     const response = await apiServices.post("/aiTrustCentre/resources", formData, {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
+      headers: {
         "Content-Type": "multipart/form-data"
       },
     });
@@ -134,13 +118,9 @@ export async function createAITrustCentreResource(
  * @param {string} [authToken=getAuthToken()] - Optional auth token.
  * @returns {Promise<any>} The AI Trust Center resources.
  */
-export async function getAITrustCentreResources(
-  authToken = getAuthToken()
-): Promise<any> {
+export async function getAITrustCentreResources(): Promise<any> {
   try {
-    const response = await apiServices.get("/aiTrustCentre/resources", {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get("/aiTrustCentre/resources");
     return response.data;
   } catch (error) {
     console.error("Error fetching AI Trust Center resources:", error);
@@ -156,13 +136,10 @@ export async function getAITrustCentreResources(
  * @returns {Promise<any>} The response from the API.
  */
 export async function deleteAITrustCentreResource(
-  resourceId: number,
-  authToken = getAuthToken()
+  resourceId: number
 ): Promise<any> {
   try {
-    const response = await apiServices.delete(`/aiTrustCentre/resources/${resourceId}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(`/aiTrustCentre/resources/${resourceId}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting AI Trust Center resource:", error);
@@ -188,8 +165,7 @@ export async function updateAITrustCentreResource(
   description: string,
   visible: boolean,
   file?: File,
-  oldFileId?: number,
-  authToken = getAuthToken()
+  oldFileId?: number
 ): Promise<any> {
   try {
     const formData = new FormData();
@@ -208,8 +184,7 @@ export async function updateAITrustCentreResource(
     }
 
     const response = await apiServices.put(`/aiTrustCentre/resources/${resourceId}`, formData, {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
+      headers: {
         "Content-Type": "multipart/form-data"
       },
     });
@@ -226,13 +201,9 @@ export async function updateAITrustCentreResource(
  * @param {string} [authToken=getAuthToken()] - Optional auth token.
  * @returns {Promise<any>} The AI Trust Center subprocessors.
  */
-export async function getAITrustCentreSubprocessors(
-  authToken = getAuthToken()
-): Promise<any> {
+export async function getAITrustCentreSubprocessors(): Promise<any> {
   try {
-    const response = await apiServices.get("/aiTrustCentre/subprocessors", {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.get("/aiTrustCentre/subprocessors");
     return response.data;
   } catch (error) {
     console.error("Error fetching AI Trust Center subprocessors:", error);
@@ -254,8 +225,7 @@ export async function createAITrustCentreSubprocessor(
   name: string,
   purpose: string,
   location: string,
-  url: string,
-  authToken = getAuthToken()
+  url: string
 ): Promise<any> {
   try {
     const response = await apiServices.post("/aiTrustCentre/subprocessors", {
@@ -264,8 +234,7 @@ export async function createAITrustCentreSubprocessor(
       location,
       url,
     }, {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
+      headers: {
         "Content-Type": "application/json"
       },
     });
@@ -292,8 +261,7 @@ export async function updateAITrustCentreSubprocessor(
   name: string,
   purpose: string,
   location: string,
-  url: string,
-  authToken = getAuthToken()
+  url: string
 ): Promise<any> {
   try {
     const response = await apiServices.put(`/aiTrustCentre/subprocessors/${subprocessorId}`, {
@@ -302,8 +270,7 @@ export async function updateAITrustCentreSubprocessor(
       location,
       url,
     }, {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
+      headers: {
         "Content-Type": "application/json"
       },
     });
@@ -322,13 +289,10 @@ export async function updateAITrustCentreSubprocessor(
  * @returns {Promise<any>} The response from the API.
  */
 export async function deleteAITrustCentreSubprocessor(
-  subprocessorId: number,
-  authToken = getAuthToken()
+  subprocessorId: number
 ): Promise<any> {
   try {
-    const response = await apiServices.delete(`/aiTrustCentre/subprocessors/${subprocessorId}`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.delete(`/aiTrustCentre/subprocessors/${subprocessorId}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting AI Trust Center subprocessor:", error);

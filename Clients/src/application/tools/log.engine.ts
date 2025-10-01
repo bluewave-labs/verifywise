@@ -6,6 +6,7 @@ interface LogProps {
   message: string;
   timestamp?: Date;
   users?: any[]; // Add users as an optional parameter
+  details?: Record<string, unknown>; // Add details as an optional parameter
 }
 
 export function logEngine(props: LogProps) {

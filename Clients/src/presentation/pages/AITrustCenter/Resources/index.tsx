@@ -62,12 +62,16 @@ const ResourceTableRow: React.FC<{
   const theme = useTheme();
   const styles = useStyles(theme);
 
+  const handleRowClick = () => {
+    onEdit(resource.id);
+  };
+
   return (
     <>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer" , textTransform: "none !important",}}>
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
       </TableCell>
       <TableCell>
@@ -520,7 +524,7 @@ const TrustCenterResources: React.FC = () => {
             data={resources || []}
             columns={TABLE_COLUMNS}
             isLoading={resourcesLoading}
-            paginated={false}
+            paginated={true}
             disabled={!formData?.info?.resources_visible}
             emptyStateText="No resources found. Add your first resource to get started."
             renderRow={(resource) => (

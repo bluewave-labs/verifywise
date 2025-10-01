@@ -82,7 +82,7 @@ router.get("/:id", authenticateJWT, getRoleById);
  * @param {express.Response} res - Express response object
  * @returns {Object} Created role object
  */
-router.post("/", authenticateJWT, createRole);
+// router.post("/", authenticateJWT, createRole);
 
 /**
  * PUT /roles/:id
@@ -98,7 +98,7 @@ router.post("/", authenticateJWT, createRole);
  * @param {express.Response} res - Express response object
  * @returns {Object} Updated role object
  */
-router.put("/:id", authenticateJWT, updateRoleById);
+// router.put("/:id", authenticateJWT, updateRoleById);
 
 /**
  * DELETE /roles/:id
@@ -115,6 +115,6 @@ router.put("/:id", authenticateJWT, updateRoleById);
  * @param {express.Response} res - Express response object
  * @returns {Object} Deleted role object
  */
-router.delete("/:id", authenticateJWT, deleteRoleById);
+// router.delete("/:id", authenticateJWT, deleteRoleById);
 
 export default router;

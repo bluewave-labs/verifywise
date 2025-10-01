@@ -71,10 +71,6 @@ class HuggingFaceModelConfig(BaseModel):
     top_p: float = Field(
         default=0.9, gt=0, le=1.0, description="Top-p sampling parameter"
     )
-    system_prompt: str = Field(
-        default="You are a helpful AI assistant.",
-        description="System prompt to be prepended to all model inputs",
-    )
 
 
 class ModelConfig(BaseModel):
@@ -155,11 +151,66 @@ class ArtifactsConfig(BaseModel):
     )
 
 
+class PromptingDefaults(BaseModel):
+    """Defaults applied across formatters unless overridden by formatter-specific config."""
+
+    instruction: Optional[str] = Field(
+        default=None, description="Short, reusable task instruction"
+    )
+    system_prompt: Optional[str] = Field(
+        default=None, description="Shared system prompt unless formatter overrides"
+    )
+
+
+class PromptingFormatterOptions(BaseModel):
+    """Per-formatter configuration overrides."""
+
+    system_prompt: Optional[str] = Field(
+        default=None, description="Formatter-specific system prompt"
+    )
+    assistant_preamble: Optional[str] = Field(
+        default=None, description="Optional assistant preamble for certain formatters"
+    )
+
+
+class PromptingConfig(BaseModel):
+    """Configuration for prompt formatting with defaults and per-formatter overrides.
+
+    Backward compatible with the previous flat schema (instruction, system_prompt, assistant_preamble).
+    """
+
+    # New structured fields
+    formatter: str = Field(
+        default="tinyllama-chat", description="Name of prompt formatter to use"
+    )
+    defaults: PromptingDefaults = Field(
+        default_factory=PromptingDefaults,
+        description="Defaults shared across formatters",
+    )
+    formatters: Dict[str, PromptingFormatterOptions] = Field(
+        default_factory=dict, description="Per-formatter overrides"
+    )
+
+    # Legacy flat fields for backward compatibility with existing code paths
+    system_prompt: Optional[str] = Field(
+        default=None,
+        description="[Legacy] System prompt; computed from defaults/formatter if not set",
+    )
+    instruction: Optional[str] = Field(
+        default=None, description="[Legacy] Instruction; maps to defaults.instruction"
+    )
+    assistant_preamble: Optional[str] = Field(
+        default=None,
+        description="[Legacy] Assistant preamble; from selected formatter options if present",
+    )
+
+
 class Config(BaseModel):
     """Main configuration class that includes all sub-configurations."""
 
     dataset: DatasetConfig
     model: ModelConfig
+    prompting: PromptingConfig
     metrics: MetricsConfig
     post_processing: PostProcessingConfig
     artifacts: ArtifactsConfig
@@ -235,6 +286,14 @@ class ConfigManager:
             ArtifactsConfig: The artifacts configuration containing output paths.
         """
         return self.config.artifacts
+
+    def get_prompting_config(self) -> PromptingConfig:
+        """Get the prompting configuration.
+
+        Returns:
+            PromptingConfig: The prompt input and formatter configuration.
+        """
+        return self.config.prompting
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

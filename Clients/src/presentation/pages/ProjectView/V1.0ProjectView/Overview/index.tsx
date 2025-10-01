@@ -204,6 +204,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         {project ? (
           <>
             <InfoCard title="Owner" body={projectOwner || "N/A"} />
+            <InfoCard title="Project status" body={project.status || "Not started"} />
             <InfoCard
               title="Last updated"
               body={formatDate(project.last_updated.toString())}

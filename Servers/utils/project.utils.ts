@@ -208,6 +208,7 @@ export const createNewProjectQuery = async (
   members: number[],
   frameworks: number[],
   tenant: string,
+  userId: number,
   transaction: Transaction,
   isDemo: boolean = false
 ): Promise<ProjectModel> => {
@@ -251,7 +252,7 @@ export const createNewProjectQuery = async (
         goal: project.goal || null,
         status: project.status || "Not started",
         last_updated: new Date(Date.now()),
-        last_updated_by: project.last_updated_by,
+        last_updated_by: userId,
         is_demo: isDemo,
         is_organizational: project.is_organizational || false,
       },

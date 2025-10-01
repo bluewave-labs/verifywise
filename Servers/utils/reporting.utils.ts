@@ -73,6 +73,9 @@ export const getGeneratedReportsQuery = async ({
     "Reference controls group",
     "Clauses and annexes report",
     "Vendors and risks report",
+    "Models and risks report",
+    "Training registry report",
+    "Policy manager report",
     "All reports",
   ];
 

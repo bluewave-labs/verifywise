@@ -453,7 +453,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
             data={subprocessors || []}
             columns={TABLE_COLUMNS}
             isLoading={subprocessorsLoading}
-            paginated={false}
+            paginated={true}
             disabled={!formData?.info?.subprocessor_visible}
             emptyStateText="No subprocessors found. Add your first subprocessor to get started."
             renderRow={(subprocessor) => (

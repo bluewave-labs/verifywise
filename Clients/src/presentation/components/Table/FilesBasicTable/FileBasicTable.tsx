@@ -14,7 +14,7 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import {ReactComponent as OpenInNewIcon} from "../../../assets/icons/openInNewTab.svg";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
@@ -166,7 +166,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                     {row.source}
                     <OpenInNewIcon
                       fontSize="small"
-                      sx={{ visibility: "hidden" }}
+                      style={{ visibility: "hidden" }}
                     />
                   </Box>
                 </TableCell>

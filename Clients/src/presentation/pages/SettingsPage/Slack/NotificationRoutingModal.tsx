@@ -20,6 +20,7 @@ import useSlackIntegrations, {
   SlackRoutingType,
   SlackNotificationRoutingType,
 } from "../../../../application/hooks/useSlackIntegrations";
+import { NotificationRoutingTypes } from "./constants";
 
 type IntegrationList = { channel: string; teamName: string; id: number };
 
@@ -151,19 +152,30 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
         paddingTop: theme.spacing(12),
       }}
     >
-      {Object.values(SlackNotificationRoutingType).map((type) => (
+      {NotificationRoutingTypes.map((type) => (
         <Stack
-          key={type}
+          key={type.name}
           gap={2}
           sx={{
-            padding: "24px",
+            padding: "12px 24px",
             borderRadius: "8px",
             border: `1.5px solid ${theme.palette.border.dark}`,
           }}
         >
           <Box>
-            <Typography fontSize={16} fontWeight={600}>
-              {type}
+            <Typography
+              variant="h1"
+              component="div"
+              sx={{ color: "#344054", fontSize: 16, fontWeight: 600, mb: 1 }}
+            >
+              {type.name}
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              component="div"
+              sx={{ color: "#344054", fontSize: 13 }}
+            >
+              {type.desc}
             </Typography>
           </Box>
 
@@ -172,7 +184,7 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
               display: "grid",
               gridTemplateColumns: "150px 600px 100px",
               alignItems: "center",
-              mb: 3,
+              mt: 4,
               gap: 4,
             }}
           >
@@ -187,12 +199,12 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
                 value={
                   integrations.filter((integration) =>
                     routingData
-                      .find((item) => item.routingType === type)
+                      .find((item) => item.routingType === type.name)
                       ?.id.includes(integration.id),
                   ) || []
                 }
                 onChange={(_event, newValue: IntegrationList[]) => {
-                  handleOnSelectChange(type, newValue);
+                  handleOnSelectChange(type.name, newValue);
                 }}
                 options={integrations}
                 getOptionLabel={(integration) =>
@@ -290,11 +302,11 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
             <Box>
               <CustomizableButton
                 variant="outlined"
-                onClick={() => handleSendTestNotification(type)}
+                onClick={() => handleSendTestNotification(type.name)}
                 size="medium"
                 text="Send Test"
                 sx={viewProjectButtonStyle}
-                isDisabled={(routingData.find((data) => data.routingType === type)?.id.length ?? 0) === 0}
+                isDisabled={(routingData.find((data) => data.routingType === type.name)?.id.length ?? 0) === 0}
               />
             </Box>
           </Stack>

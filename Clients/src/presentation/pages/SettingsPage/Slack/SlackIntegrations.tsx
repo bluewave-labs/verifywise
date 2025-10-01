@@ -15,7 +15,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import TuneIcon from "@mui/icons-material/Tune";
+import { ReactComponent as SliderIcon} from "../../../assets/icons/sliders.svg";
 import { sendSlackMessage } from "../../../../application/repository/slack.integration.repository";
 import { Suspense, useCallback, useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
@@ -156,7 +156,7 @@ const SlackIntegrations = ({
               border: "1px solid #13715B",
               gap: 2,
             }}
-            icon={<TuneIcon />}
+            icon={<SliderIcon />}
             onClick={handleOpenOrClose}
           />
         </Box>

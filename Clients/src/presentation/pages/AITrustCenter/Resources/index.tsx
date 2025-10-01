@@ -1,27 +1,42 @@
 import React, { useState, Suspense } from "react";
-import { Box, Typography, IconButton,  Dialog, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, DialogTitle, DialogContent, Stack } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Dialog,
+  TableCell,
+  CircularProgress,
+  DialogTitle,
+  DialogContent,
+  Stack,
+} from "@mui/material";
 import Alert from "../../../components/Alert";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
-import Toggle from '../../../components/Inputs/Toggle';
-import { useStyles } from './styles';
-import CustomizableButton from '../../../vw-v2-components/Buttons';
-import IconButtonComponent from '../../../components/IconButton';
-import Field from '../../../components/Inputs/Field';
-import { useAITrustCentreOverviewQuery, useAITrustCentreOverviewMutation } from '../../../../application/hooks/useAITrustCentreOverviewQuery';
-import { 
+import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-white.svg"
+import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-white.svg"
+import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
+import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import Toggle from "../../../components/Inputs/Toggle";
+import { useStyles } from "./styles";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import IconButtonComponent from "../../../components/IconButton";
+import Field from "../../../components/Inputs/Field";
+import {
+  useAITrustCentreOverviewQuery,
+  useAITrustCentreOverviewMutation,
+} from "../../../../application/hooks/useAITrustCentreOverviewQuery";
+import {
   useAITrustCentreResourcesQuery,
   useCreateAITrustCentreResourceMutation,
   useUpdateAITrustCentreResourceMutation,
-  useDeleteAITrustCentreResourceMutation
-} from '../../../../application/hooks/useAITrustCentreResourcesQuery';
-import { handleDownload as downloadFile } from '../../../../application/tools/fileDownload';
-import { handleAlert } from '../../../../application/tools/alertUtils';
-import { TABLE_COLUMNS, WARNING_MESSAGES } from './constants';
-import { AITrustCentreOverviewData } from '../../../../application/hooks/useAITrustCentreOverview';
-import { useTheme } from '@mui/material/styles';
+  useDeleteAITrustCentreResourceMutation,
+} from "../../../../application/hooks/useAITrustCentreResourcesQuery";
+import { handleDownload as downloadFile } from "../../../../application/tools/fileDownload";
+import { handleAlert } from "../../../../application/tools/alertUtils";
+import { TABLE_COLUMNS, WARNING_MESSAGES } from "./constants";
+import { AITrustCentreOverviewData } from "../../../../application/hooks/useAITrustCentreOverview";
+import { useTheme } from "@mui/material/styles";
+import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface Resource {
   id: number;
@@ -37,13 +52,18 @@ const ResourceTableRow: React.FC<{
   onEdit: (id: number) => void;
   onMakeVisible: (id: number) => void;
   onDownload: (id: number) => void;
-  isFlashing: boolean;
-}> = ({ resource, onDelete, onEdit, onMakeVisible, onDownload, isFlashing }) => {
+}> = ({
+  resource,
+  onDelete,
+  onEdit,
+  onMakeVisible,
+  onDownload,
+}) => {
   const theme = useTheme();
   const styles = useStyles(theme);
-  
+
   return (
-    <TableRow sx={styles.tableRow(isFlashing)}>
+    <>
       <TableCell>
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
@@ -52,9 +72,9 @@ const ResourceTableRow: React.FC<{
       </TableCell>
       <TableCell>
         {resource.visible ? (
-          <VisibilityIcon sx={styles.visibilityIcon} />
+          <VisibilityIcon style={styles.visibilityIcon as React.CSSProperties} />
         ) : (
-          <VisibilityOffIcon sx={styles.visibilityOffIcon} />
+          <VisibilityOffIcon style={styles.visibilityOffIcon as React.CSSProperties} />
         )}
       </TableCell>
       <TableCell>
@@ -71,7 +91,7 @@ const ResourceTableRow: React.FC<{
           type="resource"
         />
       </TableCell>
-    </TableRow>
+    </>
   );
 };
 
@@ -86,23 +106,50 @@ interface FormData {
 }
 
 const TrustCenterResources: React.FC = () => {
-  const { data: overviewData, isLoading: overviewLoading, error: overviewError } = useAITrustCentreOverviewQuery();
+  const {
+    data: overviewData,
+    isLoading: overviewLoading,
+    error: overviewError,
+  } = useAITrustCentreOverviewQuery();
   const updateOverviewMutation = useAITrustCentreOverviewMutation();
-  const { data: resources, isLoading: resourcesLoading, error: resourcesError } = useAITrustCentreResourcesQuery();
+  const {
+    data: resources,
+    isLoading: resourcesLoading,
+    error: resourcesError,
+  } = useAITrustCentreResourcesQuery();
   const createResourceMutation = useCreateAITrustCentreResourceMutation();
   const updateResourceMutation = useUpdateAITrustCentreResourceMutation();
   const deleteResourceMutation = useDeleteAITrustCentreResourceMutation();
   const theme = useTheme();
   const styles = useStyles(theme);
 
-// State management
-const [formData, setFormData] = useState<FormData | null>(null);
+  // State management
+  const [formData, setFormData] = useState<FormData | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [newResource, setNewResource] = useState<{ name: string; description: string; file: File | null }>({ name: '', description: '', file: null });
-  const [editResource, setEditResource] = useState<{ id: number; name: string; description: string; visible: boolean; file: File | null; filename?: string; file_id?: number }>({ id: 0, name: '', description: '', visible: true, file: null, filename: '', file_id: undefined });
-  const [flashingRowId, setFlashingRowId] = useState<number | null>(null);
-  
+  const [newResource, setNewResource] = useState<{
+    name: string;
+    description: string;
+    file: File | null;
+  }>({ name: "", description: "", file: null });
+  const [editResource, setEditResource] = useState<{
+    id: number;
+    name: string;
+    description: string;
+    visible: boolean;
+    file: File | null;
+    filename?: string;
+    file_id?: number;
+  }>({
+    id: 0,
+    name: "",
+    description: "",
+    visible: true,
+    file: null,
+    filename: "",
+    file_id: undefined,
+  });
+
   // Success/Error states
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -110,8 +157,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
     body: string;
   } | null>(null);
   const [addResourceError, setAddResourceError] = useState<string | null>(null);
-  const [deleteResourceError, setDeleteResourceError] = useState<string | null>(null);
-  const [editResourceError, setEditResourceError] = useState<string | null>(null);
+  const [deleteResourceError, setDeleteResourceError] = useState<string | null>(
+    null
+  );
+  const [editResourceError, setEditResourceError] = useState<string | null>(
+    null
+  );
 
   // Update local form data when query data changes
   React.useEffect(() => {
@@ -121,7 +172,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
   }, [overviewData]);
 
   // Handle field change and auto-save
-  const handleFieldChange = (section: string, field: string, value: boolean | string) => {
+  const handleFieldChange = (
+    section: string,
+    field: string,
+    value: boolean | string
+  ) => {
     setFormData((prev: FormData | null) => {
       if (!prev) return prev;
       const updatedData = {
@@ -141,14 +196,14 @@ const [formData, setFormData] = useState<FormData | null>(null);
     try {
       const dataToUse = data || formData;
       if (!dataToUse) return;
-      
+
       // Only send the info section with the resources_visible field
       const dataToSave = {
         info: {
-          resources_visible: dataToUse.info?.resources_visible ?? false
-        }
+          resources_visible: dataToUse.info?.resources_visible ?? false,
+        },
       } as Partial<AITrustCentreOverviewData>;
-      
+
       await updateOverviewMutation.mutateAsync(dataToSave);
       handleAlert({
         variant: "success",
@@ -156,7 +211,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
         setAlert,
       });
     } catch (error) {
-      console.error('Save failed:', error);
+      console.error("Save failed:", error);
     }
   };
 
@@ -164,13 +219,13 @@ const [formData, setFormData] = useState<FormData | null>(null);
   const handleOpenAddModal = () => {
     if (!formData?.info?.resources_visible) return;
     setAddModalOpen(true);
-    setNewResource({ name: '', description: '', file: null });
+    setNewResource({ name: "", description: "", file: null });
     setAddResourceError(null);
   };
-  
+
   const handleCloseAddModal = () => {
     setAddModalOpen(false);
-    setNewResource({ name: '', description: '', file: null });
+    setNewResource({ name: "", description: "", file: null });
     setAddResourceError(null);
   };
 
@@ -183,7 +238,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
       visible: resource.visible,
       file: null,
       filename: resource.filename || resource.name, // Use filename if available, otherwise use resource name
-      file_id: resource.file_id // Store the current file ID for deletion when replacing
+      file_id: resource.file_id, // Store the current file ID for deletion when replacing
     });
     setEditModalOpen(true);
     setEditResourceError(null);
@@ -191,17 +246,36 @@ const [formData, setFormData] = useState<FormData | null>(null);
 
   const handleCloseEditModal = () => {
     setEditModalOpen(false);
-    setEditResource({ id: 0, name: '', description: '', visible: true, file: null, filename: '', file_id: undefined });
+    setEditResource({
+      id: 0,
+      name: "",
+      description: "",
+      visible: true,
+      file: null,
+      filename: "",
+      file_id: undefined,
+    });
     setEditResourceError(null);
   };
-  
+
+  // Add modal key handling for ESC key support
+  useModalKeyHandling({
+    isOpen: addModalOpen,
+    onClose: handleCloseAddModal,
+  });
+
+  useModalKeyHandling({
+    isOpen: editModalOpen,
+    onClose: handleCloseEditModal,
+  });
+
   // File handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!formData?.info?.resources_visible) return;
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type !== 'application/pdf') {
-        setAddResourceError('Please upload a PDF file');
+      if (file.type !== "application/pdf") {
+        setAddResourceError("Please upload a PDF file");
         return;
       }
       setNewResource((prev) => ({ ...prev, file }));
@@ -213,19 +287,24 @@ const [formData, setFormData] = useState<FormData | null>(null);
     if (!formData?.info?.resources_visible) return;
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type !== 'application/pdf') {
-        setEditResourceError('Please upload a PDF file');
+      if (file.type !== "application/pdf") {
+        setEditResourceError("Please upload a PDF file");
         return;
       }
       setEditResource((prev) => ({ ...prev, file }));
       setEditResourceError(null);
     }
   };
-  
+
   // Resource operations
   const handleAddResource = async () => {
-    if (!formData?.info?.resources_visible || !newResource.name || !newResource.description || !newResource.file) {
-      setAddResourceError('Please fill in all fields and upload a file');
+    if (
+      !formData?.info?.resources_visible ||
+      !newResource.name ||
+      !newResource.description ||
+      !newResource.file
+    ) {
+      setAddResourceError("Please fill in all fields and upload a file");
       return;
     }
 
@@ -234,7 +313,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
         file: newResource.file,
         name: newResource.name,
         description: newResource.description,
-        visible: true
+        visible: true,
       });
       handleAlert({
         variant: "success",
@@ -242,23 +321,27 @@ const [formData, setFormData] = useState<FormData | null>(null);
         setAlert,
       });
       setAddModalOpen(false);
-      setNewResource({ name: '', description: '', file: null });
+      setNewResource({ name: "", description: "", file: null });
       setAddResourceError(null);
     } catch (error: any) {
-      setAddResourceError(error.message || 'Failed to create resource');
+      setAddResourceError(error.message || "Failed to create resource");
     }
   };
 
   const handleSaveEditResource = async () => {
-    if (!formData?.info?.resources_visible || !editResource.name || !editResource.description) {
-      setEditResourceError('Please fill in all required fields');
+    if (
+      !formData?.info?.resources_visible ||
+      !editResource.name ||
+      !editResource.description
+    ) {
+      setEditResourceError("Please fill in all required fields");
       return;
     }
 
     try {
       // Pass the old file ID only when a new file is being uploaded
       const oldFileId = editResource.file ? editResource.file_id : undefined;
-      
+
       // Use the unified update function - it handles both cases
       await updateResourceMutation.mutateAsync({
         resourceId: editResource.id,
@@ -266,33 +349,38 @@ const [formData, setFormData] = useState<FormData | null>(null);
         description: editResource.description,
         visible: editResource.visible,
         file: editResource.file || undefined,
-        oldFileId: oldFileId
+        oldFileId: oldFileId,
       });
-      
+
       handleAlert({
         variant: "success",
         body: "Resource updated successfully",
         setAlert,
       });
       setEditModalOpen(false);
-      setEditResource({ id: 0, name: '', description: '', visible: true, file: null, filename: '', file_id: undefined });
+      setEditResource({
+        id: 0,
+        name: "",
+        description: "",
+        visible: true,
+        file: null,
+        filename: "",
+        file_id: undefined,
+      });
       setEditResourceError(null);
-      
-      setFlashingRowId(editResource.id);
-      setTimeout(() => setFlashingRowId(null), 2000);
     } catch (error: any) {
-      setEditResourceError(error.message || 'Failed to update resource');
+      setEditResourceError(error.message || "Failed to update resource");
     }
   };
-  
+
   const handleEditResource = (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
-    const resource = resources.find(r => r.id === resourceId);
+    const resource = resources.find((r) => r.id === resourceId);
     if (resource) {
       handleOpenEditModal(resource);
     }
   };
-  
+
   const handleDeleteResource = async (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
     try {
@@ -303,13 +391,13 @@ const [formData, setFormData] = useState<FormData | null>(null);
         setAlert,
       });
     } catch (error: any) {
-      setDeleteResourceError(error.message || 'Failed to delete resource');
+      setDeleteResourceError(error.message || "Failed to delete resource");
     }
   };
-  
+
   const handleMakeVisible = async (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
-    const resource = resources.find(r => r.id === resourceId);
+    const resource = resources.find((r) => r.id === resourceId);
     if (resource) {
       try {
         await updateResourceMutation.mutateAsync({
@@ -318,27 +406,27 @@ const [formData, setFormData] = useState<FormData | null>(null);
           description: resource.description,
           visible: !resource.visible,
           file: undefined,
-          oldFileId: undefined
+          oldFileId: undefined,
         });
-        setFlashingRowId(resourceId);
-        setTimeout(() => setFlashingRowId(null), 2000);
       } catch (error: any) {
-        setEditResourceError(error.message || 'Failed to update resource visibility');
+        setEditResourceError(
+          error.message || "Failed to update resource visibility"
+        );
       }
     }
   };
-  
+
   const handleDownload = async (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
-    
+
     try {
       // Find the resource to get its name for the download
-      const resource = resources.find(r => r.id === resourceId);
+      const resource = resources.find((r) => r.id === resourceId);
       if (!resource) {
-        console.error('Resource not found');
+        console.error("Resource not found");
         return;
       }
-      
+
       // Use the existing handleDownload function from the codebase
       await downloadFile(resourceId.toString(), resource.name);
       handleAlert({
@@ -347,7 +435,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
         setAlert,
       });
     } catch (error) {
-      console.error('Download failed:', error);
+      console.error("Download failed:", error);
       // You could add error handling here if needed
     }
   };
@@ -355,7 +443,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
   // Show loading state
   if (overviewLoading || resourcesLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -363,12 +456,16 @@ const [formData, setFormData] = useState<FormData | null>(null);
 
   // Show error state
   if (overviewError || resourcesError) {
-    const errorMessage = overviewError?.message || resourcesError?.message || 'An error occurred';
+    const errorMessage =
+      overviewError?.message || resourcesError?.message || "An error occurred";
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <Typography color="error">
-          {errorMessage}
-        </Typography>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
+        <Typography color="error">{errorMessage}</Typography>
       </Box>
     );
   }
@@ -376,7 +473,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
   // Ensure resources is available before rendering
   if (!resources) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <Typography>No resources data available</Typography>
       </Box>
     );
@@ -385,9 +487,13 @@ const [formData, setFormData] = useState<FormData | null>(null);
   return (
     <Box>
       <Typography sx={styles.description}>
-        Provide easy access to documentation and policies relevant to your AI governance, data security, compliance, and ethical practices. This section should act as a centralized repository where your customers, partners, and stakeholders can download, review, and understand key policy documents.
+        Provide easy access to documentation and policies relevant to your AI
+        governance, data security, compliance, and ethical practices. This
+        section should act as a centralized repository where your customers,
+        partners, and stakeholders can download, review, and understand key
+        policy documents.
       </Typography>
-      
+
       <Box sx={styles.container}>
         <Box sx={styles.resourcesHeader}>
           <CustomizableButton
@@ -396,88 +502,72 @@ const [formData, setFormData] = useState<FormData | null>(null);
             onClick={handleOpenAddModal}
             isDisabled={!formData?.info?.resources_visible}
             text="Add new resource"
-            icon={<AddIcon />}
+            icon={<AddCircleOutlineIcon />}
           />
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
-            <Toggle 
-              checked={formData?.info?.resources_visible ?? false} 
-              onChange={(_, checked) => handleFieldChange('info', 'resources_visible', checked)} 
+            <Toggle
+              checked={formData?.info?.resources_visible ?? false}
+              onChange={(_, checked) =>
+                handleFieldChange("info", "resources_visible", checked)
+              }
             />
           </Box>
         </Box>
-        
+
         <Box sx={styles.tableWrapper}>
-          <TableContainer 
-            component={Paper} 
-            sx={{
-              ...styles.tableContainer,
-              ...(formData?.info?.resources_visible ? {} : { opacity: 0.9, pointerEvents: 'none' })
-            }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {TABLE_COLUMNS.map((col) => (
-                    <TableCell key={col.id} sx={styles.tableCell}>{col.label}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {resources && resources.length > 0 ? (
-                  resources.map((resource) => (
-                    <ResourceTableRow
-                      key={resource.id}
-                      resource={resource}
-                      onDelete={handleDeleteResource}
-                      onEdit={handleEditResource}
-                      onMakeVisible={handleMakeVisible}
-                      onDownload={handleDownload}
-                      isFlashing={flashingRowId === resource.id}
-                    />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Typography sx={styles.emptyStateText}>
-                        No resources found. Add your first resource to get started.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {!formData?.info?.resources_visible && <Box sx={styles.overlay} />}
+          <AITrustCenterTable
+            data={resources || []}
+            columns={TABLE_COLUMNS}
+            isLoading={resourcesLoading}
+            paginated={false}
+            disabled={!formData?.info?.resources_visible}
+            emptyStateText="No resources found. Add your first resource to get started."
+            renderRow={(resource) => (
+              <ResourceTableRow
+                key={resource.id}
+                resource={resource}
+                onDelete={handleDeleteResource}
+                onEdit={handleEditResource}
+                onMakeVisible={handleMakeVisible}
+                onDownload={handleDownload}
+              />
+            )}
+            tableId="resources-table"
+          />
         </Box>
 
         {/* Add Resource Modal */}
-        <Dialog 
-          open={addModalOpen} 
-          onClose={handleCloseAddModal}
+        <Dialog
+          open={addModalOpen}
+          onClose={async (_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseAddModal();
+          }}
           maxWidth="sm"
           fullWidth
           PaperProps={{
-            sx: styles.modalPaper
+            sx: styles.modalPaper,
           }}
         >
           <DialogTitle sx={styles.modalTitle}>
             Add a new resource
-            <IconButton
-              onClick={handleCloseAddModal}
-              sx={styles.closeButton}
-            >
-              <CloseIcon />
+            <IconButton onClick={handleCloseAddModal} sx={styles.closeButton}>
+              <CloseGreyIcon />
             </IconButton>
           </DialogTitle>
-          
+
           <DialogContent sx={styles.modalContent}>
             <Stack spacing={3}>
               <Field
                 id="resource-name"
                 label="Resource name"
                 value={newResource.name}
-                onChange={(e) => setNewResource(r => ({ ...r, name: e.target.value }))}
+                onChange={(e) =>
+                  setNewResource((r) => ({ ...r, name: e.target.value }))
+                }
                 disabled={!formData?.info?.resources_visible}
                 isRequired
                 sx={styles.fieldStyle}
@@ -487,7 +577,9 @@ const [formData, setFormData] = useState<FormData | null>(null);
                 id="resource-description"
                 label="Type or purpose of resource"
                 value={newResource.description}
-                onChange={(e) => setNewResource(r => ({ ...r, description: e.target.value }))}
+                onChange={(e) =>
+                  setNewResource((r) => ({ ...r, description: e.target.value }))
+                }
                 disabled={!formData?.info?.resources_visible}
                 isRequired
                 sx={styles.fieldStyle}
@@ -497,7 +589,9 @@ const [formData, setFormData] = useState<FormData | null>(null);
                 <CustomizableButton
                   text="Upload a file"
                   variant="outlined"
-                  onClick={() => document.getElementById('resource-file-input')?.click()}
+                  onClick={() =>
+                    document.getElementById("resource-file-input")?.click()
+                  }
                   isDisabled={!formData?.info?.resources_visible}
                   sx={styles.fileUploadButton}
                 />
@@ -505,7 +599,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
                   id="resource-file-input"
                   type="file"
                   accept="application/pdf"
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                   onChange={handleFileChange}
                   disabled={!formData?.info?.resources_visible}
                 />
@@ -520,7 +614,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
                   text="Add resource"
                   variant="contained"
                   onClick={handleAddResource}
-                  isDisabled={!formData?.info?.resources_visible || !newResource.name || !newResource.description || !newResource.file}
+                  isDisabled={
+                    !formData?.info?.resources_visible ||
+                    !newResource.name ||
+                    !newResource.description ||
+                    !newResource.file
+                  }
                   sx={styles.modalActionButton}
                 />
               </Box>
@@ -529,32 +628,36 @@ const [formData, setFormData] = useState<FormData | null>(null);
         </Dialog>
 
         {/* Edit Resource Modal */}
-        <Dialog 
-          open={editModalOpen} 
-          onClose={handleCloseEditModal}
+        <Dialog
+          open={editModalOpen}
+          onClose={(_event, reason) => {
+            if (reason === "backdropClick") {
+              return; // block closing on backdrop click
+            }
+            handleCloseEditModal();
+          }}
           maxWidth="sm"
           fullWidth
           PaperProps={{
-            sx: styles.modalPaper
+            sx: styles.modalPaper,
           }}
         >
           <DialogTitle sx={styles.modalTitle}>
             Edit resource
-            <IconButton
-              onClick={handleCloseEditModal}
-              sx={styles.closeButton}
-            >
-              <CloseIcon />
+            <IconButton onClick={handleCloseEditModal} sx={styles.closeButton}>
+              <CloseGreyIcon />
             </IconButton>
           </DialogTitle>
-          
+
           <DialogContent sx={styles.modalContent}>
             <Stack spacing={3}>
               <Field
                 id="edit-resource-name"
                 label="Resource name"
                 value={editResource.name}
-                onChange={(e) => setEditResource(r => ({ ...r, name: e.target.value }))}
+                onChange={(e) =>
+                  setEditResource((r) => ({ ...r, name: e.target.value }))
+                }
                 disabled={!formData?.info?.resources_visible}
                 isRequired
                 sx={styles.fieldStyle}
@@ -564,7 +667,12 @@ const [formData, setFormData] = useState<FormData | null>(null);
                 id="edit-resource-description"
                 label="Type or purpose of resource"
                 value={editResource.description}
-                onChange={(e) => setEditResource(r => ({ ...r, description: e.target.value }))}
+                onChange={(e) =>
+                  setEditResource((r) => ({
+                    ...r,
+                    description: e.target.value,
+                  }))
+                }
                 disabled={!formData?.info?.resources_visible}
                 isRequired
                 sx={styles.fieldStyle}
@@ -572,16 +680,20 @@ const [formData, setFormData] = useState<FormData | null>(null);
               />
               <Box>
                 <Typography sx={styles.modalLabel}>Visibility</Typography>
-                <Toggle 
-                  checked={editResource.visible} 
-                  onChange={(_, checked) => setEditResource(r => ({ ...r, visible: checked }))}
+                <Toggle
+                  checked={editResource.visible}
+                  onChange={(_, checked) =>
+                    setEditResource((r) => ({ ...r, visible: checked }))
+                  }
                 />
               </Box>
               <Box>
                 <CustomizableButton
                   text="Replace file"
                   variant="outlined"
-                  onClick={() => document.getElementById('edit-resource-file-input')?.click()}
+                  onClick={() =>
+                    document.getElementById("edit-resource-file-input")?.click()
+                  }
                   isDisabled={!formData?.info?.resources_visible}
                   sx={styles.fileUploadButton}
                 />
@@ -589,7 +701,7 @@ const [formData, setFormData] = useState<FormData | null>(null);
                   id="edit-resource-file-input"
                   type="file"
                   accept="application/pdf"
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                   onChange={handleEditFileChange}
                   disabled={!formData?.info?.resources_visible}
                 />
@@ -617,7 +729,11 @@ const [formData, setFormData] = useState<FormData | null>(null);
                   text="Save"
                   variant="contained"
                   onClick={handleSaveEditResource}
-                  isDisabled={!formData?.info?.resources_visible || !editResource.name || !editResource.description}
+                  isDisabled={
+                    !formData?.info?.resources_visible ||
+                    !editResource.name ||
+                    !editResource.description
+                  }
                   sx={styles.modalActionButton}
                 />
               </Box>
@@ -677,4 +793,4 @@ const [formData, setFormData] = useState<FormData | null>(null);
   );
 };
 
-export default TrustCenterResources; 
+export default TrustCenterResources;

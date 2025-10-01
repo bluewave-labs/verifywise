@@ -11,7 +11,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import RichTextEditor from "../../../../components/RichTextEditor";
 import { priorities, PriorityLevel } from "../priorities";
 import { Topic } from "../../../../../application/hooks/useAssessmentAnswers";
@@ -93,8 +93,18 @@ const AssessmentQuestions = ({
                   {question.questionText}
                   {question.hint && (
                     <Box component="span" ml={2}>
-                      <Tooltip title={question.hint} sx={{ fontSize: 13 }}>
-                        <InfoOutlinedIcon fontSize="inherit" />
+                      <Tooltip
+                        title={question.hint}
+                        sx={{ fontSize: 13 }}
+                        componentsProps={{
+                          tooltip: {
+                            sx: {
+                              fontSize: 12,
+                            },
+                          },
+                        }}
+                      >
+                        <GreyCircleInfoIcon fontSize="inherit" />
                       </Tooltip>
                     </Box>
                   )}
@@ -156,6 +166,10 @@ const AssessmentQuestions = ({
                     border: "1px solid #D0D5DD",
                     backgroundColor: "white",
                     color: "#344054",
+                    "&:hover": {
+                      backgroundColor: "#F9FAFB",
+                      border: "1px solid #D0D5DD",
+                    },
                   }}
                   disableRipple={
                     theme.components?.MuiButton?.defaultProps?.disableRipple

@@ -9,9 +9,10 @@ dataset:
     - "race"
   target_column: "income"
   sampling:
-    enabled: false
-    n_samples: 500 # Number of samples to use for quick experiments
+    enabled: true
+    n_samples: 50
     random_seed: 42
+    
 
 # Post-processing Configuration
 post_processing:
@@ -58,15 +59,12 @@ prompting:
 
 # Metrics Configuration
 metrics:
-  # Fairness metrics for evaluation
   fairness:
     enabled: true
     metrics:
       - "demographic_parity"
       - "equalized_odds"
       - "predictive_parity"
-
-  # Performance metrics
   performance:
     enabled: false
     metrics:

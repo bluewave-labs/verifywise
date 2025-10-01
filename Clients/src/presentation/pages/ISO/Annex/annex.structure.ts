@@ -81,7 +81,7 @@ export const ISO42001AnnexList = [
               "Maintaining contact with special interest groups.",
             guidance:
               "Appropriate contacts with special interest groups and other specialist forums and professional associations should be maintained.",
-            status: "Audited",
+            status: "Implemented",
           },
           {
             id: 8,
@@ -175,7 +175,7 @@ export const ISO42001AnnexList = [
             shortDescription: "Managing human resources for AI.",
             guidance:
               "Human resources required for AI systems, including roles, competencies, and training, should be managed throughout their lifecycle.",
-            status: "Audited",
+            status: "Implemented",
           },
         ],
       },
@@ -265,7 +265,7 @@ export const ISO42001AnnexList = [
             shortDescription: "Operating and monitoring AI systems.",
             guidance:
               "Deployed AI systems should be operated and monitored for performance, behaviour, and compliance with requirements.",
-            status: "Audited",
+            status: "Implemented",
           },
           {
             id: 24,
@@ -362,7 +362,7 @@ export const ISO42001AnnexList = [
               "Application of information security controls to AI systems.",
             guidance:
               "Information security requirements and controls (potentially leveraging standards like ISO/IEC 27001) should be applied throughout the AI system lifecycle to protect confidentiality, integrity, and availability.",
-            status: "Audited",
+            status: "Implemented",
           },
           {
             id: 32,

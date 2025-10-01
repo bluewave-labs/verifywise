@@ -1,0 +1,642 @@
+[
+  {
+    "provider": "OpenAI",
+    "model": "gpt-3.5-turbo"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-3.5-turbo-0125"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-3.5-turbo-0301"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-3.5-turbo-0613"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-3.5-turbo-1106"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-3.5-turbo-instruct"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4-turbo"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4-0125-preview"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4-1106-preview"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4-vision-preview"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4.1"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4.1-mini"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4o"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4o-2024-05-13"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4o-mini"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4o-realtime-preview"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "gpt-4o-realtime-preview-2024-12-17"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o1"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o1-mini"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o1-preview"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o1-pro"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o3"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o3-mini"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o3-pro"
+  },
+  {
+    "provider": "OpenAI",
+    "model": "o4-mini"
+  },
+  {
+    "provider": "Meta",
+    "model": "CodeLlama-70b-Instruct-hf"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-2-7b-chat-hf"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-2-13b-chat-hf"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-2-70b-chat-hf"
+  },
+  {
+    "provider": "Meta",
+    "model": "Meta-Llama-3-8B-Instruct"
+  },
+  {
+    "provider": "Meta",
+    "model": "Meta-Llama-3-70B-Instruct"
+  },
+  {
+    "provider": "Meta",
+    "model": "Meta-Llama-3.1-8B-Instruct"
+  },
+  {
+    "provider": "Meta",
+    "model": "Meta-Llama-3.1-70B-Instruct"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-3.2-1B"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-3.2-3B"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-3.2-11B-Vision"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-3.2-90B-Vision"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-3.3-70B-Instruct"
+  },
+  {
+    "provider": "Meta",
+    "model": "Llama-65b-hf"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-1.0-pro"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-1.0-ultra"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-1.5-flash"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-1.5-pro"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-1.5-flash-8b"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-2.0-flash"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-2.0-flash-lite"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-2.5-flash"
+  },
+  {
+    "provider": "Google",
+    "model": "gemini-2.5-pro"
+  },
+  {
+    "provider": "Google",
+    "model": "gemma-2-2b"
+  },
+  {
+    "provider": "Google",
+    "model": "gemma-2-9b"
+  },
+  {
+    "provider": "Google",
+    "model": "gemma-2-27b"
+  },
+  {
+    "provider": "Google",
+    "model": "gemma-3-270m"
+  },
+  {
+    "provider": "Google",
+    "model": "gemma-3-1b"
+  },
+  {
+    "provider": "Google",
+    "model": "gemma-3-4b"
+  },
+  {
+    "provider": "Google",
+    "model": "gemma-3-12b"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-2.0"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-2.1"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-instant-1.2"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-3-haiku-20240307"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-3-sonnet-20240229"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-3-opus-20240229"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-3-5-sonnet-20240620"
+  },
+  {
+    "provider": "Anthropic",
+    "model": "claude-3-5-sonnet-20241022"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-7b-instruct-v0.2"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-small-latest"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-medium-latest"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-large-latest"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-large-2411"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-large-2402"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-small-2402"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mistral-small-2409"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mixtral-8x7b-instruct-v0.1"
+  },
+  {
+    "provider": "Mistral",
+    "model": "mixtral-8x22b-instruct-v0.1"
+  },
+  {
+    "provider": "Mistral",
+    "model": "codestral-2405"
+  },
+  {
+    "provider": "Mistral",
+    "model": "codestral-2401"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-coder-v2-lite"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-llm-67b-chat"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-v3"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-v3-0324"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-vl2"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-coder-v2"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-v2"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-v2.5"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-r1"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-r1-0528"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-r1-distill-llama-70b"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-r1-distill-llama-8b"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-r1-distill-qwen-1.5b"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-r1-distill-qwen-14b"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "deepseek-r1-distill-qwen-32b"
+  },
+  {
+    "provider": "DeepSeek",
+    "model": "janus-pro-7b"
+  },
+  {
+    "provider": "Perplexity",
+    "model": "pplx-70b-online"
+  },
+  {
+    "provider": "Perplexity",
+    "model": "pplx-7b-online"
+  },
+  {
+    "provider": "Perplexity",
+    "model": "r1-1776"
+  },
+  {
+    "provider": "Perplexity",
+    "model": "sonar-small-online"
+  },
+  {
+    "provider": "Perplexity",
+    "model": "sonar-large-online"
+  },
+  {
+    "provider": "Perplexity",
+    "model": "sonar-pro-online"
+  },
+  {
+    "provider": "xAI",
+    "model": "grok-beta"
+  },
+  {
+    "provider": "xAI",
+    "model": "grok-1"
+  },
+  {
+    "provider": "xAI",
+    "model": "grok-2"
+  },
+  {
+    "provider": "xAI",
+    "model": "grok-3"
+  },
+  {
+    "provider": "xAI",
+    "model": "grok-3-mini"
+  },
+  {
+    "provider": "xAI",
+    "model": "grok-code-fast-1"
+  },
+  {
+    "provider": "OpenChat",
+    "model": "openchat-3.5-1210"
+  },
+  {
+    "provider": "Amazon",
+    "model": "nova-micro-v1"
+  },
+  {
+    "provider": "Amazon",
+    "model": "nova-lite-v1"
+  },
+  {
+    "provider": "Amazon",
+    "model": "nova-pro-v1"
+  },
+  {
+    "provider": "Amazon",
+    "model": "nova-premier-v1"
+  },
+  {
+    "provider": "Microsoft",
+    "model": "phi-3-mini-4k-instruct"
+  },
+  {
+    "provider": "Microsoft",
+    "model": "phi-3-medium-128k-instruct"
+  },
+  {
+    "provider": "Microsoft",
+    "model": "phi-4"
+  },
+  {
+    "provider": "Microsoft",
+    "model": "phi-4-mini"
+  },
+  {
+    "provider": "Microsoft",
+    "model": "phi-4-multimodal"
+  },
+  {
+    "provider": "Upstage",
+    "model": "SOLAR-10.7B-Instruct-v1.0"
+  },
+  {
+    "provider": "Databricks",
+    "model": "dbrx-instruct"
+  },
+  {
+    "provider": "MiniMax",
+    "model": "MiniMax-Text-01"
+  },
+  {
+    "provider": "NVIDIA",
+    "model": "Llama-3.1-Nemotron-70B-Instruct"
+  },
+  {
+    "provider": "NVIDIA",
+    "model": "Nemotron-3-8B-Base"
+  },
+  {
+    "provider": "NVIDIA",
+    "model": "Nemotron-3-34B-Instruct"
+  },
+  {
+    "provider": "NVIDIA",
+    "model": "Nemotron-Nano-9B-V2"
+  },
+  {
+    "provider": "IBM",
+    "model": "granite-3-2b-instruct"
+  },
+  {
+    "provider": "IBM",
+    "model": "granite-3-8b-instruct"
+  },
+  {
+    "provider": "Reka",
+    "model": "reka-core"
+  },
+  {
+    "provider": "Reka",
+    "model": "reka-flash"
+  },
+  {
+    "provider": "Reka",
+    "model": "reka-edge"
+  },
+  {
+    "provider": "Vercel",
+    "model": "v0-1.0-md"
+  },
+  {
+    "provider": "Other",
+    "model": "llava-v1.5-7b"
+  },
+  {
+    "provider": "Zhipu AI",
+    "model": "glm-4-9b-chat"
+  },
+  {
+    "provider": "Zhipu AI",
+    "model": "glm-4-9b"
+  },
+  {
+    "provider": "Zhipu AI",
+    "model": "glm-4-plus"
+  },
+  {
+    "provider": "Cohere",
+    "model": "command"
+  },
+  {
+    "provider": "Cohere",
+    "model": "command-light"
+  },
+  {
+    "provider": "Cohere",
+    "model": "command-r"
+  },
+  {
+    "provider": "Cohere",
+    "model": "command-r-plus"
+  },
+  {
+    "provider": "Cohere",
+    "model": "aya-expanse-32b"
+  },
+  {
+    "provider": "Cohere",
+    "model": "aya-expanse-8b"
+  },
+  {
+    "provider": "AI21 Labs",
+    "model": "jamba-1.5-large"
+  },
+  {
+    "provider": "AI21 Labs",
+    "model": "jamba-1.5-mini"
+  },
+  {
+    "provider": "AI21 Labs",
+    "model": "jamba-1.6-large"
+  },
+  {
+    "provider": "AI21 Labs",
+    "model": "jamba-1.6-mini"
+  },
+  {
+    "provider": "Snowflake",
+    "model": "arctic"
+  },
+  {
+    "provider": "Snowflake",
+    "model": "Snowflake-Arctic-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2-72B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2-7B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen1.5-110B-Chat"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2.5-7B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2.5-14B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2.5-32B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2.5-72B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2.5-Coder-7B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2.5-Coder-32B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2-VL-7B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen2-VL-72B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen3-8B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen3-14B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen3-30B-Instruct"
+  },
+  {
+    "provider": "Alibaba",
+    "model": "Qwen3-32B-Instruct"
+  },
+  {
+    "provider": "01.AI",
+    "model": "Yi-34B-Chat"
+  },
+  {
+    "provider": "01.AI",
+    "model": "Yi-34B"
+  }
+]

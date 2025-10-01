@@ -24,7 +24,6 @@ export const vwhomeBody = {
   flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "center",
-  mb: 9,
 };
 
 export const vwhomeBodyControls = {

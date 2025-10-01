@@ -1,6 +1,6 @@
 import React from "react";
 import { IconButton } from "@mui/material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 
 interface HelperIconProps {
   onClick: () => void;
@@ -23,12 +23,7 @@ const HelperIcon: React.FC<HelperIconProps> = ({ onClick, size = "small" }) => {
         },
       }}
     >
-      <InfoOutlinedIcon 
-        sx={{
-          fontSize: "18px", // Smaller icon size
-          strokeWidth: "1px", // 1px stroke
-        }}
-      />
+      <GreyCircleInfoIcon />
     </IconButton>
   );
 };

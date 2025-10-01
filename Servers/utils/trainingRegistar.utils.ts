@@ -102,16 +102,7 @@ export const updateTrainingRegistarByIdQuery = async (
     "description",
   ]
     .filter((f) => {
-      if (f === "people") {
-        // Handle the people field mapping from numberOfPeople
-        if (
-          trainingRegistar.numberOfPeople !== undefined &&
-          trainingRegistar.numberOfPeople !== null
-        ) {
-          updateTrainingRegistar.people = trainingRegistar.numberOfPeople;
-          return true;
-        }
-      } else if (
+      if (
         trainingRegistar[f as keyof TrainingRegistarModel] !== undefined &&
         trainingRegistar[f as keyof TrainingRegistarModel] !== null
       ) {

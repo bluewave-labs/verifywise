@@ -5,7 +5,7 @@ import { QueryTypes, Transaction } from "sequelize";
 import { VendorsProjectsModel } from "../domain.layer/models/vendorsProjects/vendorsProjects.model";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
-import { ProjectRiskModel } from "../domain.layer/models/projectRisks/projectRisk.model";
+import { RiskModel } from "../domain.layer/models/risks/risk.model";
 import { FileModel } from "../domain.layer/models/file/file.model";
 import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks/projectFrameworks.model";
 import { frameworkDeletionMap } from "../types/framework.type";
@@ -89,9 +89,9 @@ export const getAllProjectsQuery = async (
         replacements: { project_id: project.id },
       }
     )) as [
-      { project_framework_id: number; framework_id: number; name: string }[],
-      number,
-    ];
+        { project_framework_id: number; framework_id: number; name: string }[],
+        number,
+      ];
     (project.dataValues as any)["framework"] = [];
     for (let pf of projectFramework[0]) {
       (project.dataValues as any)["framework"].push(pf);
@@ -137,9 +137,9 @@ export const getProjectByIdQuery = async (
       replacements: { project_id: project.id },
     }
   )) as [
-    { project_framework_id: number; framework_id: number; name: string }[],
-    number,
-  ];
+      { project_framework_id: number; framework_id: number; name: string }[],
+      number,
+    ];
   (project.dataValues as any)["framework"] = [];
   for (let pf of projectFramework[0]) {
     (project.dataValues as any)["framework"].push(pf);
@@ -304,7 +304,7 @@ export const updateProjectUpdatedByIdQuery = async (
   byTable:
     | "controls"
     | "answers"
-    | "projectrisks"
+    // | "projectrisks"
     | "vendors"
     | "subclauses"
     | "annexcategories"
@@ -316,9 +316,9 @@ export const updateProjectUpdatedByIdQuery = async (
   const queryMap = {
     controls: `SELECT pf.project_id as id FROM "${tenant}".controls_eu c JOIN "${tenant}".projects_frameworks pf ON pf.id = c.projects_frameworks_id WHERE c.id = :id;`,
     answers: `SELECT pf.project_id as id FROM "${tenant}".assessments a JOIN "${tenant}".answers_eu ans ON ans.assessment_id = a.id JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE ans.id = :id;`,
-    projectrisks: `SELECT p.id FROM
-      "${tenant}".projects p JOIN "${tenant}".projectrisks pr ON p.id = pr.project_id
-        WHERE pr.id = :id;`,
+    // projectrisks: `SELECT p.id FROM
+    //   "${tenant}".projects p JOIN "${tenant}".projectrisks pr ON p.id = pr.project_id
+    //     WHERE pr.id = :id;`,
     vendors: `SELECT project_id as id FROM "${tenant}".vendors_projects WHERE vendor_id = :id;`,
     subclauses: `SELECT pf.project_id as id FROM "${tenant}".subclauses_iso sc JOIN "${tenant}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
     annexcategories: `SELECT pf.project_id as id FROM "${tenant}".annexcategories_iso a JOIN "${tenant}".projects_frameworks pf ON pf.id = a.projects_frameworks_id WHERE a.id = :id;`,
@@ -438,9 +438,9 @@ export const updateProjectByIdQuery = async (
   );
   return result.length
     ? {
-        ...result[0].dataValues,
-        members: updatedMembers.map((m) => m.user_id),
-      }
+      ...result[0].dataValues,
+      members: updatedMembers.map((m) => m.user_id),
+    }
     : null;
 };
 
@@ -480,7 +480,8 @@ export const deleteHelper = async (
   let childIds: any = {};
   if (
     childTableName !== "projects_members" &&
-    childTableName !== "projects_frameworks"
+    childTableName !== "projects_frameworks" &&
+    childTableName !== "projects_risks"
   ) {
     if (childTableName === "vendors") {
       childIds = await sequelize.query(
@@ -544,18 +545,18 @@ export const deleteProjectByIdQuery = async (
     }
   );
   const dependantEntities = [
-    {
-      vendors: {
-        foreignKey: "project_id",
-        model: VendorModel,
-        vendorrisks: {
-          foreignKey: "vendor_id",
-          model: VendorRiskModel,
-        },
-      },
-    },
+    // {
+    //   vendors: {
+    //     foreignKey: "project_id",
+    //     model: VendorModel,
+    //     vendorrisks: {
+    //       foreignKey: "vendor_id",
+    //       model: VendorRiskModel,
+    //     },
+    //   },
+    // },
     { files: { foreignKey: "project_id", model: FileModel } },
-    { projectrisks: { foreignKey: "project_id", model: ProjectRiskModel } },
+    { projects_risks: { foreignKey: "project_id", model: RiskModel } },
     {
       projects_members: {
         foreignKey: "project_id",
@@ -604,7 +605,7 @@ export const calculateProjectRisks = async (
     risk_level_autocalculated: string;
     count: string;
   }>(
-    `SELECT risk_level_autocalculated, count(*) AS count FROM "${tenant}".projectrisks WHERE project_id = :project_id GROUP BY risk_level_autocalculated`,
+    `SELECT risk_level_autocalculated, count(*) AS count FROM "${tenant}".risks r JOIN "${tenant}".projects_risks pr ON r.id = pr.risk_id WHERE pr.project_id = :project_id GROUP BY risk_level_autocalculated`,
     {
       replacements: { project_id },
       type: QueryTypes.SELECT,

@@ -1,26 +1,17 @@
-import { Box, Chip, Stack, Tooltip, Typography, Dialog } from "@mui/material";
+import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import {
   priorities,
   PriorityLevel,
 } from "../../pages/Assessment/NewAssessment/priorities";
 import RichTextEditor from "../RichTextEditor";
-import {
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-  Suspense,
-} from "react";
-import UppyUploadFile from "../../vw-v2-components/Inputs/FileUpload";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { useCallback, useMemo, useState, useEffect, Suspense } from "react";
+import UppyUploadFile from "../Inputs/FileUpload";
 import createUppy from "../../../application/tools/createUppy";
 import Alert from "../Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
-import { store } from "../../../application/redux/store";
 import { apiServices } from "../../../infrastructure/api/networkServices";
 import { FileData } from "../../../domain/types/File";
 import { useSelector } from "react-redux";
@@ -30,6 +21,7 @@ import allowedRoles from "../../../application/constants/permissions";
 import LinkedRisksPopup from "../LinkedRisks";
 import AuditRiskPopup from "../RiskPopup/AuditRiskPopup";
 import { updateEUAIActAnswerById } from "../../../application/repository/question.repository";
+import { useAuth } from "../../../application/hooks/useAuth";
 
 interface QuestionProps {
   question: Question;
@@ -57,7 +49,8 @@ const QuestionFrame = ({
   setRefreshKey,
   currentProjectId,
 }: QuestionProps) => {
-  const { userId, userRoleName } = useContext(VerifyWiseContext);
+  const theme = useTheme();
+  const { userRoleName, userId } = useAuth();
   const [values, setValues] = useState<Question>({
     ...question,
     risks: question.risks || [],
@@ -185,9 +178,6 @@ const QuestionFrame = ({
   };
 
   const handleRemoveFile = async (fileId: string) => {
-    const state = store.getState();
-    const authToken = state.auth.authToken;
-
     const formData = new FormData();
     const fileIdNumber = parseInt(fileId);
     if (isNaN(fileIdNumber)) {
@@ -207,7 +197,6 @@ const QuestionFrame = ({
     try {
       const response = await apiServices.post("/files", formData, {
         headers: {
-          Authorization: `Bearer ${authToken}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -254,7 +243,7 @@ const QuestionFrame = ({
           backgroundColor: "#FBFAFA",
           border: "1px solid #D0D5DD",
           borderBottom: "none",
-          borderRadius: "4px 4px 0 0",
+          borderRadius: `${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0`,
           gap: 4,
         }}
       >
@@ -262,8 +251,18 @@ const QuestionFrame = ({
           {question.question || ""}
           {question.hint && (
             <Box component="span" ml={2}>
-              <Tooltip title={question.hint || ""} sx={{ fontSize: 13 }}>
-                <InfoOutlinedIcon fontSize="inherit" />
+              <Tooltip
+                title={question.hint || ""}
+                sx={{ fontSize: 13 }}
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      fontSize: 12,
+                    },
+                  },
+                }}
+              >
+                <GreyCircleInfoIcon fontSize="inherit" />
               </Tooltip>
             </Box>
           )}
@@ -290,7 +289,7 @@ const QuestionFrame = ({
                   (question.priority_level || "low priority") as PriorityLevel
                 ]?.color || "#666",
               color: "#FFFFFF",
-              borderRadius: "4px",
+              borderRadius: theme.shape.borderRadius,
             }}
             size="small"
           />
@@ -306,7 +305,7 @@ const QuestionFrame = ({
         }}
         bodySx={{
           borderColor: "#D0D5DD",
-          borderRadius: "0 0 4px 4px",
+          borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
           "& .ProseMirror > p": {
             margin: 0,
           },
@@ -341,11 +340,15 @@ const QuestionFrame = ({
           <Button
             variant="contained"
             sx={{
-              minWidth: 155,      // minimum width
+              minWidth: 155, // minimum width
               border: "1px solid #D0D5DD",
               backgroundColor: "white",
               color: "#344054",
-              flexShrink: 0,        //  prevent shrinking in flex layouts
+              flexShrink: 0, //  prevent shrinking in flex layouts
+              "&:hover": {
+                backgroundColor: "#F9FAFB",
+                border: "1px solid #D0D5DD",
+              },
             }}
             disableRipple
             onClick={() => setIsFileUploadOpen(true)}
@@ -368,7 +371,7 @@ const QuestionFrame = ({
             {`${values?.evidence_files?.length || 0} evidence files attached`}
           </Typography>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} sx={{ ml: "36px" }}>
             <Button
               variant="contained"
               sx={{
@@ -380,6 +383,10 @@ const QuestionFrame = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple
               onClick={() => setIsLinkedRisksModalOpen(true)}
@@ -417,7 +424,7 @@ const QuestionFrame = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -474,6 +481,7 @@ const QuestionFrame = ({
               .filter((risk) => !deletedRisks.includes(risk))}
             setSelectecRisks={setSelectedRisks}
             _setDeletedRisks={setDeletedRisks}
+            projectId={currentProjectId}
           />
         </Suspense>
       </Dialog>

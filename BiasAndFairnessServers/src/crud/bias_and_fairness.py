@@ -97,9 +97,11 @@ async def insert_bias_fairness_evaluation(
     db: AsyncSession
 ):
     """Insert a new bias and fairness evaluation."""
+    # Use the correct schema name
+    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     result = await db.execute(
         text(f'''
-            INSERT INTO "{tenant}".bias_fairness_evaluations 
+            INSERT INTO "{schema_name}".bias_fairness_evaluations 
             (eval_id, model_name, dataset_name, model_task, label_behavior, config_data) 
             VALUES (:eval_id, :model_name, :dataset_name, :model_task, :label_behavior, :config_data) 
             RETURNING id
@@ -118,6 +120,8 @@ async def insert_bias_fairness_evaluation(
 
 async def get_all_bias_fairness_evaluations(db: AsyncSession, tenant: str):
     """Get all bias and fairness evaluations for a tenant."""
+    # Use the correct schema name
+    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     result = await db.execute(
         text(f'''
             SELECT 
@@ -132,7 +136,7 @@ async def get_all_bias_fairness_evaluations(db: AsyncSession, tenant: str):
                 results,
                 created_at,
                 updated_at
-            FROM "{tenant}".bias_fairness_evaluations 
+            FROM "{schema_name}".bias_fairness_evaluations 
             ORDER BY created_at DESC
         '''),
     )
@@ -141,6 +145,8 @@ async def get_all_bias_fairness_evaluations(db: AsyncSession, tenant: str):
 
 async def get_bias_fairness_evaluation_by_id(eval_id: str, db: AsyncSession, tenant: str):
     """Get a specific bias and fairness evaluation by eval_id."""
+    # Use the correct schema name
+    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     result = await db.execute(
         text(f'''
             SELECT 
@@ -155,7 +161,7 @@ async def get_bias_fairness_evaluation_by_id(eval_id: str, db: AsyncSession, ten
                 results,
                 created_at,
                 updated_at
-            FROM "{tenant}".bias_fairness_evaluations 
+            FROM "{schema_name}".bias_fairness_evaluations 
             WHERE eval_id = :eval_id
         '''),
         {"eval_id": eval_id}
@@ -171,20 +177,26 @@ async def update_bias_fairness_evaluation_status(
     tenant: str = None
 ):
     """Update the status and results of a bias and fairness evaluation."""
-    if results:
+    # Use the correct schema name
+    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
+    
+    if results is not None:
+        # Ensure results is JSON-serializable for JSONB column
+        from json import dumps
+        serializable_results = dumps(results) if not isinstance(results, (str, bytes)) else results
         result = await db.execute(
             text(f'''
-                UPDATE "{tenant}".bias_fairness_evaluations 
+                UPDATE "{schema_name}".bias_fairness_evaluations 
                 SET status = :status, results = :results, updated_at = CURRENT_TIMESTAMP
                 WHERE eval_id = :eval_id
                 RETURNING id
             '''),
-            {"eval_id": eval_id, "status": status, "results": results}
+            {"eval_id": eval_id, "status": status, "results": serializable_results}
         )
     else:
         result = await db.execute(
             text(f'''
-                UPDATE "{tenant}".bias_fairness_evaluations 
+                UPDATE "{schema_name}".bias_fairness_evaluations 
                 SET status = :status, updated_at = CURRENT_TIMESTAMP
                 WHERE eval_id = :eval_id
                 RETURNING id
@@ -196,9 +208,11 @@ async def update_bias_fairness_evaluation_status(
 
 async def delete_bias_fairness_evaluation(eval_id: str, db: AsyncSession, tenant: str):
     """Delete a bias and fairness evaluation."""
+    # Use the correct schema name
+    schema_name = "a4ayc80OGd" if tenant == "default" else tenant
     result = await db.execute(
         text(f'''
-            DELETE FROM "{tenant}".bias_fairness_evaluations 
+            DELETE FROM "{schema_name}".bias_fairness_evaluations 
             WHERE eval_id = :eval_id
             RETURNING id
         '''),

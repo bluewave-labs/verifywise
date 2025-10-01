@@ -1,13 +1,14 @@
-import React, { useState, lazy, Suspense, useContext, useRef } from "react";
+import React, { useState, lazy, Suspense, useRef } from "react";
 import { IconButton, Box, Stack } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import { styles } from "./styles";
 const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
 const DownloadReportForm = lazy(() => import("./DownloadReportFrom"));
 import { handleAutoDownload } from "../../../../application/tools/fileDownload";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../Alert";
+import { useProjects } from "../../../../application/hooks/useProjects";
+import useUsers from "../../../../application/hooks/useUsers";
 
 interface GenerateReportProps {
   onClose: () => void;
@@ -28,7 +29,8 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);
   const [responseStatusCode, setResponseStatusCode] = useState<number>(200);
-  const { dashboardValues, users } = useContext(VerifyWiseContext);
+  const { users } = useUsers();
+  const { data: projects } = useProjects();
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
     title?: string;
@@ -49,7 +51,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   };
 
   const handleGenerateReport = async (input: InputProps) => {
-    const currentProject = dashboardValues.projects.find(
+    const currentProject = projects?.find(
       (project: { id: number | null }) => project.id === input.project
     );
 
@@ -59,7 +61,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }
     setIsReportRequest(true);
     const owner = users.find(
-      (user: any) => user.id === parseInt(currentProject.owner)
+      (user: any) => user.id === currentProject.owner
     );
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
     let reportTypeLabel = input.report_type;
@@ -142,7 +144,10 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         component="form"
       >
         <IconButton onClick={handleOnCloseModal} sx={styles.iconButton}>
-          <CloseIcon sx={styles.closeButton} />
+
+
+
+          <CloseGreyIcon />
         </IconButton>
         {isReportRequest ? (
           <Suspense fallback={<div>Loading...</div>}>

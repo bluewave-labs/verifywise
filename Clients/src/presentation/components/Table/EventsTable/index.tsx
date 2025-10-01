@@ -19,6 +19,7 @@ import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
 import { User } from "../../../../domain/types/User";
+import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
 
 const TABLE_COLUMNS = [
   { id: "id", label: "ID" },
@@ -35,23 +36,20 @@ interface EventsTableProps {
   paginated?: boolean;
 }
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
 
 const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
   eventType,
 }) => {
   const eventTypeStyles = {
-    Create: { bg: "#c8e6c9", color: "#388e3c" },
-    Read: { bg: "#bbdefb", color: "#1976d2" },
-    Update: { bg: "#fff9c4", color: "#fbc02d" },
-    Delete: { bg: "#ffcdd2", color: "#d32f2f" },
-    Error: { bg: "#ffccbc", color: "#e64a19" },
+    Create: { bg: "#E6F4EA", color: "#138A5E" },
+    Read: { bg: "#DCEFFF", color: "#1976D2" },
+    Update: { bg: "#FFF8E1", color: "#795000" },
+    Delete: { bg: "#FFD6D6", color: "#D32F2F" },
+    Error: { bg: "#FFE5D0", color: "#E64A19" },
   };
 
-  const style = eventTypeStyles[eventType] || {
-    bg: "#e0e0e0",
-    color: "#424242",
-  };
+  const style = eventTypeStyles[eventType] || { bg: "#E0E0E0", color: "#424242" };
 
   return (
     <span
@@ -59,9 +57,9 @@ const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
         backgroundColor: style.bg,
         color: style.color,
         padding: "4px 8px",
-        borderRadius: 8,
-        fontWeight: 600,
-        fontSize: "0.75rem",
+        borderRadius: "12px",
+        fontWeight: 500,
+        fontSize: 11,
         textTransform: "uppercase",
         display: "inline-block",
       }}
@@ -79,7 +77,9 @@ const EventsTable: React.FC<EventsTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(() => 
+    getPaginationRowCount('eventTracker', DEFAULT_ROWS_PER_PAGE)
+  );
 
   // Format users data like other tables do
   const formattedUsers = useMemo(() => {
@@ -95,7 +95,9 @@ const EventsTable: React.FC<EventsTableProps> = ({
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      const newRowsPerPage = parseInt(event.target.value, 10);
+      setRowsPerPage(newRowsPerPage);
+      setPaginationRowCount('eventTracker', newRowsPerPage);
       setPage(0);
     },
     []

@@ -36,12 +36,10 @@ export async function updateISO27001ClauseStatus({
     // Fetch current subclause data to preserve existing fields
     let subClauseData: Record<string, unknown> = currentData || {};
     
-    if (!currentData) {
-      const response = await getEntityById({
-        routeUrl: `/iso-27001/subClause/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
-      });
-      subClauseData = response?.data || {};
-    }
+    const _response = await getEntityById({
+      routeUrl: `/iso-27001/subClause/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
+    });
+    subClauseData = _response?.data || {};
     
     const formData = new FormData();
     
@@ -72,7 +70,7 @@ export async function updateISO27001ClauseStatus({
     }
 
     const response = await updateEntityById({
-      routeUrl: `/iso-27001/saveClauses/${id}`,
+      routeUrl: `/iso-27001/saveClauses/${subClauseData.id}`,
       body: formData,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -91,6 +89,7 @@ export async function updateISO27001ClauseStatus({
  */
 export async function updateISO27001AnnexStatus({
   id,
+  projectFrameworkId,
   newStatus,
   userId = 1,
   currentData,
@@ -98,6 +97,11 @@ export async function updateISO27001AnnexStatus({
   try {
     // Use currentData directly since annex controls are already loaded in the UI
     const controlData = currentData || {};
+
+    const _response = await getEntityById({
+      routeUrl: `/iso-27001/annexControl/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
+    });
+    const annexControlId = _response?.data.id;
     
     const formData = new FormData();
     
@@ -129,7 +133,7 @@ export async function updateISO27001AnnexStatus({
     }
 
     const response = await updateEntityById({
-      routeUrl: `/iso-27001/saveAnnexes/${id}`,
+      routeUrl: `/iso-27001/saveAnnexes/${annexControlId}`,
       body: formData,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -157,12 +161,10 @@ export async function updateISO42001ClauseStatus({
     // Fetch current subclause data to preserve existing fields
     let subClauseData: Record<string, unknown> = currentData || {};
     
-    if (!currentData) {
-      const response = await getEntityById({
-        routeUrl: `/iso-42001/subClause/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
-      });
-      subClauseData = response?.data || {};
-    }
+    const _response = await getEntityById({
+      routeUrl: `/iso-42001/subClause/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
+    });
+    subClauseData = _response?.data || {};
     
     const formData = new FormData();
     
@@ -193,7 +195,7 @@ export async function updateISO42001ClauseStatus({
     }
 
     const response = await updateEntityById({
-      routeUrl: `/iso-42001/saveClauses/${id}`,
+      routeUrl: `/iso-42001/saveClauses/${subClauseData.id}`,
       body: formData,
       headers: {
         "Content-Type": "multipart/form-data",
@@ -212,6 +214,7 @@ export async function updateISO42001ClauseStatus({
  */
 export async function updateISO42001AnnexStatus({
   id,
+  projectFrameworkId,
   newStatus,
   userId = 1,
   currentData,
@@ -219,6 +222,11 @@ export async function updateISO42001AnnexStatus({
   try {
     // Use currentData directly since annex controls are already loaded in the UI
     const controlData = currentData || {};
+
+    const _response = await getEntityById({
+      routeUrl: `/iso-42001/annexCategory/byId/${id}?projectFrameworkId=${projectFrameworkId}`,
+    });
+    const annexCategoryId = _response?.data.id;
     
     const formData = new FormData();
     
@@ -250,7 +258,7 @@ export async function updateISO42001AnnexStatus({
     }
 
     const response = await UpdateAnnexCategoryById({
-      routeUrl: `/iso-42001/saveAnnexes/${id}`,
+      routeUrl: `/iso-42001/saveAnnexes/${annexCategoryId}`,
       body: formData,
     });
 

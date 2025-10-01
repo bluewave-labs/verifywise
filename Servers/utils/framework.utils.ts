@@ -67,10 +67,7 @@ const checkFrameworkExistsQuery = async (
     `SELECT EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS exists;`,
     { replacements: { projectId, frameworkId }, transaction }
   )) as [[{ exists: boolean }], number];
-  if (exists) {
-    return false; // Framework already added
-  }
-  return true; // Framework can be added
+  return exists;
 }
 
 export const canAddFrameworkToProjectQuery = async (
@@ -79,8 +76,8 @@ export const canAddFrameworkToProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const canBeAdded = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
-  if (canBeAdded === false) {
+  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
+  if (exists) {
     return false; // Framework already added
   }
 
@@ -151,7 +148,7 @@ export const deleteFrameworkFromProjectQuery = async (
   transaction: Transaction
 ): Promise<boolean> => {
   const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
-  if (exists) {
+  if (!exists) {
     return false; // Framework not found in the project
   }
 

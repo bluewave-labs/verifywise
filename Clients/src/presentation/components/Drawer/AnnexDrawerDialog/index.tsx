@@ -18,15 +18,15 @@ import Select from "../../Inputs/Select";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
+import CustomizableButton from "../../Button/CustomizableButton";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { User } from "../../../../domain/types/User";
 import {
   GetAnnexCategoriesById,
   UpdateAnnexCategoryById,
 } from "../../../../application/repository/annexCategory_iso.repository";
 import { AnnexCategoryISO } from "../../../../domain/types/AnnexCategoryISO";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
@@ -236,7 +236,7 @@ const VWISO42001AnnexDrawerDialog = ({
     const value = event.target.value.toString();
     if (
       field === "status" &&
-      value === "Audited" &&
+      value === "Implemented" &&
       (selectedRisks.length > 0 ||
         formData.risks.length > 0 ||
         (formData.risks.length > 0 &&
@@ -528,6 +528,10 @@ const VWISO42001AnnexDrawerDialog = ({
                 border: "1px solid #D0D5DD",
                 backgroundColor: "white",
                 color: "#344054",
+                "&:hover": {
+                  backgroundColor: "#F9FAFB",
+                  border: "1px solid #D0D5DD",
+                },
               }}
               disableRipple={
                 theme.components?.MuiButton?.defaultProps?.disableRipple
@@ -654,7 +658,7 @@ const VWISO42001AnnexDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -718,6 +722,8 @@ const VWISO42001AnnexDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={2}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>
@@ -729,7 +735,7 @@ const VWISO42001AnnexDrawerDialog = ({
             opacity: formData.is_applicable ? 1 : 0.5,
             pointerEvents: formData.is_applicable ? "auto" : "none",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"
@@ -844,7 +850,7 @@ const VWISO42001AnnexDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

@@ -11,16 +11,18 @@ import "./index.css";
 import React from "react";
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import SuccessOutlinedIcon from "@mui/icons-material/CheckCircleOutline";
-import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutline";
-import WarningOutlinedIcon from "@mui/icons-material/WarningOutlined";
-import CloseIcon from "@mui/icons-material/Close";
 import singleTheme from "../../themes/v1SingleTheme";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { closeIconStyles, iconButtonStyles } from "./style";
 import { CloseIconProps } from "../../../domain/interfaces/iWidget";
 import AlertBody from "./AlertBody";
+
+import { ReactComponent as BlueInfoIcon } from "../../assets/icons/info-circle-blue.svg";
+import { ReactComponent as GreenSuccessIcon } from "../../assets/icons/success-circle-green.svg";
+import { ReactComponent as OrangeWarningIcon } from "../../assets/icons/warning-orange.svg";
+import { ReactComponent as RedErrorIcon } from "../../assets/icons/error-circle-red.svg";
+
+import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
 
 /**
  * Mapping of alert variants to their respective icons.
@@ -29,10 +31,10 @@ import AlertBody from "./AlertBody";
  * @type {object}
  */
 const icons: { [s: string]: JSX.Element } = {
-  success: <SuccessOutlinedIcon />,
-  info: <InfoOutlinedIcon style={{ fill: "#0288d1" }} />,
-  error: <ErrorOutlinedIcon />,
-  warning: <WarningOutlinedIcon />,
+  success: <GreenSuccessIcon />, // #079455
+  info: <BlueInfoIcon />, // #0288d1
+  error: <RedErrorIcon />, // #f04438
+  warning: <OrangeWarningIcon />, // #DC6803
 };
 
 /**
@@ -43,7 +45,9 @@ const icons: { [s: string]: JSX.Element } = {
  */
 const CloseButton: React.FC<CloseIconProps> = ({
   text,
-}: CloseIconProps): JSX.Element => <CloseIcon sx={closeIconStyles(text)} />;
+}: CloseIconProps): JSX.Element => (
+  <CloseGreyIcon style={closeIconStyles(text)} />
+);
 
 /**
  * Alert component for displaying various types of messages.

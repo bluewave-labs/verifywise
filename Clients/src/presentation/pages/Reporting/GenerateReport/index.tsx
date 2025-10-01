@@ -1,12 +1,13 @@
-import { lazy, Suspense, useContext, useState } from "react";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import { lazy, Suspense, useState } from "react";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Stack, Dialog } from "@mui/material";
-import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 const GenerateReportPopup = lazy(
   () => import("../../../components/Reporting/GenerateReport")
 );
 const ReportStatus = lazy(() => import("./ReportStatus"));
 import { styles } from "./styles";
+import { useProjects } from "../../../../application/hooks/useProjects";
+import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface GenerateReportProps {
   onReportGenerated?: () => void;
@@ -16,8 +17,13 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
   onReportGenerated,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const { projects } = useContext(VerifyWiseContext);
-  const isDisabled = projects.length > 0 ? false : true;
+  const { data: projects } = useProjects();
+  const isDisabled = projects?.length && projects?.length > 0 ? false : true;
+
+  useModalKeyHandling({
+    isOpen: isModalOpen,
+    onClose: () => setIsModalOpen(false),
+  });
 
   return (
     <>
@@ -37,7 +43,14 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
           <ReportStatus isDisabled={isDisabled} />
         </Suspense>
       </Stack>
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Dialog 
+        open={isModalOpen} 
+        onClose={(_event, reason) => {
+          if (reason !== 'backdropClick') {
+            setIsModalOpen(false);
+          }
+        }}
+      >
         <Suspense fallback={"loading..."}>
           <GenerateReportPopup
             onClose={() => setIsModalOpen(false)}

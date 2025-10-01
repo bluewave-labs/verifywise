@@ -1,38 +1,33 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  Suspense,
-  useMemo,
-} from "react";
-import { Box, Stack, Typography, Fade } from "@mui/material";
+import React, { useState, useEffect, Suspense, useMemo } from "react";
+import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
 
-import CustomizableButton from "../../vw-v2-components/Buttons";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import {
   getAllEntities,
   deleteEntityById,
   getEntityById,
   updateEntityById,
+  createNewUser,
 } from "../../../application/repository/entity.repository";
 import { createModelInventory } from "../../../application/repository/modelInventory.repository";
-
+import { useAuth } from "../../../application/hooks/useAuth";
 // Import the table and modal components specific to ModelInventory
 import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
+import ModelRisksTable from "./ModelRisksTable";
+import { IModelRisk, IModelRiskFormData } from "../../../domain/interfaces/i.modelRisk";
+import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
-import { vwhomeHeading } from "../Home/1.0Home/style";
-import singleTheme from "../../themes/v1SingleTheme";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import ModelRiskSummary from "./ModelRiskSummary";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import modelInventoryHelpContent from "../../../presentation/helpers/model-inventory-help.html?raw";
 import {
   mainStackStyle,
   filterButtonRowStyle,
@@ -41,10 +36,21 @@ import {
   addNewModelButtonStyle,
 } from "./style";
 import {
+  aiTrustCenterTabStyle,
+  aiTrustCenterTabListStyle,
+} from "../AITrustCenter/styles";
+import {
   ModelInventoryStatus,
   ModelInventorySummary as Summary,
 } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
+import PageHeader from "../../components/Layout/PageHeader";
+import TabContext from "@mui/lab/TabContext";
+import TabList from "@mui/lab/TabList";
+import Tab from "@mui/material/Tab";
+import { IconButton, InputBase } from "@mui/material";
+import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { searchBoxStyle, inputStyle } from "./style";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -60,6 +66,17 @@ const ModelInventory: React.FC = () => {
   >(null);
   const [selectedModelInventory, setSelectedModelInventory] =
     useState<IModelInventory | null>(null);
+
+  // Model Risks state
+  const [modelRisksData, setModelRisksData] = useState<IModelRisk[]>([]);
+  const [isModelRisksLoading, setIsModelRisksLoading] = useState(false);
+  const [isNewModelRiskModalOpen, setIsNewModelRiskModalOpen] = useState(false);
+  const [selectedModelRiskId, setSelectedModelRiskId] = useState<number | null>(null);
+  const [selectedModelRisk, setSelectedModelRisk] = useState<IModelRisk | null>(null);
+  const [modelRiskCategoryFilter, setModelRiskCategoryFilter] = useState("all");
+  const [modelRiskLevelFilter, setModelRiskLevelFilter] = useState("all");
+  const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(null);
+  const [users, setUsers] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useDispatch();
@@ -67,8 +84,7 @@ const ModelInventory: React.FC = () => {
     (state: any) => state.ui?.modelInventory?.statusFilter || "all"
   );
 
-  // Context for user roles/permissions
-  const { userRoleName } = useContext(VerifyWiseContext);
+  const { userRoleName } = useAuth();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
@@ -81,6 +97,11 @@ const ModelInventory: React.FC = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("models"); // "models" = Models, "model-risks" = Model Risks
+
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
 
   // Calculate summary from data
   const summary: Summary = {
@@ -101,12 +122,21 @@ const ModelInventory: React.FC = () => {
 
   // Filter data based on status
   const filteredData = useMemo(() => {
-    if (statusFilter === "all") {
-      return modelInventoryData;
+    let data = statusFilter === "all"
+      ? modelInventoryData
+      : modelInventoryData.filter((item) => item.status === statusFilter);
+  
+    if (searchTerm) {
+      data = data.filter((item) =>
+        item.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.provider?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.version?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-
-    return modelInventoryData.filter((item) => item.status === statusFilter);
-  }, [modelInventoryData, statusFilter]);
+  
+    return data;
+  }, [modelInventoryData, statusFilter, searchTerm]);
+  
 
   // Function to fetch model inventory data
   const fetchModelInventoryData = async (showLoading = true) => {
@@ -140,8 +170,70 @@ const ModelInventory: React.FC = () => {
     }
   };
 
+  // Function to fetch model risks data
+  const fetchModelRisksData = async (showLoading = true) => {
+    if (showLoading) {
+      setIsModelRisksLoading(true);
+    }
+    try {
+      const response = await getAllEntities({ routeUrl: "/modelRisks" });
+      // Handle both direct array and {message, data} format
+      let modelRisksData = [];
+      if (Array.isArray(response)) {
+        modelRisksData = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        modelRisksData = response.data;
+      } else if (response?.data) {
+        modelRisksData = response.data;
+      } else {
+        console.warn("Unexpected model risks data format:", response);
+        modelRisksData = [];
+      }
+      setModelRisksData(modelRisksData);
+    } catch (error) {
+      console.error("Error fetching model risks data:", error);
+      logEngine({
+        type: "error",
+        message: `Failed to fetch model risks data: ${error}`,
+      });
+      setAlert({
+        variant: "error",
+        body: "Failed to load model risks data. Please try again later.",
+      });
+      setShowAlert(true);
+    } finally {
+      if (showLoading) {
+        setIsModelRisksLoading(false);
+      }
+    }
+  };
+
+  // Function to fetch users data
+  const fetchUsersData = async () => {
+    try {
+      const response = await getAllEntities({ routeUrl: "/users" });
+      // Handle both direct array and {message, data} format
+      let usersData = [];
+      if (Array.isArray(response)) {
+        usersData = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        usersData = response.data;
+      } else if (response?.data) {
+        usersData = response.data;
+      } else {
+        console.warn("Unexpected users data format:", response);
+        usersData = [];
+      }
+      setUsers(usersData);
+    } catch (error) {
+      console.error("Error fetching users data:", error);
+    }
+  };
+
   useEffect(() => {
     fetchModelInventoryData();
+    fetchModelRisksData();
+    fetchUsersData();
   }, []);
 
   // Initialize and sync status filter with URL parameters
@@ -188,7 +280,6 @@ const ModelInventory: React.FC = () => {
           const response = await getEntityById({
             routeUrl: `/modelInventory/${selectedModelInventoryId}`,
           });
-          console.log("Fetching model inventory details:", response);
           if (response?.data) {
             setSelectedModelInventory(response.data);
           }
@@ -205,6 +296,30 @@ const ModelInventory: React.FC = () => {
     fetchModelInventoryDetails();
   }, [selectedModelInventoryId, isNewModelInventoryModalOpen]);
 
+  // Fetch model risk data when modal opens with an ID
+  useEffect(() => {
+    const fetchModelRiskDetails = async () => {
+      if (selectedModelRiskId && isNewModelRiskModalOpen) {
+        try {
+          const response = await getEntityById({
+            routeUrl: `/modelRisks/${selectedModelRiskId}`,
+          });
+          if (response?.data) {
+            setSelectedModelRisk(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching model risk details:", error);
+          setAlert({
+            variant: "error",
+            body: "Failed to load model risk details. Please try again.",
+          });
+        }
+      }
+    };
+
+    fetchModelRiskDetails();
+  }, [selectedModelRiskId, isNewModelRiskModalOpen]);
+
   const handleCloseModal = () => {
     setIsNewModelInventoryModalOpen(false);
     setSelectedModelInventory(null);
@@ -215,7 +330,6 @@ const ModelInventory: React.FC = () => {
     try {
       if (selectedModelInventory) {
         // Update existing model inventory
-        console.log("Updating model inventory with data:", formData);
         await updateEntityById({
           routeUrl: `/modelInventory/${selectedModelInventory.id}`,
           body: formData,
@@ -246,31 +360,22 @@ const ModelInventory: React.FC = () => {
 
   const handleDeleteModelInventory = async (id: string) => {
     try {
-      console.log("Deleting model inventory with ID:", id);
       setDeletingId(id);
 
       // Optimistically remove the item from the local state for immediate UI feedback
       setModelInventoryData((prevData) => {
         const newData = prevData.filter((item) => item.id?.toString() !== id);
-        console.log(
-          "Optimistic update: removed item",
-          id,
-          "New data length:",
-          newData.length
-        );
         return newData;
       });
 
       // Perform the actual delete operation
       await deleteEntityById({ routeUrl: `/modelInventory/${id}` });
-      console.log("Delete API call successful");
 
       // Fetch fresh data to ensure consistency with server (without loading state)
       await fetchModelInventoryData(false);
 
       // Force a smooth table re-render after the data update
       setTableKey((prev) => prev + 1);
-      console.log("Fresh data fetched, UI updated");
 
       setAlert({
         variant: "success",
@@ -305,21 +410,163 @@ const ModelInventory: React.FC = () => {
   };
 
   const statusFilterOptions = [
-    { _id: "all", name: "All Statuses" },
+    { _id: "all", name: "All statuses" },
     { _id: ModelInventoryStatus.APPROVED, name: "Approved" },
     { _id: ModelInventoryStatus.RESTRICTED, name: "Restricted" },
     { _id: ModelInventoryStatus.PENDING, name: "Pending" },
     { _id: ModelInventoryStatus.BLOCKED, name: "Blocked" },
   ];
 
+  // Filter model risks based on category and level
+  const filteredModelRisks = useMemo(() => {
+    let filtered = modelRisksData;
+
+    if (modelRiskCategoryFilter !== "all") {
+      filtered = filtered.filter((risk) => risk.risk_category === modelRiskCategoryFilter);
+    }
+
+    if (modelRiskLevelFilter !== "all") {
+      filtered = filtered.filter((risk) => risk.risk_level === modelRiskLevelFilter);
+    }
+
+    return filtered;
+  }, [modelRisksData, modelRiskCategoryFilter, modelRiskLevelFilter]);
+
+  // Model Risk handlers
+  const handleNewModelRiskClick = () => {
+    setIsNewModelRiskModalOpen(true);
+  };
+
+  const handleEditModelRisk = (id: number) => {
+    setSelectedModelRiskId(id);
+    setIsNewModelRiskModalOpen(true);
+  };
+
+  const handleCloseModelRiskModal = () => {
+    setIsNewModelRiskModalOpen(false);
+    setSelectedModelRisk(null);
+    setSelectedModelRiskId(null);
+  };
+
+  const handleModelRiskSuccess = async (formData: IModelRiskFormData) => {
+    try {
+      if (selectedModelRisk) {
+        // Update existing model risk
+        await updateEntityById({
+          routeUrl: `/modelRisks/${selectedModelRisk.id}`,
+          body: formData,
+        });
+        setAlert({
+          variant: "success",
+          body: "Model risk updated successfully!",
+        });
+      } else {
+        // Create new model risk using apiServices
+        await createNewUser({
+          routeUrl: "/modelRisks",
+          body: formData,
+        });
+        setAlert({
+          variant: "success",
+          body: "New model risk added successfully!",
+        });
+      }
+      await fetchModelRisksData();
+      handleCloseModelRiskModal();
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        body: selectedModelRisk
+          ? "Failed to update model risk. Please try again."
+          : "Failed to add model risk. Please try again.",
+      });
+    }
+  };
+
+  const handleDeleteModelRisk = async (id: number) => {
+    try {
+      setDeletingModelRiskId(id);
+
+      // Optimistically remove the item from the local state
+      setModelRisksData((prevData) =>
+        prevData.filter((item) => item.id !== id)
+      );
+
+      // Perform the actual delete operation
+      await deleteEntityById({ routeUrl: `/modelRisks/${id}` });
+
+      // Fetch fresh data to ensure consistency
+      await fetchModelRisksData(false);
+
+      setAlert({
+        variant: "success",
+        body: "Model risk deleted successfully!",
+      });
+    } catch (error) {
+      console.error("Error deleting model risk:", error);
+
+      // If delete failed, revert the optimistic update
+      await fetchModelRisksData(false);
+
+      setAlert({
+        variant: "error",
+        body: "Failed to delete model risk. Please try again.",
+      });
+    } finally {
+      setDeletingModelRiskId(null);
+    }
+  };
+
+  const handleModelRiskCategoryFilterChange = (event: any) => {
+    setModelRiskCategoryFilter(event.target.value);
+  };
+
+  const handleModelRiskLevelFilterChange = (event: any) => {
+    setModelRiskLevelFilter(event.target.value);
+  };
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+  };
+
   return (
     <Stack className="vwhome" sx={mainStackStyle}>
+      {/* <PageBreadcrumbs /> */}
+
       <PageBreadcrumbs />
+
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={modelInventoryHelpContent}
-        pageTitle="Model Inventory"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Model inventory & risk management"
+        description="Track and assess AI models and their associated risks throughout their lifecycle"
+        whatItDoes="Maintain a **comprehensive inventory** of AI models including their *metadata*, *performance metrics*, and **deployment status**. Track *model versions*, dependencies, and **associated risks**."
+        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and **risk mitigation**. It provides **visibility into your AI assets** and helps identify potential issues before they impact production systems."
+        quickActions={[
+          {
+            label: "Add New Model",
+            description: "Register a new AI model with comprehensive metadata and risk assessment",
+            primary: true
+          },
+          {
+            label: "Assess Model Risk",
+            description: "Evaluate potential risks for existing models using our assessment framework"
+          }
+        ]}
+        useCases={[
+          "**Machine learning models** in production environments requiring *monitoring and governance*",
+          "**Pre-trained models** from external vendors that need *risk assessment* and **compliance tracking**"
+        ]}
+        keyFeatures={[
+          "**Complete model lifecycle tracking** from *development* to retirement",
+          "**Automated risk scoring** based on *model characteristics* and deployment context",
+          "**Integration** with model deployment pipelines and *monitoring systems*"
+        ]}
+        tips={[
+          "Start with your **production models** first - these carry the *highest operational risk*",
+          "**Regular model performance reviews** help catch *drift and degradation* early",
+          "Document **model lineage** and dependencies for better *impact assessment*"
+        ]}
       />
       {alert && (
         <Suspense fallback={<div>Loading...</div>}>
@@ -341,55 +588,189 @@ const ModelInventory: React.FC = () => {
       )}
 
       <Stack sx={mainStackStyle}>
-        <Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>Model Inventory</Typography>
-            <HelperIcon 
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          </Stack>
-          <Typography sx={singleTheme.textStyles.pageDescription}>
-            This registry lists all AI/LLM models used within your organization
-            and their compliance status. You can view, add, and manage model
-            details here.
-          </Typography>
-        </Stack>
+            <PageHeader
+               title="Model Inventory"
+               description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
+               rightContent={
+                  <HelperIcon
+                     onClick={() =>
+                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
+                     }
+                     size="small"
+                    />
+                 }
+             />
 
         {/* Summary Cards */}
-        <ModelInventorySummary summary={summary} />
+        {activeTab === "models" && <ModelInventorySummary summary={summary} />}
+        {activeTab === "model-risks" && <ModelRiskSummary modelRisks={modelRisksData} />}
 
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          sx={filterButtonRowStyle}
-        >
-          <SelectComponent
-            id="status-filter"
-            value={statusFilter}
-            items={statusFilterOptions}
-            onChange={handleStatusFilterChange}
-            sx={statusFilterSelectStyle}
-          />
-          <CustomizableButton
-            variant="contained"
-            sx={addNewModelButtonStyle}
-            text="Add new model"
-            icon={<AddCircleOutlineIcon />}
-            onClick={handleNewModelInventoryClick}
-            isDisabled={isCreatingDisabled}
-          />
-        </Stack>
+        {/* Tab Bar */}
+        <TabContext value={activeTab}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}>
+            <TabList
+              onChange={handleTabChange}
+              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              sx={aiTrustCenterTabListStyle}
+            >
+              <Tab
+                sx={aiTrustCenterTabStyle}
+                label="Models"
+                value="models"
+                disableRipple
+              />
+              <Tab
+                sx={aiTrustCenterTabStyle}
+                label="Model risks"
+                value="model-risks"
+                disableRipple
+              />
+            </TabList>
+          </Box>
+        </TabContext>
 
-        <ModelInventoryTable
-          key={tableKey}
-          data={filteredData}
-          isLoading={isLoading}
-          onEdit={handleEditModelInventory}
-          onDelete={handleDeleteModelInventory}
-          deletingId={deletingId}
-        />
+        {activeTab === "models" && (
+          <>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={filterButtonRowStyle}
+            >
+              {/* Left side: Status dropdown + Search */}
+              <Stack direction="row" spacing={4} alignItems="center">
+                <SelectComponent
+                  id="status-filter"
+                  value={statusFilter}
+                  items={statusFilterOptions}
+                  onChange={handleStatusFilterChange}
+                  sx={statusFilterSelectStyle}
+                  customRenderValue={(value, selectedItem) => {
+                    if (value === "all") {
+                      return selectedItem.name;
+                    }
+                    return `Status: ${selectedItem.name.toLowerCase()}`;
+                  }}
+                />
+
+                {/* Expandable Search */}
+                <Box sx={searchBoxStyle(isSearchBarVisible)}>
+                  <IconButton
+                    disableRipple
+                    disableFocusRipple
+                    sx={{ "&:hover": { backgroundColor: "transparent" } }}
+                    aria-label="Toggle search"
+                    aria-expanded={isSearchBarVisible}
+                    onClick={() => setIsSearchBarVisible((prev) => !prev)}
+                  >
+                    <SearchIcon/>
+                  </IconButton>
+
+                  {isSearchBarVisible && (
+                    <InputBase
+                      autoFocus
+                      placeholder="Search models..."
+                      inputProps={{ "aria-label": "Search models" }}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      sx={inputStyle(isSearchBarVisible)}
+                    />
+                  )}
+                </Box>
+              </Stack>
+
+              {/* Right side: Add Model button */}
+              <CustomizableButton
+                variant="contained"
+                sx={addNewModelButtonStyle}
+                text="Add new model"
+                icon={<AddCircleOutlineIcon />}
+                onClick={handleNewModelInventoryClick}
+                isDisabled={isCreatingDisabled}
+              />
+            </Stack>
+
+            <ModelInventoryTable
+              key={tableKey}
+              data={filteredData}
+              isLoading={isLoading}
+              onEdit={handleEditModelInventory}
+              onDelete={handleDeleteModelInventory}
+              deletingId={deletingId}
+            />
+          </>
+        )}
+
+        {activeTab === "model-risks" && (
+          <>
+            {/* Model Risks Tab Content */}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={filterButtonRowStyle}
+            >
+              <Stack direction="row" gap={2}>
+                <SelectComponent
+                  id="risk-category-filter"
+                  value={modelRiskCategoryFilter}
+                  items={[
+                    { _id: "all", name: "All categories" },
+                    { _id: "Performance", name: "Performance" },
+                    { _id: "Bias & Fairness", name: "Bias & Fairness" },
+                    { _id: "Security", name: "Security" },
+                    { _id: "Data Quality", name: "Data Quality" },
+                    { _id: "Compliance", name: "Compliance" },
+                  ]}
+                  onChange={handleModelRiskCategoryFilterChange}
+                  sx={statusFilterSelectStyle}
+                  customRenderValue={(value, selectedItem) => {
+                    if (value === "all") {
+                      return selectedItem.name;
+                    }
+                    return `Category: ${selectedItem.name.toLowerCase()}`;
+                  }}
+                />
+                <SelectComponent
+                  id="risk-level-filter"
+                  value={modelRiskLevelFilter}
+                  items={[
+                    { _id: "all", name: "All risk levels" },
+                    { _id: "Low", name: "Low" },
+                    { _id: "Medium", name: "Medium" },
+                    { _id: "High", name: "High" },
+                    { _id: "Critical", name: "Critical" },
+                  ]}
+                  onChange={handleModelRiskLevelFilterChange}
+                  sx={statusFilterSelectStyle}
+                  customRenderValue={(value, selectedItem) => {
+                    if (value === "all") {
+                      return selectedItem.name;
+                    }
+                    return `Risk level: ${selectedItem.name.toLowerCase()}`;
+                  }}
+                />
+              </Stack>
+              <CustomizableButton
+                variant="contained"
+                sx={addNewModelButtonStyle}
+                text="Add model risk"
+                icon={<AddCircleOutlineIcon />}
+                onClick={handleNewModelRiskClick}
+                isDisabled={isCreatingDisabled}
+              />
+            </Stack>
+
+            <ModelRisksTable
+              data={filteredModelRisks}
+              isLoading={isModelRisksLoading}
+              onEdit={handleEditModelRisk}
+              onDelete={handleDeleteModelRisk}
+              deletingId={deletingModelRiskId}
+              users={users}
+            />
+          </>
+        )}
       </Stack>
 
       <NewModelInventory
@@ -412,10 +793,41 @@ const ModelInventory: React.FC = () => {
                       .toISOString()
                       .split("T")[0]
                   : new Date().toISOString().split("T")[0],
+               reference_link: selectedModelInventory.reference_link || "",
+               biases: selectedModelInventory.biases || "",
+               limitations: selectedModelInventory.limitations || "",
+               hosting_provider: selectedModelInventory.hosting_provider || "",
               }
             : undefined
         }
         isEdit={!!selectedModelInventory}
+      />
+
+      <NewModelRisk
+        isOpen={isNewModelRiskModalOpen}
+        setIsOpen={handleCloseModelRiskModal}
+        onSuccess={handleModelRiskSuccess}
+        initialData={
+          selectedModelRisk
+            ? {
+                risk_name: selectedModelRisk.risk_name || "",
+                risk_category: selectedModelRisk.risk_category,
+                risk_level: selectedModelRisk.risk_level,
+                status: selectedModelRisk.status,
+                owner: selectedModelRisk.owner,
+                target_date: selectedModelRisk.target_date
+                  ? new Date(selectedModelRisk.target_date)
+                      .toISOString()
+                      .split("T")[0]
+                  : new Date().toISOString().split("T")[0],
+                description: selectedModelRisk.description || "",
+                mitigation_plan: selectedModelRisk.mitigation_plan || "",
+                impact: selectedModelRisk.impact || "",
+                model_id: selectedModelRisk.model_id,
+              }
+            : undefined
+        }
+        isEdit={!!selectedModelRisk}
       />
     </Stack>
   );

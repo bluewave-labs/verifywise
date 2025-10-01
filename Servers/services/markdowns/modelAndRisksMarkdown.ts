@@ -67,7 +67,7 @@ export async function getModelRisksReportData(
         modelRisksRows = modelRisksData && modelRisksData.length > 0 ? await Promise.all(modelRisksData.map(async (modelRisk) => {
             const modelRiskOwner = await getUserByIdQuery(Number(modelRisk.owner));
             return `| ${modelRisk.risk_name} | ${modelRisk.risk_level} | ${modelRisk.status} | ${modelRiskOwner.name} ${modelRiskOwner.surname} |`;
-        })).then((rows) => rows.join("\n")) : "| - | - |";
+        })).then((rows) => rows.join("\n")) : "| - | - | - | - |";
     } catch (error) {
         throw new Error(`Error while fetching the model risks report data`);
     }

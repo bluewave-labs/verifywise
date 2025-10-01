@@ -14,7 +14,7 @@ import {
   BlockquotePlugin,
 } from "@platejs/basic-nodes/react";
 import { serializeHtml } from "platejs";
-import {ReactComponent as Looks3} from "../../assets/icons/three.svg"
+import {ReactComponent as LooksThree} from "../../assets/icons/three.svg"
 import {ReactComponent as LooksOne} from "../../assets/icons/one.svg"
 import {ReactComponent as LooksTwo} from "../../assets/icons/two.svg"
 import {ReactComponent as FormatBold} from "../../assets/icons/formatBold.svg"
@@ -372,7 +372,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "h3",
                     title: "Heading 3",
-                    icon: <Looks3 />,
+                    icon: <LooksThree/>,
                     action: () => {
                       editor.tf.h3.toggle();
                       setToolbarState((prev) => ({ ...prev, h3: !prev.h3 }));

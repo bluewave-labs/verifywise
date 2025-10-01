@@ -42,14 +42,7 @@ class ModelInferencePipeline:
             raise ValueError("Hugging Face model must be enabled in config")
 
         try:
-            self.model_loader = ModelLoader(
-                model_id=model_config.huggingface.model_id,
-                device=model_config.huggingface.device,
-                max_new_tokens=model_config.huggingface.max_new_tokens,
-                temperature=model_config.huggingface.temperature,
-                top_p=model_config.huggingface.top_p,
-                system_prompt=model_config.huggingface.system_prompt,
-            )
+            self.model_loader = ModelLoader.from_config_manager(self.config_manager)
         except Exception as e:
             raise RuntimeError(f"Failed to load model: {str(e)}")
 

@@ -1,3 +1,30 @@
+/**
+ * @fileoverview Role Management Controller
+ *
+ * Handles role-based access control (RBAC) operations including role creation,
+ * retrieval, updates, and deletion. Roles define permission levels for users
+ * within the system.
+ *
+ * Key Features:
+ * - Role CRUD operations with validation
+ * - Transaction-based operations for data consistency
+ * - Comprehensive audit logging for all role operations
+ * - Role validation before persistence
+ *
+ * Standard Roles:
+ * - 1: Admin - Full system access
+ * - 2: Reviewer - Review and approval permissions
+ * - 3: Editor - Content editing permissions
+ * - 4: Auditor - Read-only audit access
+ *
+ * Security Features:
+ * - Transaction rollback on failures
+ * - Role data validation
+ * - Audit logging for all operations
+ *
+ * @module controllers/role
+ */
+
 import { Request, Response } from "express";
 
 import { STATUS_CODE } from "../utils/statusCode.utils";
@@ -16,6 +43,29 @@ import {
   validateRoleIdParam
 } from '../utils/validations/roleValidation.utils';
 
+/**
+ * Retrieves all roles from the system
+ *
+ * Returns a complete list of all available roles that can be assigned to users.
+ *
+ * @async
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON array of roles or appropriate status code
+ *
+ * @example
+ * GET /api/roles
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": [
+ *     { "id": 1, "name": "Admin", "description": "Full system access" },
+ *     { "id": 2, "name": "Reviewer", "description": "Review permissions" }
+ *   ]
+ * }
+ */
 export async function getAllRoles(req: Request, res: Response): Promise<any> {
   logProcessing({
     description: "starting getAllRoles",
@@ -51,6 +101,30 @@ export async function getAllRoles(req: Request, res: Response): Promise<any> {
   }
 }
 
+/**
+ * Retrieves a specific role by its ID
+ *
+ * Returns detailed information about a single role.
+ *
+ * @async
+ * @param {Request} req - Express request with role ID in params
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Role object or 404 if not found
+ *
+ * @example
+ * GET /api/roles/1
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": {
+ *     "id": 1,
+ *     "name": "Admin",
+ *     "description": "Full system access"
+ *   }
+ * }
+ */
 export async function getRoleById(req: Request, res: Response): Promise<any> {
   const roleId = parseInt(req.params.id);
 
@@ -105,6 +179,45 @@ export async function getRoleById(req: Request, res: Response): Promise<any> {
   }
 }
 
+/**
+ * Creates a new role in the system
+ *
+ * Allows creation of custom roles with name and description.
+ * Validates role data before persistence and uses transactions for atomicity.
+ *
+ * @async
+ * @param {Request} req - Express request with role data in body
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Created role object or error status
+ *
+ * @security
+ * - Transaction-based creation for atomicity
+ * - Role data validation via RoleModel
+ * - Audit logging for role creation
+ *
+ * @validation
+ * - Role name required and must be unique
+ * - Description required
+ * - Name validated for length and format
+ *
+ * @example
+ * POST /api/roles
+ * Authorization: Bearer <jwt_token>
+ * {
+ *   "name": "Manager",
+ *   "description": "Project management permissions"
+ * }
+ *
+ * Response 201:
+ * {
+ *   "code": 201,
+ *   "data": {
+ *     "id": 5,
+ *     "name": "Manager",
+ *     "description": "Project management permissions"
+ *   }
+ * }
+ */
 export async function createRole(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
 
@@ -161,6 +274,44 @@ export async function createRole(req: Request, res: Response): Promise<any> {
   }
 }
 
+/**
+ * Updates an existing role's information
+ *
+ * Allows modification of role name and description with validation.
+ * Uses transaction to ensure data consistency.
+ *
+ * @async
+ * @param {Request} req - Express request with role ID in params and update data in body
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Updated role object or error status
+ *
+ * @security
+ * - Transaction-based update for atomicity
+ * - Role ID verified before update
+ * - Audit logging for role updates
+ *
+ * @validation
+ * - Role must exist
+ * - Name must be unique if changed
+ *
+ * @example
+ * PATCH /api/roles/5
+ * Authorization: Bearer <jwt_token>
+ * {
+ *   "name": "Senior Manager",
+ *   "description": "Advanced project management permissions"
+ * }
+ *
+ * Response 202:
+ * {
+ *   "code": 202,
+ *   "data": {
+ *     "id": 5,
+ *     "name": "Senior Manager",
+ *     "description": "Advanced project management permissions"
+ *   }
+ * }
+ */
 export async function updateRoleById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const roleId = parseInt(req.params.id);
@@ -212,6 +363,41 @@ export async function updateRoleById(req: Request, res: Response): Promise<any> 
   }
 }
 
+/**
+ * Deletes a role from the system
+ *
+ * Removes a role from the system. Should be used with caution as it may impact
+ * users currently assigned to this role.
+ *
+ * @async
+ * @param {Request} req - Express request with role ID in params
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Deleted role object or error status
+ *
+ * @security
+ * - Transaction-based deletion for atomicity
+ * - Role existence verified before deletion
+ * - Audit logging for role deletions
+ *
+ * @warning
+ * Deleting a role may impact:
+ * - Users currently assigned to this role
+ * - Permission checks for existing users
+ * - Consider reassigning users before deletion
+ *
+ * @example
+ * DELETE /api/roles/5
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 202:
+ * {
+ *   "code": 202,
+ *   "data": {
+ *     "id": 5,
+ *     "name": "Manager"
+ *   }
+ * }
+ */
 export async function deleteRoleById(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const roleId = parseInt(req.params.id);

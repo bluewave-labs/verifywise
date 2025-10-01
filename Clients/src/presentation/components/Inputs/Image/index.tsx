@@ -23,7 +23,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import {ReactComponent as CloudUploadIcon} from "../../../assets/icons/cloudUpload.svg";
 import { ImageFieldProps } from "../../../../domain/interfaces/iWidget";
 import { checkImage, IconButtonStack, TextFieldStyles } from "./constants";
 

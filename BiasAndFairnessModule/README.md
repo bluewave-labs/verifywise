@@ -329,7 +329,7 @@ model:
     max_new_tokens: 512
     temperature: 0.7
     top_p: 0.9
-    system_prompt: "You are a helpful AI assistant."
+    prompt_formatter: "You are a helpful AI assistant."
 
 metrics:
   disparity:

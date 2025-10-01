@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 from datasets import Dataset, load_dataset
 from sklearn.datasets import fetch_openml
+import numpy as np
 
 
 class DataLoader:
@@ -79,45 +80,39 @@ class DataLoader:
 
     def _format_single_prompt(
         self, row: pd.Series, include_answer: bool = False
-    ) -> str:
+    ) -> Dict[str, Any]:
         """
-        Format a single row of data into a prompt string.
+        Convert a single row of data into a features dictionary for prompting.
 
         Args:
             row (pd.Series): A single row from the dataset
-            include_answer (bool): Whether to include the target
-            column value as answer
+            include_answer (bool): Ignored; answer inclusion is handled downstream
 
         Returns:
-            str: Formatted prompt string
+            Dict[str, Any]: Feature dictionary with column names underscore-normalized
         """
         # Get all columns except the target column
         feature_columns = [
             col for col in self.data.columns if col != self.dataset_config.target_column
         ]
 
-        # Create the demographic information string
-        demographic_info = "\n".join(
-            [
-                f"- {col.replace('_', ' ').title()}: {row[col]}"
-                for col in feature_columns
-            ]
-        )
+        # Normalize keys (convert periods and hyphens to underscores) and map values
+        features: Dict[str, Any] = {}
+        for col in feature_columns:
+            key = col.replace(".", "_").replace("-", "_")
+            value = row[col]
+            # Convert NumPy scalar types (e.g., np.int64) to native Python types
+            if isinstance(value, np.generic):
+                value = value.item()
+            features[key] = value
 
-        prompt = f"""Given the following demographic information about a person:\n{demographic_info}
-        \nBased ONLY on the information provided, predict whether their income is '>50K' or '<=50K'. Respond with only the string '>50K' or '<=50K'."""
-
-        if include_answer:
-            answer = row[self.dataset_config.target_column]
-            prompt += f"\nAnswer: {answer}"
-
-        return prompt
+        return features
 
     def get_sample_prompts(
         self, indices: Union[int, List[int]], include_answer: bool = False
-    ) -> Union[str, List[str]]:
+    ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
-        Get formatted prompts for one or more rows by their indices.
+        Get feature dictionaries for one or more rows by their indices.
 
         Args:
             indices (Union[int, List[int]]): Single index or list of
@@ -126,8 +121,8 @@ class DataLoader:
                                    value as answer
 
         Returns:
-            Union[str, List[str]]: Single prompt string if indices is int,
-                                   list of prompt strings if indices is list
+            Union[Dict[str, Any], List[Dict[str, Any]]]: Single features dict if
+                                   indices is int, list of features dicts if list
 
         Raises:
             ValueError: If data hasn't been loaded yet or if indices are out
@@ -150,14 +145,14 @@ class DataLoader:
                 f"{len(self.data)-1}"
             )
 
-        # Generate prompts for all requested indices
-        prompts = [
+        # Generate feature dicts for all requested indices
+        items = [
             self._format_single_prompt(self.data.iloc[idx], include_answer)
             for idx in indices
         ]
 
-        # Return single string if input was single index, list otherwise
-        return prompts[0] if return_single else prompts
+        # Return single dict if input was single index, list otherwise
+        return items[0] if return_single else items
 
     def _extract_protected_attributes(self, row: pd.Series) -> Dict[str, Any]:
         """
@@ -175,7 +170,7 @@ class DataLoader:
         self, batch_size: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
-        Generate a list of sample dictionaries containing prompts and answers.
+        Generate a list of sample dictionaries containing features and answers.
 
         Args:
             batch_size (Optional[int]): If provided, return samples in batches
@@ -185,7 +180,7 @@ class DataLoader:
             If batch_size is None:
                 List[Dict]: List of dictionaries with keys:
                 - sample_id: Index of the row
-                - prompt: Formatted prompt for the row
+                - prompt: Features dictionary for the row
                 - answer: Target column value for the row
                 - protected_attributes: Dictionary of protected attribute values
             If batch_size is provided:

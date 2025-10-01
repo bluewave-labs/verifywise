@@ -13,6 +13,17 @@ export const getAllModelInventoriesQuery = async (tenant: string) => {
   return modelInventories;
 };
 
+export const getModelByTenantIdQuery = async (tenant: string) => {
+  const modelInventory = await sequelize.query(
+    `SELECT * FROM "${tenant}".model_inventories`,
+    {
+      mapToModel: true,
+      model: ModelInventoryModel,
+    }
+  );
+  return modelInventory;
+};
+
 export const getModelInventoryByIdQuery = async (
   id: number,
   tenant: string

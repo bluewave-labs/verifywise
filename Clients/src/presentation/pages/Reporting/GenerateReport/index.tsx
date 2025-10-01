@@ -17,25 +17,48 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
   onReportGenerated,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedReportType, setSelectedReportType] = useState<'project' | 'organization' | null>(null);
   const { data: projects } = useProjects();
   const isDisabled = projects?.length && projects?.length > 0 ? false : true;
 
   useModalKeyHandling({
     isOpen: isModalOpen,
-    onClose: () => setIsModalOpen(false),
+    onClose: () => {
+      setIsModalOpen(false);
+      setSelectedReportType(null);
+    },
   });
 
   return (
     <>
-      <Stack sx={styles.container}>
+      <Stack sx={styles.container} direction="row" spacing={2}>
         <CustomizableButton
           sx={{
             ...styles.buttonStyle,
+            width: "fit-content",
             border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
           }}
           variant="contained"
-          text="Generate your report"
-          onClick={() => setIsModalOpen(true)}
+          text="Generate project report"
+          onClick={() => {
+            setSelectedReportType('project');
+            setIsModalOpen(true);
+          }}
+          isDisabled={isDisabled}
+        />
+
+        <CustomizableButton
+          sx={{
+            ...styles.buttonStyle,
+            width: "fit-content",
+            border: isDisabled ? "1px solid #dddddd" : "1px solid #13715B",
+          }}
+          variant="contained"
+          text="Generate organization report"
+          onClick={() => {
+            setSelectedReportType('organization');
+            setIsModalOpen(true);
+          }}
           isDisabled={isDisabled}
         />
         {/* Render generate report status */}
@@ -48,13 +71,18 @@ const GenerateReport: React.FC<GenerateReportProps> = ({
         onClose={(_event, reason) => {
           if (reason !== 'backdropClick') {
             setIsModalOpen(false);
+            setSelectedReportType(null);
           }
         }}
       >
         <Suspense fallback={"loading..."}>
           <GenerateReportPopup
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedReportType(null);
+            }}
             onReportGenerated={onReportGenerated}
+            reportType={selectedReportType}
           />
         </Suspense>
       </Dialog>

@@ -188,7 +188,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
           assignee:
             formattedUsers?.find(
               (user: any) => user._id === existingVendor.assignee
-            )?._id || " ",
+            )?._id || "",
           reviewDate: existingVendor.review_date,
         },
       }));

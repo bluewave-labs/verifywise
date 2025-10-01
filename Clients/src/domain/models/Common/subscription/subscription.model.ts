@@ -1,9 +1,11 @@
+import { Status } from "../../../enums/status.enum";
+
 export class SubscriptionModel {
   id?: number;
   organization_id!: number;
   tier_id!: number;
   stripe_sub_id!: string;
-  status!: "active" | "inactive" | "canceled";
+  status!: Status;
   start_date!: Date;
   end_date?: Date;
   created_at!: Date;

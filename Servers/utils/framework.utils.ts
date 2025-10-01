@@ -70,6 +70,24 @@ const checkFrameworkExistsQuery = async (
   return exists;
 }
 
+const canRemoveFrameworkFromProjectQuery = async (
+  frameworkId: number,
+  projectId: number,
+  tenant: string,
+  transaction: Transaction
+): Promise<boolean> => {
+  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
+  if (!exists) {
+    return false; // Framework not found in the project
+  }
+  
+  const [[{ can_remove }]] = (await sequelize.query(
+    `SELECT (SELECT COUNT(*) FROM "${tenant}".projects_frameworks WHERE project_id = :projectId) > 1 AND EXISTS (SELECT 1 FROM "${tenant}".projects_frameworks WHERE project_id = :projectId AND framework_id = :frameworkId) AS can_remove;`,
+    { replacements: { projectId, frameworkId }, transaction }
+  )) as [[{ can_remove: boolean }], number];
+  return can_remove;
+}
+
 export const canAddFrameworkToProjectQuery = async (
   frameworkId: number,
   projectId: number,
@@ -147,9 +165,9 @@ export const deleteFrameworkFromProjectQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<boolean> => {
-  const exists = await checkFrameworkExistsQuery(frameworkId, projectId, tenant, transaction);
-  if (!exists) {
-    return false; // Framework not found in the project
+  const canRemove = await canRemoveFrameworkFromProjectQuery(frameworkId, projectId, tenant, transaction);
+  if (!canRemove) {
+    return false;
   }
 
   // delete evidence files for the framework

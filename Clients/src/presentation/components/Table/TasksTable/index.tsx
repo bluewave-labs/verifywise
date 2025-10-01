@@ -18,11 +18,12 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
-import { ITask, TaskStatus } from "../../../../domain/interfaces/i.task";
+import { ITask } from "../../../../domain/interfaces/i.task";
 import { User } from "../../../../domain/types/User";
 import CustomSelect from "../../CustomSelect";
 import IconButton from "../../IconButton";
 import RiskChip from "../../RiskLevel/RiskChip";
+import { TaskStatus } from "../../../../domain/enums/task.enum";
 
 // Status display mapping
 const STATUS_DISPLAY_MAP: Record<string, string> = {

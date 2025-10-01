@@ -62,6 +62,20 @@ import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
+import {
+  validateCreateUser,
+  validateLoginUser,
+  validateUpdateUser,
+  validateResetPassword,
+  validateChangePassword,
+  validateUpdateRole,
+  validateUserIdParam,
+  validateEmailParam,
+  validateUserUpdatePermission,
+  validateUserDeletePermission,
+  validateRoleUpdatePermission
+} from "../utils/validations/userValidation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 /**
  * Retrieves all users within the authenticated user's organization
@@ -120,6 +134,11 @@ async function getUserByEmail(req: Request, res: Response) {
   logger.debug(`🔍 Looking up user with email: ${email}`);
 
   try {
+    // Validate email parameter
+    const emailValidation = validateEmailParam(email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json(STATUS_CODE[400](emailValidation.message));
+    }
     const user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
@@ -144,6 +163,11 @@ async function getUserById(req: Request, res: Response) {
   logger.debug(`🔍 Looking up user with ID: ${id}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(id);
+    if (!idValidation.isValid) {
+      return res.status(400).json(STATUS_CODE[400](idValidation.message));
+    }
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
@@ -259,6 +283,16 @@ async function createNewUser(req: Request, res: Response) {
   logger.debug(`🛠️ Creating user: ${email}`);
 
   try {
+    // Validate input data
+    const validationErrors = validateCreateUser(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
+
     // Check for existing user
     const existingUser = await getUserByEmailQuery(email);
     if (existingUser) {
@@ -366,6 +400,14 @@ async function loginUser(req: Request, res: Response): Promise<any> {
   logger.debug(`🔐 Login attempt for ${email}`);
 
   try {
+    // Validate login data
+    const validationErrors = validateLoginUser(req.body);
+    if (validationErrors.length > 0) {
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
     const userData = await getUserByEmailQuery(email);
 
     if (userData) {
@@ -504,6 +546,15 @@ async function resetPassword(req: Request, res: Response) {
   logger.debug(`🔁 Password reset requested for ${email}`);
 
   try {
+    // Validate reset password data
+    const validationErrors = validateResetPassword(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
@@ -560,6 +611,34 @@ async function updateUserById(req: Request, res: Response) {
   logger.debug(`✏️ Update requested for user ID ${id}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(id);
+    if (!idValidation.isValid) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400](idValidation.message));
+    }
+
+    // Validate update data
+    const validationErrors = validateUpdateUser(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
+
+    // Check permissions (if user context is available)
+    const currentUserId = (req as any).user?.id;
+    const currentUserRoleId = (req as any).user?.role_id;
+
+    if (currentUserId && currentUserRoleId) {
+      const permissionResult = validateUserUpdatePermission(id, currentUserId, currentUserRoleId);
+      if (!permissionResult.isValid) {
+        await transaction.rollback();
+        return res.status(403).json(STATUS_CODE[403](permissionResult.message));
+      }
+    }
     const user = await getUserByIdQuery(id);
 
     if (user) {
@@ -571,8 +650,6 @@ async function updateUserById(req: Request, res: Response) {
         {
           name: user.name,
           surname: user.surname,
-          email: user.email,
-          role_id: roleId ?? user.role_id,
           last_login: last_login ?? user.last_login,
         },
         transaction
@@ -618,9 +695,33 @@ async function deleteUserById(req: Request, res: Response) {
   logger.debug(`🗑️ Delete request for user ID ${id}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(id);
+    if (!idValidation.isValid) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400](idValidation.message));
+    }
+
+    // Check permissions (if user context is available)
+    const currentUserId = (req as any).user?.id;
+    const currentUserRoleId = (req as any).user?.role_id;
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      // Validate delete permissions
+      if (currentUserId && currentUserRoleId) {
+        const permissionResult = validateUserDeletePermission(
+          id,
+          currentUserId,
+          currentUserRoleId,
+          user.isDemoUser()
+        );
+        if (!permissionResult.isValid) {
+          await transaction.rollback();
+          return res.status(403).json(STATUS_CODE[403](permissionResult.message));
+        }
+      }
+
       if (user.isDemoUser()) {
         logStructured('error', `attempted to delete demo user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
         await logEvent('Error', `Blocked deletion of demo user ID ${id}`);
@@ -772,6 +873,15 @@ async function ChangePassword(req: Request, res: Response) {
   logger.debug(`🔐 Password change requested for user ID ${id}`);
 
   try {
+    // Validate password change data
+    const validationErrors = validateChangePassword(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
     const user = await getUserByIdQuery(id);
 
     if (!user) {
@@ -825,17 +935,49 @@ async function updateUserRole(req: Request, res: Response) {
   const { id } = req.params;
   const { newRoleId } = req.body;
   const currentUserId = (req as any).user?.id;
+  const currentUserRoleId = (req as any).user?.role_id;
 
   logStructured('processing', `updating role for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
   logger.debug(`🔧 Role update requested for user ID ${id} by admin ID ${currentUserId}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(parseInt(id));
+    if (!idValidation.isValid) {
+      await transaction.rollback();
+      return res.status(400).json({ message: idValidation.message });
+    }
+
+    // Validate role update data
+    const validationErrors = validateUpdateRole(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
     const targetUser = await getUserByIdQuery(parseInt(id));
     if (!targetUser) {
       logStructured('error', `target user not found: ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
       await logEvent('Error', `Role update failed — target user not found: ID ${id}`);
       await transaction.rollback();
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Validate role update permissions
+    if (currentUserId && currentUserRoleId) {
+      const permissionResult = validateRoleUpdatePermission(
+        parseInt(id),
+        currentUserId,
+        currentUserRoleId,
+        newRoleId,
+        targetUser.isDemoUser()
+      );
+      if (!permissionResult.isValid) {
+        await transaction.rollback();
+        return res.status(403).json({ message: permissionResult.message });
+      }
     }
 
     const currentUser = await getUserByIdQuery(currentUserId);

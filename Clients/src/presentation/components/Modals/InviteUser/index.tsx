@@ -27,7 +27,7 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
+import { ReactComponent as ForwardToInboxIcon } from "../../../assets/icons/email.svg";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";

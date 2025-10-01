@@ -13,6 +13,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 interface GenerateReportProps {
   onClose: () => void;
   onReportGenerated?: () => void;
+  reportType: 'project' | 'organization' | null;
 }
 
 interface InputProps {
@@ -21,11 +22,13 @@ interface InputProps {
   project: number;
   framework: number;
   projectFrameworkId: number;
+  reportType?: 'project' | 'organization' | null;
 }
 
 const GenerateReportPopup: React.FC<GenerateReportProps> = ({
   onClose,
   onReportGenerated,
+  reportType,
 }) => {
   const [isReportRequest, setIsReportRequest] = useState<boolean>(false);
   const [responseStatusCode, setResponseStatusCode] = useState<number>(200);
@@ -155,7 +158,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
           </Suspense>
         ) : (
           <Suspense fallback={<div>Loading...</div>}>
-            <GenerateReportFrom onGenerate={handleGenerateReport} />
+            <GenerateReportFrom onGenerate={handleGenerateReport} reportType={reportType} />
           </Suspense>
         )}
       </Box>

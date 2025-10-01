@@ -16,19 +16,45 @@ import { addFileToAnswerEU } from "../utils/eu.utils";
 import { sequelize } from "../database/db";
 import getUserFilesMetaDataQuery from "../utils/files/getUserFilesMetaData.utils";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import {
+  validateFileIdParam,
+  validateProjectIdParam,
+  validateUserIdParam,
+  validatePaginationParams,
+  validateCompleteFileUpload
+} from "../utils/validations/fileValidation.utils";
 
 export async function getFileContentById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const fileId = parseInt(req.params.id);
+
+  // Validate file ID parameter
+  const fileIdValidation = validateFileIdParam(fileId);
+  if (!fileIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid file ID parameter: ${req.params.id}`,
+      functionName: "getFileContentById",
+      fileName: "file.ctrl.ts",
+      error: new Error(fileIdValidation.message || 'Invalid file ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: fileIdValidation.message || 'Invalid file ID',
+      code: fileIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
-    description: "starting getFileContentById",
+    description: `starting getFileContentById for ID ${fileId}`,
     functionName: "getFileContentById",
     fileName: "file.ctrl.ts",
   });
 
   try {
-    const file = await getFileById(parseInt(req.params.id), req.tenantId!);
+    const file = await getFileById(fileId, req.tenantId!);
     if (file) {
       await logSuccess({
         eventType: "Read",
@@ -67,26 +93,36 @@ export async function getFileMetaByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "getFileMetaByProjectId",
+      fileName: "file.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
-    description: "starting getFileMetaByProjectId",
+    description: `starting getFileMetaByProjectId for project ID ${projectId}`,
     functionName: "getFileMetaByProjectId",
     fileName: "file.ctrl.ts",
   });
 
   try {
-    const id = req.params.id;
-
-    if (!id) {
-      return res.status(400).json(STATUS_CODE[400]("File ID is required"));
-    }
-    const fileId = parseInt(id);
-    if (isNaN(fileId) || fileId <= 0) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid File ID"));
-    }
-    const files = await getFileMetadataByProjectId(fileId, req.tenantId!);
+    const files = await getFileMetadataByProjectId(projectId, req.tenantId!);
     await logSuccess({
       eventType: "Read",
-      description: `Retrieved file metadata for project ID ${fileId}`,
+      description: `Retrieved file metadata for project ID ${projectId}`,
       functionName: "getFileMetaByProjectId",
       fileName: "file.ctrl.ts",
     });
@@ -109,22 +145,57 @@ export async function getFileMetaByProjectId(
 }
 
 export const getUserFilesMetaData = async (req: Request, res: Response) => {
+  const userId = Number(req.userId);
+
+  // Validate user ID parameter
+  const userIdValidation = validateUserIdParam(userId);
+  if (!userIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid user ID: ${req.userId}`,
+      functionName: "getUserFilesMetaData",
+      fileName: "file.ctrl.ts",
+      error: new Error(userIdValidation.message || 'Invalid user ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: userIdValidation.message || 'Invalid user ID',
+      code: userIdValidation.code || 'INVALID_USER_ID'
+    });
+  }
+
+  // Validate pagination parameters
+  const page = req.query.page ? Number(req.query.page) : undefined;
+  const pageSize = req.query.pageSize ? Number(req.query.pageSize) : undefined;
+  const paginationErrors = validatePaginationParams(page, pageSize);
+  if (paginationErrors.length > 0) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid pagination parameters`,
+      functionName: "getUserFilesMetaData",
+      fileName: "file.ctrl.ts",
+      error: new Error('Invalid pagination parameters')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: 'Invalid pagination parameters',
+      errors: paginationErrors.map(err => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   logProcessing({
-    description: "starting getUserFilesMetaData",
+    description: `starting getUserFilesMetaData for user ID ${userId}`,
     functionName: "getUserFilesMetaData",
     fileName: "file.ctrl.ts",
   });
 
   try {
-    const userId = Number(req.userId);
-    if (isNaN(userId)) {
-      return res.status(400).json({ error: "Invalid user ID" });
-    }
-
-    const page = Number(req.query.page);
-    const pageSize = Number(req.query.pageSize);
-    const validPage = !isNaN(page) && page > 0 ? page : undefined;
-    const validPageSize = !isNaN(pageSize) && pageSize > 0 ? pageSize : undefined;
+    const validPage = page && page > 0 ? page : undefined;
+    const validPageSize = pageSize && pageSize > 0 ? pageSize : undefined;
     const offset =
       validPage !== undefined && validPageSize !== undefined
         ? (validPage - 1) * validPageSize
@@ -160,6 +231,27 @@ export async function postFileContent(
   req: RequestWithFile,
   res: Response
 ): Promise<any> {
+  // Validate file upload request
+  const validationErrors = await validateCompleteFileUpload(req.body, req.files, req.tenantId!);
+  if (validationErrors.length > 0) {
+    await logFailure({
+      eventType: "Create",
+      description: "File upload validation failed",
+      functionName: "postFileContent",
+      fileName: "file.ctrl.ts",
+      error: new Error('File upload validation failed')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: 'File upload validation failed',
+      errors: validationErrors.map(err => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   const transaction = await sequelize.transaction();
 
   logProcessing({
@@ -176,7 +268,7 @@ export async function postFileContent(
       delete: string;
     };
 
-    const filesToDelete = JSON.parse(body.delete) as number[];
+    const filesToDelete = JSON.parse(body.delete || "[]") as number[];
     for (let fileToDelete of filesToDelete) {
       await deleteFileById(fileToDelete, req.tenantId!, transaction);
     }

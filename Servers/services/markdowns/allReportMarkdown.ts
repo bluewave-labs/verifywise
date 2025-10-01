@@ -13,6 +13,9 @@ import { getClausesAndAnnexesReportData } from "./annexesMarkdown";
 import { getAssessmentTrackerReportData } from "./assessmentTrackerMarkdown";
 import { getComplianceReportData } from "./complianceMarkdown";
 import { getProjectRiskReportData } from "./projectRiskMarkdown";
+import { getPolicyManagerReportData } from "./policyManagerMarkdown";
+import { getTrainingRegistryReportData } from "./trainingRegistryMarkdown";
+import { getModelReportData } from "./modelAndRisksMarkdown";
 import {
   getVendorReportData,
   getVendorRiskReportData,
@@ -32,6 +35,9 @@ export async function getAllReportMarkdown(
       let projectReportMarkdown = await getProjectRiskReportData(projectId, tenant);
       let vendorReportMarkdown = await getVendorReportData(projectId, tenant);
       let vendorRiskReportMarkdown = await getVendorRiskReportData(projectId, tenant);
+      let policyManagerReportMarkdown = await getPolicyManagerReportData(tenant);
+      let trainingRegistryReportMarkdown = await getTrainingRegistryReportData(tenant);
+      let modelReportMarkdown = await getModelReportData(tenant);
 
       if (framework.name === "EU AI Act") { 
         const complianceReportMarkdown = await getComplianceReportData(projectFrameworkId, tenant);
@@ -96,6 +102,18 @@ Vendor and vendor risk report
 -------------
 ${vendorReportMarkdown}
 ${vendorRiskReportMarkdown}
+
+Policy manager report
+-------------
+${policyManagerReportMarkdown}
+
+Training registry report
+-------------
+${trainingRegistryReportMarkdown}
+
+Model report
+-------------
+${modelReportMarkdown}
 
 Clauses and annexes report
 -------------

@@ -35,7 +35,7 @@ import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite }from "../../../assets/icons/trash-filled-white.svg";
+import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -48,40 +48,48 @@ import {
   updateProject,
 } from "../../../../application/repository/project.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
-
-enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
+import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
+import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 
 const riskClassificationItems = [
-  { _id: 1, name: RiskClassificationEnum.HighRisk },
-  { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-  { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+  { _id: 1, name: AiRiskClassification.HIGH_RISK },
+  { _id: 2, name: AiRiskClassification.LIMITED_RISK },
+  { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
 ];
 
-enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
+const highRiskRoleItems = [
+  { _id: 1, name: HighRiskRole.DEPLOYER },
+  { _id: 2, name: HighRiskRole.PROVIDER },
+  { _id: 3, name: HighRiskRole.DISTRIBUTOR },
+  { _id: 4, name: HighRiskRole.IMPORTER },
+  { _id: 5, name: HighRiskRole.PRODUCT_MANUFACTURER },
+  { _id: 6, name: HighRiskRole.AUTHORIZED_REPRESENTATIVE },
+];
+
+enum ProjectStatusEnum {
+  NotStarted = "Not started",
+  InProgress = "In progress",
+  UnderReview = "Under review",
+  Completed = "Completed",
+  Closed = "Closed",
+  OnHold = "On hold",
+  Rejected = "Rejected",
 }
 
-const highRiskRoleItems = [
-  { _id: 1, name: HighRiskRoleEnum.Deployer },
-  { _id: 2, name: HighRiskRoleEnum.Provider },
-  { _id: 3, name: HighRiskRoleEnum.Distributor },
-  { _id: 4, name: HighRiskRoleEnum.Importer },
-  { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-  { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+const projectStatusItems = [
+  { _id: 1, name: ProjectStatusEnum.NotStarted },
+  { _id: 2, name: ProjectStatusEnum.InProgress },
+  { _id: 3, name: ProjectStatusEnum.UnderReview },
+  { _id: 4, name: ProjectStatusEnum.Completed },
+  { _id: 5, name: ProjectStatusEnum.Closed },
+  { _id: 6, name: ProjectStatusEnum.OnHold },
+  { _id: 7, name: ProjectStatusEnum.Rejected },
 ];
 
 interface FormValues {
   projectTitle: string;
   goal: string;
+  status: number;
   owner: number;
   members: number[];
   startDate: string;
@@ -98,6 +106,7 @@ interface FormValues {
 interface FormErrors {
   projectTitle?: string;
   goal?: string;
+  status?: string;
   owner?: string;
   startDate?: string;
   members?: string;
@@ -109,6 +118,7 @@ interface FormErrors {
 const initialState: FormValues = {
   projectTitle: "",
   goal: "",
+  status: 1,
   owner: 0,
   members: [],
   startDate: "",
@@ -163,6 +173,7 @@ const ProjectSettings = React.memo(
       const basicFieldsModified =
         values.projectTitle !== initialValuesRef.current.projectTitle ||
         values.goal !== initialValuesRef.current.goal ||
+        values.status !== initialValuesRef.current.status ||
         values.owner !== initialValuesRef.current.owner ||
         JSON.stringify(values.members) !==
           JSON.stringify(initialValuesRef.current.members) ||
@@ -243,6 +254,12 @@ const ProjectSettings = React.memo(
           ...initialState,
           projectTitle: project.project_title ?? "",
           goal: project.goal ?? "",
+          status:
+            projectStatusItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                (project.status || "Not started").toLowerCase()
+            )?._id || 1,
           owner: project.owner ?? 0,
           startDate: project.start_date
             ? dayjs(project.start_date).toISOString()
@@ -300,7 +317,7 @@ const ProjectSettings = React.memo(
               return;
             }
           }
-          setValues({ ...values, [prop]: event.target.value });
+          setValues({ ...values, [prop]: selectedValue });
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
       [users, values]
@@ -448,6 +465,7 @@ const ProjectSettings = React.memo(
               ...prevValues,
               [prop]: newValue.map((user) => user.id),
             }));
+            setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
           }
         },
       [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
@@ -552,6 +570,10 @@ const ProjectSettings = React.memo(
       if (!goal.accepted) {
         newErrors.goal = goal.message;
       }
+      const status = selectValidation("Project status", values.status);
+      if (!status.accepted) {
+        newErrors.status = status.message;
+      }
       const startDate = checkStringValidation(
         "Start date",
         values.startDate,
@@ -636,6 +658,8 @@ const ProjectSettings = React.memo(
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
+      const selectedStatus =
+        projectStatusItems.find((item) => item._id === values.status)?.name || "";
       const selectedRegulations = values.monitoredRegulationsAndStandards.map(
         (reg) => reg.name
       );
@@ -651,6 +675,7 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
           last_updated_by: userId,
@@ -661,6 +686,11 @@ const ProjectSettings = React.memo(
         },
       }).then((response) => {
         if (response.status === 202) {
+          // Create new values reference and update both ref and form state
+          const newValues = { ...values };
+          initialValuesRef.current = newValues;
+          setValues(newValues);
+
           setAlert({
             variant: "success",
             body: "Project updated successfully",
@@ -773,6 +803,19 @@ const ProjectSettings = React.memo(
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.goal}
+              isRequired
+            />
+            <Select
+              id="project-status"
+              label="Project status"
+              value={values.status || 1}
+              onChange={handleOnSelectChange("status")}
+              items={projectStatusItems}
+              sx={{
+                width: 357,
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.status}
               isRequired
             />
             <Select
@@ -1267,7 +1310,6 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
-
       </Stack>
     );
   }

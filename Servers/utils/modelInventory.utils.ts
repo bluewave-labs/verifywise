@@ -13,6 +13,17 @@ export const getAllModelInventoriesQuery = async (tenant: string) => {
   return modelInventories;
 };
 
+export const getModelByTenantIdQuery = async (tenant: string) => {
+  const modelInventory = await sequelize.query(
+    `SELECT * FROM "${tenant}".model_inventories`,
+    {
+      mapToModel: true,
+      model: ModelInventoryModel,
+    }
+  );
+  return modelInventory;
+};
+
 export const getModelInventoryByIdQuery = async (
   id: number,
   tenant: string
@@ -40,8 +51,8 @@ export const createNewModelInventoryQuery = async (
 
   try {
     const result = await sequelize.query(
-      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, is_demo, created_at, updated_at)       
-      VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :is_demo, :created_at, :updated_at) RETURNING *`,
+      `INSERT INTO "${tenant}".model_inventories (provider_model, provider, model, version, approver, capabilities, security_assessment, status, status_date, reference_link, biases, limitations, hosting_provider, used_in_projects, is_demo, created_at, updated_at)       
+      VALUES (:provider_model, :provider, :model, :version, :approver, :capabilities, :security_assessment, :status, :status_date, :reference_link, :biases, :limitations, :hosting_provider, :used_in_projects, :is_demo, :created_at, :updated_at) RETURNING *`,
       {
         replacements: {
           provider_model: modelInventory.provider_model || '',
@@ -59,6 +70,7 @@ export const createNewModelInventoryQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
+          used_in_projects: modelInventory.used_in_projects,
           is_demo: modelInventory.is_demo,
           created_at: created_at,
           updated_at: created_at,
@@ -86,7 +98,7 @@ export const updateModelInventoryByIdQuery = async (
   try {
     // First update the record
     await sequelize.query(
-      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, reference_link = :reference_link, biases = :biases, limitations = :limitations,  hosting_provider = :hosting_provider, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
+      `UPDATE "${tenant}".model_inventories SET provider_model = :provider_model, provider = :provider, model = :model, version = :version, approver = :approver, capabilities = :capabilities, security_assessment = :security_assessment, status = :status, status_date = :status_date, reference_link = :reference_link, biases = :biases, limitations = :limitations,  hosting_provider = :hosting_provider, used_in_projects = :used_in_projects, is_demo = :is_demo, updated_at = :updated_at WHERE id = :id`,
       {
         replacements: {
           id,
@@ -105,6 +117,7 @@ export const updateModelInventoryByIdQuery = async (
           biases: modelInventory.biases,
           limitations: modelInventory.limitations,
           hosting_provider: modelInventory.hosting_provider,
+          used_in_projects: modelInventory.used_in_projects,
           is_demo: modelInventory.is_demo,
           updated_at,
         },
@@ -132,10 +145,22 @@ export const updateModelInventoryByIdQuery = async (
 
 export const deleteModelInventoryByIdQuery = async (
   id: number,
+  deleteRisks: boolean,
   tenant: string,
   transaction: Transaction
 ) => {
   try {
+    if (deleteRisks) {
+      // Delete associated model risks first
+      await sequelize.query(
+        `DELETE FROM "${tenant}".model_risks WHERE model_id = :id`,
+        {
+          replacements: { id },
+          transaction,
+        }
+      );
+    }
+
     const result = await sequelize.query(
       `DELETE FROM "${tenant}".model_inventories WHERE id = :id`,
       {

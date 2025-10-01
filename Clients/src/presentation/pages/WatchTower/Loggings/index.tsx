@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { getAllLogs } from "../../../../application/repository/logs.repository";
 import LogLine from "../../../components/LogLine";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import {ReactComponent as RefreshIcon} from "../../../assets/icons/refresh.svg";
 
 const WatchTowerLogs = () => {
   const theme = useTheme();

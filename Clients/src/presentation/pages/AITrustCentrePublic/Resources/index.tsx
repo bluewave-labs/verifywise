@@ -10,7 +10,7 @@ import {
   Typography,
   Box
 } from '@mui/material';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import {ReactComponent as CheckCircleOutlineIcon} from '../../../assets/icons/check-circle-green.svg';
 import { downloadResource } from '../../../../application/tools/downloadResource';
 import { aiTrustCenterTableCell } from '../style';
 
@@ -44,7 +44,7 @@ const Resources = ({ data, loading, error, hash }: { data: any; loading: boolean
               <TableRow key={idx}>
                 <TableCell sx={aiTrustCenterTableCell}>
                   <Box display="flex" alignItems="center" gap={1}>
-                    <CheckCircleOutlineIcon sx={{ color: '#28A745', fontSize: 24 }} />
+                    <CheckCircleOutlineIcon style={{ width: "24px", height:"24px" }} />
                     <Typography  color="#344054" sx={{ fontSize: 13 }}>{resource.name}</Typography>
                   </Box>
                 </TableCell>

@@ -11,6 +11,12 @@ import {
 } from "../utils/modelInventory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+import {
+  validateModelInventoryIdParam,
+  validateCompleteModelInventoryCreation,
+  validateCompleteModelInventoryUpdate
+} from "../utils/validations/modelInventoryValidation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllModelInventories(req: Request, res: Response) {
   logStructured(
@@ -49,7 +55,7 @@ export async function getAllModelInventories(req: Request, res: Response) {
       "getAllModelInventories",
       "modelInventory.ctrl.ts"
     );
-    return res.status(204).json(STATUS_CODE[204](modelInventories));
+    return res.status(200).json(STATUS_CODE[200](modelInventories));
   } catch (error) {
     logStructured(
       "error",
@@ -63,24 +69,41 @@ export async function getAllModelInventories(req: Request, res: Response) {
 }
 
 export async function getModelInventoryById(req: Request, res: Response) {
-  const id = req.params.id;
+  const modelInventoryId = parseInt(req.params.id);
+
+  // Validate model inventory ID parameter
+  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
+  if (!modelInventoryIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid model inventory ID parameter: ${req.params.id}`,
+      "getModelInventoryById",
+      "modelInventory.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
+      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
-    `fetching model inventory by id: ${id}`,
+    `fetching model inventory by id: ${modelInventoryId}`,
     "getModelInventoryById",
     "modelInventory.ctrl.ts"
   );
-  logger.debug(`🔍 Looking up model inventory with id: ${id}`);
+  logger.debug(`🔍 Looking up model inventory with id: ${modelInventoryId}`);
 
   try {
     const modelInventory = (await getModelInventoryByIdQuery(
-      Number(id),
+      modelInventoryId,
       req.tenantId!
     )) as unknown as ModelInventoryModel;
     if (modelInventory) {
       logStructured(
         "successful",
-        `model inventory found: ${id}`,
+        `model inventory found: ${modelInventoryId}`,
         "getModelInventoryById",
         "modelInventory.ctrl.ts"
       );
@@ -90,7 +113,7 @@ export async function getModelInventoryById(req: Request, res: Response) {
     }
     logStructured(
       "successful",
-      `no model inventory found: ${id}`,
+      `no model inventory found: ${modelInventoryId}`,
       "getModelInventoryById",
       "modelInventory.ctrl.ts"
     );
@@ -108,6 +131,26 @@ export async function getModelInventoryById(req: Request, res: Response) {
 }
 
 export async function createNewModelInventory(req: Request, res: Response) {
+  // Validate model inventory creation request
+  const validationErrors = validateCompleteModelInventoryCreation(req.body);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      "Model inventory creation validation failed",
+      "createNewModelInventory",
+      "modelInventory.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'Model inventory creation validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   const {
     provider_model,
     provider,
@@ -122,6 +165,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
+    used_in_projects,
     is_demo,
   } = req.body;
 
@@ -151,6 +195,7 @@ export async function createNewModelInventory(req: Request, res: Response) {
       biases,
       limitations,
       hosting_provider,
+      used_in_projects,
       is_demo,
     });
 
@@ -195,7 +240,55 @@ export async function createNewModelInventory(req: Request, res: Response) {
 }
 
 export async function updateModelInventoryById(req: Request, res: Response) {
-  const id = req.params.id;
+  const modelInventoryId = parseInt(req.params.id);
+
+  // Validate model inventory ID parameter
+  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
+  if (!modelInventoryIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid model inventory ID parameter: ${req.params.id}`,
+      "updateModelInventoryById",
+      "modelInventory.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
+      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Get existing model inventory for business rule validation
+  let existingModelInventory = null;
+  try {
+    existingModelInventory = (await getModelInventoryByIdQuery(
+      modelInventoryId,
+      req.tenantId!
+    )) as unknown as ModelInventoryModel;
+  } catch (error) {
+    // Continue without existing data if query fails
+  }
+
+  // Validate model inventory update request
+  const validationErrors = validateCompleteModelInventoryUpdate(req.body, existingModelInventory);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      `Model inventory update validation failed for ID ${modelInventoryId}`,
+      "updateModelInventoryById",
+      "modelInventory.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'Model inventory update validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   const {
     provider_model,
     provider,
@@ -210,6 +303,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     biases,
     limitations,
     hosting_provider,
+    used_in_projects,
     is_demo,
   } = req.body;
 
@@ -224,13 +318,13 @@ export async function updateModelInventoryById(req: Request, res: Response) {
   let transaction: Transaction | null = null;
 
   try {
-    // Get existing model inventory
-    const existingModelInventory = (await getModelInventoryByIdQuery(
-      Number(id),
+    // Get existing model inventory (re-fetch to ensure it exists)
+    const currentModelInventory = (await getModelInventoryByIdQuery(
+      modelInventoryId,
       req.tenantId!
     )) as unknown as ModelInventoryModel;
 
-    if (!existingModelInventory) {
+    if (!currentModelInventory) {
       logStructured(
         "successful",
         "no model inventory found",
@@ -244,7 +338,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
 
     // Update the model inventory using the static method
     const updatedModelInventory = ModelInventoryModel.updateModelInventory(
-      existingModelInventory,
+      currentModelInventory,
       {
         provider_model,
         provider,
@@ -256,6 +350,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
         status,
         status_date,
         reference_link,
+        used_in_projects,
         biases,
         limitations,
         hosting_provider,
@@ -266,7 +361,7 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     // Use the existing database query approach for updating
     transaction = await sequelize.transaction();
     const savedModelInventory = await updateModelInventoryByIdQuery(
-      Number(id),
+      modelInventoryId,
       updatedModelInventory,
       req.tenantId!,
       transaction
@@ -305,7 +400,24 @@ export async function updateModelInventoryById(req: Request, res: Response) {
 }
 
 export async function deleteModelInventoryById(req: Request, res: Response) {
-  const id = req.params.id;
+  const modelInventoryId = parseInt(req.params.id);
+  const deleteRisks = req.query.deleteRisks === "true";
+
+  // Validate model inventory ID parameter
+  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
+  if (!modelInventoryIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid model inventory ID parameter: ${req.params.id}`,
+      "deleteModelInventoryById",
+      "modelInventory.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
+      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
 
   logStructured(
     "processing",
@@ -320,7 +432,7 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
   try {
     // Check if model inventory exists
     const existingModelInventory = (await getModelInventoryByIdQuery(
-      Number(id),
+      modelInventoryId,
       req.tenantId!
     )) as unknown as ModelInventoryModel;
 
@@ -338,7 +450,7 @@ export async function deleteModelInventoryById(req: Request, res: Response) {
 
     // Use the existing database query approach for deleting
     transaction = await sequelize.transaction();
-    await deleteModelInventoryByIdQuery(Number(id), req.tenantId!, transaction);
+    await deleteModelInventoryByIdQuery(modelInventoryId, deleteRisks, req.tenantId!, transaction);
     await transaction.commit();
 
     logStructured(

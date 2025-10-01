@@ -11,6 +11,12 @@ import {
 } from "../utils/modelRisk.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+import {
+  validateCompleteModelRiskCreation,
+  validateCompleteModelRiskUpdate,
+  validateModelRiskIdParam
+} from "../utils/validations/modelRiskValidation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllModelRisks(req: Request, res: Response) {
   logStructured(
@@ -64,6 +70,24 @@ export async function getAllModelRisks(req: Request, res: Response) {
 
 export async function getModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
+  const modelRiskId = parseInt(id, 10);
+
+  // Validate model risk ID parameter
+  const modelRiskIdValidation = validateModelRiskIdParam(modelRiskId);
+  if (!modelRiskIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid model risk ID parameter: ${id}`,
+      "getModelRiskById",
+      "modelRisk.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: modelRiskIdValidation.message || 'Invalid model risk ID',
+      code: modelRiskIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
     `fetching model risk by ID: ${id}`,
@@ -73,7 +97,7 @@ export async function getModelRiskById(req: Request, res: Response) {
   logger.debug(`🔍 Looking up model risk with ID: ${id}`);
 
   try {
-    const modelRisk = await getModelRiskByIdQuery(parseInt(id, 10), req.tenantId!);
+    const modelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
     if (modelRisk) {
       logStructured(
         "successful",
@@ -104,6 +128,26 @@ export async function getModelRiskById(req: Request, res: Response) {
 }
 
 export async function createNewModelRisk(req: Request, res: Response) {
+  // Validate model risk creation request
+  const validationErrors = validateCompleteModelRiskCreation(req.body);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      "Model risk creation validation failed",
+      "createNewModelRisk",
+      "modelRisk.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'Model risk creation validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   logStructured(
     "processing",
     "creating new model risk",
@@ -141,6 +185,52 @@ export async function createNewModelRisk(req: Request, res: Response) {
 
 export async function updateModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
+  const modelRiskId = parseInt(id, 10);
+
+  // Validate model risk ID parameter
+  const modelRiskIdValidation = validateModelRiskIdParam(modelRiskId);
+  if (!modelRiskIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid model risk ID parameter: ${id}`,
+      "updateModelRiskById",
+      "modelRisk.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: modelRiskIdValidation.message || 'Invalid model risk ID',
+      code: modelRiskIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Get existing model risk for business rule validation
+  let existingModelRisk = null;
+  try {
+    existingModelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
+  } catch (error) {
+    // Continue without existing data if query fails
+  }
+
+  // Validate model risk update request
+  const validationErrors = validateCompleteModelRiskUpdate(req.body, existingModelRisk);
+  if (validationErrors.length > 0) {
+    logStructured(
+      "error",
+      `Model risk update validation failed for ID ${id}`,
+      "updateModelRiskById",
+      "modelRisk.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: 'Model risk update validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   logStructured(
     "processing",
     `updating model risk: ID ${id}`,
@@ -153,7 +243,7 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
   try {
     const modelRisk = await updateModelRiskByIdQuery(
-      parseInt(id, 10),
+      modelRiskId,
       req.body,
       req.tenantId!
     );
@@ -193,6 +283,24 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
 export async function deleteModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
+  const modelRiskId = parseInt(id, 10);
+
+  // Validate model risk ID parameter
+  const modelRiskIdValidation = validateModelRiskIdParam(modelRiskId);
+  if (!modelRiskIdValidation.isValid) {
+    logStructured(
+      "error",
+      `Invalid model risk ID parameter: ${id}`,
+      "deleteModelRiskById",
+      "modelRisk.ctrl.ts"
+    );
+    return res.status(400).json({
+      status: 'error',
+      message: modelRiskIdValidation.message || 'Invalid model risk ID',
+      code: modelRiskIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logStructured(
     "processing",
     `deleting model risk: ID ${id}`,

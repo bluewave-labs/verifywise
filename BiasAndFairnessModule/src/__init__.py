@@ -6,7 +6,6 @@ A comprehensive module for evaluating bias and fairness in machine learning mode
 
 # Import main components from subpackages
 from .core import ConfigManager, Config
-from .model_loader import ModelLoader, load_sklearn_model
 from .dataset_loader import DataLoader
 from .inference import ModelInferencePipeline
 from .eval_engine import (
@@ -24,8 +23,7 @@ __all__ = [
     'Config',
     
     # Model Loading
-    'ModelLoader',
-    'load_sklearn_model',
+    # (Model loader removed)
     
     # Data Loading
     'DataLoader',

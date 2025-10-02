@@ -452,6 +452,14 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
                                 error: emailError as Error,
                             });
                         });
+                    } else {
+                        await logFailure({
+                            eventType: "Update",
+                            description: `Unmapped role_id ${memberUser.role_id} for member ${memberId} in project ${projectId} (${project.project_title}) - notification skipped`,
+                            functionName: "updateProjectById",
+                            fileName: "project.ctrl.ts",
+                            error: new Error(`Unmapped role_id: ${memberUser.role_id}`),
+                        });
                     }
                 }
             } catch (userLookupError) {

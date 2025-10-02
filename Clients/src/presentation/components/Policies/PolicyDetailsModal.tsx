@@ -14,15 +14,13 @@ import {
   BlockquotePlugin,
 } from "@platejs/basic-nodes/react";
 import { serializeHtml } from "platejs";
-import {
-  FormatBold,
-  FormatItalic,
-  FormatUnderlined,
-  FormatQuote,
-  LooksOne,
-  LooksTwo,
-  Looks3,
-} from "@mui/icons-material";
+import {ReactComponent as LooksThree} from "../../assets/icons/three.svg"
+import {ReactComponent as LooksOne} from "../../assets/icons/one.svg"
+import {ReactComponent as LooksTwo} from "../../assets/icons/two.svg"
+import {ReactComponent as FormatBold} from "../../assets/icons/formatBold.svg"
+import {ReactComponent as FormatQuote} from "../../assets/icons/formatQuote.svg"
+import {ReactComponent as FormatItalic} from "../../assets/icons/formatItalic.svg"
+import {ReactComponent as FormatUnderlined} from "../../assets/icons/formatUnderlined.svg"
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
@@ -374,7 +372,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "h3",
                     title: "Heading 3",
-                    icon: <Looks3 />,
+                    icon: <LooksThree/>,
                     action: () => {
                       editor.tf.h3.toggle();
                       setToolbarState((prev) => ({ ...prev, h3: !prev.h3 }));

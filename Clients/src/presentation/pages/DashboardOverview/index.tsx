@@ -23,50 +23,9 @@ import {
   Switch,
   FormControlLabel
 } from '@mui/material';
-import {
-  Assignment as ProjectIcon,
-  School as TrainingIcon,
-  Psychology as ModelIcon,
-  Assessment as ReportIcon,
-  Security as EvidenceIcon,
-  Warning as RiskIcon,
-  CheckCircle as ComplianceIcon,
-  Timeline as ActivityIcon,
-  Schedule as TaskIcon,
-  Person as UserIcon,
-  VerifiedUser as TrustCenterIcon,
-  TrendingUp as TrendIcon
-} from '@mui/icons-material';
 import { useDashboard } from '../../../application/hooks/useDashboard';
 import { useDashboardMetrics } from '../../../application/hooks/useDashboardMetrics';
 
-
-interface MetricCardProps {
-  title: string;
-  value: number | string;
-  icon: React.ReactNode;
-  color?: string;
-}
-
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, color = '#13715B' }) => (
-  <Card elevation={2} sx={{ height: '100%' }}>
-    <CardContent>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {title}
-          </Typography>
-          <Typography variant="h4" fontWeight="bold" color={color}>
-            {value}
-          </Typography>
-        </Box>
-        <Box sx={{ color: color, opacity: 0.7 }}>
-          {icon}
-        </Box>
-      </Stack>
-    </CardContent>
-  </Card>
-);
 
 const DashboardOverview: React.FC = () => {
   console.log('🚀 DashboardOverview component rendering...');
@@ -122,15 +81,6 @@ const DashboardOverview: React.FC = () => {
     return `${diffInDays} days ago`;
   };
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'project': return <ProjectIcon />;
-      case 'risk': return <RiskIcon />;
-      case 'evidence': return <EvidenceIcon />;
-      case 'assessment': return <ComplianceIcon />;
-      default: return <ActivityIcon />;
-    }
-  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -181,44 +131,20 @@ const DashboardOverview: React.FC = () => {
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={2.4}>
-                <MetricCard
-                  title="Projects"
-                  value={dashboard?.projects || 0}
-                  icon={<ProjectIcon fontSize="large" />}
-                />
+
               </Grid>
               <Grid item xs={12} sm={6} md={2.4}>
-                <MetricCard
-                  title="Trainings"
-                  value={dashboard?.trainings || 0}
-                  icon={<TrainingIcon fontSize="large" />}
-                  color="#2196F3"
-                />
+
               </Grid>
               <Grid item xs={12} sm={6} md={2.4}>
-                <MetricCard
-                  title="Models"
-                  value={dashboard?.models || 0}
-                  icon={<ModelIcon fontSize="large" />}
-                  color="#FF9800"
-                />
+
               </Grid>
               <Grid item xs={12} sm={6} md={2.4}>
-                <MetricCard
-                  title="Reports"
-                  value={dashboard?.reports || 0}
-                  icon={<ReportIcon fontSize="large" />}
-                  color="#9C27B0"
-                />
+
               </Grid>
               {evidenceMetrics && (
                 <Grid item xs={12} sm={6} md={2.4}>
-                  <MetricCard
-                    title="Evidence"
-                    value={evidenceMetrics.total}
-                    icon={<EvidenceIcon fontSize="large" />}
-                    color="#4CAF50"
-                  />
+
                 </Grid>
               )}
             </Grid>
@@ -458,7 +384,6 @@ const DashboardOverview: React.FC = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <UserIcon sx={{ fontSize: 40, color: '#13715B' }} />
                         <Typography variant="h5" fontWeight="bold">{userActivity.active_users}</Typography>
                         <Typography variant="caption" color="text.secondary">
                           Active Users
@@ -467,7 +392,6 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <TrendIcon sx={{ fontSize: 40, color: '#2196F3' }} />
                         <Typography variant="h5" fontWeight="bold">{userActivity.user_engagement}%</Typography>
                         <Typography variant="caption" color="text.secondary">
                           User Engagement
@@ -476,7 +400,6 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <ActivityIcon sx={{ fontSize: 40, color: '#FF9800' }} />
                         <Typography variant="h5" fontWeight="bold">{userActivity.actions_today}</Typography>
                         <Typography variant="caption" color="text.secondary">
                           Actions Today
@@ -485,7 +408,6 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <ComplianceIcon sx={{ fontSize: 40, color: '#4CAF50' }} />
                         <Typography variant="h5" fontWeight="bold">{userActivity.task_completion_rate}%</Typography>
                         <Typography variant="caption" color="text.secondary">
                           Task Completion
@@ -527,7 +449,6 @@ const DashboardOverview: React.FC = () => {
                       <ListItem key={activity.id} divider>
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: '#13715B' }}>
-                            {getActivityIcon(activity.type)}
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
@@ -555,7 +476,6 @@ const DashboardOverview: React.FC = () => {
                       <ListItem key={task.id} divider>
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: 'warning.main' }}>
-                            <TaskIcon />
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
@@ -591,7 +511,6 @@ const DashboardOverview: React.FC = () => {
                     <Typography variant="h6" fontWeight="semibold">
                       AI Trust Center
                     </Typography>
-                    <TrustCenterIcon color={aiTrustCenter.enabled ? 'success' : 'disabled'} />
                   </Stack>
                   <FormControlLabel
                     control={

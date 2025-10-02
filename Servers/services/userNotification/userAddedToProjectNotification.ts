@@ -1,6 +1,7 @@
 import { notificationService } from "../notificationService";
 import { getUserByIdQuery } from "../../utils/user.utils";
 import { frontEndUrl } from "../../config/constants";
+import { EMAIL_TEMPLATES } from "../../constants/emailTemplates";
 import {
   logProcessing,
   logSuccess,
@@ -17,11 +18,12 @@ export interface UserAddedToProjectNotification {
   role: ProjectRole;
 }
 
+// Template alias: user.added.project.{role}
 const roleConfig: Record<ProjectRole, { article: string; template: string }> = {
-  admin: { article: "a", template: "user-added-project-admin.mjml" },
-  auditor: { article: "an", template: "user-added-project-auditor.mjml" },
-  editor: { article: "a", template: "user-added-project-editor.mjml" },
-  reviewer: { article: "a", template: "user-added-project-reviewer.mjml" },
+  admin: { article: "a", template: EMAIL_TEMPLATES.USER_ADDED_PROJECT_ADMIN },
+  auditor: { article: "an", template: EMAIL_TEMPLATES.USER_ADDED_PROJECT_AUDITOR },
+  editor: { article: "a", template: EMAIL_TEMPLATES.USER_ADDED_PROJECT_EDITOR },
+  reviewer: { article: "a", template: EMAIL_TEMPLATES.USER_ADDED_PROJECT_REVIEWER },
 };
 
 export const sendUserAddedToProjectNotification = async (

@@ -16,7 +16,7 @@ import {
   getSlackWebhookByIdAndChannelQuery,
 } from "../utils/slackWebhook.utils";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
-import { inviteBotToChannel, sendImmediateMessage } from "../services/slackNotificationService";
+import { inviteBotToChannel, sendImmediateMessage } from "../services/slack/slackNotificationService";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 
 const fileName = "slackWebhook.ctrl.ts";

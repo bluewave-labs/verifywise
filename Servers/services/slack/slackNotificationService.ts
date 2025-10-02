@@ -1,9 +1,9 @@
-import logger from "../utils/logger/fileLogger";
-import { decryptText } from "../tools/createSecureValue";
+import logger from "../../utils/logger/fileLogger";
+import { decryptText } from "../../tools/createSecureValue";
 import { WebClient } from "@slack/web-api";
-import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
-import { getSlackWebhookByIdAndRoutingType } from "../utils/slackWebhook.utils";
-import { disableSlackActivity } from "../controllers/slackWebhook.ctrl";
+import { ISlackWebhook } from "../../domain.layer/interfaces/i.slackWebhook";
+import { getSlackWebhookByIdAndRoutingType } from "../../utils/slackWebhook.utils";
+import { disableSlackActivity } from "../../controllers/slackWebhook.ctrl";
 
 export const inviteBotToChannel = async (accessToken: string, channelId: string, botUserId: string) => {
   // Use the USER token (not bot token) to invite the bot

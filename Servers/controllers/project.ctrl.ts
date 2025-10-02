@@ -39,11 +39,10 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
 import { sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/userAddedToProjectNotification"
-import { sendSlackNotification } from "../services/slackNotificationService";
+import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 
 import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
-import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
 
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {

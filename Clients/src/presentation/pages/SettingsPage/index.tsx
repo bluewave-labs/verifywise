@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Box, Stack } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabContext from "@mui/lab/TabContext";
@@ -13,24 +13,33 @@ import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-// import Slack from "./Slack";
+import Slack from "./Slack";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import { ENV_VARs } from "../../../../env.vars";
 
 export default function ProfilePage() {
-  const validTabs = ["profile", "password", "team", "organization", "slack"];
   const { userRoleName } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
-  // const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
+  const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab") || "";
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const isSlackVisible = ENV_VARs.IS_SLACK_VISIBLE === "true";
+
+  const validTabs = useMemo(() => {
+    const tabs = ["profile", "password", "team", "organization"];
+    if (isSlackVisible) {
+      tabs.push("slack")
+    }
+    return tabs;
+  }, [isSlackVisible])
 
   useEffect(() => {
     if (activeSetting && validTabs.includes(activeSetting)) {
@@ -156,13 +165,15 @@ export default function ProfilePage() {
               disableRipple
               sx={settingTabStyle}
             />
-            {/* <Tab
-              label="Slack"
-              value="slack"
-              disableRipple
-              sx={settingTabStyle}
-              disabled={isSlackTabDisabled}
-            /> */}
+            {isSlackVisible && (
+              <Tab
+                label="Slack"
+                value="slack"
+                disableRipple
+                sx={settingTabStyle}
+                disabled={isSlackTabDisabled}
+              /> 
+            )}
           </TabList>
         </Box>
 
@@ -182,10 +193,11 @@ export default function ProfilePage() {
           <Organization />
         </TabPanel>
 
-        {/* Hiding the slack until all the Slack work has been resolved */}
-        {/* <TabPanel value="slack">
-          <Slack />
-        </TabPanel> */}
+        {isSlackVisible && (
+          <TabPanel value="slack">
+            <Slack />
+          </TabPanel>
+        )}
       </TabContext>
     </Stack>
   );

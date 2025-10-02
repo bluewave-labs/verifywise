@@ -76,7 +76,7 @@ import {
   validateRoleUpdatePermission
 } from "../utils/validations/userValidation.utils";
 import { ValidationError } from "../utils/validations/validation.utils";
-import { sendSlackNotification } from "../services/slackNotificationService";
+import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { getRoleByIdQuery } from "../utils/role.utils";
 

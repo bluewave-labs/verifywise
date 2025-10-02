@@ -40,7 +40,7 @@ import {
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
 import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
 import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
-import { sendSlackNotification } from "../services/slackNotificationService";
+import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 
 

@@ -16,8 +16,9 @@ interface QueuedEmail {
   reject: (reason?: any) => void;
 }
 
-// Process-rooted templates directory for security and post-transpile compatibility
-const templatesDir = path.resolve(process.cwd(), "templates");
+// Resolve templates directory relative to this service file
+// __dirname points to Servers/services after transpilation
+const templatesDir = path.resolve(__dirname, "../templates");
 
 // Rate limiting state file for persistence across restarts
 const rateLimitStateFile = path.resolve(process.cwd(), ".rate-limit-state.json");

@@ -40,6 +40,8 @@ import {
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
 import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
 import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
+import {sendUserAddedReviewerNotification} from "../services/userNotification/userAddedReviewerNotification"
+import {sendUserAddedAuditorNotification} from "../services/userNotification/userAddedAuditorNotification"
 
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
@@ -421,27 +423,64 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       const finalMembers = project.members || [];
       const addedMembers = finalMembers.filter((m) => !currentMembers.includes(m));
 
-        // Send notification to users who were added as project editors (fire-and-forget, don't block response)
+        // Send notification to users who were added (fire-and-forget, don't block response)
         for (const memberId of addedMembers) {
             try {
                 // Get user details to check their role
                 const memberUser = await getUserByIdQuery(memberId);
-                // Check if user has Editor role (role_id = 3)
-                if (memberUser && memberUser.role_id === 3) {
-                    sendUserAddedEditorNotification({
-                        projectId: projectId,
-                        projectName: project.project_title,
-                        adminId: req.userId!,     // Actor who made the change
-                        userId: memberId          // Editor receiving notification
-                    }).catch(async (emailError) => {
-                        await logFailure({
-                            eventType: "Update",
-                            description: `Failed to send user added as editor notification email to user ${memberId}`,
-                            functionName: "updateProjectById",
-                            fileName: "project.ctrl.ts",
-                            error: emailError as Error,
+
+                if (memberUser) {
+                    // Check if user has Reviewer role (role_id = 2)
+                    if (memberUser.role_id === 2) {
+                        sendUserAddedReviewerNotification({
+                            projectId: projectId,
+                            projectName: project.project_title,
+                            adminId: req.userId!,     // Actor who made the change
+                            userId: memberId          // Reviewer receiving notification
+                        }).catch(async (emailError) => {
+                            await logFailure({
+                                eventType: "Update",
+                                description: `Failed to send user added as reviewer notification email to user ${memberId}`,
+                                functionName: "updateProjectById",
+                                fileName: "project.ctrl.ts",
+                                error: emailError as Error,
+                            });
                         });
-                    });
+                    }
+                    // Check if user has Editor role (role_id = 3)
+                    else if (memberUser.role_id === 3) {
+                        sendUserAddedEditorNotification({
+                            projectId: projectId,
+                            projectName: project.project_title,
+                            adminId: req.userId!,     // Actor who made the change
+                            userId: memberId          // Editor receiving notification
+                        }).catch(async (emailError) => {
+                            await logFailure({
+                                eventType: "Update",
+                                description: `Failed to send user added as editor notification email to user ${memberId}`,
+                                functionName: "updateProjectById",
+                                fileName: "project.ctrl.ts",
+                                error: emailError as Error,
+                            });
+                        });
+                    }
+                    // Check if user has Auditor role (role_id = 4)
+                    else if (memberUser.role_id === 4) {
+                        sendUserAddedAuditorNotification({
+                            projectId: projectId,
+                            projectName: project.project_title,
+                            adminId: req.userId!,     // Actor who made the change
+                            userId: memberId          // Auditor receiving notification
+                        }).catch(async (emailError) => {
+                            await logFailure({
+                                eventType: "Update",
+                                description: `Failed to send user added as auditor notification email to user ${memberId}`,
+                                functionName: "updateProjectById",
+                                fileName: "project.ctrl.ts",
+                                error: emailError as Error,
+                            });
+                        });
+                    }
                 }
             } catch (userLookupError) {
                 await logFailure({

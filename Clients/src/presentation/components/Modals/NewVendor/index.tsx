@@ -262,7 +262,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       "Vendor Website",
       values.vendorDetails.website,
       1,
-      64
+      64,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "website" //
     );
     if (!vendorWebsite.accepted) {
       newErrors.website = vendorWebsite.message;
@@ -295,7 +300,12 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       "Vendor Contact Person",
       values.vendorDetails.vendorContactPerson,
       1,
-      64
+      64,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "contactPerson" //
     );
     if (!vendorContactPerson.accepted) {
       newErrors.vendorContactPerson = vendorContactPerson.message;
@@ -344,8 +354,9 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       reviewer: formattedUsers?.find(
         (user: any) => user._id === values.vendorDetails.reviewer
       )?._id,
-      review_date: values.vendorDetails.reviewDate,
+      review_date: values.vendorDetails.reviewDate
     };
+    // console.log("response", _vendorDetails)
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
     } else {
@@ -381,7 +392,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         }, 3000);
       }
     } catch (error) {
-      console.error("API Error:", error);
+      // console.error("API Error:", error);
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",
@@ -433,7 +444,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         setTimeout(() => setAlert(null), 3000);
       }
     } catch (error) {
-      console.error("API Error:", error);
+      // console.error("API Error:", error);
       logEngine({
         type: "error",
         message: "Unexpected response. Please try again.",

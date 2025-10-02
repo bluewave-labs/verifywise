@@ -426,6 +426,18 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
                 const memberUser = await getUserByIdQuery(memberId);
 
                 if (memberUser) {
+                    // Validate role_id is a number
+                    if (typeof memberUser.role_id !== 'number' || !Number.isInteger(memberUser.role_id)) {
+                        await logFailure({
+                            eventType: "Update",
+                            description: `Invalid role_id type for member ${memberId}: expected number, got ${typeof memberUser.role_id} (${memberUser.role_id})`,
+                            functionName: "updateProjectById",
+                            fileName: "project.ctrl.ts",
+                            error: new Error(`Invalid role_id type: ${typeof memberUser.role_id}`),
+                        });
+                        continue;
+                    }
+
                     // Map role_id to role name
                     const roleMap: Record<number, ProjectRole> = {
                         1: "admin",

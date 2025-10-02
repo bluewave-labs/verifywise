@@ -13,6 +13,7 @@ import { settingTabStyle, tabContainerStyle, tabIndicatorStyle } from "./style";
 import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
+import EntraIdConfig from "./EntraIdConfig";
 // import Slack from "./Slack";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
@@ -20,12 +21,13 @@ import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
 
 export default function ProfilePage() {
-  const authorizedActiveTabs = ["profile", "password", "team", "organization"];
+  const authorizedActiveTabs = ["profile", "password", "team", "organization", "sso"];
   const { userRoleName } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
+  const isSsoTabDisabled = !allowedRoles.sso.view.includes(userRoleName);
   // const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
@@ -45,7 +47,7 @@ export default function ProfilePage() {
   // Handle navigation state from command palette
   useEffect(() => {
     if (location.state?.activeTab) {
-      const validTabs = ['profile', 'password', 'team', 'organization'];
+      const validTabs = ['profile', 'password', 'team', 'organization', 'sso'];
       const requestedTab = location.state.activeTab;
 
       // Check if requested tab is valid and user has permission to access it
@@ -157,6 +159,13 @@ export default function ProfilePage() {
               disableRipple
               sx={settingTabStyle}
             />
+            <Tab
+              label="SSO"
+              value="sso"
+              disableRipple
+              sx={settingTabStyle}
+              disabled={isSsoTabDisabled}
+            />
             {/* <Tab
               label="Slack"
               value="slack"
@@ -181,6 +190,10 @@ export default function ProfilePage() {
 
         <TabPanel value="organization">
           <Organization />
+        </TabPanel>
+
+        <TabPanel value="sso">
+          <EntraIdConfig />
         </TabPanel>
 
         {/* Hiding the slack until all the Slack work has been resolved */}

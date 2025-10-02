@@ -45,6 +45,10 @@ const allowedRoles = {
     view: ["Admin"],
     manage: ["Admin"],
   },
+  sso: {
+    view: ["Admin"],
+    manage: ["Admin"],
+  },
 };
 
 export default allowedRoles;

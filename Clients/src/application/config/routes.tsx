@@ -12,6 +12,7 @@ import ForgotPassword from "../../presentation/pages/Authentication/ForgotPasswo
 import ResetPassword from "../../presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "../../presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "../../presentation/pages/Authentication/ResetPasswordContinue";
+import MicrosoftCallback from "../../presentation/pages/Authentication/MicrosoftCallback";
 import ProjectView from "../../presentation/pages/ProjectView";
 import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
@@ -111,6 +112,11 @@ export const createRoutes = (
     key="reset-password-continue"
     path="/reset-password-continue"
     element={<ProtectedRoute Component={ResetPasswordContinue} />}
+  />,
+  <Route
+    key="microsoft-callback"
+    path="/auth/microsoft/callback"
+    element={<MicrosoftCallback />}
   />,
   <Route key="playground" path="/playground" element={<Playground />} />,
   // <Route key="public" path="/public" element={<AITrustCentrePublic />} />,

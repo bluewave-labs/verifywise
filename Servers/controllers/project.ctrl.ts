@@ -38,11 +38,7 @@ import {
   BusinessLogicException
 } from "../domain.layer/exceptions/custom.exception";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
-import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
-import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
-import {sendUserAddedReviewerNotification} from "../services/userNotification/userAddedReviewerNotification"
-import {sendUserAddedAuditorNotification} from "../services/userNotification/userAddedAuditorNotification"
-
+import { sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/userAddedToProjectNotification"
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -430,51 +426,27 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
                 const memberUser = await getUserByIdQuery(memberId);
 
                 if (memberUser) {
-                    // Check if user has Reviewer role (role_id = 2)
-                    if (memberUser.role_id === 2) {
-                        sendUserAddedReviewerNotification({
+                    // Map role_id to role name
+                    const roleMap: Record<number, ProjectRole> = {
+                        1: "admin",
+                        2: "reviewer",
+                        3: "editor",
+                        4: "auditor"
+                    };
+
+                    const role = roleMap[memberUser.role_id];
+
+                    if (role) {
+                        sendUserAddedToProjectNotification({
                             projectId: projectId,
                             projectName: project.project_title,
-                            adminId: req.userId!,     // Actor who made the change
-                            userId: memberId          // Reviewer receiving notification
+                            adminId: req.userId!,
+                            userId: memberId,
+                            role: role
                         }).catch(async (emailError) => {
                             await logFailure({
                                 eventType: "Update",
-                                description: `Failed to send user added as reviewer notification email to user ${memberId}`,
-                                functionName: "updateProjectById",
-                                fileName: "project.ctrl.ts",
-                                error: emailError as Error,
-                            });
-                        });
-                    }
-                    // Check if user has Editor role (role_id = 3)
-                    else if (memberUser.role_id === 3) {
-                        sendUserAddedEditorNotification({
-                            projectId: projectId,
-                            projectName: project.project_title,
-                            adminId: req.userId!,     // Actor who made the change
-                            userId: memberId          // Editor receiving notification
-                        }).catch(async (emailError) => {
-                            await logFailure({
-                                eventType: "Update",
-                                description: `Failed to send user added as editor notification email to user ${memberId}`,
-                                functionName: "updateProjectById",
-                                fileName: "project.ctrl.ts",
-                                error: emailError as Error,
-                            });
-                        });
-                    }
-                    // Check if user has Auditor role (role_id = 4)
-                    else if (memberUser.role_id === 4) {
-                        sendUserAddedAuditorNotification({
-                            projectId: projectId,
-                            projectName: project.project_title,
-                            adminId: req.userId!,     // Actor who made the change
-                            userId: memberId          // Auditor receiving notification
-                        }).catch(async (emailError) => {
-                            await logFailure({
-                                eventType: "Update",
-                                description: `Failed to send user added as auditor notification email to user ${memberId}`,
+                                description: `Failed to send user added as ${role} notification email to user ${memberId}`,
                                 functionName: "updateProjectById",
                                 fileName: "project.ctrl.ts",
                                 error: emailError as Error,
@@ -492,25 +464,6 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
                 });
             }
         }
-
-
-        // Send notification if owner changed (fire-and-forget, don't block response)
-      if (ownerChanged && existingProject) {
-        sendUserAddedAdminNotification({
-          projectId: projectId,
-          projectName: project.project_title,
-          adminId: req.userId!,          // Actor who made the change
-          userId: updatedProject.owner!  // New admin receiving notification
-        }).catch(async (emailError) => {
-          await logFailure({
-            eventType: "Update",
-            description: "Failed to send user added as admin notification email",
-            functionName: "updateProjectById",
-            fileName: "project.ctrl.ts",
-            error: emailError as Error,
-          });
-        });
-      }
 
       return res.status(202).json(STATUS_CODE[202](project));
     }

@@ -7,26 +7,35 @@ import {
   logFailure,
 } from "../../utils/logger/logHelper";
 
+export type ProjectRole = "admin" | "auditor" | "editor" | "reviewer";
 
-export interface UserAddedReviewerNotification {
+export interface UserAddedToProjectNotification {
   projectId: number;
   projectName: string;
   adminId: number;
   userId: number;
+  role: ProjectRole;
 }
 
+const roleConfig: Record<ProjectRole, { article: string; template: string }> = {
+  admin: { article: "a", template: "user-added-project-admin.mjml" },
+  auditor: { article: "an", template: "user-added-project-auditor.mjml" },
+  editor: { article: "a", template: "user-added-project-editor.mjml" },
+  reviewer: { article: "a", template: "user-added-project-reviewer.mjml" },
+};
 
-export const sendUserAddedReviewerNotification = async(
-  data: UserAddedReviewerNotification
+export const sendUserAddedToProjectNotification = async (
+  data: UserAddedToProjectNotification
 ): Promise<void> => {
+  const config = roleConfig[data.role];
+
   logProcessing({
-    description: `Sending user added as a reviewer notification for project: ${data.projectName}`,
-    functionName: "sendUserAddedReviewerNotification",
-    fileName: "UserAddedReviewerNotification.ts",
+    description: `Sending user added as ${config.article} ${data.role} notification for project: ${data.projectName}`,
+    functionName: "sendUserAddedToProjectNotification",
+    fileName: "userAddedToProjectNotification.ts",
   });
 
-  try{
-
+  try {
     // Get admin user details
     const adminUser = await getUserByIdQuery(data.adminId);
     if (!adminUser) {
@@ -39,7 +48,7 @@ export const sendUserAddedReviewerNotification = async(
       throw new Error(`User not found with ID: ${data.userId}`);
     }
 
-    if(!user.email || user.email.trim() === ''){
+    if (!user.email || user.email.trim() === "") {
       throw new Error(`User email is missing or invalid for user ID: ${data.userId}`);
     }
 
@@ -51,34 +60,32 @@ export const sendUserAddedReviewerNotification = async(
       project_name: data.projectName,
       actor_name: adminUser.name,
       project_url: projectUrl,
-      user_name: user.name
+      user_name: user.name,
     };
 
     // Send the email using core notification service
-    const subject = `You are now a project reviewer for ${data.projectName}`;
+    const subject = `You are now a project ${data.role} for ${data.projectName}`;
     await notificationService.sendEmailWithTemplate(
       user.email,
       subject,
-      "user-added-project-reviewer.mjml",
+      config.template,
       templateData
     );
 
     await logSuccess({
       eventType: "Create",
-      description: `Added as a project reviewer notification sent to ${user.email}`,
-      functionName: "sendUserAddedReviewerNotification",
-      fileName: "UserAddedReviewerNotification.ts",
+      description: `Added as a project ${data.role} notification sent to ${user.email}`,
+      functionName: "sendUserAddedToProjectNotification",
+      fileName: "userAddedToProjectNotification.ts",
     });
   } catch (error) {
     await logFailure({
       eventType: "Create",
-      description: `Failed to send user added as a project reviewer notification`,
-      functionName: "sendUserAddedReviewerNotification",
-      fileName: "UserAddedReviewerNotification.ts",
+      description: `Failed to send user added as a project ${data.role} notification`,
+      functionName: "sendUserAddedToProjectNotification",
+      fileName: "userAddedToProjectNotification.ts",
       error: error as Error,
     });
     throw error;
   }
-
-
-}
+};

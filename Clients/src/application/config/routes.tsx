@@ -33,6 +33,7 @@ import ModelInventory from "../../presentation/pages/ModelInventory";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import WorkingDashboard from "../../presentation/pages/DashboardOverview/WorkingDashboard";
+import EnhancedDashboard from "../../presentation/pages/DashboardOverview/EnhancedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 
 export const createRoutes = (
@@ -61,6 +62,7 @@ export const createRoutes = (
     <Route path="/framework" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
+    <Route path="/dashboard-demo" element={<EnhancedDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
     <Route path="/fairness-dashboard/bias-fairness-results/:id" element={<BiasAndFairnessResultsPage />} />
     <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />

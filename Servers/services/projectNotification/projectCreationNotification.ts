@@ -1,6 +1,7 @@
 import { notificationService } from "../notificationService";
 import { getUserByIdQuery } from "../../utils/user.utils";
 import { frontEndUrl } from "../../config/constants";
+import { EMAIL_TEMPLATES } from "../../constants/emailTemplates";
 import {
   logProcessing,
   logSuccess,
@@ -48,11 +49,12 @@ export const sendProjectCreatedNotification = async (
     };
 
     // Send the email using core notification service
+    // Template alias: project.created.admin
     const subject = `${data.projectName} is created in VerifyWise`;
     await notificationService.sendEmailWithTemplate(
       adminUser.email,
       subject,
-      "project-created-admin.mjml",
+      EMAIL_TEMPLATES.PROJECT_CREATED_ADMIN,
       templateData
     );
 

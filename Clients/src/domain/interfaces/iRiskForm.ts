@@ -40,3 +40,17 @@ export interface IRiskFormValues {
   applicableProjects: number[];
   applicableFrameworks: number[];
 }
+
+export interface IRiskFormErrors {
+  riskName?: string;
+  actionOwner?: string;
+  aiLifecyclePhase?: string;
+  riskDescription?: string;
+  riskCategory?: string[];
+  potentialImpact?: string;
+  assessmentMapping?: string;
+  controlsMapping?: string;
+  reviewNotes?: string;
+  applicableProjects?: string;
+  applicableFrameworks?: string;
+}

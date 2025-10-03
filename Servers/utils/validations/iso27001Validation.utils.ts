@@ -120,6 +120,16 @@ export const validateUserId = (value: any): ValidationResult => {
 };
 
 /**
+ * Validates project ID field
+ */
+export const validateProjectId = (value: any): ValidationResult => {
+  if (value === undefined || value === null || value === '') {
+    return { isValid: true }; // Optional field
+  }
+  return validateForeignKey(value, 'Project ID', false);
+};
+
+/**
  * Validates due date field
  */
 export const validateDueDate = (value: any): ValidationResult => {
@@ -377,9 +387,9 @@ export const updateSubClauseSchema = {
   risksMitigated: validateRisksMitigated,
   // File management
   delete: validateFilesDelete,
-  // Required for file operations
-  user_id: (value: any) => validateForeignKey(value, 'User ID', true),
-  project_id: (value: any) => validateForeignKey(value, 'Project ID', true)
+  // Optional fields for file operations (validated conditionally when files present)
+  user_id: validateUserId,
+  project_id: validateProjectId
 };
 
 /**
@@ -398,16 +408,25 @@ export const updateAnnexControlSchema = {
   risksMitigated: validateRisksMitigated,
   // File management
   delete: validateFilesDelete,
-  // Required for file operations
-  user_id: (value: any) => validateForeignKey(value, 'User ID', true),
-  project_id: (value: any) => validateForeignKey(value, 'Project ID', true)
+  // Optional fields for file operations (validated conditionally when files present)
+  user_id: validateUserId,
+  project_id: validateProjectId
 };
 
 /**
  * Validates subclause update data
  */
-export const validateUpdateSubClause = (data: any): ValidationError[] => {
-  const errors = validateSchema(data, updateSubClauseSchema);
+export const validateUpdateSubClause = (data: any, skipFileFields: boolean = false): ValidationError[] => {
+  // Create a copy of the schema, excluding user_id and project_id if skipFileFields is true
+  const schemaToUse = skipFileFields
+    ? Object.fromEntries(
+        Object.entries(updateSubClauseSchema).filter(
+          ([key]) => key !== 'user_id' && key !== 'project_id'
+        )
+      )
+    : updateSubClauseSchema;
+
+  const errors = validateSchema(data, schemaToUse);
 
   // Check if at least some meaningful data is provided
   const meaningfulFields = [
@@ -433,8 +452,17 @@ export const validateUpdateSubClause = (data: any): ValidationError[] => {
 /**
  * Validates annex control update data
  */
-export const validateUpdateAnnexControl = (data: any): ValidationError[] => {
-  const errors = validateSchema(data, updateAnnexControlSchema);
+export const validateUpdateAnnexControl = (data: any, skipFileFields: boolean = false): ValidationError[] => {
+  // Create a copy of the schema, excluding user_id and project_id if skipFileFields is true
+  const schemaToUse = skipFileFields
+    ? Object.fromEntries(
+        Object.entries(updateAnnexControlSchema).filter(
+          ([key]) => key !== 'user_id' && key !== 'project_id'
+        )
+      )
+    : updateAnnexControlSchema;
+
+  const errors = validateSchema(data, schemaToUse);
 
   // Check if at least some meaningful data is provided
   const meaningfulFields = [
@@ -461,16 +489,38 @@ export const validateUpdateAnnexControl = (data: any): ValidationError[] => {
  * Complete validation for ISO-27001 subclause updates
  */
 export const validateCompleteSubClauseUpdate = (data: any, files?: any[]): ValidationError[] => {
-  const errors = validateUpdateSubClause(data);
+  const hasFiles = files && files.length > 0;
+
+  // Skip user_id and project_id validation if no files are present
+  const errors = validateUpdateSubClause(data, !hasFiles);
 
   // Add file validation if files are present
-  if (files && files.length > 0) {
+  if (hasFiles) {
     const fileValidation = validateFileUploads(files);
     if (!fileValidation.isValid) {
       errors.push({
         field: 'files',
         message: fileValidation.message || 'File validation failed',
         code: fileValidation.code || 'FILE_VALIDATION_FAILED'
+      });
+    }
+
+    // Validate user_id and project_id are present when files are being uploaded
+    const userIdValidation = validateForeignKey(data.user_id, 'User ID', true);
+    if (!userIdValidation.isValid) {
+      errors.push({
+        field: 'user_id',
+        message: userIdValidation.message || 'User ID is required when uploading files',
+        code: userIdValidation.code || 'USER_ID_REQUIRED_FOR_FILES'
+      });
+    }
+
+    const projectIdValidation = validateForeignKey(data.project_id, 'Project ID', true);
+    if (!projectIdValidation.isValid) {
+      errors.push({
+        field: 'project_id',
+        message: projectIdValidation.message || 'Project ID is required when uploading files',
+        code: projectIdValidation.code || 'PROJECT_ID_REQUIRED_FOR_FILES'
       });
     }
   }
@@ -482,16 +532,38 @@ export const validateCompleteSubClauseUpdate = (data: any, files?: any[]): Valid
  * Complete validation for ISO-27001 annex control updates
  */
 export const validateCompleteAnnexControlUpdate = (data: any, files?: any[]): ValidationError[] => {
-  const errors = validateUpdateAnnexControl(data);
+  const hasFiles = files && files.length > 0;
+
+  // Skip user_id and project_id validation if no files are present
+  const errors = validateUpdateAnnexControl(data, !hasFiles);
 
   // Add file validation if files are present
-  if (files && files.length > 0) {
+  if (hasFiles) {
     const fileValidation = validateFileUploads(files);
     if (!fileValidation.isValid) {
       errors.push({
         field: 'files',
         message: fileValidation.message || 'File validation failed',
         code: fileValidation.code || 'FILE_VALIDATION_FAILED'
+      });
+    }
+
+    // Validate user_id and project_id are present when files are being uploaded
+    const userIdValidation = validateForeignKey(data.user_id, 'User ID', true);
+    if (!userIdValidation.isValid) {
+      errors.push({
+        field: 'user_id',
+        message: userIdValidation.message || 'User ID is required when uploading files',
+        code: userIdValidation.code || 'USER_ID_REQUIRED_FOR_FILES'
+      });
+    }
+
+    const projectIdValidation = validateForeignKey(data.project_id, 'Project ID', true);
+    if (!projectIdValidation.isValid) {
+      errors.push({
+        field: 'project_id',
+        message: projectIdValidation.message || 'Project ID is required when uploading files',
+        code: projectIdValidation.code || 'PROJECT_ID_REQUIRED_FOR_FILES'
       });
     }
   }

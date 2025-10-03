@@ -15,3 +15,16 @@ export interface IMitigation {
   dateOfAssessment: string;
   recommendations: string;
 }
+
+export interface IMitigationErrors {
+  mitigationStatus?: string;
+  mitigationPlan?: string;
+  currentRiskLevel?: string;
+  implementationStrategy?: string;
+  deadline?: string;
+  doc?: string;
+  approver?: string;
+  approvalStatus?: string;
+  dateOfAssessment?: string;
+  recommendations?: string;
+}

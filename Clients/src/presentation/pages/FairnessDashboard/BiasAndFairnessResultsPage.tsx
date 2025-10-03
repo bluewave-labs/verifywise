@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Box,
@@ -27,6 +27,7 @@ const Plot = createPlotlyComponent(Plotly);
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import MetricInfoIcon from "../../components/MetricInfoIcon";
+import ErrorModal from "../../components/Modals/Error";
 import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
@@ -200,12 +201,10 @@ const metricDescriptions: { [metric: string]: string } = {
 
 export default function BiasAndFairnessResultsPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [metrics, setMetrics] = useState<ResultsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [isRetrying, setIsRetrying] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const isDemo = id === 'demo';
   const [tab, setTab] = useState("overview");
   // Applied selection affects charts; draft holds checkbox changes until user clicks Select
@@ -394,19 +393,16 @@ export default function BiasAndFairnessResultsPage() {
       // Could add a toast notification here for success feedback
     } catch (error) {
       console.error('Failed to download JSON:', error);
-      setError(`Failed to download JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      // Could add a toast notification here for error feedback
+      const errorMessage = `Failed to download JSON: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      setError(errorMessage);
+      setIsErrorModalOpen(true);
     }
   }, [metrics]);
 
 
-  const fetchMetrics = useCallback(async (isRetry = false) => {
+  const fetchMetrics = useCallback(async () => {
     try {
-      if (isRetry) {
-        setIsRetrying(true);
-      } else {
-        setLoading(true);
-      }
+      setLoading(true);
       setError(null);
 
       if (isDemo) {
@@ -424,29 +420,23 @@ export default function BiasAndFairnessResultsPage() {
           }
         } catch (error) {
           console.error('Failed to load demo data:', error);
-          setError('Failed to load demo data. Please try again.');
+          const errorMessage = 'Failed to load demo data. Please try again.';
+          setError(errorMessage);
+          setIsErrorModalOpen(true);
         }
       } else {
         const data = await biasAndFairnessService.getBiasFairnessEvaluation(id as string);
         setMetrics(data);
       }
-      setRetryCount(0); // Reset retry count on success
     } catch (error) {
       console.error('Failed to fetch metrics:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(`Failed to fetch metrics: ${errorMessage}`);
+      setIsErrorModalOpen(true);
     } finally {
       setLoading(false);
-      setIsRetrying(false);
     }
   }, [id, isDemo]);
-
-  const handleRetry = useCallback(() => {
-    if (retryCount < 3) {
-      setRetryCount(prev => prev + 1);
-      fetchMetrics(true);
-    }
-  }, [retryCount, fetchMetrics]);
 
   useEffect(() => {
     fetchMetrics();
@@ -474,42 +464,6 @@ export default function BiasAndFairnessResultsPage() {
     return (
       <Box display="flex" justifyContent="center" mt={6}>
         <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box display="flex" flexDirection="column" alignItems="center" mt={6} gap={2}>
-        <Alert severity="error" sx={{ maxWidth: 600 }}>
-          <Typography variant="body1" sx={{ mb: 1 }}>
-            {error}
-          </Typography>
-          {retryCount < 3 && (
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              Attempt {retryCount + 1} of 3. Would you like to try again?
-            </Typography>
-          )}
-        </Alert>
-        {retryCount < 3 ? (
-                <Button
-                  variant="contained"
-                  onClick={handleRetry}
-                  disabled={isRetrying}
-                  startIcon={isRetrying ? <CircularProgress size={20} /> : null}
-                  sx={{ boxShadow: 'none !important' }}
-                >
-                  {isRetrying ? 'Retrying...' : 'Retry'}
-                </Button>
-        ) : (
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/fairness-dashboard#biasModule")}
-            sx={{ boxShadow: 'none !important' }}
-          >
-            Back to Dashboard
-          </Button>
-        )}
       </Box>
     );
   }
@@ -616,7 +570,7 @@ export default function BiasAndFairnessResultsPage() {
                           textAlign: "center"
                         }}>
                           <Typography sx={{ ...STYLES.mutedText, pb: "2px" }}>
-                            {metric.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            {metric.replace(/_/g, ' ').charAt(0).toUpperCase() + metric.replace(/_/g, ' ').slice(1).toLowerCase()}
                           </Typography>
                           <Typography sx={{ ...STYLES.bodyText, mb: 1 }}>
                             {numericValue.toFixed(1)}%
@@ -773,7 +727,7 @@ export default function BiasAndFairnessResultsPage() {
                                   mb: 0.5,
                                   lineHeight: 1.2
                                 }}>
-                                  {metric.replace(/_/g, ' ').charAt(0).toUpperCase() + metric.replace(/_/g, ' ').slice(1)}
+                                  {metric.replace(/_/g, ' ').charAt(0).toUpperCase() + metric.replace(/_/g, ' ').slice(1).toLowerCase()}
                                 </Typography>
                                 <Typography sx={{ 
                                   fontSize: '12px',
@@ -902,7 +856,7 @@ export default function BiasAndFairnessResultsPage() {
                                   mb: 0.5,
                                   lineHeight: 1.2
                                 }}>
-                                  {metric.replace(/_/g, ' ').charAt(0).toUpperCase() + metric.replace(/_/g, ' ').slice(1)}
+                                  {metric.replace(/_/g, ' ').charAt(0).toUpperCase() + metric.replace(/_/g, ' ').slice(1).toLowerCase()}
                                 </Typography>
                                 <Typography sx={{ 
                                   fontSize: '12px',
@@ -975,7 +929,7 @@ export default function BiasAndFairnessResultsPage() {
             </Typography>
           <Grid container spacing={4}>
             <Grid item xs={12} md={4}>
-              <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Chosen</Typography>
+              <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Configured</Typography>
               <Stack spacing={3}>
                 {(metricsCfg.user_selected_metrics || []).map(m => (
                   <Box key={m} sx={{ 
@@ -995,7 +949,7 @@ export default function BiasAndFairnessResultsPage() {
                       aria-describedby={`${m}-description`}
                       style={{ marginRight: '8px' }}
                     />
-                    <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
+                    <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ').charAt(0).toUpperCase() + m.replace(/_/g, ' ').slice(1).toLowerCase()}</Typography>
                     <Tooltip 
                       title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                       placement="top"
@@ -1027,7 +981,7 @@ export default function BiasAndFairnessResultsPage() {
                       onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} 
                       style={{ marginRight: '8px' }}
                     />
-                    <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
+                    <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ').charAt(0).toUpperCase() + m.replace(/_/g, ' ').slice(1).toLowerCase()}</Typography>
                     <Tooltip 
                       title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                       placement="top"
@@ -1059,7 +1013,7 @@ export default function BiasAndFairnessResultsPage() {
                         onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} 
                         style={{ marginRight: '8px' }}
                       />
-                      <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
+                      <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ').charAt(0).toUpperCase() + m.replace(/_/g, ' ').slice(1).toLowerCase()}</Typography>
                       <Tooltip 
                         title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                         placement="top"
@@ -1113,7 +1067,7 @@ export default function BiasAndFairnessResultsPage() {
                     }
                   }}
                 >
-                  <CopyIcon style={{ width: 24, height: 24 }} />
+                  <CopyIcon style={{ width: 24, height: 24, strokeWidth: 1.5 }} />
                 </IconButton>
                 <IconButton
                   onClick={handleDownloadJSON}
@@ -1129,7 +1083,7 @@ export default function BiasAndFairnessResultsPage() {
                     }
                   }}
                 >
-                  <DownloadIcon style={{ width: 24, height: 24 }} />
+                  <DownloadIcon style={{ width: 24, height: 24, strokeWidth: 1.5 }} />
                 </IconButton>
               </Box>
             </Box>
@@ -1321,6 +1275,12 @@ export default function BiasAndFairnessResultsPage() {
           </Box>
         </TabPanel>
       </TabContext>
+      
+      <ErrorModal
+        open={isErrorModalOpen}
+        errorMessage={error}
+        handleClose={() => setIsErrorModalOpen(false)}
+      />
     </Stack>
   );
 }

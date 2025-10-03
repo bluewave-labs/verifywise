@@ -225,7 +225,7 @@ export const validateOverviewTermsAndContact = (value: any): ValidationResult =>
   }
 
   // Validate terms text if provided
-  if (value.terms_text !== undefined) {
+  if (value.terms_visible && value.terms_text !== undefined) {
     const termsValidation = validateString(value.terms_text, 'Terms text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.TERMS_TEXT.MIN,
@@ -238,7 +238,7 @@ export const validateOverviewTermsAndContact = (value: any): ValidationResult =>
   }
 
   // Validate privacy text if provided
-  if (value.privacy_text !== undefined) {
+  if (value.privacy_visible && value.privacy_text !== undefined) {
     const privacyValidation = validateString(value.privacy_text, 'Privacy text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.PRIVACY_TEXT.MIN,
@@ -251,7 +251,7 @@ export const validateOverviewTermsAndContact = (value: any): ValidationResult =>
   }
 
   // Validate email text if provided
-  if (value.email_text !== undefined) {
+  if (value.email_visible && value.email_text !== undefined) {
     const emailValidation = validateString(value.email_text, 'Email text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.EMAIL_TEXT.MIN,

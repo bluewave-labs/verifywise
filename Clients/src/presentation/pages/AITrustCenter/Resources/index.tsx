@@ -11,8 +11,8 @@ import {
   Stack,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
-import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-white.svg"
-import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-white.svg"
+import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-grey.svg"
+import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-grey.svg"
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import Toggle from "../../../components/Inputs/Toggle";
@@ -76,9 +76,9 @@ const ResourceTableRow: React.FC<{
       </TableCell>
       <TableCell>
         {resource.visible ? (
-          <VisibilityIcon style={styles.visibilityIcon as React.CSSProperties} />
+          <VisibilityIcon/>
         ) : (
-          <VisibilityOffIcon style={styles.visibilityOffIcon as React.CSSProperties} />
+          <VisibilityOffIcon/>
         )}
       </TableCell>
       <TableCell>

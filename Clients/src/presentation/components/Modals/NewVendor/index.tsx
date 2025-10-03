@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Component for adding a new vendor through a modal interface.
  *
@@ -262,12 +263,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       "Vendor Website",
       values.vendorDetails.website,
       1,
-      64,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      "website" //
+      64
     );
     if (!vendorWebsite.accepted) {
       newErrors.website = vendorWebsite.message;
@@ -328,6 +324,17 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
     ) {
       newErrors.assignee = "Please select an assignee from the dropdown";
     }
+
+     // New validation: reviewer and assignee can't be the same
+      if (
+        values.vendorDetails.reviewer &&
+        values.vendorDetails.assignee &&
+        Number(values.vendorDetails.reviewer) === Number(values.vendorDetails.assignee)
+      ) {
+        newErrors.reviewer = "Reviewer and assignee cannot be the same";
+        newErrors.assignee = "Reviewer and assignee cannot be the same";
+      }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -337,6 +344,14 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
    * Creates new vendor or updates existing one
    */
   const handleOnSave = async () => {
+     // Ensure website starts with http:// or https://
+  let formattedWebsite = values.vendorDetails.website?.trim() || "";
+  if (
+    formattedWebsite &&
+    !/^https?:\/\//i.test(formattedWebsite)
+  ) {
+    formattedWebsite = `http://${formattedWebsite}`;
+  }
     const _vendorDetails = {
       projects: values.vendorDetails.projectIds,
       vendor_name: values.vendorDetails.vendorName,
@@ -344,7 +359,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
         (user: any) => user._id === values.vendorDetails.assignee
       )?._id,
       vendor_provides: values.vendorDetails.vendorProvides,
-      website: values.vendorDetails.website,
+      website: formattedWebsite,
       vendor_contact_person: values.vendorDetails.vendorContactPerson,
       review_result: values.vendorDetails.reviewResult,
       review_status:
@@ -356,7 +371,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       )?._id,
       review_date: values.vendorDetails.reviewDate
     };
-    // console.log("response", _vendorDetails)
+     console.log("response", _vendorDetails)
     if (existingVendor) {
       await updateVendor(existingVendor.id!, _vendorDetails);
     } else {

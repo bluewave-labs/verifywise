@@ -31,6 +31,7 @@ interface StatusDropdownProps {
   size?: 'small' | 'medium';
   allowedRoles?: string[];
   userRole?: string;
+  statusOptions?: string[];
 }
 
 const STATUS_OPTIONS = [

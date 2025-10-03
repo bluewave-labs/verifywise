@@ -1,5 +1,13 @@
+import { Dispatch, SetStateAction } from "react";
 import { Likelihood } from "../enums/likelihood.enum";
 import { Severity } from "../enums/severity.enum";
+
+export interface IMitigationSectionProps {
+  mitigationValues: IMitigation;
+  setMitigationValues: Dispatch<SetStateAction<IMitigation>>;
+  mitigationErrors?: IMitigationErrors;
+  userRoleName: string;
+}
 
 export interface IMitigation {
   mitigationStatus: number;

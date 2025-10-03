@@ -654,6 +654,7 @@ async function updateUserById(req: Request, res: Response) {
           name: user.name,
           surname: user.surname,
           last_login: last_login ?? user.last_login,
+          role_id: roleId ?? user.role_id,
         },
         transaction
       )) as UserModel;

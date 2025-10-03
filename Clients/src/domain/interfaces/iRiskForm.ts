@@ -2,6 +2,8 @@ import {
   MitigationFormValues,
   RiskFormValues,
 } from "../../presentation/components/AddNewRiskForm/interface";
+import { Likelihood } from "../enums/likelihood.enum";
+import { Severity } from "../enums/severity.enum";
 import { User } from "../types/User";
 
 export interface AddNewRiskFormProps {
@@ -20,4 +22,21 @@ export interface RiskSectionProps {
   closePopup: () => void;
   onSuccess: () => void;
   popupStatus: string;
+}
+
+export interface IRiskFormValues {
+  riskName: string;
+  actionOwner: number;
+  aiLifecyclePhase: number;
+  riskDescription: string;
+  riskCategory: number[];
+  potentialImpact: string;
+  assessmentMapping: number;
+  controlsMapping: number;
+  likelihood: Likelihood;
+  riskSeverity: Severity;
+  riskLevel: number;
+  reviewNotes: string;
+  applicableProjects: number[];
+  applicableFrameworks: number[];
 }

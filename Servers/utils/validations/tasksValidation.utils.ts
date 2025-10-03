@@ -478,9 +478,7 @@ export const validateTaskUpdateBusinessRules = (data: any, existingData?: any): 
     }
   }
 
-  // Apply creation business rules for updated data
-  const creationRules = validateTaskCreationBusinessRules(data);
-  return [...errors, ...creationRules];
+  return errors;
 };
 
 /**

@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from "react";
 import {
   MitigationFormValues,
   RiskFormValues,
@@ -16,6 +17,13 @@ export interface AddNewRiskFormProps {
   onLoading?: (message: any) => void;
   users?: User[]; // Optional users data to avoid calling useUsers hook
   usersLoading?: boolean; // Optional loading state
+}
+
+export interface IRiskSectionProps {
+  riskValues: IRiskFormValues;
+  setRiskValues: Dispatch<SetStateAction<IRiskFormValues>>;
+  riskErrors: IRiskFormErrors;
+  userRoleName: string;
 }
 
 export interface RiskSectionProps {

@@ -443,7 +443,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                   "& .MuiSelect-select": {
                                     fontSize: "13px",
                                     fontFamily: "Inter, sans-serif",
-                                    padding: "4px 8px",
+                                    padding: "0",
                                   },
                                 }}
                                 disabled={member.id === userId}

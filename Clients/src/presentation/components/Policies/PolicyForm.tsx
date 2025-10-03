@@ -35,10 +35,11 @@ interface Props {
 
 const statuses: FormData["status"][] = [
   "Draft",
-  "In review",
+  "Under Review",
   "Approved",
   "Published",
   "Archived",
+  "Deprecated",
 ];
 
 const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) => {
@@ -272,6 +273,19 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               },
             }}
           />
+          {errors.tags && (
+            <Typography
+              component="span"
+              color={theme.palette.error.main}
+              sx={{
+                opacity: 0.8,
+                fontSize: 11,
+                mt: 1,
+              }}
+            >
+              {errors.tags}
+            </Typography>
+          )}
         </Stack>
       </Stack>
 

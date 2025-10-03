@@ -47,6 +47,7 @@ export interface FormErrors {
   tags?: string;
   nextReviewDate?: string;
   assignedReviewers?: string;
+  content?: string;
 }
 
 const PolicyDetailModal: React.FC<Props> = ({
@@ -89,6 +90,7 @@ const PolicyDetailModal: React.FC<Props> = ({
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
+    // Title validation
     const policyTitle = checkStringValidation(
       "Policy title",
       formData.title,
@@ -116,6 +118,7 @@ const PolicyDetailModal: React.FC<Props> = ({
       newErrors.nextReviewDate = policyNextReviewDate.message;
     }
 
+    // Assigned reviewers validation
     const policyAssignedReviewers = formData.assignedReviewers.filter(
       (user) => user.id !== undefined
     );
@@ -129,7 +132,7 @@ const PolicyDetailModal: React.FC<Props> = ({
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
-    status: "Draft",
+    status: "Under Review",
     tags: [],
     nextReviewDate: "",
     assignedReviewers: [],
@@ -155,7 +158,7 @@ const PolicyDetailModal: React.FC<Props> = ({
     } else {
       setFormData({
         title: "",
-        status: "Draft",
+        status: "Under Review",
         tags: [],
         nextReviewDate: "",
         assignedReviewers: [],
@@ -219,9 +222,40 @@ const PolicyDetailModal: React.FC<Props> = ({
         await updatePolicy(policy!.id, payload);
       }
       onSaved();
-    } catch (err) {
+    } catch (err: any) {
       // setIsSubmitting(false);
-      console.error(err);
+      console.error("Full error object:", err);
+      console.error("Original error:", err?.originalError);
+      console.error("Original error response:", err?.originalError?.response);
+      
+      // Handle server validation errors - the CustomException is in originalError
+      const errorData = err?.originalError?.response || err?.response?.data || err?.response;
+      console.error("Error data:", errorData);
+      
+      if (errorData?.errors) {
+        console.error("Processing server errors:", errorData.errors);
+        const serverErrors: FormErrors = {};
+        errorData.errors.forEach((error: any) => {
+          console.error("Processing error:", error);
+          if (error.field === 'title') {
+            serverErrors.title = error.message;
+          } else if (error.field === 'status') {
+            serverErrors.status = error.message;
+          } else if (error.field === 'tags') {
+            serverErrors.tags = error.message;
+          } else if (error.field === 'content_html') {
+            serverErrors.content = error.message;
+          } else if (error.field === 'next_review_date') {
+            serverErrors.nextReviewDate = error.message;
+          } else if (error.field === 'assigned_reviewer_ids') {
+            serverErrors.assignedReviewers = error.message;
+          }
+        });
+        console.error("Setting server errors:", serverErrors);
+        setErrors(serverErrors);
+      } else {
+        console.error("No errors found in response");
+      }
     }
   };
 
@@ -455,6 +489,19 @@ const PolicyDetailModal: React.FC<Props> = ({
                 placeholder="Start typing..."
               />
             </Plate>
+            {errors.content && (
+              <Typography
+                component="span"
+                color={theme.palette.status?.error?.text || theme.palette.error.main}
+                sx={{
+                  opacity: 0.8,
+                  fontSize: 11,
+                  mt: 1,
+                }}
+              >
+                {errors.content}
+              </Typography>
+            )}
           </Stack>
         </Stack>
 

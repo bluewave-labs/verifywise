@@ -60,7 +60,8 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, onClick, navigabl
   const showChart = chartData.length > 0 && typeof value === 'number' && value > 0;
 
   const distributionSummary = getDistributionSummary(chartData);
-  const quickStats = getQuickStats(entityType, typeof value === 'number' ? value : parseInt(String(value)) || 0, chartData);
+  const quickStatsResult = getQuickStats(entityType, typeof value === 'number' ? value : parseInt(String(value)) || 0, chartData);
+  const quickStats = Array.isArray(quickStatsResult) ? quickStatsResult : [];
   const criticalInfo = hasCriticalItems(entityType, chartData);
   const priorityLevel = getPriorityLevel(entityType, typeof value === 'number' ? value : parseInt(String(value)) || 0, chartData);
 
@@ -540,7 +541,7 @@ const IntegratedDashboard: React.FC = () => {
       )}
 
       {/* CSS for drag and drop */}
-      <style jsx global>{`
+      <style>{`
         .react-grid-layout {
           position: relative;
           margin-top: 20px;

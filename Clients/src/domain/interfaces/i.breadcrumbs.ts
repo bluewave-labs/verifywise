@@ -1,3 +1,5 @@
+import { SxProps, Theme } from "@mui/material";
+
 /**
  * Interface for individual breadcrumb item
  */
@@ -21,7 +23,7 @@ export interface IBreadcrumbItem {
  */
 export interface IPageBreadcrumbsProps {
   /** Custom breadcrumb items (overrides auto-generation) */
-  items?: BreadcrumbItem[];
+  items?: IBreadcrumbItem[];
   /** Whether to auto-generate breadcrumbs from current route */
   autoGenerate?: boolean;
   /** Custom route mapping (extends the default mapping) */
@@ -37,7 +39,7 @@ export interface IPageBreadcrumbsProps {
   /** Maximum length for truncated labels */
   maxLabelLength?: number;
   /** Custom click handler for breadcrumb items */
-  onItemClick?: (item: BreadcrumbItem, index: number) => void;
+  onItemClick?: (item: IBreadcrumbItem, index: number) => void;
   /** Additional styling with proper MUI typing */
   sx?: SxProps<Theme>;
   /** Additional className for custom styling */

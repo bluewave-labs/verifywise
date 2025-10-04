@@ -10,7 +10,6 @@ import {
   useTheme,
   Stack,
   Typography,
-  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -103,11 +102,6 @@ const EventsTable: React.FC<EventsTableProps> = ({
     []
   );
 
-  const getRange = useMemo(() => {
-    const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, data?.length ?? 0);
-    return `${start} - ${end}`;
-  }, [page, rowsPerPage, data?.length]);
 
   const tableHeader = useMemo(
     () => (

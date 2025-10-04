@@ -118,7 +118,7 @@ const getMenuItems = (openTasksCount: number): MenuItem[] => [
     path: "/vendors",
   },
   {
-    name: "Evidences",
+    name: "Evidence",
     icon: <FileManager />,
     path: "/file-manager",
   },

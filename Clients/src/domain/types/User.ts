@@ -8,3 +8,10 @@ export type User = {
     created_at?: Date; //automatically filled by database
     last_login?: Date; //automatically filled by database
 }
+
+export interface ApiResponse<T> {
+    data: T;
+    status: number;
+    statusText: string;
+    message?: string;
+}

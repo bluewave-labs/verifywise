@@ -604,7 +604,7 @@ const IntegratedDashboard: React.FC = () => {
           value={vendorMetrics?.total || 0}
           onClick={() => navigate('/vendors')}
           navigable={true}
-          statusData={vendorMetrics?.statusDistribution}
+          statusData={vendorMetrics?.statusDistribution?.map(item => ({ ...item, label: item.name }))}
           entityType="vendors"
         />
       ),
@@ -618,7 +618,7 @@ const IntegratedDashboard: React.FC = () => {
           value={vendorRiskMetrics?.total || 0}
           onClick={() => navigate('/vendors')}
           navigable={true}
-          statusData={vendorRiskMetrics?.statusDistribution}
+          statusData={vendorRiskMetrics?.statusDistribution?.map(item => ({ ...item, label: item.name }))}
           entityType="vendorRisks"
         />
       ),
@@ -646,7 +646,7 @@ const IntegratedDashboard: React.FC = () => {
           value={policyMetrics?.total || 0}
           onClick={() => navigate('/policies')}
           navigable={true}
-          statusData={policyMetrics?.statusDistribution}
+          statusData={policyMetrics?.statusDistribution?.map(item => ({ ...item, label: item.name }))}
           entityType="policies"
         />
       ),

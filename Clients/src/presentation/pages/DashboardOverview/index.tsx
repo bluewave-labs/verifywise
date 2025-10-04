@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Grid, 
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
   Stack,
   CircularProgress,
   Table,
@@ -21,8 +21,8 @@ import {
   ListItemAvatar,
   Avatar,
   Switch,
-  FormControlLabel
-} from '@mui/material';
+  FormControlLabel,
+} from "@mui/material";
 import {
   Assignment as ProjectIcon,
   School as TrainingIcon,
@@ -35,11 +35,10 @@ import {
   Schedule as TaskIcon,
   Person as UserIcon,
   VerifiedUser as TrustCenterIcon,
-  TrendingUp as TrendIcon
-} from '@mui/icons-material';
-import { useDashboard } from '../../../application/hooks/useDashboard';
-import { useDashboardMetrics } from '../../../application/hooks/useDashboardMetrics';
-
+  TrendingUp as TrendIcon,
+} from "@mui/icons-material";
+import { useDashboard } from "../../../application/hooks/useDashboard";
+import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetrics";
 
 interface MetricCardProps {
   title: string;
@@ -48,8 +47,13 @@ interface MetricCardProps {
   color?: string;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, color = '#13715B' }) => (
-  <Card elevation={2} sx={{ height: '100%' }}>
+const MetricCard: React.FC<MetricCardProps> = ({
+  title,
+  value,
+  icon,
+  color = "#13715B",
+}) => (
+  <Card elevation={2} sx={{ height: "100%" }}>
     <CardContent>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Box>
@@ -60,23 +64,21 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon, color = '#1
             {value}
           </Typography>
         </Box>
-        <Box sx={{ color: color, opacity: 0.7 }}>
-          {icon}
-        </Box>
+        <Box sx={{ color: color, opacity: 0.7 }}>{icon}</Box>
       </Stack>
     </CardContent>
   </Card>
 );
 
 const DashboardOverview: React.FC = () => {
-  console.log('🚀 DashboardOverview component rendering...');
-  console.log('🔧 Component loaded successfully');
-  
+  console.log("🚀 DashboardOverview component rendering...");
+  console.log("🔧 Component loaded successfully");
+
   const { dashboard, loading, fetchDashboard } = useDashboard();
-  
+
   // Add useDashboardMetrics but only extract what we need
-  const { 
-    evidenceMetrics, 
+  const {
+    evidenceMetrics,
     riskMetrics,
     assessmentProgress,
     complianceStatus,
@@ -84,60 +86,71 @@ const DashboardOverview: React.FC = () => {
     recentActivity,
     upcomingTasks,
     aiTrustCenter,
-    fetchRecentActivity
+    fetchRecentActivity,
   } = useDashboardMetrics();
-  
+
   const [componentError, setComponentError] = useState<string | null>(null);
-  const [timeFilter, setTimeFilter] = useState<'7' | '30'>('7');
-  
+  const [timeFilter, setTimeFilter] = useState<"7" | "30">("7");
+
   useEffect(() => {
-    console.log('DashboardOverview: fetching dashboard data...');
+    console.log("DashboardOverview: fetching dashboard data...");
     try {
       fetchDashboard();
     } catch (error) {
-      console.error('Error fetching dashboard:', error);
+      console.error("Error fetching dashboard:", error);
       setComponentError(`Dashboard fetch error: ${error}`);
     }
   }, [fetchDashboard]);
 
   useEffect(() => {
-    fetchRecentActivity(timeFilter);
+    fetchRecentActivity();
   }, [timeFilter, fetchRecentActivity]);
 
-  console.log('DashboardOverview: dashboard data:', dashboard);
-  console.log('DashboardOverview: loading:', loading);
+  console.log("DashboardOverview: dashboard data:", dashboard);
+  console.log("DashboardOverview: loading:", loading);
 
   // Helper functions
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
     const time = new Date(timestamp);
-    const diffInHours = Math.floor((now.getTime() - time.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours === 1) return '1 hour ago';
+    const diffInHours = Math.floor(
+      (now.getTime() - time.getTime()) / (1000 * 60 * 60)
+    );
+
+    if (diffInHours < 1) return "Just now";
+    if (diffInHours === 1) return "1 hour ago";
     if (diffInHours < 24) return `${diffInHours} hours ago`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays === 1) return '1 day ago';
+    if (diffInDays === 1) return "1 day ago";
     return `${diffInDays} days ago`;
   };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'project': return <ProjectIcon />;
-      case 'risk': return <RiskIcon />;
-      case 'evidence': return <EvidenceIcon />;
-      case 'assessment': return <ComplianceIcon />;
-      default: return <ActivityIcon />;
+      case "project":
+        return <ProjectIcon />;
+      case "risk":
+        return <RiskIcon />;
+      case "evidence":
+        return <EvidenceIcon />;
+      case "assessment":
+        return <ComplianceIcon />;
+      default:
+        return <ActivityIcon />;
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'error';
-      case 'medium': return 'warning';
-      case 'low': return 'success';
-      default: return 'default';
+      case "high":
+        return "error";
+      case "medium":
+        return "warning";
+      case "low":
+        return "success";
+      default:
+        return "default";
     }
   };
 
@@ -153,7 +166,14 @@ const DashboardOverview: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
         <CircularProgress />
         <Typography sx={{ ml: 2 }}>Loading Dashboard...</Typography>
       </Box>
@@ -162,9 +182,14 @@ const DashboardOverview: React.FC = () => {
 
   try {
     return (
-      <Box sx={{ p: 3, backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+      <Box sx={{ p: 3, backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
         {/* Header */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
           <Typography variant="h4" fontWeight="bold" color="#1c2130">
             Dashboard Overview
           </Typography>
@@ -235,10 +260,9 @@ const DashboardOverview: React.FC = () => {
                   ✅ Dashboard API connected successfully
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mt={1}>
-                  Projects: {dashboard?.projects}, 
-                  Trainings: {dashboard?.trainings}, 
-                  Models: {dashboard?.models}, 
-                  Reports: {dashboard?.reports}
+                  Projects: {dashboard?.projects}, Trainings:{" "}
+                  {dashboard?.trainings}, Models: {dashboard?.models}, Reports:{" "}
+                  {dashboard?.reports}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mt={1}>
                   Total Risks: {riskMetrics?.total || 40}
@@ -255,11 +279,11 @@ const DashboardOverview: React.FC = () => {
                   Debug Info
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Dashboard object: {dashboard ? 'Loaded' : 'Not loaded'}
+                  Dashboard object: {dashboard ? "Loaded" : "Not loaded"}
                   <br />
-                  Loading state: {loading ? 'Loading' : 'Complete'}
+                  Loading state: {loading ? "Loading" : "Complete"}
                   <br />
-                  Component error: {componentError || 'None'}
+                  Component error: {componentError || "None"}
                 </Typography>
               </CardContent>
             </Card>
@@ -276,7 +300,11 @@ const DashboardOverview: React.FC = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <Typography variant="h4" fontWeight="bold" color="error.main">
+                        <Typography
+                          variant="h4"
+                          fontWeight="bold"
+                          color="error.main"
+                        >
                           {riskMetrics.distribution.high}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -286,7 +314,11 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <Typography variant="h4" fontWeight="bold" color="warning.main">
+                        <Typography
+                          variant="h4"
+                          fontWeight="bold"
+                          color="warning.main"
+                        >
                           {riskMetrics.distribution.medium}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -296,7 +328,11 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <Typography variant="h4" fontWeight="bold" color="success.main">
+                        <Typography
+                          variant="h4"
+                          fontWeight="bold"
+                          color="success.main"
+                        >
                           {riskMetrics.distribution.low}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -306,7 +342,11 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <Typography variant="h4" fontWeight="bold" color="info.main">
+                        <Typography
+                          variant="h4"
+                          fontWeight="bold"
+                          color="info.main"
+                        >
                           {riskMetrics.distribution.resolved}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -340,21 +380,29 @@ const DashboardOverview: React.FC = () => {
                       </TableHead>
                       <TableBody>
                         {assessmentProgress.map((project, index) => {
-                          const assessmentPercentage = (project.assessments.completed / project.assessments.total) * 100;
-                          const controlPercentage = (project.controls.completed / project.controls.total) * 100;
-                          const overallProgress = (assessmentPercentage + controlPercentage) / 2;
-                          
+                          const assessmentPercentage =
+                            (project.assessments.completed /
+                              project.assessments.total) *
+                            100;
+                          const controlPercentage =
+                            (project.controls.completed /
+                              project.controls.total) *
+                            100;
+                          const overallProgress =
+                            (assessmentPercentage + controlPercentage) / 2;
+
                           return (
                             <TableRow key={index}>
                               <TableCell>{project.project_name}</TableCell>
                               <TableCell>
                                 <Stack spacing={1}>
                                   <Typography variant="body2">
-                                    {project.assessments.completed} out of {project.assessments.total} completed
+                                    {project.assessments.completed} out of{" "}
+                                    {project.assessments.total} completed
                                   </Typography>
-                                  <LinearProgress 
-                                    variant="determinate" 
-                                    value={assessmentPercentage} 
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={assessmentPercentage}
                                     sx={{ height: 6, borderRadius: 3 }}
                                   />
                                 </Stack>
@@ -362,20 +410,27 @@ const DashboardOverview: React.FC = () => {
                               <TableCell>
                                 <Stack spacing={1}>
                                   <Typography variant="body2">
-                                    {project.controls.completed} out of {project.controls.total} completed
+                                    {project.controls.completed} out of{" "}
+                                    {project.controls.total} completed
                                   </Typography>
-                                  <LinearProgress 
-                                    variant="determinate" 
-                                    value={controlPercentage} 
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={controlPercentage}
                                     sx={{ height: 6, borderRadius: 3 }}
                                     color="secondary"
                                   />
                                 </Stack>
                               </TableCell>
                               <TableCell>
-                                <Chip 
+                                <Chip
                                   label={`${Math.round(overallProgress)}%`}
-                                  color={overallProgress >= 80 ? 'success' : overallProgress >= 50 ? 'warning' : 'error'}
+                                  color={
+                                    overallProgress >= 80
+                                      ? "success"
+                                      : overallProgress >= 50
+                                      ? "warning"
+                                      : "error"
+                                  }
                                   variant="outlined"
                                 />
                               </TableCell>
@@ -403,9 +458,9 @@ const DashboardOverview: React.FC = () => {
                       <Typography variant="body2" color="text.secondary">
                         EU AI Act Compliance
                       </Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={complianceStatus.eu_ai_act.percentage} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={complianceStatus.eu_ai_act.percentage}
                         sx={{ height: 8, borderRadius: 4, mt: 1 }}
                         color="success"
                       />
@@ -417,9 +472,9 @@ const DashboardOverview: React.FC = () => {
                       <Typography variant="body2" color="text.secondary">
                         GDPR Compliance
                       </Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={complianceStatus.gdpr.percentage} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={complianceStatus.gdpr.percentage}
                         sx={{ height: 8, borderRadius: 4, mt: 1 }}
                         color="success"
                       />
@@ -431,9 +486,9 @@ const DashboardOverview: React.FC = () => {
                       <Typography variant="body2" color="text.secondary">
                         ISO 27001
                       </Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={complianceStatus.iso_27001.percentage} 
+                      <LinearProgress
+                        variant="determinate"
+                        value={complianceStatus.iso_27001.percentage}
                         sx={{ height: 8, borderRadius: 4, mt: 1 }}
                         color="warning"
                       />
@@ -458,8 +513,10 @@ const DashboardOverview: React.FC = () => {
                   <Grid container spacing={2}>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <UserIcon sx={{ fontSize: 40, color: '#13715B' }} />
-                        <Typography variant="h5" fontWeight="bold">{userActivity.active_users}</Typography>
+                        <UserIcon sx={{ fontSize: 40, color: "#13715B" }} />
+                        <Typography variant="h5" fontWeight="bold">
+                          {userActivity.active_users}
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">
                           Active Users
                         </Typography>
@@ -467,8 +524,10 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <TrendIcon sx={{ fontSize: 40, color: '#2196F3' }} />
-                        <Typography variant="h5" fontWeight="bold">{userActivity.user_engagement}%</Typography>
+                        <TrendIcon sx={{ fontSize: 40, color: "#2196F3" }} />
+                        <Typography variant="h5" fontWeight="bold">
+                          {userActivity.user_engagement}%
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">
                           User Engagement
                         </Typography>
@@ -476,8 +535,10 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <ActivityIcon sx={{ fontSize: 40, color: '#FF9800' }} />
-                        <Typography variant="h5" fontWeight="bold">{userActivity.actions_today}</Typography>
+                        <ActivityIcon sx={{ fontSize: 40, color: "#FF9800" }} />
+                        <Typography variant="h5" fontWeight="bold">
+                          {userActivity.actions_today}
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">
                           Actions Today
                         </Typography>
@@ -485,8 +546,12 @@ const DashboardOverview: React.FC = () => {
                     </Grid>
                     <Grid item xs={6} md={3}>
                       <Stack alignItems="center" spacing={1}>
-                        <ComplianceIcon sx={{ fontSize: 40, color: '#4CAF50' }} />
-                        <Typography variant="h5" fontWeight="bold">{userActivity.task_completion_rate}%</Typography>
+                        <ComplianceIcon
+                          sx={{ fontSize: 40, color: "#4CAF50" }}
+                        />
+                        <Typography variant="h5" fontWeight="bold">
+                          {userActivity.task_completion_rate}%
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">
                           Task Completion
                         </Typography>
@@ -503,21 +568,26 @@ const DashboardOverview: React.FC = () => {
             <Grid item xs={12} md={6}>
               <Card elevation={2}>
                 <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mb={2}
+                  >
                     <Typography variant="h6" fontWeight="semibold">
                       Recent Activity
                     </Typography>
                     <Stack direction="row" spacing={1}>
-                      <Chip 
-                        label="7 days" 
-                        variant={timeFilter === '7' ? 'filled' : 'outlined'}
-                        onClick={() => setTimeFilter('7')}
+                      <Chip
+                        label="7 days"
+                        variant={timeFilter === "7" ? "filled" : "outlined"}
+                        onClick={() => setTimeFilter("7")}
                         size="small"
                       />
-                      <Chip 
-                        label="30 days" 
-                        variant={timeFilter === '30' ? 'filled' : 'outlined'}
-                        onClick={() => setTimeFilter('30')}
+                      <Chip
+                        label="30 days"
+                        variant={timeFilter === "30" ? "filled" : "outlined"}
+                        onClick={() => setTimeFilter("30")}
                         size="small"
                       />
                     </Stack>
@@ -526,13 +596,15 @@ const DashboardOverview: React.FC = () => {
                     {recentActivity.map((activity) => (
                       <ListItem key={activity.id} divider>
                         <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: '#13715B' }}>
+                          <Avatar sx={{ bgcolor: "#13715B" }}>
                             {getActivityIcon(activity.type)}
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
                           primary={`${activity.title} ${activity.action}`}
-                          secondary={`${activity.user_name} • ${formatTimeAgo(activity.timestamp)}`}
+                          secondary={`${activity.user_name} • ${formatTimeAgo(
+                            activity.timestamp
+                          )}`}
                         />
                       </ListItem>
                     ))}
@@ -554,18 +626,22 @@ const DashboardOverview: React.FC = () => {
                     {upcomingTasks.map((task) => (
                       <ListItem key={task.id} divider>
                         <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: 'warning.main' }}>
+                          <Avatar sx={{ bgcolor: "warning.main" }}>
                             <TaskIcon />
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
                           primary={task.title}
                           secondary={
-                            <Stack direction="row" spacing={1} alignItems="center">
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
                               <Typography variant="caption">
                                 Due: {task.due_date}
                               </Typography>
-                              <Chip 
+                              <Chip
                                 label={task.priority}
                                 size="small"
                                 color={getPriorityColor(task.priority) as any}
@@ -587,11 +663,18 @@ const DashboardOverview: React.FC = () => {
             <Grid item xs={12} md={4}>
               <Card elevation={2}>
                 <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mb={2}
+                  >
                     <Typography variant="h6" fontWeight="semibold">
                       AI Trust Center
                     </Typography>
-                    <TrustCenterIcon color={aiTrustCenter.enabled ? 'success' : 'disabled'} />
+                    <TrustCenterIcon
+                      color={aiTrustCenter.enabled ? "success" : "disabled"}
+                    />
                   </Stack>
                   <FormControlLabel
                     control={
@@ -601,12 +684,12 @@ const DashboardOverview: React.FC = () => {
                         disabled
                       />
                     }
-                    label={aiTrustCenter.enabled ? 'Enabled' : 'Disabled'}
+                    label={aiTrustCenter.enabled ? "Enabled" : "Disabled"}
                   />
                   <Typography variant="body2" color="text.secondary" mt={1}>
-                    {aiTrustCenter.enabled 
-                      ? `AI Trust Center is active. Compliance score: ${aiTrustCenter.compliance_score}%` 
-                      : 'AI Trust Center is disabled.'}
+                    {aiTrustCenter.enabled
+                      ? `AI Trust Center is active. Compliance score: ${aiTrustCenter.compliance_score}%`
+                      : "AI Trust Center is disabled."}
                   </Typography>
                 </CardContent>
               </Card>
@@ -616,7 +699,7 @@ const DashboardOverview: React.FC = () => {
       </Box>
     );
   } catch (error) {
-    console.error('Error in DashboardOverview render:', error);
+    console.error("Error in DashboardOverview render:", error);
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h6" color="error">

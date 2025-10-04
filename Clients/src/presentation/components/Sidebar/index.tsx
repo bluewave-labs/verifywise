@@ -403,13 +403,13 @@ const Sidebar = () => {
               variant="overline"
               sx={{
                 px: theme.spacing(4),
-                pt: theme.spacing(4), // More space above
+                pt: theme.spacing(6), // Even more space above (increased from 4 to 6)
                 pb: theme.spacing(2),
-                mt: group.name !== "DISCOVERY" ? theme.spacing(3) : 0, // Extra space for non-first groups
+                mt: group.name !== "DISCOVERY" ? theme.spacing(4) : 0, // More extra space for non-first groups (increased from 3 to 4)
                 color: theme.palette.text.disabled,
-                fontSize: "9px", // Changed from 10px to 9px
+                fontSize: "8px", // Reduced from 9px to 8px
                 fontWeight: 400, // Changed from 600 to 400 (lighter)
-                letterSpacing: "1px",
+                letterSpacing: "0.3px", // Reduced from 1px to 0.3px for tighter spacing
                 textTransform: "uppercase",
                 display: "block",
                 opacity: 0.7, // Make it even lighter

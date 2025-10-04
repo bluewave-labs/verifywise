@@ -41,7 +41,7 @@ import {
   Shield,
   GraduationCap,
   Telescope,
-  List,
+  List as ListIcon,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -96,7 +96,7 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
       },
       {
         name: "Model Inventory",
-        icon: <List size={16} strokeWidth={1.5} />,
+        icon: <ListIcon size={16} strokeWidth={1.5} />,
         path: "/model-inventory",
       },
       {

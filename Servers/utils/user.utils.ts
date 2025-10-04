@@ -135,12 +135,22 @@ export const getUserByEmailQuery = async (
  * ```
  */
 export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
-  const user = await sequelize.query("SELECT * FROM public.users WHERE id = :id", {
-    replacements: { id },
-    mapToModel: true,
-    model: UserModel,
-  });
-  return user[0];
+   const [userObj] = await sequelize.query<any>(
+    "SELECT * FROM public.users WHERE id = :id",
+    {
+      replacements: { id },
+      type: QueryTypes.SELECT,
+    }
+  );
+
+  if (!userObj) {
+    throw new Error(`User not found with ID: ${id}`);
+  }
+
+  // Convert plain object to UserModel instance
+  const user = new UserModel();
+  Object.assign(user, userObj);
+  return user;
 };
 
 export const doesUserBelongsToOrganizationQuery = async (
@@ -403,11 +413,13 @@ export const checkUserExistsQuery = async (): Promise<boolean> => {
   }
 };
 
-export const getUserProjects = async (id: number) => {
+export const getUserProjects = async (userId: number, tenant: string) => {
   const result = await sequelize.query(
-    "SELECT id FROM projects WHERE id = :id",
+    `SELECT p.* FROM "${tenant}".projects p
+     INNER JOIN "${tenant}".projects_members pm ON p.id = pm.project_id
+     WHERE pm.user_id = :user_id`,
     {
-      replacements: { id },
+      replacements: { user_id: userId },
       mapToModel: true,
       model: ProjectModel,
     }

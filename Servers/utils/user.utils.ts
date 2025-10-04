@@ -118,16 +118,17 @@ export const getUserByEmailQuery = async (
 /**
  * Retrieves a user from the database by their unique identifier.
  *
- * @param {string} id - The unique identifier of the user.
- * @returns {Promise<User>} A promise that resolves to the user object.
+ * @param {number} id - The unique identifier of the user.
+ * @returns {Promise<UserModel>} A promise that resolves to the user object.
  *
- * @throws {Error} If the query fails or the user is not found.
+ * @throws {Error} If the query fails.
  *
  * @example
  * ```typescript
- * const userId = "12345";
+ * const userId = 12345;
  * getUserByIdQuery(userId)
  *   .then(user => {
+ *     // user is a UserModel instance with all methods available
  *   })
  *   .catch(error => {
  *     console.error(error);
@@ -135,21 +136,40 @@ export const getUserByEmailQuery = async (
  * ```
  */
 export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
-  const [userObj] = await sequelize.query<any>(
-    "SELECT * FROM public.users WHERE id = :id",
-    {
-      replacements: { id },
-      type: QueryTypes.SELECT,
-    }
-  );
+    const users = await sequelize.query<UserModel>(
+        "SELECT * FROM public.users WHERE id = :id",
+        {
+            replacements: { id },
+            model: UserModel,
+            mapToModel: true, // converts results into UserModel instances
+        }
+    );
 
-  if (!userObj) {
+    // users will be an array. Return first element or null if not found
+    return users[0];
+};
+
+/**
+ * Retrieves a user from the database by their ID, throwing an error if not found.
+ * This is a safe wrapper around getUserByIdQuery for cases where the user must exist.
+ *
+ * @param {number} id - The unique identifier of the user.
+ * @returns {Promise<UserModel>} A promise that resolves to the user object.
+ * @throws {Error} If the user is not found or the query fails.
+ *
+ * @example
+ * ```typescript
+ * // Use this when you expect the user to exist
+ * const user = await getUserByIdOrThrow(12345);
+ * // No null check needed - will throw if user doesn't exist
+ * console.log(user.name);
+ * ```
+ */
+export const getUserByIdOrThrow = async (id: number): Promise<UserModel> => {
+  const user = await getUserByIdQuery(id);
+  if (!user) {
     throw new Error(`User not found with ID: ${id}`);
   }
-
-  // Convert plain object to UserModel instance
-  const user = new UserModel();
-  Object.assign(user, userObj);
   return user;
 };
 

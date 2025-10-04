@@ -6,19 +6,12 @@ A comprehensive module for evaluating bias and fairness in machine learning mode
 
 # Import main components from subpackages
 from .core import ConfigManager, Config
-from .model_loader import ModelLoader, load_sklearn_model
 from .dataset_loader import DataLoader
-from .inference import ModelInferencePipeline, run_comprehensive_evaluation
+from .inference import ModelInferencePipeline
 from .eval_engine import (
-    FairnessEvaluator,
-    FairnessCompassEngine,
-    route_metric,
     PostProcessor,
     summarize_results,
-    clean_predictions,
-    register_metric,
-    get_metric,
-    list_metrics
+    clean_predictions
 )
 
 __version__ = "0.1.0"
@@ -30,26 +23,16 @@ __all__ = [
     'Config',
     
     # Model Loading
-    'ModelLoader',
-    'load_sklearn_model',
+    # (Model loader removed)
     
     # Data Loading
     'DataLoader',
     
     # Inference
     'ModelInferencePipeline',
-    'run_comprehensive_evaluation',
     
     # Evaluation
-    'FairnessEvaluator',
-    'FairnessCompassEngine',
-    'route_metric',
     'PostProcessor',
     'summarize_results',
-    'clean_predictions',
-    
-    # Metrics
-    'register_metric',
-    'get_metric',
-    'list_metrics'
+    'clean_predictions'
 ]

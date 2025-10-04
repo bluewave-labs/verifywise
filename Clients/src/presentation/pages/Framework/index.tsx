@@ -10,14 +10,13 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import organizationalFrameworksHelpContent from "../../helpers/organizational-frameworks-help.html?raw";
 import { useContext, useEffect, useState, useMemo } from "react";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
 import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
-import EditIcon from "@mui/icons-material/Edit";
+import {ReactComponent as EditIconGrey} from "../../assets/icons/edit.svg";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -42,6 +41,7 @@ import NoProject from "../../components/NoProject/NoProject";
 import { useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
+import ButtonToggle from "../../components/ButtonToggle";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -69,36 +69,6 @@ const tabListStyle = {
   },
 };
 
-// Framework toggle styles following ProjectFrameworks pattern
-const frameworkTabsContainerStyle = {
-  display: "flex",
-  border: (theme: any) => `1px solid ${theme.palette.divider}`,
-  borderRadius: "4px",
-  overflow: "hidden",
-  height: 43,
-  bgcolor: "background.paper",
-  width: "fit-content",
-};
-
-const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
-  cursor: "pointer",
-  px: 5,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  height: "100%",
-  bgcolor: isActive ? "background.paper" : "action.hover",
-  color: "text.primary",
-  fontFamily: (theme: any) => theme.typography.fontFamily,
-  fontSize: "13px",
-  borderRight: (theme: any) =>
-    isLast ? "none" : `1px solid ${theme.palette.divider}`,
-  fontWeight: (theme: any) => theme.typography.body2.fontWeight,
-  transition: "background 0.2s",
-  userSelect: "none",
-  width: "fit-content",
-  minWidth: "120px",
-});
 
 const Framework = () => {
   const [searchParams] = useSearchParams();
@@ -596,10 +566,37 @@ const Framework = () => {
   return (
     <Stack className="vwhome" gap={"24px"} ref={refs[0]}>
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={organizationalFrameworksHelpContent}
-        pageTitle="Organizational Frameworks"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Organizational frameworks"
+        description="Navigate compliance frameworks like ISO 27001 and ISO 42001 for AI governance"
+        whatItDoes="Provide **structured guidance** for implementing *organizational frameworks* and **compliance standards**. Access detailed requirements, clauses, and annexes for *ISO 27001* and **ISO 42001 frameworks**."
+        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and **regulatory requirements**. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating **due diligence** to stakeholders and regulators."
+        quickActions={[
+          {
+            label: "Explore Framework Requirements",
+            description: "Browse detailed clauses and implementation guidelines for each framework",
+            primary: true
+          },
+          {
+            label: "Check Compliance Status",
+            description: "Review your organization's current compliance progress and gaps"
+          }
+        ]}
+        useCases={[
+          "**ISO 27001 implementation** for *information security management systems*",
+          "**ISO 42001 compliance** for *artificial intelligence management systems* and **governance**"
+        ]}
+        keyFeatures={[
+          "**Comprehensive framework navigation** with *hierarchical clause structure*",
+          "**Cross-referencing** between different *standards* and requirements",
+          "**Progress tracking** and *compliance gap analysis* tools for implementation planning"
+        ]}
+        tips={[
+          "Start with **gap analysis** to understand your *current compliance position*",
+          "Focus on *foundational clauses* before moving to **specific technical requirements**",
+          "Document your **implementation decisions** and evidence for *audit readiness*"
+        ]}
       />
       <PageBreadcrumbs />
       <Stack>
@@ -630,20 +627,15 @@ const Framework = () => {
         >
           {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
           {organizationalProject && filteredFrameworks.length > 0 && (
-            <Box sx={frameworkTabsContainerStyle}>
-              {filteredFrameworks.map((framework, index) => (
-                <Box
-                  key={framework.id}
-                  onClick={() => handleFrameworkSelect(index)}
-                  sx={getFrameworkTabStyle(
-                    selectedFramework === index,
-                    index === filteredFrameworks.length - 1
-                  )}
-                >
-                  {framework.name}
-                </Box>
-              ))}
-            </Box>
+            <ButtonToggle
+              options={filteredFrameworks.map((framework, index) => ({
+                value: index.toString(),
+                label: framework.name,
+              }))}
+              value={selectedFramework.toString()}
+              onChange={(value) => handleFrameworkSelect(parseInt(value))}
+              height={34}
+            />
           )}
 
           {/* Manage Project Button */}
@@ -735,9 +727,8 @@ const Framework = () => {
                   disabled={!allowedRoles.projects.edit.includes(userRoleName)}
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <EditIcon
-                      fontSize="small"
-                      sx={{
+                    <EditIconGrey
+                      style={{
                         color: "text.secondary",
                         fontSize: "16px",
                       }}

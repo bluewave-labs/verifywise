@@ -75,6 +75,36 @@ export class ModelInventoryModel
   status_date!: Date;
 
   @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  reference_link!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  biases!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  limitations!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  hosting_provider!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  used_in_projects!: string;
+
+  @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false,
@@ -140,6 +170,46 @@ export class ModelInventoryModel
         "Status date is required",
         "status_date",
         this.status_date
+      );
+    }
+
+    if (!this.reference_link?.trim()) {
+      throw new ValidationException(
+        "Reference link is required",
+        "reference_link",
+        this.reference_link
+      );
+    }
+
+    if (!this.biases?.trim()) {
+      throw new ValidationException(
+        "Biases is required",
+        "biases",
+        this.biases
+      );
+    }
+
+    if (!this.limitations?.trim()) {
+      throw new ValidationException(
+        "Limitations are required",
+        "limitations",
+        this.limitations
+      );
+    }
+
+    if (!this.hosting_provider?.trim()) {
+      throw new ValidationException(
+        "Hosting provider is required",
+        "hosting_provider",
+        this.hosting_provider
+      );
+    }
+
+    if (!this.used_in_projects?.trim()) {
+      throw new ValidationException(
+        "Used in projects is required",
+        "used_in_projects",
+        this.used_in_projects
       );
     }
   }
@@ -241,6 +311,11 @@ export class ModelInventoryModel
       security_assessment: this.security_assessment,
       status: this.status,
       status_date: this.status_date?.toISOString(),
+      reference_link: this.reference_link?.trim() || null,
+      biases: this.biases,
+      limitations: this.limitations,
+      hosting_provider: this.hosting_provider,
+      used_in_projects: this.used_in_projects? this.used_in_projects.split(", ").filter((use) => use.trim()) : [],
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
@@ -271,6 +346,11 @@ export class ModelInventoryModel
       security_assessment: this.security_assessment,
       status: this.status,
       status_date: this.status_date?.toISOString(),
+      reference_link: this.reference_link,
+      biases: this.biases,
+      limitations: this.limitations,
+      hosting_provider: this.hosting_provider,
+      used_in_projects: this.used_in_projects? this.used_in_projects.split(", ").filter((use) => use.trim()) : [],
       is_demo: this.is_demo,
       created_at: this.created_at?.toISOString(),
       updated_at: this.updated_at?.toISOString(),
@@ -340,6 +420,13 @@ export class ModelInventoryModel
       security_assessment: data.security_assessment || false,
       status: data.status || ModelInventoryStatus.PENDING,
       status_date: data.status_date || new Date(),
+      reference_link: data.reference_link || "",
+      biases: data.biases || "",
+      limitations: data.limitations || "",
+      hosting_provider: data.hosting_provider || "",
+      used_in_projects: Array.isArray(data.used_in_projects)
+      ? data.used_in_projects.join(", ")
+      : data.used_in_projects || "",
       is_demo: data.is_demo || false,
       created_at: new Date(),
       updated_at: new Date(),
@@ -384,6 +471,23 @@ export class ModelInventoryModel
     }
     if (data.status_date !== undefined) {
       existingModel.status_date = data.status_date;
+    }
+    if (data.reference_link !== undefined) {
+      existingModel.reference_link = data.reference_link;
+    }
+    if (data.biases !== undefined) {
+      existingModel.biases = data.biases;
+    }
+    if (data.limitations !== undefined) {
+      existingModel.limitations = data.limitations;
+    }
+    if (data.hosting_provider !== undefined) {
+      existingModel.hosting_provider = data.hosting_provider;
+    }
+    if (data.used_in_projects !== undefined) {
+      existingModel.used_in_projects = Array.isArray(data.used_in_projects)
+        ? data.used_in_projects.join(", ")
+        : data.used_in_projects;
     }
     if (data.is_demo !== undefined) {
       existingModel.is_demo = data.is_demo;

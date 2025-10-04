@@ -23,10 +23,12 @@ import { IProjectsMembers } from "../domain.layer/interfaces/i.projectMember";
 export const getProjectRisksReportQuery = async (projectId: number, tenant: string) => {
   const query = `
     SELECT 
-      risk.*,       
+      risk.*,   
+      pr.project_id AS project_id,
       u.name AS risk_owner_name,
       u.surname AS risk_owner_surname
-    FROM "${tenant}".projectrisks risk
+    FROM "${tenant}".risks risk
+    JOIN "${tenant}".projects_risks pr ON risk.id = pr.risk_id
     LEFT JOIN public.users u ON risk.risk_owner = u.id
     WHERE project_id = :project_id 
     ORDER BY created_at DESC, id ASC
@@ -71,6 +73,9 @@ export const getGeneratedReportsQuery = async ({
     "Reference controls group",
     "Clauses and annexes report",
     "Vendors and risks report",
+    "Models and risks report",
+    "Training registry report",
+    "Policy manager report",
     "All reports",
   ];
 

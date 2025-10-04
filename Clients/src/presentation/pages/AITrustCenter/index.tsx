@@ -5,7 +5,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Tab from "@mui/material/Tab";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import {ReactComponent as VisibilityIcon} from "../../assets/icons/visibility-white.svg"
 import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
 import AITrustCenterSettings from "./Settings";
@@ -19,9 +19,8 @@ import {
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { extractUserToken } from "../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import aiTrustCenterHelpContent from "../../../presentation/helpers/ai-trust-center-help.html?raw";
 import PageHeader from "../../components/Layout/PageHeader";
 
 const AITrustCenter: React.FC = () => {
@@ -54,10 +53,37 @@ const AITrustCenter: React.FC = () => {
     <Stack className="vwhome" gap={"24px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={aiTrustCenterHelpContent}
-        pageTitle="AI Trust Center"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="AI trust center"
+        description="Build transparency and trust through your public-facing governance portal"
+        whatItDoes="Create a **public trust center** showcasing your *AI governance commitments*, **certifications**, and *responsible AI practices*. Share **policies**, *compliance status*, and **transparency reports** with stakeholders and customers."
+        whyItMatters="**Trust centers** demonstrate your commitment to *responsible AI* and help build **confidence** with customers, partners, and regulators. They provide *transparency* into your **AI governance practices** and differentiate you as a *trusted AI provider*."
+        quickActions={[
+          {
+            label: "Customize Trust Center",
+            description: "Configure your public portal content and branding",
+            primary: true
+          },
+          {
+            label: "Preview Public View",
+            description: "See how your trust center appears to external visitors"
+          }
+        ]}
+        useCases={[
+          "**Public-facing portal** for customers to review your *AI ethics* and **governance practices**",
+          "**Compliance demonstration hub** for sharing *certifications* and **audit reports**"
+        ]}
+        keyFeatures={[
+          "**Customizable public portal** with your *branding* and **messaging**",
+          "**Automated updates** from your *internal governance systems*",
+          "**Resource library** for sharing *whitepapers* and **compliance documentation**"
+        ]}
+        tips={[
+          "Keep your trust center updated with **latest certifications** and *policy changes*",
+          "Include **clear contact information** for *stakeholder questions* and concerns",
+          "**Regularly review analytics** to understand what information *visitors seek most*"
+        ]}
       />
 
         <PageHeader

@@ -21,16 +21,10 @@ import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
-import HelperDrawer from "../../components/Drawer/HelperDrawer";
+import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
-import taskManagementHelpContent from "../../helpers/task-management-help.html?raw";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import {
-  ITask,
-  TaskStatus,
-  TaskPriority,
-  TaskSummary,
-} from "../../../domain/interfaces/i.task";
+import { ITask, TaskSummary } from "../../../domain/interfaces/i.task";
 import {
   getAllTasks,
   createTask,
@@ -52,6 +46,7 @@ import {
 import DatePicker from "../../components/Inputs/Datepicker";
 import dayjs from "dayjs";
 import Toggle from "../../components/Toggle";
+import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 
 // Task status options for CustomSelect
 const TASK_STATUS_OPTIONS = [
@@ -61,11 +56,12 @@ const TASK_STATUS_OPTIONS = [
 ];
 
 // Status display mapping
-const STATUS_DISPLAY_MAP = {
+const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.OPEN]: "Open",
-  [TaskStatus.IN_PROGRESS]: "In progress",
+  [TaskStatus.IN_PROGRESS]: "In progress", // Show lowercase in UI
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
+  [TaskStatus.DELETED]: "Deleted",
 };
 
 // Reverse mapping for API calls
@@ -167,8 +163,8 @@ const Tasks: React.FC = () => {
       open: tasks.filter((task) => task.status === "Open").length,
       inProgress: tasks.filter(
         (task) =>
-          (task.status as string) === "In progress" ||
-          (task.status as string) === "In Progress"
+          (task.status as string) === "In Progress" || // API response
+          (task.status as string) === "In progress"    // UI display
       ).length,
       completed: tasks.filter((task) => task.status === "Completed").length,
       overdue: tasks.filter((task) => task.isOverdue === true).length,
@@ -186,8 +182,8 @@ const Tasks: React.FC = () => {
         const apiStatusFilters = statusFilters
           .filter((status) => status !== TaskStatus.OVERDUE)
           .map((status) => {
-            // Convert display values to API values
-            if (status === "In progress") return "In Progress";
+            // Convert enum values to API values
+            if (status === TaskStatus.IN_PROGRESS) return "In Progress";
             return status;
           }) as string[];
 
@@ -356,63 +352,91 @@ const Tasks: React.FC = () => {
     <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
-        isOpen={isHelperDrawerOpen}
-        onClose={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        helpContent={taskManagementHelpContent}
-        pageTitle="Task Management"
+        open={isHelperDrawerOpen}
+        onClose={() => setIsHelperDrawerOpen(false)}
+        title="Task management"
+        description="Coordinate AI governance activities and compliance tasks across your teams"
+        whatItDoes="Centralize **task assignment** and tracking for *AI governance activities*. Manage deadlines, priorities, and progress for **compliance requirements**, *audits*, and **implementation projects**."
+        whyItMatters="Effective **task management** ensures nothing falls through the cracks in your *AI governance program*. It provides **accountability** and visibility into team workload, helping meet *compliance deadlines* and **implementation milestones**."
+        quickActions={[
+          {
+            label: "Create New Task",
+            description:
+              "Assign a governance or compliance task to team members",
+            primary: true,
+          },
+          {
+            label: "View My Tasks",
+            description: "Filter tasks assigned to you and track your progress",
+          },
+        ]}
+        useCases={[
+          "**Compliance activities** like *framework implementation steps* and **audit preparations**",
+          "**Risk remediation tasks** arising from *vendor assessments* and **model evaluations**",
+        ]}
+        keyFeatures={[
+          "**Priority-based task queuing** with *due date tracking* and automated reminders",
+          "**Assignment to individuals or teams** with *progress monitoring*",
+          "**Integration** with project timelines and *compliance calendars*",
+        ]}
+        tips={[
+          "Break down **large compliance projects** into *manageable tasks* with **clear owners**",
+          "Set *realistic deadlines* considering **team capacity** and other commitments",
+          "**Regular task reviews** help identify *bottlenecks* and **resource constraints** early",
+        ]}
       />
 
-        {/* Page Header */}
-        <Stack sx={vwhomeBody}>
-          <PageHeader
-            title="Task Management"
-            description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
-            rightContent={
-              <HelperIcon
-                onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-                size="small"
-              />
-            }
+      {/* Page Header */}
+      <Stack sx={vwhomeBody}>
+        <PageHeader
+          title="Task management"
+          description="This table includes a list of tasks assigned to team members. You can create and manage all tasks here."
+          rightContent={
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          }
+        />
+        <Stack sx={vwhomeBodyControls}>
+          <CustomizableButton
+            variant="contained"
+            text="Add new task"
+            sx={{
+              backgroundColor: "#13715B",
+              border: "1px solid #13715B",
+              gap: 2,
+            }}
+            icon={<AddCircleIcon />}
+            onClick={handleCreateTask}
+            isDisabled={isCreatingDisabled}
           />
-          <Stack sx={vwhomeBodyControls}>
-            <CustomizableButton
-              variant="contained"
-              text="Add new task"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleIcon />}
-              onClick={handleCreateTask}
-              isDisabled={isCreatingDisabled}
-            />
-          </Stack>
         </Stack>
+      </Stack>
 
-        {/* Header Cards */}
-        <Stack sx={vwhomeHeaderCards}>
-          <HeaderCard title="Tasks" count={summary.total} />
-          <HeaderCard title="Overdue" count={summary.overdue} />
-          <HeaderCard title="In progress" count={summary.inProgress} />
-          <HeaderCard title="Completed" count={summary.completed} />
-        </Stack>
+      {/* Header Cards */}
+      <Stack sx={vwhomeHeaderCards}>
+        <HeaderCard title="Tasks" count={summary.total} />
+        <HeaderCard title="Overdue" count={summary.overdue} />
+        <HeaderCard title="In progress" count={summary.inProgress} />
+        <HeaderCard title="Completed" count={summary.completed} />
+      </Stack>
 
-        {/* Search, Filter, and Sort Controls  */}
-        <Box sx={{ mt: 6, mb: 6 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <SearchBox
-              placeholder="Search tasks by title or description..."
-              value={searchQuery}
-              onChange={setSearchQuery}
-              sx={{ mr: 2 }}
-              inputProps={{ "aria-label": "Search tasks" }}
-            />
+      {/* Search, Filter, and Sort Controls  */}
+      <Box sx={{ mt: 6, mb: 6 }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          <SearchBox
+            placeholder="Search tasks by title or description..."
+            value={searchQuery}
+            onChange={setSearchQuery}
+            sx={{ mr: 2 }}
+            inputProps={{ "aria-label": "Search tasks" }}
+          />
 
           <Stack direction="row" spacing={3} alignItems="center">
             <CustomSelect
@@ -437,162 +461,164 @@ const Tasks: React.FC = () => {
             boxShadow: "none",
           }}
         >
-            {/* Filter Header */}
-            <Box
-              sx={{
-                p: 2,
-                borderBottom: filtersExpanded ? "1px solid #E5E7EB" : "none",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                cursor: "pointer",
-              }}
-              onClick={() => handleExpandedChange(!filtersExpanded)}
-            >
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <FilterIcon
-                  style={{ color: "#13715B", width: "20px", height: "20px" }}
+          {/* Filter Header */}
+          <Box
+            sx={{
+              p: 2,
+              borderBottom: filtersExpanded ? "1px solid #E5E7EB" : "none",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+            onClick={() => handleExpandedChange(!filtersExpanded)}
+          >
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <FilterIcon
+                style={{ color: "#13715B", width: "20px", height: "20px" }}
+              />
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 600, color: "#1A1919" }}
+              >
+                Filters
+              </Typography>
+              {activeFilterCount > 0 && (
+                <Chip
+                  label={activeFilterCount}
+                  size="small"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    color: "white",
+                    fontWeight: 600,
+                    minWidth: 20,
+                    height: 20,
+                    "& .MuiChip-label": {
+                      px: 1,
+                      fontSize: 11,
+                    },
+                  }}
                 />
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600, color: "#1A1919" }}
+              )}
+            </Stack>
+
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {activeFilterCount > 0 && (
+                <Button
+                  size="small"
+                  startIcon={<ClearIcon />}
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    clearAllFilters();
+                  }}
+                  sx={{
+                    color: "#6B7280",
+                    textTransform: "none",
+                    fontSize: 12,
+                    "&:hover": {
+                      backgroundColor: "#F3F4F6",
+                    },
+                  }}
                 >
-                  Filters
-                </Typography>
-                {activeFilterCount > 0 && (
-                  <Chip
-                    label={activeFilterCount}
-                    size="small"
-                    sx={{
-                      backgroundColor: "#13715B",
-                      color: "white",
-                      fontWeight: 600,
-                      minWidth: 20,
-                      height: 20,
-                      "& .MuiChip-label": {
-                        px: 1,
-                        fontSize: 11,
-                      },
-                    }}
-                  />
-                )}
-              </Stack>
+                  Clear All
+                </Button>
+              )}
+              <IconButton size="small">
+                {filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Stack>
+          </Box>
 
-              <Stack direction="row" alignItems="center" spacing={1}>
-                {activeFilterCount > 0 && (
-                  <Button
-                    size="small"
-                    startIcon={<ClearIcon />}
-                    onClick={(e: React.MouseEvent) => {
-                      e.stopPropagation();
-                      clearAllFilters();
-                    }}
-                    sx={{
-                      color: "#6B7280",
-                      textTransform: "none",
-                      fontSize: 12,
-                      "&:hover": {
-                        backgroundColor: "#F3F4F6",
-                      },
-                    }}
-                  >
-                    Clear All
-                  </Button>
-                )}
-                <IconButton size="small">
-                  {filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-              </Stack>
-            </Box>
-
-            {/* Filter Content */}
-            <Collapse in={filtersExpanded}>
-              <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
-                {/* All Filters in One Row */}
-                <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}>
-                  <Select
-                    id="status-filter"
-                    label="Status"
-                    value={statusFilters.length > 0 ? statusFilters[0] : "all"}
-                    items={[
-                      { _id: "all", name: "All Statuses" },
-                      ...Object.values(TaskStatus).map(status => ({
-                        _id: status,
-                        name: STATUS_DISPLAY_MAP[status as TaskStatus] || status
-                      }))
-                    ]}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "all") {
-                        setStatusFilters([]);
-                      } else {
-                        setStatusFilters([value as TaskStatus]);
-                      }
-                    }}
-                    sx={{ width: 140 }}
-                  />
-
-                  <Select
-                    id="priority-filter"
-                    label="Priority"
-                    value={
-                      priorityFilters.length > 0 ? priorityFilters[0] : "all"
+          {/* Filter Content */}
+          <Collapse in={filtersExpanded}>
+            <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
+              {/* All Filters in One Row */}
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                spacing={2}
+                sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}
+              >
+                <Select
+                  id="status-filter"
+                  label="Status"
+                  value={statusFilters.length > 0 ? statusFilters[0] : "all"}
+                  items={[
+                    { _id: "all", name: "All Statuses" },
+                    ...Object.values(TaskStatus).map((status) => ({
+                      _id: status,
+                      name: STATUS_DISPLAY_MAP[status as TaskStatus] || status,
+                    })),
+                  ]}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "all") {
+                      setStatusFilters([]);
+                    } else {
+                      setStatusFilters([value as TaskStatus]);
                     }
-                    items={[
-                      { _id: "all", name: "All Priorities" },
-                      ...Object.values(TaskPriority).map((priority) => ({
-                        _id: priority,
-                        name: priority,
-                      })),
-                    ]}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "all") {
-                        setPriorityFilters([]);
-                      } else {
-                        setPriorityFilters([value as TaskPriority]);
-                      }
-                    }}
-                    sx={{ width: 140 }}
-                  />
+                  }}
+                  sx={{ width: 140 }}
+                />
 
-                  <Select
-                    id="assignee-filter"
-                    label="Assignee"
-                    value={
-                      assigneeFilters.length > 0
-                        ? assigneeFilters[0].toString()
-                        : "all"
+                <Select
+                  id="priority-filter"
+                  label="Priority"
+                  value={
+                    priorityFilters.length > 0 ? priorityFilters[0] : "all"
+                  }
+                  items={[
+                    { _id: "all", name: "All Priorities" },
+                    ...Object.values(TaskPriority).map((priority) => ({
+                      _id: priority,
+                      name: priority,
+                    })),
+                  ]}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "all") {
+                      setPriorityFilters([]);
+                    } else {
+                      setPriorityFilters([value as TaskPriority]);
                     }
-                    items={[
-                      { _id: "all", name: "All Assignees" },
-                      ...users.map((user) => ({
-                        _id: user.id.toString(),
-                        name: `${user.name} ${user.surname ?? ""}`.trim(),
-                      })),
-                    ]}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "all") {
-                        setAssigneeFilters([]);
-                      } else {
-                        setAssigneeFilters([Number(value)]);
-                      }
-                    }}
-                    sx={{ width: 160 }}
-                  />
+                  }}
+                  sx={{ width: 140 }}
+                />
 
-                <Stack
-                  gap={2}
-                  sx={{ width: "160px" }}
-                >
+                <Select
+                  id="assignee-filter"
+                  label="Assignee"
+                  value={
+                    assigneeFilters.length > 0
+                      ? assigneeFilters[0].toString()
+                      : "all"
+                  }
+                  items={[
+                    { _id: "all", name: "All Assignees" },
+                    ...users.map((user) => ({
+                      _id: user.id.toString(),
+                      name: `${user.name} ${user.surname ?? ""}`.trim(),
+                    })),
+                  ]}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "all") {
+                      setAssigneeFilters([]);
+                    } else {
+                      setAssigneeFilters([Number(value)]);
+                    }
+                  }}
+                  sx={{ width: 160 }}
+                />
+
+                <Stack gap={2} sx={{ width: "160px" }}>
                   <Typography
                     component="p"
                     variant="body1"
                     color="text.secondary"
                     fontWeight={500}
                     fontSize={"13px"}
-                    sx={{ margin: 0, height: '22px' }}
+                    sx={{ margin: 0, height: "22px" }}
                   >
                     Categories
                   </Typography>
@@ -627,13 +653,13 @@ const Tasks: React.FC = () => {
                           },
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             const input = e.target as HTMLInputElement;
                             const value = input.value.trim();
                             if (value && !categoryFilters.includes(value)) {
-                              setCategoryFilters(prev => [...prev, value]);
-                              input.value = '';
+                              setCategoryFilters((prev) => [...prev, value]);
+                              input.value = "";
                             }
                           }
                         }}
@@ -676,133 +702,137 @@ const Tasks: React.FC = () => {
                     slotProps={{
                       paper: {
                         sx: {
-                          display: 'none'
-                        }
-                      }
+                          display: "none",
+                        },
+                      },
                     }}
                   />
                 </Stack>
 
-                  <DatePicker
-                    label="From"
-                    date={dueDateFrom ? dayjs(dueDateFrom) : null}
-                    handleDateChange={handleDateFromChange}
-                    sx={{
-                      width: 140,
-                      "& > p": {
-                        marginBottom: "-3px !important",
-                      },
-                    }}
-                  />
+                <DatePicker
+                  label="From"
+                  date={dueDateFrom ? dayjs(dueDateFrom) : null}
+                  handleDateChange={handleDateFromChange}
+                  sx={{
+                    width: 140,
+                    "& > p": {
+                      marginBottom: "-3px !important",
+                    },
+                  }}
+                />
 
-                  <DatePicker
-                    label="To"
-                    date={dueDateTo ? dayjs(dueDateTo) : null}
-                    handleDateChange={handleDateToChange}
-                    sx={{
-                      width: 140,
-                      "& > p": {
-                        marginBottom: "-3px !important",
-                      },
-                    }}
-                  />
+                <DatePicker
+                  label="To"
+                  date={dueDateTo ? dayjs(dueDateTo) : null}
+                  handleDateChange={handleDateToChange}
+                  sx={{
+                    width: 140,
+                    "& > p": {
+                      marginBottom: "-3px !important",
+                    },
+                  }}
+                />
 
-                  <Stack direction="column" spacing={1}>
-                    <Typography
-                      component="p"
-                      variant="body1"
-                      color="text.secondary"
-                      fontWeight={500}
-                      fontSize={"13px"}
-                      sx={{ margin: 0, height: "22px", mb: 2 }}
-                    >
-                      Include archived
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        minHeight: "34px",
-                      }}
-                    >
-                      <Toggle
-                        checked={includeArchived}
-                        onChange={(checked) => setIncludeArchived(checked)}
-                      />
-                    </Box>
-                  </Stack>
+                <Stack direction="column" spacing={1}>
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color="text.secondary"
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: "22px", mb: 2 }}
+                  >
+                    Include archived
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      minHeight: "34px",
+                    }}
+                  >
+                    <Toggle
+                      checked={includeArchived}
+                      onChange={(checked) => setIncludeArchived(checked)}
+                    />
+                  </Box>
                 </Stack>
-              </Box>
-            </Collapse>
-          </Paper>
-        </Box>
-
-        {/* Content Area */}
-        <Box>
-          {isLoading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <Typography>Loading tasks...</Typography>
+              </Stack>
             </Box>
-          )}
+          </Collapse>
+        </Paper>
+      </Box>
 
-          {error && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <Typography color="error">{error}</Typography>
-            </Box>
-          )}
-
-          {!isLoading && !error && (
-            <TasksTable
-              tasks={tasks}
-              users={users}
-              onArchive={handleDeleteTask}
-              onEdit={handleEditTask}
-              onStatusChange={handleTaskStatusChange}
-              statusOptions={TASK_STATUS_OPTIONS.map(
-                (status) => STATUS_DISPLAY_MAP[status as TaskStatus] || status
-              )}
-              isUpdateDisabled={isCreatingDisabled}
-              onRowClick={handleEditTask}
-            />
-          )}
-        </Box>
-
-        {/* Create Task Modal */}
-        <CreateTask
-          isOpen={isCreateTaskModalOpen}
-          setIsOpen={setIsCreateTaskModalOpen}
-          onSuccess={handleTaskCreated}
-        />
-
-        {/* Edit Task Modal */}
-        {editingTask && (
-          <CreateTask
-            isOpen={!!editingTask}
-            setIsOpen={(open) => !open && setEditingTask(null)}
-            onSuccess={handleUpdateTask}
-            initialData={editingTask}
-            mode="edit"
-          />
+      {/* Content Area */}
+      <Box>
+        {isLoading && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <Typography>Loading tasks...</Typography>
+          </Box>
         )}
 
-        {/* Delete Confirmation Dialog */}
-        <DualButtonModal
-          title="Archive Task"
-          body={
-            <Typography fontSize={13}>
-              Are you sure you want to archive "{taskToDelete?.title}"? You can
-              restore it later by using the "Include archived" toggle.
-            </Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Archive"
-          onCancel={() => setDeleteConfirmOpen(false)}
-          onProceed={confirmDeleteTask}
-          proceedButtonColor="warning"
-          proceedButtonVariant="contained"
-          isOpen={deleteConfirmOpen}
-          TitleFontSize={0}
+        {error && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        )}
+
+        {!isLoading && !error && (
+          <TasksTable
+            tasks={tasks}
+            users={users}
+            onArchive={handleDeleteTask}
+            onEdit={handleEditTask}
+            onStatusChange={handleTaskStatusChange}
+            statusOptions={TASK_STATUS_OPTIONS.map(
+              (status) => {
+                const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+                console.log('Task status mapping:', status, '->', displayStatus);
+                return displayStatus;
+              }
+            )}
+            isUpdateDisabled={isCreatingDisabled}
+            onRowClick={handleEditTask}
+          />
+        )}
+      </Box>
+
+      {/* Create Task Modal */}
+      <CreateTask
+        isOpen={isCreateTaskModalOpen}
+        setIsOpen={setIsCreateTaskModalOpen}
+        onSuccess={handleTaskCreated}
+      />
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <CreateTask
+          isOpen={!!editingTask}
+          setIsOpen={(open) => !open && setEditingTask(null)}
+          onSuccess={handleUpdateTask}
+          initialData={editingTask}
+          mode="edit"
         />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <DualButtonModal
+        title="Archive Task"
+        body={
+          <Typography fontSize={13}>
+            Are you sure you want to archive "{taskToDelete?.title}"? You can
+            restore it later by using the "Include archived" toggle.
+          </Typography>
+        }
+        cancelText="Cancel"
+        proceedText="Archive"
+        onCancel={() => setDeleteConfirmOpen(false)}
+        onProceed={confirmDeleteTask}
+        proceedButtonColor="warning"
+        proceedButtonVariant="contained"
+        isOpen={deleteConfirmOpen}
+        TitleFontSize={0}
+      />
     </Stack>
   );
 };

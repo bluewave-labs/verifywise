@@ -34,51 +34,14 @@ class DatasetConfig(BaseModel):
     )
 
 
-class ClosedSourceModelConfig(BaseModel):
-    """Configuration for closed source (API-based) models."""
-
-    enabled: bool = Field(
-        default=False, description="Whether to use closed source model"
-    )
-    api_endpoint: Optional[str] = Field(
-        default=None, description="API endpoint for model inference"
-    )
-    api_key_env_var: str = Field(
-        default="MODEL_API_KEY", description="Environment variable name for API key"
-    )
-    timeout_seconds: int = Field(
-        default=30, gt=0, description="Timeout for API calls in seconds"
-    )
-
-
-class HuggingFaceModelConfig(BaseModel):
-    """Configuration for Hugging Face models."""
-
-    enabled: bool = Field(default=True, description="Whether to use Hugging Face model")
-    model_id: str = Field(
-        default="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-        description="Model ID from Hugging Face Hub",
-    )
-    device: str = Field(
-        default="cuda", description="Device to run the model on (cuda or cpu)"
-    )
-    max_new_tokens: int = Field(
-        default=512, gt=0, description="Maximum sequence length for model generation"
-    )
-    temperature: float = Field(
-        default=0.7, gt=0, le=1.0, description="Sampling temperature"
-    )
-    top_p: float = Field(
-        default=0.9, gt=0, le=1.0, description="Top-p sampling parameter"
-    )
-    system_prompt: str = Field(
-        default="You are a helpful AI assistant.",
-        description="System prompt to be prepended to all model inputs",
-    )
-
-
 class ModelConfig(BaseModel):
     """Configuration for model settings."""
+
+    # Provider selection (e.g., 'huggingface', 'openai')
+    provider: str = Field(
+        default="huggingface",
+        description="Inference provider to use (e.g., 'huggingface', 'openai')",
+    )
 
     model_task: str = Field(
         default="binary_classification",
@@ -88,9 +51,29 @@ class ModelConfig(BaseModel):
         default="binary",
         description="Label behavior type for Fairness Compass routing (binary, categorical, continuous)"
     )
-    huggingface: HuggingFaceModelConfig = Field(
-        default_factory=lambda: HuggingFaceModelConfig(),
-        description="Hugging Face model configuration",
+
+    # Unified generation/inference parameters (apply across providers)
+    model_id: str = Field(
+        default="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        description="Model identifier (HF repo id or provider-specific model name)",
+    )
+    device: str = Field(
+        default="cuda", description="Device to run local models on (cuda or cpu)"
+    )
+    max_new_tokens: int = Field(
+        default=512, gt=0, description="Maximum number of tokens to generate"
+    )
+    temperature: float = Field(
+        default=0.7, gt=0, le=1.0, description="Sampling temperature"
+    )
+    top_p: float = Field(
+        default=0.9, gt=0, le=1.0, description="Top-p nucleus sampling parameter"
+    )
+
+    # Optional base URL for OpenAI-compatible or custom endpoints
+    base_url: Optional[str] = Field(
+        default=None,
+        description="Optional base URL for remote OpenAI-compatible providers",
     )
 
 
@@ -155,11 +138,66 @@ class ArtifactsConfig(BaseModel):
     )
 
 
+class PromptingDefaults(BaseModel):
+    """Defaults applied across formatters unless overridden by formatter-specific config."""
+
+    instruction: Optional[str] = Field(
+        default=None, description="Short, reusable task instruction"
+    )
+    system_prompt: Optional[str] = Field(
+        default=None, description="Shared system prompt unless formatter overrides"
+    )
+
+
+class PromptingFormatterOptions(BaseModel):
+    """Per-formatter configuration overrides."""
+
+    system_prompt: Optional[str] = Field(
+        default=None, description="Formatter-specific system prompt"
+    )
+    assistant_preamble: Optional[str] = Field(
+        default=None, description="Optional assistant preamble for certain formatters"
+    )
+
+
+class PromptingConfig(BaseModel):
+    """Configuration for prompt formatting with defaults and per-formatter overrides.
+
+    Backward compatible with the previous flat schema (instruction, system_prompt, assistant_preamble).
+    """
+
+    # New structured fields
+    formatter: str = Field(
+        default="tinyllama-chat", description="Name of prompt formatter to use"
+    )
+    defaults: PromptingDefaults = Field(
+        default_factory=PromptingDefaults,
+        description="Defaults shared across formatters",
+    )
+    formatters: Dict[str, PromptingFormatterOptions] = Field(
+        default_factory=dict, description="Per-formatter overrides"
+    )
+
+    # Legacy flat fields for backward compatibility with existing code paths
+    system_prompt: Optional[str] = Field(
+        default=None,
+        description="[Legacy] System prompt; computed from defaults/formatter if not set",
+    )
+    instruction: Optional[str] = Field(
+        default=None, description="[Legacy] Instruction; maps to defaults.instruction"
+    )
+    assistant_preamble: Optional[str] = Field(
+        default=None,
+        description="[Legacy] Assistant preamble; from selected formatter options if present",
+    )
+
+
 class Config(BaseModel):
     """Main configuration class that includes all sub-configurations."""
 
     dataset: DatasetConfig
     model: ModelConfig
+    prompting: PromptingConfig
     metrics: MetricsConfig
     post_processing: PostProcessingConfig
     artifacts: ArtifactsConfig
@@ -235,6 +273,14 @@ class ConfigManager:
             ArtifactsConfig: The artifacts configuration containing output paths.
         """
         return self.config.artifacts
+
+    def get_prompting_config(self) -> PromptingConfig:
+        """Get the prompting configuration.
+
+        Returns:
+            PromptingConfig: The prompt input and formatter configuration.
+        """
+        return self.config.prompting
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

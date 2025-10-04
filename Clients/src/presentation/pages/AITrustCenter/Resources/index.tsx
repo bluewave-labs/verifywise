@@ -11,8 +11,8 @@ import {
   Stack,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-white.svg"
+import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-white.svg"
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import Toggle from "../../../components/Inputs/Toggle";
@@ -62,19 +62,23 @@ const ResourceTableRow: React.FC<{
   const theme = useTheme();
   const styles = useStyles(theme);
 
+  const handleRowClick = () => {
+    onEdit(resource.id);
+  };
+
   return (
     <>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
-      <TableCell>
+      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer" , textTransform: "none !important",}}>
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
       </TableCell>
       <TableCell>
         {resource.visible ? (
-          <VisibilityIcon sx={styles.visibilityIcon} />
+          <VisibilityIcon style={styles.visibilityIcon as React.CSSProperties} />
         ) : (
-          <VisibilityOffIcon sx={styles.visibilityOffIcon} />
+          <VisibilityOffIcon style={styles.visibilityOffIcon as React.CSSProperties} />
         )}
       </TableCell>
       <TableCell>
@@ -520,7 +524,7 @@ const TrustCenterResources: React.FC = () => {
             data={resources || []}
             columns={TABLE_COLUMNS}
             isLoading={resourcesLoading}
-            paginated={false}
+            paginated={true}
             disabled={!formData?.info?.resources_visible}
             emptyStateText="No resources found. Add your first resource to get started."
             renderRow={(resource) => (

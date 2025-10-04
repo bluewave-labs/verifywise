@@ -2,16 +2,27 @@ import { Request, Response } from "express";
 import { getTiersFeaturesQuery } from "../utils/tiers.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
+import {
+  validateTierIdParam
+} from "../utils/validations/tiersValidation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 async function getTiersFeatures(req: Request, res: Response) {
-    logStructured("processing", "Fetching tiers features", "getTiersFeatures", "tiers.ctrl.ts");
-    logger.debug('🔍 Fetching tiers features');
     const tierId = parseInt(req.params.id);
 
-    if (!Number.isInteger(tierId) || tierId < 1 || tierId > 4) {
-        logStructured("error", `Invalid tier id: ${req.params.id}`, "getTiersFeatures", "tiers.ctrl.ts");
-        return res.status(400).json(STATUS_CODE[400]({ message: 'Invalid tier id' }));
+    // Validate tier ID parameter
+    const tierIdValidation = validateTierIdParam(tierId);
+    if (!tierIdValidation.isValid) {
+        logStructured("error", `Invalid tier ID parameter: ${req.params.id}`, "getTiersFeatures", "tiers.ctrl.ts");
+        return res.status(400).json({
+            status: 'error',
+            message: tierIdValidation.message || 'Invalid tier ID',
+            code: tierIdValidation.code || 'INVALID_PARAMETER'
+        });
     }
+
+    logStructured("processing", "Fetching tiers features", "getTiersFeatures", "tiers.ctrl.ts");
+    logger.debug('🔍 Fetching tiers features');
 
     try {
         const tiersFeatures = await getTiersFeaturesQuery(tierId);

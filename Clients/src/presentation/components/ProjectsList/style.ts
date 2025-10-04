@@ -1,7 +1,9 @@
 // style.ts
 import { SxProps, Theme } from "@mui/material";
 
-export const searchBoxStyle = (isSearchBarVisible: boolean): SxProps<Theme> => ({
+export const searchBoxStyle = (
+  isSearchBarVisible: boolean
+): SxProps<Theme> => ({
   display: "flex",
   alignItems: "center",
   border: "1px solid #eaecf0",
@@ -30,14 +32,22 @@ export const projectWrapperStyle = (count: number): SxProps<Theme> => ({
   width: count === 1 ? "50%" : "100%",
   display: "flex",
   flexDirection: "row",
-  flexWrap: count < 4 ? "nowrap" : "wrap",
-  justifyContent: "space-between",
-  alignItems: "center",
+  flexWrap: count <= 3 ? "nowrap" : "wrap",
+  justifyContent: count <= 3 ? "space-between" : "flex-start",
+  alignItems: "stretch",
   gap: 2.5, // using theme spacing
 });
 
 export const vwhomeBodyProjectsGrid: SxProps<Theme> = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+  gridTemplateColumns: {
+    xs: "1fr",
+    sm: "repeat(2, 1fr)",
+    md: "repeat(3, 1fr)",
+    lg: "repeat(4, 1fr)",
+    xl: "repeat(4, 1fr)",
+  },
   gap: 2.5,
+  width: "100%",
+  gridAutoRows: "auto",
 };

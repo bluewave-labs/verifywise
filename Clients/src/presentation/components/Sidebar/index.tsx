@@ -55,8 +55,8 @@ import useLogout from "../../../application/hooks/useLogout";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
-import { TaskStatus } from "../../../domain/interfaces/i.task";
 import { getAllTasks } from "../../../application/repository/task.repository";
+import { TaskStatus } from "../../../domain/enums/task.enum";
 
 interface MenuItem {
   name: string;

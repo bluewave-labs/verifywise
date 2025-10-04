@@ -36,11 +36,12 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         start_date timestamp with time zone NOT NULL,
         ai_risk_classification enum_projects_ai_risk_classification,
         type_of_high_risk_role enum_projects_type_of_high_risk_role,
-        goal character varying(255),
+        goal character varying(255) NOT NULL,
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
         is_demo boolean NOT NULL DEFAULT false,
         is_organizational boolean NOT NULL DEFAULT false,
+        status projects_status_enum NOT NULL DEFAULT 'Not started',
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)
@@ -663,6 +664,11 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         security_assessment BOOLEAN NOT NULL DEFAULT false,
         status enum_model_inventories_status NOT NULL DEFAULT 'Pending'::enum_model_inventories_status,
         status_date TIMESTAMP WITH TIME ZONE NOT NULL,
+        reference_link VARCHAR(255) NOT NULL,
+        biases VARCHAR(255) NOT NULL,
+        limitations VARCHAR(255) NOT NULL,
+        hosting_provider VARCHAR(255) NOT NULL,
+        used_in_projects TEXT NOT NULL,
         is_demo BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -671,6 +677,27 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         CONSTRAINT fk_model_inventories_approver FOREIGN KEY (approver)
           REFERENCES public.users (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE SET NULL
+      );`, { transaction });
+
+    await sequelize.query(`
+      CREATE TABLE "${tenantHash}".model_risks (
+        id SERIAL PRIMARY KEY,
+        risk_name VARCHAR(255) NOT NULL,
+        risk_category enum_model_risks_risk_category NOT NULL,
+        risk_level enum_model_risks_risk_level NOT NULL,
+        status enum_model_risks_status NOT NULL DEFAULT 'Open',
+        owner INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        target_date TIMESTAMP NOT NULL,
+        description TEXT,
+        mitigation_plan TEXT,
+        impact TEXT,
+        likelihood VARCHAR(255),
+        key_metrics TEXT,
+        current_values TEXT,
+        threshold VARCHAR(255),
+        model_id INTEGER REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       );`, { transaction });
 
     // Create task ENUM types if they don't exist

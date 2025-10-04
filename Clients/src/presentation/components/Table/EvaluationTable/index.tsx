@@ -11,15 +11,19 @@ import {
     Box
   } from "@mui/material";
   import { Suspense, lazy, useMemo, useState, useCallback } from "react";
-  // import TablePaginationActions from "../../TablePagination";
+  import TablePaginationActions from "../../TablePagination";
   import TableHeader from "../TableHead";
   import placeholderImage from "../../../assets/imgs/empty-state.svg";
+  import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
   import {
+    emptyData,
     paginationStatus,
     paginationStyle,
-    emptyData
+    paginationDropdown,
+    paginationSelect
   } from "./styles";
   import singleTheme from '../../../themes/v1SingleTheme';
+  import { getPaginationRowCount, setPaginationRowCount } from '../../../../application/utils/paginationStorage';
   
   const EvaluationTableBody = lazy(() => import("./TableBody"));
   
@@ -49,7 +53,9 @@ import {
     setCurrentPagingation,
     onShowDetails
   }) => {
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(() => 
+      getPaginationRowCount('evaluation', 10)
+    );
 
     const theme = useTheme();
   
@@ -65,7 +71,9 @@ import {
   
     const handleChangeRowsPerPage = useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
+        const newRowsPerPage = parseInt(event.target.value, 10);
+        setRowsPerPage(newRowsPerPage);
+        setPaginationRowCount('evaluation', newRowsPerPage);
         setCurrentPagingation(0);
       },
       [setRowsPerPage, setCurrentPagingation]
@@ -92,19 +100,39 @@ import {
                                     paddingX: theme.spacing(8),
                                     paddingY: theme.spacing(4),
                                     }}}>
-                            <TableCell sx={paginationStatus} color="text.secondary">
-                            Showing {getRange} of {rows.length} rows
+                            <TableCell sx={paginationStatus(theme)}>
+                              Showing {getRange} of {rows?.length} evaluation{rows?.length !== 1 ? "s" : ""}
                             </TableCell>
                             <TablePagination
-                            count={rows.length}
-                            page={page}
-                            onPageChange={handleChangePage}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                            // ActionsComponent={TablePaginationActions}
-                            sx={paginationStyle}
-                            labelRowsPerPage="Rows per page:"
-                            labelDisplayedRows={() => `${getRange} of ${rows.length}`}
+                              count={rows.length}
+                              page={page}
+                              onPageChange={handleChangePage}
+                              rowsPerPage={rowsPerPage}
+                              rowsPerPageOptions={[5, 10, 15, 20, 25]}
+                              onRowsPerPageChange={handleChangeRowsPerPage}
+                              ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                              labelRowsPerPage="Evaluations per page"
+                              labelDisplayedRows={({ page, count }) =>
+                                `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+                              }
+                              sx={paginationStyle(theme)}
+                              slotProps={{
+                                select: {
+                                  MenuProps: {
+                                    keepMounted: true,
+                                    PaperProps: {
+                                      className: "pagination-dropdown",
+                                      sx: paginationDropdown(theme),
+                                    },
+                                    transformOrigin: { vertical: "bottom", horizontal: "left" },
+                                    anchorOrigin: { vertical: "top", horizontal: "left" },
+                                    sx: { mt: theme.spacing(-2) },
+                                  },
+                                  inputProps: { id: "pagination-dropdown" },
+                                  IconComponent: SelectorVertical,
+                                  sx: paginationSelect(theme),
+                                },
+                              }}
                             />
                             </TableRow>
                         </TableFooter>

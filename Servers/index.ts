@@ -38,6 +38,7 @@ import tiersRoutes from "./routes/tiers.route";
 import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
+import slackWebhookRoutes from "./routes/slackWebhook.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
@@ -67,7 +68,7 @@ try {
   // })();
 
   const allowedOrigins = parseOrigins(
-    process.env.ALLOWED_ORIGINS || frontEndUrl
+    process.env.ALLOWED_ORIGINS || frontEndUrl,
   );
 
   app.use(
@@ -77,7 +78,7 @@ try {
       },
       credentials: true,
       allowedHeaders: ["Authorization", "Content-Type", "X-Requested-With"],
-    })
+    }),
   );
   app.use(helmet()); // Use helmet for security headers
   app.use((req, res, next) => {
@@ -97,21 +98,21 @@ try {
   app.use("/api/questions", questionRoutes);
   app.use("/api/autoDrivers", autoDriverRoutes);
   app.use("/api/assessments", assessmentRoutes);
-  app.use("/api/controls", controlRoutes);
+  // app.use("/api/controls", controlRoutes);
   app.use("/api/projectRisks", risksRoutes);
-  app.use("/api/projectScopes", projectScopeRoutes);
-  app.use("/api/subcontrols", subcontrolRoutes);
-  app.use("/api/subtopics", subtopicRoutes);
-  app.use("/api/topics", topicRoutes);
+  // app.use("/api/projectScopes", projectScopeRoutes);
+  // app.use("/api/subcontrols", subcontrolRoutes);
+  // app.use("/api/subtopics", subtopicRoutes);
+  // app.use("/api/topics", topicRoutes);
   app.use("/api/roles", roleRoutes);
   app.use("/api/files", fileRoutes);
   app.use("/api/mail", mailRoutes);
-  app.use("/api/controlCategory", controlCategory);
+  // app.use("/api/controlCategory", controlCategory);
   app.use("/api/frameworks", frameworks);
-  app.use("/api/eu-ai-act", euRouter);
+  app.use("/api/eu-ai-act", euRouter); // **
   app.use("/api/organizations", organizationRoutes);
-  app.use("/api/iso-42001", isoRoutes);
-  app.use("/api/iso-27001", iso27001Routes);
+  app.use("/api/iso-42001", isoRoutes); // **
+  app.use("/api/iso-27001", iso27001Routes); // **
   app.use("/api/training", trainingRoutes);
   app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
@@ -125,6 +126,7 @@ try {
   app.use("/api/tasks", taskRoutes);
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
+  app.use("/api/slackWebhooks", slackWebhookRoutes);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

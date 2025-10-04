@@ -35,6 +35,10 @@ import {
   logProcessing,
   logSuccess,
 } from "../utils/logger/logHelper";
+import {
+  validateAssessmentIdParam,
+  validateProjectIdParam
+} from '../utils/validations/assessmentValidation.utils';
 
 export async function getAllAssessments(
   req: Request,
@@ -77,6 +81,24 @@ export async function getAssessmentById(
   res: Response
 ): Promise<any> {
   const assessmentId = parseInt(req.params.id);
+
+  // Validate assessment ID parameter
+  const assessmentIdValidation = validateAssessmentIdParam(assessmentId);
+  if (!assessmentIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid assessment ID parameter: ${req.params.id}`,
+      functionName: "getAssessmentById",
+      fileName: "assessment.ctrl.ts",
+      error: new Error(assessmentIdValidation.message || 'Invalid assessment ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: assessmentIdValidation.message || 'Invalid assessment ID',
+      code: assessmentIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getAssessmentById for ID ${assessmentId}`,
     functionName: "getAssessmentById",
@@ -326,6 +348,24 @@ export async function deleteAssessmentById(
 
 export async function getAnswers(req: Request, res: Response): Promise<any> {
   const assessmentId = parseInt(req.params.id);
+
+  // Validate assessment ID parameter
+  const assessmentIdValidation = validateAssessmentIdParam(assessmentId);
+  if (!assessmentIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid assessment ID parameter: ${req.params.id}`,
+      functionName: "getAnswers",
+      fileName: "assessment.ctrl.ts",
+      error: new Error(assessmentIdValidation.message || 'Invalid assessment ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: assessmentIdValidation.message || 'Invalid assessment ID',
+      code: assessmentIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getAnswers for assessment ID ${assessmentId}`,
     functionName: "getAnswers",
@@ -385,6 +425,24 @@ export async function getAssessmentByProjectId(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id);
+
+  // Validate project ID parameter
+  const projectIdValidation = validateProjectIdParam(projectId);
+  if (!projectIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project ID parameter: ${req.params.id}`,
+      functionName: "getAssessmentByProjectId",
+      fileName: "assessment.ctrl.ts",
+      error: new Error(projectIdValidation.message || 'Invalid project ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectIdValidation.message || 'Invalid project ID',
+      code: projectIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
   logProcessing({
     description: `starting getAssessmentByProjectId for project ID ${projectId}`,
     functionName: "getAssessmentByProjectId",

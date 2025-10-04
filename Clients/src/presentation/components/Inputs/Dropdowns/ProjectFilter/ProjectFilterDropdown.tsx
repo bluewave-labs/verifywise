@@ -58,7 +58,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
           }}
         >     
           {projects.length > 0 ? 
-            <MenuItem value="all">All projects</MenuItem> : 
+            <MenuItem value="all">All</MenuItem> : 
             <MenuItem value="all">No project available</MenuItem>
           }
           {projects.map((project) => (

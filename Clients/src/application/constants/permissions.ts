@@ -41,6 +41,10 @@ const allowedRoles = {
     edit: ["Admin", "Editor"],
     delete: ["Admin", "Editor"],
   },
+  slack: {
+    view: ["Admin"],
+    manage: ["Admin"],
+  },
 };
 
 export default allowedRoles;

@@ -3,6 +3,40 @@ from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 from datasets import Dataset, load_dataset
 from sklearn.datasets import fetch_openml
+import numpy as np
+
+
+def _normalize_key(name: str) -> str:
+    """
+    Normalize a column name by replacing periods and hyphens with underscores.
+
+    Args:
+        name (str): Original column name
+
+    Returns:
+        str: Normalized column name
+    """
+    return name.replace(".", "_").replace("-", "_")
+
+
+def _normalize_value(value: Any) -> Any:
+    """
+    Normalize a value for serialization/prompting.
+
+    - Convert NumPy scalar types to native Python types
+    - Strip whitespace from strings
+
+    Args:
+        value (Any): Original value
+
+    Returns:
+        Any: Normalized value
+    """
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, str):
+        return value.strip()
+    return value
 
 
 class DataLoader:
@@ -47,8 +81,6 @@ class DataLoader:
             if isinstance(dataset, Dataset):
                 # Convert to pandas DataFrame
                 self.data = pd.DataFrame(dataset)
-                # Replace "?" values with "unknown"
-                self.data = self.data.replace("?", "Unknown")
             else:
                 raise ValueError("Expected a Dataset object from Huggingface")
         elif self.dataset_config.platform.lower() == "scikit-learn":
@@ -61,6 +93,13 @@ class DataLoader:
                 raise ValueError(f"Unknown scikit-learn dataset: {self.dataset_config.source}")
         else:
             raise ValueError(f"Unsupported platform: {self.dataset_config.platform}")
+
+        # Replace ambiguous values consistently across all platforms
+        if isinstance(self.data, pd.DataFrame):
+            self.data = self.data.replace("?", "Unknown")
+
+        # Drop non-predictive columns if present across platforms
+        self._drop_unused_columns()
 
         # Apply sampling if enabled
         if hasattr(self.dataset_config, "sampling") and getattr(
@@ -77,57 +116,69 @@ class DataLoader:
 
         return self.data
 
-    def _format_single_prompt(
-        self, row: pd.Series, include_answer: bool = False
-    ) -> str:
+    def _drop_unused_columns(self) -> None:
         """
-        Format a single row of data into a prompt string.
+        Remove columns that are not useful for prediction regardless of source.
+        Matches on normalized column names to handle hyphens/periods variations.
+        """
+        if self.data is None or not isinstance(self.data, pd.DataFrame):
+            return
+        columns_to_remove = {"fnlwgt", "education_num"}
+        columns_to_drop = [
+            column_name
+            for column_name in self.data.columns
+            if _normalize_key(column_name) in columns_to_remove
+        ]
+        if columns_to_drop:
+            self.data = self.data.drop(columns=columns_to_drop)
+
+    def _format_single_feature(
+        self, row: pd.Series, include_answer: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Convert a single row of data into a features dictionary for prompting.
 
         Args:
             row (pd.Series): A single row from the dataset
-            include_answer (bool): Whether to include the target
-            column value as answer
+            include_answer (bool): If True, include ground truth answer in features
 
         Returns:
-            str: Formatted prompt string
+            Dict[str, Any]: Feature dictionary with column names underscore-normalized
         """
         # Get all columns except the target column
         feature_columns = [
             col for col in self.data.columns if col != self.dataset_config.target_column
         ]
 
-        # Create the demographic information string
-        demographic_info = "\n".join(
-            [
-                f"- {col.replace('_', ' ').title()}: {row[col]}"
-                for col in feature_columns
-            ]
-        )
+        # Normalize keys (convert periods and hyphens to underscores) and map values
+        features: Dict[str, Any] = {}
+        for col in feature_columns:
+            key = _normalize_key(col)
+            value = _normalize_value(row[col])
+            features[key] = value
 
-        prompt = f"""Given the following demographic information about a person:\n{demographic_info}
-        \nBased ONLY on the information provided, predict whether their income is '>50K' or '<=50K'. Respond with only the string '>50K' or '<=50K'."""
-
+        # Optionally include the ground truth answer inside features
         if include_answer:
-            answer = row[self.dataset_config.target_column]
-            prompt += f"\nAnswer: {answer}"
+            target_key = _normalize_key(self.dataset_config.target_column)
+            features[target_key] = _normalize_value(row[self.dataset_config.target_column])
 
-        return prompt
+        return features
 
-    def get_sample_prompts(
+    def get_sample_features(
         self, indices: Union[int, List[int]], include_answer: bool = False
-    ) -> Union[str, List[str]]:
+    ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
-        Get formatted prompts for one or more rows by their indices.
+        Get feature dictionaries for one or more rows by their indices.
 
         Args:
             indices (Union[int, List[int]]): Single index or list of
-                                             indices to get prompts for
+                                             indices to get features for
             include_answer (bool): Whether to include the target column
                                    value as answer
 
         Returns:
-            Union[str, List[str]]: Single prompt string if indices is int,
-                                   list of prompt strings if indices is list
+            Union[Dict[str, Any], List[Dict[str, Any]]]: Single features dict if
+                                   indices is int, list of features dicts if list
 
         Raises:
             ValueError: If data hasn't been loaded yet or if indices are out
@@ -150,14 +201,14 @@ class DataLoader:
                 f"{len(self.data)-1}"
             )
 
-        # Generate prompts for all requested indices
-        prompts = [
-            self._format_single_prompt(self.data.iloc[idx], include_answer)
+        # Generate feature dicts for all requested indices
+        items = [
+            self._format_single_feature(self.data.iloc[idx], include_answer)
             for idx in indices
         ]
 
-        # Return single string if input was single index, list otherwise
-        return prompts[0] if return_single else prompts
+        # Return single dict if input was single index, list otherwise
+        return items[0] if return_single else items
 
     def _extract_protected_attributes(self, row: pd.Series) -> Dict[str, Any]:
         """
@@ -171,11 +222,11 @@ class DataLoader:
         """
         return {attr: row[attr] for attr in self.dataset_config.protected_attributes}
 
-    def generate_prompts_and_metadata(
+    def generate_features_and_metadata(
         self, batch_size: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
-        Generate a list of sample dictionaries containing prompts and answers.
+        Generate a list of sample dictionaries containing features and answers.
 
         Args:
             batch_size (Optional[int]): If provided, return samples in batches
@@ -185,7 +236,7 @@ class DataLoader:
             If batch_size is None:
                 List[Dict]: List of dictionaries with keys:
                 - sample_id: Index of the row
-                - prompt: Formatted prompt for the row
+                - features: Features dictionary for the row
                 - answer: Target column value for the row
                 - protected_attributes: Dictionary of protected attribute values
             If batch_size is provided:
@@ -205,7 +256,7 @@ class DataLoader:
             row = self.data.iloc[idx]
             sample = {
                 "sample_id": idx,
-                "prompt": self._format_single_prompt(row),
+                "features": self._format_single_feature(row),
                 "answer": row[self.dataset_config.target_column],
                 "protected_attributes": self._extract_protected_attributes(row),
             }

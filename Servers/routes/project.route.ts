@@ -16,6 +16,7 @@ import {
   projectComplianceProgress,
   // saveControls,
   updateProjectById,
+  updateProjectStatus,
 } from "../controllers/project.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
@@ -65,6 +66,7 @@ router.post("/", authenticateJWT, createProject);
 
 // Patches
 router.patch("/:id", authenticateJWT, updateProjectById);
+router.patch("/:id/status", authenticateJWT, updateProjectStatus);
 
 // DELETEs
 router.delete("/:id", authenticateJWT, deleteProjectById);

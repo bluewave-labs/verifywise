@@ -4,31 +4,32 @@ import React from "react";
 import { getSeverityColorByText, getRiskChipStyle } from "./constants";
 
 interface RiskChipProps {
-  label: string;
+  label?: string;
 }
 
 const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
+  // Return chip if label is provided
+  if (label) {
+    const normalizedLabel = label?.toLowerCase().trim() ?? '';
+    const backgroundColor = useMemo(
+      () => getSeverityColorByText(normalizedLabel),
+      [normalizedLabel]
+    );
 
-  if (!label) {
-    return <span>-</span>;
+    return (
+      <Chip
+        label={label}
+        size="small"
+        sx={{
+          ...getRiskChipStyle(),
+          backgroundColor,
+        }}
+      />
+    );
   }
-  const normalizedLabel = label?.toLowerCase().trim() ?? '';
 
-  const backgroundColor = useMemo(
-    () => getSeverityColorByText(normalizedLabel),
-    [normalizedLabel]
-  );
-
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        ...getRiskChipStyle(),
-        backgroundColor,
-      }}
-    />
-  );
+  // Fallback for no label
+  return <span>-</span>;
 });
 
 export default RiskChip; 

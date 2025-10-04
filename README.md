@@ -1,5 +1,4 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bluewave-labs/verifywise)
-![](https://img.shields.io/github/license/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/repo-size/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/commit-activity/m/bluewave-labs/verifywise)
 ![](https://img.shields.io/github/last-commit/bluewave-labs/verifywise)
@@ -9,7 +8,7 @@
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 
-[VerifyWise](https://verifywise.ai) is an open-source AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
 
 We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
 
@@ -24,10 +23,8 @@ VerifyWise also has additional products for end-to-end AI governance and managem
 ## Quick links
 
 - The designs and workflows are [available for everyone](https://www.figma.com/design/o4xu4PeC5bo1Ii4dyom6vQ/VerifyWise?node-id=0-1&t=Ty2Jh4S8QgHGrqon-1). This link includes 2 pages: dashboard designs and the style guide.
-- The [VerifyWise presentation](https://pitch.com/v/verifywise-democratizing-ai-governance-zhxvh6), including terminology, why we started this project, technology, and roadmap
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
-- [Need to talk to someone](https://tidycal.com/verifywise/info-session)? Get with us to see the latest demo, or [click here](https://verifywise.ai/see-a-demo-of-verifywise/) to experience the demo yourself.
-- If you are looking for the FlagWise, the Shadow AI detection tool, [check this repository](https://github.com/bluewave-labs/flagwise).
+- [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
 
 ## Screenshot
 
@@ -67,7 +64,7 @@ VerifyWise is designed for:
   - Vendors & vendor risks
   - AI project risks
   - Tasks
-  - Bias & fairness check of ML systems (LLM models in the works)
+  - Bias & fairness check of LLM systems
   - Evidence center
   - AI trust center for public view
   - AI literacy training registery
@@ -83,7 +80,6 @@ VerifyWise is designed for:
 
 - More frameworks (eg. SOC2 and other AI regulatory frameworks)
 - Mappings between frameworks
-- Bias & fairness check of LLM models
 - Automated reports
 - Integration with 3rd party platforms
 - Slack notifications

@@ -24,7 +24,7 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import GroupsIcon from "@mui/icons-material/Groups";
+import {ReactComponent as GroupsIcon} from "../../../assets/icons/group.svg";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
@@ -443,7 +443,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                   "& .MuiSelect-select": {
                                     fontSize: "13px",
                                     fontFamily: "Inter, sans-serif",
-                                    padding: "4px 8px",
+                                    padding: "0",
                                   },
                                 }}
                                 disabled={member.id === userId}

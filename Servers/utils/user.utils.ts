@@ -134,7 +134,7 @@ export const getUserByEmailQuery = async (
  *   });
  * ```
  */
-export const getUserByIdQuery = async (id: number): Promise<UserModel | null> => {
+export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
   const [userObj] = await sequelize.query<any>(
     "SELECT * FROM public.users WHERE id = :id",
     {
@@ -144,7 +144,7 @@ export const getUserByIdQuery = async (id: number): Promise<UserModel | null> =>
   );
 
   if (!userObj) {
-    return null;
+    throw new Error(`User not found with ID: ${id}`);
   }
 
   // Convert plain object to UserModel instance

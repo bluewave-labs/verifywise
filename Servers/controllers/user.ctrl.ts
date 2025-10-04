@@ -613,7 +613,6 @@ async function updateUserById(req: Request, res: Response) {
   const roleId = roleIdRaw ? parseInt(roleIdRaw) : undefined;
 
   logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-  logger.debug(`✏️ Update requested for user ID ${id}`);
 
   try {
     // Validate user ID parameter
@@ -983,7 +982,11 @@ async function ChangePassword(req: Request, res: Response) {
 async function updateUserRole(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const { id } = req.params;
-  const { newRoleId } = req.body;
+  const { newRoleId: newRoleIdRaw } = req.body;
+
+  // Normalize newRoleId from the request payload (frontend may send as string)
+  const newRoleId = typeof newRoleIdRaw === "string" ? parseInt(newRoleIdRaw, 10) : newRoleIdRaw;
+
   const currentUserId = (req as any).user?.id;
   const currentUserRoleId = (req as any).user?.role_id;
 

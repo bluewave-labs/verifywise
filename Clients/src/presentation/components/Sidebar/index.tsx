@@ -21,28 +21,28 @@ import { useTheme } from "@mui/material";
 import React, { useContext, useState, useEffect } from "react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 
-import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
-import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
-import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
-import { ReactComponent as Tasks } from "../../assets/icons/flag-grey.svg";
-import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
-import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
-import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
-import { ReactComponent as RiskManagementIcon } from "../../assets/icons/warning-triangle.svg";
-
-import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
-import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
-import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
-import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon.svg";
-import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
-import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
-import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
-import { ReactComponent as Policies } from "../../assets/icons/policies.svg";
-
-/**Adding the training register icon */
-import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
-import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
-import { ReactComponent as ModelInventory } from "../../assets/icons/list.svg";
+// Lucide Icons
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Flag,
+  MoreVertical,
+  LogOut,
+  BarChart3,
+  AlertTriangle,
+  Building,
+  Settings,
+  FileText,
+  Scale,
+  MessageCircle,
+  MessageSquare,
+  Brain,
+  Shield,
+  GraduationCap,
+  Telescope,
+  List,
+} from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -80,7 +80,7 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
     items: [
       {
         name: "Dashboard",
-        icon: <Dashboard />,
+        icon: <Home size={16} strokeWidth={1.5} />,
         path: "/",
         children: [
           {
@@ -96,12 +96,12 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
       },
       {
         name: "Model Inventory",
-        icon: <ModelInventory />,
+        icon: <List size={16} strokeWidth={1.5} />,
         path: "/model-inventory",
       },
       {
         name: "AI Trust Center",
-        icon: <AITrustCenter />,
+        icon: <Brain size={16} strokeWidth={1.5} />,
         path: "/ai-trust-center",
       },
     ],
@@ -111,12 +111,12 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
     items: [
       {
         name: "Risk Management",
-        icon: <RiskManagementIcon />,
+        icon: <AlertTriangle size={16} strokeWidth={1.5} />,
         path: "/risk-management",
       },
       {
         name: "Bias & Fairness",
-        icon: <FairnessIcon />,
+        icon: <Scale size={16} strokeWidth={1.5} />,
         path: "/fairness-dashboard",
       },
       {
@@ -135,19 +135,19 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
               },
             }}
           >
-            <Tasks />
+            <Flag size={16} strokeWidth={1.5} />
           </Badge>
         ),
         path: "/tasks",
       },
       {
         name: "Evidence",
-        icon: <FileManager />,
+        icon: <FileText size={16} strokeWidth={1.5} />,
         path: "/file-manager",
       },
       {
         name: "Reporting",
-        icon: <ReportingSvg />,
+        icon: <BarChart3 size={16} strokeWidth={1.5} />,
         path: "/reporting",
       },
     ],
@@ -157,17 +157,17 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
     items: [
       {
         name: "Policy Manager",
-        icon: <Policies />,
+        icon: <Shield size={16} strokeWidth={1.5} />,
         path: "/policies",
       },
       {
         name: "Training Registry",
-        icon: <TrainingRegister />,
+        icon: <GraduationCap size={16} strokeWidth={1.5} />,
         path: "/training",
       },
       {
         name: "Vendors",
-        icon: <Vendors style={{}} />,
+        icon: <Building size={16} strokeWidth={1.5} />,
         path: "/vendors",
       },
     ],
@@ -177,12 +177,12 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
 const other: MenuItem[] = [
   {
     name: "Event Tracker",
-    icon: <WatchTower />,
+    icon: <Telescope size={16} strokeWidth={1.5} />,
     path: "/event-tracker",
   },
   {
     name: "Settings",
-    icon: <Settings />,
+    icon: <Settings size={16} strokeWidth={1.5} />,
     path: "/setting",
   },
 ];
@@ -374,7 +374,7 @@ const Sidebar = () => {
           dispatch(toggleSidebar());
         }}
       >
-        {collapsed ? <ArrowRight /> : <ArrowLeft />}
+        {collapsed ? <ChevronRight size={16} strokeWidth={1.5} /> : <ChevronLeft size={16} strokeWidth={1.5} />}
       </IconButton>
       {/* menu */}
       <List
@@ -481,10 +481,6 @@ const Sidebar = () => {
                         justifyContent: "flex-start",
                         width: "16px",
                         mr: 0,
-                        "& svg": {
-                          width: "16px",
-                          height: "16px",
-                        },
                       }}
                     >
                       {item.icon}
@@ -585,10 +581,6 @@ const Sidebar = () => {
                       justifyContent: "flex-start",
                       width: "16px",
                       mr: 0,
-                      "& svg": {
-                        width: "16px",
-                        height: "16px",
-                      },
                     }}
                   >
                     {item.icon}
@@ -748,10 +740,6 @@ const Sidebar = () => {
                     justifyContent: "flex-start",
                     width: "16px",
                     mr: 0,
-                    "& svg": {
-                      width: "16px",
-                      height: "16px",
-                    },
                   }}
                 >
                   {item.icon}
@@ -837,10 +825,6 @@ const Sidebar = () => {
                   justifyContent: "flex-start",
                   width: "16px",
                   mr: 0,
-                  "& svg": {
-                    width: "16px",
-                    height: "16px",
-                  },
                 }}
               >
                 {item.icon}
@@ -949,7 +933,7 @@ const Sidebar = () => {
                 }}
                 onClick={(event) => openPopup(event, "logout")}
               >
-                <DotsVertical />
+                <MoreVertical size={16} strokeWidth={1.5} />
               </IconButton>
             </Tooltip>
           </>
@@ -1028,7 +1012,7 @@ const Sidebar = () => {
               },
             }}
           >
-            <Feedback />
+            <MessageCircle size={16} strokeWidth={1.5} />
             Feedback
           </MenuItem>
           <MenuItem
@@ -1058,7 +1042,7 @@ const Sidebar = () => {
               },
             }}
           >
-            <Discord />
+            <MessageSquare size={16} strokeWidth={1.5} />
             Ask on Discord
           </MenuItem>
           <MenuItem
@@ -1081,7 +1065,7 @@ const Sidebar = () => {
               },
             }}
           >
-            <LogoutSvg />
+            <LogOut size={16} strokeWidth={1.5} />
             Log out
           </MenuItem>
         </Menu>

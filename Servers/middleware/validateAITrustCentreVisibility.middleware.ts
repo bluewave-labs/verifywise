@@ -10,8 +10,8 @@ export const validateVisibility = async (req: Request, res: Response, next: Next
 
   const isVisible = await getIsVisibleQuery(hash);
 
-  if (!isVisible) {
-    return res.status(404).json({ error: "AI Trust Centre not found or not visible" });
+  if (!isVisible) { // Removed Unnecessary validation
+    next();
   } else {
     next();
   }

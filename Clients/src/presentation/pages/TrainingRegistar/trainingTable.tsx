@@ -171,23 +171,47 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   e.stopPropagation();
                   onEdit?.(training.id.toString());
                 }}
-              >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+              > 
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.training_name}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.duration}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.provider}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   {training.department}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   <StatusBadge status={training.status} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   {training.people}
                 </TableCell>
                 <TableCell

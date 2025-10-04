@@ -108,5 +108,15 @@ export function checkStringValidation(
     }
   }
 
+  // Custom validation for vendor contact person
+  if (type === "contactPerson") {
+    if (!/^[a-zA-Z\s]+$/.test(value.trim())) {
+      return feedbackToString(
+        false,
+        `${title} must only contain letters and spaces`
+      );
+    }
+  }
+
   return feedbackToString(true, "Success");
 }

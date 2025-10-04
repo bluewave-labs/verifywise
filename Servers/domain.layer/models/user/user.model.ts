@@ -115,6 +115,12 @@ export class UserModel extends Model<UserModel> {
   })
   organization_id?: number;
 
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  notes?: string;
+
   /**
    * Creates a new user with validation and password hashing
    *

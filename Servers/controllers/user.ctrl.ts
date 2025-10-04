@@ -605,7 +605,7 @@ async function resetPassword(req: Request, res: Response) {
 async function updateUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const id = parseInt(req.params.id);
-  const { name, surname, email, roleId, last_login } = req.body;
+  const { name, surname, email, roleId, last_login, notes } = req.body;
 
   logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
   logger.debug(`✏️ Update requested for user ID ${id}`);
@@ -652,6 +652,7 @@ async function updateUserById(req: Request, res: Response) {
           surname: user.surname,
           last_login: last_login ?? user.last_login,
           role_id: roleId ?? user.role_id,
+          notes: notes !== undefined ? notes : user.notes,
         },
         transaction
       )) as UserModel;

@@ -8,7 +8,6 @@ import {
   Switch,
   FormControlLabel,
   IconButton,
-  Button,
   useTheme,
   Tooltip,
   Menu,
@@ -20,7 +19,6 @@ import {
   Edit as EditIcon,
   Visibility as ViewIcon,
   DragIndicator as DragIcon,
-  Add as AddIcon,
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
   Download as DownloadIcon,
@@ -154,7 +152,7 @@ const DashboardContent: React.FC = () => {
   }, []);
 
   // Handle layout change
-  const handleLayoutChange = useCallback((currentLayout: Layout[], allLayouts: Layouts) => {
+  const handleLayoutChange = useCallback((_: Layout[], allLayouts: Layouts) => {
     setLayouts(allLayouts);
     localStorage.setItem('verifywise_dashboard_layouts', JSON.stringify(allLayouts));
     actions.saveLayout(allLayouts);
@@ -298,7 +296,7 @@ const DashboardContent: React.FC = () => {
       )}
 
       {/* CSS for enhanced styling */}
-      <style jsx global>{`
+      <style>{`
         .react-grid-layout {
           position: relative;
         }

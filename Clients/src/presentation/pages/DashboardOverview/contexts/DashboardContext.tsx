@@ -5,7 +5,6 @@ import {
   DashboardState,
   DashboardContextValue,
   WidgetConfig,
-  WidgetData,
   LayoutPersistence,
 } from '../types/dashboard.types';
 

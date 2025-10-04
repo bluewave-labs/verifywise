@@ -1,5 +1,6 @@
 
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { User, ApiResponse } from "../../domain/types/User";
 
 export async function getUserById({
   userId,

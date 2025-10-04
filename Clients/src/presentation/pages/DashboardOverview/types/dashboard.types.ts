@@ -1,4 +1,4 @@
-import { Layout, Layouts } from 'react-grid-layout';
+import { Layouts } from 'react-grid-layout';
 
 // Widget types enum
 export enum WidgetType {

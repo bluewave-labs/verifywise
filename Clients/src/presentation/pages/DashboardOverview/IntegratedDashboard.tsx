@@ -5,7 +5,6 @@ import {
   CardContent,
   CardHeader,
   Typography,
-  Grid,
   Stack,
   CircularProgress,
   Button,
@@ -31,7 +30,6 @@ import { ReactComponent as RightArrow } from '../../assets/icons/right-arrow.svg
 import StatusDonutChart, { StatusData } from '../../components/Charts/StatusDonutChart';
 import { getDefaultStatusDistribution } from '../../utils/statusColors';
 import { getDistributionSummary, getQuickStats, hasCriticalItems, getPriorityLevel } from '../../utils/cardEnhancements';
-import PageHeader from '../../components/Layout/PageHeader';
 import DashboardErrorBoundary from '../../components/Dashboard/DashboardErrorBoundary';
 import TextEditorCard from '../../components/Dashboard/TextEditorCard';
 import WidgetErrorBoundary from '../../components/Dashboard/WidgetErrorBoundary';
@@ -280,7 +278,7 @@ const IntegratedDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { dashboard, loading, fetchDashboard } = useDashboard();
   const { evidenceMetrics, vendorRiskMetrics, vendorMetrics, usersMetrics, policyMetrics } = useDashboardMetrics();
-  const { userToken } = useAuth();
+  const { userToken: _ } = useAuth();
 
   // Edit mode state
   const [editMode, setEditMode] = useState(false);
@@ -420,7 +418,7 @@ const IntegratedDashboard: React.FC = () => {
     setMounted(true);
   }, []);
 
-  const handleLayoutChange = useCallback((currentLayout: Layout[], allLayouts: Layouts) => {
+  const handleLayoutChange = useCallback((_: Layout[], allLayouts: Layouts) => {
     // Ensure all heights are exactly 2 or 4 and width constraints are enforced before saving
     const enforcedLayouts = { ...allLayouts };
     Object.keys(enforcedLayouts).forEach(breakpoint => {
@@ -451,8 +449,8 @@ const IntegratedDashboard: React.FC = () => {
   }, [enforceLayoutItemConstraints]);
 
   // Handle resize to enforce constraints: height 2 or 4, width constraints
-  const handleResize = useCallback((layout: Layout[], oldItem: Layout, newItem: Layout,
-    placeholder: Layout, e: MouseEvent, element: HTMLElement) => {
+  const handleResize = useCallback((_: Layout[], __: Layout, newItem: Layout,
+    placeholder: Layout, ___: MouseEvent, ____: HTMLElement) => {
     const isRestricted = isRestrictedToSmallHeight(newItem.i);
     const isUnlimited = isUnlimitedSize(newItem.i);
 
@@ -475,8 +473,8 @@ const IntegratedDashboard: React.FC = () => {
   }, [isRestrictedToSmallHeight, isUnlimitedSize, enforceHeightConstraint, enforceWidthConstraint]);
 
   // Ensure final constraints when resize stops
-  const handleResizeStop = useCallback((layout: Layout[], oldItem: Layout, newItem: Layout,
-    placeholder: Layout, e: MouseEvent, element: HTMLElement) => {
+  const handleResizeStop = useCallback((_: Layout[], __: Layout, newItem: Layout,
+    ___: Layout, ____: MouseEvent, _____: HTMLElement) => {
     const isUnlimited = isUnlimitedSize(newItem.i);
 
     // Update all responsive layouts to ensure consistency across breakpoints

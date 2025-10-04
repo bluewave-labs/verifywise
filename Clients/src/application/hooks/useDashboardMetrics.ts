@@ -94,6 +94,7 @@ export interface VendorRiskMetrics {
     created_at: string;
     vendor_name: string;
   }>;
+  statusDistribution?: Array<{ name: string; value: number; color: string }>;
 }
 
 export interface VendorMetrics {
@@ -104,6 +105,7 @@ export interface VendorMetrics {
     created_at: string;
     status: string;
   }>;
+  statusDistribution?: Array<{ name: string; value: number; color: string }>;
 }
 
 export interface UsersMetrics {
@@ -126,6 +128,7 @@ export interface PolicyMetrics {
     last_updated_at: string;
     author_id: number;
   }>;
+  statusDistribution?: Array<{ name: string; value: number; color: string }>;
 }
 
 

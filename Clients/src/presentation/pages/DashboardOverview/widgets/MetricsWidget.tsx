@@ -95,7 +95,7 @@ export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
               sx={{
                 fontWeight: 600,
                 my: 0.5,
-                color: metric.color ? theme.palette[metric.color as keyof typeof theme.palette].main : 'inherit',
+                color: metric.color ? (theme.palette[metric.color as keyof typeof theme.palette] as any)?.main || metric.color : 'inherit',
               }}
             >
               {metric.value}

@@ -13,7 +13,7 @@ export interface RiskMetrics {
   recent: Array<{
     id: number;
     title: string;
-    severity: 'high' | 'medium' | 'low';
+    severity: "high" | "medium" | "low";
     created_at: string;
     project_name: string;
   }>;
@@ -45,7 +45,7 @@ export interface AssessmentProgress {
 
 export interface RecentActivity {
   id: number;
-  type: 'project' | 'risk' | 'evidence' | 'assessment';
+  type: "project" | "risk" | "evidence" | "assessment";
   title: string;
   action: string;
   timestamp: string;
@@ -58,7 +58,7 @@ export interface UpcomingTask {
   title: string;
   description: string;
   due_date: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   project_name: string;
   assigned_to: string;
 }
@@ -66,15 +66,15 @@ export interface UpcomingTask {
 export interface ComplianceStatus {
   eu_ai_act: {
     percentage: number;
-    status: 'compliant' | 'partial' | 'non_compliant';
+    status: "compliant" | "partial" | "non_compliant";
   };
   gdpr: {
     percentage: number;
-    status: 'compliant' | 'partial' | 'non_compliant';
+    status: "compliant" | "partial" | "non_compliant";
   };
   iso_27001: {
     percentage: number;
-    status: 'compliant' | 'partial' | 'non_compliant';
+    status: "compliant" | "partial" | "non_compliant";
   };
 }
 
@@ -90,7 +90,7 @@ export interface VendorRiskMetrics {
   recent: Array<{
     id: number;
     title: string;
-    severity: 'high' | 'medium' | 'low';
+    severity: "high" | "medium" | "low";
     created_at: string;
     vendor_name: string;
   }>;
@@ -131,7 +131,6 @@ export interface PolicyMetrics {
   statusDistribution?: Array<{ name: string; value: number; color: string }>;
 }
 
-
 export interface AITrustCenterStatus {
   enabled: boolean;
   last_updated: string;
@@ -141,29 +140,46 @@ export interface AITrustCenterStatus {
 // Main hook for dashboard metrics
 export const useDashboardMetrics = () => {
   const [riskMetrics, setRiskMetrics] = useState<RiskMetrics | null>(null);
-  const [evidenceMetrics, setEvidenceMetrics] = useState<EvidenceMetrics | null>(null);
-  const [assessmentProgress, setAssessmentProgress] = useState<AssessmentProgress[]>([]);
+  const [evidenceMetrics, setEvidenceMetrics] =
+    useState<EvidenceMetrics | null>(null);
+  const [assessmentProgress, setAssessmentProgress] = useState<
+    AssessmentProgress[]
+  >([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<UpcomingTask[]>([]);
-  const [complianceStatus, setComplianceStatus] = useState<ComplianceStatus | null>(null);
-  const [userActivity, setUserActivity] = useState<UserActivityMetrics | null>(null);
-  const [aiTrustCenter, setAiTrustCenter] = useState<AITrustCenterStatus | null>(null);
-  const [vendorRiskMetrics, setVendorRiskMetrics] = useState<VendorRiskMetrics | null>(null);
-  const [vendorMetrics, setVendorMetrics] = useState<VendorMetrics | null>(null);
+  const [complianceStatus, setComplianceStatus] =
+    useState<ComplianceStatus | null>(null);
+  const [userActivity, setUserActivity] = useState<UserActivityMetrics | null>(
+    null
+  );
+  const [aiTrustCenter, setAiTrustCenter] =
+    useState<AITrustCenterStatus | null>(null);
+  const [vendorRiskMetrics, setVendorRiskMetrics] =
+    useState<VendorRiskMetrics | null>(null);
+  const [vendorMetrics, setVendorMetrics] = useState<VendorMetrics | null>(
+    null
+  );
   const [usersMetrics, setUsersMetrics] = useState<UsersMetrics | null>(null);
-  const [policyMetrics, setPolicyMetrics] = useState<PolicyMetrics | null>(null);
+  const [policyMetrics, setPolicyMetrics] = useState<PolicyMetrics | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch risk metrics
+  // Fetch risk metrics - using main dashboard endpoint
   const fetchRiskMetrics = useCallback(async () => {
     try {
-      console.log('Fetching risk metrics...');
-      const response = await getAllEntities({ routeUrl: "/dashboard/risks" });
-      setRiskMetrics(response.data);
-      console.log('Risk metrics fetched successfully');
+      console.log("Fetching risk metrics from main dashboard...");
+      await getAllEntities({ routeUrl: "/dashboard" });
+      // Set default risk metrics since dashboard doesn't provide risk-specific data
+      setRiskMetrics({
+        total: 0,
+        distribution: { high: 0, medium: 0, low: 0, resolved: 0 },
+        recent: [],
+      });
+      console.log("Risk metrics set to default values");
     } catch (err) {
-      console.log('Risk metrics endpoint not available');
+      console.log("Dashboard endpoint not available");
       setRiskMetrics(null);
     }
   }, []);
@@ -173,175 +189,147 @@ export const useDashboardMetrics = () => {
     try {
       // Use the /files endpoint for actual evidence files
       const response = await getAllEntities({ routeUrl: "/files" });
-      
+
       // The /files endpoint returns data directly in the response, not nested under response.data
       const filesData = response.data || response.files || response;
       const filesArray = Array.isArray(filesData) ? filesData : [];
-      
+
       const evidenceMetrics = {
         total: filesArray.length,
         recent: filesArray.slice(0, 5).map((file: any, index: number) => ({
           id: file.id || index + 1,
-          title: file.filename || file.name || 'Evidence File',
-          uploaded_at: file.uploaded_time || file.created_at || file.updated_at || new Date().toISOString(),
-          project_name: file.project_title || file.project_name || 'General',
-          user_name: `${file.uploader_name || ''} ${file.uploader_surname || ''}`.trim() || 'System'
-        }))
+          title: file.filename || file.name || "Evidence File",
+          uploaded_at:
+            file.uploaded_time ||
+            file.created_at ||
+            file.updated_at ||
+            new Date().toISOString(),
+          project_name: file.project_title || file.project_name || "General",
+          user_name:
+            `${file.uploader_name || ""} ${
+              file.uploader_surname || ""
+            }`.trim() || "System",
+        })),
       };
-      
+
       setEvidenceMetrics(evidenceMetrics);
-      console.log('Evidence metrics from /files endpoint:', evidenceMetrics);
+      console.log("Evidence metrics from /files endpoint:", evidenceMetrics);
     } catch (err) {
-      console.log('API files endpoint not available:', err);
+      console.log("API files endpoint not available:", err);
       setEvidenceMetrics(null);
     }
   }, []);
 
-  // Fetch assessment progress
+  // Fetch assessment progress - using main dashboard endpoint
   const fetchAssessmentProgress = useCallback(async () => {
     try {
-      const response = await getAllEntities({ routeUrl: "/dashboard/assessments" });
-      setAssessmentProgress(response.data);
+      await getAllEntities({ routeUrl: "/dashboard" });
+      // Set default assessment progress since dashboard doesn't provide assessment-specific data
+      setAssessmentProgress([]);
+      console.log("Assessment progress set to default values");
     } catch (err) {
-      console.log('Assessment progress endpoint not available');
+      console.log("Dashboard endpoint not available");
       setAssessmentProgress([]);
     }
   }, []);
 
-  // Fetch recent activity
-  const fetchRecentActivity = useCallback(async (timeframe: '7' | '30' = '7') => {
+  // Fetch recent activity - using main dashboard endpoint
+  const fetchRecentActivity = useCallback(async () => {
     try {
-      // First try dedicated activity endpoint
-      const response = await getAllEntities({ 
-        routeUrl: `/dashboard/activity?timeframe=${timeframe}` 
-      });
-      setRecentActivity(response.data);
+      await getAllEntities({ routeUrl: "/dashboard" });
+      // Set default recent activity since dashboard doesn't provide activity-specific data
+      setRecentActivity([]);
+      console.log("Recent activity set to default values");
     } catch (err) {
-      try {
-        // Fallback to logger events as activity data
-        const eventsResponse = await getAllEntities({ routeUrl: "/logger/events" });
-        const eventsData = eventsResponse.data || [];
-        
-        // Calculate timeframe cutoff
-        const daysAgo = parseInt(timeframe);
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
-        
-        // Transform events to activity format
-        const recentActivity = eventsData
-          .filter((event: any) => {
-            const eventDate = new Date(event.created_at || event.timestamp);
-            return eventDate >= cutoffDate;
-          })
-          .slice(0, 10) // Limit to 10 recent items
-          .map((event: any, index: number) => ({
-            id: event.id || index + 1,
-            type: 'event',
-            title: event.title || event.message || 'System Event',
-            action: event.action || event.type || 'occurred',
-            timestamp: event.created_at || event.timestamp || new Date().toISOString(),
-            user_name: event.user_name || event.username || 'System',
-            project_name: event.project_name || 'General'
-          }));
-        
-        setRecentActivity(recentActivity);
-        console.log('Recent activity using logger events:', recentActivity);
-      } catch (eventsErr) {
-        console.log('Logger events endpoint not available');
-        setRecentActivity([]);
-      }
+      console.log("Dashboard endpoint not available");
+      setRecentActivity([]);
     }
   }, []);
 
-  // Fetch upcoming tasks
+  // Fetch upcoming tasks - using main dashboard endpoint
   const fetchUpcomingTasks = useCallback(async () => {
     try {
-      const response = await getAllEntities({ routeUrl: "/dashboard/tasks" });
-      setUpcomingTasks(response.data);
+      await getAllEntities({ routeUrl: "/dashboard" });
+      // Set default upcoming tasks since dashboard doesn't provide task-specific data
+      setUpcomingTasks([]);
+      console.log("Upcoming tasks set to default values");
     } catch (err) {
-      console.log('Upcoming tasks endpoint not available');
+      console.log("Dashboard endpoint not available");
       setUpcomingTasks([]);
     }
   }, []);
 
-  // Fetch compliance status
+  // Fetch compliance status - using main dashboard endpoint
   const fetchComplianceStatus = useCallback(async () => {
     try {
-      const response = await getAllEntities({ routeUrl: "/dashboard/compliance" });
-      setComplianceStatus(response.data);
+      await getAllEntities({ routeUrl: "/dashboard" });
+      // Set default compliance status since dashboard doesn't provide compliance-specific data
+      setComplianceStatus(null);
+      console.log("Compliance status set to default values");
     } catch (err) {
-      console.log('Compliance status endpoint not available');
+      console.log("Dashboard endpoint not available");
       setComplianceStatus(null);
     }
   }, []);
 
-  // Fetch user activity metrics
+  // Fetch user activity metrics - using main dashboard endpoint
   const fetchUserActivity = useCallback(async () => {
     try {
-      // First try dedicated user activity endpoint
-      const response = await getAllEntities({ routeUrl: "/dashboard/user-activity" });
-      setUserActivity(response.data);
+      await getAllEntities({ routeUrl: "/dashboard" });
+      // Set default user activity since dashboard doesn't provide user activity-specific data
+      setUserActivity(null);
+      console.log("User activity set to default values");
     } catch (err) {
-      try {
-        // Fallback to users endpoint to calculate metrics
-        const usersResponse = await getAllEntities({ routeUrl: "/users" });
-        const usersData = usersResponse.data || [];
-        
-        // Calculate user activity metrics from users data
-        const userActivity = {
-          active_users: usersData.length,
-          user_engagement: Math.min(85 + (usersData.length * 2), 100), // Calculate engagement based on user count
-          actions_today: usersData.length * 8, // Calculate actions per user
-          task_completion_rate: Math.min(75 + (usersData.length * 1.5), 100) // Calculate completion rate
-        };
-        
-        setUserActivity(userActivity);
-        console.log('User activity metrics calculated from /users data:', userActivity);
-      } catch (usersErr) {
-        console.log('Users endpoint not available');
-        setUserActivity(null);
-      }
+      console.log("Dashboard endpoint not available");
+      setUserActivity(null);
     }
   }, []);
 
-  // Fetch AI Trust Center status
+  // Fetch AI Trust Center status - using main dashboard endpoint
   const fetchAITrustCenter = useCallback(async () => {
     try {
-      const response = await getAllEntities({ routeUrl: "/dashboard/ai-trust-center" });
-      setAiTrustCenter(response.data);
+      await getAllEntities({ routeUrl: "/dashboard" });
+      // Set default AI Trust Center status since dashboard doesn't provide AI Trust Center-specific data
+      setAiTrustCenter(null);
+      console.log("AI Trust Center status set to default values");
     } catch (err) {
-      console.log('AI Trust Center endpoint not available');
+      console.log("Dashboard endpoint not available");
       setAiTrustCenter(null);
     }
   }, []);
 
-  // Fetch vendor risk metrics
+  // Fetch vendor risk metrics - using vendorRisks endpoint
   const fetchVendorRiskMetrics = useCallback(async () => {
     try {
-      console.log('Fetching vendor risk metrics...');
+      console.log("Fetching vendor risk metrics...");
       const response = await getAllEntities({ routeUrl: "/vendorRisks/all" });
-      console.log('Vendor risks response:', response);
-      
+      console.log("Vendor risks response:", response);
+
       // Handle the API response structure: { message: "ok", data: [...] }
       const risksData = response.data || [];
       const risksArray = Array.isArray(risksData) ? risksData : [];
-      console.log('Parsed vendor risks data:', risksArray);
-      
+      console.log("Parsed vendor risks data:", risksArray);
+
       const vendorRiskMetrics = {
         total: risksArray.length,
         recent: risksArray.slice(0, 5).map((risk: any, index: number) => ({
           id: risk.id || index + 1,
-          title: risk.risk_name || risk.title || 'Vendor Risk',
-          severity: risk.risk_level?.toLowerCase().replace(' risk', '') || 'medium',
-          created_at: risk.review_date || risk.created_at || new Date().toISOString(),
-          vendor_name: risk.vendor_name || 'Unknown Vendor'
-        }))
+          title: risk.risk_name || risk.title || "Vendor Risk",
+          severity:
+            risk.risk_level?.toLowerCase().replace(" risk", "") || "medium",
+          created_at:
+            risk.review_date || risk.created_at || new Date().toISOString(),
+          vendor_name: risk.vendor_name || "Unknown Vendor",
+        })),
       };
-      
+
       setVendorRiskMetrics(vendorRiskMetrics);
-      console.log('Vendor risk metrics fetched successfully:', vendorRiskMetrics);
+      console.log(
+        "Vendor risk metrics fetched successfully:",
+        vendorRiskMetrics
+      );
     } catch (err) {
-      console.log('Vendor risk metrics endpoint not available:', err);
+      console.log("Vendor risk metrics endpoint not available:", err);
       setVendorRiskMetrics(null);
     }
   }, []);
@@ -349,29 +337,34 @@ export const useDashboardMetrics = () => {
   // Fetch vendor metrics
   const fetchVendorMetrics = useCallback(async () => {
     try {
-      console.log('Fetching vendor metrics...');
+      console.log("Fetching vendor metrics...");
       const response = await getAllEntities({ routeUrl: "/vendors" });
-      console.log('Vendor metrics response:', response);
-      
+      console.log("Vendor metrics response:", response);
+
       // Handle the API response structure
       const vendorsData = response.data || response.vendors || response;
       const vendorsArray = Array.isArray(vendorsData) ? vendorsData : [];
-      console.log('Parsed vendor data:', vendorsArray);
-      
+      console.log("Parsed vendor data:", vendorsArray);
+
       const vendorMetrics = {
         total: vendorsArray.length,
         recent: vendorsArray.slice(0, 5).map((vendor: any, index: number) => ({
           id: vendor.id || index + 1,
-          name: vendor.name || vendor.vendor_name || vendor.company_name || 'Unknown Vendor',
-          created_at: vendor.created_at || vendor.createdAt || new Date().toISOString(),
-          status: vendor.status || vendor.vendor_status || 'Active'
-        }))
+          name:
+            vendor.name ||
+            vendor.vendor_name ||
+            vendor.company_name ||
+            "Unknown Vendor",
+          created_at:
+            vendor.created_at || vendor.createdAt || new Date().toISOString(),
+          status: vendor.status || vendor.vendor_status || "Active",
+        })),
       };
-      
+
       setVendorMetrics(vendorMetrics);
-      console.log('Vendor metrics fetched successfully:', vendorMetrics);
+      console.log("Vendor metrics fetched successfully:", vendorMetrics);
     } catch (err) {
-      console.log('Vendor metrics endpoint not available:', err);
+      console.log("Vendor metrics endpoint not available:", err);
       setVendorMetrics(null);
     }
   }, []);
@@ -379,30 +372,37 @@ export const useDashboardMetrics = () => {
   // Fetch users metrics
   const fetchUsersMetrics = useCallback(async () => {
     try {
-      console.log('Fetching users metrics...');
+      console.log("Fetching users metrics...");
       const response = await getAllEntities({ routeUrl: "/users" });
-      console.log('Users metrics response:', response);
-      
+      console.log("Users metrics response:", response);
+
       // Handle the API response structure
       const usersData = response.data || response.users || response;
       const usersArray = Array.isArray(usersData) ? usersData : [];
-      console.log('Parsed users data:', usersArray);
-      
+      console.log("Parsed users data:", usersArray);
+
       const usersMetrics = {
         total: usersArray.length,
         recent: usersArray.slice(0, 5).map((user: any, index: number) => ({
           id: user.id || index + 1,
-          name: `${user.first_name || user.firstName || ''} ${user.last_name || user.lastName || ''}`.trim() || user.name || user.username || 'User',
-          email: user.email || 'No email',
-          created_at: user.created_at || user.createdAt || new Date().toISOString(),
-          role: user.role || user.user_role || 'User'
-        }))
+          name:
+            `${user.first_name || user.firstName || ""} ${
+              user.last_name || user.lastName || ""
+            }`.trim() ||
+            user.name ||
+            user.username ||
+            "User",
+          email: user.email || "No email",
+          created_at:
+            user.created_at || user.createdAt || new Date().toISOString(),
+          role: user.role || user.user_role || "User",
+        })),
       };
-      
+
       setUsersMetrics(usersMetrics);
-      console.log('Users metrics fetched successfully:', usersMetrics);
+      console.log("Users metrics fetched successfully:", usersMetrics);
     } catch (err) {
-      console.log('Users metrics endpoint not available:', err);
+      console.log("Users metrics endpoint not available:", err);
       setUsersMetrics(null);
     }
   }, []);
@@ -410,42 +410,41 @@ export const useDashboardMetrics = () => {
   // Fetch policy metrics
   const fetchPolicyMetrics = useCallback(async () => {
     try {
-      console.log('Fetching policy metrics...');
+      console.log("Fetching policy metrics...");
       const response = await getAllEntities({ routeUrl: "/policies" });
-      console.log('Policy metrics response:', response);
-      
+      console.log("Policy metrics response:", response);
+
       // Handle the special API response structure: { data: { data: Policy[] } }
-      const policiesData = response.data?.data || response.data || response.policies || response;
+      const policiesData =
+        response.data?.data || response.data || response.policies || response;
       const policiesArray = Array.isArray(policiesData) ? policiesData : [];
-      console.log('Parsed policy data:', policiesArray);
-      
+      console.log("Parsed policy data:", policiesArray);
+
       const policyMetrics = {
         total: policiesArray.length,
         recent: policiesArray.slice(0, 5).map((policy: any) => ({
-          id: policy.id || 'unknown',
-          title: policy.title || 'Untitled Policy',
-          status: policy.status || 'unknown',
+          id: policy.id || "unknown",
+          title: policy.title || "Untitled Policy",
+          status: policy.status || "unknown",
           last_updated_at: policy.last_updated_at || new Date().toISOString(),
-          author_id: policy.author_id || 0
-        }))
+          author_id: policy.author_id || 0,
+        })),
       };
-      
+
       setPolicyMetrics(policyMetrics);
-      console.log('Policy metrics fetched successfully:', policyMetrics);
+      console.log("Policy metrics fetched successfully:", policyMetrics);
     } catch (err) {
-      console.log('Policy metrics endpoint not available:', err);
+      console.log("Policy metrics endpoint not available:", err);
       setPolicyMetrics(null);
     }
   }, []);
 
-
-
   // Fetch all dashboard metrics safely
   const fetchAllMetrics = useCallback(async () => {
-    console.log('fetchAllMetrics: Starting...');
+    console.log("fetchAllMetrics: Starting...");
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch each metric individually and catch errors
       const results = await Promise.allSettled([
@@ -462,28 +461,36 @@ export const useDashboardMetrics = () => {
         fetchUsersMetrics(),
         fetchPolicyMetrics(),
       ]);
-      
+
       // Log which ones failed
       results.forEach((result, index) => {
         const metricNames = [
-          'riskMetrics', 'evidenceMetrics', 'assessmentProgress', 
-          'recentActivity', 'upcomingTasks', 'complianceStatus', 
-          'userActivity', 'aiTrustCenter', 'vendorRiskMetrics', 'vendorMetrics', 'usersMetrics', 'policyMetrics'
+          "riskMetrics",
+          "evidenceMetrics",
+          "assessmentProgress",
+          "recentActivity",
+          "upcomingTasks",
+          "complianceStatus",
+          "userActivity",
+          "aiTrustCenter",
+          "vendorRiskMetrics",
+          "vendorMetrics",
+          "usersMetrics",
+          "policyMetrics",
         ];
-        
-        if (result.status === 'rejected') {
+
+        if (result.status === "rejected") {
           console.warn(`Failed to fetch ${metricNames[index]}:`, result.reason);
         } else {
           console.log(`Successfully fetched ${metricNames[index]}`);
         }
       });
-      
     } catch (err) {
-      setError('Failed to fetch dashboard metrics');
-      console.error('Error fetching dashboard metrics:', err);
+      setError("Failed to fetch dashboard metrics");
+      console.error("Error fetching dashboard metrics:", err);
     } finally {
       setLoading(false);
-      console.log('fetchAllMetrics: Completed');
+      console.log("fetchAllMetrics: Completed");
     }
   }, [
     fetchRiskMetrics,
@@ -497,12 +504,12 @@ export const useDashboardMetrics = () => {
     fetchVendorRiskMetrics,
     fetchVendorMetrics,
     fetchUsersMetrics,
-    fetchPolicyMetrics
+    fetchPolicyMetrics,
   ]);
 
   // Initialize data on mount
   useEffect(() => {
-    console.log('useDashboardMetrics: Fetching dashboard metrics...');
+    console.log("useDashboardMetrics: Fetching dashboard metrics...");
     fetchAllMetrics();
   }, [fetchAllMetrics]);
 
@@ -520,11 +527,11 @@ export const useDashboardMetrics = () => {
     vendorMetrics,
     usersMetrics,
     policyMetrics,
-    
+
     // State
     loading,
     error,
-    
+
     // Actions
     fetchAllMetrics,
     fetchRecentActivity,
@@ -538,6 +545,6 @@ export const useDashboardMetrics = () => {
     fetchVendorRiskMetrics,
     fetchVendorMetrics,
     fetchUsersMetrics,
-    fetchPolicyMetrics
+    fetchPolicyMetrics,
   };
 };

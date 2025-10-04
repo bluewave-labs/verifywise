@@ -1,3 +1,5 @@
+import { SlackNotificationRoutingType } from "../enums/slack.enum";
+
 export interface ISlackWebhook {
   id?: number;
   access_token_iv?: string;
@@ -14,4 +16,5 @@ export interface ISlackWebhook {
   created_at?: Date;
   updated_at?: Date;
   is_active?: boolean;
+  routing_type?: SlackNotificationRoutingType[];
 }

@@ -43,7 +43,7 @@ import {
   resetPasswordQuery,
   updateUserByIdQuery,
 } from "../utils/user.utils";
-import { sendMemberRoleChangedEditorToAdminNotification } from "../services/userNotification/memberRoleChangedNotification";
+import { sendMemberRoleChangedEditorToAdminNotification } from "../services/userNotification/projectNotifications";
 import { logFailure } from "../utils/logger/logHelper";
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";

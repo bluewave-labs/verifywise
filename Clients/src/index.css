@@ -1,3 +1,6 @@
+/* React Grid Layout CSS */
+@import 'react-grid-layout/css/styles.css';
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }

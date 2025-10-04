@@ -27,7 +27,6 @@ import { useDashboard } from '../../../application/hooks/useDashboard';
 import { useDashboardMetrics } from '../../../application/hooks/useDashboardMetrics';
 import { cardStyles } from '../../themes';
 import { useAuth } from '../../../application/hooks/useAuth';
-import { getUserById } from '../../../application/repository/user.repository';
 import { ReactComponent as RightArrow } from '../../assets/icons/right-arrow.svg';
 import StatusDonutChart, { StatusData } from '../../components/Charts/StatusDonutChart';
 import { getDefaultStatusDistribution } from '../../utils/statusColors';
@@ -403,26 +402,10 @@ const IntegratedDashboard: React.FC = () => {
     };
   }, [isRestrictedToSmallHeight, isUnlimitedSize, enforceHeightConstraint, enforceWidthConstraint]);
 
-  // Fetch user data to check pwd_set status
-  const checkPasswordStatus = useCallback(async () => {
-    if (!userToken || !userToken.id) return;
-
-    try {
-      const response = await getUserById({ userId: parseInt(userToken.id) });
-      const userData = response.data || response;
-
-      if (userData && userData.pwd_set === false) {
-        setShowPasswordNotification(true);
-      }
-    } catch (error) {
-      console.error('Error checking user password status:', error);
-    }
-  }, [userToken]);
 
   useEffect(() => {
-    // Run initial data fetch and password check once on mount
+    // Run initial data fetch once on mount
     fetchDashboard();
-    checkPasswordStatus();
   }, []); // Empty dependency array - only run once on mount
 
   useEffect(() => {

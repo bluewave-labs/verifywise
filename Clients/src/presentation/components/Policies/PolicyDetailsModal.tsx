@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
 import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
-import { Plate, PlateContent, usePlateEditor } from "platejs/react";
+import { Plate, PlateContent, createPlateEditor } from "platejs/react";
+import { AutoformatPlugin } from '@platejs/autoformat';
 
 import {
   BoldPlugin,
@@ -12,8 +13,16 @@ import {
   H2Plugin,
   H3Plugin,
   BlockquotePlugin,
+  StrikethroughPlugin,
+  HorizontalRulePlugin,
+  CodePlugin
 } from "@platejs/basic-nodes/react";
-import { serializeHtml } from "platejs";
+import { CodeBlockPlugin, CodeLinePlugin, CodeSyntaxPlugin } from '@platejs/code-block/react';
+import { ListPlugin, BulletedListPlugin, NumberedListPlugin, TaskListPlugin, ListItemPlugin } from '@platejs/list-classic/react';
+import { ImagePlugin } from "@platejs/media/react";
+import { LinkPlugin } from '@platejs/link/react';
+import { TextAlignPlugin } from '@platejs/basic-styles/react';
+import { KEYS, serializeHtml } from "platejs";
 import {
   FormatBold,
   FormatItalic,
@@ -50,6 +59,9 @@ import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
+import { all, createLowlight } from "lowlight";
+import { LinkElement } from "./link-node";
+import { LinkFloatingToolbar } from "./link-toolbar";
 
 interface Props {
   policy: Policy | null;
@@ -76,56 +88,59 @@ const PolicyDetailModal: React.FC<Props> = ({
   const { users } = useUsers();
   const theme = useTheme();
   const [errors, setErrors] = useState<FormErrors>({});
-  // const [isSubmitting, setIsSubmitting] = useState(false);
-  // Track toggle state for toolbar buttons
-type ToolbarKey =
-  | "bold"
-  | "italic"
-  | "underline"
-  | "h1"
-  | "h2"
-  | "h3"
-  | "blockquote"
-  | "undo"
-  | "redo"
-  | "strike"
-  | "code"
-  | "codeblock"
-  | "ol"
-  | "ul"
-  | "checklist"
-  | "align-left"
-  | "align-center"
-  | "align-right"
-  | "link"
-  | "image"
-  | "divider"
-  | "clear";
+  const [contentNodes, setContentNodes] = useState<any>([{ type: 'p', children: [{ text: '' }] }]);
 
-const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
-  bold: false,
-  italic: false,
-  underline: false,
-  h1: false,
-  h2: false,
-  h3: false,
-  blockquote: false,
-  undo: false,
-  redo: false,
-  strike: false,
-  code: false,
-  codeblock: false,
-  ol: false,
-  ul: false,
-  checklist: false,
-  "align-left": false,
-  "align-center": false,
-  "align-right": false,
-  link: false,
-  image: false,
-  divider: false,
-  clear: false,
-});
+  // const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Track toggle state for toolbar buttons
+  type ToolbarKey =
+    | "bold"
+    | "italic"
+    | "underline"
+    | "h1"
+    | "h2"
+    | "h3"
+    | "blockquote"
+    | "undo"
+    | "redo"
+    | "strike"
+    | "code"
+    | "codeblock"
+    | "ol"
+    | "ul"
+    | "checklist"
+    | "align-left"
+    | "align-center"
+    | "align-right"
+    | "link"
+    | "image"
+    | "divider"
+    | "clear";
+
+  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
+    bold: false,
+    italic: false,
+    underline: false,
+    h1: false,
+    h2: false,
+    h3: false,
+    blockquote: false,
+    undo: false,
+    redo: false,
+    strike: false,
+    code: false,
+    codeblock: false,
+    ol: false,
+    ul: false,
+    checklist: false,
+    "align-left": false,
+    "align-center": false,
+    "align-right": false,
+    link: false,
+    image: false,
+    divider: false,
+    clear: false,
+  });
 
   useModalKeyHandling({
     isOpen: true,
@@ -182,6 +197,84 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
     content: "",
   });
 
+  const lowlight = createLowlight(all);
+
+
+  // Create the editor with plugins
+  const [editor] = useState(() => 
+    createPlateEditor({
+      plugins: [
+        BoldPlugin,
+        ItalicPlugin,
+        UnderlinePlugin,
+        H1Plugin,
+        H2Plugin,
+        H3Plugin,
+        BlockquotePlugin,
+        HorizontalRulePlugin,
+        StrikethroughPlugin,
+        ImagePlugin,
+      LinkPlugin.configure({
+      render: {
+        node: LinkElement,
+        afterEditable: () => <LinkFloatingToolbar />,
+      },
+    }),
+    ListPlugin,
+    BulletedListPlugin.configure({
+      shortcuts: { toggle: { keys: 'mod+alt+5' } },
+    }),
+    NumberedListPlugin.configure({
+      shortcuts: { toggle: { keys: 'mod+alt+6' } },
+    }),
+    TaskListPlugin.configure({
+      shortcuts: { toggle: { keys: 'mod+alt+7' } },
+    }),
+    ListItemPlugin,
+        CodePlugin.configure({
+          shortcuts: {toggle: {
+            keys: 'mod+e',}}
+        }),
+        TextAlignPlugin.configure({
+          inject: {
+            nodeProps: {
+              nodeKey: 'align',
+              defaultNodeValue: 'start',
+              styleKey: 'textAlign',
+              validNodeValues: ['start', 'left', 'center', 'right', 'end', 'justify'],
+            },
+            targetPlugins: [...KEYS.heading, KEYS.p],
+          },
+        }),
+        AutoformatPlugin.configure({
+          options: {
+            rules: [
+              {
+                mode: 'block',
+                type: KEYS.hr,
+                match: ['---', '—-', '___ '],
+                format: (editor) => {
+                  editor.tf.setNodes({ type: KEYS.hr });
+                  editor.tf.insertNodes({
+                    type: KEYS.p,
+                    children: [{ text: '' }],
+                  });
+                },
+              },
+            ],
+          },
+        }),
+        CodeBlockPlugin.configure({
+          options: {lowlight},
+          shortcuts: { toggle: { keys: 'mod+alt+8' } },
+        }),
+        CodeLinePlugin,
+        CodeSyntaxPlugin,
+      ],
+      value: [{ type: 'p', children: [{ text: '' }] }],
+    }) as any
+  );
+
   useEffect(() => {
     if (policy) {
       setFormData({
@@ -210,49 +303,56 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
     }
   }, [policy, users]);
 
-  const editor = usePlateEditor({
-    plugins: [
-      BoldPlugin,
-      ItalicPlugin,
-      UnderlinePlugin,
-      H1Plugin,
-      H2Plugin,
-      H3Plugin,
-      BlockquotePlugin,
-    ],
-    value: formData.content || "<p></p>",
-  }) as any;
-
   const toolbarConfig: Array<{
-  key: ToolbarKey;
-  title: string;
-  icon: React.ReactNode;
-  action: () => void;
-}>  = [
-  { key: "undo", title: "Undo", icon: <Undo />, action: () => editor.tf.undo() },
-  { key: "redo", title: "Redo", icon: <Redo />, action: () => editor.tf.redo() },
-  { key: "h1", title: "Heading 1", icon: <LooksOne />, action: () => editor.tf.h1.toggle() },
-  { key: "h2", title: "Heading 2", icon: <LooksTwo />, action: () => editor.tf.h2.toggle() },
-  { key: "h3", title: "Heading 3", icon: <Looks3 />, action: () => editor.tf.h3.toggle() },
-  { key: "bold", title: "Bold", icon: <FormatBold />, action: () => editor.tf.bold.toggle() },
-  { key: "italic", title: "Italic", icon: <FormatItalic />, action: () => editor.tf.italic.toggle() },
-  { key: "underline", title: "Underline", icon: <FormatUnderlined />, action: () => editor.tf.underline.toggle() },
-  { key: "strike", title: "Strikethrough", icon: <StrikethroughS />, action: () => editor.tf.strikethrough.toggle() },
-  { key: "code", title: "Code Inline", icon: <Code />, action: () => editor.tf.code.toggle() },
-  { key: "codeblock", title: "Code Block", icon: <CodeOff />, action: () => editor.tf.code_block.toggle() },
-  { key: "blockquote", title: "Blockquote", icon: <FormatQuote />, action: () => editor.tf.blockquote.toggle() },
-  { key: "ol", title: "Numbered List", icon: <FormatListNumbered />, action: () => editor.tf.ol.toggle() },
-  { key: "ul", title: "Bulleted List", icon: <FormatListBulleted />, action: () => editor.tf.ul.toggle() },
-  { key: "checklist", title: "Checklist", icon: <CheckBox />, action: () => editor.tf.todo.toggle() },
-  { key: "align-left", title: "Align Left", icon: <FormatAlignLeft />, action: () => editor.tf.align.set("left") },
-  { key: "align-center", title: "Align Center", icon: <FormatAlignCenter />, action: () => editor.tf.align.set("center") },
-  { key: "align-right", title: "Align Right", icon: <FormatAlignRight />, action: () => editor.tf.align.set("right") },
-  { key: "link", title: "Insert Link", icon: <Link />, action: () => editor.tf.link.insert() },
-  { key: "image", title: "Insert Image", icon: <Image />, action: () => editor.tf.image.insert() },
-  { key: "divider", title: "Insert Divider", icon: <HorizontalRule />, action: () => editor.tf.hr.insert() },
-  { key: "clear", title: "Clear Formatting", icon: <FormatClear />, action: () => editor.tf.clear() },
-];
+    key: ToolbarKey;
+    title: string;
+    icon: React.ReactNode;
+    action: () => void;
+  }> = [
+    { key: "undo", title: "Undo", icon: <Undo />, action: () => editor.tf.undo() },
+    { key: "redo", title: "Redo", icon: <Redo />, action: () => editor.tf.redo() },
+    { key: "h1", title: "Heading 1", icon: <LooksOne />, action: () => editor.tf.h1.toggle() },
+    { key: "h2", title: "Heading 2", icon: <LooksTwo />, action: () => editor.tf.h2.toggle() },
+    { key: "h3", title: "Heading 3", icon: <Looks3 />, action: () => editor.tf.h3.toggle() },
+    { key: "bold", title: "Bold", icon: <FormatBold />, action: () => editor.tf.bold.toggle() },
+    { key: "italic", title: "Italic", icon: <FormatItalic />, action: () => editor.tf.italic.toggle() },
+    { key: "underline", title: "Underline", icon: <FormatUnderlined />, action: () => editor.tf.underline.toggle() },
+    { key: "strike", title: "Strikethrough", icon: <StrikethroughS />, action: () => editor.tf.strikethrough.toggle() },
+    { key: "code", title: "Code Inline", icon: <Code />, action: () => editor.tf.code.toggle() },
+    { key: "codeblock", title: "Code Block", icon: <CodeOff />, action: () => editor.tf.setNodes({ type: KEYS.codeBlock }) },
+    { key: "blockquote", title: "Blockquote", icon: <FormatQuote />, action: () => editor.tf.blockquote.toggle() },
+    { key: "ol", title: "Numbered List", icon: <FormatListNumbered />, action: () => editor.tf.ol.toggle() },
+    { key: "ul", title: "Bulleted List", icon: <FormatListBulleted />, action: () => editor.tf.ul.toggle() },
+    { key: "checklist", title: "Checklist", icon: <CheckBox />, action: () => editor.tf.taskList.toggle() },
+    { 
+      key: "align-left", 
+      title: "Align Left", 
+      icon: <FormatAlignLeft />, 
+      action: () => editor.tf.textAlign.setNodes("left"), 
+    },
+    { 
+      key: "align-center", 
+      title: "Align Center", 
+      icon: <FormatAlignCenter />, 
+      action: () => editor.tf.textAlign.setNodes("center"), 
+    },
+    { 
+      key: "align-right", 
+      title: "Align Right", 
+      icon: <FormatAlignRight />, 
+      action: () => editor.tf.textAlign.setNodes("right"), 
+    },
+    { key: "link", title: "Insert Link", icon: <Link />, action: () => editor.tf.link.insert() },
+    { key: "image", title: "Insert Image", icon: <Image />, action: () => editor.tf.insertNodes({
+  type: KEYS.img,
+  url: 'https://imgs.search.brave.com/Xo5SmQHOee9uAnnNn7N7ROxoiq9P-_W7SGa6qW27eXo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvMTc4/NTE1ODc1OS9waG90/by9naXRodWItaW5j/LXNpZ25hZ2UtZHVy/aW5nLXRoZS1zaW5n/YXBvcmUtZmludGVj/aC1mZXN0aXZhbC1p/bi1zaW5nYXBvcmUt/b24tdGh1cnNkYXkt/bm92LTE2LTIwMjMu/anBnP3M9NjEyeDYx/MiZ3PTAmaz0yMCZj/PUtGYXhZM20wN0oz/VzAtTUxNNjAzM0p2/N3lEWEdJZGl4NExh/NnpqaFprWWM9',
+  children: [{ text: '' }],
+}) },
+    { key: "divider", title: "Insert Divider", icon: <HorizontalRule />, action: () => editor.tf.setNodes({ type: KEYS.hr }) },
+    { key: "clear", title: "Clear Formatting", icon: <FormatClear />, action: () => editor.tf.clear() },
+  ];
 
+  console.log("EDITOR: ", editor.tf.insert)
 
   useEffect(() => {
     if (policy && editor) {
@@ -380,35 +480,35 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
             >
               Content
             </Typography>
-<Box
-  sx={{
-    display: "flex",
-    flexWrap: "wrap", // allow multiple lines
-    gap: 1,
-    mb: 2,
-  }}
->
-  {toolbarConfig.map(({ key, title, icon, action }) => (
-    <Tooltip key={title} title={title}>
-      <IconButton
-        onClick={action}
-        size="small"
-        sx={{
-          padding: "6px",
-          borderRadius: "3px",
-          backgroundColor: toolbarState[key] ? "#E0F7FA" : "#FFFFFF",
-          border: "1px solid",
-          borderColor: toolbarState[key] ? "#13715B" : "transparent",
-          "&:hover": {
-            backgroundColor: "#F5F5F5",
-          },
-        }}
-      >
-        {icon}
-      </IconButton>
-    </Tooltip>
-  ))}
-</Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap", // allow multiple lines
+                gap: 1,
+                mb: 2,
+              }}
+            >
+              {toolbarConfig.map(({ key, title, icon, action }) => (
+                <Tooltip key={title} title={title}>
+                  <IconButton
+                    onClick={action}
+                    size="small"
+                    sx={{
+                      padding: "6px",
+                      borderRadius: "3px",
+                      backgroundColor: toolbarState[key] ? "#E0F7FA" : "#FFFFFF",
+                      border: "1px solid",
+                      borderColor: toolbarState[key] ? "#13715B" : "transparent",
+                      "&:hover": {
+                        backgroundColor: "#F5F5F5",
+                      },
+                    }}
+                  >
+                    {icon}
+                  </IconButton>
+                </Tooltip>
+              ))}
+            </Box>
 
             <Plate
               editor={editor}
@@ -440,8 +540,8 @@ const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
         <Box
           sx={{
             position: "fixed",            
-            bottom: 0,
-            right: 0,
+            bottom: 10,
+            right: 15,
             width: 800,                     // same width as Drawer
             p: 2,
             backgroundColor: "#fff",        // give it a background to overlap content

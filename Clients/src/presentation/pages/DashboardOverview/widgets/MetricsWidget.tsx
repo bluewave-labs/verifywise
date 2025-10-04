@@ -78,7 +78,7 @@ export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
             elevation={0}
             sx={{
               p: 2,
-              backgroundColor: theme.palette.grey[50],
+              background: `linear-gradient(135deg, ${theme.palette.grey[50]} 0%, ${theme.palette.grey[200]} 100%)`,
               borderRadius: 2,
               height: '100%',
             }}

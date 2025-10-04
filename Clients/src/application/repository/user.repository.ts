@@ -1,16 +1,17 @@
 
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { ApiResponse, User, UserNotesResponse, UserNotesUpdateRequest } from "../../domain/types/User";
 
 export async function getUserById({
   userId,
 }: {
   userId: number;
-}): Promise<any> {
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.get(`/users/${userId}`);
   return  response.data;
 }
 
-export async function getAllUsers(): Promise<any> {
+export async function getAllUsers(): Promise<ApiResponse<User[]>> {
   const response = await apiServices.get(`/users`);
   return response.data;
 }
@@ -18,8 +19,8 @@ export async function getAllUsers(): Promise<any> {
 export async function createNewUser({
   userData,
 }: {
-  userData: any;
-}): Promise<any> {
+  userData: Omit<User, 'id' | 'created_at' | 'last_login'>;
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.post(`/users/register`, userData);
   return response;
 }
@@ -29,8 +30,8 @@ export async function updateUserById({
   userData,
 }: {
   userId: number;
-  userData: any;
-}): Promise<any> {
+  userData: Partial<User>;
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.patch(`/users/${userId}`, userData);
   return response;
 }
@@ -43,7 +44,7 @@ export async function updatePassword({
   userId: number;
   currentPassword: string;
   newPassword: string;
-}): Promise<any> {
+}): Promise<ApiResponse<{ message: string }>> {
   const response = await apiServices.patch(
     `/users/chng-pass/${userId}`,
     { id: userId, currentPassword, newPassword }
@@ -55,13 +56,13 @@ export async function deleteUserById({
   userId,
 }: {
   userId: number;
-}): Promise<any> {
+}): Promise<ApiResponse<{ message: string }>> {
   const response = await apiServices.delete(`/users/${userId}`);
   return response;
 }
 
 
-export async function checkUserExists(): Promise<any> {
+export async function checkUserExists(): Promise<ApiResponse<{ exists: boolean }>> {
   try {
     const response = await apiServices.get(`/users/check/exists`);
      return response.data;
@@ -74,8 +75,8 @@ export async function checkUserExists(): Promise<any> {
 export async function loginUser({
     body,
   }: {
-    body: any;
-  }): Promise<any> {
+    body: { email: string; password: string };
+  }): Promise<ApiResponse<{ user: User; token: string }>> {
     try {
       const response = await apiServices.post(`/users/login`, body);
       return response;
@@ -84,4 +85,54 @@ export async function loginUser({
       throw error;
     }
   }
+
+export async function updateUserNotes({
+  userId,
+  notes,
+}: {
+  userId: number;
+  notes: string;
+}): Promise<ApiResponse<UserNotesResponse>> {
+  // Validate user ID
+  if (!userId || userId <= 0) {
+    throw new Error('Invalid user ID');
+  }
+
+  // Validate note content
+  if (typeof notes !== 'string') {
+    throw new Error('Notes must be a string');
+  }
+
+  // Validate note length (100KB limit)
+  if (notes.length > 100000) {
+    throw new Error('Note content exceeds maximum length (100KB)');
+  }
+
+  try {
+    const response = await apiServices.patch(`/users/${userId}`, { notes });
+    return response;
+  } catch (error) {
+    console.error("Error updating user notes:", error);
+    throw error;
+  }
+}
+
+export async function getUserNotes({
+  userId,
+}: {
+  userId: number;
+}): Promise<string | null> {
+  // Validate user ID
+  if (!userId || userId <= 0) {
+    throw new Error('Invalid user ID');
+  }
+
+  try {
+    const response = await apiServices.get(`/users/${userId}`);
+    return response.data?.notes || null;
+  } catch (error) {
+    console.error("Error getting user notes:", error);
+    throw error;
+  }
+}
 

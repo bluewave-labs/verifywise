@@ -28,14 +28,13 @@ const handleError = (error: any) => {
     if (axios.isAxiosError(error)) {
       // Use backend message if available, otherwise fallback to generic
       const errorMessage = error.response?.data?.message || error.message;
-
       return new CustomException(
         errorMessage,
         error.response?.status,
         error.response?.data
       );
     } else {
-      throw new CustomException(
+      return new CustomException(
         error.message || "An unknown error occurred",
         undefined,
         undefined

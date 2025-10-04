@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogContent,
   Stack,
+  Tooltip,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
 import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-grey.svg"
@@ -74,11 +75,19 @@ const ResourceTableRow: React.FC<{
       <TableCell onClick={handleRowClick} sx={{ cursor: "pointer" , textTransform: "none !important",}}>
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
       </TableCell>
-      <TableCell>
+      <TableCell onClick={() => onMakeVisible(resource.id)} sx={{ cursor: "pointer" }}>
         {resource.visible ? (
-          <VisibilityIcon/>
+          <Tooltip title="Click to make this resource invisible">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <VisibilityIcon/>
+            </Box>
+          </Tooltip>
         ) : (
-          <VisibilityOffIcon/>
+          <Tooltip title="Click to make this resource visible">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <VisibilityOffIcon/>
+            </Box>
+          </Tooltip>
         )}
       </TableCell>
       <TableCell>

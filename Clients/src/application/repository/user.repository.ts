@@ -85,3 +85,39 @@ export async function loginUser({
     }
   }
 
+/**
+ * Update user notes
+ */
+export async function updateUserNotes({
+  userId,
+  notes,
+}: {
+  userId: number;
+  notes: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.patch(`/users/${userId}`, { notes });
+    return response;
+  } catch (error) {
+    console.error("Error updating user notes:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get user notes
+ */
+export async function getUserNotes({
+  userId,
+}: {
+  userId: number;
+}): Promise<any> {
+  try {
+    const response = await apiServices.get(`/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting user notes:", error);
+    throw error;
+  }
+}
+

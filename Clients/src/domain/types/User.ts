@@ -7,4 +7,16 @@ export type User = {
     roleId?: number; //will be filled by user
     created_at?: Date; //automatically filled by database
     last_login?: Date; //automatically filled by database
+    notes?: string; //user's personal notes content (HTML)
+}
+
+export interface UserNotesResponse {
+    notes: string;
+    updatedAt?: string;
+    userId: number;
+}
+
+export interface UserNotesUpdateRequest {
+    userId: number;
+    notes: string;
 }

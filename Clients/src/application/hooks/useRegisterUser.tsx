@@ -2,8 +2,9 @@ import { logEngine } from "../tools/log.engine";
 import { FormValues } from "../validations/formValidation";
 import { API_RESPONSES, UNEXPECTED } from "../constants/apiResponses";
 import { createNewUser } from "../repository/user.repository";
+import { ApiResponse, User } from "../../domain/types/User";
 
-interface User {
+interface RegisterUser {
   id: string;
   email?: string;
   firstname: string;
@@ -16,8 +17,8 @@ const useRegisterUser = () => {
     response,
     setIsSubmitting,
   }: {
-    response: Response;
-    user: User;
+    response: ApiResponse<User>;
+    user: RegisterUser;
     setIsSubmitting: (value: boolean) => void;
   }) => {
     const config = API_RESPONSES[response.status] || UNEXPECTED;
@@ -36,7 +37,7 @@ const useRegisterUser = () => {
     setIsSubmitting,
   }: {
     values: FormValues;
-    user: User;
+    user: RegisterUser;
     setIsSubmitting: (value: boolean) => void;
   }) => {
     try {

@@ -147,7 +147,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     try {
       const response = await getAllUsers();
       // Handle both direct array and {message, data} format
-      let userData = [];
+      let userData: any[] = [];
       if (Array.isArray(response)) {
         userData = response;
       } else if (response && response.data && Array.isArray(response.data)) {

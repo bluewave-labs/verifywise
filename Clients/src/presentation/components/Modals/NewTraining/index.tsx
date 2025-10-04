@@ -127,15 +127,17 @@ const NewTraining: FC<NewTrainingProps> = ({
     if (!values.duration || !String(values.duration).trim()) {
       newErrors.duration = "Duration is required.";
     } else {
-      // Validate duration format
-      const durationPattern = /\b(hour|hours|day|days|week|weeks|month|months|minute|minutes|h|hr|hrs|d|w|m)\b/i;
+      // Each part must be "<number> <unit>"
+      const durationPattern = /^\d+\s*(hour|hours|day|days|week|weeks|month|months|minute|minutes|h|hr|hrs|d|w|m)$/i;
+    
       const parts = values.duration.split(",").map(p => p.trim());
       const invalidParts = parts.filter(part => !durationPattern.test(part));
-  
+    
       if (invalidParts.length > 0) {
-        newErrors.duration = `Invalid duration format. Each part should include a number and a unit (e.g., "2 hours, 3 days, 4 weeks")`;
+        newErrors.duration =
+          "Invalid duration format. Use formats like '2 hours, 3 days, 4 weeks'.";
       }
-    }
+    } 
 
     if (!values.provider || !String(values.provider).trim()) {
       newErrors.provider = "Provider is required.";

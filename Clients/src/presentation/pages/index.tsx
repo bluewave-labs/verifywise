@@ -1,12 +1,13 @@
 import { Stack, Typography, Paper, Divider, useTheme } from "@mui/material";
-import {ReactComponent as Assessment } from "../assets/icons/assessment.svg";
-import Breadcrumbs, { BreadcrumbItem } from "../components/Breadcrumbs";
+import { ReactComponent as Assessment } from "../assets/icons/assessment.svg";
+import Breadcrumbs from "../components/Breadcrumbs";
+import { IBreadcrumbItem } from "../../domain/interfaces/i.breadcrumbs";
 
 const Playground = () => {
   const theme = useTheme();
 
   // Example 1: Manual breadcrumbs with custom items
-  const manualBreadcrumbs: BreadcrumbItem[] = [
+  const manualBreadcrumbs: IBreadcrumbItem[] = [
     {
       label: "Projects",
       path: "/projects",
@@ -22,7 +23,7 @@ const Playground = () => {
   ];
 
   // Example 2: Breadcrumbs with disabled items
-  const disabledBreadcrumbs: BreadcrumbItem[] = [
+  const disabledBreadcrumbs: IBreadcrumbItem[] = [
     {
       label: "Dashboard",
       path: "/dashboard",
@@ -38,7 +39,7 @@ const Playground = () => {
   ];
 
   // Example 4: Long labels that will be truncated
-  const longLabelBreadcrumbs: BreadcrumbItem[] = [
+  const longLabelBreadcrumbs: IBreadcrumbItem[] = [
     {
       label: "Home",
       path: "/",

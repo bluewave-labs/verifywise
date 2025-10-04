@@ -76,7 +76,7 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: -1,
+  approver: 0,
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,
@@ -293,6 +293,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
     if (!values.model || !String(values.model).trim()) {
       newErrors.model = "Model is required.";
+    }
+
+    if (!values.version || !String(values.version).trim()) {
+      newErrors.version = "Version is required.";
     }
 
     if (!values.approver || !String(values.approver).trim()) {
@@ -607,11 +611,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="version"
-                    label="Version (if applicable)"
+                    label="Version"
                     width={220}
                     value={values.version}
                     onChange={handleOnTextFieldChange("version")}
                     error={errors.version}
+                    isRequired
                     sx={fieldStyle}
                     placeholder="e.g., 4.0, 1.5"
                   />

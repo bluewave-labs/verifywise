@@ -19,6 +19,34 @@ export interface IBreadcrumbItem {
 }
 
 /**
+ * Props for the Breadcrumbs component
+ */
+export interface IBreadcrumbsProps {
+  /** Array of breadcrumb items */
+  items?: IBreadcrumbItem[];
+  /** Custom separator icon */
+  separator?: React.ReactNode;
+  /** Maximum number of items to show (collapses middle items) */
+  maxItems?: number;
+  /** Custom styles */
+  sx?: SxProps<Theme>;
+  /** Whether to auto-generate breadcrumbs from current route */
+  autoGenerate?: boolean;
+  /** Whether to show the current page as the last item */
+  showCurrentPage?: boolean;
+  /** Custom home label */
+  homeLabel?: string;
+  /** Custom home path */
+  homePath?: string;
+  /** Whether to truncate long labels */
+  truncateLabels?: boolean;
+  /** Maximum length for truncated labels */
+  maxLabelLength?: number;
+  /** Custom click handler for breadcrumb items */
+  onItemClick?: (item: IBreadcrumbItem, index: number) => void;
+}
+
+/**
  * Props for the PageBreadcrumbs component
  */
 export interface IPageBreadcrumbsProps {

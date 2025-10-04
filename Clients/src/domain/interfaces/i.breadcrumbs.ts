@@ -1,4 +1,22 @@
 /**
+ * Interface for individual breadcrumb item
+ */
+export interface IBreadcrumbItem {
+  /** Display label for the breadcrumb */
+  label: string;
+  /** Navigation path for the breadcrumb */
+  path?: string;
+  /** Custom click handler */
+  onClick?: () => void;
+  /** Whether the breadcrumb is disabled */
+  disabled?: boolean;
+  /** Unique identifier for the breadcrumb */
+  id?: string;
+  /** Tooltip text for additional context */
+  tooltip?: string;
+}
+
+/**
  * Props for the PageBreadcrumbs component
  */
 export interface IPageBreadcrumbsProps {

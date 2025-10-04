@@ -41,7 +41,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         last_updated_by integer,
         is_demo boolean NOT NULL DEFAULT false,
         is_organizational boolean NOT NULL DEFAULT false,
-        status enum_projects_status NOT NULL DEFAULT 'Not started',
+        status projects_status_enum NOT NULL DEFAULT 'Not started',
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)

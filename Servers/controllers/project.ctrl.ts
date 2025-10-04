@@ -38,9 +38,7 @@ import {
   BusinessLogicException
 } from "../domain.layer/exceptions/custom.exception";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
-import {sendUserAddedAdminNotification} from "../services/userNotification/userAddedAdminNotification"
-import {sendUserAddedEditorNotification} from "../services/userNotification/userAddedEditorNotification"
-
+import { sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/userAddedToProjectNotification"
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -421,27 +419,60 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       const finalMembers = project.members || [];
       const addedMembers = finalMembers.filter((m) => !currentMembers.includes(m));
 
-        // Send notification to users who were added as project editors (fire-and-forget, don't block response)
+        // Send notification to users who were added (fire-and-forget, don't block response)
         for (const memberId of addedMembers) {
             try {
                 // Get user details to check their role
                 const memberUser = await getUserByIdQuery(memberId);
-                // Check if user has Editor role (role_id = 3)
-                if (memberUser && memberUser.role_id === 3) {
-                    sendUserAddedEditorNotification({
-                        projectId: projectId,
-                        projectName: project.project_title,
-                        adminId: req.userId!,     // Actor who made the change
-                        userId: memberId          // Editor receiving notification
-                    }).catch(async (emailError) => {
+
+                if (memberUser) {
+                    // Validate role_id is a number
+                    if (typeof memberUser.role_id !== 'number' || !Number.isInteger(memberUser.role_id)) {
                         await logFailure({
                             eventType: "Update",
-                            description: `Failed to send user added as editor notification email to user ${memberId}`,
+                            description: `Invalid role_id type for member ${memberId}: expected number, got ${typeof memberUser.role_id} (${memberUser.role_id})`,
                             functionName: "updateProjectById",
                             fileName: "project.ctrl.ts",
-                            error: emailError as Error,
+                            error: new Error(`Invalid role_id type: ${typeof memberUser.role_id}`),
                         });
-                    });
+                        continue;
+                    }
+
+                    // Map role_id to role name
+                    const roleMap: Record<number, ProjectRole> = {
+                        1: "admin",
+                        2: "reviewer",
+                        3: "editor",
+                        4: "auditor"
+                    };
+
+                    const role = roleMap[memberUser.role_id];
+
+                    if (role) {
+                        sendUserAddedToProjectNotification({
+                            projectId: projectId,
+                            projectName: project.project_title,
+                            adminId: req.userId!,
+                            userId: memberId,
+                            role: role
+                        }).catch(async (emailError) => {
+                            await logFailure({
+                                eventType: "Update",
+                                description: `Failed to send user added as ${role} notification email to user ${memberId}`,
+                                functionName: "updateProjectById",
+                                fileName: "project.ctrl.ts",
+                                error: emailError as Error,
+                            });
+                        });
+                    } else {
+                        await logFailure({
+                            eventType: "Update",
+                            description: `Unmapped role_id ${memberUser.role_id} for member ${memberId} in project ${projectId} (${project.project_title}) - notification skipped`,
+                            functionName: "updateProjectById",
+                            fileName: "project.ctrl.ts",
+                            error: new Error(`Unmapped role_id: ${memberUser.role_id}`),
+                        });
+                    }
                 }
             } catch (userLookupError) {
                 await logFailure({
@@ -453,25 +484,6 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
                 });
             }
         }
-
-
-        // Send notification if owner changed (fire-and-forget, don't block response)
-      if (ownerChanged && existingProject) {
-        sendUserAddedAdminNotification({
-          projectId: projectId,
-          projectName: project.project_title,
-          adminId: req.userId!,          // Actor who made the change
-          userId: updatedProject.owner!  // New admin receiving notification
-        }).catch(async (emailError) => {
-          await logFailure({
-            eventType: "Update",
-            description: "Failed to send user added as admin notification email",
-            functionName: "updateProjectById",
-            fileName: "project.ctrl.ts",
-            error: emailError as Error,
-          });
-        });
-      }
 
       return res.status(202).json(STATUS_CODE[202](project));
     }

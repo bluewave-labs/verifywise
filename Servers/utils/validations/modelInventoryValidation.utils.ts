@@ -22,9 +22,9 @@ export const MODEL_INVENTORY_VALIDATION_LIMITS = {
   PROVIDER: { MIN: 2, MAX: 100 },
   MODEL: { MIN: 2, MAX: 100 },
   VERSION: { MIN: 1, MAX: 50 },
-  APPROVER: { MIN: 2, MAX: 100 },
   CAPABILITIES: { MIN_ITEMS: 1, MAX_ITEMS: 10 },
   // SECURITY_ASSESSMENT is now a boolean field
+  // APPROVER is now a foreign key integer (user ID)
 } as const;
 
 /**
@@ -99,8 +99,11 @@ export const MODEL_PROVIDER_ENUM = [
  * Validates provider model field
  */
 export const validateProviderModel = (value: any): ValidationResult => {
+  if (value === undefined || value === null || value === '') {
+    return { isValid: true }; // Optional field
+  }
   return validateString(value, 'Provider model', {
-    required: true,
+    required: false,
     minLength: MODEL_INVENTORY_VALIDATION_LIMITS.PROVIDER_MODEL.MIN,
     maxLength: MODEL_INVENTORY_VALIDATION_LIMITS.PROVIDER_MODEL.MAX,
     trimWhitespace: true
@@ -144,15 +147,10 @@ export const validateVersion = (value: any): ValidationResult => {
 };
 
 /**
- * Validates approver field
+ * Validates approver field (user foreign key)
  */
 export const validateApprover = (value: any): ValidationResult => {
-  return validateString(value, 'Approver', {
-    required: true,
-    minLength: MODEL_INVENTORY_VALIDATION_LIMITS.APPROVER.MIN,
-    maxLength: MODEL_INVENTORY_VALIDATION_LIMITS.APPROVER.MAX,
-    trimWhitespace: true
-  });
+  return validateForeignKey(value, 'Approver', true);
 };
 
 /**
@@ -160,11 +158,7 @@ export const validateApprover = (value: any): ValidationResult => {
  */
 export const validateCapabilities = (value: any): ValidationResult => {
   if (value === undefined || value === null) {
-    return {
-      isValid: false,
-      message: 'Capabilities are required',
-      code: 'REQUIRED_FIELD'
-    };
+    return { isValid: true }; // Optional field
   }
 
   if (!Array.isArray(value)) {
@@ -175,12 +169,9 @@ export const validateCapabilities = (value: any): ValidationResult => {
     };
   }
 
-  if (value.length < MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MIN_ITEMS) {
-    return {
-      isValid: false,
-      message: `Capabilities array must contain at least ${MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MIN_ITEMS} item(s)`,
-      code: 'INSUFFICIENT_CAPABILITIES'
-    };
+  // Allow empty array (optional field)
+  if (value.length === 0) {
+    return { isValid: true };
   }
 
   if (value.length > MODEL_INVENTORY_VALIDATION_LIMITS.CAPABILITIES.MAX_ITEMS) {
@@ -258,13 +249,9 @@ export const validateStatusDate = (value: any): ValidationResult => {
  * Validates is demo field
  */
 export const validateIsDemo = (value: any): ValidationResult => {
-  // Custom boolean validation since validateBoolean is not available
+  // Optional field - no validation if not provided
   if (value === undefined || value === null) {
-    return {
-      isValid: false,
-      message: 'Is demo is required',
-      code: 'REQUIRED_FIELD'
-    };
+    return { isValid: true };
   }
 
   if (typeof value !== 'boolean') {
@@ -388,36 +375,10 @@ export const validateModelInventoryCreationBusinessRules = (data: any): Validati
     }
   }
 
-  // Validate security assessment requirements for approved models
-  if (data.status === 'Approved') {
-    if (data.security_assessment !== true) {
-      errors.push({
-        field: 'security_assessment',
-        message: 'Approved models must have security assessment completed (true)',
-        code: 'SECURITY_ASSESSMENT_REQUIRED'
-      });
-    }
-  }
-
-  // Validate security assessment for restricted models
-  if (data.status === 'Restricted') {
-    if (data.security_assessment !== true) {
-      errors.push({
-        field: 'security_assessment',
-        message: 'Restricted models must have security assessment completed (true)',
-        code: 'SECURITY_ASSESSMENT_REQUIRED'
-      });
-    }
-  }
-
-  // Validate security assessment for blocked models
-  if (data.status === 'Blocked') {
-    // Blocked models may have security_assessment as false, indicating failed assessment
-    // This is acceptable for blocked status
-  }
+  // Security assessment is no longer required for any status
 
   // Validate capabilities selection
-  if (data.capabilities && Array.isArray(data.capabilities)) {
+  if (data.capabilities && Array.isArray(data.capabilities) && data.capabilities.length > 0) {
     // Check for logical capability combinations
     const hasVision = data.capabilities.includes('Vision');
     const hasMultimodal = data.capabilities.includes('Multimodal');
@@ -500,31 +461,9 @@ export const validateModelInventoryCreationBusinessRules = (data: any): Validati
     });
   }
 
-  // Validate security assessment consistency with status
-  if (data.security_assessment === false && (data.status === 'Approved' || data.status === 'Restricted')) {
-    errors.push({
-      field: 'security_assessment',
-      message: 'Models with failed security assessment cannot be Approved or Restricted',
-      code: 'FAILED_SECURITY_ASSESSMENT_CONFLICT'
-    });
-  }
+  // Security assessment is no longer enforced for any status transitions
 
-  // Validate that pending models don't claim completed security assessment prematurely
-  if (data.status === 'Pending' && data.security_assessment === true) {
-    // This is actually fine - pending models can have completed security assessment
-    // They just haven't been reviewed for final approval yet
-  }
-
-  // Validate approver field format
-  if (data.approver) {
-    if (!data.approver.includes(' ') || data.approver.length < 5) {
-      errors.push({
-        field: 'approver',
-        message: 'Approver should include full name (first and last name)',
-        code: 'INVALID_APPROVER_FORMAT'
-      });
-    }
-  }
+  // Approver is now a user ID (foreign key), so no format validation needed
 
   return errors;
 };
@@ -549,14 +488,7 @@ export const validateModelInventoryUpdateBusinessRules = (data: any, existingDat
     }
 
     if (existingData.status === 'Pending' && data.status === 'Approved') {
-      // Ensure security assessment is completed for approval
-      if (data.security_assessment !== true) {
-        errors.push({
-          field: 'security_assessment',
-          message: 'Security assessment must be completed (true) for approval',
-          code: 'SECURITY_ASSESSMENT_REQUIRED_FOR_APPROVAL'
-        });
-      }
+      // Allow approval without security assessment requirement
     }
 
     if (existingData.status === 'Pending' && data.status === 'Restricted') {
@@ -584,17 +516,6 @@ export const validateModelInventoryUpdateBusinessRules = (data: any, existingDat
     }
   }
 
-  // Validate version updates
-  if (data.version && existingData?.version) {
-    if (data.version === existingData.version && data.status !== existingData.status) {
-      errors.push({
-        field: 'version',
-        message: 'Version should be updated when changing model status significantly',
-        code: 'VERSION_UPDATE_REQUIRED'
-      });
-    }
-  }
-
   // Validate version format
   if (data.version) {
     const versionPattern = /^v?\d+(\.\d+)*(-[a-zA-Z0-9-]+)?(\+[a-zA-Z0-9-]+)?$/;
@@ -607,16 +528,7 @@ export const validateModelInventoryUpdateBusinessRules = (data: any, existingDat
     }
   }
 
-  // Validate security assessment for approved promotion
-  if (data.status === 'Approved') {
-    if (data.security_assessment !== true) {
-      errors.push({
-        field: 'security_assessment',
-        message: 'Approved models must have security assessment completed (true)',
-        code: 'SECURITY_ASSESSMENT_REQUIRED'
-      });
-    }
-  }
+  // Security assessment is no longer required for approved status
 
   // Validate demo flag changes
   if (data.is_demo !== undefined && existingData?.is_demo !== undefined) {

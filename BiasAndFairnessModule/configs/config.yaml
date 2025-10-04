@@ -12,7 +12,6 @@ dataset:
     enabled: true
     n_samples: 50
     random_seed: 42
-    
 
 # Post-processing Configuration
 post_processing:
@@ -30,18 +29,18 @@ post_processing:
 
 # Model Configuration
 model:
+  # Provider-agnostic model configuration
+  provider: "huggingface"            # Options: huggingface, openai
   # Model task type for Fairness Compass routing
   model_task: "binary_classification" # Options: binary_classification, multiclass_classification, regression, generation, ranking
-  label_behavior: "binary" # Options: binary, categorical, continuous
-
-  # Hugging Face model configuration
-  huggingface:
-    enabled: true
-    model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-    device: "cuda" # or "cpu" for CPU-only inference
-    max_new_tokens: 50
-    temperature: 0.7
-    top_p: 0.9
+  label_behavior: "binary"            # Options: binary, categorical, continuous
+  model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  device: "cuda"                      # or "cpu" for CPU-only inference
+  max_new_tokens: 50
+  temperature: 0.7
+  top_p: 0.9
+  # Optional for remote providers (OpenAI-compatible endpoints)
+  base_url: null
 
 # Prompting Configuration
 prompting:
@@ -72,5 +71,5 @@ metrics:
       - "precision"
 
 artifacts:
-  inference_results_path: "artifacts/cleaned_inference_results.csv"
+  inference_results_path: "artifacts/inference_results.csv"
   postprocessed_results_path: "artifacts/postprocessed_results.csv"

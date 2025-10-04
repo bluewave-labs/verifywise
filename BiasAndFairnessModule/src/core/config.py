@@ -34,47 +34,14 @@ class DatasetConfig(BaseModel):
     )
 
 
-class ClosedSourceModelConfig(BaseModel):
-    """Configuration for closed source (API-based) models."""
-
-    enabled: bool = Field(
-        default=False, description="Whether to use closed source model"
-    )
-    api_endpoint: Optional[str] = Field(
-        default=None, description="API endpoint for model inference"
-    )
-    api_key_env_var: str = Field(
-        default="MODEL_API_KEY", description="Environment variable name for API key"
-    )
-    timeout_seconds: int = Field(
-        default=30, gt=0, description="Timeout for API calls in seconds"
-    )
-
-
-class HuggingFaceModelConfig(BaseModel):
-    """Configuration for Hugging Face models."""
-
-    enabled: bool = Field(default=True, description="Whether to use Hugging Face model")
-    model_id: str = Field(
-        default="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-        description="Model ID from Hugging Face Hub",
-    )
-    device: str = Field(
-        default="cuda", description="Device to run the model on (cuda or cpu)"
-    )
-    max_new_tokens: int = Field(
-        default=512, gt=0, description="Maximum sequence length for model generation"
-    )
-    temperature: float = Field(
-        default=0.7, gt=0, le=1.0, description="Sampling temperature"
-    )
-    top_p: float = Field(
-        default=0.9, gt=0, le=1.0, description="Top-p sampling parameter"
-    )
-
-
 class ModelConfig(BaseModel):
     """Configuration for model settings."""
+
+    # Provider selection (e.g., 'huggingface', 'openai')
+    provider: str = Field(
+        default="huggingface",
+        description="Inference provider to use (e.g., 'huggingface', 'openai')",
+    )
 
     model_task: str = Field(
         default="binary_classification",
@@ -84,9 +51,29 @@ class ModelConfig(BaseModel):
         default="binary",
         description="Label behavior type for Fairness Compass routing (binary, categorical, continuous)"
     )
-    huggingface: HuggingFaceModelConfig = Field(
-        default_factory=lambda: HuggingFaceModelConfig(),
-        description="Hugging Face model configuration",
+
+    # Unified generation/inference parameters (apply across providers)
+    model_id: str = Field(
+        default="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        description="Model identifier (HF repo id or provider-specific model name)",
+    )
+    device: str = Field(
+        default="cuda", description="Device to run local models on (cuda or cpu)"
+    )
+    max_new_tokens: int = Field(
+        default=512, gt=0, description="Maximum number of tokens to generate"
+    )
+    temperature: float = Field(
+        default=0.7, gt=0, le=1.0, description="Sampling temperature"
+    )
+    top_p: float = Field(
+        default=0.9, gt=0, le=1.0, description="Top-p nucleus sampling parameter"
+    )
+
+    # Optional base URL for OpenAI-compatible or custom endpoints
+    base_url: Optional[str] = Field(
+        default=None,
+        description="Optional base URL for remote OpenAI-compatible providers",
     )
 
 

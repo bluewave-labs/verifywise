@@ -57,10 +57,10 @@ export const validateOverviewInfo = (value: any): ValidationResult => {
     };
   }
 
-  // Validate title
-  if (value.title !== undefined) {
+  // Validate title (optional)
+  if (value.title !== undefined && value.title !== null && value.title !== '') {
     const titleValidation = validateString(value.title, 'Title', {
-      required: true,
+      required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.TITLE.MIN,
       maxLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.TITLE.MAX,
       trimWhitespace: true
@@ -70,10 +70,10 @@ export const validateOverviewInfo = (value: any): ValidationResult => {
     }
   }
 
-  // Validate header color
-  if (value.header_color !== undefined) {
+  // Validate header color (optional)
+  if (value.header_color !== undefined && value.header_color !== null && value.header_color !== '') {
     const colorValidation = validateString(value.header_color, 'Header color', {
-      required: true,
+      required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.HEADER_COLOR.MIN,
       maxLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.HEADER_COLOR.MAX,
       trimWhitespace: true
@@ -93,8 +93,8 @@ export const validateOverviewInfo = (value: any): ValidationResult => {
     }
   }
 
-  // Validate logo file ID if provided
-  if (value.logo !== undefined && value.logo !== null) {
+  // Validate logo file ID if provided (optional)
+  if (value.logo !== undefined && value.logo !== null && value.logo !== '') {
     const logoValidation = validateForeignKey(value.logo, 'Logo file ID', false);
     if (!logoValidation.isValid) {
       return logoValidation;
@@ -106,6 +106,7 @@ export const validateOverviewInfo = (value: any): ValidationResult => {
 
 /**
  * Validates overview intro section
+ * Only validates text fields if they are visible and have content
  */
 export const validateOverviewIntro = (value: any): ValidationResult => {
   if (!value || typeof value !== 'object') {
@@ -116,8 +117,8 @@ export const validateOverviewIntro = (value: any): ValidationResult => {
     };
   }
 
-  // Validate purpose text if provided
-  if (value.purpose_text !== undefined) {
+  // Only validate purpose text if it's visible and has content
+  if (value.purpose_visible && value.purpose_text !== undefined && value.purpose_text !== null && value.purpose_text !== '') {
     const purposeValidation = validateString(value.purpose_text, 'Purpose text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.PURPOSE_TEXT.MIN,
@@ -129,8 +130,8 @@ export const validateOverviewIntro = (value: any): ValidationResult => {
     }
   }
 
-  // Validate our statement text if provided
-  if (value.our_statement_text !== undefined) {
+  // Only validate statement text if it's visible and has content
+  if (value.our_statement_visible && value.our_statement_text !== undefined && value.our_statement_text !== null && value.our_statement_text !== '') {
     const statementValidation = validateString(value.our_statement_text, 'Our statement text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.STATEMENT_TEXT.MIN,
@@ -142,8 +143,8 @@ export const validateOverviewIntro = (value: any): ValidationResult => {
     }
   }
 
-  // Validate our mission text if provided
-  if (value.our_mission_text !== undefined) {
+  // Only validate mission text if it's visible and has content
+  if (value.our_mission_visible && value.our_mission_text !== undefined && value.our_mission_text !== null && value.our_mission_text !== '') {
     const missionValidation = validateString(value.our_mission_text, 'Our mission text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.MISSION_TEXT.MIN,
@@ -160,6 +161,7 @@ export const validateOverviewIntro = (value: any): ValidationResult => {
 
 /**
  * Validates overview company description section
+ * Only validates text fields if they are visible and have content
  */
 export const validateOverviewCompanyDescription = (value: any): ValidationResult => {
   if (!value || typeof value !== 'object') {
@@ -170,8 +172,8 @@ export const validateOverviewCompanyDescription = (value: any): ValidationResult
     };
   }
 
-  // Validate background text if provided
-  if (value.background_text !== undefined) {
+  // Only validate background text if it's visible and has content
+  if (value.background_visible && value.background_text !== undefined && value.background_text !== null && value.background_text !== '') {
     const backgroundValidation = validateString(value.background_text, 'Background text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.BACKGROUND_TEXT.MIN,
@@ -183,8 +185,8 @@ export const validateOverviewCompanyDescription = (value: any): ValidationResult
     }
   }
 
-  // Validate core benefits text if provided
-  if (value.core_benefits_text !== undefined) {
+  // Only validate core benefits text if it's visible and has content
+  if (value.core_benefits_visible && value.core_benefits_text !== undefined && value.core_benefits_text !== null && value.core_benefits_text !== '') {
     const benefitsValidation = validateString(value.core_benefits_text, 'Core benefits text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.CORE_BENEFITS_TEXT.MIN,
@@ -196,8 +198,8 @@ export const validateOverviewCompanyDescription = (value: any): ValidationResult
     }
   }
 
-  // Validate compliance doc text if provided
-  if (value.compliance_doc_text !== undefined) {
+  // Only validate compliance doc text if it's visible and has content
+  if (value.compliance_doc_visible && value.compliance_doc_text !== undefined && value.compliance_doc_text !== null && value.compliance_doc_text !== '') {
     const complianceValidation = validateString(value.compliance_doc_text, 'Compliance document text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.COMPLIANCE_DOC_TEXT.MIN,
@@ -214,6 +216,7 @@ export const validateOverviewCompanyDescription = (value: any): ValidationResult
 
 /**
  * Validates overview terms and contact section
+ * Only validates text fields if they are visible and have content
  */
 export const validateOverviewTermsAndContact = (value: any): ValidationResult => {
   if (!value || typeof value !== 'object') {
@@ -224,8 +227,8 @@ export const validateOverviewTermsAndContact = (value: any): ValidationResult =>
     };
   }
 
-  // Validate terms text if provided
-  if (value.terms_visible && value.terms_text !== undefined) {
+  // Only validate terms text if it's visible and has content
+  if (value.terms_visible && value.terms_text !== undefined && value.terms_text !== null && value.terms_text !== '') {
     const termsValidation = validateString(value.terms_text, 'Terms text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.TERMS_TEXT.MIN,
@@ -237,8 +240,8 @@ export const validateOverviewTermsAndContact = (value: any): ValidationResult =>
     }
   }
 
-  // Validate privacy text if provided
-  if (value.privacy_visible && value.privacy_text !== undefined) {
+  // Only validate privacy text if it's visible and has content
+  if (value.privacy_visible && value.privacy_text !== undefined && value.privacy_text !== null && value.privacy_text !== '') {
     const privacyValidation = validateString(value.privacy_text, 'Privacy text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.PRIVACY_TEXT.MIN,
@@ -250,8 +253,8 @@ export const validateOverviewTermsAndContact = (value: any): ValidationResult =>
     }
   }
 
-  // Validate email text if provided
-  if (value.email_visible && value.email_text !== undefined) {
+  // Only validate email text if it's visible and has content
+  if (value.email_visible && value.email_text !== undefined && value.email_text !== null && value.email_text !== '') {
     const emailValidation = validateString(value.email_text, 'Email text', {
       required: false,
       minLength: AI_TRUST_CENTRE_VALIDATION_LIMITS.EMAIL_TEXT.MIN,
@@ -468,11 +471,12 @@ export const validateAITrustCentreFileUpload = (file: any, type: 'logo' | 'resou
 
 /**
  * Business rule validation for AI Trust Centre overview
+ * Only validates content when the section is actually visible
  */
 export const validateOverviewBusinessRules = (data: Partial<IAITrustCentreOverview>): ValidationError[] => {
   const errors: ValidationError[] = [];
 
-  // Validate that if sections are visible, they have meaningful content
+  // Only validate intro content if intro section is visible in info
   if (data.info?.intro_visible && data.intro) {
     if (data.intro.purpose_visible && (!data.intro.purpose_text || data.intro.purpose_text.trim().length < 10)) {
       errors.push({
@@ -499,6 +503,7 @@ export const validateOverviewBusinessRules = (data: Partial<IAITrustCentreOvervi
     }
   }
 
+  // Only validate company description content if company_description section is visible in info
   if (data.info?.company_description_visible && data.company_description) {
     if (data.company_description.background_visible && (!data.company_description.background_text || data.company_description.background_text.trim().length < 10)) {
       errors.push({
@@ -517,6 +522,7 @@ export const validateOverviewBusinessRules = (data: Partial<IAITrustCentreOvervi
     }
   }
 
+  // Only validate terms and contact content if terms_and_contact section is visible in info
   if (data.info?.terms_and_contact_visible && data.terms_and_contact) {
     if (data.terms_and_contact.email_visible && (!data.terms_and_contact.email_text || data.terms_and_contact.email_text.trim().length < 3)) {
       errors.push({

@@ -393,7 +393,7 @@ const TextEditorCard: React.FC = () => {
                 margin: '2px 0',
               },
               // TipTap placeholder styles
-              '& .is-editor-empty:first-child::before': {
+              '& .is-editor-empty:first-of-type::before': {
                 color: '#999',
                 content: 'attr(data-placeholder)',
                 float: 'left',

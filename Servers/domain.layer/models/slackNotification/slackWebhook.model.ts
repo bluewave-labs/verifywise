@@ -13,6 +13,7 @@ import {
   NotFoundException,
 } from "../../exceptions/custom.exception";
 import { decryptText, encryptText } from "../../../tools/createSecureValue";
+import { SlackNotificationRoutingType } from "../../enums/slack.enum";
 
 @Table({
   tableName: "slack_webhooks",
@@ -100,6 +101,13 @@ export class SlackWebhookModel
     type: DataType.BOOLEAN,
   })
   is_active?: boolean;
+
+  @Column({
+    type: DataType.ARRAY(
+      DataType.ENUM(...Object.values(SlackNotificationRoutingType)),
+    ),
+  })
+  routing_type?: SlackNotificationRoutingType[];
 
   /**
    * Create a new slack webhook with comprehensive validation
@@ -206,128 +214,13 @@ export class SlackWebhookModel
    * Update slack webhook information with validation
    */
   async updateSlackWebhook(updateData: {
-    access_token: string;
-    scope: string;
-    team_name: string;
-    team_id: string;
-    channel: string;
-    channel_id: string;
-    configuration_url: string;
-    url: string;
-    user_id?: number;
-    created_at?: Date;
+    routing_type?: SlackNotificationRoutingType[];
     is_active?: boolean;
   }): Promise<void> {
-    if (updateData.access_token !== undefined) {
-      if (
-        !updateData.access_token ||
-        updateData.access_token.trim().length === 0
-      ) {
-        throw new ValidationException(
-          "Access Token is required",
-          "access_token",
-          updateData.access_token,
-        );
-      }
-      const { iv: accessTokeniv, value: accessToken } = encryptText(
-        updateData.access_token.trim(),
-      );
-      this.access_token = accessToken;
-      this.access_token_iv = accessTokeniv;
+    if (updateData.routing_type !== undefined) {
+      this.routing_type = updateData.routing_type;
     }
 
-    if (updateData.scope !== undefined) {
-      if (!updateData.scope || updateData.scope.trim().length === 0) {
-        throw new ValidationException(
-          "Scope is required",
-          "scope",
-          updateData.scope,
-        );
-      }
-      this.scope = updateData.scope.trim();
-    }
-
-    if (updateData.team_id !== undefined) {
-      if (!updateData.team_id || updateData.team_id.trim().length === 0) {
-        throw new ValidationException(
-          "Team ID is required",
-          "team_id",
-          updateData.team_id,
-        );
-      }
-      this.team_id = updateData.team_id.trim();
-    }
-
-    if (updateData.team_name !== undefined) {
-      if (!updateData.team_name || updateData.team_name.trim().length === 0) {
-        throw new ValidationException(
-          "Team Name is required",
-          "team_name",
-          updateData.team_name,
-        );
-      }
-      this.team_name = updateData.team_name.trim();
-    }
-
-    if (updateData.channel !== undefined) {
-      if (!updateData.channel || updateData.channel.trim().length === 0) {
-        throw new ValidationException(
-          "Channel is required",
-          "channel",
-          updateData.channel,
-        );
-      }
-      this.channel = updateData.channel.trim();
-    }
-
-    if (updateData.channel_id !== undefined) {
-      if (!updateData.channel_id || updateData.channel_id.trim().length === 0) {
-        throw new ValidationException(
-          "Channel Id is required",
-          "channel_id",
-          updateData.channel_id,
-        );
-      }
-      this.channel_id = updateData.channel_id.trim();
-    }
-
-    if (updateData.configuration_url !== undefined) {
-      if (
-        !updateData.configuration_url ||
-        updateData.configuration_url.trim().length === 0
-      ) {
-        throw new ValidationException(
-          "Configuration Url is required",
-          "configuration_url",
-          updateData.configuration_url,
-        );
-      }
-      this.configuration_url = updateData.configuration_url.trim();
-    }
-
-    if (updateData.url !== undefined) {
-      if (!updateData.url || updateData.url.trim().length === 0) {
-        throw new ValidationException("URL is required", "url", updateData.url);
-      }
-      const { iv: ivUrl, value: urlValue } = encryptText(updateData.url.trim());
-      this.url = urlValue;
-      this.url_iv = ivUrl;
-    }
-
-    if (updateData.user_id !== undefined) {
-      if (!numberValidation(updateData.user_id, 1)) {
-        throw new ValidationException(
-          "Valid User is required (must be >= 1)",
-          "user_id",
-          updateData.user_id,
-        );
-      }
-      this.user_id = updateData.user_id;
-    }
-
-    if (updateData.created_at !== undefined) {
-      this.created_at = updateData.created_at;
-    }
     if (updateData.is_active !== undefined) {
       this.is_active = updateData.is_active;
     }
@@ -420,17 +313,15 @@ export class SlackWebhookModel
   toJSON(): any {
     return {
       id: this.id,
-      access_token: this.access_token,
       scope: this.scope,
       user_id: this.user_id,
       team_name: this.team_name,
       team_id: this.team_id,
       channel: this.channel,
       channel_id: this.channel_id,
-      configuration_url: this.configuration_url,
-      url: this.url,
       created_at: this.createdAt,
       is_active: this.is_active,
+      routing_type: this.routing_type,
     };
   }
 

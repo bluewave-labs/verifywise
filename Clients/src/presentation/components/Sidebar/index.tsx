@@ -42,6 +42,8 @@ import {
   GraduationCap,
   Telescope,
   List as ListIcon,
+  FolderTree,
+  Layers,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -62,10 +64,6 @@ interface MenuItem {
   name: string;
   icon: React.ReactNode;
   path: string;
-  children?: Array<{
-    name: string;
-    path: string;
-  }>;
   highlightPaths?: string[];
 }
 
@@ -82,17 +80,16 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
         name: "Dashboard",
         icon: <Home size={16} strokeWidth={1.5} />,
         path: "/",
-        children: [
-          {
-            name: "Project oriented view",
-            path: "/overview",
-          },
-          {
-            name: "Organizational view",
-            path: "/framework",
-          },
-        ],
-        highlightPaths: ["/project-view"],
+      },
+      {
+        name: "Project oriented view",
+        icon: <FolderTree size={16} strokeWidth={1.5} />,
+        path: "/overview",
+      },
+      {
+        name: "Organizational view",
+        icon: <Layers size={16} strokeWidth={1.5} />,
+        path: "/framework",
       },
       {
         name: "Model Inventory",
@@ -231,10 +228,6 @@ const Sidebar = () => {
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
-  const [open, setOpen] = useState<{ [key: string]: boolean }>({
-    Dashboard: true,
-    Account: false,
-  });
 
   const [openTasksCount, setOpenTasksCount] = useState(0);
 
@@ -370,7 +363,6 @@ const Sidebar = () => {
           },
         }}
         onClick={() => {
-          setOpen({ Dashboard: true, Account: false }); // Keep Dashboard always open
           dispatch(toggleSidebar());
         }}
       >
@@ -411,163 +403,71 @@ const Sidebar = () => {
               variant="overline"
               sx={{
                 px: theme.spacing(4),
-                py: theme.spacing(2),
+                pt: theme.spacing(4), // More space above
+                pb: theme.spacing(2),
+                mt: group.name !== "DISCOVERY" ? theme.spacing(3) : 0, // Extra space for non-first groups
                 color: theme.palette.text.disabled,
-                fontSize: "10px",
-                fontWeight: 600,
+                fontSize: "9px", // Changed from 10px to 9px
+                fontWeight: 400, // Changed from 600 to 400 (lighter)
                 letterSpacing: "1px",
                 textTransform: "uppercase",
                 display: "block",
+                opacity: 0.7, // Make it even lighter
               }}
             >
               {group.name}
             </Typography>
 
             {/* Group items */}
-            {group.items.map((item) =>
-          item.children ? (
-            collapsed ? (
-              <React.Fragment key={item.name}>
-                <Tooltip
-                  sx={{ fontSize: 13 }}
-                  placement="right"
-                  title={collapsed ? item.name : ""}
-                  slotProps={{
-                    popper: {
-                      modifiers: [
-                        {
-                          name: "offset",
-                          options: {
-                            offset: [0, -16],
-                          },
+            {group.items.map((item) => (
+              <Tooltip
+                sx={{ fontSize: 13 }}
+                key={item.path}
+                placement="right"
+                title={collapsed ? item.name : ""}
+                slotProps={{
+                  popper: {
+                    modifiers: [
+                      {
+                        name: "offset",
+                        options: {
+                          offset: [0, -16],
                         },
-                      ],
-                    },
-                  }}
-                  disableInteractive
-                >
-                  <ListItemButton
-                    disableRipple={
-                      theme.components?.MuiListItemButton?.defaultProps
-                        ?.disableRipple
-                    }
-                    className={
-                      Boolean(anchorEl) && popup === item.name
-                        ? "selected-path"
-                        : ""
-                    }
-                    onClick={(event) => openPopup(event, item.name)}
-                    sx={{
-                      position: "relative",
-                      gap: theme.spacing(4),
-                      borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(4),
-                      backgroundColor:
-                        location.pathname === item.path ||
-                        location.pathname === "/overview" ||
-                        location.pathname === "/framework"
-                          ? "#F9F9F9"
-                          : "transparent",
-                      "&:hover": {
-                        backgroundColor: "#F9F9F9",
                       },
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "flex-start",
-                        width: "16px",
-                        mr: 0,
-                      }}
-                    >
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText>{item.name}</ListItemText>
-                  </ListItemButton>
-                </Tooltip>
-                <Menu
-                  className="sidebar-popup"
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl) && popup === item.name}
-                  onClose={closePopup}
-                  disableScrollLock
-                  anchorOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
-                  slotProps={{
-                    paper: {
-                      sx: {
-                        mt: theme.spacing(-2),
-                        ml: theme.spacing(1),
-                      },
-                    },
-                  }}
-                  MenuListProps={{ sx: { px: 1, py: 2 } }}
-                  sx={{
-                    ml: theme.spacing(8),
-                    "& .selected-path": {
-                      backgroundColor: theme.palette.background.accent,
-                    },
-                  }}
-                >
-                  {item.children.map((child) => (
-                    <MenuItem
-                      key={child.path}
-                      onClick={() => {
-                        navigate(`${child.path}`);
-                        closePopup();
-                      }}
-                      sx={{
-                        gap: theme.spacing(4),
-                        borderRadius: theme.shape.borderRadius,
-                        pl: theme.spacing(4),
-                        backgroundColor:
-                          location.pathname === child.path
-                            ? theme.palette.background.accent
-                            : "transparent",
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                        },
-                      }}
-                    >
-                      {child.name}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </React.Fragment>
-            ) : (
-              <React.Fragment key={item.name}>
+                    ],
+                  },
+                }}
+                disableInteractive
+              >
                 <ListItemButton
                   disableRipple={
                     theme.components?.MuiListItemButton?.defaultProps
                       ?.disableRipple
                   }
-                  onClick={() => {
-                    if (item.name === "Dashboard") {
-                      // Navigate directly to the main dashboard instead of toggling
-                      navigate("/");
-                    } else {
-                      // Keep toggle behavior for other menu items with children
-                      setOpen((prev) => ({
-                        ...prev,
-                        [`${item.name}`]: !prev[`${item.name}`],
-                      }));
-                    }
-                  }}
+                  className={
+                    location.pathname === item.path ||
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
+                    customMenuHandler() === item.path
+                      ? "selected-path"
+                      : "unselected"
+                  }
+                  onClick={() => navigate(`${item.path}`)}
                   sx={{
+                    height: "37px",
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
                     backgroundColor:
                       location.pathname === item.path ||
-                      location.pathname === "/overview" ||
-                      location.pathname === "/framework"
-                        ? "#F9F9F9"
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#F9F9F9" // highlight background
                         : "transparent",
+
                     "&:hover": {
                       backgroundColor: "#F9F9F9",
                     },
@@ -595,168 +495,8 @@ const Sidebar = () => {
                     {item.name}
                   </ListItemText>
                 </ListItemButton>
-                <Collapse
-                  in={item.name === "Dashboard" ? true : open[`${item.name}`]}
-                  timeout="auto"
-                >
-                  <List
-                    component="div"
-                    disablePadding
-                    sx={{
-                      pl: theme.spacing(8), // Indent the nested list
-                      position: "relative",
-                      // The main vertical line of the tree
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        left: `calc(${theme.spacing(3)} + 12px)`, // Position the line to align with parent icon center + 12px offset
-                        top: 0,
-                        height: "calc(100% - 18.5px)", // Extend to cover both items but stop before the last item's bottom
-                        width: "1px",
-                        backgroundColor: "#D1D5DB", // Light gray color matching the reference
-                        zIndex: 1, // Ensure tree lines stay above background
-                        pointerEvents: "none", // Prevent interference with hover
-                      },
-                    }}
-                  >
-                    {item.children.map((child) => (
-                      <ListItemButton
-                        key={child.path}
-                        disableRipple={
-                          theme.components?.MuiListItemButton?.defaultProps
-                            ?.disableRipple
-                        }
-                        className={
-                          location.pathname === child.path
-                            ? "selected-path"
-                            : "unselected"
-                        }
-                        onClick={() => navigate(`${child.path}`)}
-                        sx={{
-                          height: "37px",
-                          gap: theme.spacing(4),
-                          borderRadius: theme.shape.borderRadius,
-                          px: theme.spacing(4),
-                          pl: `calc(${theme.spacing(4)} + 20px)`, // Add extra left padding to avoid tree overlap
-                          my: theme.spacing(1),
-                          position: "relative",
-                          backgroundColor:
-                            location.pathname === child.path
-                              ? "#F9F9F9"
-                              : "transparent",
-                          "&:hover": {
-                            backgroundColor: "#F9F9F9",
-                          },
-                          // The horizontal line connecting item to the vertical tree line
-                          "&::before": {
-                            content: '""',
-                            position: "absolute",
-                            left: `calc(${theme.spacing(-5)} + 12px)`, // Start from the vertical line's position + 12px offset
-                            top: "50%",
-                            width: theme.spacing(5), // Extend to the item's padding start
-                            height: "1px",
-                            backgroundColor: "#D1D5DB", // Light gray color matching the reference
-                            zIndex: 1, // Ensure tree lines stay above background
-                            pointerEvents: "none", // Prevent interference with hover
-                          },
-                        }}
-                      >
-                        <ListItemText
-                          sx={{
-                            "& .MuiListItemText-primary": {
-                              fontSize: "13px",
-                              color: theme.palette.text.secondary,
-                              fontWeight: 400, // Ensure consistent font weight
-                            },
-                          }}
-                        >
-                          {child.name}
-                        </ListItemText>
-                      </ListItemButton>
-                    ))}
-                  </List>
-                </Collapse>
-              </React.Fragment>
-            )
-          ) : item.path ? (
-            <Tooltip
-              sx={{ fontSize: 13 }}
-              key={item.path}
-              placement="right"
-              title={collapsed ? item.name : ""}
-              slotProps={{
-                popper: {
-                  modifiers: [
-                    {
-                      name: "offset",
-                      options: {
-                        offset: [0, -16],
-                      },
-                    },
-                  ],
-                },
-              }}
-              disableInteractive
-            >
-              <ListItemButton
-                disableRipple={
-                  theme.components?.MuiListItemButton?.defaultProps
-                    ?.disableRipple
-                }
-                className={
-                  location.pathname === item.path ||
-                  item.highlightPaths?.some((p: string) =>
-                    location.pathname.startsWith(p)
-                  ) ||
-                  customMenuHandler() === item.path
-                    ? "selected-path"
-                    : "unselected"
-                }
-                onClick={() => navigate(`${item.path}`)}
-                sx={{
-                  height: "37px",
-                  gap: theme.spacing(4),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(4),
-                  backgroundColor:
-                    location.pathname === item.path ||
-                    item.highlightPaths?.some((p: string) =>
-                      location.pathname.startsWith(p)
-                    ) ||
-                    customMenuHandler() === item.path
-                      ? "#F9F9F9" // highlight background
-                      : "transparent",
-
-                  "&:hover": {
-                    backgroundColor: "#F9F9F9",
-                  },
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    width: "16px",
-                    mr: 0,
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  sx={{
-                    "& .MuiListItemText-primary": {
-                      fontSize: "13px",
-                    },
-                  }}
-                >
-                  {item.name}
-                </ListItemText>
-              </ListItemButton>
-            </Tooltip>
-          ) : null
-            )}
+              </Tooltip>
+            ))}
           </React.Fragment>
         ))}
       </List>

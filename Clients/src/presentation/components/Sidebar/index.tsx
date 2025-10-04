@@ -69,88 +69,108 @@ interface MenuItem {
   highlightPaths?: string[];
 }
 
-const getMenuItems = (openTasksCount: number): MenuItem[] => [
+interface MenuGroup {
+  name: string;
+  items: MenuItem[];
+}
+
+const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
   {
-    name: "Dashboard",
-    icon: <Dashboard />,
-    path: "/",
-    children: [
+    name: "DISCOVERY",
+    items: [
       {
-        name: "Project oriented view",
-        path: "/overview",
+        name: "Dashboard",
+        icon: <Dashboard />,
+        path: "/",
+        children: [
+          {
+            name: "Project oriented view",
+            path: "/overview",
+          },
+          {
+            name: "Organizational view",
+            path: "/framework",
+          },
+        ],
+        highlightPaths: ["/project-view"],
       },
       {
-        name: "Organizational view",
-        path: "/framework",
+        name: "Model Inventory",
+        icon: <ModelInventory />,
+        path: "/model-inventory",
+      },
+      {
+        name: "AI Trust Center",
+        icon: <AITrustCenter />,
+        path: "/ai-trust-center",
       },
     ],
-    highlightPaths: ["/project-view"],
   },
   {
-    name: "Risk Management",
-    icon: <RiskManagementIcon />,
-    path: "/risk-management",
+    name: "ASSURANCE",
+    items: [
+      {
+        name: "Risk Management",
+        icon: <RiskManagementIcon />,
+        path: "/risk-management",
+      },
+      {
+        name: "Bias & Fairness",
+        icon: <FairnessIcon />,
+        path: "/fairness-dashboard",
+      },
+      {
+        name: "Tasks",
+        icon: (
+          <Badge
+            badgeContent={openTasksCount > 0 ? openTasksCount : null}
+            color="error"
+            sx={{
+              "& .MuiBadge-badge": {
+                fontSize: "10px",
+                minWidth: "18px",
+                height: "18px",
+                backgroundColor: "#ef4444",
+                color: "white",
+              },
+            }}
+          >
+            <Tasks />
+          </Badge>
+        ),
+        path: "/tasks",
+      },
+      {
+        name: "Evidence",
+        icon: <FileManager />,
+        path: "/file-manager",
+      },
+      {
+        name: "Reporting",
+        icon: <ReportingSvg />,
+        path: "/reporting",
+      },
+    ],
   },
   {
-    name: "Tasks",
-    icon: (
-      <Badge
-        badgeContent={openTasksCount > 0 ? openTasksCount : null}
-        color="error"
-        sx={{
-          "& .MuiBadge-badge": {
-            fontSize: "10px",
-            minWidth: "18px",
-            height: "18px",
-            backgroundColor: "#ef4444",
-            color: "white",
-          },
-        }}
-      >
-        <Tasks />
-      </Badge>
-    ),
-    path: "/tasks",
-  },
-  {
-    name: "Vendors",
-    icon: <Vendors style={{}} />,
-    path: "/vendors",
-  },
-  {
-    name: "Evidence",
-    icon: <FileManager />,
-    path: "/file-manager",
-  },
-  {
-    name: "Reporting",
-    icon: <ReportingSvg />,
-    path: "/reporting",
-  },
-  {
-    name: "Bias & Fairness",
-    icon: <FairnessIcon />,
-    path: "/fairness-dashboard",
-  },
-  {
-    name: "Training Registry",
-    icon: <TrainingRegister />,
-    path: "/training",
-  },
-  {
-    name: "Policy Manager",
-    icon: <Policies />,
-    path: "/policies",
-  },
-  {
-    name: "AI Trust Center",
-    icon: <AITrustCenter />,
-    path: "/ai-trust-center",
-  },
-  {
-    name: "Model Inventory",
-    icon: <ModelInventory />,
-    path: "/model-inventory",
+    name: "GOVERNANCE",
+    items: [
+      {
+        name: "Policy Manager",
+        icon: <Policies />,
+        path: "/policies",
+      },
+      {
+        name: "Training Registry",
+        icon: <TrainingRegister />,
+        path: "/training",
+      },
+      {
+        name: "Vendors",
+        icon: <Vendors style={{}} />,
+        path: "/vendors",
+      },
+    ],
   },
 ];
 
@@ -218,7 +238,7 @@ const Sidebar = () => {
 
   const [openTasksCount, setOpenTasksCount] = useState(0);
 
-  const menu = getMenuItems(openTasksCount);
+  const menuGroups = getMenuGroups(openTasksCount);
 
   const openPopup = (event: any, id: any) => {
     setAnchorEl(event.currentTarget);
@@ -384,7 +404,27 @@ const Sidebar = () => {
         ref={refs[1]}
       >
         {/* Items of the menu */}
-        {menu.map((item) =>
+        {menuGroups.map((group) => (
+          <React.Fragment key={group.name}>
+            {/* Group header */}
+            <Typography
+              variant="overline"
+              sx={{
+                px: theme.spacing(4),
+                py: theme.spacing(2),
+                color: theme.palette.text.disabled,
+                fontSize: "10px",
+                fontWeight: 600,
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                display: "block",
+              }}
+            >
+              {group.name}
+            </Typography>
+
+            {/* Group items */}
+            {group.items.map((item) =>
           item.children ? (
             collapsed ? (
               <React.Fragment key={item.name}>
@@ -439,8 +479,12 @@ const Sidebar = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "flex-start",
-                        width: "32px",
+                        width: "16px",
                         mr: 0,
+                        "& svg": {
+                          width: "16px",
+                          height: "16px",
+                        },
                       }}
                     >
                       {item.icon}
@@ -539,8 +583,12 @@ const Sidebar = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "flex-start",
-                      width: "32px",
+                      width: "16px",
                       mr: 0,
+                      "& svg": {
+                        width: "16px",
+                        height: "16px",
+                      },
                     }}
                   >
                     {item.icon}
@@ -698,8 +746,12 @@ const Sidebar = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "flex-start",
-                    width: "32px",
+                    width: "16px",
                     mr: 0,
+                    "& svg": {
+                      width: "16px",
+                      height: "16px",
+                    },
                   }}
                 >
                   {item.icon}
@@ -716,7 +768,9 @@ const Sidebar = () => {
               </ListItemButton>
             </Tooltip>
           ) : null
-        )}
+            )}
+          </React.Fragment>
+        ))}
       </List>
       <Divider sx={{ my: theme.spacing(4) }} />
       {/* other */}
@@ -781,8 +835,12 @@ const Sidebar = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "flex-start",
-                  width: "32px",
+                  width: "16px",
                   mr: 0,
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
                 }}
               >
                 {item.icon}

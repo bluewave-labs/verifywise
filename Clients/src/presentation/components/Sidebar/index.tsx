@@ -77,11 +77,6 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
     name: "DISCOVERY",
     items: [
       {
-        name: "Dashboard",
-        icon: <Home size={16} strokeWidth={1.5} />,
-        path: "/",
-      },
-      {
         name: "Project oriented view",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
@@ -92,14 +87,14 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
         path: "/framework",
       },
       {
+        name: "Vendors",
+        icon: <Building size={16} strokeWidth={1.5} />,
+        path: "/vendors",
+      },
+      {
         name: "Model Inventory",
         icon: <ListIcon size={16} strokeWidth={1.5} />,
         path: "/model-inventory",
-      },
-      {
-        name: "AI Trust Center",
-        icon: <Brain size={16} strokeWidth={1.5} />,
-        path: "/ai-trust-center",
       },
     ],
   },
@@ -117,25 +112,9 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
         path: "/fairness-dashboard",
       },
       {
-        name: "Tasks",
-        icon: (
-          <Badge
-            badgeContent={openTasksCount > 0 ? openTasksCount : null}
-            color="error"
-            sx={{
-              "& .MuiBadge-badge": {
-                fontSize: "10px",
-                minWidth: "18px",
-                height: "18px",
-                backgroundColor: "#ef4444",
-                color: "white",
-              },
-            }}
-          >
-            <Flag size={16} strokeWidth={1.5} />
-          </Badge>
-        ),
-        path: "/tasks",
+        name: "Training Registry",
+        icon: <GraduationCap size={16} strokeWidth={1.5} />,
+        path: "/training",
       },
       {
         name: "Evidence",
@@ -146,6 +125,11 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
         name: "Reporting",
         icon: <BarChart3 size={16} strokeWidth={1.5} />,
         path: "/reporting",
+      },
+      {
+        name: "AI Trust Center",
+        icon: <Brain size={16} strokeWidth={1.5} />,
+        path: "/ai-trust-center",
       },
     ],
   },
@@ -158,25 +142,44 @@ const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
         path: "/policies",
       },
       {
-        name: "Training Registry",
-        icon: <GraduationCap size={16} strokeWidth={1.5} />,
-        path: "/training",
-      },
-      {
-        name: "Vendors",
-        icon: <Building size={16} strokeWidth={1.5} />,
-        path: "/vendors",
+        name: "Event Tracker",
+        icon: <Telescope size={16} strokeWidth={1.5} />,
+        path: "/event-tracker",
       },
     ],
   },
 ];
 
-const other: MenuItem[] = [
+const topItems = (openTasksCount: number): MenuItem[] => [
   {
-    name: "Event Tracker",
-    icon: <Telescope size={16} strokeWidth={1.5} />,
-    path: "/event-tracker",
+    name: "Dashboard",
+    icon: <Home size={16} strokeWidth={1.5} />,
+    path: "/",
   },
+  {
+    name: "Tasks",
+    icon: (
+      <Badge
+        badgeContent={openTasksCount > 0 ? openTasksCount : null}
+        color="error"
+        sx={{
+          "& .MuiBadge-badge": {
+            fontSize: "10px",
+            minWidth: "18px",
+            height: "18px",
+            backgroundColor: "#ef4444",
+            color: "white",
+          },
+        }}
+      >
+        <Flag size={16} strokeWidth={1.5} />
+      </Badge>
+    ),
+    path: "/tasks",
+  },
+];
+
+const other: MenuItem[] = [
   {
     name: "Settings",
     icon: <Settings size={16} strokeWidth={1.5} />,
@@ -395,6 +398,93 @@ const Sidebar = () => {
         data-joyride-id="dashboard-navigation"
         ref={refs[1]}
       >
+        {/* Top level items (Dashboard and Tasks) */}
+        {topItems(openTasksCount).map((item) => (
+          <Tooltip
+            sx={{ fontSize: 13 }}
+            key={item.path}
+            placement="right"
+            title={collapsed ? item.name : ""}
+            slotProps={{
+              popper: {
+                modifiers: [
+                  {
+                    name: "offset",
+                    options: {
+                      offset: [0, -16],
+                    },
+                  },
+                ],
+              },
+            }}
+            disableInteractive
+          >
+            <ListItemButton
+              disableRipple={
+                theme.components?.MuiListItemButton?.defaultProps
+                  ?.disableRipple
+              }
+              className={
+                location.pathname === item.path ||
+                item.highlightPaths?.some((p: string) =>
+                  location.pathname.startsWith(p)
+                ) ||
+                customMenuHandler() === item.path
+                  ? "selected-path"
+                  : "unselected"
+              }
+              onClick={() => navigate(`${item.path}`)}
+              sx={{
+                height: "32px",
+                gap: theme.spacing(4),
+                borderRadius: theme.shape.borderRadius,
+                px: theme.spacing(4),
+                backgroundColor:
+                  location.pathname === item.path ||
+                  item.highlightPaths?.some((p: string) =>
+                    location.pathname.startsWith(p)
+                  ) ||
+                  customMenuHandler() === item.path
+                    ? "#E8E8E8" // darker highlight background
+                    : "transparent",
+
+                "&:hover": {
+                  backgroundColor:
+                    location.pathname === item.path ||
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
+                    customMenuHandler() === item.path
+                      ? "#E8E8E8" // keep same color if already selected
+                      : "#F9F9F9", // hover color only if not selected
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  width: "16px",
+                  mr: 0,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                  },
+                }}
+              >
+                {item.name}
+              </ListItemText>
+            </ListItemButton>
+          </Tooltip>
+        ))}
+
         {/* Items of the menu */}
         {menuGroups.map((group) => (
           <React.Fragment key={group.name}>
@@ -405,9 +495,9 @@ const Sidebar = () => {
                 px: theme.spacing(4),
                 pt: theme.spacing(6), // Even more space above (increased from 4 to 6)
                 pb: theme.spacing(2),
-                mt: group.name !== "DISCOVERY" ? theme.spacing(4) : 0, // More extra space for non-first groups (increased from 3 to 4)
+                mt: theme.spacing(4), // Same extra space for all groups
                 color: theme.palette.text.disabled,
-                fontSize: "8px", // Reduced from 9px to 8px
+                fontSize: "7px", // Further reduced from 8px to 7px
                 fontWeight: 400, // Changed from 600 to 400 (lighter)
                 letterSpacing: "0.3px", // Reduced from 1px to 0.3px for tighter spacing
                 textTransform: "uppercase",
@@ -455,7 +545,7 @@ const Sidebar = () => {
                   }
                   onClick={() => navigate(`${item.path}`)}
                   sx={{
-                    height: "37px",
+                    height: "32px",
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
@@ -465,11 +555,18 @@ const Sidebar = () => {
                         location.pathname.startsWith(p)
                       ) ||
                       customMenuHandler() === item.path
-                        ? "#F9F9F9" // highlight background
+                        ? "#E8E8E8" // darker highlight background
                         : "transparent",
 
                     "&:hover": {
-                      backgroundColor: "#F9F9F9",
+                      backgroundColor:
+                        location.pathname === item.path ||
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path
+                          ? "#E8E8E8" // keep same color if already selected
+                          : "#F9F9F9", // hover color only if not selected
                     },
                   }}
                 >
@@ -545,15 +642,18 @@ const Sidebar = () => {
                 }
               }}
               sx={{
-                height: "37px",
+                height: "32px",
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
                 backgroundColor:
-                  location.pathname === item.path ? "#F9F9F9" : "transparent",
+                  location.pathname === item.path ? "#E8E8E8" : "transparent",
 
                 "&:hover": {
-                  backgroundColor: "#F9F9F9",
+                  backgroundColor:
+                    location.pathname === item.path
+                      ? "#E8E8E8" // keep same color if already selected
+                      : "#F9F9F9", // hover color only if not selected
                 },
               }}
             >

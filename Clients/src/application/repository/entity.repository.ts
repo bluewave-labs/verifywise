@@ -118,14 +118,7 @@ export async function getAllEntities({
     const response = await apiServices.get(routeUrl);
     return response.data;
   } catch (error) {
-    // Suppress error logging for dashboard metrics endpoints that are expected to fail gracefully
-    const isDashboardEndpoint = routeUrl.includes('/dashboard/') ||
-                                routeUrl.includes('/logger/') ||
-                                ['/', '/users', '/files', '/vendorRisks/all', '/vendors', '/policies'].includes(routeUrl);
-
-    if (!isDashboardEndpoint) {
-      console.error("Error getting entities:", error);
-    }
+    console.error("Error getting all users:", error);
     throw error;
   }
 }

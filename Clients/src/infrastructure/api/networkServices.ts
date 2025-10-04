@@ -23,24 +23,11 @@ interface ApiResponse<T> {
 }
 
 // Utility function to handle errors
-const handleError = (error: any, endpoint?: string) => {
+const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
       // Use backend message if available, otherwise fallback to generic
       const errorMessage = error.response?.data?.message || error.message;
-
-      // Suppress logging for dashboard-related 404 errors that are expected to fail gracefully
-      const isDashboardEndpoint = endpoint && (
-        endpoint.includes('/dashboard/') ||
-        endpoint.includes('/logger/') ||
-        ['/users', '/files', '/vendorRisks/all', '/vendors', '/policies'].includes(endpoint)
-      );
-
-      const is404Error = error.response?.status === 404;
-
-      if (!isDashboardEndpoint || !is404Error) {
-        console.error("Error in handleError:", error);
-      }
 
       return new CustomException(
         errorMessage,
@@ -55,16 +42,7 @@ const handleError = (error: any, endpoint?: string) => {
       );
     }
   } catch (e) {
-    // Only log if it's not a dashboard 404 error
-    const isDashboardEndpoint = endpoint && (
-      endpoint.includes('/dashboard/') ||
-      endpoint.includes('/logger/') ||
-      ['/users', '/files', '/vendorRisks/all', '/vendors', '/policies'].includes(endpoint)
-    );
-
-    if (!isDashboardEndpoint) {
-      console.error("Error in handleError:", e);
-    }
+    console.error("Error in handleError:", e);
     throw e;
   }
 };
@@ -118,7 +96,7 @@ export const apiServices = {
         statusText: response.statusText,
       };
     } catch (error) {
-      const requestedAPIError = handleError(error, endpoint);
+      const requestedAPIError = handleError(error);
       throw requestedAPIError;
     }
   },
@@ -148,7 +126,7 @@ export const apiServices = {
         headers: response.headers as AxiosResponseHeaders,
       };
     } catch (error) {
-      const requestedAPIError = handleError(error, endpoint);
+      const requestedAPIError = handleError(error);
       throw requestedAPIError;
     }
   },
@@ -177,7 +155,7 @@ export const apiServices = {
         statusText: response.statusText,
       };
     } catch (error) {
-      const requestedAPIError = handleError(error, endpoint);
+      const requestedAPIError = handleError(error);
       throw requestedAPIError;
     }
   },
@@ -206,7 +184,7 @@ export const apiServices = {
         statusText: response.statusText,
       };
     } catch (error) {
-      const requestedAPIError = handleError(error, endpoint);
+      const requestedAPIError = handleError(error);
       throw requestedAPIError;
     }
   },
@@ -233,7 +211,7 @@ export const apiServices = {
         statusText: response.data.message,
       };
     } catch (error) {
-      const requestedAPIError = handleError(error, endpoint);
+      const requestedAPIError = handleError(error);
       throw requestedAPIError;
     }
   },

@@ -1,6 +1,5 @@
 
 import { apiServices } from "../../infrastructure/api/networkServices";
-import { User, ApiResponse } from "../../domain/types/User";
 
 export async function getUserById({
   userId,
@@ -44,7 +43,7 @@ export async function updatePassword({
   userId: number;
   currentPassword: string;
   newPassword: string;
-}): Promise<ApiResponse<{ message: string }>> {
+}): Promise<any> {
   const response = await apiServices.patch(
     `/users/chng-pass/${userId}`,
     { id: userId, currentPassword, newPassword }
@@ -56,13 +55,13 @@ export async function deleteUserById({
   userId,
 }: {
   userId: number;
-}): Promise<ApiResponse<{ message: string }>> {
+}): Promise<any> {
   const response = await apiServices.delete(`/users/${userId}`);
   return response;
 }
 
 
-export async function checkUserExists(): Promise<ApiResponse<{ exists: boolean }>> {
+export async function checkUserExists(): Promise<any> {
   try {
     const response = await apiServices.get(`/users/check/exists`);
      return response.data;
@@ -75,8 +74,8 @@ export async function checkUserExists(): Promise<ApiResponse<{ exists: boolean }
 export async function loginUser({
     body,
   }: {
-    body: { email: string; password: string };
-  }): Promise<ApiResponse<{ user: User; token: string }>> {
+    body: any;
+  }): Promise<any> {
     try {
       const response = await apiServices.post(`/users/login`, body);
       return response;
@@ -85,5 +84,4 @@ export async function loginUser({
       throw error;
     }
   }
-
 

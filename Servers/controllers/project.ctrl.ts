@@ -37,8 +37,8 @@ import {
   ValidationException,
   BusinessLogicException
 } from "../domain.layer/exceptions/custom.exception";
-import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
-import { sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/userAddedToProjectNotification"
+import { sendProjectCreatedNotification } from "../services/userNotification/projectNotifications";
+import { sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/projectNotifications"
 
 export async function getAllProjects(req: Request, res: Response): Promise<any> {
   logProcessing({

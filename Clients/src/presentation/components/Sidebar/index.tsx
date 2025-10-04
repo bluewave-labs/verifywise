@@ -1,6 +1,5 @@
 import {
   Box,
-  Collapse,
   Divider,
   IconButton,
   List,
@@ -72,7 +71,7 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
-const getMenuGroups = (openTasksCount: number): MenuGroup[] => [
+const getMenuGroups = (): MenuGroup[] => [
   {
     name: "DISCOVERY",
     items: [
@@ -234,7 +233,7 @@ const Sidebar = () => {
 
   const [openTasksCount, setOpenTasksCount] = useState(0);
 
-  const menuGroups = getMenuGroups(openTasksCount);
+  const menuGroups = getMenuGroups();
 
   const openPopup = (event: any, id: any) => {
     setAnchorEl(event.currentTarget);

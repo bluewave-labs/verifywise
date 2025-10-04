@@ -11,7 +11,7 @@ import {
   getAllProjectsQuery,
   getProjectByIdQuery,
   updateProjectByIdQuery,
-  getCurrentProjectMembers
+  getCurrentProjectMembers,
 } from "../utils/project.utils";
 import { getUserByIdQuery } from "../utils/user.utils";
 import { getControlCategoryByProjectIdQuery } from "../utils/controlCategory.utils";
@@ -24,28 +24,35 @@ import { createISOFrameworkQuery } from "../utils/iso42001.utils";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 import { IControl } from "../domain.layer/interfaces/i.control";
 import { IControlCategory } from "../domain.layer/interfaces/i.controlCategory";
-import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
+import {
+  logProcessing,
+  logSuccess,
+  logFailure,
+} from "../utils/logger/logHelper";
 import { createISO27001FrameworkQuery } from "../utils/iso27001.utils";
 import {
   validateCompleteProjectWithBusinessRules,
   validateUpdateProjectWithBusinessRules,
   validateProjectIdParam,
   sanitizeProjectDataForOrganizational,
-  validateProjectStatusUpdate
-} from '../utils/validations/projectValidation.utils';
+  validateProjectStatusUpdate,
+} from "../utils/validations/projectValidation.utils";
 import {
   ValidationException,
-  BusinessLogicException
+  BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
 import { sendProjectCreatedNotification } from "../services/projectNotification/projectCreationNotification";
-import { sendUserAddedToProjectNotification, ProjectRole } from "../services/userNotification/userAddedToProjectNotification"
+import {
+  sendUserAddedToProjectNotification,
+  ProjectRole,
+} from "../services/userNotification/userAddedToProjectNotification";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 
-import { ProjectStatus } from "../domain.layer/enums/project-status.enum";
-
-
-export async function getAllProjects(req: Request, res: Response): Promise<any> {
+export async function getAllProjects(
+  req: Request,
+  res: Response,
+): Promise<any> {
   logProcessing({
     description: "starting getAllProjects",
     functionName: "getAllProjects",
@@ -58,7 +65,10 @@ export async function getAllProjects(req: Request, res: Response): Promise<any> 
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const projects = (await getAllProjectsQuery({ userId, role }, req.tenantId!)) as IProjectAttributes[];
+    const projects = (await getAllProjectsQuery(
+      { userId, role },
+      req.tenantId!,
+    )) as IProjectAttributes[];
 
     await logSuccess({
       eventType: "Read",
@@ -81,7 +91,10 @@ export async function getAllProjects(req: Request, res: Response): Promise<any> 
   }
 }
 
-export async function getProjectById(req: Request, res: Response): Promise<any> {
+export async function getProjectById(
+  req: Request,
+  res: Response,
+): Promise<any> {
   const projectId = parseInt(req.params.id);
 
   // Validate project ID parameter
@@ -92,12 +105,12 @@ export async function getProjectById(req: Request, res: Response): Promise<any> 
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "getProjectById",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -150,29 +163,31 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   };
 
   // Validate request body with business rules
-  const validationErrors = validateCompleteProjectWithBusinessRules(projectData);
+  const validationErrors =
+    validateCompleteProjectWithBusinessRules(projectData);
   if (validationErrors.length > 0) {
     await logFailure({
       eventType: "Create",
-      description: `Validation failed for createProject: ${validationErrors.map(e => e.message).join(', ')}`,
+      description: `Validation failed for createProject: ${validationErrors.map((e) => e.message).join(", ")}`,
       functionName: "createProject",
       fileName: "project.ctrl.ts",
-      error: new Error('Validation failed')
+      error: new Error("Validation failed"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      errors: validationErrors.map(err => ({
+      status: "error",
+      message: "Validation failed",
+      errors: validationErrors.map((err) => ({
         field: err.field,
         message: err.message,
-        code: err.code
-      }))
+        code: err.code,
+      })),
     });
   }
 
   // Sanitize project data for organizational projects
   // This ensures ai_risk_classification and type_of_high_risk_role are null for organizational projects
-  const sanitizedProjectData = sanitizeProjectDataForOrganizational(projectData);
+  const sanitizedProjectData =
+    sanitizeProjectDataForOrganizational(projectData);
 
   logProcessing({
     description: "starting createProject",
@@ -194,7 +209,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
       newProject.framework,
       req.tenantId!,
       req.userId!,
-      transaction
+      transaction,
     );
     const frameworks: { [key: string]: Object } = {};
     for (const framework of newProject.framework) {
@@ -203,7 +218,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           createdProject.id!,
           newProject.enable_ai_data_insertion,
           req.tenantId!,
-          transaction
+          transaction,
         );
         frameworks["eu"] = eu;
       } else if (framework === 2) {
@@ -211,7 +226,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           createdProject.id!,
           newProject.enable_ai_data_insertion,
           req.tenantId!,
-          transaction
+          transaction,
         );
         frameworks["iso42001"] = iso42001;
       } else if (framework === 3) {
@@ -219,7 +234,7 @@ export async function createProject(req: Request, res: Response): Promise<any> {
           createdProject.id!,
           newProject.enable_ai_data_insertion,
           req.tenantId!,
-          transaction
+          transaction,
         );
         frameworks["iso27001"] = iso27001;
       }
@@ -271,11 +286,32 @@ export async function createProject(req: Request, res: Response): Promise<any> {
        });
      });;
 
+      const actor = await getUserByIdQuery(req.userId!);
+
+      sendSlackNotification(
+        {
+          userId: actor.id!,
+          routingType: SlackNotificationRoutingType.PROJECTS_AND_ORGANIZATIONS,
+        },
+        {
+          title: `Project created`,
+          message: `${actor.name} ${actor.surname} created Project ${createdProject.project_title}.`,
+        },
+      ).catch(async (slackError) => {
+        await logFailure({
+          eventType: "Create",
+          description: "Failed to send Slack notification for project creation",
+          functionName: "createProject",
+          fileName: "project.ctrl.ts",
+          error: slackError as Error,
+        });
+      });
+
       return res.status(201).json(
         STATUS_CODE[201]({
           project: createdProject,
           frameworks,
-        })
+        }),
       );
     }
 
@@ -324,7 +360,10 @@ export async function createProject(req: Request, res: Response): Promise<any> {
   }
 }
 
-export async function updateProjectById(req: Request, res: Response): Promise<any> {
+export async function updateProjectById(
+  req: Request,
+  res: Response,
+): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
   const updateData = req.body;
@@ -337,12 +376,12 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "updateProjectById",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -379,31 +418,36 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
     }
 
     // Validate request body with business rules and current project data
-    const validationErrors = validateUpdateProjectWithBusinessRules(updateData, existingProject);
+    const validationErrors = validateUpdateProjectWithBusinessRules(
+      updateData,
+      existingProject,
+    );
     if (validationErrors.length > 0) {
       await logFailure({
         eventType: "Update",
-        description: `Validation failed for updateProjectById: ${validationErrors.map(e => e.message).join(', ')}`,
+        description: `Validation failed for updateProjectById: ${validationErrors.map((e) => e.message).join(", ")}`,
         functionName: "updateProjectById",
         fileName: "project.ctrl.ts",
-        error: new Error('Validation failed')
+        error: new Error("Validation failed"),
       });
       return res.status(400).json({
-        status: 'error',
-        message: 'Validation failed',
-        errors: validationErrors.map(err => ({
+        status: "error",
+        message: "Validation failed",
+        errors: validationErrors.map((err) => ({
           field: err.field,
           message: err.message,
-          code: err.code
-        }))
+          code: err.code,
+        })),
       });
     }
 
     // Sanitize project update data for organizational projects
     // This ensures ai_risk_classification and type_of_high_risk_role are null if project becomes organizational
-    const sanitizedUpdateData = sanitizeProjectDataForOrganizational(updateData);
+    const sanitizedUpdateData =
+      sanitizeProjectDataForOrganizational(updateData);
 
-    const updatedProject: Partial<ProjectModel> & { members?: number[] } = sanitizedUpdateData;
+    const updatedProject: Partial<ProjectModel> & { members?: number[] } =
+      sanitizedUpdateData;
     const members = updatedProject.members || [];
 
     delete updatedProject.members;
@@ -416,24 +460,22 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
     // }
 
     // Get current project and members to check for changes
-
-    if (!updatedProject.project_title || !updatedProject.owner) {
-      return res.status(400).json(
-        STATUS_CODE[400]({ message: "project_title and owner are required" })
-      );
-    }
-
-    const ownerChanged = existingProject && existingProject.owner !== updatedProject.owner;
+    const ownerChanged =
+      existingProject && existingProject.owner !== updatedProject.owner;
 
     // Get current members before update to identify newly added ones
-    const currentMembers = await getCurrentProjectMembers(projectId, req.tenantId!, transaction);
+    const currentMembers = await getCurrentProjectMembers(
+      projectId,
+      req.tenantId!,
+      transaction,
+    );
 
     const project = await updateProjectByIdQuery(
       projectId,
       updatedProject,
       members,
       req.tenantId!,
-      transaction
+      transaction,
     );
 
     if (project) {
@@ -449,77 +491,83 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
       // Calculate which members actually got added (both new and re-added)
       // This includes users who weren't in currentMembers but are now in the final project
       const finalMembers = project.members || [];
-      const addedMembers = finalMembers.filter((m) => !currentMembers.includes(m));
+      const addedMembers = finalMembers.filter(
+        (m) => !currentMembers.includes(m),
+      );
 
-        // Send notification to users who were added (fire-and-forget, don't block response)
-        for (const memberId of addedMembers) {
-            try {
-                // Get user details to check their role
-                const memberUser = await getUserByIdQuery(memberId);
+      // Send notification to users who were added (fire-and-forget, don't block response)
+      for (const memberId of addedMembers) {
+        try {
+          // Get user details to check their role
+          const memberUser = await getUserByIdQuery(memberId);
 
-                if (memberUser) {
-                    // Validate role_id is a number
-                    if (typeof memberUser.role_id !== 'number' || !Number.isInteger(memberUser.role_id)) {
-                        await logFailure({
-                            eventType: "Update",
-                            description: `Invalid role_id type for member ${memberId}: expected number, got ${typeof memberUser.role_id} (${memberUser.role_id})`,
-                            functionName: "updateProjectById",
-                            fileName: "project.ctrl.ts",
-                            error: new Error(`Invalid role_id type: ${typeof memberUser.role_id}`),
-                        });
-                        continue;
-                    }
-
-                    // Map role_id to role name
-                    const roleMap: Record<number, ProjectRole> = {
-                        1: "admin",
-                        2: "reviewer",
-                        3: "editor",
-                        4: "auditor"
-                    };
-
-                    const role = roleMap[memberUser.role_id];
-
-                    if (role) {
-                        sendUserAddedToProjectNotification({
-                            projectId: projectId,
-                            projectName: project.project_title,
-                            adminId: req.userId!,
-                            userId: memberId,
-                            role: role
-                        }).catch(async (emailError) => {
-                            await logFailure({
-                                eventType: "Update",
-                                description: `Failed to send user added as ${role} notification email to user ${memberId}`,
-                                functionName: "updateProjectById",
-                                fileName: "project.ctrl.ts",
-                                error: emailError as Error,
-                            });
-                        });
-                    } else {
-                        await logFailure({
-                            eventType: "Update",
-                            description: `Unmapped role_id ${memberUser.role_id} for member ${memberId} in project ${projectId} (${project.project_title}) - notification skipped`,
-                            functionName: "updateProjectById",
-                            fileName: "project.ctrl.ts",
-                            error: new Error(`Unmapped role_id: ${memberUser.role_id}`),
-                        });
-                    }
-                }
-            } catch (userLookupError) {
-                await logFailure({
-                    eventType: "Update",
-                    description: `Failed to lookup user role for member ${memberId}`,
-                    functionName: "updateProjectById",
-                    fileName: "project.ctrl.ts",
-                    error: userLookupError as Error,
-                });
+          if (memberUser) {
+            // Validate role_id is a number
+            if (
+              typeof memberUser.role_id !== "number" ||
+              !Number.isInteger(memberUser.role_id)
+            ) {
+              await logFailure({
+                eventType: "Update",
+                description: `Invalid role_id type for member ${memberId}: expected number, got ${typeof memberUser.role_id} (${memberUser.role_id})`,
+                functionName: "updateProjectById",
+                fileName: "project.ctrl.ts",
+                error: new Error(
+                  `Invalid role_id type: ${typeof memberUser.role_id}`,
+                ),
+              });
+              continue;
             }
+
+            // Map role_id to role name
+            const roleMap: Record<number, ProjectRole> = {
+              1: "admin",
+              2: "reviewer",
+              3: "editor",
+              4: "auditor",
+            };
+
+            const role = roleMap[memberUser.role_id];
+
+            if (role) {
+              sendUserAddedToProjectNotification({
+                projectId: projectId,
+                projectName: project.project_title,
+                adminId: req.userId!,
+                userId: memberId,
+                role: role,
+              }).catch(async (emailError) => {
+                await logFailure({
+                  eventType: "Update",
+                  description: `Failed to send user added as ${role} notification email to user ${memberId}`,
+                  functionName: "updateProjectById",
+                  fileName: "project.ctrl.ts",
+                  error: emailError as Error,
+                });
+              });
+            } else {
+              await logFailure({
+                eventType: "Update",
+                description: `Unmapped role_id ${memberUser.role_id} for member ${memberId} in project ${projectId} (${project.project_title}) - notification skipped`,
+                functionName: "updateProjectById",
+                fileName: "project.ctrl.ts",
+                error: new Error(`Unmapped role_id: ${memberUser.role_id}`),
+              });
+            }
+          }
+        } catch (userLookupError) {
+          await logFailure({
+            eventType: "Update",
+            description: `Failed to lookup user role for member ${memberId}`,
+            functionName: "updateProjectById",
+            fileName: "project.ctrl.ts",
+            error: userLookupError as Error,
+          });
         }
+      }
 
       return res.status(202).json(STATUS_CODE[202](project));
     }
-
 
     await logSuccess({
       eventType: "Update",
@@ -566,7 +614,10 @@ export async function updateProjectById(req: Request, res: Response): Promise<an
   }
 }
 
-export async function deleteProjectById(req: Request, res: Response): Promise<any> {
+export async function deleteProjectById(
+  req: Request,
+  res: Response,
+): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
 
@@ -578,12 +629,12 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "deleteProjectById",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -594,7 +645,11 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
   });
 
   try {
-    const deletedProject = await deleteProjectByIdQuery(projectId, req.tenantId!, transaction);
+    const deletedProject = await deleteProjectByIdQuery(
+      projectId,
+      req.tenantId!,
+      transaction,
+    );
 
     if (deletedProject) {
       await transaction.commit();
@@ -632,7 +687,10 @@ export async function deleteProjectById(req: Request, res: Response): Promise<an
   }
 }
 
-export async function getProjectStatsById(req: Request, res: Response): Promise<any> {
+export async function getProjectStatsById(
+  req: Request,
+  res: Response,
+): Promise<any> {
   const projectId = parseInt(req.params.id);
 
   // Validate project ID parameter
@@ -643,12 +701,12 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "getProjectStatsById",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -697,7 +755,10 @@ export async function getProjectStatsById(req: Request, res: Response): Promise<
   }
 }
 
-export async function getProjectRisksCalculations(req: Request, res: Response): Promise<any> {
+export async function getProjectRisksCalculations(
+  req: Request,
+  res: Response,
+): Promise<any> {
   const projectId = parseInt(req.params.id);
 
   // Validate project ID parameter
@@ -708,12 +769,12 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "getProjectRisksCalculations",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -724,7 +785,10 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
   });
 
   try {
-    const projectRisksCalculations = await calculateProjectRisks(projectId, req.tenantId!);
+    const projectRisksCalculations = await calculateProjectRisks(
+      projectId,
+      req.tenantId!,
+    );
 
     await logSuccess({
       eventType: "Read",
@@ -733,9 +797,13 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
       fileName: "project.ctrl.ts",
     });
 
-    return res.status(projectRisksCalculations ? 200 : 204).json(
-      STATUS_CODE[projectRisksCalculations ? 200 : 204](projectRisksCalculations)
-    );
+    return res
+      .status(projectRisksCalculations ? 200 : 204)
+      .json(
+        STATUS_CODE[projectRisksCalculations ? 200 : 204](
+          projectRisksCalculations,
+        ),
+      );
   } catch (error) {
     await logFailure({
       eventType: "Read",
@@ -749,7 +817,10 @@ export async function getProjectRisksCalculations(req: Request, res: Response): 
   }
 }
 
-export async function getVendorRisksCalculations(req: Request, res: Response): Promise<any> {
+export async function getVendorRisksCalculations(
+  req: Request,
+  res: Response,
+): Promise<any> {
   const projectId = parseInt(req.params.id);
 
   // Validate project ID parameter
@@ -760,12 +831,12 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "getVendorRisksCalculations",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -776,7 +847,10 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
   });
 
   try {
-    const vendorRisksCalculations = await calculateVendirRisks(projectId, req.tenantId!);
+    const vendorRisksCalculations = await calculateVendirRisks(
+      projectId,
+      req.tenantId!,
+    );
 
     await logSuccess({
       eventType: "Read",
@@ -785,9 +859,13 @@ export async function getVendorRisksCalculations(req: Request, res: Response): P
       fileName: "project.ctrl.ts",
     });
 
-    return res.status(vendorRisksCalculations ? 200 : 204).json(
-      STATUS_CODE[vendorRisksCalculations ? 200 : 204](vendorRisksCalculations)
-    );
+    return res
+      .status(vendorRisksCalculations ? 200 : 204)
+      .json(
+        STATUS_CODE[vendorRisksCalculations ? 200 : 204](
+          vendorRisksCalculations,
+        ),
+      );
   } catch (error) {
     await logFailure({
       eventType: "Read",
@@ -812,12 +890,12 @@ export async function getCompliances(req: Request, res: Response) {
       description: `Invalid project ID parameter (projid): ${req.params.projid}`,
       functionName: "getCompliances",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -831,18 +909,25 @@ export async function getCompliances(req: Request, res: Response) {
     const project = await getProjectByIdQuery(projectId, req.tenantId!);
     if (project) {
       const controlCategories = (await getControlCategoryByProjectIdQuery(
-        project.id!, req.tenantId!
+        project.id!,
+        req.tenantId!,
       )) as IControlCategory[];
       for (const category of controlCategories) {
         if (category) {
           const controls = (await getAllControlsByControlGroupQuery(
-            category.id, req.tenantId!
+            category.id,
+            req.tenantId!,
           )) as IControl[];
           for (const control of controls) {
             if (control && control.id) {
-              const subControls = await getAllSubcontrolsByControlIdQuery(control.id, req.tenantId!);
+              const subControls = await getAllSubcontrolsByControlIdQuery(
+                control.id,
+                req.tenantId!,
+              );
               control.numberOfSubcontrols = subControls.length;
-              control.numberOfDoneSubcontrols = subControls.filter(sub => sub.status === "Done").length;
+              control.numberOfDoneSubcontrols = subControls.filter(
+                (sub) => sub.status === "Done",
+              ).length;
               control.subControls = subControls;
             }
           }
@@ -892,12 +977,12 @@ export async function projectComplianceProgress(req: Request, res: Response) {
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "projectComplianceProgress",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -924,7 +1009,7 @@ export async function projectComplianceProgress(req: Request, res: Response) {
         STATUS_CODE[200]({
           allsubControls: totalSubcontrols,
           allDonesubControls: doneSubcontrols,
-        })
+        }),
       );
     }
 
@@ -960,12 +1045,12 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "projectAssessmentProgress",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -992,7 +1077,7 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
         STATUS_CODE[200]({
           totalQuestions: totalAssessments,
           answeredQuestions: answeredAssessments,
-        })
+        }),
       );
     }
 
@@ -1017,7 +1102,10 @@ export async function projectAssessmentProgress(req: Request, res: Response) {
   }
 }
 
-export async function allProjectsComplianceProgress(req: Request, res: Response) {
+export async function allProjectsComplianceProgress(
+  req: Request,
+  res: Response,
+) {
   let totalNumberOfSubcontrols = 0;
   let totalNumberOfDoneSubcontrols = 0;
   logProcessing({
@@ -1040,7 +1128,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
             await countSubControlsByProjectId(project.id!, req.tenantId!);
           totalNumberOfSubcontrols += parseInt(totalSubcontrols);
           totalNumberOfDoneSubcontrols += parseInt(doneSubcontrols);
-        })
+        }),
       );
 
       await logSuccess({
@@ -1054,7 +1142,7 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
         STATUS_CODE[200]({
           allsubControls: totalNumberOfSubcontrols,
           allDonesubControls: totalNumberOfDoneSubcontrols,
-        })
+        }),
       );
     }
 
@@ -1079,7 +1167,10 @@ export async function allProjectsComplianceProgress(req: Request, res: Response)
   }
 }
 
-export async function allProjectsAssessmentProgress(req: Request, res: Response) {
+export async function allProjectsAssessmentProgress(
+  req: Request,
+  res: Response,
+) {
   let totalNumberOfQuestions = 0;
   let totalNumberOfAnsweredQuestions = 0;
   logProcessing({
@@ -1102,7 +1193,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
             await countAnswersByProjectId(project.id!, req.tenantId!);
           totalNumberOfQuestions += parseInt(totalAssessments);
           totalNumberOfAnsweredQuestions += parseInt(answeredAssessments);
-        })
+        }),
       );
 
       await logSuccess({
@@ -1116,7 +1207,7 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
         STATUS_CODE[200]({
           totalQuestions: totalNumberOfQuestions,
           answeredQuestions: totalNumberOfAnsweredQuestions,
-        })
+        }),
       );
     }
 
@@ -1141,7 +1232,10 @@ export async function allProjectsAssessmentProgress(req: Request, res: Response)
   }
 }
 
-export async function updateProjectStatus(req: Request, res: Response): Promise<any> {
+export async function updateProjectStatus(
+  req: Request,
+  res: Response,
+): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectId = parseInt(req.params.id);
 
@@ -1153,12 +1247,12 @@ export async function updateProjectStatus(req: Request, res: Response): Promise<
       description: `Invalid project ID parameter: ${req.params.id}`,
       functionName: "updateProjectStatus",
       fileName: "project.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
+      error: new Error(projectIdValidation.message || "Invalid project ID"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
+      status: "error",
+      message: projectIdValidation.message || "Invalid project ID",
+      code: projectIdValidation.code || "INVALID_PARAMETER",
     });
   }
 
@@ -1167,19 +1261,19 @@ export async function updateProjectStatus(req: Request, res: Response): Promise<
   if (validationErrors.length > 0) {
     await logFailure({
       eventType: "Update",
-      description: `Validation failed for updateProjectStatus: ${validationErrors.map(e => e.message).join(', ')}`,
+      description: `Validation failed for updateProjectStatus: ${validationErrors.map((e) => e.message).join(", ")}`,
       functionName: "updateProjectStatus",
       fileName: "project.ctrl.ts",
-      error: new Error('Validation failed')
+      error: new Error("Validation failed"),
     });
     return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      errors: validationErrors.map(err => ({
+      status: "error",
+      message: "Validation failed",
+      errors: validationErrors.map((err) => ({
         field: err.field,
         message: err.message,
-        code: err.code
-      }))
+        code: err.code,
+      })),
     });
   }
 
@@ -1192,7 +1286,6 @@ export async function updateProjectStatus(req: Request, res: Response): Promise<
   });
 
   try {
-
     // Check if project exists
     const existingProject = await getProjectByIdQuery(projectId, req.tenantId!);
     if (!existingProject) {
@@ -1212,7 +1305,7 @@ export async function updateProjectStatus(req: Request, res: Response): Promise<
       { status, last_updated: new Date(), last_updated_by: req.userId! },
       [], // no members update
       req.tenantId!,
-      transaction
+      transaction,
     );
 
     if (updatedProject) {
@@ -1229,7 +1322,9 @@ export async function updateProjectStatus(req: Request, res: Response): Promise<
     }
 
     await transaction.rollback();
-    return res.status(500).json(STATUS_CODE[500]("Failed to update project status"));
+    return res
+      .status(500)
+      .json(STATUS_CODE[500]("Failed to update project status"));
   } catch (error) {
     await transaction.rollback();
 

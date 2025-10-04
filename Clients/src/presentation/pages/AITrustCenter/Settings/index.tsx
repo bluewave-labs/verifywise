@@ -339,6 +339,12 @@ const AITrustCenterSettings: React.FC = () => {
   const handleSave = async () => {
     if (!formData) return;
 
+      // Check if logo exists
+      if (!formData?.info?.logo_url) {
+        setLogoError("Company logo is required before saving");
+        return; // stop save
+      }
+
     try {
       console.log("Saving AI Trust Centre data from Settings", formData);
       const dataToSave = {

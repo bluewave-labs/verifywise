@@ -31,7 +31,6 @@ import StatusDonutChart, { StatusData } from '../../components/Charts/StatusDonu
 import { getDefaultStatusDistribution } from '../../utils/statusColors';
 import { getDistributionSummary, getQuickStats, hasCriticalItems, getPriorityLevel } from '../../utils/cardEnhancements';
 import DashboardErrorBoundary from '../../components/Dashboard/DashboardErrorBoundary';
-import TextEditorCard from '../../components/Dashboard/TextEditorCard';
 import WidgetErrorBoundary from '../../components/Dashboard/WidgetErrorBoundary';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -304,7 +303,6 @@ const IntegratedDashboard: React.FC = () => {
       { i: 'trainings', x: 9, y: 2, w: 3, h: 4, minW: 3, maxW: 6, minH: 2, maxH: 4 },
       // Third row - 2 widgets (can be big = h:4)
       { i: 'policies', x: 0, y: 6, w: 3, h: 4, minW: 3, maxW: 6, minH: 2, maxH: 4 },
-      { i: 'text-editor', x: 3, y: 6, w: 3, h: 4 }, // No size constraints for note-taking widget
     ],
     md: [
       // First row - 4 widgets (2.5 columns each for 10-column grid, fixed width, not resizable)
@@ -319,7 +317,6 @@ const IntegratedDashboard: React.FC = () => {
       { i: 'trainings', x: 7.5, y: 2, w: 2.5, h: 4, minW: 2.5, maxW: 5, minH: 2, maxH: 4 },
       // Third row - 2 widgets
       { i: 'policies', x: 0, y: 6, w: 2.5, h: 4, minW: 2.5, maxW: 5, minH: 2, maxH: 4 },
-      { i: 'text-editor', x: 2.5, y: 6, w: 2.5, h: 4 }, // No size constraints for note-taking widget
     ],
     sm: [
       // For small screens, 2 widgets per row (half width each)
@@ -332,7 +329,6 @@ const IntegratedDashboard: React.FC = () => {
       { i: 'vendor-risks', x: 0, y: 8, w: 3, h: 4, minW: 3, maxW: 3, minH: 2, maxH: 4 },
       { i: 'trainings', x: 3, y: 8, w: 3, h: 4, minW: 3, maxW: 3, minH: 2, maxH: 4 },
       { i: 'policies', x: 0, y: 12, w: 3, h: 4, minW: 3, maxW: 3, minH: 2, maxH: 4 },
-      { i: 'text-editor', x: 3, y: 12, w: 3, h: 4 }, // No size constraints for note-taking widget
     ],
   };
 
@@ -343,10 +339,6 @@ const IntegratedDashboard: React.FC = () => {
     return ['users', 'reports', 'projects', 'evidences'].includes(widgetId);
   }, []);
 
-  // Helper function to check if a widget should have unlimited size (text editor)
-  const isUnlimitedSize = useCallback((widgetId: string): boolean => {
-    return widgetId === 'text-editor';
-  }, []);
 
   // Constraint utility functions to eliminate code duplication
   const getWidthConstraints = useCallback((breakpoint: string) => ({
@@ -361,8 +353,7 @@ const IntegratedDashboard: React.FC = () => {
     sm: 3     // 1/2 of 6 columns
   }[breakpoint] || 3), []);
 
-  const enforceHeightConstraint = useCallback((height: number, isRestricted: boolean, isUnlimited: boolean): number => {
-    if (isUnlimited) return height; // No height constraints for unlimited widgets
+  const enforceHeightConstraint = useCallback((height: number, isRestricted: boolean): number => {
     if (isRestricted) return 2; // Always small for restricted widgets
     if (height <= 2) return 2;  // Small block (85px)
     if (height >= 4) return 4;  // Big block (170px) - max allowed
@@ -372,10 +363,8 @@ const IntegratedDashboard: React.FC = () => {
   const enforceWidthConstraint = useCallback((
     width: number,
     isRestricted: boolean,
-    isUnlimited: boolean,
     breakpoint: string
   ): number => {
-    if (isUnlimited) return width; // No width constraints for unlimited widgets
     if (isRestricted) return getFixedWidths(breakpoint);
     const constraint = getWidthConstraints(breakpoint);
     return Math.max(constraint.min, Math.min(constraint.max, width));
@@ -386,19 +375,12 @@ const IntegratedDashboard: React.FC = () => {
     breakpoint: string
   ): Layout => {
     const isRestricted = isRestrictedToSmallHeight(item.i);
-    const isUnlimited = isUnlimitedSize(item.i);
-
-    if (isUnlimited) {
-      // No constraints for unlimited widgets
-      return item;
-    }
-
     return {
       ...item,
-      h: enforceHeightConstraint(item.h, isRestricted, isUnlimited),
-      w: enforceWidthConstraint(item.w, isRestricted, isUnlimited, breakpoint)
+      h: enforceHeightConstraint(item.h, isRestricted),
+      w: enforceWidthConstraint(item.w, isRestricted, breakpoint)
     };
-  }, [isRestrictedToSmallHeight, isUnlimitedSize, enforceHeightConstraint, enforceWidthConstraint]);
+  }, [isRestrictedToSmallHeight, enforceHeightConstraint, enforceWidthConstraint]);
 
 
   useEffect(() => {
@@ -452,30 +434,26 @@ const IntegratedDashboard: React.FC = () => {
   const handleResize = useCallback((_: Layout[], __: Layout, newItem: Layout,
     placeholder: Layout, ___: MouseEvent, ____: HTMLElement) => {
     const isRestricted = isRestrictedToSmallHeight(newItem.i);
-    const isUnlimited = isUnlimitedSize(newItem.i);
-
-    // Skip constraints for unlimited widgets
-    if (isUnlimited) return;
 
     // Enforce height constraints
     if (newItem.h !== undefined) {
-      const constrainedHeight = enforceHeightConstraint(newItem.h, isRestricted, isUnlimited);
+      const constrainedHeight = enforceHeightConstraint(newItem.h, isRestricted);
       newItem.h = constrainedHeight;
       placeholder.h = constrainedHeight;
     }
 
     // Enforce width constraints (use 'lg' breakpoint for real-time resize)
     if (newItem.w !== undefined) {
-      const constrainedWidth = enforceWidthConstraint(newItem.w, isRestricted, isUnlimited, 'lg');
+      const constrainedWidth = enforceWidthConstraint(newItem.w, isRestricted, 'lg');
       newItem.w = constrainedWidth;
       placeholder.w = constrainedWidth;
     }
-  }, [isRestrictedToSmallHeight, isUnlimitedSize, enforceHeightConstraint, enforceWidthConstraint]);
+  }, [isRestrictedToSmallHeight, enforceHeightConstraint, enforceWidthConstraint]);
 
   // Ensure final constraints when resize stops
   const handleResizeStop = useCallback((_: Layout[], __: Layout, newItem: Layout,
     ___: Layout, ____: MouseEvent, _____: HTMLElement) => {
-    const isUnlimited = isUnlimitedSize(newItem.i);
+    const isUnlimited = false;
 
     // Update all responsive layouts to ensure consistency across breakpoints
     setLayouts(prevLayouts => {
@@ -518,7 +496,7 @@ const IntegratedDashboard: React.FC = () => {
 
       return updatedLayouts;
     });
-  }, [isUnlimitedSize, enforceLayoutItemConstraints]);
+  }, [enforceLayoutItemConstraints]);
 
   const resetLayout = () => {
     setLayouts(defaultLayouts);
@@ -651,13 +629,6 @@ const IntegratedDashboard: React.FC = () => {
         />
       ),
       title: 'Policies'
-    },
-    {
-      id: 'text-editor',
-      content: (
-        <TextEditorCard />
-      ),
-      title: 'Notes'
     },
   ];
 

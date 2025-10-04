@@ -69,7 +69,7 @@ const Login: React.FC = () => {
         setValues(initialState); // Extract `userData` from API response
 
         if (response.status === 202) {
-          const token = response.data.data.token;
+          const token = (response as any).data?.token;
 
           if (values.rememberMe) {
             const expirationDate = Date.now() + 30 * 24 * 60 * 60 * 1000;

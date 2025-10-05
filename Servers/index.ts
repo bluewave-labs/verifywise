@@ -39,10 +39,12 @@ import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
+import outboxMonitoringRoutes from "./routes/outboxMonitoring.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 import { frontEndUrl } from "./config/constants";
+import { outboxManager } from "./services/outboxManager";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -127,10 +129,39 @@ try {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
+  app.use("/api/outbox", outboxMonitoringRoutes);
 
-  app.listen(port, () => {
+  app.listen(port, async () => {
     console.log(`Server running on port http://${host}:${port}/`);
+
+    // Initialize outbox event processing
+    try {
+      await outboxManager.initialize();
+    } catch (error) {
+      console.error('Warning: Failed to initialize outbox processing:', error);
+      // Continue server startup even if outbox fails
+    }
   });
+
+  // Graceful shutdown handling
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+
+    try {
+      // Shutdown outbox processing first
+      await outboxManager.shutdown();
+
+      console.log('✅ Graceful shutdown complete');
+      process.exit(0);
+    } catch (error) {
+      console.error('❌ Error during graceful shutdown:', error);
+      process.exit(1);
+    }
+  };
+
+  // Listen for shutdown signals
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 } catch (error) {
   console.error("Error setting up the server:", error);
 }

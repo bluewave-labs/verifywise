@@ -402,19 +402,14 @@ export const validateCompleteRisk = (data: any): ValidationError[] => {
  */
 export const validateUpdateRisk = (data: any): ValidationError[] => {
   // Check if at least one field is provided for update
-  const updateFields = [
-    'risk_name', 'risk_owner', 'ai_lifecycle_phase', 'risk_description',
-    'risk_category', 'impact', 'likelihood', 'severity', 'risk_severity',
-    'mitigation_status', 'deadline', 'date_of_assessment', 'risk_approval',
-    'frameworks', 'projects'
-  ];
+  // Use blacklist approach - exclude system/readonly fields instead of whitelist
+  const readOnlyFields = ['id', 'created_at', 'updated_at', 'tenant_id'];
+  const updateableFields = Object.keys(data).filter(field => !readOnlyFields.includes(field));
 
-  const hasUpdateField = updateFields.some(field => data[field] !== undefined);
-
-  if (!hasUpdateField) {
+  if (updateableFields.length === 0) {
     return [{
       field: 'body',
-      message: 'At least one field must be provided for update',
+      message: 'At least one updateable field must be provided for update',
       code: 'NO_UPDATE_FIELDS'
     }];
   }
@@ -444,52 +439,59 @@ export const validateFrameworkIdParam = (id: any): ValidationResult => {
 };
 
 /**
- * Risk level mapping matrix based on likelihood and severity
+ * Likelihood numeric mapping (consistent with frontend)
  */
-export const RISK_LEVEL_MATRIX: Record<string, Record<string, string>> = {
-  'Negligible': {
-    'Rare': 'No risk',
-    'Unlikely': 'Very low risk',
-    'Possible': 'Low risk',
-    'Likely': 'Low risk',
-    'Almost Certain': 'Medium risk'
-  },
-  'Minor': {
-    'Rare': 'Very low risk',
-    'Unlikely': 'Low risk',
-    'Possible': 'Low risk',
-    'Likely': 'Medium risk',
-    'Almost Certain': 'Medium risk'
-  },
-  'Moderate': {
-    'Rare': 'Low risk',
-    'Unlikely': 'Low risk',
-    'Possible': 'Medium risk',
-    'Likely': 'High risk',
-    'Almost Certain': 'High risk'
-  },
-  'Major': {
-    'Rare': 'Low risk',
-    'Unlikely': 'Medium risk',
-    'Possible': 'High risk',
-    'Likely': 'High risk',
-    'Almost Certain': 'Very high risk'
-  },
-  'Catastrophic': {
-    'Rare': 'Medium risk',
-    'Unlikely': 'High risk',
-    'Possible': 'High risk',
-    'Likely': 'Very high risk',
-    'Almost Certain': 'Very high risk'
-  }
-};
+export const LIKELIHOOD_SCALE = {
+  'Rare': 1,
+  'Unlikely': 2,
+  'Possible': 3,
+  'Likely': 4,
+  'Almost Certain': 5
+} as const;
 
 /**
- * Calculates risk level based on severity and likelihood
+ * Severity numeric mapping (consistent with frontend)
+ */
+export const SEVERITY_SCALE = {
+  'Negligible': 1,
+  'Minor': 2,
+  'Moderate': 3,
+  'Major': 4,
+  'Catastrophic': 5
+} as const;
+
+/**
+ * Risk calculation constants (consistent with frontend RiskCalculator)
+ */
+export const RISK_CALCULATION_WEIGHTS = {
+  LIKELIHOOD_WEIGHT: 1,
+  SEVERITY_WEIGHT: 3
+} as const;
+
+/**
+ * Calculates risk level based on severity and likelihood using weighted formula
+ * Formula: (likelihood × 1) + (severity × 3)
+ * This matches the frontend RiskCalculator implementation
  */
 export const calculateRiskLevel = (severity: string, likelihood: string): string => {
-  const riskLevel = RISK_LEVEL_MATRIX[severity]?.[likelihood];
-  return riskLevel || 'Medium risk'; // Default fallback
+  const likelihoodValue = LIKELIHOOD_SCALE[likelihood as keyof typeof LIKELIHOOD_SCALE] || 1;
+  const severityValue = SEVERITY_SCALE[severity as keyof typeof SEVERITY_SCALE] || 1;
+  
+  const score = (likelihoodValue * RISK_CALCULATION_WEIGHTS.LIKELIHOOD_WEIGHT) + 
+                (severityValue * RISK_CALCULATION_WEIGHTS.SEVERITY_WEIGHT);
+  
+  // Map score to risk level (consistent with frontend)
+  if (score <= 4) {
+    return 'Very low risk';
+  } else if (score <= 8) {
+    return 'Low risk';
+  } else if (score <= 12) {
+    return 'Medium risk';
+  } else if (score <= 16) {
+    return 'High risk';
+  } else {
+    return 'Very high risk';
+  }
 };
 
 /**

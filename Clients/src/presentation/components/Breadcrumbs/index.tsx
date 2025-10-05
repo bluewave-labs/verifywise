@@ -5,71 +5,27 @@ import {
   Typography,
   Stack,
   useTheme,
-  SxProps,
-  Theme,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping } from "./routeMapping";
 
 import { ReactComponent as ChevronRightGreyIcon } from "../../assets/icons/chevron-right-grey.svg";
-
-/**
- * Interface for individual breadcrumb item
- */
-export interface BreadcrumbItem {
-  /** Display label for the breadcrumb */
-  label: string;
-  /** Navigation path for the breadcrumb */
-  path?: string;
-  /** Custom click handler */
-  onClick?: () => void;
-  /** Whether the breadcrumb is disabled */
-  disabled?: boolean;
-  /** Unique identifier for the breadcrumb */
-  id?: string;
-  /** Tooltip text for additional context */
-  tooltip?: string;
-}
-
-/**
- * Props for the Breadcrumbs component
- */
-export interface BreadcrumbsProps {
-  /** Array of breadcrumb items */
-  items?: BreadcrumbItem[];
-  /** Custom separator icon */
-  separator?: React.ReactNode;
-  /** Maximum number of items to show (collapses middle items) */
-  maxItems?: number;
-  /** Custom styles */
-  sx?: SxProps<Theme>;
-  /** Whether to auto-generate breadcrumbs from current route */
-  autoGenerate?: boolean;
-  /** Whether to show the current page as the last item */
-  showCurrentPage?: boolean;
-  /** Custom home label */
-  homeLabel?: string;
-  /** Custom home path */
-  homePath?: string;
-  /** Whether to truncate long labels */
-  truncateLabels?: boolean;
-  /** Maximum length for truncated labels */
-  maxLabelLength?: number;
-  /** Custom click handler for breadcrumb items */
-  onItemClick?: (item: BreadcrumbItem, index: number) => void;
-}
+import {
+  IBreadcrumbItem,
+  IBreadcrumbsProps,
+} from "../../../domain/interfaces/i.breadcrumbs";
 
 /**
  * A customizable Breadcrumbs component that wraps Material-UI Breadcrumbs.
  * Supports both manual and auto-generated breadcrumbs from routing.
  *
  * @component
- * @param {BreadcrumbsProps} props - The props for the Breadcrumbs component
+ * @param {IBreadcrumbsProps} props - The props for the Breadcrumbs component
  * @returns {JSX.Element} A styled Material-UI Breadcrumbs component
  */
-const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
+const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   items,
-  separator = <ChevronRightGreyIcon style={{ width: '80%', height: 'auto' }} />,
+  separator = <ChevronRightGreyIcon style={{ width: "80%", height: "auto" }} />,
   maxItems = 8,
   sx,
   autoGenerate = false,
@@ -110,12 +66,12 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   /**
    * Auto-generate breadcrumbs from current route
    */
-  const generateBreadcrumbs = useMemo((): BreadcrumbItem[] => {
+  const generateBreadcrumbs = useMemo((): IBreadcrumbItem[] => {
     if (!autoGenerate) return [];
 
     const pathSegments = location.pathname.split("/").filter(Boolean);
 
-    const breadcrumbs: BreadcrumbItem[] = [];
+    const breadcrumbs: IBreadcrumbItem[] = [];
 
     // Add home item
     breadcrumbs.push({
@@ -154,7 +110,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
    * Enhanced with error handling
    */
   const handleItemClick = useCallback(
-    (item: BreadcrumbItem, index: number) => {
+    (item: IBreadcrumbItem, index: number) => {
       if (item.disabled) return;
 
       try {
@@ -182,7 +138,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
    * Memoized for better performance
    */
   const renderBreadcrumbItem = useCallback(
-    (item: BreadcrumbItem, index: number, totalItems: number) => {
+    (item: IBreadcrumbItem, index: number, totalItems: number) => {
       const isLast = index === totalItems - 1;
       const isDisabled = item.disabled || isLast;
       const truncatedLabel = truncateText(item.label);

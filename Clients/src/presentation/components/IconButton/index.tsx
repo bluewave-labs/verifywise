@@ -210,35 +210,48 @@ const IconButton: React.FC<IconButtonProps> = ({
         },
       }}
     >
-      {listOfButtons.map((item) => (
-        <MenuItem
-          key={item}
-          onClick={(e) => {
-            if (item === "edit") {
-              handleEdit(e);
-            } else if (item === "download") {
-              handleDownload(e);
-            } else if (item === "make visible") {
-              handleMakeVisible(e);
-            } else if (item === "remove") {
-              if (warningTitle && warningMessage) {
-                setIsOpenRemoveModal(true);
-                if (e) closeDropDownMenu(e);
-              } else {
-                if (checkForRisks && onDeleteWithRisks) {
-                  handleDeleteWithRiskCheck(e);
-                } else {
-                  onDelete();
+      {listOfButtons.map((item) => {
+        // For resources, disable edit, download, and remove when not visible
+        const isResourceAction = (type === "Resource" || type === "resource") && item !== "make visible";
+        const isDisabled = isResourceAction && !isVisible;
+
+        return (
+          <MenuItem
+            key={item}
+            onClick={(e) => {
+              // Prevent actions when disabled
+              if (isDisabled) {
+                e.stopPropagation();
+                return;
+              }
+
+              if (item === "edit") {
+                handleEdit(e);
+              } else if (item === "download") {
+                handleDownload(e);
+              } else if (item === "make visible") {
+                handleMakeVisible(e);
+              } else if (item === "remove") {
+                if (warningTitle && warningMessage) {
+                  setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
+                } else {
+                  if (checkForRisks && onDeleteWithRisks) {
+                    handleDeleteWithRiskCheck(e);
+                  } else {
+                    onDelete();
+                    if (e) closeDropDownMenu(e);
+                  }
                 }
               }
-            }
-          }}
-          sx={item === "remove" ? { color: "#d32f2f" } : {}}
-        >
-          {getMenuItemText(item)}
-        </MenuItem>
-      ))}
+            }}
+            disabled={isDisabled}
+            sx={item === "remove" ? { color: "#d32f2f" } : {}}
+          >
+            {getMenuItemText(item)}
+          </MenuItem>
+        );
+      })}
     </Menu>
   );
 

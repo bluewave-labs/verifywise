@@ -44,6 +44,8 @@ interface Resource {
   name: string;
   description: string;
   visible: boolean;
+  file_id?: number;
+  filename?: string;
 }
 
 // Helper component for Resource Table Row
@@ -64,18 +66,41 @@ const ResourceTableRow: React.FC<{
   const styles = useStyles(theme);
 
   const handleRowClick = () => {
-    onEdit(resource.id);
+    if (resource.visible) {
+      onEdit(resource.id);
+    }
   };
 
   return (
     <>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: resource.visible ? "pointer" : "default",
+          textTransform: "none !important",
+          opacity: resource.visible ? 1 : 0.5,
+        }}
+      >
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
-      <TableCell onClick={handleRowClick} sx={{ cursor: "pointer" , textTransform: "none !important",}}>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: resource.visible ? "pointer" : "default",
+          textTransform: "none !important",
+          opacity: resource.visible ? 1 : 0.5,
+        }}
+      >
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
       </TableCell>
-      <TableCell onClick={() => onMakeVisible(resource.id)} sx={{ cursor: "pointer" }}>
+      <TableCell
+        onClick={() => onMakeVisible(resource.id)}
+        sx={{
+          cursor: resource.visible ? "pointer" : "default",
+          textTransform: "none !important",
+          opacity: resource.visible ? 1 : 0.5,
+        }}
+      >
         {resource.visible ? (
           <Tooltip title="Click to make this resource invisible">
             <Box component="span" sx={{ display: "inline-flex" }}>
@@ -101,7 +126,7 @@ const ResourceTableRow: React.FC<{
           isVisible={resource.visible}
           warningTitle={WARNING_MESSAGES.deleteTitle}
           warningMessage={WARNING_MESSAGES.deleteMessage}
-          type="resource"
+          type="Resource"
         />
       </TableCell>
     </>
@@ -389,13 +414,15 @@ const TrustCenterResources: React.FC = () => {
   const handleEditResource = (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
     const resource = resources.find((r) => r.id === resourceId);
-    if (resource) {
+    if (resource && resource.visible) {
       handleOpenEditModal(resource);
     }
   };
 
   const handleDeleteResource = async (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
+    const resource = resources.find((r) => r.id === resourceId);
+    if (!resource?.visible) return;
     try {
       await deleteResourceMutation.mutateAsync(resourceId);
       handleAlert({
@@ -433,15 +460,24 @@ const TrustCenterResources: React.FC = () => {
     if (!formData?.info?.resources_visible || !resources) return;
 
     try {
-      // Find the resource to get its name for the download
+      // Find the resource to get its file_id and name for the download
       const resource = resources.find((r) => r.id === resourceId);
       if (!resource) {
         console.error("Resource not found");
         return;
       }
 
-      // Use the existing handleDownload function from the codebase
-      await downloadFile(resourceId.toString(), resource.name);
+      // Only allow download if resource is visible
+      if (!resource.visible) return;
+
+      // Check if file_id exists
+      if (!resource.file_id) {
+        console.error("File ID not found for resource");
+        return;
+      }
+
+      // Use the file_id for download
+      await downloadFile(resource.file_id.toString(), resource.filename || resource.name);
       handleAlert({
         variant: "success",
         body: "File downloaded successfully",
@@ -449,7 +485,11 @@ const TrustCenterResources: React.FC = () => {
       });
     } catch (error) {
       console.error("Download failed:", error);
-      // You could add error handling here if needed
+      handleAlert({
+        variant: "error",
+        body: "Failed to download file",
+        setAlert,
+      });
     }
   };
 

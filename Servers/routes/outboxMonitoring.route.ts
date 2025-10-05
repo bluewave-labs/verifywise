@@ -68,8 +68,17 @@ router.get("/stats", authenticateJWT, async (req, res) => {
  */
 router.get("/events", authenticateJWT, async (req, res) => {
   try {
+    // Extract tenant from authenticated JWT token - enforce tenant isolation
+    const userTenant = (req as any).tenantId;
+
+    if (!userTenant) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Tenant information not found in authentication token'
+      });
+    }
+
     const {
-      tenant,
       event_type,
       aggregate_type,
       status = 'all', // 'pending', 'processed', 'failed', 'all'
@@ -82,14 +91,31 @@ router.get("/events", authenticateJWT, async (req, res) => {
     const limitNum = Math.min(parseInt(limit as string) || 50, 100);
     const offsetNum = parseInt(offset as string) || 0;
 
-    // Build WHERE conditions
-    const conditions: string[] = [];
-    const replacements: any = { limit: limitNum, offset: offsetNum };
+    // Whitelist allowed columns for ORDER BY to prevent SQL injection
+    const ALLOWED_ORDER_BY = [
+      'id', 'created_at', 'processed_at', 'event_type',
+      'aggregate_type', 'attempts', 'available_at', 'tenant'
+    ];
 
-    if (tenant) {
-      conditions.push('tenant = :tenant');
-      replacements.tenant = tenant;
-    }
+    const ALLOWED_ORDER_DIR = ['ASC', 'DESC'];
+
+    // Validate order_by
+    const orderBy = ALLOWED_ORDER_BY.includes(order_by as string)
+      ? order_by as string
+      : 'created_at';
+
+    // Validate order_dir
+    const orderDir = ALLOWED_ORDER_DIR.includes((order_dir as string)?.toUpperCase())
+      ? (order_dir as string).toUpperCase()
+      : 'DESC';
+
+    // Build WHERE conditions - ALWAYS filter by authenticated user's tenant
+    const conditions: string[] = ['tenant = :tenant'];
+    const replacements: any = {
+      limit: limitNum,
+      offset: offsetNum,
+      tenant: userTenant // Force tenant to be the authenticated user's tenant
+    };
 
     if (event_type) {
       conditions.push('event_type = :event_type');
@@ -116,7 +142,7 @@ router.get("/events", authenticateJWT, async (req, res) => {
     }
 
     const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
-    const orderClause = `ORDER BY ${order_by} ${order_dir}`;
+    const orderClause = `ORDER BY ${orderBy} ${orderDir}`;
 
     // Get events
     const eventsQuery = `
@@ -157,7 +183,7 @@ router.get("/events", authenticateJWT, async (req, res) => {
         hasMore: offsetNum + events.length < total
       },
       filters: {
-        tenant,
+        tenant: userTenant,
         event_type,
         aggregate_type,
         status
@@ -179,24 +205,34 @@ router.get("/events", authenticateJWT, async (req, res) => {
  */
 router.get("/metrics", authenticateJWT, async (req, res) => {
   try {
+    // Extract tenant from authenticated JWT token - enforce tenant isolation
+    const userTenant = (req as any).tenantId;
+
+    if (!userTenant) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Tenant information not found in authentication token'
+      });
+    }
+
     const timeRange = req.query.range || '24h'; // 1h, 24h, 7d, 30d
 
     let timeFilter = '';
     switch (timeRange) {
       case '1h':
-        timeFilter = "created_at >= NOW() - INTERVAL '1 hour'";
+        timeFilter = "created_at >= NOW() - INTERVAL '1 hour' AND tenant = :tenant";
         break;
       case '24h':
-        timeFilter = "created_at >= NOW() - INTERVAL '24 hours'";
+        timeFilter = "created_at >= NOW() - INTERVAL '24 hours' AND tenant = :tenant";
         break;
       case '7d':
-        timeFilter = "created_at >= NOW() - INTERVAL '7 days'";
+        timeFilter = "created_at >= NOW() - INTERVAL '7 days' AND tenant = :tenant";
         break;
       case '30d':
-        timeFilter = "created_at >= NOW() - INTERVAL '30 days'";
+        timeFilter = "created_at >= NOW() - INTERVAL '30 days' AND tenant = :tenant";
         break;
       default:
-        timeFilter = "created_at >= NOW() - INTERVAL '24 hours'";
+        timeFilter = "created_at >= NOW() - INTERVAL '24 hours' AND tenant = :tenant";
     }
 
     // Summary metrics
@@ -253,11 +289,13 @@ router.get("/metrics", authenticateJWT, async (req, res) => {
       LIMIT 48
     `;
 
+    const queryReplacements = { tenant: userTenant };
+
     const [summary, byTenant, byType, hourly] = await Promise.all([
-      sequelize.query(summaryQuery, { type: QueryTypes.SELECT }),
-      sequelize.query(tenantQuery, { type: QueryTypes.SELECT }),
-      sequelize.query(typeQuery, { type: QueryTypes.SELECT }),
-      sequelize.query(hourlyQuery, { type: QueryTypes.SELECT })
+      sequelize.query(summaryQuery, { replacements: queryReplacements, type: QueryTypes.SELECT }),
+      sequelize.query(tenantQuery, { replacements: queryReplacements, type: QueryTypes.SELECT }),
+      sequelize.query(typeQuery, { replacements: queryReplacements, type: QueryTypes.SELECT }),
+      sequelize.query(hourlyQuery, { replacements: queryReplacements, type: QueryTypes.SELECT })
     ]);
 
     res.json({
@@ -284,6 +322,16 @@ router.get("/metrics", authenticateJWT, async (req, res) => {
  */
 router.post("/cleanup", authenticateJWT, async (req, res) => {
   try {
+    // Extract tenant from authenticated JWT token - enforce tenant isolation
+    const userTenant = (req as any).tenantId;
+
+    if (!userTenant) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Tenant information not found in authentication token'
+      });
+    }
+
     const { older_than_days = 90 } = req.body;
 
     // Validate input
@@ -298,10 +346,14 @@ router.post("/cleanup", authenticateJWT, async (req, res) => {
     const cleanupQuery = `
       DELETE FROM outbox_events
       WHERE processed_at IS NOT NULL
-        AND created_at < NOW() - INTERVAL '${days} days'
+        AND created_at < NOW() - INTERVAL ':days days'
+        AND tenant = :tenant
     `;
 
-    const result = await sequelize.query(cleanupQuery, { type: QueryTypes.DELETE });
+    const result = await sequelize.query(cleanupQuery, {
+      replacements: { days, tenant: userTenant },
+      type: QueryTypes.DELETE
+    });
 
     res.json({
       status: 'success',

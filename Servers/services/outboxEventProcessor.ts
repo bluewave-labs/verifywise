@@ -50,6 +50,7 @@ export class OutboxEventProcessor {
   private listenClient?: Client;
   private isProcessing = false;
   private isShuttingDown = false;
+  private reconnecting = false;
   private batchSize: number;
   private pollInterval: number;
   private reconnectDelay: number;
@@ -135,6 +136,16 @@ export class OutboxEventProcessor {
    * Setup PostgreSQL LISTEN connection for real-time notifications
    */
   private async setupListener(): Promise<void> {
+    // Clean up existing client first
+    if (this.listenClient) {
+      try {
+        await this.listenClient.end();
+      } catch (error) {
+        console.warn('Warning: Error closing old listen client:', error);
+      }
+      this.listenClient = undefined;
+    }
+
     try {
       this.listenClient = new Client({
         connectionString: process.env.DATABASE_URL,
@@ -156,6 +167,7 @@ export class OutboxEventProcessor {
 
     } catch (error) {
       console.error('❌ Failed to setup LISTEN connection:', error);
+      this.listenClient = undefined;
       this.scheduleReconnect();
     }
   }
@@ -192,20 +204,20 @@ export class OutboxEventProcessor {
    * Schedule reconnection of LISTEN connection
    */
   private scheduleReconnect(): void {
-    if (this.reconnectTimer || this.isShuttingDown) return;
+    if (this.reconnectTimer || this.isShuttingDown || this.reconnecting) return;
 
+    this.reconnecting = true;
     console.log(`🔄 Scheduling LISTEN reconnection in ${this.reconnectDelay}ms`);
 
     this.reconnectTimer = setTimeout(async () => {
-      this.reconnectTimer = undefined;
-
-      if (!this.isShuttingDown) {
-        try {
-          await this.setupListener();
-        } catch (error) {
-          console.error('❌ Reconnection failed:', error);
-          this.scheduleReconnect();
-        }
+      try {
+        await this.setupListener();
+      } catch (error) {
+        console.error('❌ Reconnection failed:', error);
+        this.scheduleReconnect();
+      } finally {
+        this.reconnectTimer = undefined;
+        this.reconnecting = false;
       }
     }, this.reconnectDelay);
   }
@@ -306,28 +318,41 @@ export class OutboxEventProcessor {
 
       console.log(`🔄 Processing event ${event.id}: ${event.event_type} (attempt ${event.attempts + 1})`);
 
-      // Route to appropriate handler based on event type
-      await this.routeEvent(event);
+      try {
+        // Route to appropriate handler based on event type
+        await this.routeEvent(event);
 
-      // Mark as successfully processed
-      await client.query(`
-        UPDATE outbox_events
-        SET processed_at = NOW(), attempts = attempts + 1
-        WHERE id = $1
-      `, [event.id]);
+        // Mark as successfully processed
+        await client.query(`
+          UPDATE outbox_events
+          SET processed_at = NOW(), attempts = attempts + 1
+          WHERE id = $1
+        `, [event.id]);
 
-      await client.query('COMMIT');
+        await client.query('COMMIT');
 
-      console.log(`✅ Successfully processed event ${event.id}: ${event.event_type}`);
+        console.log(`✅ Successfully processed event ${event.id}: ${event.event_type}`);
+
+      } catch (error) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (rollbackError) {
+          console.error('Failed to rollback transaction:', rollbackError);
+        }
+        throw error; // Re-throw to outer catch
+      }
 
     } catch (error) {
-      await client.query('ROLLBACK');
-
       // Handle retry logic
       await this.handleEventFailure(event, error as Error);
 
     } finally {
-      client.release();
+      // ALWAYS release, even if rollback fails
+      try {
+        client.release();
+      } catch (releaseError) {
+        console.error('Failed to release client:', releaseError);
+      }
     }
   }
 

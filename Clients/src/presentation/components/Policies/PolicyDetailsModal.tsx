@@ -4,6 +4,8 @@ import { Policy } from "../../../domain/types/Policy";
 import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
 import { Plate, PlateContent, createPlateEditor, createPlatePlugin} from "platejs/react";
 import { AutoformatPlugin } from '@platejs/autoformat';
+import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
+import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 
 import {
   BoldPlugin,
@@ -88,6 +90,8 @@ const PolicyDetailModal: React.FC<Props> = ({
   const { users } = useUsers();
   const theme = useTheme();
   const [errors, setErrors] = useState<FormErrors>({});
+  const [openLink, setOpenLink] = useState(false);
+  const [openImage, setOpenImage] = useState(false);
 
   // const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -350,20 +354,11 @@ const hrPlugin = createPlatePlugin({
       icon: <FormatAlignRight />, 
       action: () => editor.tf.textAlign.setNodes("right"), 
     },
-    { key: "link", title: "Insert Link", icon: <Link />, action: async () => {
-    const url = prompt("Enter URL:");
-    const text = prompt("Display text:");
-    if (url) insertLink(editor, url, text);
-  }, },
-    { key: "image", title: "Insert Image", icon: <Image />,   action: async () => {
-    const url = prompt("Enter image URL:");
-    if (url) insertImage(editor, url);
-  },},
+    { key: "link", title: "Insert Link", icon: <Link />, action: () => setOpenLink(true)},
+    { key: "image", title: "Insert Image", icon: <Image />,   action: () => setOpenImage(true)},
     { key: "divider", title: "Insert Divider", icon: <HorizontalRule />, action: () => editor.tf.setNodes({ type: KEYS.hr }) },
     { key: "clear", title: "Clear Formatting", icon: <FormatClear />, action: () => {}   },
   ];
-
-  console.log("EDITOR: ", editor.tf.insert)
 
   useEffect(() => {
     if (policy && editor) {
@@ -461,6 +456,17 @@ const hrPlugin = createPlatePlugin({
         <CustomizableToast title="Creating project. Please wait..." />
       </Stack>
       )} */}
+      <InsertLinkModal
+        open={openLink}
+        onClose={() => setOpenLink(false)}
+        onInsert={(url, text) => insertLink(editor, url, text)}
+      />
+
+      <InsertImageModal
+        open={openImage}
+        onClose={() => setOpenImage(false)}
+        onInsert={(url, alt) => insertImage(editor, url, alt)}
+      />
       <Drawer
         open={true}
         onClose={(_event, reason) => {

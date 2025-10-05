@@ -28,10 +28,10 @@ import { TaskStatus } from "../../../../domain/enums/task.enum";
 // Status display mapping
 const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.OPEN]: "Open",
-  [TaskStatus.IN_PROGRESS]: "In progress",
+  [TaskStatus.IN_PROGRESS]: "In progress", // "In Progress" -> "In progress"
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
-  "In Progress": "In progress", // Handle API response
+  [TaskStatus.DELETED]: "Deleted",
 };
 
 // Reverse mapping for API calls
@@ -40,6 +40,7 @@ const DISPLAY_TO_STATUS_MAP: Record<string, string> = {
   "In progress": "In Progress",
   Completed: "Completed",
   Overdue: "Overdue",
+  Deleted: "Deleted",
 };
 
 const titleOfTableColumns = [

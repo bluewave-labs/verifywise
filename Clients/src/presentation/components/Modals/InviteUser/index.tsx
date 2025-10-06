@@ -27,8 +27,8 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
+import { ReactComponent as ForwardToInboxIcon } from "../../../assets/icons/email.svg";
+import CustomizableButton from "../../Button/CustomizableButton";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
 import { useAuth } from "../../../../application/hooks/useAuth";
@@ -134,7 +134,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
         name: values.name,
         surname: values.surname,
         roleId: values.roleId,
-        organizationId
+        organizationId,
       };
 
       try {

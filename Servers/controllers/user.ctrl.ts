@@ -1,3 +1,29 @@
+/**
+ * @fileoverview User Management Controller
+ *
+ * Handles all user-related operations including authentication, CRUD operations,
+ * and user lifecycle management. This controller implements secure authentication
+ * flows with JWT tokens, password hashing, and comprehensive validation.
+ *
+ * Key Features:
+ * - User authentication (login, token refresh)
+ * - Password management (reset, change, validation)
+ * - User CRUD operations with transaction support
+ * - Multi-tenant organization isolation
+ * - Role-based access control integration
+ * - Progress tracking and analytics
+ *
+ * Security Features:
+ * - Bcrypt password hashing with automatic salt generation
+ * - JWT access and refresh token generation
+ * - HTTP-only cookie-based refresh token storage
+ * - Constant-time password comparison via bcrypt
+ * - Demo user protection from deletion
+ * - Selective audit logging for critical operations
+ *
+ * @module controllers/user
+ */
+
 import { Request, Response } from "express";
 import {
   checkUserExistsQuery,
@@ -17,6 +43,8 @@ import {
   resetPasswordQuery,
   updateUserByIdQuery,
 } from "../utils/user.utils";
+import { sendMemberRoleChangedEditorToAdminNotification } from "../services/userNotification/projectNotifications";
+import { logFailure } from "../utils/logger/logHelper";
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -35,7 +63,51 @@ import { getTenantHash } from "../tools/getTenantHash";
 import { Transaction } from "sequelize";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
+import { generateUserTokens } from "../utils/auth.utils";
+import {
+  validateCreateUser,
+  validateLoginUser,
+  validateUpdateUser,
+  validateResetPassword,
+  validateChangePassword,
+  validateUpdateRole,
+  validateUserIdParam,
+  validateEmailParam,
+  validateUserUpdatePermission,
+  validateUserDeletePermission,
+  validateRoleUpdatePermission
+} from "../utils/validations/userValidation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
+import { sendSlackNotification } from "../services/slack/slackNotificationService";
+import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
+import { getRoleByIdQuery } from "../utils/role.utils";
 
+/**
+ * Retrieves all users within the authenticated user's organization
+ *
+ * Returns a list of all users belonging to the organization specified in the request context.
+ * Sensitive data (password hashes) are filtered out using toSafeJSON() method.
+ *
+ * @async
+ * @param {Request} req - Express request with organizationId from auth middleware
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JSON array of users or appropriate status code
+ *
+ * @security
+ * - Requires authentication (JWT middleware)
+ * - Organization-scoped query (multi-tenant isolation)
+ * - Sensitive data filtered from response
+ *
+ * @example
+ * GET /api/users
+ * Authorization: Bearer <jwt_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": [{ "id": 1, "email": "user@example.com", "name": "John", ... }]
+ * }
+ */
 async function getAllUsers(req: Request, res: Response): Promise<any> {
   logStructured('processing', 'starting getAllUsers', 'getAllUsers', 'user.ctrl.ts');
   logger.debug('🔍 Fetching all users');
@@ -45,16 +117,17 @@ async function getAllUsers(req: Request, res: Response): Promise<any> {
       req.organizationId!
     )) as UserModel[];
 
-    if (users && users.length > 0) {   
+    if (users && users.length > 0) {
+      logStructured('successful', `found ${users.length} users`, 'getAllUsers', 'user.ctrl.ts');
       return res
         .status(200)
         .json(STATUS_CODE[200](users.map((user) => user.toSafeJSON())));
     }
 
-    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts'); 
+    logStructured('successful', 'no users found', 'getAllUsers', 'user.ctrl.ts');
     return res.status(204).json(STATUS_CODE[204](users));
   } catch (error) {
-    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');  
+    logStructured('error', 'failed to retrieve users', 'getAllUsers', 'user.ctrl.ts');
     logger.error('❌ Error in getAllUsers:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -66,6 +139,11 @@ async function getUserByEmail(req: Request, res: Response) {
   logger.debug(`🔍 Looking up user with email: ${email}`);
 
   try {
+    // Validate email parameter
+    const emailValidation = validateEmailParam(email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json(STATUS_CODE[400](emailValidation.message));
+    }
     const user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
@@ -90,6 +168,11 @@ async function getUserById(req: Request, res: Response) {
   logger.debug(`🔍 Looking up user with ID: ${id}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(id);
+    if (!idValidation.isValid) {
+      return res.status(400).json(STATUS_CODE[400](idValidation.message));
+    }
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
@@ -151,6 +234,52 @@ async function createNewUserWrapper(
   return user;
 }
 
+/**
+ * Creates a new user with validation and transaction support
+ *
+ * Handles secure user registration with email uniqueness validation, password hashing,
+ * and comprehensive error handling. Uses database transactions to ensure data consistency.
+ *
+ * @async
+ * @param {Request} req - Express request with user data in body
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} Created user object or error status
+ *
+ * @security
+ * - Password automatically hashed by UserModel.createNewUser()
+ * - Email uniqueness validated before creation
+ * - Duplicate email detection with 409 Conflict response
+ * - Database transaction ensures atomic operation
+ * - Sensitive data filtered from response via toSafeJSON()
+ *
+ * @validation
+ * - Email format and uniqueness
+ * - Password strength requirements
+ * - Required fields validation
+ * - Role ID and organization ID validation
+ *
+ * @example
+ * POST /api/users
+ * {
+ *   "name": "John",
+ *   "surname": "Doe",
+ *   "email": "john@example.com",
+ *   "password": "SecurePassword123!",
+ *   "roleId": 2,
+ *   "organizationId": 1
+ * }
+ *
+ * Response 201:
+ * {
+ *   "code": 201,
+ *   "data": {
+ *     "id": 10,
+ *     "email": "john@example.com",
+ *     "name": "John",
+ *     "surname": "Doe"
+ *   }
+ * }
+ */
 async function createNewUser(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const { name, surname, email, password, roleId, organizationId } = req.body;
@@ -159,6 +288,17 @@ async function createNewUser(req: Request, res: Response) {
   logger.debug(`🛠️ Creating user: ${email}`);
 
   try {
+    // Validate input data
+    const validationErrors = validateCreateUser(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
+
+    // Check for existing user
     const existingUser = await getUserByEmailQuery(email);
     if (existingUser) {
       logStructured('error', `user already exists: ${email}`, 'createNewUser', 'user.ctrl.ts');
@@ -169,10 +309,11 @@ async function createNewUser(req: Request, res: Response) {
         .json(STATUS_CODE[409]('User with this email already exists'));
     }
 
-    // const user = await createNewUserWrapper(req.body, transaction);
+    // Create user model with automatic password hashing
     const userModel = await UserModel.createNewUser(name, surname, email, password, roleId, organizationId);
     await userModel.validateUserData();
 
+    // Double-check email uniqueness
     const isEmailUnique = await UserModel.validateEmailUniqueness(email);
     if (!isEmailUnique) {
       logStructured('error', `email not unique: ${email}`, 'createNewUser', 'user.ctrl.ts');
@@ -220,6 +361,43 @@ async function createNewUser(req: Request, res: Response) {
   }
 }
 
+/**
+ * Authenticates a user with email and password credentials
+ *
+ * Implements secure login flow with bcrypt password verification and JWT token generation.
+ * On successful authentication, generates both access token (returned in response) and
+ * refresh token (set in HTTP-only cookie) for enhanced security.
+ *
+ * @async
+ * @param {Request} req - Express request with email and password in body
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} JWT access token or error status
+ *
+ * @security
+ * - Password verified using bcrypt (constant-time comparison)
+ * - Fallback password comparison for backwards compatibility
+ * - Refresh token stored in HTTP-only cookie (Secure flag in production only)
+ * - Cookie uses SameSite attribute and path restriction (/api/users)
+ * - Access token returned in JSON response
+ * - Last login timestamp updated in memory (not persisted immediately)
+ * - Failed attempts logged for security monitoring
+ *
+ * @example
+ * POST /api/users/login
+ * {
+ *   "email": "user@example.com",
+ *   "password": "SecurePassword123!"
+ * }
+ *
+ * Response 202:
+ * {
+ *   "code": 202,
+ *   "data": {
+ *     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *   }
+ * }
+ * Set-Cookie: refresh_token=<token>; Path=/api/users; HttpOnly; Secure (prod); SameSite=none (prod) or lax (dev)
+ */
 async function loginUser(req: Request, res: Response): Promise<any> {
   const { email, password } = req.body;
 
@@ -227,6 +405,14 @@ async function loginUser(req: Request, res: Response): Promise<any> {
   logger.debug(`🔐 Login attempt for ${email}`);
 
   try {
+    // Validate login data
+    const validationErrors = validateLoginUser(req.body);
+    if (validationErrors.length > 0) {
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
     const userData = await getUserByEmailQuery(email);
 
     if (userData) {
@@ -238,6 +424,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
         Object.assign(user, userData);
       }
 
+      // Verify password with fallback for backwards compatibility
       let passwordIsMatched = false;
       try {
         passwordIsMatched = await user.comparePassword(password);
@@ -248,53 +435,68 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       if (passwordIsMatched) {
         user.updateLastLogin();
 
-        const token = generateToken({
-          id: user.id,
+        // Generate JWT tokens (access + refresh)
+        const { accessToken } = generateUserTokens({
+          id: user.id!,
           email: email,
           roleName: (userData as any).role_name,
-          tenantId: getTenantHash((userData as any).organization_id.toString()),
           organizationId: (userData as any).organization_id,
-        });
-
-        const refreshToken = generateRefreshToken({
-          id: user.id,
-          email: email,
-          roleName: (userData as any).role_name,
-          tenantId: getTenantHash((userData as any).organization_id.toString()),
-          organizationId: (userData as any).organization_id,
-        });
-
-        res.cookie('refresh_token', refreshToken, {
-          httpOnly: true,
-          path: '/api/users',
-          expires: new Date(Date.now() + 1 * 3600 * 1000 * 24 * 30),
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        });
+        }, res);
 
         logStructured('successful', `login successful for ${email}`, 'loginUser', 'user.ctrl.ts');
-       
+
 
         return res.status(202).json(
           STATUS_CODE[202]({
-            token,
+            token: accessToken,
           })
         );
       } else {
-        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');      
+        logStructured('error', `password mismatch for ${email}`, 'loginUser', 'user.ctrl.ts');
         return res.status(403).json(STATUS_CODE[403]('Password mismatch'));
       }
     }
 
-    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');  
+    logStructured('error', `user not found: ${email}`, 'loginUser', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404]({}));
   } catch (error) {
-    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');   
+    logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
     logger.error('❌ Error in loginUser:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
 
+/**
+ * Generates a new access token using a valid refresh token
+ *
+ * Implements secure token refresh flow to obtain new access tokens without
+ * requiring re-authentication. Validates refresh token from HTTP-only cookie
+ * and issues new access token if valid.
+ *
+ * @async
+ * @param {Request} req - Express request with refresh_token in cookies
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} New access token or error status
+ *
+ * @security
+ * - Refresh token retrieved from HTTP-only cookie
+ * - Token signature verification using JWT secret
+ * - Expiration validation before issuing new token
+ * - Prevents token reuse after expiration
+ * - Failed attempts logged for security monitoring
+ *
+ * @example
+ * POST /api/users/refresh-token
+ * Cookie: refresh_token=<refresh_token>
+ *
+ * Response 200:
+ * {
+ *   "code": 200,
+ *   "data": {
+ *     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *   }
+ * }
+ */
 async function refreshAccessToken(req: Request, res: Response): Promise<any> {
   logStructured('processing', 'attempting token refresh', 'refreshAccessToken', 'user.ctrl.ts');
   logger.debug('🔁 Refresh token requested');
@@ -303,19 +505,19 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
     const refreshToken = req.cookies.refresh_token;
 
     if (!refreshToken) {
-      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');     
+      logStructured('error', 'missing refresh token', 'refreshAccessToken', 'user.ctrl.ts');
       return res.status(400).json(STATUS_CODE[400]('Refresh token is required'));
     }
 
     const decoded = getRefreshTokenPayload(refreshToken);
 
     if (!decoded) {
-      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');    
+      logStructured('error', 'invalid refresh token', 'refreshAccessToken', 'user.ctrl.ts');
       return res.status(401).json(STATUS_CODE[401]('Invalid refresh token'));
     }
 
     if (decoded.expire < Date.now()) {
-      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');     
+      logStructured('error', 'refresh token expired', 'refreshAccessToken', 'user.ctrl.ts');
       return res.status(406).json(STATUS_CODE[406]({ message: 'Token expired' }));
     }
 
@@ -327,7 +529,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       organizationId: decoded.organizationId,
     });
 
-    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');   
+    logStructured('successful', `token refreshed for ${decoded.email}`, 'refreshAccessToken', 'user.ctrl.ts');
 
     return res.status(200).json(
       STATUS_CODE[200]({
@@ -335,7 +537,7 @@ async function refreshAccessToken(req: Request, res: Response): Promise<any> {
       })
     );
   } catch (error) {
-    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');  
+    logStructured('error', 'unexpected error during token refresh', 'refreshAccessToken', 'user.ctrl.ts');
     logger.error('❌ Error in refreshAccessToken:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -349,6 +551,15 @@ async function resetPassword(req: Request, res: Response) {
   logger.debug(`🔁 Password reset requested for ${email}`);
 
   try {
+    // Validate reset password data
+    const validationErrors = validateResetPassword(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
@@ -399,15 +610,48 @@ async function resetPassword(req: Request, res: Response) {
 async function updateUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const id = parseInt(req.params.id);
-  const { name, surname, email, roleId, last_login } = req.body;
+  const { name, surname, email, roleId: roleIdRaw, last_login } = req.body;
+
+  // Convert roleId to number if it exists (frontend may send as string)
+  const roleId = roleIdRaw ? parseInt(roleIdRaw) : undefined;
 
   logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-  logger.debug(`✏️ Update requested for user ID ${id}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(id);
+    if (!idValidation.isValid) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400](idValidation.message));
+    }
+
+    // Validate update data
+    const validationErrors = validateUpdateUser(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400]({
+        message: 'Validation failed',
+        errors: validationErrors
+      }));
+    }
+
+    // Check permissions (if user context is available)
+    const currentUserId = (req as any).user?.id;
+    const currentUserRoleId = (req as any).user?.role_id;
+
+    if (currentUserId && currentUserRoleId) {
+      const permissionResult = validateUserUpdatePermission(id, currentUserId, currentUserRoleId);
+      if (!permissionResult.isValid) {
+        await transaction.rollback();
+        return res.status(403).json(STATUS_CODE[403](permissionResult.message));
+      }
+    }
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      // Capture the old role before updating (if roleId is being changed)
+      const oldRoleId = user.role_id;
+
       await user.updateCurrentUser({ name, surname, email });
       await user.validateUserData();
 
@@ -416,16 +660,71 @@ async function updateUserById(req: Request, res: Response) {
         {
           name: user.name,
           surname: user.surname,
-          email: user.email,
-          role_id: roleId ?? user.role_id,
           last_login: last_login ?? user.last_login,
+          role_id: roleId ?? user.role_id,
         },
         transaction
       )) as UserModel;
 
       await transaction.commit();
+
+      const actor = await getUserByIdQuery(req.userId!);
+      const role = await getRoleByIdQuery(updatedUser.role_id);
+
+      await sendSlackNotification(
+        {
+          userId: actor.id!,
+          routingType: SlackNotificationRoutingType.MEMBERSHIP_AND_ROLES,
+        },
+        {
+          title: `Membership update`,
+          message: `${updatedUser.name} ${updatedUser.surname} is now *Project ${role?.name}* (added by ${actor.name} ${actor.surname}).`,
+        },
+      );
+
       logStructured('successful', `user updated: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
       await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`);
+
+
+      // Convert to numbers explicitly for comparison
+      const oldRoleIdNum = Number(oldRoleId);
+      const newRoleIdNum = Number(roleId);
+
+      if (newRoleIdNum === 1 && oldRoleIdNum === 3) {
+
+        // Get all projects where the user is a member
+        try {
+          const userProjects = await getUserProjects(id, req.tenantId!);
+
+          // Send notification for each project (fire-and-forget)
+          for (const project of userProjects) {
+            sendMemberRoleChangedEditorToAdminNotification({
+              projectId: project.id!,
+              projectName: project.project_title,
+              actorId: currentUserId || id, // Use currentUserId if available, otherwise use the user's own id
+              userId: id,
+            }).catch(async (emailError) => {
+              await logFailure({
+                eventType: "Update",
+                description: `Failed to send role changed notification for project ${project.id} to user ${id}`,
+                functionName: "updateUserById",
+                fileName: "user.ctrl.ts",
+                error: emailError as Error,
+              });
+            });
+          }
+        } catch (projectError) {
+          // Log error but don't fail the user update
+          await logFailure({
+            eventType: "Update",
+            description: `Failed to fetch user projects for role change notification: user ${id}`,
+            functionName: "updateUserById",
+            fileName: "user.ctrl.ts",
+            error: projectError as Error,
+          });
+        }
+      }
+
       return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
@@ -463,9 +762,33 @@ async function deleteUserById(req: Request, res: Response) {
   logger.debug(`🗑️ Delete request for user ID ${id}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(id);
+    if (!idValidation.isValid) {
+      await transaction.rollback();
+      return res.status(400).json(STATUS_CODE[400](idValidation.message));
+    }
+
+    // Check permissions (if user context is available)
+    const currentUserId = (req as any).user?.id;
+    const currentUserRoleId = (req as any).user?.role_id;
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      // Validate delete permissions
+      if (currentUserId && currentUserRoleId) {
+        const permissionResult = validateUserDeletePermission(
+          id,
+          currentUserId,
+          currentUserRoleId,
+          user.isDemoUser()
+        );
+        if (!permissionResult.isValid) {
+          await transaction.rollback();
+          return res.status(403).json(STATUS_CODE[403](permissionResult.message));
+        }
+      }
+
       if (user.isDemoUser()) {
         logStructured('error', `attempted to delete demo user ID ${id}`, 'deleteUserById', 'user.ctrl.ts');
         await logEvent('Error', `Blocked deletion of demo user ID ${id}`);
@@ -531,7 +854,7 @@ async function calculateProgress(
   logger.debug(`📊 Starting progress calculation for user ID ${id}`);
 
   try {
-    const userProjects = await getUserProjects(id);
+    const userProjects = await getUserProjects(id, req.tenantId!);
 
     let assessmentsMetadata = [];
     let allTotalAssessments = 0;
@@ -617,6 +940,15 @@ async function ChangePassword(req: Request, res: Response) {
   logger.debug(`🔐 Password change requested for user ID ${id}`);
 
   try {
+    // Validate password change data
+    const validationErrors = validateChangePassword(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
     const user = await getUserByIdQuery(id);
 
     if (!user) {
@@ -668,19 +1000,55 @@ async function ChangePassword(req: Request, res: Response) {
 async function updateUserRole(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const { id } = req.params;
-  const { newRoleId } = req.body;
+  const { newRoleId: newRoleIdRaw } = req.body;
+
+  // Normalize newRoleId from the request payload (frontend may send as string)
+  const newRoleId = typeof newRoleIdRaw === "string" ? parseInt(newRoleIdRaw, 10) : newRoleIdRaw;
+
   const currentUserId = (req as any).user?.id;
+  const currentUserRoleId = (req as any).user?.role_id;
 
   logStructured('processing', `updating role for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
   logger.debug(`🔧 Role update requested for user ID ${id} by admin ID ${currentUserId}`);
 
   try {
+    // Validate user ID parameter
+    const idValidation = validateUserIdParam(parseInt(id));
+    if (!idValidation.isValid) {
+      await transaction.rollback();
+      return res.status(400).json({ message: idValidation.message });
+    }
+
+    // Validate role update data
+    const validationErrors = validateUpdateRole(req.body);
+    if (validationErrors.length > 0) {
+      await transaction.rollback();
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
     const targetUser = await getUserByIdQuery(parseInt(id));
     if (!targetUser) {
       logStructured('error', `target user not found: ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
       await logEvent('Error', `Role update failed — target user not found: ID ${id}`);
       await transaction.rollback();
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Validate role update permissions
+    if (currentUserId && currentUserRoleId) {
+      const permissionResult = validateRoleUpdatePermission(
+        parseInt(id),
+        currentUserId,
+        currentUserRoleId,
+        newRoleId,
+        targetUser.isDemoUser()
+      );
+      if (!permissionResult.isValid) {
+        await transaction.rollback();
+        return res.status(403).json({ message: permissionResult.message });
+      }
     }
 
     const currentUser = await getUserByIdQuery(currentUserId);
@@ -690,6 +1058,9 @@ async function updateUserRole(req: Request, res: Response) {
       await transaction.rollback();
       return res.status(404).json({ message: 'Current user not found' });
     }
+
+    // Capture the old role before updating
+    const oldRoleId = targetUser.role_id;
 
     await targetUser.updateRole(newRoleId, currentUser);
 
@@ -702,6 +1073,41 @@ async function updateUserRole(req: Request, res: Response) {
     await transaction.commit();
     logStructured('successful', `role updated for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
     await logEvent('Update', `User role updated: ID ${id}, new role ID: ${newRoleId}, by admin ID: ${currentUserId}`);
+
+    // Send email notifications for role change from Editor (3) to Admin (1)
+    if (oldRoleId === 3 && newRoleId === 1) {
+      // Get all projects where the user is a member
+      try {
+        const userProjects = await getUserProjects(parseInt(id), req.tenantId!);
+
+        // Send notification for each project (fire-and-forget)
+        for (const project of userProjects) {
+          sendMemberRoleChangedEditorToAdminNotification({
+            projectId: project.id!,
+            projectName: project.project_title,
+            actorId: currentUserId,
+            userId: parseInt(id),
+          }).catch(async (emailError) => {
+            await logFailure({
+              eventType: "Update",
+              description: `Failed to send role changed notification for project ${project.id} to user ${id}`,
+              functionName: "updateUserRole",
+              fileName: "user.ctrl.ts",
+              error: emailError as Error,
+            });
+          });
+        }
+      } catch (projectError) {
+        // Log error but don't fail the role update
+        await logFailure({
+          eventType: "Update",
+          description: `Failed to fetch user projects for role change notification: user ${id}`,
+          functionName: "updateUserRole",
+          fileName: "user.ctrl.ts",
+          error: projectError as Error,
+        });
+      }
+    }
 
     return res.status(202).json({
       message: 'User role updated successfully',

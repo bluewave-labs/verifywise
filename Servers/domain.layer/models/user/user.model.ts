@@ -1,3 +1,41 @@
+/**
+ * @fileoverview User Model
+ *
+ * Defines the User entity with comprehensive validation, security features, and business logic.
+ * Implements secure user management with role-based access control, password hashing, and
+ * multi-tenant organization support.
+ *
+ * Database Schema:
+ * - id: Auto-incrementing primary key
+ * - name: User's first name (min 2 chars)
+ * - surname: User's last name (min 2 chars)
+ * - email: Email address (validated format)
+ * - password_hash: Bcrypt hashed password (10 rounds)
+ * - role_id: Foreign key to RoleModel
+ * - created_at: Account creation timestamp
+ * - last_login: Last successful login timestamp
+ * - is_demo: Flag for demo/sandbox users
+ * - organization_id: Foreign key to OrganizationModel (multi-tenancy)
+ *
+ * Key Features:
+ * - Automatic password hashing with bcrypt
+ * - Email and password validation
+ * - Role-based permission checks
+ * - Demo user restrictions
+ * - Organization-scoped operations
+ * - Secure data serialization (password excluded)
+ *
+ * Security Features:
+ * - Bcrypt password hashing (10 rounds)
+ * - Password strength validation (uppercase, lowercase, digit, 8+ chars)
+ * - Constant-time password comparison
+ * - Demo user operation restrictions
+ * - Admin self-demotion prevention
+ * - Sensitive data filtering in toSafeJSON()
+ *
+ * @module domain.layer/models/user
+ */
+
 import {
   Column,
   DataType,
@@ -77,6 +115,35 @@ export class UserModel extends Model<UserModel> {
   })
   organization_id?: number;
 
+  /**
+   * Creates a new user with validation and password hashing
+   *
+   * Factory method that creates a UserModel instance with validated data and hashed password.
+   * Does NOT save to database - caller must persist using query utilities.
+   *
+   * @static
+   * @async
+   * @param {string} name - User's first name (min 2 chars)
+   * @param {string} surname - User's last name (min 2 chars)
+   * @param {string} email - Email address (validated format)
+   * @param {string} password - Plain text password (will be hashed)
+   * @param {number} role_id - Role ID (1=Admin, 2=Reviewer, 3=Editor, 4=Auditor)
+   * @param {number} organization_id - Organization ID for multi-tenancy
+   * @returns {Promise<UserModel>} UserModel instance (not yet persisted)
+   * @throws {ValidationException} If any field fails validation
+   *
+   * @security
+   * - Password hashed with bcrypt (10 rounds)
+   * - Email format validated
+   * - Password strength validated (uppercase, lowercase, digit, 8+ chars)
+   * - Role and organization IDs validated (must be >= 1)
+   *
+   * @example
+   * const user = await UserModel.createNewUser(
+   *   'John', 'Doe', 'john@example.com', 'SecurePass123!', 1, 1
+   * );
+   * // User instance created but not saved to database yet
+   */
   static async createNewUser(
     name: string,
     surname: string,
@@ -129,7 +196,22 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Update current user's profile information
+   * Updates user's profile information with validation
+   *
+   * Allows partial updates of name, surname, and email with field-level validation.
+   * Changes are applied to the instance but not persisted to database.
+   *
+   * @async
+   * @param {Object} updateData - Fields to update
+   * @param {string} [updateData.name] - New first name (min 2 chars)
+   * @param {string} [updateData.surname] - New last name (min 2 chars)
+   * @param {string} [updateData.email] - New email (validated format)
+   * @returns {Promise<void>}
+   * @throws {ValidationException} If any field fails validation
+   *
+   * @example
+   * await user.updateCurrentUser({ name: 'Jane', email: 'jane@example.com' });
+   * // User instance updated but not saved to database yet
    */
   async updateCurrentUser(updateData: {
     name?: string;
@@ -188,7 +270,25 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Validate user data before saving
+   * Validates all user data fields before persistence
+   *
+   * Performs comprehensive validation of all required fields.
+   * Should be called before saving user to database.
+   *
+   * @async
+   * @returns {Promise<void>}
+   * @throws {ValidationException} If any required field is missing or invalid
+   *
+   * @validation
+   * - Name: Required, min 2 chars
+   * - Surname: Required, min 2 chars
+   * - Email: Required, valid format
+   * - Role ID: Required, >= 1
+   * - Organization ID: If present, must be >= 1
+   *
+   * @example
+   * await user.validateUserData();
+   * // Throws ValidationException if any field is invalid
    */
   async validateUserData(): Promise<void> {
     if (!this.name || this.name.trim().length === 0) {
@@ -245,14 +345,50 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Compare password with stored hash
+   * Compares plaintext password with stored hash
+   *
+   * Uses bcrypt's constant-time comparison to prevent timing attacks.
+   *
+   * @async
+   * @param {string} password - Plaintext password to verify
+   * @returns {Promise<boolean>} True if password matches, false otherwise
+   *
+   * @security
+   * - Constant-time comparison via bcrypt
+   * - No information leakage about password correctness timing
+   *
+   * @example
+   * const isValid = await user.comparePassword('userPassword123');
+   * if (isValid) {
+   *   // Password is correct
+   * }
    */
   async comparePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password_hash);
   }
 
   /**
-   * Update user's password with comprehensive validation
+   * Updates user's password with validation and security checks
+   *
+   * Validates new password strength, optionally verifies current password,
+   * and prevents demo users from changing passwords.
+   *
+   * @async
+   * @param {string} newPassword - New plaintext password (will be hashed)
+   * @param {string} [currentPassword] - Current password for verification
+   * @returns {Promise<void>}
+   * @throws {ValidationException} If password validation fails or current password incorrect
+   * @throws {BusinessLogicException} If user is demo user
+   *
+   * @security
+   * - New password validated for strength requirements
+   * - Current password verified if provided
+   * - Demo user restriction enforced
+   * - Password hashed with bcrypt (10 rounds)
+   *
+   * @example
+   * await user.updatePassword('NewSecurePass123!', 'OldPassword123');
+   * // Password updated in instance but not persisted to database
    */
   async updatePassword(
     newPassword: string,
@@ -297,7 +433,27 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Update user's role with security validations
+   * Updates user's role with comprehensive security validations
+   *
+   * Enforces role change business rules including admin-only permission,
+   * demo user restrictions, and self-demotion prevention.
+   *
+   * @async
+   * @param {number} newRoleId - New role ID to assign
+   * @param {UserModel} currentUser - User performing the role change (for authorization)
+   * @returns {Promise<void>}
+   * @throws {ValidationException} If role ID is invalid
+   * @throws {BusinessLogicException} If security rules violated
+   *
+   * @security
+   * - Only admins can update roles
+   * - Demo users cannot be assigned admin role
+   * - Admins cannot demote themselves
+   * - Role ID validated (must be >= 1)
+   *
+   * @example
+   * await targetUser.updateRole(2, adminUser); // Change to Reviewer role
+   * // Role updated in instance but not persisted to database
    */
   async updateRole(newRoleId: number, currentUser: UserModel): Promise<void> {
     // Validate role_id
@@ -349,7 +505,17 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Check if user can perform admin actions
+   * Checks if user can perform administrative actions
+   *
+   * Verifies user is admin and not a demo user.
+   *
+   * @returns {boolean} True if user can perform admin actions
+   * @throws {BusinessLogicException} If user is demo user
+   *
+   * @example
+   * if (user.canPerformAdminAction()) {
+   *   // User is admin and can proceed
+   * }
    */
   canPerformAdminAction(): boolean {
     if (this.isDemoUser()) {
@@ -363,7 +529,18 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Check if user can modify another user
+   * Checks if user can modify another user's data
+   *
+   * Admins can modify anyone, regular users can only modify themselves.
+   *
+   * @param {number} targetUserId - ID of user to be modified
+   * @returns {boolean} True if modification is allowed
+   * @throws {BusinessLogicException} If current user is demo user
+   *
+   * @example
+   * if (currentUser.canModifyUser(targetUser.id)) {
+   *   // Proceed with modification
+   * }
    */
   canModifyUser(targetUserId: number): boolean {
     if (this.isDemoUser()) {
@@ -379,8 +556,24 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Validate email uniqueness (to be used before saving)
-   * This method should be implemented with actual database query
+   * Validates email uniqueness across all users
+   *
+   * Placeholder method - actual implementation should query database.
+   * Currently returns true to delegate to database-level uniqueness constraint.
+   *
+   * @static
+   * @async
+   * @param {string} email - Email to check for uniqueness
+   * @param {number} [excludeUserId] - User ID to exclude from check (for updates)
+   * @returns {Promise<boolean>} True if email is unique
+   *
+   * @todo Implement actual database query for email uniqueness
+   *
+   * @example
+   * const isUnique = await UserModel.validateEmailUniqueness('new@example.com');
+   * if (!isUnique) {
+   *   throw new ValidationException('Email already exists');
+   * }
    */
   static async validateEmailUniqueness(
     email: string,
@@ -400,7 +593,19 @@ export class UserModel extends Model<UserModel> {
   }
 
   /**
-   * Get user data without sensitive information
+   * Returns user data without sensitive information
+   *
+   * Filters out password_hash and returns safe representation for API responses.
+   *
+   * @returns {Object} User data without password_hash
+   *
+   * @security
+   * - Password hash excluded from output
+   * - Safe for API responses and logging
+   *
+   * @example
+   * const safeUser = user.toSafeJSON();
+   * res.json(safeUser); // Password hash not included
    */
   toSafeJSON(): any {
     const { password_hash, ...safeUser } = this.get({ plain: true });

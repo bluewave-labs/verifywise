@@ -11,8 +11,7 @@ export const styles = {
   },
   iconButton: {
     position: 'absolute', 
-    right: '12px', 
-    top: '10px'
+    right: '22px',
   },
   closeButton: {
     width: 24, 

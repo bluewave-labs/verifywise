@@ -17,7 +17,7 @@ import {
   topicsListStyle,
 } from "./index.style";
 import StatsCard from "../../../components/Cards/StatsCard";
-import CustomizableSkeleton from "../../../vw-v2-components/Skeletons";
+import CustomizableSkeleton from "../../../components/Skeletons";
 import Questions from "./questions";
 import useAssessmentProgress from "../../../../application/hooks/useAssessmentProgress";
 import useAssessmentTopics from "../../../../application/hooks/useAssessmentTopcis";
@@ -79,23 +79,26 @@ const AssessmentTracker = ({
   // Handle topicId from URL to set active tab
   useEffect(() => {
     if (topicId && assessmentTopics && assessmentTopics.length > 0) {
-      const topicIndex = assessmentTopics.findIndex(
-        (topic) => topic.id === parseInt(topicId)
-      ) || 0;
+      const topicIndex =
+        assessmentTopics.findIndex((topic) => topic.id === parseInt(topicId)) ||
+        0;
       if (topicIndex >= 0) {
         setActiveTab(topicIndex);
       }
     }
   }, [topicId, assessmentTopics]);
 
-  const handleListItemClick = useCallback((index: number) => {
-    if (topicId) {
-      searchParams.delete("topicId");
-      searchParams.delete("questionId");
-      setSearchParams(searchParams);
-    }
-    setActiveTab(index);
-  }, [topicId, searchParams, setSearchParams]);
+  const handleListItemClick = useCallback(
+    (index: number) => {
+      if (topicId) {
+        searchParams.delete("topicId");
+        searchParams.delete("questionId");
+        setSearchParams(searchParams);
+      }
+      setActiveTab(index);
+    },
+    [topicId, searchParams, setSearchParams]
+  );
 
   // Filter subtopics based on the statusFilter, if provided
   const filteredSubtopics = assessmentSubtopics

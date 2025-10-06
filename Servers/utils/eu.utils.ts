@@ -29,6 +29,7 @@ import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks
 import { STATUSES_ANSWERS, STATUSES_COMPLIANCE } from "../types/status.type";
 import { AnswerEURisksModel } from "../domain.layer/frameworks/EU-AI-Act/answerEURisks.model";
 import { ControlsEURisksModel } from "../domain.layer/frameworks/EU-AI-Act/controlsEURisks.model";
+import { validateRiskArray } from "./utility.utils";
 
 const getDemoAnswers = (): string[] => {
   const answers = [];
@@ -809,8 +810,8 @@ export const updateControlEUByIdQuery = async (
     }
   )) as [ControlsEURisksModel[], number];
   let currentRisks = risks[0].map((r) => r.projects_risks_id!);
-  currentRisks = currentRisks.filter((r) => !(control.risksDelete || []).includes(r));
-  currentRisks = currentRisks.concat(control.risksMitigated || []);
+  currentRisks = currentRisks.filter((r) => !(validateRiskArray(control.risksDelete || [], "risksDelete")).includes(r));
+  currentRisks = currentRisks.concat(validateRiskArray(control.risksMitigated || [], "risksMitigated"));
 
   await sequelize.query(
     `DELETE FROM "${tenant}".controls_eu__risks WHERE control_id = :id;`,
@@ -819,13 +820,22 @@ export const updateControlEUByIdQuery = async (
       transaction,
     }
   );
-  const subClauseRisksInsert = currentRisks
-    .map((risk) => `(${id}, ${risk})`)
-    .join(", ");
-  if (subClauseRisksInsert) {
+
+  if (currentRisks.length > 0) {
+    // Create parameterized placeholders for safe insertion
+    const placeholders = currentRisks.map((_, i) => `(:control_id${i}, :projects_risks_id${i})`).join(", ");
+    const replacements: { [key: string]: any } = {};
+
+    // Build replacement parameters safely
+    currentRisks.forEach((risk, i) => {
+      replacements[`control_id${i}`] = id;
+      replacements[`projects_risks_id${i}`] = risk;
+    });
+
     const subClauseRisksInsertResult = (await sequelize.query(
-      `INSERT INTO "${tenant}".controls_eu__risks (control_id, projects_risks_id) VALUES ${subClauseRisksInsert} RETURNING projects_risks_id;`,
+      `INSERT INTO "${tenant}".controls_eu__risks (control_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
       {
+        replacements,
         transaction,
       }
     )) as [{ projects_risks_id: number }[], number];
@@ -1090,8 +1100,8 @@ export const updateQuestionEUByIdQuery = async (
     }
   )) as [AnswerEURisksModel[], number];
   let currentRisks = risks[0].map((r) => r.projects_risks_id!);
-  currentRisks = currentRisks.filter((r) => !(question.risksDelete || []).includes(r));
-  currentRisks = currentRisks.concat(question.risksMitigated || []);
+  currentRisks = currentRisks.filter((r) => !(validateRiskArray(question.risksDelete || [], "risksDelete")).includes(r));
+  currentRisks = currentRisks.concat(validateRiskArray(question.risksMitigated || [], "risksMitigated"));
 
   await sequelize.query(
     `DELETE FROM "${tenant}".answers_eu__risks WHERE answer_id = :id;`,
@@ -1100,13 +1110,21 @@ export const updateQuestionEUByIdQuery = async (
       transaction,
     }
   );
-  const subClauseRisksInsert = currentRisks
-    .map((risk) => `(${id}, ${risk})`)
-    .join(", ");
-  if (subClauseRisksInsert) {
+  if (currentRisks.length > 0) {
+    // Create parameterized placeholders for safe insertion
+    const placeholders = currentRisks.map((_, i) => `(:answer_id${i}, :projects_risks_id${i})`).join(", ");
+    const replacements: { [key: string]: any } = {};
+
+    // Build replacement parameters safely
+    currentRisks.forEach((risk, i) => {
+      replacements[`answer_id${i}`] = id;
+      replacements[`projects_risks_id${i}`] = risk;
+    });
+
     const subClauseRisksInsertResult = (await sequelize.query(
-      `INSERT INTO "${tenant}".answers_eu__risks (answer_id, projects_risks_id) VALUES ${subClauseRisksInsert} RETURNING projects_risks_id;`,
+      `INSERT INTO "${tenant}".answers_eu__risks (answer_id, projects_risks_id) VALUES ${placeholders} RETURNING projects_risks_id;`,
       {
+        replacements,
         transaction,
       }
     )) as [{ projects_risks_id: number }[], number];

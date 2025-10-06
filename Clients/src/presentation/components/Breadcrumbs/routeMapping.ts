@@ -1,8 +1,16 @@
 /**
  * Centralized route mapping configuration for breadcrumbs
  * This file contains all the route-to-label mappings used by the Breadcrumbs component
+ *
+ * @file routeMapping.ts
+ * @description Route mapping utilities for breadcrumb navigation
+ * @version 2.0.0
  */
 
+/**
+ * Static route mappings for exact path matches
+ * @type {Record<string, string>}
+ */
 export const routeMapping: Record<string, string> = {
   // Main pages
   "/": "Dashboard",
@@ -20,7 +28,7 @@ export const routeMapping: Record<string, string> = {
   "/organization": "Organization Settings",
 
   // File management
-  "/file-manager": "File Manager",
+  "/file-manager": "Evidence",
 
   // Reporting
   "/reporting": "Reporting Dashboard",
@@ -57,26 +65,77 @@ export const routeMapping: Record<string, string> = {
 };
 
 /**
+ * Route pattern configuration for dynamic route matching
+ * @type {Array<{pattern: RegExp, label: string, description?: string}>}
+ */
+export const dynamicRoutePatterns = [
+  {
+    pattern: /\/project-view.*projectId=/,
+    label: "Project Details",
+    description: "Project view with specific project ID",
+  },
+  {
+    pattern: /\/fairness-results\/\w+/,
+    label: "Fairness Results",
+    description: "Fairness results for specific analysis",
+  },
+  {
+    pattern: /\/model-inventory\/\d+/,
+    label: "Model Details",
+    description: "Detailed view of specific model",
+  },
+  {
+    pattern: /\/vendors\/[a-zA-Z0-9-]+/,
+    label: "Vendor Details",
+    description: "Specific vendor information",
+  },
+] as const;
+
+/**
  * Dynamic route mapping function for project-specific routes
  * This handles routes with dynamic parameters like project IDs
+ *
+ * @param {string} pathname - The pathname to match against dynamic patterns
+ * @returns {string} The matched label or empty string if no match
  */
 export const getDynamicRouteMapping = (pathname: string): string => {
-  // Project view with project ID
-  if (pathname.includes("/project-view") && pathname.includes("projectId=")) {
-    return "Project Details";
+  for (const { pattern, label } of dynamicRoutePatterns) {
+    if (pattern.test(pathname)) {
+      return label;
+    }
   }
-
-  // Fairness results with ID
-  if (pathname.includes("/fairness-results/")) {
-    return "Fairness Results";
-  }
-
-  // Default fallback
   return "";
 };
 
 /**
+ * Normalize and convert path segments to readable labels
+ *
+ * @param {string} segment - The path segment to normalize
+ * @returns {string} The normalized label
+ */
+export const normalizePathSegment = (segment: string): string => {
+  return segment
+    .replace(/[-_]/g, " ") // Convert kebab-case and snake_case to spaces
+    .replace(/([a-z])([A-Z])/g, "$1 $2") // Handle camelCase
+    .replace(/\b\w/g, (char) => char.toUpperCase()) // Title case
+    .trim();
+};
+
+/**
+ * Convert a full path to a readable breadcrumb label
+ *
+ * @param {string} path - The full path to convert
+ * @returns {string} The converted breadcrumb label
+ */
+export const pathToLabel = (path: string): string => {
+  return path.split("/").filter(Boolean).map(normalizePathSegment).join(" / ");
+};
+
+/**
  * Get the appropriate route mapping for a given path
+ *
+ * @param {string} path - The path to get mapping for
+ * @returns {string} The appropriate breadcrumb label
  */
 export const getRouteMapping = (path: string): string => {
   // Check static mapping first
@@ -91,14 +150,19 @@ export const getRouteMapping = (path: string): string => {
   }
 
   // Fallback to path conversion
-  return path
-    .split("/")
-    .filter(Boolean)
-    .map((segment) => {
-      // Convert kebab-case or snake_case to Title Case
-      return segment
-        .replace(/[-_]/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase());
-    })
-    .join(" / ");
+  return pathToLabel(path);
+};
+
+/**
+ * Get all available route mappings for debugging/documentation purposes
+ *
+ * @returns {Object} Object containing static and dynamic mappings info
+ */
+export const getAllRouteMappings = () => {
+  return {
+    static: routeMapping,
+    dynamic: dynamicRoutePatterns,
+    totalStaticRoutes: Object.keys(routeMapping).length,
+    totalDynamicPatterns: dynamicRoutePatterns.length,
+  };
 };

@@ -1,5 +1,5 @@
-import { Theme } from "@mui/material/styles";
-import { ModelInventoryStatus } from "../../../domain/interfaces/i.modelInventory";
+import { Theme, SxProps } from "@mui/material/styles";
+import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
 // Main page styles (index.tsx)
 export const mainStackStyle = {
@@ -68,20 +68,20 @@ export const summaryCardLabelStyle = (theme: Theme) => ({
 // Table component styles (modelInventoryTable.tsx)
 export const statusBadgeStyle = (status: ModelInventoryStatus) => {
   const statusStyles = {
-    [ModelInventoryStatus.APPROVED]: { bg: "#c8e6c9", color: "#388e3c" },
-    [ModelInventoryStatus.PENDING]: { bg: "#fff9c4", color: "#fbc02d" },
-    [ModelInventoryStatus.RESTRICTED]: { bg: "#ffccbc", color: "#e64a19" },
-    [ModelInventoryStatus.BLOCKED]: { bg: "#ffcdd2", color: "#d32f2f" },
+    [ModelInventoryStatus.APPROVED]: { bg: "#E6F4EA", color: "#138A5E" },
+    [ModelInventoryStatus.PENDING]: { bg: "#FFF8E1", color: "#795548" }, // Brown-ish
+    [ModelInventoryStatus.RESTRICTED]: { bg: "#FFE5D0", color: "#E64A19" },
+    [ModelInventoryStatus.BLOCKED]: { bg: "#FFD6D6", color: "#D32F2F" },
   };
 
-  const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
+  const style = statusStyles[status] || { bg: "#E0E0E0", color: "#424242" };
 
   return {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: 8,
-    fontWeight: 400,
+    borderRadius: 12,
+    fontWeight: 500,
     fontSize: 11,
     textTransform: "uppercase" as const,
     display: "inline-block" as const,
@@ -90,21 +90,22 @@ export const statusBadgeStyle = (status: ModelInventoryStatus) => {
 
 export const securityAssessmentBadgeStyle = (assessment: boolean) => {
   const style = assessment
-    ? { bg: "#c8e6c9", color: "#388e3c" }
-    : { bg: "#ffcdd2", color: "#d32f2f" };
+    ? { bg: "#E6F4EA", color: "#138A5E" }
+    : { bg: "#FFD6D6", color: "#D32F2F" };
 
   return {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: 8,
-    fontWeight: 400,
+    borderRadius: 12,
+    fontWeight: 500,
     fontSize: 11,
     textTransform: "uppercase" as const,
     display: "inline-block" as const,
   };
 };
 
+// Capabilities chips
 export const capabilitiesChipContainerStyle = {
   gap: "8px",
 };
@@ -113,18 +114,20 @@ export const capabilityChipStyle = {
   fontSize: 11,
   height: "20px",
   backgroundColor: "#f5f5f5",
+  borderRadius: 12,
   color: "#666",
   margin: 0,
-  fontWeight: 400,
+  fontWeight: 500,
 };
 
 export const capabilityChipExtraStyle = {
   fontSize: 11,
   height: "20px",
   backgroundColor: "#e0e0e0",
+  borderRadius: 12,
   color: "#666",
   margin: 0,
-  fontWeight: 400,
+  fontWeight: 500,
 };
 
 export const tableRowHoverStyle = {
@@ -215,4 +218,25 @@ export const paginationStyle = (theme: Theme) => ({
     border: `1px solid ${theme.palette.border.light}`,
     padding: theme.spacing(4),
   },
+});
+
+export const searchBoxStyle =
+  (isSearchBarVisible: boolean): SxProps<Theme> =>
+  (theme: Theme) => ({
+    display: "flex",
+    alignItems: "center",
+    border: `1px solid ${theme.palette.border.dark}`, // adjust as needed
+    borderRadius: theme.shape.borderRadius,
+    p: "1px 1px",
+    bgcolor: "#fff",
+    width: isSearchBarVisible ? "50%" : "auto",
+    transition: "all 0.3s ease",
+    mb: 9,
+  });
+
+export const inputStyle = (isSearchBarVisible: boolean): SxProps<Theme> => ({
+  flex: 1,
+  fontSize: "14px",
+  opacity: isSearchBarVisible ? 1 : 0,
+  transition: "opacity 0.3s ease",
 });

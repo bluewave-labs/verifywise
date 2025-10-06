@@ -17,10 +17,10 @@ import Select from "../../Inputs/Select";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import CustomizableButton from "../../../vw-v2-components/Buttons";
-import SaveIcon from "@mui/icons-material/Save";
+import CustomizableButton from "../../Button/CustomizableButton";
+import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
 import { User } from "../../../../domain/types/User";
-import UppyUploadFile from "../../../vw-v2-components/Inputs/FileUpload";
+import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";
 import { AlertProps } from "../../../../domain/interfaces/iAlert";
@@ -224,7 +224,7 @@ const VWISO27001AnnexDrawerDialog = ({
     const value = event.target.value.toString();
     if (
       field === "status" &&
-      value === "Audited" &&
+      value === "Implemented" &&
       (selectedRisks.length > 0 ||
         formData.risks.length > 0 ||
         (formData.risks.length > 0 &&
@@ -594,7 +594,7 @@ const VWISO27001AnnexDrawerDialog = ({
                 >
                   {`${selectedRisks.length} ${
                     selectedRisks.length === 1 ? "risk" : "risks"
-                  } pending upload`}
+                  } pending save`}
                 </Typography>
               )}
               {deletedRisks.length > 0 && (
@@ -658,6 +658,8 @@ const VWISO27001AnnexDrawerDialog = ({
                   .filter((risk) => !deletedRisks.includes(risk))}
                 setSelectecRisks={setSelectedRisks}
                 _setDeletedRisks={setDeletedRisks}
+                frameworkId={3}
+                isOrganizational={true}
               />
             </Suspense>
           </Dialog>
@@ -667,7 +669,7 @@ const VWISO27001AnnexDrawerDialog = ({
           sx={{
             padding: "15px 20px",
           }}
-          gap={"20px"}
+          gap={"24px"}
         >
           <Select
             id="status"
@@ -785,7 +787,7 @@ const VWISO27001AnnexDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIcon />}
+            icon={<SaveIconSVGWhite />}
           />
         </Stack>
       </Stack>

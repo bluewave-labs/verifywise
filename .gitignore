@@ -14,7 +14,9 @@ express.log
 fastapi.log
 react.log
 .idea/
-
-# TS build info
-*.tsbuildinfo
-Clients/*.tsbuildinfo
+.claude
+.github
+.kombai
+.vscode
+agent.md
+agent-output.md

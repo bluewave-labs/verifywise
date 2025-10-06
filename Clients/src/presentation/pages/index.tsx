@@ -1,12 +1,13 @@
 import { Stack, Typography, Paper, Divider, useTheme } from "@mui/material";
-import { Assessment } from "@mui/icons-material";
-import Breadcrumbs, { BreadcrumbItem } from "../components/Breadcrumbs";
+import { ReactComponent as Assessment } from "../assets/icons/assessment.svg";
+import Breadcrumbs from "../components/Breadcrumbs";
+import { IBreadcrumbItem } from "../../domain/interfaces/i.breadcrumbs";
 
 const Playground = () => {
   const theme = useTheme();
 
   // Example 1: Manual breadcrumbs with custom items
-  const manualBreadcrumbs: BreadcrumbItem[] = [
+  const manualBreadcrumbs: IBreadcrumbItem[] = [
     {
       label: "Projects",
       path: "/projects",
@@ -22,7 +23,7 @@ const Playground = () => {
   ];
 
   // Example 2: Breadcrumbs with disabled items
-  const disabledBreadcrumbs: BreadcrumbItem[] = [
+  const disabledBreadcrumbs: IBreadcrumbItem[] = [
     {
       label: "Dashboard",
       path: "/dashboard",
@@ -37,18 +38,8 @@ const Playground = () => {
     },
   ];
 
-  // Example 3: Custom route mapping for auto-generation
-  const customRouteMapping: Record<string, string> = {
-    "/project-view": "Project Overview",
-    "/project-view/risks": "Risk Management",
-    "/project-view/settings": "Project Settings",
-    "/model-inventory": "Model Inventory",
-    "/ai-trust-center": "AI Trust Center",
-    "/fairness-dashboard": "Fairness Dashboard",
-  };
-
   // Example 4: Long labels that will be truncated
-  const longLabelBreadcrumbs: BreadcrumbItem[] = [
+  const longLabelBreadcrumbs: IBreadcrumbItem[] = [
     {
       label: "Home",
       path: "/",
@@ -118,7 +109,7 @@ const Playground = () => {
           Breadcrumbs automatically generated from current route with custom
           mapping
         </Typography>
-        <Breadcrumbs autoGenerate={true} routeMapping={customRouteMapping} />
+        <Breadcrumbs autoGenerate={true} />
       </Paper>
 
       {/* Example 3: Breadcrumbs with disabled items */}

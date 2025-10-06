@@ -3,7 +3,8 @@ import "./index.css";
 import Sidebar from "../../components/Sidebar";
 import { Outlet, useLocation } from "react-router";
 import { useContext, useEffect, FC } from "react";
-import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
+import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import DemoAppBanner from "../../components/DemoBanner/DemoAppBanner";
 import { getAllProjects } from "../../../application/repository/project.repository";
 
 interface DashboardProps {
@@ -45,7 +46,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       sx={{ backgroundColor: "#FCFCFD" }}
     >
       <Sidebar />
-      <Stack spacing={3}>
+      <Stack spacing={2}>
         <DemoAppBanner />
         <Outlet />
       </Stack>

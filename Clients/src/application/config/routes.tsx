@@ -31,6 +31,9 @@ import PolicyDashboard from "../../presentation/pages/PolicyDashboard/PoliciesDa
 import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import Framework from "../../presentation/pages/Framework";
+import Tasks from "../../presentation/pages/Tasks";
+import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
+import RiskManagement from "../../presentation/pages/RiskManagement";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -53,18 +56,21 @@ export const createRoutes = (
     <Route path="/test/project-view" element={<ProjectView />} />
     <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
-    <Route path="/" element={<VWHome />} />
+    <Route index element={<IntegratedDashboard />} />
     <Route path="/overview" element={<VWHome />} />
     <Route path="/framework" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/fairness-dashboard" element={<FairnessDashboard />} />
     <Route path="/fairness-results/:id" element={<FairnessResultsPage />} />
     <Route path="/fairness-dashboard/bias-fairness-results/:id" element={<BiasAndFairnessResultsPage />} />
+    <Route path="/fairness-dashboard/bias-fairness-results-demo" element={<BiasAndFairnessResultsPage />} />
     <Route path="/training" element={<Training />} />
     <Route path="/ai-trust-center" element={<AITrustCenter />} />
     <Route path="/policies" element={<PolicyDashboard/>}/>
     <Route path="/event-tracker" element={<WatchTower />} />
     <Route path="/model-inventory" element={<ModelInventory />} />
+    <Route path="/risk-management" element={<RiskManagement />} />
+    <Route path="/tasks" element={<Tasks />} />
   </Route>,
   <Route
     key="admin-reg"

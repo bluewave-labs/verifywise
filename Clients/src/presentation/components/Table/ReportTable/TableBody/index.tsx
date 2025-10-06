@@ -28,18 +28,34 @@ const ReportTableBody: React.FC<TableProps> = ({
   // row onclick function
   const handleEditRisk = () => {}
 
+  const formatSource = (source: string) => {
+    if (!source) return '-';
+    if (source.trim().toLowerCase() === 'all reports') return 'All Reports';
+    const cleaned = source.replace(/\breport\b/gi, '').replace(/\s{2,}/g, ' ').trim();
+    return cleaned.length ? cleaned : source;
+  }
+
   return (
     <TableBody>
       {rows &&
         rows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
           .map((row, index: number) => (
-            <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row}>
+            <TableRow 
+              key={index} 
+              sx={{
+                ...singleTheme.tableStyles.primary.body.row,
+                "&:hover": {
+                  backgroundColor: "#fafafa",
+                  cursor: "default"
+                }
+              }}
+            >
               <TableCell sx={cellStyle}>
                 {row.filename ? row.filename : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
-                {row.source ? row.source : '-'}
+                {row.source ? formatSource(row.source) : '-'}
               </TableCell>
               <TableCell sx={cellStyle}>
                 {row.project_title ? row.project_title : '-'}

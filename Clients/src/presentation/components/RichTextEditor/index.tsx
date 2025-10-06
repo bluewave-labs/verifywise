@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Tooltip, IconButton, Stack } from "@mui/material";
+import { Box, Tooltip, IconButton, Stack, useTheme } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import {
-  FormatBold,
-  FormatItalic,
-  FormatListBulleted,
-  FormatListNumbered,
-} from "@mui/icons-material";
+import {ReactComponent as FormatBold} from "../../assets/icons/formatBold.svg";
+import {ReactComponent as FormatItalic} from "../../assets/icons/formatItalic.svg";
+import {ReactComponent as FormatListBulleted} from "../../assets/icons/formatListBulleted.svg";
+import {ReactComponent as FormatListNumbered} from "../../assets/icons/formatListNumbered.svg";
 import "./index.css";
 
 interface RichTextEditorProps {
@@ -24,6 +22,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   initialContent = "",
   isEditable = true,
 }) => {
+  const theme = useTheme();
   const [activeList, setActiveList] = useState<"bulleted" | "numbered" | null>(
     null
   );
@@ -77,7 +76,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           border: "1px solid",
           borderColor: "#c4c4c4",
           borderBottom: "none",
-          borderRadius: "4px",
+          borderRadius: theme.shape.borderRadius,
           ...headerSx,
         }}
       >

@@ -21,8 +21,8 @@ router.get("/bytopic/:id", authenticateJWT, getQuestionsByTopicId);
 
 
 // POST, PUT, DELETE requests
-router.post("/", authenticateJWT, createQuestion);
-router.patch("/:id", authenticateJWT, updateQuestionById);
-router.delete("/:id", authenticateJWT, deleteQuestionById);
+// router.post("/", authenticateJWT, createQuestion);
+// router.patch("/:id", authenticateJWT, updateQuestionById);
+// router.delete("/:id", authenticateJWT, deleteQuestionById);
 
 export default router;

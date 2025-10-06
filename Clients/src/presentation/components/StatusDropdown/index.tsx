@@ -21,7 +21,7 @@ import {
   useTheme,
   SelectChangeEvent,
 } from "@mui/material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { ReactComponent as WhiteDownArrowIcon  } from "../../assets/icons/chevron-down-white.svg";
 import { getStatusColor } from "../../pages/ISO/style";
 
 interface StatusDropdownProps {
@@ -31,6 +31,7 @@ interface StatusDropdownProps {
   size?: 'small' | 'medium';
   allowedRoles?: string[];
   userRole?: string;
+  statusOptions?: string[];
 }
 
 const STATUS_OPTIONS = [
@@ -40,7 +41,7 @@ const STATUS_OPTIONS = [
   "Awaiting review",
   "Awaiting approval",
   "Implemented",
-  "Audited",
+  // "Audited",
   "Needs rework"
 ];
 
@@ -128,7 +129,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
       disabled={isDisabled || isUpdating}
       displayEmpty
       renderValue={renderValue}
-      IconComponent={KeyboardArrowDownIcon}
+      IconComponent={WhiteDownArrowIcon}
       MenuProps={{
         disableScrollLock: true,
         PaperProps: {

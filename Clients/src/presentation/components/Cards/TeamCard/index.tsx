@@ -14,7 +14,7 @@ const TeamCard = ({
       {members.length !== 0 ? 
         <Typography sx={descCardbodyStyle}>{members.join(", ")}</Typography>
       : 
-        <Typography sx={descCardbodyStyle}>No member has been asigned to the project</Typography>
+        <Typography sx={descCardbodyStyle}>No members have been assigned to the project</Typography>
       }
     </Stack>
   );

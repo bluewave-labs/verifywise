@@ -36,11 +36,12 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         start_date timestamp with time zone NOT NULL,
         ai_risk_classification enum_projects_ai_risk_classification,
         type_of_high_risk_role enum_projects_type_of_high_risk_role,
-        goal character varying(255),
+        goal character varying(255) NOT NULL,
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
         is_demo boolean NOT NULL DEFAULT false,
         is_organizational boolean NOT NULL DEFAULT false,
+        status projects_status_enum NOT NULL DEFAULT 'Not started',
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)
@@ -88,7 +89,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       (
         id serial NOT NULL,
         training_name character varying(255) NOT NULL,
-        duration integer,
+        duration varchar(255),
         provider character varying(255),
         department character varying(255),
         status enum_trainingregistar_status,
@@ -128,10 +129,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
-    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".projectrisks
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".risks
     (
       id serial NOT NULL,
-      project_id integer NOT NULL,
       risk_name character varying(255) NOT NULL,
       risk_owner integer,
       ai_lifecycle_phase enum_projectrisks_ai_lifecycle_phase NOT NULL,
@@ -159,9 +159,6 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       is_demo boolean NOT NULL DEFAULT false,
       created_at timestamp without time zone NOT NULL DEFAULT now(),
       CONSTRAINT projectrisks_pkey PRIMARY KEY (id),
-      CONSTRAINT projectrisks_project_id_fkey FOREIGN KEY (project_id)
-        REFERENCES "${tenantHash}".projects (id) MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT projectrisks_risk_owner_fkey FOREIGN KEY (risk_owner)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL,
@@ -169,6 +166,22 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE SET NULL
     );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".projects_risks (
+      risk_id INTEGER NOT NULL,
+      project_id INTEGER NOT NULL,
+      CONSTRAINT projects_risks_pkey PRIMARY KEY (risk_id, project_id),
+      CONSTRAINT projects_risks_risk_id_fkey FOREIGN KEY (risk_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE,
+      CONSTRAINT projects_risks_project_id_fkey FOREIGN KEY (project_id) REFERENCES "${tenantHash}".projects(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".frameworks_risks (
+      risk_id INTEGER NOT NULL,
+      framework_id INTEGER NOT NULL,
+        CONSTRAINT frameworks_risks_pkey PRIMARY KEY (risk_id, framework_id),
+        CONSTRAINT frameworks_risks_risk_id_fkey FOREIGN KEY (risk_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT frameworks_risks_framework_id_fkey FOREIGN KEY (framework_id) REFERENCES public.frameworks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      );`, { transaction });
 
     await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".files
     (
@@ -416,14 +429,14 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       projects_risks_id INTEGER NOT NULL,
       PRIMARY KEY (control_id, projects_risks_id),
       FOREIGN KEY (control_id) REFERENCES "${tenantHash}".controls_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
-      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
     );`, { transaction });
     await sequelize.query(`CREATE TABLE "${tenantHash}".answers_eu__risks (
       answer_id INTEGER NOT NULL,
       projects_risks_id INTEGER NOT NULL,
       PRIMARY KEY (answer_id, projects_risks_id),
       FOREIGN KEY (answer_id) REFERENCES "${tenantHash}".answers_eu(id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
       );`, { transaction });
 
     await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".annexcategories_iso
@@ -470,7 +483,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         REFERENCES "${tenantHash}".annexcategories_iso (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE,
       CONSTRAINT annexcategories_iso__risks_projects_risks_id_fkey FOREIGN KEY (projects_risks_id)
-        REFERENCES "${tenantHash}".projectrisks (id) MATCH SIMPLE
+        REFERENCES "${tenantHash}".risks (id) MATCH SIMPLE
         ON UPDATE NO ACTION ON DELETE CASCADE
     );`, { transaction });
 
@@ -479,7 +492,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       projects_risks_id INTEGER NOT NULL,
       PRIMARY KEY (subclause_id, projects_risks_id),
       FOREIGN KEY (subclause_id) REFERENCES "${tenantHash}".subclauses_iso(id) ON DELETE CASCADE ON UPDATE CASCADE,
-      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE ON UPDATE CASCADE
     );`, { transaction });
 
     await Promise.all([
@@ -591,7 +604,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         subclause_id INT,
         projects_risks_id INT PRIMARY KEY,
         FOREIGN KEY (subclause_id) REFERENCES "${tenantHash}".subclauses_iso27001(id) ON DELETE CASCADE,
-        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE
       );`, { transaction });
 
     await sequelize.query(
@@ -621,7 +634,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         annexcontrol_id INT,
         projects_risks_id INT PRIMARY KEY,
         FOREIGN KEY (annexcontrol_id) REFERENCES "${tenantHash}".annexcontrols_iso27001(id) ON DELETE CASCADE,
-        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".projectrisks(id) ON DELETE CASCADE
+        FOREIGN KEY (projects_risks_id) REFERENCES "${tenantHash}".risks(id) ON DELETE CASCADE
       );`, { transaction });
 
     await sequelize.query(
@@ -651,6 +664,11 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         security_assessment BOOLEAN NOT NULL DEFAULT false,
         status enum_model_inventories_status NOT NULL DEFAULT 'Pending'::enum_model_inventories_status,
         status_date TIMESTAMP WITH TIME ZONE NOT NULL,
+        reference_link VARCHAR(255) NOT NULL,
+        biases VARCHAR(255) NOT NULL,
+        limitations VARCHAR(255) NOT NULL,
+        hosting_provider VARCHAR(255) NOT NULL,
+        used_in_projects TEXT NOT NULL,
         is_demo BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -660,6 +678,104 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
           REFERENCES public.users (id) MATCH SIMPLE
           ON UPDATE NO ACTION ON DELETE SET NULL
       );`, { transaction });
+
+    await sequelize.query(`
+      CREATE TABLE "${tenantHash}".model_risks (
+        id SERIAL PRIMARY KEY,
+        risk_name VARCHAR(255) NOT NULL,
+        risk_category enum_model_risks_risk_category NOT NULL,
+        risk_level enum_model_risks_risk_level NOT NULL,
+        status enum_model_risks_status NOT NULL DEFAULT 'Open',
+        owner INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+        target_date TIMESTAMP NOT NULL,
+        description TEXT,
+        mitigation_plan TEXT,
+        impact TEXT,
+        likelihood VARCHAR(255),
+        key_metrics TEXT,
+        current_values TEXT,
+        threshold VARCHAR(255),
+        model_id INTEGER REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );`, { transaction });
+
+    // Create task ENUM types if they don't exist
+    await sequelize.query(`
+      DO $$ 
+        BEGIN
+          CREATE TYPE enum_tasks_priority AS ENUM ('Low', 'Medium', 'High');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+    `, { transaction });
+
+    await sequelize.query(`
+      DO $$ 
+        BEGIN
+          CREATE TYPE enum_tasks_status AS ENUM ('Open', 'In Progress', 'Completed', 'Overdue', 'Deleted');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+    `, { transaction });
+
+    // Create tasks table
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".tasks
+    (
+      id serial NOT NULL,
+      title character varying(255) NOT NULL,
+      description text,
+      creator_id integer,
+      organization_id integer,
+      due_date timestamp with time zone,
+      priority enum_tasks_priority NOT NULL DEFAULT 'Medium',
+      status enum_tasks_status NOT NULL DEFAULT 'Open',
+      categories jsonb DEFAULT '[]',
+      created_at timestamp with time zone NOT NULL DEFAULT now(),
+      updated_at timestamp with time zone NOT NULL DEFAULT now(),
+      CONSTRAINT tasks_pkey PRIMARY KEY (id),
+      CONSTRAINT tasks_creator_id_fkey FOREIGN KEY (creator_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE SET NULL,
+      CONSTRAINT tasks_organization_id_fkey FOREIGN KEY (organization_id)
+        REFERENCES public.organizations (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE SET NULL
+    );`, { transaction });
+
+    // Add indexes for tasks table
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_creator_id_idx" ON "${tenantHash}".tasks (creator_id);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_due_date_idx" ON "${tenantHash}".tasks (due_date);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_status_idx" ON "${tenantHash}".tasks (status);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_priority_idx" ON "${tenantHash}".tasks (priority);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_created_at_idx" ON "${tenantHash}".tasks (created_at);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_tasks_organization_id_idx" ON "${tenantHash}".tasks (organization_id);`,
+    ].map(query => sequelize.query(query, { transaction })));
+
+    // Create task_assignees table
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".task_assignees
+    (
+      id serial NOT NULL,
+      task_id integer NOT NULL,
+      user_id integer NOT NULL,
+      assigned_at timestamp with time zone NOT NULL DEFAULT now(),
+      created_at timestamp with time zone NOT NULL DEFAULT now(),
+      updated_at timestamp with time zone NOT NULL DEFAULT now(),
+      CONSTRAINT task_assignees_pkey PRIMARY KEY (id),
+      CONSTRAINT task_assignees_task_id_fkey FOREIGN KEY (task_id)
+        REFERENCES "${tenantHash}".tasks (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+      CONSTRAINT task_assignees_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+      CONSTRAINT unique_task_user_assignment UNIQUE (task_id, user_id)
+    );`, { transaction });
+
+    // Add indexes for task_assignees table
+    await Promise.all([
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_task_id_idx" ON "${tenantHash}".task_assignees (task_id);`,
+      `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_user_id_idx" ON "${tenantHash}".task_assignees (user_id);`
+    ].map(query => sequelize.query(query, { transaction })));
   }
   catch (error) {
     throw error;

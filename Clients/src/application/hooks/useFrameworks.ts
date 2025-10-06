@@ -29,7 +29,7 @@ const useFrameworks = ({
   } = useQuery({
     queryKey: ['frameworks', 'all'],
     queryFn: async () => {
-      const response = await getAllFrameworks({ routeUrl: "/frameworks" });
+      const response = await getAllFrameworks();
       if (response?.data) {
         return response.data;
       } else {

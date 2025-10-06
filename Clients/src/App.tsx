@@ -24,6 +24,10 @@ import Alert from "./presentation/components/Alert";
 import useUsers from "./application/hooks/useUsers";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useLocation } from "react-router-dom";
+import { DeploymentManager } from "./application/utils/deploymentHelpers";
+import CommandPalette from "./presentation/components/CommandPalette";
+import CommandPaletteErrorBoundary from "./presentation/components/CommandPalette/ErrorBoundary";
+import useCommandPalette from "./application/hooks/useCommandPalette";
 
 // Component to conditionally apply theme based on route
 const ConditionalThemeWrapper = ({ children, mode }: { children: React.ReactNode; mode: string }) => {
@@ -54,12 +58,17 @@ function App() {
   const { token, userRoleName, organizationId, userId } = useAuth();
   const [alert, setAlert] = useState<AlertProps | null>(null);
   const { users, refreshUsers } = useUsers();
+  const commandPalette = useCommandPalette();
 
   useEffect(() => {
     setShowAlertCallback((alertProps: AlertProps) => {
       setAlert(alertProps);
       setTimeout(() => setAlert(null), 5000);
     });
+
+    // Initialize deployment update checking
+    DeploymentManager.initializeUpdateCheck();
+
     return () => setShowAlertCallback(() => {});
   }, []);
 
@@ -172,6 +181,12 @@ function App() {
                   onClick={() => setAlert(null)}
                 />
               )}
+              <CommandPaletteErrorBoundary>
+                <CommandPalette
+                  open={commandPalette.isOpen}
+                  onOpenChange={commandPalette.close}
+                />
+              </CommandPaletteErrorBoundary>
               <Routes>
                 {createRoutes(triggerSidebar, triggerSidebarReload)}
               </Routes>

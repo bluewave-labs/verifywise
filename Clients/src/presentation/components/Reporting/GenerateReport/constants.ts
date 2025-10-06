@@ -10,5 +10,8 @@ export const ISO_REPORT_TYPES = [
   "Project risks report",
   "Clauses and annexes report",
   "Vendors and risks report",
+  "Training registry report",
+  "Policy manager report",
+  "Models and risks report",
   "All reports combined in one file"
 ]

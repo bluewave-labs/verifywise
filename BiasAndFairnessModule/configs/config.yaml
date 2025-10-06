@@ -59,7 +59,6 @@ prompting:
 
 # Metrics Configuration
 metrics:
-  # Fairness metrics for evaluation
   fairness:
     enabled: true
     metrics:
@@ -68,10 +67,6 @@ metrics:
       - "equalized_opportunity"
       - "predictive_equality"
       - "predictive_parity"
-      - "conditional_use_accuracy_equality"
-      - "balance_negative_class"
-
-  # Performance metrics
   performance:
     enabled: false
     metrics:

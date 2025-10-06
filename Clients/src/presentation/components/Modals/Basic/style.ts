@@ -10,7 +10,7 @@ export const BasicModalCancelButtonStyle = {
 };
 
 export const BasicModalDeleteButtonStyle = {
-  width: 140,
+  width: 160,
   fontSize: 13,
   backgroundColor: "#DB504A",
   border: "1px solid #DB504A",

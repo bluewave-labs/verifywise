@@ -36,6 +36,16 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { IISO27001SubClause } from "../domain.layer/interfaces/i.ISO27001SubClause";
 import { IISO27001AnnexControl } from "../domain.layer/interfaces/i.iso27001AnnexControl";
+import {
+  validateSubClauseIdParam,
+  validateAnnexControlIdParam,
+  validateProjectFrameworkIdParam,
+  validateClauseIdParam,
+  validateAnnexIdParam,
+  validateCompleteSubClauseUpdate,
+  validateCompleteAnnexControlUpdate
+} from "../utils/validations/iso27001Validation.utils";
+import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -73,6 +83,23 @@ export async function getAllClausesStructForProject(
   res: Response
 ): Promise<any> {
   const projectFrameworkId = parseInt(req.params.id);
+
+  // Validate project framework ID parameter
+  const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
+  if (!projectFrameworkIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid project framework ID parameter: ${req.params.id}`,
+      functionName: "getAllClausesStructForProject",
+      fileName: "iso27001.ctrl.ts",
+      error: new Error(projectFrameworkIdValidation.message || 'Invalid project framework ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
+      code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
 
   logProcessing({
     description: `starting getAllClausesStructForProject for project framework ID ${projectFrameworkId}`,
@@ -186,6 +213,23 @@ export async function getSubClausesByClauseId(
   res: Response
 ): Promise<any> {
   const clauseId = parseInt(req.params.id);
+
+  // Validate clause ID parameter
+  const clauseIdValidation = validateClauseIdParam(clauseId);
+  if (!clauseIdValidation.isValid) {
+    await logFailure({
+      eventType: "Read",
+      description: `Invalid clause ID parameter: ${req.params.id}`,
+      functionName: "getSubClausesByClauseId",
+      fileName: "iso27001.ctrl.ts",
+      error: new Error(clauseIdValidation.message || 'Invalid clause ID')
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: clauseIdValidation.message || 'Invalid clause ID',
+      code: clauseIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
 
   logProcessing({
     description: `starting getSubClausesByClauseId for clause ID ${clauseId}`,
@@ -530,6 +574,46 @@ export async function saveClauses(
   const transaction = await sequelize.transaction();
   const subClauseId = parseInt(req.params.id);
 
+  // Validate subclause ID parameter
+  const subClauseIdValidation = validateSubClauseIdParam(subClauseId);
+  if (!subClauseIdValidation.isValid) {
+    await transaction.rollback();
+    await logFailure({
+      eventType: "Update",
+      description: `Invalid subclause ID parameter: ${req.params.id}`,
+      functionName: "saveClauses",
+      fileName: "iso27001.ctrl.ts",
+      error: new Error("Invalid subclause ID parameter"),
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: subClauseIdValidation.message || 'Invalid subclause ID',
+      code: subClauseIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Validate request body and files
+  const validationErrors = validateCompleteSubClauseUpdate(req.body, req.files as any[]);
+  if (validationErrors.length > 0) {
+    await transaction.rollback();
+    await logFailure({
+      eventType: "Update",
+      description: `Subclause update validation failed for subclause ID ${subClauseId}`,
+      functionName: "saveClauses",
+      fileName: "iso27001.ctrl.ts",
+      error: new Error("Subclause update validation failed"),
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: 'Subclause update validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   logProcessing({
     description: `starting saveClauses for sub-clause ID ${subClauseId}`,
     functionName: "saveClauses",
@@ -543,32 +627,33 @@ export async function saveClauses(
       delete: string;
       risksDelete: string;
       risksMitigated: string;
+      project_id: string;
     };
 
     const filesToDelete = JSON.parse(subClause.delete || "[]") as number[];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
-    // Get project_id from subclause
-    const projectIdResult = (await sequelize.query(
-      `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso27001 sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
-      {
-        replacements: { id: subClauseId },
-        transaction,
-      }
-    )) as [{ id: number }[], number];
+    // // Get project_id from subclause
+    // const projectIdResult = (await sequelize.query(
+    //   `SELECT pf.project_id as id FROM "${req.tenantId!}".subclauses_iso27001 sc JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = sc.projects_frameworks_id WHERE sc.id = :id;`,
+    //   {
+    //     replacements: { id: subClauseId },
+    //     transaction,
+    //   }
+    // )) as [{ id: number }[], number];
 
-    if (projectIdResult[0].length === 0) {
-      throw new Error("Project ID not found for subclause");
-    }
+    // if (projectIdResult[0].length === 0) {
+    //   throw new Error("Project ID not found for subclause");
+    // }
 
-    const projectId = projectIdResult[0][0].id;
+    // const projectId = projectIdResult[0][0].id;
 
     let uploadedFiles: FileType[] = [];
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       uploadedFiles = await uploadFiles(
         req.files as UploadedFile[],
         parseInt(subClause.user_id),
-        projectId,
+        parseInt(subClause.project_id),
         "Main clauses group",
         req.tenantId!,
         transaction
@@ -621,6 +706,46 @@ export async function saveAnnexes(
   const transaction = await sequelize.transaction();
   const annexControlId = parseInt(req.params.id);
 
+  // Validate annex control ID parameter
+  const annexControlIdValidation = validateAnnexControlIdParam(annexControlId);
+  if (!annexControlIdValidation.isValid) {
+    await transaction.rollback();
+    await logFailure({
+      eventType: "Update",
+      description: `Invalid annex control ID parameter: ${req.params.id}`,
+      functionName: "saveAnnexes",
+      fileName: "iso27001.ctrl.ts",
+      error: new Error("Invalid annex control ID parameter"),
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: annexControlIdValidation.message || 'Invalid annex control ID',
+      code: annexControlIdValidation.code || 'INVALID_PARAMETER'
+    });
+  }
+
+  // Validate request body and files
+  const validationErrors = validateCompleteAnnexControlUpdate(req.body, req.files as any[]);
+  if (validationErrors.length > 0) {
+    await transaction.rollback();
+    await logFailure({
+      eventType: "Update",
+      description: `Annex control update validation failed for annex control ID ${annexControlId}`,
+      functionName: "saveAnnexes",
+      fileName: "iso27001.ctrl.ts",
+      error: new Error("Annex control update validation failed"),
+    });
+    return res.status(400).json({
+      status: 'error',
+      message: 'Annex control update validation failed',
+      errors: validationErrors.map((err: ValidationError) => ({
+        field: err.field,
+        message: err.message,
+        code: err.code
+      }))
+    });
+  }
+
   logProcessing({
     description: `starting saveAnnexes for annex control ID ${annexControlId}`,
     functionName: "saveAnnexes",
@@ -646,27 +771,27 @@ export async function saveAnnexes(
     const filesToDelete = JSON.parse(annexControl.delete || "[]") as number[];
     await deleteFiles(filesToDelete, req.tenantId!, transaction);
 
-    // Get project_id from annex control
-    const projectIdResult = (await sequelize.query(
-      `SELECT pf.project_id as id FROM "${req.tenantId!}".annexcontrols_iso27001 ac JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id WHERE ac.id = :id;`,
-      {
-        replacements: { id: annexControlId },
-        transaction,
-      }
-    )) as [{ id: number }[], number];
+    // // Get project_id from annex control
+    // const projectIdResult = (await sequelize.query(
+    //   `SELECT pf.project_id as id FROM "${req.tenantId!}".annexcontrols_iso27001 ac JOIN "${req.tenantId!}".projects_frameworks pf ON pf.id = ac.projects_frameworks_id WHERE ac.id = :id;`,
+    //   {
+    //     replacements: { id: annexControlId },
+    //     transaction,
+    //   }
+    // )) as [{ id: number }[], number];
 
-    if (projectIdResult[0].length === 0) {
-      throw new Error("Project ID not found for annex control");
-    }
+    // if (projectIdResult[0].length === 0) {
+    //   throw new Error("Project ID not found for annex control");
+    // }
 
-    const projectId = projectIdResult[0][0].id;
+    // const projectId = projectIdResult[0][0].id;
 
     let uploadedFiles: FileType[] = [];
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       uploadedFiles = await uploadFiles(
         req.files as UploadedFile[],
         parseInt(annexControl.user_id),
-        projectId,
+        parseInt(annexControl.project_id),
         "Annex controls group",
         req.tenantId!,
         transaction

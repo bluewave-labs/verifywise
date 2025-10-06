@@ -1,8 +1,9 @@
 from .base import PromptFormatter, PromptInput
+from typing import ClassVar, Dict
 
 
 class TinyLlamaFormatter(PromptFormatter):
-    DEFAULTS = {
+    DEFAULTS: ClassVar[Dict[str, str]] = {
         "system_prompt": ("You are a strict classifier. You must answer with exactly one of "
                           "these two strings: '>50K' or '<=50K'. No explanation. No formatting."),
         "assistant_preamble": "The predicted income is ",

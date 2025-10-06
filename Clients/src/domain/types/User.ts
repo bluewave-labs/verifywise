@@ -4,7 +4,18 @@ export type User = {
     surname: string; //will be filled by user
     email: string; //will be filled by user
     password_hash?: string; //created by the database
-    roleId?: number; //will be filled by user
+    role_id?: number; //will be filled by user (backend field name)
+    roleId?: number; //will be filled by user (frontend compatibility)
     created_at?: Date; //automatically filled by database
     last_login?: Date; //automatically filled by database
+    is_demo?: boolean; //flag for demo users
+    organization_id?: number; //organization association
+    pwd_set?: boolean; //password set flag (compatibility)
+    data?: any; //compatibility property for API responses
+}
+
+export interface ApiResponse<T> {
+    data: T;
+    status: number;
+    message?: string;
 }

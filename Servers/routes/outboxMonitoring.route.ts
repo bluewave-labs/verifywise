@@ -343,28 +343,264 @@ router.post("/cleanup", authenticateJWT, async (req, res) => {
       });
     }
 
+    // Enhanced cleanup with dedupe key management
     const cleanupQuery = `
-      DELETE FROM outbox_events
-      WHERE processed_at IS NOT NULL
-        AND created_at < NOW() - INTERVAL ':days days'
-        AND tenant = :tenant
+      WITH deleted_events AS (
+        DELETE FROM outbox_events
+        WHERE processed_at IS NOT NULL
+          AND created_at < NOW() - INTERVAL ':days days'
+          AND tenant = :tenant
+        RETURNING id, dedupe_key
+      ),
+      cleared_dedupes AS (
+        UPDATE outbox_events
+        SET dedupe_key = NULL
+        WHERE tenant = :tenant
+          AND dedupe_key IS NOT NULL
+          AND processed_at IS NOT NULL
+          AND created_at < NOW() - INTERVAL ':days days'
+          AND id NOT IN (SELECT id FROM deleted_events)
+        RETURNING id
+      )
+      SELECT
+        (SELECT COUNT(*) FROM deleted_events) as deleted_count,
+        (SELECT COUNT(*) FROM cleared_dedupes) as dedupe_cleared_count
     `;
 
     const result = await sequelize.query(cleanupQuery, {
       replacements: { days, tenant: userTenant },
-      type: QueryTypes.DELETE
+      type: QueryTypes.SELECT
     });
+
+    const counts = result[0] as any;
 
     res.json({
       status: 'success',
       message: `Cleaned up events older than ${days} days`,
-      deleted_count: Array.isArray(result) ? result[1] : 0
+      deleted_count: counts?.deleted_count || 0,
+      dedupe_cleared_count: counts?.dedupe_cleared_count || 0,
+      details: {
+        deleted_events: counts?.deleted_count || 0,
+        cleared_dedupe_keys: counts?.dedupe_cleared_count || 0
+      }
     });
 
   } catch (error) {
     res.status(500).json({
       status: 'error',
       message: 'Failed to cleanup old events',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/outbox/dead-letter
+ * Query dead letter queue events with filters and pagination
+ */
+router.get("/dead-letter", authenticateJWT, async (req, res) => {
+  try {
+    // Extract tenant from authenticated JWT token - enforce tenant isolation
+    const userTenant = (req as any).tenantId;
+
+    if (!userTenant) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Tenant information not found in authentication token'
+      });
+    }
+
+    const {
+      event_type,
+      aggregate_type,
+      limit = 50,
+      offset = 0,
+      order_by = 'failed_at',
+      order_dir = 'DESC'
+    } = req.query;
+
+    const limitNum = Math.min(parseInt(limit as string) || 50, 100);
+    const offsetNum = parseInt(offset as string) || 0;
+
+    // Whitelist allowed columns for ORDER BY
+    const ALLOWED_ORDER_BY = [
+      'id', 'failed_at', 'event_type', 'aggregate_type',
+      'retry_count', 'original_created_at', 'original_event_id'
+    ];
+
+    const ALLOWED_ORDER_DIR = ['ASC', 'DESC'];
+
+    // Validate order_by
+    const orderBy = ALLOWED_ORDER_BY.includes(order_by as string)
+      ? order_by as string
+      : 'failed_at';
+
+    // Validate order_dir
+    const orderDir = ALLOWED_ORDER_DIR.includes((order_dir as string)?.toUpperCase())
+      ? (order_dir as string).toUpperCase()
+      : 'DESC';
+
+    // Build WHERE conditions - ALWAYS filter by authenticated user's tenant
+    const conditions: string[] = ['tenant = :tenant'];
+    const replacements: any = {
+      limit: limitNum,
+      offset: offsetNum,
+      tenant: userTenant
+    };
+
+    if (event_type) {
+      conditions.push('event_type = :event_type');
+      replacements.event_type = event_type;
+    }
+
+    if (aggregate_type) {
+      conditions.push('aggregate_type = :aggregate_type');
+      replacements.aggregate_type = aggregate_type;
+    }
+
+    const whereClause = 'WHERE ' + conditions.join(' AND ');
+    const orderClause = `ORDER BY ${orderBy} ${orderDir}`;
+
+    // Get dead letter events
+    const eventsQuery = `
+      SELECT
+        id, original_event_id, tenant, event_type, aggregate_id, aggregate_type,
+        failure_reason, failed_at, retry_count, original_created_at, first_attempted_at
+      FROM outbox_dead_letter
+      ${whereClause}
+      ${orderClause}
+      LIMIT :limit OFFSET :offset
+    `;
+
+    // Get total count
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM outbox_dead_letter
+      ${whereClause}
+    `;
+
+    const [events, countResult] = await Promise.all([
+      sequelize.query(eventsQuery, { replacements, type: QueryTypes.SELECT }),
+      sequelize.query(countQuery, { replacements, type: QueryTypes.SELECT })
+    ]);
+
+    const total = (countResult[0] as any)?.total || 0;
+
+    res.json({
+      events,
+      pagination: {
+        total: parseInt(total),
+        limit: limitNum,
+        offset: offsetNum,
+        hasMore: offsetNum + events.length < total
+      },
+      filters: {
+        tenant: userTenant,
+        event_type,
+        aggregate_type
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to query dead letter events',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * POST /api/outbox/dead-letter/replay
+ * Replay a failed event from dead letter queue
+ */
+router.post("/dead-letter/replay/:id", authenticateJWT, async (req, res) => {
+  try {
+    // Extract tenant from authenticated JWT token - enforce tenant isolation
+    const userTenant = (req as any).tenantId;
+
+    if (!userTenant) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Tenant information not found in authentication token'
+      });
+    }
+
+    const deadLetterId = parseInt(req.params.id);
+    if (isNaN(deadLetterId)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid dead letter event ID'
+      });
+    }
+
+    // Get the dead letter event (with tenant check)
+    const deadLetterQuery = `
+      SELECT * FROM outbox_dead_letter
+      WHERE id = :id AND tenant = :tenant
+    `;
+
+    const deadLetterResult = await sequelize.query(deadLetterQuery, {
+      replacements: { id: deadLetterId, tenant: userTenant },
+      type: QueryTypes.SELECT
+    });
+
+    if (deadLetterResult.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Dead letter event not found or access denied'
+      });
+    }
+
+    const deadLetterEvent = deadLetterResult[0] as any;
+
+    // Recreate the event in the main outbox queue
+    const insertQuery = `
+      INSERT INTO outbox_events (
+        tenant, event_type, aggregate_id, aggregate_type, payload,
+        attempts, max_attempts, available_at, created_at
+      )
+      VALUES (
+        :tenant, :event_type, :aggregate_id, :aggregate_type, :payload,
+        0, 3, NOW(), NOW()
+      )
+      RETURNING id
+    `;
+
+    const insertResult = await sequelize.query(insertQuery, {
+      replacements: {
+        tenant: deadLetterEvent.tenant,
+        event_type: deadLetterEvent.event_type,
+        aggregate_id: deadLetterEvent.aggregate_id,
+        aggregate_type: deadLetterEvent.aggregate_type,
+        payload: JSON.stringify(deadLetterEvent.payload)
+      },
+      type: QueryTypes.INSERT
+    });
+
+    const newEventId = (insertResult[0] as any)[0].id;
+
+    // Mark the dead letter event as replayed (don't delete for audit trail)
+    await sequelize.query(`
+      UPDATE outbox_dead_letter
+      SET failure_reason = failure_reason || ' [REPLAYED as event ' || :newEventId || ']'
+      WHERE id = :deadLetterId
+    `, {
+      replacements: { newEventId, deadLetterId },
+      type: QueryTypes.UPDATE
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Event replayed successfully',
+      new_event_id: newEventId,
+      dead_letter_id: deadLetterId
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to replay dead letter event',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
   }

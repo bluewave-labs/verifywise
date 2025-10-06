@@ -57,12 +57,27 @@ export class OutboxEventProcessor {
   private stats: EventProcessingStats;
   private pollTimer?: NodeJS.Timeout;
   private reconnectTimer?: NodeJS.Timeout;
+  private readonly defaultEmail: string;
+  private readonly frontendUrl: string;
 
   constructor(pool: Pool) {
     this.pool = pool;
     this.batchSize = parseInt(process.env.OUTBOX_BATCH_SIZE || '10');
     this.pollInterval = parseInt(process.env.OUTBOX_POLL_INTERVAL || '5000'); // 5 seconds
     this.reconnectDelay = parseInt(process.env.OUTBOX_RECONNECT_DELAY || '5000'); // 5 seconds
+
+    // Validate required configuration
+    this.defaultEmail = process.env.DEFAULT_NOTIFICATION_EMAIL || '';
+    this.frontendUrl = process.env.FRONTEND_URL || '';
+
+    if (!this.defaultEmail) {
+      throw new Error('DEFAULT_NOTIFICATION_EMAIL must be set in environment');
+    }
+
+    if (!this.frontendUrl) {
+      throw new Error('FRONTEND_URL must be set in environment');
+    }
+
     this.stats = {
       processed: 0,
       failed: 0,
@@ -396,9 +411,15 @@ export class OutboxEventProcessor {
     if (changed_fields && 'review_status' in changed_fields) {
       console.log(`📧 Vendor ${event.aggregate_id} status changed: ${old_data?.review_status} → ${new_data?.review_status}`);
 
+      // Validate email address
+      const emailTo = new_data?.assignee_email;
+      if (!emailTo || !this.isValidEmail(emailTo)) {
+        console.warn(`⚠️ Invalid or missing email for vendor ${event.aggregate_id}, using default notification email`);
+      }
+
       // Send notification email
       await sendEmail(
-        new_data?.assignee_email || 'admin@company.com',
+        emailTo && this.isValidEmail(emailTo) ? emailTo : this.defaultEmail,
         'Vendor Review Status Updated',
         'vendor-status-changed',
         {
@@ -406,7 +427,7 @@ export class OutboxEventProcessor {
           old_status: old_data?.review_status || 'Unknown',
           new_status: new_data?.review_status || 'Unknown',
           assignee_name: new_data?.assignee || 'Team',
-          vendor_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/vendors/${event.aggregate_id}`,
+          vendor_url: `${this.frontendUrl}/vendors/${event.aggregate_id}`,
           tenant_name: event.tenant
         }
       );
@@ -485,15 +506,38 @@ export class OutboxEventProcessor {
       const maxAttempts = event.max_attempts;
 
       if (nextAttempt >= maxAttempts) {
-        // Mark as permanently failed
-        await client.query(`
-          UPDATE outbox_events
-          SET attempts = $1, available_at = NULL
-          WHERE id = $2
-        `, [nextAttempt, event.id]);
+        // Move to dead letter queue
+        try {
+          await client.query(`
+            INSERT INTO outbox_dead_letter (
+              original_event_id, tenant, event_type, aggregate_id, aggregate_type,
+              payload, failure_reason, retry_count, original_created_at, first_attempted_at
+            )
+            SELECT
+              id, tenant, event_type, aggregate_id, aggregate_type,
+              payload, $1, attempts, created_at, available_at
+            FROM outbox_events
+            WHERE id = $2
+          `, [error.message, event.id]);
 
-        console.error(`❌ Event ${event.id} permanently failed after ${maxAttempts} attempts:`, error.message);
-        this.stats.failed++;
+          // Delete from main queue
+          await client.query(`
+            DELETE FROM outbox_events WHERE id = $1
+          `, [event.id]);
+
+          console.error(`❌ Event ${event.id} moved to dead letter queue after ${maxAttempts} attempts:`, error.message);
+          this.stats.failed++;
+
+        } catch (dlqError) {
+          console.error(`❌ CRITICAL: Failed to move event ${event.id} to dead letter queue:`, dlqError);
+          // Fall back to old behavior if dead letter queue fails
+          await client.query(`
+            UPDATE outbox_events
+            SET attempts = $1, available_at = NULL
+            WHERE id = $2
+          `, [nextAttempt, event.id]);
+          console.error(`❌ Event ${event.id} marked as failed (dead letter queue unavailable)`);
+        }
 
       } else {
         // Schedule retry with exponential backoff
@@ -537,6 +581,14 @@ export class OutboxEventProcessor {
     console.log(`   ❌ Failed: ${stats.failed}`);
     console.log(`   🔄 Retrying: ${stats.retrying}`);
     console.log(`   ⏱️ Uptime: ${uptimeHours} hours`);
+  }
+
+  /**
+   * Validate email address format
+   */
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 
   /**

@@ -131,9 +131,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
-  const handleDownload = (e?: React.SyntheticEvent) => {
+  const handleDownload = async (e?: React.SyntheticEvent) => {
     if (onDownload) {
-      onDownload();
+      await onDownload();
     }
     if (e) {
       closeDropDownMenu(e);
@@ -218,7 +218,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         return (
           <MenuItem
             key={item}
-            onClick={(e) => {
+            onClick={async (e) => {
               // Prevent actions when disabled
               if (isDisabled) {
                 e.stopPropagation();
@@ -228,7 +228,7 @@ const IconButton: React.FC<IconButtonProps> = ({
               if (item === "edit") {
                 handleEdit(e);
               } else if (item === "download") {
-                handleDownload(e);
+                await handleDownload(e);
               } else if (item === "make visible") {
                 handleMakeVisible(e);
               } else if (item === "remove") {

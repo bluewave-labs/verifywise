@@ -24,10 +24,16 @@ export const handleDownload = async (fileId: string, fileName: string) => {
     a.download = fileName;
     document.body.appendChild(a);
     a.click();
+
+    // Wait briefly to ensure download has started
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log("Download should have started");
+
     a.remove();
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error downloading file:", error);
+    throw error;
   }
 };
 

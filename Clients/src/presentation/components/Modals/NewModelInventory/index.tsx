@@ -38,6 +38,7 @@ interface NewModelInventoryProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSuccess?: (data: NewModelInventoryFormValues) => void;
+  onError?: (error: any) => void;
   initialData?: NewModelInventoryFormValues;
   isEdit?: boolean;
 }
@@ -122,6 +123,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
+  onError,
   initialData,
   isEdit = false,
 }) => {
@@ -324,17 +326,54 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     onClose: handleClose,
   });
 
-  const handleSubmit = (event?: React.FormEvent) => {
+  const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     if (validateForm()) {
-      if (onSuccess) {
-        onSuccess({
-          ...values,
-          capabilities: values.capabilities,
-          security_assessment: values.security_assessment,
-        });
+      try {
+        if (onSuccess) {
+          await onSuccess({
+            ...values,
+            capabilities: values.capabilities,
+            security_assessment: values.security_assessment,
+          });
+        }
+        handleClose();
+      } catch (error: any) {
+        // Handle server-side validation errors
+        let errorData = null;
+        
+        // Check if it's a CustomException with response property
+        if (error?.response) {
+          errorData = error.response;
+        }
+        // Check if it's an axios error with response.data
+        else if (error?.response?.data) {
+          errorData = error.response.data;
+        }
+        // Check if the error itself has the data structure
+        else if (error?.status && error?.errors) {
+          errorData = error;
+        }
+
+        if (errorData?.errors && Array.isArray(errorData.errors)) {
+          const serverErrors: NewModelInventoryFormErrors = {};
+          
+          errorData.errors.forEach((err: any) => {
+            if (err.field && err.message) {
+              // Map server field names to form field names
+              const fieldName = err.field as keyof NewModelInventoryFormErrors;
+              serverErrors[fieldName] = err.message;
+            }
+          });
+          
+          setErrors(serverErrors);
+        }
+        
+        // Propagate error to parent for toast notification
+        if (onError) {
+          onError(error);
+        }
       }
-      handleClose();
     }
   };
 

@@ -62,3 +62,8 @@ export interface IFilterButtonProps {
   /** Additional styles */
   sx?: object;
 }
+
+export interface IButtonToggleOption {
+  value: string;
+  label: string;
+}

@@ -67,3 +67,10 @@ export interface IButtonToggleOption {
   value: string;
   label: string;
 }
+
+export interface IButtonToggleProps {
+  options: IButtonToggleOption[];
+  value: string;
+  onChange: (value: string) => void;
+  height?: number;
+}

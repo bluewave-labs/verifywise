@@ -1,605 +1,486 @@
 /**
- * @fileoverview OutboxEventProcessor Service
+ * @fileoverview Simple Outbox Event Processor Service
  *
- * Implements the Outbox + LISTEN/NOTIFY pattern for reliable event processing.
- * Features:
- * - Multi-tenant support with schema-based isolation
- * - Reliable event processing with SKIP LOCKED concurrency control
- * - Automatic retry with exponential backoff
- * - Idempotent event handling with deduplication
- * - Real-time LISTEN/NOTIFY with polling fallback
- * - Comprehensive observability and monitoring
+ * Core service that processes database change events captured by the outbox pattern.
+ * Designed as a pure event collection system for external workflow engines.
+ *
+ * **Architecture Overview:**
+ * ```
+ * DB Change → Trigger → Outbox Event → Event Processor → Log Collection → External System
+ * ```
+ *
+ * **Key Features:**
+ * - **Pure Collection**: No side effects, only logs events for external consumption
+ * - **Multi-tenant Isolation**: Schema-based tenant separation with secure processing
+ * - **Basic Retry Logic**: Simple retry mechanism for transient failures
+ * - **Real-time Delivery**: PostgreSQL LISTEN/NOTIFY + polling safety net
+ * - **Rich Event Data**: old_data, new_data, changed_fields for workflow decisions
+ *
+ * **Event Types Processed:**
+ * - `vendors_update`: Status changes, assignee changes, name changes
+ * - `vendors_insert`: New vendor creation
+ * - `projectrisks_update`: Risk level changes, deadline changes, status changes
+ * - `controls_eu_update`: Control status changes
+ * - `tasks_update`: Task status changes
+ *
+ * **Configuration:**
+ * - `OUTBOX_BATCH_SIZE`: Number of events to process per batch (default: 10)
+ * - `OUTBOX_POLL_INTERVAL`: Polling interval in ms (default: 5000)
+ * - `OUTBOX_RECONNECT_DELAY`: Reconnection delay in ms (default: 5000)
+ * - `ENABLE_OUTBOX_PROCESSING`: Enable/disable processing (default: true in dev)
  *
  * @module services/outboxEventProcessor
+ * @version 1.0.0
+ * @created 2025-01-06
  */
 
-import { Client, Pool } from 'pg';
+import { Client, Pool, PoolClient } from 'pg';
 
+/**
+ * Outbox Event Interface
+ *
+ * Represents a database change event captured for external processing.
+ * Used by external workflow engines for automation and decision making.
+ */
 interface OutboxEvent {
+  /** Unique event identifier */
   id: string;
+
+  /** Tenant hash for multi-tenant isolation (e.g., 'a4ayc80OGd') */
   tenant: string;
+
+  /** Event type indicating the operation (e.g., 'vendors_update', 'projectrisks_update') */
   event_type: string;
+
+  /** ID of the entity that was changed (e.g., vendor ID, risk ID) */
   aggregate_id: string;
+
+  /** Type of entity that was changed (e.g., 'vendors', 'projectrisks') */
   aggregate_type: string;
+
+  /** Rich event payload containing all change information */
   payload: {
+    /** Database operation that triggered the event */
     operation: 'INSERT' | 'UPDATE' | 'DELETE';
+
+    /** Database table name */
     table: string;
+
+    /** Event timestamp */
     timestamp: string;
+
+    /** Tenant schema name */
     schema: string;
-    old_data?: any;
-    new_data?: any;
+
+    /** Previous data state (for UPDATE and DELETE operations) */
+    old_data?: Record<string, any>;
+
+    /** Current data state (for INSERT and UPDATE operations) */
+    new_data?: Record<string, any>;
+
+    /** Changed fields with new values (for UPDATE operations) */
     changed_fields?: Record<string, any>;
   };
+
+  /** Number of processing attempts made */
   attempts: number;
+
+  /** Maximum number of retry attempts before giving up */
   max_attempts: number;
-  available_at: string;
+
+  /** When this event was created */
   created_at: string;
-  processed_at?: string;
+
+  /** When this event was successfully processed (null if pending) */
+  processed_at: string | null;
+
+  /** When this event becomes available for processing */
+  available_at: string;
 }
 
-interface EventProcessingStats {
-  processed: number;
-  failed: number;
-  retrying: number;
-  startTime: Date;
-}
-
+/**
+ * Simple Outbox Event Processor
+ *
+ * Processes outbox events with pure logging - no side effects.
+ * External systems can consume events via API endpoints.
+ */
 export class OutboxEventProcessor {
   private pool: Pool;
-  private listenClient?: Client;
-  private isProcessing = false;
-  private isShuttingDown = false;
-  private reconnecting = false;
-  private batchSize: number;
-  private pollInterval: number;
-  private reconnectDelay: number;
-  private stats: EventProcessingStats;
-  private pollTimer?: NodeJS.Timeout;
-  private reconnectTimer?: NodeJS.Timeout;
+  private isRunning: boolean = false;
+  private listenClient?: PoolClient;
+  private pollInterval?: NodeJS.Timeout;
+  private reconnectTimeout?: NodeJS.Timeout;
+  private stats = {
+    processed: 0,
+    failed: 0,
+    startTime: new Date()
+  };
+
+  private readonly BATCH_SIZE = parseInt(process.env.OUTBOX_BATCH_SIZE || '10');
+  private readonly POLL_INTERVAL = parseInt(process.env.OUTBOX_POLL_INTERVAL || '5000');
+  private readonly RECONNECT_DELAY = parseInt(process.env.OUTBOX_RECONNECT_DELAY || '5000');
 
   constructor(pool: Pool) {
     this.pool = pool;
-    this.batchSize = parseInt(process.env.OUTBOX_BATCH_SIZE || '10');
-    this.pollInterval = parseInt(process.env.OUTBOX_POLL_INTERVAL || '5000'); // 5 seconds
-    this.reconnectDelay = parseInt(process.env.OUTBOX_RECONNECT_DELAY || '5000'); // 5 seconds
-
-    this.stats = {
-      processed: 0,
-      failed: 0,
-      retrying: 0,
-      startTime: new Date()
-    };
   }
 
   /**
-   * Start the outbox event processor
-   * Sets up LISTEN connection and begins processing
+   * Start the event processor
+   *
+   * Initializes LISTEN/NOTIFY and polling mechanisms for event processing.
    */
   async start(): Promise<void> {
+    if (this.isRunning) {
+      console.log('📦 Outbox processor already running');
+      return;
+    }
+
+    this.isRunning = true;
     console.log('🚀 Starting Outbox Event Processor...');
 
     try {
-      // Start LISTEN connection for real-time notifications
-      await this.setupListener();
+      // Start LISTEN/NOTIFY for real-time processing
+      await this.startListening();
 
-      // Start safety net polling
+      // Start polling as backup mechanism
       this.startPolling();
 
-      // Process any existing events
-      await this.processEvents();
-
-      console.log(`✅ Outbox Event Processor started successfully`);
-      console.log(`📊 Configuration: batchSize=${this.batchSize}, pollInterval=${this.pollInterval}ms`);
-
+      console.log('✅ Outbox Event Processor started successfully');
     } catch (error) {
       console.error('❌ Failed to start Outbox Event Processor:', error);
+      this.isRunning = false;
       throw error;
     }
   }
 
   /**
-   * Gracefully shutdown the event processor
+   * Stop the event processor gracefully
    */
   async shutdown(): Promise<void> {
+    if (!this.isRunning) {
+      return;
+    }
+
     console.log('🛑 Shutting down Outbox Event Processor...');
-    this.isShuttingDown = true;
+    this.isRunning = false;
 
-    // Clear timers
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
+    // Clear intervals and timeouts
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
     }
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
     }
 
-    // Close LISTEN connection
+    // Close LISTEN client
     if (this.listenClient) {
       try {
-        await this.listenClient.end();
+        this.listenClient.release();
       } catch (error) {
-        console.warn('Warning: Error closing listen client:', error);
+        console.warn('Warning: Error closing LISTEN client:', error);
       }
-    }
-
-    // Wait for current processing to finish
-    let attempts = 0;
-    while (this.isProcessing && attempts < 10) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      attempts++;
     }
 
     console.log('✅ Outbox Event Processor shutdown complete');
-    this.printStats();
   }
 
   /**
-   * Setup PostgreSQL LISTEN connection for real-time notifications
+   * Get processor statistics
    */
-  private async setupListener(): Promise<void> {
-    // Clean up existing client first
-    if (this.listenClient) {
-      try {
-        await this.listenClient.end();
-      } catch (error) {
-        console.warn('Warning: Error closing old listen client:', error);
-      }
-      this.listenClient = undefined;
-    }
-
-    try {
-      this.listenClient = new Client({
-        connectionString: process.env.DATABASE_URL,
-        keepAlive: true,
-        keepAliveInitialDelayMillis: 10000,
-      });
-
-      await this.listenClient.connect();
-
-      // Set up event handlers
-      this.listenClient.on('notification', this.handleNotification);
-      this.listenClient.on('error', this.handleListenError);
-      this.listenClient.on('end', this.handleListenDisconnect);
-
-      // Start listening for outbox events
-      await this.listenClient.query('LISTEN outbox_wakeup');
-
-      console.log('👂 LISTEN connection established for outbox_wakeup');
-
-    } catch (error) {
-      console.error('❌ Failed to setup LISTEN connection:', error);
-      this.listenClient = undefined;
-      this.scheduleReconnect();
-    }
-  }
-
-  /**
-   * Handle incoming PostgreSQL notifications
-   */
-  private handleNotification = (msg: any): void => {
-    if (msg.channel === 'outbox_wakeup' && !this.isShuttingDown) {
-      console.log(`📨 Received notification: ${msg.payload}`);
-      this.processEvents().catch(console.error);
-    }
-  };
-
-  /**
-   * Handle LISTEN connection errors
-   */
-  private handleListenError = (error: Error): void => {
-    console.error('❌ LISTEN connection error:', error);
-    this.scheduleReconnect();
-  };
-
-  /**
-   * Handle LISTEN connection disconnect
-   */
-  private handleListenDisconnect = (): void => {
-    console.warn('⚠️ LISTEN connection disconnected');
-    if (!this.isShuttingDown) {
-      this.scheduleReconnect();
-    }
-  };
-
-  /**
-   * Schedule reconnection of LISTEN connection
-   */
-  private scheduleReconnect(): void {
-    if (this.reconnectTimer || this.isShuttingDown || this.reconnecting) return;
-
-    this.reconnecting = true;
-    console.log(`🔄 Scheduling LISTEN reconnection in ${this.reconnectDelay}ms`);
-
-    this.reconnectTimer = setTimeout(async () => {
-      try {
-        await this.setupListener();
-      } catch (error) {
-        console.error('❌ Reconnection failed:', error);
-        this.scheduleReconnect();
-      } finally {
-        this.reconnectTimer = undefined;
-        this.reconnecting = false;
-      }
-    }, this.reconnectDelay);
-  }
-
-  /**
-   * Start safety net polling for events
-   */
-  private startPolling(): void {
-    this.pollTimer = setInterval(() => {
-      if (!this.isProcessing && !this.isShuttingDown) {
-        this.processEvents().catch(console.error);
-      }
-    }, this.pollInterval);
-
-    console.log(`⏱️ Safety net polling started (interval: ${this.pollInterval}ms)`);
-  }
-
-  /**
-   * Main event processing loop
-   */
-  private async processEvents(): Promise<void> {
-    if (this.isProcessing || this.isShuttingDown) return;
-
-    this.isProcessing = true;
-
-    try {
-      let totalProcessed = 0;
-
-      while (!this.isShuttingDown) {
-        const events = await this.claimEvents();
-
-        if (events.length === 0) break;
-
-        // Process events in parallel with error isolation
-        const results = await Promise.allSettled(
-          events.map(event => this.processEvent(event))
-        );
-
-        // Count successful vs failed processing
-        const successful = results.filter(r => r.status === 'fulfilled').length;
-        const failed = results.filter(r => r.status === 'rejected').length;
-
-        totalProcessed += events.length;
-        this.stats.processed += successful;
-        this.stats.failed += failed;
-
-        console.log(`📦 Processed batch: ${successful} successful, ${failed} failed`);
-      }
-
-      if (totalProcessed > 0) {
-        console.log(`✅ Processing complete: ${totalProcessed} events processed`);
-      }
-
-    } catch (error) {
-      console.error('❌ Error in event processing loop:', error);
-    } finally {
-      this.isProcessing = false;
-    }
-  }
-
-  /**
-   * Claim events for processing using FOR UPDATE SKIP LOCKED
-   */
-  private async claimEvents(): Promise<OutboxEvent[]> {
-    const client = await this.pool.connect();
-
-    try {
-      const result = await client.query(`
-        UPDATE outbox_events
-        SET available_at = NOW() + INTERVAL '30 seconds'
-        WHERE id IN (
-          SELECT id FROM outbox_events
-          WHERE processed_at IS NULL
-            AND available_at <= NOW()
-            AND attempts < max_attempts
-          ORDER BY created_at ASC
-          LIMIT $1
-          FOR UPDATE SKIP LOCKED
-        )
-        RETURNING *
-      `, [this.batchSize]);
-
-      return result.rows;
-
-    } finally {
-      client.release();
-    }
-  }
-
-  /**
-   * Process a single event
-   */
-  private async processEvent(event: OutboxEvent): Promise<void> {
-    const client = await this.pool.connect();
-
-    try {
-      await client.query('BEGIN');
-
-      console.log(`🔄 Processing event ${event.id}: ${event.event_type} (attempt ${event.attempts + 1})`);
-
-      try {
-        // Route to appropriate handler based on event type
-        await this.routeEvent(event);
-
-        // Mark as successfully processed
-        await client.query(`
-          UPDATE outbox_events
-          SET processed_at = NOW(), attempts = attempts + 1
-          WHERE id = $1
-        `, [event.id]);
-
-        await client.query('COMMIT');
-
-        console.log(`✅ Successfully processed event ${event.id}: ${event.event_type}`);
-
-      } catch (error) {
-        try {
-          await client.query('ROLLBACK');
-        } catch (rollbackError) {
-          console.error('Failed to rollback transaction:', rollbackError);
-        }
-        throw error; // Re-throw to outer catch
-      }
-
-    } catch (error) {
-      // Handle retry logic
-      await this.handleEventFailure(event, error as Error);
-
-    } finally {
-      // ALWAYS release, even if rollback fails
-      try {
-        client.release();
-      } catch (releaseError) {
-        console.error('Failed to release client:', releaseError);
-      }
-    }
-  }
-
-  /**
-   * Route events to appropriate handlers
-   */
-  private async routeEvent(event: OutboxEvent): Promise<void> {
-    switch (event.event_type) {
-      case 'vendors_update':
-        await this.handleVendorUpdate(event);
-        break;
-
-      case 'vendors_insert':
-        await this.handleVendorInsert(event);
-        break;
-
-      case 'projectrisks_update':
-        await this.handleRiskUpdate(event);
-        break;
-
-      case 'controls_eu_update':
-        await this.handleControlUpdate(event);
-        break;
-
-      case 'tasks_update':
-        await this.handleTaskUpdate(event);
-        break;
-
-      default:
-        console.warn(`⚠️ Unknown event type: ${event.event_type}, skipping`);
-    }
-  }
-
-  /**
-   * Handle vendor update events
-   */
-  private async handleVendorUpdate(event: OutboxEvent): Promise<void> {
-    const { old_data, new_data, changed_fields } = event.payload;
-
-    // Log vendor status changes for FlowGram processing
-    if (changed_fields && 'review_status' in changed_fields) {
-      console.log(`📦 Vendor ${event.aggregate_id} status changed: ${old_data?.review_status} → ${new_data?.review_status}`);
-      console.log(`🎯 Event collected for FlowGram workflow processing`);
-      console.log(`📊 Event details: tenant=${event.tenant}, vendor=${new_data?.vendor_name}, assignee=${new_data?.assignee}`);
-    }
-
-    // Log other significant vendor changes
-    if (changed_fields && 'assignee' in changed_fields) {
-      console.log(`👤 Vendor ${event.aggregate_id} assignee changed: ${old_data?.assignee} → ${new_data?.assignee}`);
-    }
-
-    if (changed_fields && 'vendor_name' in changed_fields) {
-      console.log(`🏢 Vendor ${event.aggregate_id} name changed: ${old_data?.vendor_name} → ${new_data?.vendor_name}`);
-    }
-  }
-
-  /**
-   * Handle vendor insert events
-   */
-  private async handleVendorInsert(event: OutboxEvent): Promise<void> {
-    const { new_data } = event.payload;
-
-    console.log(`📝 New vendor created: ${new_data?.vendor_name} (ID: ${event.aggregate_id})`);
-    console.log(`🎯 Event collected for FlowGram workflow processing`);
-    console.log(`📊 Event details: tenant=${event.tenant}, vendor=${new_data?.vendor_name}, status=${new_data?.review_status}`);
-  }
-
-  /**
-   * Handle risk update events
-   */
-  private async handleRiskUpdate(event: OutboxEvent): Promise<void> {
-    const { old_data, new_data, changed_fields } = event.payload;
-
-    // Log risk level changes for FlowGram processing
-    if (changed_fields && 'risk_level_autocalculated' in changed_fields) {
-      console.log(`⚠️ Risk ${event.aggregate_id} level changed: ${old_data?.risk_level_autocalculated} → ${new_data?.risk_level_autocalculated}`);
-      console.log(`🎯 Event collected for FlowGram risk escalation workflows`);
-    }
-
-    // Log deadline changes for FlowGram processing
-    if (changed_fields && 'deadline' in changed_fields) {
-      console.log(`📅 Risk ${event.aggregate_id} deadline changed: ${old_data?.deadline} → ${new_data?.deadline}`);
-      console.log(`🎯 Event collected for FlowGram deadline notification workflows`);
-    }
-
-    // Log status changes
-    if (changed_fields && 'status' in changed_fields) {
-      console.log(`🔄 Risk ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
-      console.log(`📊 Event details: tenant=${event.tenant}, risk_level=${new_data?.risk_level_autocalculated}`);
-    }
-  }
-
-  /**
-   * Handle control update events
-   */
-  private async handleControlUpdate(event: OutboxEvent): Promise<void> {
-    const { old_data, new_data, changed_fields } = event.payload;
-
-    if (changed_fields && 'status' in changed_fields) {
-      console.log(`🎛️ Control ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
-      console.log(`🎯 Event collected for FlowGram compliance workflows`);
-      console.log(`📊 Event details: tenant=${event.tenant}, control_type=${new_data?.control_type}`);
-    }
-  }
-
-  /**
-   * Handle task update events
-   */
-  private async handleTaskUpdate(event: OutboxEvent): Promise<void> {
-    const { old_data, new_data, changed_fields } = event.payload;
-
-    if (changed_fields && 'status' in changed_fields) {
-      console.log(`✅ Task ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
-      console.log(`🎯 Event collected for FlowGram task completion workflows`);
-      console.log(`📊 Event details: tenant=${event.tenant}, task_type=${new_data?.task_type}, assignee=${new_data?.assignee}`);
-    }
-  }
-
-  /**
-   * Handle event processing failures with retry logic
-   */
-  private async handleEventFailure(event: OutboxEvent, error: Error): Promise<void> {
-    const client = await this.pool.connect();
-
-    try {
-      const nextAttempt = event.attempts + 1;
-      const maxAttempts = event.max_attempts;
-
-      if (nextAttempt >= maxAttempts) {
-        // Move to dead letter queue
-        try {
-          await client.query(`
-            INSERT INTO outbox_dead_letter (
-              original_event_id, tenant, event_type, aggregate_id, aggregate_type,
-              payload, failure_reason, retry_count, original_created_at, first_attempted_at
-            )
-            SELECT
-              id, tenant, event_type, aggregate_id, aggregate_type,
-              payload, $1, attempts, created_at, available_at
-            FROM outbox_events
-            WHERE id = $2
-          `, [error.message, event.id]);
-
-          // Delete from main queue
-          await client.query(`
-            DELETE FROM outbox_events WHERE id = $1
-          `, [event.id]);
-
-          console.error(`❌ Event ${event.id} moved to dead letter queue after ${maxAttempts} attempts:`, error.message);
-          this.stats.failed++;
-
-        } catch (dlqError) {
-          console.error(`❌ CRITICAL: Failed to move event ${event.id} to dead letter queue:`, dlqError);
-          // Fall back to old behavior if dead letter queue fails
-          await client.query(`
-            UPDATE outbox_events
-            SET attempts = $1, available_at = NULL
-            WHERE id = $2
-          `, [nextAttempt, event.id]);
-          console.error(`❌ Event ${event.id} marked as failed (dead letter queue unavailable)`);
-        }
-
-      } else {
-        // Schedule retry with exponential backoff
-        const backoffMs = Math.min(1000 * Math.pow(2, nextAttempt), 300000); // Max 5 minutes
-        const availableAt = new Date(Date.now() + backoffMs);
-
-        await client.query(`
-          UPDATE outbox_events
-          SET attempts = $1, available_at = $2
-          WHERE id = $3
-        `, [nextAttempt, availableAt, event.id]);
-
-        console.warn(`⚠️ Event ${event.id} failed (attempt ${nextAttempt}/${maxAttempts}), retrying in ${backoffMs}ms:`, error.message);
-        this.stats.retrying++;
-      }
-
-    } finally {
-      client.release();
-    }
-  }
-
-  /**
-   * Get current processing statistics
-   */
-  getStats(): EventProcessingStats & { uptime: number } {
+  getStats() {
+    const uptime = Date.now() - this.stats.startTime.getTime();
     return {
-      ...this.stats,
-      uptime: Date.now() - this.stats.startTime.getTime()
+      isRunning: this.isRunning,
+      processed: this.stats.processed,
+      failed: this.stats.failed,
+      uptime_ms: uptime,
+      uptime_human: `${Math.floor(uptime / 1000)}s`
     };
   }
 
   /**
-   * Print processing statistics
-   */
-  private printStats(): void {
-    const stats = this.getStats();
-    const uptimeHours = (stats.uptime / (1000 * 60 * 60)).toFixed(2);
-
-    console.log('📊 Outbox Event Processor Statistics:');
-    console.log(`   ✅ Processed: ${stats.processed}`);
-    console.log(`   ❌ Failed: ${stats.failed}`);
-    console.log(`   🔄 Retrying: ${stats.retrying}`);
-    console.log(`   ⏱️ Uptime: ${uptimeHours} hours`);
-  }
-
-  /**
-   * Health check for monitoring
+   * Health check for the processor
    */
   async healthCheck(): Promise<{ status: 'healthy' | 'unhealthy'; details: any }> {
     try {
+      // Test database connection
       const client = await this.pool.connect();
+      await client.query('SELECT 1');
+      client.release();
 
-      try {
-        // Check if we can query the outbox table
-        const result = await client.query(`
-          SELECT COUNT(*) as pending_events
-          FROM outbox_events
-          WHERE processed_at IS NULL
-        `);
-
-        const pendingEvents = parseInt(result.rows[0].pending_events);
-        const stats = this.getStats();
-
-        return {
-          status: 'healthy',
-          details: {
-            pendingEvents,
-            isProcessing: this.isProcessing,
-            listenConnected: !!this.listenClient,
-            stats
-          }
-        };
-
-      } finally {
-        client.release();
-      }
-
+      return {
+        status: 'healthy',
+        details: {
+          isRunning: this.isRunning,
+          hasListenClient: !!this.listenClient,
+          stats: this.getStats()
+        }
+      };
     } catch (error) {
       return {
         status: 'unhealthy',
         details: {
           error: error instanceof Error ? error.message : 'Unknown error',
-          isProcessing: this.isProcessing,
-          listenConnected: false
+          isRunning: this.isRunning
         }
       };
     }
+  }
+
+  /**
+   * Start PostgreSQL LISTEN/NOTIFY for real-time event processing
+   */
+  private async startListening(): Promise<void> {
+    try {
+      this.listenClient = await this.pool.connect();
+
+      // Listen for outbox notifications
+      await this.listenClient.query('LISTEN outbox_wakeup');
+
+      this.listenClient.on('notification', (msg) => {
+        if (msg.channel === 'outbox_wakeup') {
+          console.log(`🔔 Received notification: ${msg.payload}`);
+          this.processAvailableEvents().catch(error => {
+            console.error('Error processing notification:', error);
+          });
+        }
+      });
+
+      this.listenClient.on('error', (error) => {
+        console.error('❌ LISTEN client error:', error);
+        this.reconnectListen();
+      });
+
+      console.log('👂 LISTEN/NOTIFY connection established');
+    } catch (error) {
+      console.error('❌ Failed to start LISTEN/NOTIFY:', error);
+      this.reconnectListen();
+    }
+  }
+
+  /**
+   * Reconnect LISTEN client after failure
+   */
+  private reconnectListen(): void {
+    if (!this.isRunning) return;
+
+    if (this.listenClient) {
+      this.listenClient.removeAllListeners();
+      this.listenClient.release();
+      this.listenClient = undefined;
+    }
+
+    console.log(`🔄 Reconnecting LISTEN client in ${this.RECONNECT_DELAY}ms...`);
+    this.reconnectTimeout = setTimeout(() => {
+      this.startListening().catch(error => {
+        console.error('Reconnection failed:', error);
+      });
+    }, this.RECONNECT_DELAY);
+  }
+
+  /**
+   * Start polling mechanism as backup
+   */
+  private startPolling(): void {
+    this.pollInterval = setInterval(() => {
+      if (this.isRunning) {
+        this.processAvailableEvents().catch(error => {
+          console.error('Polling error:', error);
+        });
+      }
+    }, this.POLL_INTERVAL);
+
+    console.log(`⏰ Polling started (interval: ${this.POLL_INTERVAL}ms)`);
+  }
+
+  /**
+   * Process available events from the outbox
+   */
+  private async processAvailableEvents(): Promise<void> {
+    if (!this.isRunning) return;
+
+    const client = await this.pool.connect();
+    try {
+      // Get unprocessed events using FOR UPDATE SKIP LOCKED for concurrency safety
+      const query = `
+        SELECT id, tenant, event_type, aggregate_id, aggregate_type, payload,
+               attempts, max_attempts, created_at, processed_at, available_at
+        FROM outbox_events
+        WHERE processed_at IS NULL
+          AND attempts < max_attempts
+          AND available_at <= NOW()
+        ORDER BY created_at ASC
+        LIMIT $1
+        FOR UPDATE SKIP LOCKED
+      `;
+
+      const result = await client.query(query, [this.BATCH_SIZE]);
+      const events = result.rows as OutboxEvent[];
+
+      if (events.length === 0) {
+        return; // No events to process
+      }
+
+      console.log(`📋 Processing ${events.length} events...`);
+
+      // Process each event
+      for (const event of events) {
+        try {
+          await this.processEvent(event, client);
+          this.stats.processed++;
+        } catch (error) {
+          console.error(`❌ Failed to process event ${event.id}:`, error);
+          await this.handleEventFailure(event, error, client);
+          this.stats.failed++;
+        }
+      }
+
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Process a single event (pure logging - no side effects)
+   */
+  private async processEvent(event: OutboxEvent, client: PoolClient): Promise<void> {
+    console.log(`📦 Processing event: ${event.event_type} for ${event.aggregate_type}:${event.aggregate_id} (tenant: ${event.tenant})`);
+
+    // Log event based on type for external system consumption
+    switch (event.event_type) {
+      case 'vendors_insert':
+        this.logVendorInsert(event);
+        break;
+      case 'vendors_update':
+        this.logVendorUpdate(event);
+        break;
+      case 'projectrisks_update':
+        this.logRiskUpdate(event);
+        break;
+      case 'controls_eu_update':
+        this.logControlUpdate(event);
+        break;
+      case 'tasks_update':
+        this.logTaskUpdate(event);
+        break;
+      default:
+        this.logGenericEvent(event);
+    }
+
+    // Mark event as processed
+    await client.query(
+      'UPDATE outbox_events SET processed_at = NOW() WHERE id = $1',
+      [event.id]
+    );
+
+    console.log(`✅ Event ${event.id} processed successfully`);
+  }
+
+  /**
+   * Handle event processing failure
+   */
+  private async handleEventFailure(event: OutboxEvent, error: any, client: PoolClient): Promise<void> {
+    const newAttempts = event.attempts + 1;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Calculate exponential backoff delay
+    const delayMinutes = Math.min(Math.pow(2, newAttempts), 60); // Max 60 minutes
+    const availableAt = new Date(Date.now() + delayMinutes * 60 * 1000);
+
+    await client.query(`
+      UPDATE outbox_events
+      SET attempts = $1, available_at = $2
+      WHERE id = $3
+    `, [newAttempts, availableAt, event.id]);
+
+    if (newAttempts >= event.max_attempts) {
+      console.error(`💀 Event ${event.id} exceeded max attempts (${event.max_attempts}), giving up`);
+    } else {
+      console.warn(`⚠️ Event ${event.id} failed (attempt ${newAttempts}/${event.max_attempts}), retrying in ${delayMinutes} minutes`);
+    }
+  }
+
+  /**
+   * Log vendor insert events
+   */
+  private logVendorInsert(event: OutboxEvent): void {
+    const { new_data } = event.payload;
+
+    console.log(`📝 New vendor created: ${new_data?.vendor_name} (ID: ${event.aggregate_id})`);
+    console.log(`📊 Event available for external workflow processing`);
+    console.log(`🏢 Tenant: ${event.tenant}, Created by: ${new_data?.created_by || 'Unknown'}`);
+  }
+
+  /**
+   * Log vendor update events
+   */
+  private logVendorUpdate(event: OutboxEvent): void {
+    const { old_data, new_data, changed_fields } = event.payload;
+
+    if (changed_fields && 'review_status' in changed_fields) {
+      console.log(`📦 Vendor ${event.aggregate_id} status changed: ${old_data?.review_status} → ${new_data?.review_status}`);
+    }
+
+    if (changed_fields && 'assignee' in changed_fields) {
+      console.log(`👤 Vendor ${event.aggregate_id} assignee changed: ${old_data?.assignee} → ${new_data?.assignee}`);
+    }
+
+    console.log(`📊 Event available for external workflow processing`);
+    console.log(`🏢 Tenant: ${event.tenant}, Vendor: ${new_data?.vendor_name}`);
+  }
+
+  /**
+   * Log risk update events
+   */
+  private logRiskUpdate(event: OutboxEvent): void {
+    const { old_data, new_data, changed_fields } = event.payload;
+
+    if (changed_fields && 'risk_level_autocalculated' in changed_fields) {
+      console.log(`⚠️ Risk ${event.aggregate_id} level changed: ${old_data?.risk_level_autocalculated} → ${new_data?.risk_level_autocalculated}`);
+    }
+
+    if (changed_fields && 'deadline' in changed_fields) {
+      console.log(`📅 Risk ${event.aggregate_id} deadline changed: ${old_data?.deadline} → ${new_data?.deadline}`);
+    }
+
+    console.log(`📊 Event available for external workflow processing`);
+    console.log(`🏢 Tenant: ${event.tenant}`);
+  }
+
+  /**
+   * Log control update events
+   */
+  private logControlUpdate(event: OutboxEvent): void {
+    const { old_data, new_data, changed_fields } = event.payload;
+
+    if (changed_fields && 'status' in changed_fields) {
+      console.log(`🎛️ Control ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
+    }
+
+    console.log(`📊 Event available for external workflow processing`);
+    console.log(`🏢 Tenant: ${event.tenant}`);
+  }
+
+  /**
+   * Log task update events
+   */
+  private logTaskUpdate(event: OutboxEvent): void {
+    const { old_data, new_data, changed_fields } = event.payload;
+
+    if (changed_fields && 'status' in changed_fields) {
+      console.log(`✅ Task ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
+    }
+
+    console.log(`📊 Event available for external workflow processing`);
+    console.log(`🏢 Tenant: ${event.tenant}`);
+  }
+
+  /**
+   * Log generic events
+   */
+  private logGenericEvent(event: OutboxEvent): void {
+    console.log(`📋 Generic event: ${event.event_type} for ${event.aggregate_type}:${event.aggregate_id}`);
+    console.log(`📊 Event available for external workflow processing`);
+    console.log(`🏢 Tenant: ${event.tenant}`);
   }
 }

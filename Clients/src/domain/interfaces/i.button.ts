@@ -3,7 +3,7 @@ import { SxProps, Theme } from "@mui/material";
 /**
  * Props interface for the CustomizableButton component
  */
-export interface CustomizableButtonProps {
+export interface ICustomizableButtonProps {
   /** The variant of the button */
   variant?: "contained" | "outlined" | "text";
   /** The size of the button */

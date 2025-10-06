@@ -14,7 +14,6 @@
  */
 
 import { Client, Pool } from 'pg';
-import { sendEmail } from './emailService';
 
 interface OutboxEvent {
   id: string;
@@ -57,26 +56,12 @@ export class OutboxEventProcessor {
   private stats: EventProcessingStats;
   private pollTimer?: NodeJS.Timeout;
   private reconnectTimer?: NodeJS.Timeout;
-  private readonly defaultEmail: string;
-  private readonly frontendUrl: string;
 
   constructor(pool: Pool) {
     this.pool = pool;
     this.batchSize = parseInt(process.env.OUTBOX_BATCH_SIZE || '10');
     this.pollInterval = parseInt(process.env.OUTBOX_POLL_INTERVAL || '5000'); // 5 seconds
     this.reconnectDelay = parseInt(process.env.OUTBOX_RECONNECT_DELAY || '5000'); // 5 seconds
-
-    // Validate required configuration
-    this.defaultEmail = process.env.DEFAULT_NOTIFICATION_EMAIL || '';
-    this.frontendUrl = process.env.FRONTEND_URL || '';
-
-    if (!this.defaultEmail) {
-      throw new Error('DEFAULT_NOTIFICATION_EMAIL must be set in environment');
-    }
-
-    if (!this.frontendUrl) {
-      throw new Error('FRONTEND_URL must be set in environment');
-    }
 
     this.stats = {
       processed: 0,
@@ -407,32 +392,20 @@ export class OutboxEventProcessor {
   private async handleVendorUpdate(event: OutboxEvent): Promise<void> {
     const { old_data, new_data, changed_fields } = event.payload;
 
-    // Only process if review_status changed
+    // Log vendor status changes for FlowGram processing
     if (changed_fields && 'review_status' in changed_fields) {
-      console.log(`📧 Vendor ${event.aggregate_id} status changed: ${old_data?.review_status} → ${new_data?.review_status}`);
+      console.log(`📦 Vendor ${event.aggregate_id} status changed: ${old_data?.review_status} → ${new_data?.review_status}`);
+      console.log(`🎯 Event collected for FlowGram workflow processing`);
+      console.log(`📊 Event details: tenant=${event.tenant}, vendor=${new_data?.vendor_name}, assignee=${new_data?.assignee}`);
+    }
 
-      // Validate email address
-      const emailTo = new_data?.assignee_email;
-      if (!emailTo || !this.isValidEmail(emailTo)) {
-        console.warn(`⚠️ Invalid or missing email for vendor ${event.aggregate_id}, using default notification email`);
-      }
+    // Log other significant vendor changes
+    if (changed_fields && 'assignee' in changed_fields) {
+      console.log(`👤 Vendor ${event.aggregate_id} assignee changed: ${old_data?.assignee} → ${new_data?.assignee}`);
+    }
 
-      // Send notification email
-      await sendEmail(
-        emailTo && this.isValidEmail(emailTo) ? emailTo : this.defaultEmail,
-        'Vendor Review Status Updated',
-        'vendor-status-changed',
-        {
-          vendor_name: new_data?.vendor_name || 'Unknown Vendor',
-          old_status: old_data?.review_status || 'Unknown',
-          new_status: new_data?.review_status || 'Unknown',
-          assignee_name: new_data?.assignee || 'Team',
-          vendor_url: `${this.frontendUrl}/vendors/${event.aggregate_id}`,
-          tenant_name: event.tenant
-        }
-      );
-
-      console.log(`✅ Vendor status change email sent for vendor ${event.aggregate_id}`);
+    if (changed_fields && 'vendor_name' in changed_fields) {
+      console.log(`🏢 Vendor ${event.aggregate_id} name changed: ${old_data?.vendor_name} → ${new_data?.vendor_name}`);
     }
   }
 
@@ -443,9 +416,8 @@ export class OutboxEventProcessor {
     const { new_data } = event.payload;
 
     console.log(`📝 New vendor created: ${new_data?.vendor_name} (ID: ${event.aggregate_id})`);
-
-    // Could send welcome emails, setup notifications, etc.
-    // For now, just log the event
+    console.log(`🎯 Event collected for FlowGram workflow processing`);
+    console.log(`📊 Event details: tenant=${event.tenant}, vendor=${new_data?.vendor_name}, status=${new_data?.review_status}`);
   }
 
   /**
@@ -454,18 +426,22 @@ export class OutboxEventProcessor {
   private async handleRiskUpdate(event: OutboxEvent): Promise<void> {
     const { old_data, new_data, changed_fields } = event.payload;
 
-    // Handle risk level changes
+    // Log risk level changes for FlowGram processing
     if (changed_fields && 'risk_level_autocalculated' in changed_fields) {
       console.log(`⚠️ Risk ${event.aggregate_id} level changed: ${old_data?.risk_level_autocalculated} → ${new_data?.risk_level_autocalculated}`);
-
-      // Could trigger risk escalation workflows
+      console.log(`🎯 Event collected for FlowGram risk escalation workflows`);
     }
 
-    // Handle deadline changes
+    // Log deadline changes for FlowGram processing
     if (changed_fields && 'deadline' in changed_fields) {
       console.log(`📅 Risk ${event.aggregate_id} deadline changed: ${old_data?.deadline} → ${new_data?.deadline}`);
+      console.log(`🎯 Event collected for FlowGram deadline notification workflows`);
+    }
 
-      // Could trigger deadline notification workflows
+    // Log status changes
+    if (changed_fields && 'status' in changed_fields) {
+      console.log(`🔄 Risk ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
+      console.log(`📊 Event details: tenant=${event.tenant}, risk_level=${new_data?.risk_level_autocalculated}`);
     }
   }
 
@@ -477,8 +453,8 @@ export class OutboxEventProcessor {
 
     if (changed_fields && 'status' in changed_fields) {
       console.log(`🎛️ Control ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
-
-      // Could trigger compliance workflows
+      console.log(`🎯 Event collected for FlowGram compliance workflows`);
+      console.log(`📊 Event details: tenant=${event.tenant}, control_type=${new_data?.control_type}`);
     }
   }
 
@@ -490,8 +466,8 @@ export class OutboxEventProcessor {
 
     if (changed_fields && 'status' in changed_fields) {
       console.log(`✅ Task ${event.aggregate_id} status changed: ${old_data?.status} → ${new_data?.status}`);
-
-      // Could trigger task completion workflows
+      console.log(`🎯 Event collected for FlowGram task completion workflows`);
+      console.log(`📊 Event details: tenant=${event.tenant}, task_type=${new_data?.task_type}, assignee=${new_data?.assignee}`);
     }
   }
 
@@ -581,14 +557,6 @@ export class OutboxEventProcessor {
     console.log(`   ❌ Failed: ${stats.failed}`);
     console.log(`   🔄 Retrying: ${stats.retrying}`);
     console.log(`   ⏱️ Uptime: ${uptimeHours} hours`);
-  }
-
-  /**
-   * Validate email address format
-   */
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   }
 
   /**

@@ -47,3 +47,18 @@ export interface ICustomizableButtonProps {
   /** Tooltip text */
   title?: string;
 }
+
+export interface IFilterButtonProps {
+  /** Whether the filters panel is currently open */
+  isOpen: boolean;
+  /** Whether there are any active filters */
+  hasActiveFilters: boolean;
+  /** Number of active filters to display in badge */
+  activeFilterCount?: number;
+  /** Click handler for the filter button */
+  onClick: () => void;
+  /** Whether the button is disabled */
+  disabled?: boolean;
+  /** Additional styles */
+  sx?: object;
+}

@@ -3,3 +3,9 @@ export interface IStatusData {
   value: number;
   color: string;
 }
+
+export interface IStatusDonutChartProps {
+  data: IStatusData[];
+  total: number;
+  size?: number;
+}

@@ -26,9 +26,27 @@ VerifyWise also has additional products for end-to-end AI governance and managem
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
 - [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
 
-## Screenshot
+## Screenshots
 
-<img width="1319" height="740" alt="image" src="https://github.com/user-attachments/assets/576cf117-02a2-47e9-950f-e5b50c3b4005" />
+Main dashboard
+<img width="1524" height="869" alt="image" src="https://github.com/user-attachments/assets/6fd97359-81f2-482e-a339-8ab9f4eaa8b1" />
+
+Bias & fairness module 
+<img width="1527" height="874" alt="image" src="https://github.com/user-attachments/assets/dd4e0ffc-198d-450e-a8a8-21a3cf0ea456" />
+
+EU AI Act project view 
+
+<img width="1522" height="865" alt="image" src="https://github.com/user-attachments/assets/09ad8c69-8cc0-4304-b579-be77806505a9" />
+
+Risk management
+
+<img width="1532" height="869" alt="image" src="https://github.com/user-attachments/assets/0b2f0ed4-e82d-44d3-b032-a04451593f28" />
+
+AI trust center
+
+<img width="1528" height="870" alt="image" src="https://github.com/user-attachments/assets/19c633cd-02ae-47ad-b920-ef53979d6f2f" />
+
+
 
 ## Who is it for?
 

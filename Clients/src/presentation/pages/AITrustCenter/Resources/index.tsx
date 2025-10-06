@@ -473,6 +473,11 @@ const TrustCenterResources: React.FC = () => {
       // Check if file_id exists
       if (!resource.file_id) {
         console.error("File ID not found for resource");
+        handleAlert({
+          variant: "error",
+          body: "File not found for download",
+          setAlert,
+        });
         return;
       }
 

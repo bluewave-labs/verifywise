@@ -30,27 +30,26 @@ import {
   getAllOrganizations,
   getOrganizationById,
   updateOrganizationById,
-  getOrganizationsExists,
 } from "../controllers/organization.ctrl";
 
 import authenticateJWT from "../middleware/auth.middleware";
 import { checkMultiTenancy } from "../middleware/multiTenancy.middleware";
 
 /**
- * GET /organizations/exists
+ * SECURITY NOTE: /exists endpoint removed to prevent information disclosure
  *
- * Checks if any organizations exist in the system.
- * Used for setup/initialization flows to determine fresh installation status.
+ * The GET /organizations/exists endpoint was removed because:
+ * 1. Exposed system setup status without authentication
+ * 2. Provided business intelligence to potential attackers
+ * 3. Could be used for reconnaissance of deployment maturity
+ * 4. Internal functionality is preserved via getOrganizationsExistsQuery()
+ *   which is still used by multi-tenancy middleware for legitimate purposes
  *
- * @name get/exists
- * @function
- * @memberof module:routes/organization.route
- * @inner
- * @param {express.Request} req - Express request object
- * @param {express.Response} res - Express response object
- * @returns {boolean} True if organizations exist, false otherwise
+ * Alternative approaches for legitimate use cases:
+ * - Setup flows can check organization existence through authenticated endpoints
+ * - Frontend can determine setup status via other authenticated routes
+ * - Internal middleware continues to use getOrganizationsExistsQuery() directly
  */
-router.get("/exists", getOrganizationsExists);
 
 /**
  * GET /organizations/:id

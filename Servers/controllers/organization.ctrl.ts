@@ -132,22 +132,18 @@ export async function getAllOrganizations(
 /**
  * Checks if any organizations exist in the system
  *
- * Used for setup/initialization flows to determine if this is a fresh installation
- * requiring initial organization setup.
+ * **INTERNAL USE ONLY** - HTTP endpoint removed for security
+ * Used internally by multi-tenancy middleware for setup/initialization logic.
+ *
+ * The HTTP endpoint was removed to prevent information disclosure.
+ * This function is kept for internal middleware usage only.
  *
  * @async
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @returns {Promise<Response>} Boolean indicating organization existence
  *
- * @example
- * GET /api/organizations/exists
- *
- * Response 200:
- * {
- *   "code": 200,
- *   "data": true
- * }
+ * @deprecated HTTP endpoint removed - use getOrganizationsExistsQuery() directly for internal logic
  */
 export async function getOrganizationsExists(
   req: Request,

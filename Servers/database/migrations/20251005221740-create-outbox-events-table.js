@@ -1,3 +1,34 @@
+/**
+ * @fileoverview Outbox Events Table Migration
+ *
+ * Creates the core infrastructure for the Outbox + LISTEN/NOTIFY pattern
+ * used for reliable event-driven workflows in VerifyWise.
+ *
+ * **Purpose:**
+ * - Capture database changes as events for downstream processing (FlowGram)
+ * - Ensure reliable event delivery with retry logic and dead letter handling
+ * - Support multi-tenant isolation and deduplication
+ * - Provide foundation for workflow automation without coupling
+ *
+ * **Key Features:**
+ * - Multi-tenant event isolation using schema-based tenancy
+ * - Automatic event creation via PostgreSQL triggers
+ * - Built-in retry logic with exponential backoff
+ * - Event deduplication to prevent duplicate processing
+ * - Rich event payload with old/new data and change detection
+ * - Performance-optimized indexes for high-volume operations
+ * - PostgreSQL LISTEN/NOTIFY for real-time event processing
+ *
+ * **Integration Points:**
+ * - FlowGram polling: Query unprocessed events for workflow automation
+ * - Real-time processing: LISTEN to 'outbox_wakeup' notifications
+ * - Monitoring: Built-in retry tracking and failure analysis
+ *
+ * @module migrations/outbox-events-table
+ * @version 1.0.0
+ * @created 2025-01-06
+ */
+
 'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
@@ -6,7 +37,25 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
 
     try {
-      // Create outbox_events table in public schema
+      /**
+       * OUTBOX EVENTS TABLE
+       *
+       * Core table for storing database change events that need to be processed
+       * by downstream systems (primarily FlowGram for workflow automation).
+       *
+       * **Event Lifecycle:**
+       * 1. Database change triggers → create_outbox_event() function
+       * 2. Event inserted with processed_at = NULL
+       * 3. Event processor claims events using SKIP LOCKED
+       * 4. Processing succeeds → processed_at = NOW()
+       * 5. Processing fails → attempts++, available_at = future time
+       * 6. Max attempts reached → moved to dead letter queue
+       *
+       * **FlowGram Integration:**
+       * - Poll for events WHERE processed_at IS NULL
+       * - Process workflows based on event_type and payload
+       * - Mark as processed or let retry logic handle failures
+       */
       await queryInterface.createTable('outbox_events', {
         id: {
           type: Sequelize.BIGINT,
@@ -78,7 +127,15 @@ module.exports = {
         },
       }, { transaction });
 
-      // Create indexes for optimal performance
+      /**
+       * PERFORMANCE INDEXES
+       *
+       * Optimized for the following query patterns:
+       * 1. FlowGram polling: WHERE tenant = ? AND processed_at IS NULL ORDER BY available_at
+       * 2. Event monitoring: WHERE event_type = ? AND aggregate_type = ?
+       * 3. Cleanup operations: WHERE created_at < ? AND processed_at IS NOT NULL
+       * 4. Failure analysis: WHERE attempts >= max_attempts AND processed_at IS NULL
+       */
       await queryInterface.addIndex('outbox_events', {
         fields: ['tenant', 'available_at'],
         where: {
@@ -109,7 +166,28 @@ module.exports = {
         transaction
       });
 
-      // Create the trigger function for creating outbox events
+      /**
+       * OUTBOX EVENT TRIGGER FUNCTION
+       *
+       * PostgreSQL trigger function that automatically creates outbox events
+       * whenever data changes in tenant tables (vendors, projectrisks, controls_eu, tasks).
+       *
+       * **Multi-Tenant Design:**
+       * - Uses current_schema() to detect tenant context
+       * - Each tenant has their own schema (e.g., 'a4ayc80OGd')
+       * - Events are tagged with tenant for isolation
+       *
+       * **Event Generation:**
+       * - Captures INSERT, UPDATE, DELETE operations
+       * - Generates rich payload with old_data, new_data, changed_fields
+       * - Creates deduplication key to prevent duplicate events
+       * - Sends PostgreSQL notification for real-time processing
+       *
+       * **FlowGram Integration:**
+       * - Events contain all data needed for workflow decisions
+       * - changed_fields helps identify specific triggers (e.g., status changes)
+       * - Tenant isolation ensures workflows only see relevant events
+       */
       await queryInterface.sequelize.query(`
         CREATE OR REPLACE FUNCTION create_outbox_event()
         RETURNS TRIGGER AS $$

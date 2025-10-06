@@ -46,6 +46,9 @@ AI trust center
 
 <img width="1528" height="870" alt="image" src="https://github.com/user-attachments/assets/19c633cd-02ae-47ad-b920-ef53979d6f2f" />
 
+Policy manager
+
+<img width="1634" height="901" alt="image" src="https://github.com/user-attachments/assets/d2260c04-9ab9-4d5b-b0f7-e9a68487e9c0" />
 
 
 ## Who is it for?
@@ -59,13 +62,6 @@ VerifyWise is designed for:
 - **Risk management teams**: Groups tasked with identifying and mitigating AI-related risks.
 - **Legal and privacy teams**: Professionals addressing the legal and ethical implications of AI use.
 - **AI developers**: Teams working on AI projects who need to ensure compliance and responsible development.
-
-## Why now?
-
-- **Urgent need for regulatory compliance:** Regulations establish clear rules for AI applications, creating a need for organizations to comply with legal requirements.
-- **Complexity of compliance:** Companies will require governance tools to help them navigate a changing regulatory landscape.
-- **Growing concerns for ethical AI:** There is a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
-- **Good timing with global AI expansion:** Launching an open-source AI governance application now aligns with the AI adoption trend across industries (e.g., healthcare, finance), addressing the need for a deployable governance solution.
 
 ## Features
 

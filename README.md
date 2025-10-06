@@ -130,6 +130,11 @@ Run the PostgreSQL container with the following command:
 docker run -d --name mypostgres -p 5432:5432 -e POSTGRES_PASSWORD={env variable password} postgres
 ```
 
+Run redis with following command:
+```
+docker run -d --name myredis -p 6379:6379 redis
+```
+
 Access the PostgreSQL container and create the verifywise database:
 
 ```

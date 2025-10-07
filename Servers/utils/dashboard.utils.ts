@@ -1,14 +1,11 @@
 import { sequelize } from "../database/db";
 import { IDashboard } from "../domain.layer/interfaces/i.Dashboard";
 import { getAllProjectsQuery } from "./project.utils";
-import { calculateComplianceScore } from "./compliance.utils";
-import { IComplianceDashboardWidget } from "../domain.layer/interfaces/compliance/compliance.interface";
 
 export const getDashboardDataQuery = async (
   tenant: string,
   userId: number,
-  role: string,
-  organizationId?: number
+  role: string
 ): Promise<IDashboard | null> => {
   const dashboard = {
     projects: 0,
@@ -42,53 +39,6 @@ export const getDashboardDataQuery = async (
     `SELECT COUNT(*) FROM "${tenant}".files AS f WHERE f.source::TEXT ILIKE '%report%'`
   ) as [{ count: string }[], number];
   dashboard.reports = parseInt(reports[0][0].count);
-
-  // Calculate compliance score if organizationId is provided
-  if (organizationId) {
-    try {
-      const complianceScore = await calculateComplianceScore(organizationId, tenant);
-
-      const complianceWidget: IComplianceDashboardWidget = {
-        score: complianceScore.overallScore,
-        trend: 'stable', // TODO: Implement trend calculation based on historical data
-        trendValue: 0,
-        lastCalculated: complianceScore.calculatedAt,
-        moduleBreakdown: [
-          {
-            name: 'Risk management',
-            score: complianceScore.modules.riskManagement.score,
-            weight: complianceScore.modules.riskManagement.weight
-          },
-          {
-            name: 'Vendor management',
-            score: complianceScore.modules.vendorManagement.score,
-            weight: complianceScore.modules.vendorManagement.weight
-          },
-          {
-            name: 'Project governance',
-            score: complianceScore.modules.projectGovernance.score,
-            weight: complianceScore.modules.projectGovernance.weight
-          },
-          {
-            name: 'Model lifecycle',
-            score: complianceScore.modules.modelLifecycle.score,
-            weight: complianceScore.modules.modelLifecycle.weight
-          },
-          {
-            name: 'Policy & documentation',
-            score: complianceScore.modules.policyDocumentation.score,
-            weight: complianceScore.modules.policyDocumentation.weight
-          }
-        ],
-        drillDownUrl: `/compliance/details/${organizationId}`
-      };
-
-      dashboard.compliance_score = complianceWidget;
-    } catch (error) {
-      console.error('Error calculating compliance score for dashboard:', error);
-      // Don't fail the entire dashboard if compliance calculation fails
-    }
-  }
 
   return dashboard;
 }

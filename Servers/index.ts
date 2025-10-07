@@ -39,7 +39,6 @@ import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
-import complianceRoutes from "./routes/compliance.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
@@ -122,7 +121,6 @@ try {
   app.use("/api/modelRisks", modelRiskRoutes);
   app.use("/api/reporting", reportRoutes);
   app.use("/api/dashboard", dashboardRoutes);
-  app.use("/api/compliance", complianceRoutes);
   app.use("/api/tiers", tiersRoutes);
   app.use("/api/subscriptions", subscriptionRoutes);
   app.use("/api/tasks", taskRoutes);

@@ -1,4 +1,5 @@
 import { IProjectAttributes } from "./i.project";
+import { IComplianceDashboardWidget } from "./compliance/compliance.interface";
 
 export interface IDashboard {
   projects: number;
@@ -11,4 +12,5 @@ export interface IDashboard {
     upcoming: number;
   };
   projects_list: IProjectAttributes[];
+  compliance_score?: IComplianceDashboardWidget;
 }

@@ -11,7 +11,12 @@ export async function getDashboardData(req: Request, res: Response) {
   });
 
   try {
-    const dashboard = await getDashboardDataQuery(req.tenantId!, req.userId!, req.role!);
+    const dashboard = await getDashboardDataQuery(
+      req.tenantId!,
+      req.userId!,
+      req.role!,
+      req.organizationId
+    );
 
     await logSuccess({
       eventType: "Read",

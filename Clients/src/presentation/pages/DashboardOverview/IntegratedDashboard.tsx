@@ -37,6 +37,7 @@ import {
 } from "../../utils/cardEnhancements";
 import DashboardErrorBoundary from "../../components/Dashboard/DashboardErrorBoundary";
 import WidgetErrorBoundary from "../../components/Dashboard/WidgetErrorBoundary";
+import ComplianceScoreWidget from "./widgets/ComplianceScoreWidget";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { IStatusData } from "../../../domain/interfaces/i.chart";
@@ -470,6 +471,17 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
+      {
+        i: "compliance-score",
+        x: 3,
+        y: 6,
+        w: 3,
+        h: 8,
+        minW: 3,
+        maxW: 6,
+        minH: 8,
+        maxH: 12,
+      },
     ],
     md: [
       // First row - 4 widgets (2.5 columns each for 10-column grid, fixed width, not resizable)
@@ -574,6 +586,17 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
+      {
+        i: "compliance-score",
+        x: 2.5,
+        y: 6,
+        w: 2.5,
+        h: 8,
+        minW: 2.5,
+        maxW: 5,
+        minH: 8,
+        maxH: 12,
+      },
     ],
     sm: [
       // For small screens, 2 widgets per row (half width each)
@@ -676,6 +699,17 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
+      {
+        i: "compliance-score",
+        x: 3,
+        y: 12,
+        w: 3,
+        h: 8,
+        minW: 3,
+        maxW: 6,
+        minH: 8,
+        maxH: 12,
+      },
     ],
   };
 
@@ -708,8 +742,12 @@ const IntegratedDashboard: React.FC = () => {
   );
 
   const enforceHeightConstraint = useCallback(
-    (height: number, isRestricted: boolean): number => {
+    (height: number, isRestricted: boolean, widgetId?: string): number => {
       if (isRestricted) return 2; // Always small for restricted widgets
+      if (widgetId === 'compliance-score') {
+        // Special case for compliance-score: allow custom heights with minimum of 8
+        return Math.max(8, height);
+      }
       if (height <= 2) return 2; // Small block (85px)
       if (height >= 4) return 4; // Big block (170px) - max allowed
       return height < 3 ? 2 : 4; // Snap to nearest
@@ -731,7 +769,7 @@ const IntegratedDashboard: React.FC = () => {
       const isRestricted = isRestrictedToSmallHeight(item.i);
       return {
         ...item,
-        h: enforceHeightConstraint(item.h, isRestricted),
+        h: enforceHeightConstraint(item.h, isRestricted, item.i),
         w: enforceWidthConstraint(item.w, isRestricted, breakpoint),
       };
     },
@@ -814,7 +852,8 @@ const IntegratedDashboard: React.FC = () => {
       if (newItem.h !== undefined) {
         const constrainedHeight = enforceHeightConstraint(
           newItem.h,
-          isRestricted
+          isRestricted,
+          newItem.i
         );
         newItem.h = constrainedHeight;
         placeholder.h = constrainedHeight;
@@ -1054,6 +1093,11 @@ const IntegratedDashboard: React.FC = () => {
         />
       ),
       title: "Policies",
+    },
+    {
+      id: "compliance-score",
+      content: <ComplianceScoreWidget data={dashboard?.compliance_score} />,
+      title: "AI Compliance Score",
     },
   ];
 

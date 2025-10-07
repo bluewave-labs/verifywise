@@ -22,7 +22,7 @@ import PageHeader from "../../components/Layout/PageHeader";
 
 export default function ProfilePage() {
   const authorizedActiveTabs = ["profile", "password", "team", "organization", "sso"];
-  const { userRoleName } = useAuth();
+  const { userRoleName, userId } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isTeamManagementDisabled =
@@ -32,6 +32,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab");
+  const [isPasswordTabDisabled, setIsPasswordTabDisabled] = useState(false);
 
   useEffect(() => {
     if (activeSetting && authorizedActiveTabs.includes(activeSetting)) {
@@ -42,6 +43,32 @@ export default function ProfilePage() {
       setActiveTab("profile");
     }
   }, [activeSetting]);
+
+  // Check if user is SSO-authenticated and disable password tab
+  useEffect(() => {
+    const checkSsoStatus = async () => {
+      if (!userId) return;
+
+      try {
+        const { getUserById } = await import("../../../application/repository/user.repository");
+        const userData = await getUserById({ userId });
+        const actualUserData = userData?.data || userData;
+
+        // If user has SSO provider and SSO user ID, disable password tab
+        if (actualUserData?.sso_provider && actualUserData?.sso_user_id) {
+          setIsPasswordTabDisabled(true);
+          // If currently on password tab, redirect to profile
+          if (activeTab === "password") {
+            setActiveTab("profile");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check SSO status:", error);
+      }
+    };
+
+    checkSsoStatus();
+  }, [userId, activeTab]);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Handle navigation state from command palette
@@ -145,6 +172,7 @@ export default function ProfilePage() {
               value="password"
               disableRipple
               sx={settingTabStyle}
+              disabled={isPasswordTabDisabled}
             />
             <Tab
               label="Team"

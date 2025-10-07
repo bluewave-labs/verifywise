@@ -4,14 +4,33 @@ import { ISSOConfiguration, SSOProvider } from "../domain.layer/interfaces/i.sso
 import { SSOConfigurationModel } from "../domain.layer/models/ssoConfig/ssoConfig.model";
 import Jwt from "jsonwebtoken";
 
-export const getSSOConfigQuery = async (organizationId: number, provider: SSOProvider) => {
+export const getSSOConfigQuery = async (provider: SSOProvider) => {
+  const [[{ organization_id }]] = await sequelize.query(
+    `SELECT id AS organization_id FROM public.organizations LIMIT 1`,
+  ) as [{ organization_id: number }[], number];
   const result = await sequelize.query(
     `SELECT * FROM sso_configurations WHERE organization_id = :organizationId AND provider = :provider`,
     {
-      replacements: { organizationId, provider },
+      replacements: { organizationId: organization_id, provider },
     }
   ) as [SSOConfigurationModel[], number];
   return result[0][0];
+}
+
+export const getAzureADConfigQuery = async (): Promise<{ client_id: string; client_secret: string; tenant_id: string }> => {
+  const [[{ organization_id }]] = await sequelize.query(
+    `SELECT id AS organization_id FROM public.organizations LIMIT 1`,
+  ) as [{ organization_id: number }[], number];
+  const result = await sequelize.query(
+    `SELECT config_data FROM sso_configurations WHERE organization_id = :organizationId AND provider = 'AzureAD'`,
+    {
+      replacements: { organizationId: organization_id },
+    }
+  ) as [{ config_data: { client_id: string; client_secret: string; tenant_id: string } }[], number];
+  if (result[0].length === 0) {
+    throw new Error("SSO configuration not found for the given organization and provider");
+  }
+  return result[0][0].config_data as { client_id: string; client_secret: string; tenant_id: string };
 }
 
 export const saveSSOConfigQuery = async (

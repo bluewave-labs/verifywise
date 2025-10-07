@@ -42,6 +42,7 @@ import {
   calculateProgress,
   ChangePassword,
   refreshAccessToken,
+  loginUserWithMicrosoft,
 } from "../controllers/user.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 
@@ -114,6 +115,8 @@ router.post("/register", createNewUser);
  * @param {express.Response} res - Express response object
  */
 router.post("/login", loginUser);
+
+router.post("/login-microsoft", loginUserWithMicrosoft);
 
 router.post("/refresh-token", refreshAccessToken);
 

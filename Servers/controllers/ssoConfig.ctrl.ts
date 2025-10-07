@@ -4,10 +4,10 @@ import { disableSSOQuery, enableSSOQuery, getSSOConfigQuery, saveSSOConfigQuery 
 
 export const getSSOConfigForOrg = async (req: Request, res: Response) => {
   try {
-    const organizationId = parseInt(req.query.organizationId as string, 10);
+    // const organizationId = parseInt(req.query.organizationId as string, 10);
     const provider = req.query.provider as SSOProvider;
 
-    const ssoConfig = await getSSOConfigQuery(organizationId, provider);
+    const ssoConfig = await getSSOConfigQuery(provider);
     if (!ssoConfig) {
       return res.status(404).json({ error: "SSO configuration not found" });
     }

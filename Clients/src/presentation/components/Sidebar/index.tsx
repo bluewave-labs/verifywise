@@ -1,6 +1,5 @@
 import {
   Box,
-  Collapse,
   Divider,
   IconButton,
   List,
@@ -21,28 +20,30 @@ import { useTheme } from "@mui/material";
 import React, { useContext, useState, useEffect } from "react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 
-import { ReactComponent as ArrowLeft } from "../../assets/icons/left-arrow.svg";
-import { ReactComponent as ArrowRight } from "../../assets/icons/right-arrow.svg";
-import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
-import { ReactComponent as Tasks } from "../../assets/icons/flag-grey.svg";
-import { ReactComponent as DotsVertical } from "../../assets/icons/dots-vertical.svg";
-import { ReactComponent as LogoutSvg } from "../../assets/icons/logout.svg";
-import { ReactComponent as ReportingSvg } from "../../assets/icons/reporting.svg";
-import { ReactComponent as RiskManagementIcon } from "../../assets/icons/warning-triangle.svg";
-
-import { ReactComponent as Vendors } from "../../assets/icons/building.svg";
-import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
-import { ReactComponent as FileManager } from "../../assets/icons/file.svg";
-import { ReactComponent as FairnessIcon } from "../../assets/icons/fairness-icon.svg";
-import { ReactComponent as Feedback } from "../../assets/icons/feedback.svg";
-import { ReactComponent as Discord } from "../../assets/icons/discord.svg";
-import { ReactComponent as AITrustCenter } from "../../assets/icons/aiTrustCenter.svg";
-import { ReactComponent as Policies } from "../../assets/icons/policies.svg";
-
-/**Adding the training register icon */
-import { ReactComponent as TrainingRegister } from "../../assets/icons/training-register.svg";
-import { ReactComponent as WatchTower } from "../../assets/icons/telescope.svg";
-import { ReactComponent as ModelInventory } from "../../assets/icons/list.svg";
+// Lucide Icons
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Flag,
+  MoreVertical,
+  LogOut,
+  BarChart3,
+  AlertTriangle,
+  Building,
+  Settings,
+  FileText,
+  Scale,
+  MessageCircle,
+  MessageSquare,
+  Brain,
+  Shield,
+  GraduationCap,
+  Telescope,
+  List as ListIcon,
+  FolderTree,
+  Layers,
+} from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
 
@@ -62,34 +63,97 @@ interface MenuItem {
   name: string;
   icon: React.ReactNode;
   path: string;
-  children?: Array<{
-    name: string;
-    path: string;
-  }>;
   highlightPaths?: string[];
 }
 
-const getMenuItems = (openTasksCount: number): MenuItem[] => [
+interface MenuGroup {
+  name: string;
+  items: MenuItem[];
+}
+
+const getMenuGroups = (): MenuGroup[] => [
   {
-    name: "Dashboard",
-    icon: <Dashboard />,
-    path: "/",
-    children: [
+    name: "DISCOVERY",
+    items: [
       {
         name: "Project oriented view",
+        icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
       },
       {
         name: "Organizational view",
+        icon: <Layers size={16} strokeWidth={1.5} />,
         path: "/framework",
       },
+      {
+        name: "Vendors",
+        icon: <Building size={16} strokeWidth={1.5} />,
+        path: "/vendors",
+      },
+      {
+        name: "Model Inventory",
+        icon: <ListIcon size={16} strokeWidth={1.5} />,
+        path: "/model-inventory",
+      },
     ],
-    highlightPaths: ["/project-view"],
   },
   {
-    name: "Risk Management",
-    icon: <RiskManagementIcon />,
-    path: "/risk-management",
+    name: "ASSURANCE",
+    items: [
+      {
+        name: "Risk Management",
+        icon: <AlertTriangle size={16} strokeWidth={1.5} />,
+        path: "/risk-management",
+      },
+      {
+        name: "Bias & Fairness",
+        icon: <Scale size={16} strokeWidth={1.5} />,
+        path: "/fairness-dashboard",
+      },
+      {
+        name: "Training Registry",
+        icon: <GraduationCap size={16} strokeWidth={1.5} />,
+        path: "/training",
+      },
+      {
+        name: "Evidence",
+        icon: <FileText size={16} strokeWidth={1.5} />,
+        path: "/file-manager",
+      },
+      {
+        name: "Reporting",
+        icon: <BarChart3 size={16} strokeWidth={1.5} />,
+        path: "/reporting",
+      },
+      {
+        name: "AI Trust Center",
+        icon: <Brain size={16} strokeWidth={1.5} />,
+        path: "/ai-trust-center",
+      },
+    ],
+  },
+  {
+    name: "GOVERNANCE",
+    items: [
+      {
+        name: "Policy Manager",
+        icon: <Shield size={16} strokeWidth={1.5} />,
+        path: "/policies",
+      },
+      {
+        name: "Event Tracker",
+        icon: <Telescope size={16} strokeWidth={1.5} />,
+        path: "/event-tracker",
+      },
+    ],
+  },
+];
+
+const topItems = (openTasksCount: number): MenuItem[] => [
+  {
+    name: "Dashboard",
+    icon: <Home size={16} strokeWidth={1.5} />,
+    path: "/",
   },
   {
     name: "Tasks",
@@ -107,62 +171,17 @@ const getMenuItems = (openTasksCount: number): MenuItem[] => [
           },
         }}
       >
-        <Tasks />
+        <Flag size={16} strokeWidth={1.5} />
       </Badge>
     ),
     path: "/tasks",
-  },
-  {
-    name: "Vendors",
-    icon: <Vendors style={{}} />,
-    path: "/vendors",
-  },
-  {
-    name: "Evidence",
-    icon: <FileManager />,
-    path: "/file-manager",
-  },
-  {
-    name: "Reporting",
-    icon: <ReportingSvg />,
-    path: "/reporting",
-  },
-  {
-    name: "Bias & Fairness",
-    icon: <FairnessIcon />,
-    path: "/fairness-dashboard",
-  },
-  {
-    name: "Training Registry",
-    icon: <TrainingRegister />,
-    path: "/training",
-  },
-  {
-    name: "Policy Manager",
-    icon: <Policies />,
-    path: "/policies",
-  },
-  {
-    name: "AI Trust Center",
-    icon: <AITrustCenter />,
-    path: "/ai-trust-center",
-  },
-  {
-    name: "Model Inventory",
-    icon: <ModelInventory />,
-    path: "/model-inventory",
   },
 ];
 
 const other: MenuItem[] = [
   {
-    name: "Event Tracker",
-    icon: <WatchTower />,
-    path: "/event-tracker",
-  },
-  {
     name: "Settings",
-    icon: <Settings />,
+    icon: <Settings size={16} strokeWidth={1.5} />,
     path: "/setting",
   },
 ];
@@ -211,14 +230,10 @@ const Sidebar = () => {
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
-  const [open, setOpen] = useState<{ [key: string]: boolean }>({
-    Dashboard: true,
-    Account: false,
-  });
 
   const [openTasksCount, setOpenTasksCount] = useState(0);
 
-  const menu = getMenuItems(openTasksCount);
+  const menuGroups = getMenuGroups();
 
   const openPopup = (event: any, id: any) => {
     setAnchorEl(event.currentTarget);
@@ -350,11 +365,10 @@ const Sidebar = () => {
           },
         }}
         onClick={() => {
-          setOpen({ Dashboard: true, Account: false }); // Keep Dashboard always open
           dispatch(toggleSidebar());
         }}
       >
-        {collapsed ? <ArrowRight /> : <ArrowLeft />}
+        {collapsed ? <ChevronRight size={16} strokeWidth={1.5} /> : <ChevronLeft size={16} strokeWidth={1.5} />}
       </IconButton>
       {/* menu */}
       <List
@@ -383,153 +397,175 @@ const Sidebar = () => {
         data-joyride-id="dashboard-navigation"
         ref={refs[1]}
       >
+        {/* Top level items (Dashboard and Tasks) */}
+        {topItems(openTasksCount).map((item) => (
+          <Tooltip
+            sx={{ fontSize: 13 }}
+            key={item.path}
+            placement="right"
+            title={collapsed ? item.name : ""}
+            slotProps={{
+              popper: {
+                modifiers: [
+                  {
+                    name: "offset",
+                    options: {
+                      offset: [0, -16],
+                    },
+                  },
+                ],
+              },
+            }}
+            disableInteractive
+          >
+            <ListItemButton
+              disableRipple={
+                theme.components?.MuiListItemButton?.defaultProps
+                  ?.disableRipple
+              }
+              className={
+                location.pathname === item.path ||
+                item.highlightPaths?.some((p: string) =>
+                  location.pathname.startsWith(p)
+                ) ||
+                customMenuHandler() === item.path
+                  ? "selected-path"
+                  : "unselected"
+              }
+              onClick={() => navigate(`${item.path}`)}
+              sx={{
+                height: "32px",
+                gap: theme.spacing(4),
+                borderRadius: theme.shape.borderRadius,
+                px: theme.spacing(4),
+                backgroundColor:
+                  location.pathname === item.path ||
+                  item.highlightPaths?.some((p: string) =>
+                    location.pathname.startsWith(p)
+                  ) ||
+                  customMenuHandler() === item.path
+                    ? "#E8E8E8" // darker highlight background
+                    : "transparent",
+
+                "&:hover": {
+                  backgroundColor:
+                    location.pathname === item.path ||
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
+                    customMenuHandler() === item.path
+                      ? "#E8E8E8" // keep same color if already selected
+                      : "#F9F9F9", // hover color only if not selected
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  width: "16px",
+                  mr: 0,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText
+                sx={{
+                  "& .MuiListItemText-primary": {
+                    fontSize: "13px",
+                  },
+                }}
+              >
+                {item.name}
+              </ListItemText>
+            </ListItemButton>
+          </Tooltip>
+        ))}
+
         {/* Items of the menu */}
-        {menu.map((item) =>
-          item.children ? (
-            collapsed ? (
-              <React.Fragment key={item.name}>
-                <Tooltip
-                  sx={{ fontSize: 13 }}
-                  placement="right"
-                  title={collapsed ? item.name : ""}
-                  slotProps={{
-                    popper: {
-                      modifiers: [
-                        {
-                          name: "offset",
-                          options: {
-                            offset: [0, -16],
-                          },
+        {menuGroups.map((group) => (
+          <React.Fragment key={group.name}>
+            {/* Group header */}
+            <Typography
+              variant="overline"
+              sx={{
+                px: theme.spacing(4),
+                pt: theme.spacing(6), // Even more space above (increased from 4 to 6)
+                pb: theme.spacing(2),
+                mt: theme.spacing(4), // Same extra space for all groups
+                color: theme.palette.text.disabled,
+                fontSize: "7px", // Further reduced from 8px to 7px
+                fontWeight: 400, // Changed from 600 to 400 (lighter)
+                letterSpacing: "0.3px", // Reduced from 1px to 0.3px for tighter spacing
+                textTransform: "uppercase",
+                display: "block",
+                opacity: 0.7, // Make it even lighter
+              }}
+            >
+              {group.name}
+            </Typography>
+
+            {/* Group items */}
+            {group.items.map((item) => (
+              <Tooltip
+                sx={{ fontSize: 13 }}
+                key={item.path}
+                placement="right"
+                title={collapsed ? item.name : ""}
+                slotProps={{
+                  popper: {
+                    modifiers: [
+                      {
+                        name: "offset",
+                        options: {
+                          offset: [0, -16],
                         },
-                      ],
-                    },
-                  }}
-                  disableInteractive
-                >
-                  <ListItemButton
-                    disableRipple={
-                      theme.components?.MuiListItemButton?.defaultProps
-                        ?.disableRipple
-                    }
-                    className={
-                      Boolean(anchorEl) && popup === item.name
-                        ? "selected-path"
-                        : ""
-                    }
-                    onClick={(event) => openPopup(event, item.name)}
-                    sx={{
-                      position: "relative",
-                      gap: theme.spacing(4),
-                      borderRadius: theme.shape.borderRadius,
-                      px: theme.spacing(4),
-                      backgroundColor:
-                        location.pathname === item.path ||
-                        location.pathname === "/overview" ||
-                        location.pathname === "/framework"
-                          ? "#F9F9F9"
-                          : "transparent",
-                      "&:hover": {
-                        backgroundColor: "#F9F9F9",
                       },
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "flex-start",
-                        width: "32px",
-                        mr: 0,
-                      }}
-                    >
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText>{item.name}</ListItemText>
-                  </ListItemButton>
-                </Tooltip>
-                <Menu
-                  className="sidebar-popup"
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl) && popup === item.name}
-                  onClose={closePopup}
-                  disableScrollLock
-                  anchorOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
-                  slotProps={{
-                    paper: {
-                      sx: {
-                        mt: theme.spacing(-2),
-                        ml: theme.spacing(1),
-                      },
-                    },
-                  }}
-                  MenuListProps={{ sx: { px: 1, py: 2 } }}
-                  sx={{
-                    ml: theme.spacing(8),
-                    "& .selected-path": {
-                      backgroundColor: theme.palette.background.accent,
-                    },
-                  }}
-                >
-                  {item.children.map((child) => (
-                    <MenuItem
-                      key={child.path}
-                      onClick={() => {
-                        navigate(`${child.path}`);
-                        closePopup();
-                      }}
-                      sx={{
-                        gap: theme.spacing(4),
-                        borderRadius: theme.shape.borderRadius,
-                        pl: theme.spacing(4),
-                        backgroundColor:
-                          location.pathname === child.path
-                            ? theme.palette.background.accent
-                            : "transparent",
-                        "&:hover": {
-                          backgroundColor: theme.palette.background.accent,
-                        },
-                      }}
-                    >
-                      {child.name}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </React.Fragment>
-            ) : (
-              <React.Fragment key={item.name}>
+                    ],
+                  },
+                }}
+                disableInteractive
+              >
                 <ListItemButton
                   disableRipple={
                     theme.components?.MuiListItemButton?.defaultProps
                       ?.disableRipple
                   }
-                  onClick={() => {
-                    if (item.name === "Dashboard") {
-                      // Navigate directly to the main dashboard instead of toggling
-                      navigate("/");
-                    } else {
-                      // Keep toggle behavior for other menu items with children
-                      setOpen((prev) => ({
-                        ...prev,
-                        [`${item.name}`]: !prev[`${item.name}`],
-                      }));
-                    }
-                  }}
+                  className={
+                    location.pathname === item.path ||
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
+                    customMenuHandler() === item.path
+                      ? "selected-path"
+                      : "unselected"
+                  }
+                  onClick={() => navigate(`${item.path}`)}
                   sx={{
+                    height: "32px",
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
                     backgroundColor:
                       location.pathname === item.path ||
-                      location.pathname === "/overview" ||
-                      location.pathname === "/framework"
-                        ? "#F9F9F9"
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#E8E8E8" // darker highlight background
                         : "transparent",
+
                     "&:hover": {
-                      backgroundColor: "#F9F9F9",
+                      backgroundColor:
+                        location.pathname === item.path ||
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path
+                          ? "#E8E8E8" // keep same color if already selected
+                          : "#F9F9F9", // hover color only if not selected
                     },
                   }}
                 >
@@ -539,7 +575,7 @@ const Sidebar = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "flex-start",
-                      width: "32px",
+                      width: "16px",
                       mr: 0,
                     }}
                   >
@@ -555,168 +591,10 @@ const Sidebar = () => {
                     {item.name}
                   </ListItemText>
                 </ListItemButton>
-                <Collapse
-                  in={item.name === "Dashboard" ? true : open[`${item.name}`]}
-                  timeout="auto"
-                >
-                  <List
-                    component="div"
-                    disablePadding
-                    sx={{
-                      pl: theme.spacing(8), // Indent the nested list
-                      position: "relative",
-                      // The main vertical line of the tree
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        left: `calc(${theme.spacing(3)} + 12px)`, // Position the line to align with parent icon center + 12px offset
-                        top: 0,
-                        height: "calc(100% - 18.5px)", // Extend to cover both items but stop before the last item's bottom
-                        width: "1px",
-                        backgroundColor: "#D1D5DB", // Light gray color matching the reference
-                        zIndex: 1, // Ensure tree lines stay above background
-                        pointerEvents: "none", // Prevent interference with hover
-                      },
-                    }}
-                  >
-                    {item.children.map((child) => (
-                      <ListItemButton
-                        key={child.path}
-                        disableRipple={
-                          theme.components?.MuiListItemButton?.defaultProps
-                            ?.disableRipple
-                        }
-                        className={
-                          location.pathname === child.path
-                            ? "selected-path"
-                            : "unselected"
-                        }
-                        onClick={() => navigate(`${child.path}`)}
-                        sx={{
-                          height: "37px",
-                          gap: theme.spacing(4),
-                          borderRadius: theme.shape.borderRadius,
-                          px: theme.spacing(4),
-                          pl: `calc(${theme.spacing(4)} + 20px)`, // Add extra left padding to avoid tree overlap
-                          my: theme.spacing(1),
-                          position: "relative",
-                          backgroundColor:
-                            location.pathname === child.path
-                              ? "#F9F9F9"
-                              : "transparent",
-                          "&:hover": {
-                            backgroundColor: "#F9F9F9",
-                          },
-                          // The horizontal line connecting item to the vertical tree line
-                          "&::before": {
-                            content: '""',
-                            position: "absolute",
-                            left: `calc(${theme.spacing(-5)} + 12px)`, // Start from the vertical line's position + 12px offset
-                            top: "50%",
-                            width: theme.spacing(5), // Extend to the item's padding start
-                            height: "1px",
-                            backgroundColor: "#D1D5DB", // Light gray color matching the reference
-                            zIndex: 1, // Ensure tree lines stay above background
-                            pointerEvents: "none", // Prevent interference with hover
-                          },
-                        }}
-                      >
-                        <ListItemText
-                          sx={{
-                            "& .MuiListItemText-primary": {
-                              fontSize: "13px",
-                              color: theme.palette.text.secondary,
-                              fontWeight: 400, // Ensure consistent font weight
-                            },
-                          }}
-                        >
-                          {child.name}
-                        </ListItemText>
-                      </ListItemButton>
-                    ))}
-                  </List>
-                </Collapse>
-              </React.Fragment>
-            )
-          ) : item.path ? (
-            <Tooltip
-              sx={{ fontSize: 13 }}
-              key={item.path}
-              placement="right"
-              title={collapsed ? item.name : ""}
-              slotProps={{
-                popper: {
-                  modifiers: [
-                    {
-                      name: "offset",
-                      options: {
-                        offset: [0, -16],
-                      },
-                    },
-                  ],
-                },
-              }}
-              disableInteractive
-            >
-              <ListItemButton
-                disableRipple={
-                  theme.components?.MuiListItemButton?.defaultProps
-                    ?.disableRipple
-                }
-                className={
-                  location.pathname === item.path ||
-                  item.highlightPaths?.some((p: string) =>
-                    location.pathname.startsWith(p)
-                  ) ||
-                  customMenuHandler() === item.path
-                    ? "selected-path"
-                    : "unselected"
-                }
-                onClick={() => navigate(`${item.path}`)}
-                sx={{
-                  height: "37px",
-                  gap: theme.spacing(4),
-                  borderRadius: theme.shape.borderRadius,
-                  px: theme.spacing(4),
-                  backgroundColor:
-                    location.pathname === item.path ||
-                    item.highlightPaths?.some((p: string) =>
-                      location.pathname.startsWith(p)
-                    ) ||
-                    customMenuHandler() === item.path
-                      ? "#F9F9F9" // highlight background
-                      : "transparent",
-
-                  "&:hover": {
-                    backgroundColor: "#F9F9F9",
-                  },
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    width: "32px",
-                    mr: 0,
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  sx={{
-                    "& .MuiListItemText-primary": {
-                      fontSize: "13px",
-                    },
-                  }}
-                >
-                  {item.name}
-                </ListItemText>
-              </ListItemButton>
-            </Tooltip>
-          ) : null
-        )}
+              </Tooltip>
+            ))}
+          </React.Fragment>
+        ))}
       </List>
       <Divider sx={{ my: theme.spacing(4) }} />
       {/* other */}
@@ -763,15 +641,18 @@ const Sidebar = () => {
                 }
               }}
               sx={{
-                height: "37px",
+                height: "32px",
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
                 backgroundColor:
-                  location.pathname === item.path ? "#F9F9F9" : "transparent",
+                  location.pathname === item.path ? "#E8E8E8" : "transparent",
 
                 "&:hover": {
-                  backgroundColor: "#F9F9F9",
+                  backgroundColor:
+                    location.pathname === item.path
+                      ? "#E8E8E8" // keep same color if already selected
+                      : "#F9F9F9", // hover color only if not selected
                 },
               }}
             >
@@ -781,7 +662,7 @@ const Sidebar = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "flex-start",
-                  width: "32px",
+                  width: "16px",
                   mr: 0,
                 }}
               >
@@ -891,7 +772,7 @@ const Sidebar = () => {
                 }}
                 onClick={(event) => openPopup(event, "logout")}
               >
-                <DotsVertical />
+                <MoreVertical size={16} strokeWidth={1.5} />
               </IconButton>
             </Tooltip>
           </>
@@ -970,7 +851,7 @@ const Sidebar = () => {
               },
             }}
           >
-            <Feedback />
+            <MessageCircle size={16} strokeWidth={1.5} />
             Feedback
           </MenuItem>
           <MenuItem
@@ -1000,7 +881,7 @@ const Sidebar = () => {
               },
             }}
           >
-            <Discord />
+            <MessageSquare size={16} strokeWidth={1.5} />
             Ask on Discord
           </MenuItem>
           <MenuItem
@@ -1023,7 +904,7 @@ const Sidebar = () => {
               },
             }}
           >
-            <LogoutSvg />
+            <LogOut size={16} strokeWidth={1.5} />
             Log out
           </MenuItem>
         </Menu>

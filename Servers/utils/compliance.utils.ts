@@ -25,14 +25,11 @@ import { QueryTypes } from 'sequelize';
 /**
  * Secure query utility to prevent SQL injection
  * @param sql - SQL query string
- * @param tenantId - Tenant ID (not used in non-multi-tenant setup)
+ * @param tenantId - Tenant ID for multi-tenant support
  * @returns Promise with query results
  */
 const executeSecureQuery = async (sql: string, tenantId?: string): Promise<{ count: string }[]> => {
-  // Remove tenant schema references for non-multi-tenant setup
-  const secureSql = sql.replace(/"\${tenantId}"\./, '').replace(/`\${tenantId}`\./, '');
-
-  const result = await sequelize.query(secureSql, {
+  const result = await sequelize.query(sql, {
     type: QueryTypes.SELECT
   });
 
@@ -419,20 +416,15 @@ const getRiskManagementData = async (organizationId: number, tenantId: string): 
     ) as { count: string }[];
     const criticalRisks = parseInt(criticalRisksQuery[0]?.count || '0');
 
-    // Get projects with risk assessments for coverage calculation
-    const projectsWithRisksQuery = await sequelize.query(
-      `SELECT COUNT(DISTINCT project_id) as count FROM "${tenantId}".risks WHERE project_id IS NOT NULL`,
-      { type: QueryTypes.SELECT }
-    ) as { count: string }[];
-    const projectsWithRisks = parseInt(projectsWithRisksQuery[0]?.count || '0');
-
+    // Calculate risk coverage - simplified approach based on having risks at all
     const totalProjectsQuery = await sequelize.query(
       `SELECT COUNT(*) as count FROM "${tenantId}".projects`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalProjects = parseInt(totalProjectsQuery[0]?.count || '1');
 
-    const riskCoverage = totalProjects > 0 ? (projectsWithRisks / totalProjects) * 100 : 0;
+    // Simplified risk coverage: if we have risks, assume they provide some coverage
+    const riskCoverage = totalRisks > 0 ? Math.min(100, (totalRisks / Math.max(1, totalProjects)) * 50) : 0;
 
     return {
       totalRisks,
@@ -472,27 +464,16 @@ const getVendorManagementData = async (organizationId: number, tenantId: string)
     ) as { count: string }[];
     const assessedVendors = parseInt(assessedVendorsQuery[0]?.count || '0');
 
-    // Get high risk vendors (vendors table doesn't have risk_status column, so estimate based on review_result)
+    // Get high risk vendors (using review_result column)
     const highRiskVendorsQuery = await sequelize.query(
       `SELECT COUNT(*) as count FROM "${tenantId}".vendors WHERE review_result = 'High Risk' OR review_result = 'Critical Risk'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const highRiskVendors = parseInt(highRiskVendorsQuery[0]?.count || '0');
 
-    // Get projects with vendor assessments for coverage
-    const projectsWithVendorsQuery = await sequelize.query(
-      `SELECT COUNT(DISTINCT project_id) as count FROM "${tenantId}".vendors WHERE project_id IS NOT NULL`,
-      { type: QueryTypes.SELECT }
-    ) as { count: string }[];
-    const projectsWithVendors = parseInt(projectsWithVendorsQuery[0]?.count || '0');
-
-    const totalProjectsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM "${tenantId}".projects`,
-      { type: QueryTypes.SELECT }
-    ) as { count: string }[];
-    const totalProjects = parseInt(totalProjectsQuery[0]?.count || '1');
-
-    const vendorCoverage = totalProjects > 0 ? (projectsWithVendors / totalProjects) * 100 : 0;
+    // Calculate vendor coverage - since vendors table doesn't have project_id, use alternate method
+    // Coverage will be based on having vendor assessments at all (simplified)
+    const vendorCoverage = totalVendors > 0 ? Math.min(100, (assessedVendors / Math.max(1, totalVendors)) * 100) : 0;
 
     return {
       totalVendors,

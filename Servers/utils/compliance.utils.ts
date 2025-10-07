@@ -394,40 +394,40 @@ const getRiskManagementData = async (organizationId: number, tenantId: string): 
   try {
     // Get total risks count
     const totalRisksQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM risks`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".risks`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalRisks = parseInt(totalRisksQuery[0]?.count || '0');
 
     // Get mitigated risks (using correct enum value 'Completed')
     const mitigatedRisksQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM risks WHERE mitigation_status = 'Completed'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".risks WHERE mitigation_status = 'Completed'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const mitigatedRisks = parseInt(mitigatedRisksQuery[0]?.count || '0');
 
     // Get high and critical risks
     const highRisksQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM risks WHERE current_risk_level = 'High'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".risks WHERE current_risk_level = 'High'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const highRisks = parseInt(highRisksQuery[0]?.count || '0');
 
     const criticalRisksQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM risks WHERE current_risk_level = 'Critical'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".risks WHERE current_risk_level = 'Critical'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const criticalRisks = parseInt(criticalRisksQuery[0]?.count || '0');
 
     // Get projects with risk assessments for coverage calculation
     const projectsWithRisksQuery = await sequelize.query(
-      `SELECT COUNT(DISTINCT project_id) as count FROM risks WHERE project_id IS NOT NULL`,
+      `SELECT COUNT(DISTINCT project_id) as count FROM "${tenantId}".risks WHERE project_id IS NOT NULL`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const projectsWithRisks = parseInt(projectsWithRisksQuery[0]?.count || '0');
 
     const totalProjectsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM projects`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".projects`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalProjects = parseInt(totalProjectsQuery[0]?.count || '1');
@@ -460,34 +460,34 @@ const getVendorManagementData = async (organizationId: number, tenantId: string)
   try {
     // Get total vendors
     const totalVendorsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM vendors`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".vendors`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalVendors = parseInt(totalVendorsQuery[0]?.count || '0');
 
     // Get assessed vendors (those with review_status not null and not 'Not started')
     const assessedVendorsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM vendors WHERE review_status IS NOT NULL AND review_status != 'Not started'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".vendors WHERE review_status IS NOT NULL AND review_status != 'Not started'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const assessedVendors = parseInt(assessedVendorsQuery[0]?.count || '0');
 
     // Get high risk vendors (vendors table doesn't have risk_status column, so estimate based on review_result)
     const highRiskVendorsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM vendors WHERE review_result = 'High Risk' OR review_result = 'Critical Risk'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".vendors WHERE review_result = 'High Risk' OR review_result = 'Critical Risk'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const highRiskVendors = parseInt(highRiskVendorsQuery[0]?.count || '0');
 
     // Get projects with vendor assessments for coverage
     const projectsWithVendorsQuery = await sequelize.query(
-      `SELECT COUNT(DISTINCT project_id) as count FROM vendors WHERE project_id IS NOT NULL`,
+      `SELECT COUNT(DISTINCT project_id) as count FROM "${tenantId}".vendors WHERE project_id IS NOT NULL`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const projectsWithVendors = parseInt(projectsWithVendorsQuery[0]?.count || '0');
 
     const totalProjectsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM projects`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".projects`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalProjects = parseInt(totalProjectsQuery[0]?.count || '1');
@@ -517,21 +517,21 @@ const getProjectGovernanceData = async (organizationId: number, tenantId: string
   try {
     // Get total projects
     const totalProjectsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM projects`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".projects`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalProjects = parseInt(totalProjectsQuery[0]?.count || '0');
 
     // Get applicable projects (include all since 'Not Applicable' is not in enum)
     const applicableProjectsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM projects WHERE ai_risk_classification IS NOT NULL`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".projects WHERE ai_risk_classification IS NOT NULL`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const applicableProjects = parseInt(applicableProjectsQuery[0]?.count || '0');
 
     // Get completed assessments (projects with completed status)
     const completedAssessmentsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM projects WHERE status = 'Completed'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".projects WHERE status = 'Completed'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const completedAssessments = parseInt(completedAssessmentsQuery[0]?.count || '0');
@@ -567,49 +567,49 @@ const getModelLifecycleData = async (organizationId: number, tenantId: string): 
   try {
     // Get total models
     const totalModelsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM model_inventories`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".model_inventories`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalModels = parseInt(totalModelsQuery[0]?.count || '0');
 
     // Get approved models (status = 'Approved')
     const approvedModelsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM model_inventories WHERE status = 'Approved'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".model_inventories WHERE status = 'Approved'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const approvedModels = parseInt(approvedModelsQuery[0]?.count || '0');
 
     // Get models with security assessment (security_assessment = true)
     const modelsWithSecurityQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM model_inventories WHERE security_assessment = true`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".model_inventories WHERE security_assessment = true`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const modelsWithSecurityAssessment = parseInt(modelsWithSecurityQuery[0]?.count || '0');
 
     // Get models with bias documentation
     const modelsWithBiasQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM model_inventories WHERE biases IS NOT NULL AND biases != ''`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".model_inventories WHERE biases IS NOT NULL AND biases != ''`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const modelsWithBiasDocumentation = parseInt(modelsWithBiasQuery[0]?.count || '0');
 
     // Get models with limitation documentation
     const modelsWithLimitationQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM model_inventories WHERE limitations IS NOT NULL AND limitations != ''`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".model_inventories WHERE limitations IS NOT NULL AND limitations != ''`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const modelsWithLimitationDocumentation = parseInt(modelsWithLimitationQuery[0]?.count || '0');
 
     // Calculate average model age in days
     const avgModelAgeQuery = await sequelize.query(
-      `SELECT AVG(EXTRACT(DAY FROM (NOW() - updated_at))) as avg_age FROM model_inventories WHERE updated_at IS NOT NULL`,
+      `SELECT AVG(EXTRACT(DAY FROM (NOW() - updated_at))) as avg_age FROM "${tenantId}".model_inventories WHERE updated_at IS NOT NULL`,
       { type: QueryTypes.SELECT }
     ) as { avg_age: string }[];
     const avgModelAge = Math.round(parseFloat(avgModelAgeQuery[0]?.avg_age || '0'));
 
     // Get restricted models (models that are not approved for production)
     const restrictedModelsQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM model_inventories WHERE status != 'Approved'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".model_inventories WHERE status != 'Approved'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const restrictedModels = parseInt(restrictedModelsQuery[0]?.count || '0');
@@ -642,21 +642,21 @@ const getPolicyDocumentationData = async (organizationId: number, tenantId: stri
   try {
     // Get total policies
     const totalPoliciesQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM policy_manager`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".policy_manager`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const totalPolicies = parseInt(totalPoliciesQuery[0]?.count || '0');
 
     // Get active policies (assuming non-Draft policies are active)
     const activePoliciesQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM policy_manager WHERE status != 'Draft'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".policy_manager WHERE status != 'Draft'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const activePolicies = parseInt(activePoliciesQuery[0]?.count || '0');
 
     // Get overdue policies (status = 'Overdue' or policies with next_review_date in the past)
     const overduePoliciesQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM policy_manager WHERE status = 'Overdue' OR (next_review_date IS NOT NULL AND next_review_date < NOW())`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".policy_manager WHERE status = 'Overdue' OR (next_review_date IS NOT NULL AND next_review_date < NOW())`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const overduePolicies = parseInt(overduePoliciesQuery[0]?.count || '0');

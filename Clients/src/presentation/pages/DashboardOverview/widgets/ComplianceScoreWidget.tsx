@@ -1,24 +1,15 @@
 import React, { useState } from 'react';
 import { Card, CardContent, Typography, Box, LinearProgress, Chip } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
 import { Info } from 'lucide-react';
 import { Dashboard } from '../../../../domain/types/Dashboard';
 import HelperDrawer from '../../../components/HelperDrawer';
-
-// Import trending icons
-import TrendingUpIcon from '../../../assets/icons/trendingUp.svg';
-import TrendingDownIcon from '../../../assets/icons/trendingDown.svg';
-import TrendingFlatIcon from '../../../assets/icons/trendingFlat.svg';
 
 interface ComplianceScoreWidgetProps {
   data: Dashboard['compliance_score'];
   onClick?: () => void;
 }
 
-const ComplianceScoreWidget: React.FC<ComplianceScoreWidgetProps> = ({ data, onClick }) => {
-  const theme = useTheme();
-  const navigate = useNavigate();
+const ComplianceScoreWidget: React.FC<ComplianceScoreWidgetProps> = ({ data }) => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   if (!data) {
@@ -42,19 +33,6 @@ const ComplianceScoreWidget: React.FC<ComplianceScoreWidgetProps> = ({ data, onC
     return '#f87171'; // Light coral red - much better contrast than standard red
   };
 
-  // Get trend icon and color
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up':
-        return TrendingUpIcon;
-      case 'down':
-        return TrendingDownIcon;
-      case 'stable':
-      default:
-        return TrendingFlatIcon;
-    }
-  };
-
   const getTrendColor = (trend: string) => {
     switch (trend) {
       case 'up':
@@ -64,14 +42,6 @@ const ComplianceScoreWidget: React.FC<ComplianceScoreWidgetProps> = ({ data, onC
       case 'stable':
       default:
         return '#d1d5db'; // Light gray for better visibility on dark background
-    }
-  };
-
-  const handleCardClick = () => {
-    if (onClick) {
-      onClick();
-    } else if (drillDownUrl) {
-      navigate(drillDownUrl);
     }
   };
 

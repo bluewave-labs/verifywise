@@ -403,15 +403,15 @@ const getRiskManagementData = async (organizationId: number, tenantId: string): 
     ) as { count: string }[];
     const mitigatedRisks = parseInt(mitigatedRisksQuery[0]?.count || '0');
 
-    // Get high and critical risks
+    // Get high and critical risks - using correct enum values
     const highRisksQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM "${tenantId}".risks WHERE current_risk_level = 'High'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".risks WHERE current_risk_level = 'High risk'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const highRisks = parseInt(highRisksQuery[0]?.count || '0');
 
     const criticalRisksQuery = await sequelize.query(
-      `SELECT COUNT(*) as count FROM "${tenantId}".risks WHERE current_risk_level = 'Critical'`,
+      `SELECT COUNT(*) as count FROM "${tenantId}".risks WHERE current_risk_level = 'Very high risk'`,
       { type: QueryTypes.SELECT }
     ) as { count: string }[];
     const criticalRisks = parseInt(criticalRisksQuery[0]?.count || '0');
@@ -471,9 +471,26 @@ const getVendorManagementData = async (organizationId: number, tenantId: string)
     ) as { count: string }[];
     const highRiskVendors = parseInt(highRiskVendorsQuery[0]?.count || '0');
 
-    // Calculate vendor coverage - since vendors table doesn't have project_id, use alternate method
-    // Coverage will be based on having vendor assessments at all (simplified)
-    const vendorCoverage = totalVendors > 0 ? Math.min(100, (assessedVendors / Math.max(1, totalVendors)) * 100) : 0;
+    // Calculate vendor coverage using vendors_projects junction table if it exists
+    let vendorCoverage = 0;
+    try {
+      const vendorProjectsQuery = await sequelize.query(
+        `SELECT COUNT(DISTINCT project_id) as count FROM "${tenantId}".vendors_projects`,
+        { type: QueryTypes.SELECT }
+      ) as { count: string }[];
+      const projectsWithVendors = parseInt(vendorProjectsQuery[0]?.count || '0');
+
+      const totalProjectsQuery = await sequelize.query(
+        `SELECT COUNT(*) as count FROM "${tenantId}".projects`,
+        { type: QueryTypes.SELECT }
+      ) as { count: string }[];
+      const totalProjects = parseInt(totalProjectsQuery[0]?.count || '1');
+
+      vendorCoverage = totalProjects > 0 ? Math.min(100, (projectsWithVendors / totalProjects) * 100) : 0;
+    } catch (error) {
+      // Fallback: coverage based on having vendor assessments at all
+      vendorCoverage = totalVendors > 0 ? Math.min(100, (assessedVendors / Math.max(1, totalVendors)) * 100) : 0;
+    }
 
     return {
       totalVendors,

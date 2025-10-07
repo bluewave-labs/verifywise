@@ -38,34 +38,26 @@ module.exports = {
 
     try {
       /**
-       * OUTBOX EVENTS TABLE
-       *
-       * Core table for storing database change events that need to be processed
-       * by downstream systems (primarily FlowGram for workflow automation).
-       *
-       * **Event Lifecycle:**
-       * 1. Database change triggers → create_outbox_event() function
-       * 2. Event inserted with processed_at = NULL
-       * 3. Event processor claims events using SKIP LOCKED
-       * 4. Processing succeeds → processed_at = NOW()
-       * 5. Processing fails → attempts++, available_at = future time
-       * 6. Max attempts reached → moved to dead letter queue
-       *
-       * **FlowGram Integration:**
-       * - Poll for events WHERE processed_at IS NULL
-       * - Process workflows based on event_type and payload
-       * - Mark as processed or let retry logic handle failures
+       * STEP 1: Get all existing tenant schemas
+       * Query organizations table to identify all tenant schemas
        */
-      await queryInterface.createTable('outbox_events', {
+      const organizations = await queryInterface.sequelize.query(`
+        SELECT id FROM organizations;
+      `, { transaction });
+
+      const { getTenantHash } = require("../../dist/tools/getTenantHash");
+
+      /**
+       * OUTBOX EVENTS TABLE SCHEMA
+       *
+       * This table will be created in each tenant schema for proper isolation.
+       * Note: No 'tenant' field needed - schema isolation provides that.
+       */
+      const tableSchema = {
         id: {
           type: Sequelize.BIGINT,
           autoIncrement: true,
           primaryKey: true,
-        },
-        tenant: {
-          type: Sequelize.STRING(50),
-          allowNull: false,
-          comment: 'Tenant identifier for multi-tenant isolation'
         },
         event_type: {
           type: Sequelize.STRING(100),
@@ -125,46 +117,67 @@ module.exports = {
           allowNull: true,
           comment: 'When this event was successfully processed'
         },
-      }, { transaction });
+      };
 
       /**
-       * PERFORMANCE INDEXES
+       * STEP 2: Create outbox_events table in each tenant schema
+       */
+      for (const org of organizations[0]) {
+        const tenantHash = getTenantHash(org.id);
+
+        console.log(`Creating outbox_events table in tenant schema: ${tenantHash}`);
+
+        await queryInterface.sequelize.query(`
+          CREATE TABLE IF NOT EXISTS "${tenantHash}".outbox_events (
+            id BIGSERIAL PRIMARY KEY,
+            event_type VARCHAR(100) NOT NULL,
+            aggregate_id VARCHAR(100) NOT NULL,
+            aggregate_type VARCHAR(50) NOT NULL,
+            payload JSONB NOT NULL,
+            dedupe_key VARCHAR(200) UNIQUE,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            max_attempts INTEGER NOT NULL DEFAULT 3,
+            available_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            processed_at TIMESTAMP
+          );
+        `, { transaction });
+      }
+
+      /**
+       * STEP 3: Create performance indexes for each tenant schema
        *
        * Optimized for the following query patterns:
-       * 1. FlowGram polling: WHERE tenant = ? AND processed_at IS NULL ORDER BY available_at
+       * 1. FlowGram polling: WHERE processed_at IS NULL ORDER BY available_at
        * 2. Event monitoring: WHERE event_type = ? AND aggregate_type = ?
        * 3. Cleanup operations: WHERE created_at < ? AND processed_at IS NOT NULL
        * 4. Failure analysis: WHERE attempts >= max_attempts AND processed_at IS NULL
        */
-      await queryInterface.addIndex('outbox_events', {
-        fields: ['tenant', 'available_at'],
-        where: {
-          processed_at: null
-        },
-        name: 'idx_outbox_tenant_available_unprocessed',
-        transaction
-      });
+      for (const org of organizations[0]) {
+        const tenantHash = getTenantHash(org.id);
 
-      await queryInterface.addIndex('outbox_events', {
-        fields: ['event_type', 'aggregate_type'],
-        name: 'idx_outbox_event_aggregate_type',
-        transaction
-      });
+        await queryInterface.sequelize.query(`
+          CREATE INDEX IF NOT EXISTS idx_outbox_available_unprocessed
+          ON "${tenantHash}".outbox_events (available_at)
+          WHERE processed_at IS NULL;
+        `, { transaction });
 
-      await queryInterface.addIndex('outbox_events', {
-        fields: ['created_at'],
-        name: 'idx_outbox_created_at_cleanup',
-        transaction
-      });
+        await queryInterface.sequelize.query(`
+          CREATE INDEX IF NOT EXISTS idx_outbox_event_aggregate_type
+          ON "${tenantHash}".outbox_events (event_type, aggregate_type);
+        `, { transaction });
 
-      await queryInterface.addIndex('outbox_events', {
-        fields: ['attempts', 'max_attempts'],
-        where: {
-          processed_at: null
-        },
-        name: 'idx_outbox_failed_events',
-        transaction
-      });
+        await queryInterface.sequelize.query(`
+          CREATE INDEX IF NOT EXISTS idx_outbox_created_at_cleanup
+          ON "${tenantHash}".outbox_events (created_at);
+        `, { transaction });
+
+        await queryInterface.sequelize.query(`
+          CREATE INDEX IF NOT EXISTS idx_outbox_failed_events
+          ON "${tenantHash}".outbox_events (attempts, max_attempts)
+          WHERE processed_at IS NULL;
+        `, { transaction });
+      }
 
       /**
        * OUTBOX EVENT TRIGGER FUNCTION
@@ -188,6 +201,9 @@ module.exports = {
        * - changed_fields helps identify specific triggers (e.g., status changes)
        * - Tenant isolation ensures workflows only see relevant events
        */
+      /**
+       * STEP 4: Create trigger function that inserts into tenant-specific table
+       */
       await queryInterface.sequelize.query(`
         CREATE OR REPLACE FUNCTION create_outbox_event()
         RETURNS TRIGGER AS $$
@@ -208,8 +224,8 @@ module.exports = {
             -- Build event type name
             event_type_name := TG_TABLE_NAME || '_' || lower(TG_OP);
 
-            -- Build dedupe key: tenant:table:id:operation:data_hash
-            dedupe_key := tenant_name || ':' || TG_TABLE_NAME || ':' ||
+            -- Build dedupe key: table:id:operation:data_hash (no tenant needed, schema provides isolation)
+            dedupe_key := TG_TABLE_NAME || ':' ||
                           COALESCE(NEW.id::text, OLD.id::text) || ':' || TG_OP || ':' ||
                           md5(COALESCE(row_to_json(NEW)::text, '') || COALESCE(row_to_json(OLD)::text, ''));
 
@@ -218,7 +234,6 @@ module.exports = {
                 'operation', TG_OP,
                 'table', TG_TABLE_NAME,
                 'timestamp', NOW(),
-                'schema', tenant_name,
                 'old_data', CASE WHEN TG_OP != 'INSERT' THEN row_to_json(OLD) ELSE NULL END,
                 'new_data', CASE WHEN TG_OP != 'DELETE' THEN row_to_json(NEW) ELSE NULL END,
                 'changed_fields', CASE
@@ -231,22 +246,13 @@ module.exports = {
                 END
             );
 
-            -- Insert to outbox with conflict handling for deduplication
-            INSERT INTO public.outbox_events (
-                tenant,
-                event_type,
-                aggregate_id,
-                aggregate_type,
-                payload,
-                dedupe_key
-            ) VALUES (
-                tenant_name,
-                event_type_name,
-                COALESCE(NEW.id::text, OLD.id::text),
-                TG_TABLE_NAME,
-                event_payload,
-                dedupe_key
-            ) ON CONFLICT (dedupe_key) DO NOTHING;
+            -- Insert to outbox in the current (tenant) schema
+            EXECUTE format(
+                'INSERT INTO %I.outbox_events (event_type, aggregate_id, aggregate_type, payload, dedupe_key)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (dedupe_key) DO NOTHING',
+                tenant_name
+            ) USING event_type_name, COALESCE(NEW.id::text, OLD.id::text), TG_TABLE_NAME, event_payload, dedupe_key;
 
             -- Wake up the event processors
             PERFORM pg_notify('outbox_wakeup', tenant_name || ':' || event_type_name);
@@ -275,8 +281,23 @@ module.exports = {
         DROP FUNCTION IF EXISTS create_outbox_event() CASCADE;
       `, { transaction });
 
-      // Drop the table (indexes will be dropped automatically)
-      await queryInterface.dropTable('outbox_events', { transaction });
+      // Get all tenant schemas
+      const organizations = await queryInterface.sequelize.query(`
+        SELECT id FROM organizations;
+      `, { transaction });
+
+      const { getTenantHash } = require("../../dist/tools/getTenantHash");
+
+      // Drop the table from each tenant schema (indexes will be dropped automatically)
+      for (const org of organizations[0]) {
+        const tenantHash = getTenantHash(org.id);
+
+        await queryInterface.sequelize.query(`
+          DROP TABLE IF EXISTS "${tenantHash}".outbox_events CASCADE;
+        `, { transaction });
+
+        console.log(`Dropped outbox_events from schema: ${tenantHash}`);
+      }
 
       await transaction.commit();
       console.log('✅ Outbox events infrastructure removed successfully');

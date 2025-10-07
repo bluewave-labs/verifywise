@@ -11,12 +11,7 @@ export async function getDashboardData(req: Request, res: Response) {
   });
 
   try {
-    const dashboard = await getDashboardDataQuery(
-      req.tenantId!,
-      req.userId!,
-      req.role!,
-      req.organizationId
-    );
+    const dashboard = await getDashboardDataQuery(req.tenantId!, req.userId!, req.role!);
 
     await logSuccess({
       eventType: "Read",

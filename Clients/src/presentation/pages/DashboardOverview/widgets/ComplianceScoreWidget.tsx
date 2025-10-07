@@ -24,7 +24,7 @@ const ComplianceScoreWidget: React.FC<ComplianceScoreWidgetProps> = ({ data }) =
     );
   }
 
-  const { score, trend, trendValue, lastCalculated, moduleBreakdown, drillDownUrl } = data;
+  const { score, trend, trendValue, lastCalculated, moduleBreakdown } = data;
 
   // Determine score color based on value - optimized for dark background
   const getScoreColor = (score: number) => {

@@ -1,17 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-
-interface ButtonToggleOption {
-  value: string;
-  label: string;
-}
-
-interface ButtonToggleProps {
-  options: ButtonToggleOption[];
-  value: string;
-  onChange: (value: string) => void;
-  height?: number;
-}
+import { IButtonToggleProps } from "../../../domain/interfaces/i.button";
 
 const frameworkTabsContainerStyle = (height: number) => ({
   display: "flex",
@@ -43,7 +32,7 @@ const getFrameworkTabStyle = (isActive: boolean, isLast: boolean) => ({
   minWidth: "120px",
 });
 
-const ButtonToggle: React.FC<ButtonToggleProps> = ({
+const ButtonToggle: React.FC<IButtonToggleProps> = ({
   options,
   value,
   onChange,
@@ -55,7 +44,10 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
         <Box
           key={option.value}
           onClick={() => onChange(option.value)}
-          sx={getFrameworkTabStyle(value === option.value, index === options.length - 1)}
+          sx={getFrameworkTabStyle(
+            value === option.value,
+            index === options.length - 1
+          )}
         >
           {option.label}
         </Box>

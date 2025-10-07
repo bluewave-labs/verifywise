@@ -13,6 +13,7 @@ import React, { memo, useCallback } from "react";
 import { Button, CircularProgress, Box } from "@mui/material";
 import { ButtonProps, SxProps, Theme } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { ICustomizableButtonProps } from "../../../../domain/interfaces/i.button";
 
 /**
  * CustomizableButton component
@@ -99,7 +100,7 @@ export interface CustomizableButtonProps {
  * CustomizableButton component implementation
  */
 const CustomizableButton = memo(
-  React.forwardRef<HTMLButtonElement, CustomizableButtonProps>(
+  React.forwardRef<HTMLButtonElement, ICustomizableButtonProps>(
     (
       {
         variant = "contained",

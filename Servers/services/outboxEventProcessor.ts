@@ -46,8 +46,8 @@ interface OutboxEvent {
   /** Unique event identifier */
   id: string;
 
-  /** Tenant hash for multi-tenant isolation (e.g., 'a4ayc80OGd') */
-  tenant: string;
+  /** Tenant schema name where the event is stored */
+  tenant_schema: string;
 
   /** Event type indicating the operation (e.g., 'vendors_update', 'projectrisks_update') */
   event_type: string;
@@ -68,9 +68,6 @@ interface OutboxEvent {
 
     /** Event timestamp */
     timestamp: string;
-
-    /** Tenant schema name */
-    schema: string;
 
     /** Previous data state (for UPDATE and DELETE operations) */
     old_data?: Record<string, any>;
@@ -294,21 +291,55 @@ export class OutboxEventProcessor {
   }
 
   /**
-   * Process available events from the outbox
+   * Get all tenant schemas that have outbox_events tables
+   */
+  private async getTenantSchemas(client: PoolClient): Promise<string[]> {
+    const result = await client.query(`
+      SELECT schema_name
+      FROM information_schema.schemata
+      WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'public')
+        AND EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_schema = schema_name
+          AND table_name = 'outbox_events'
+        )
+      ORDER BY schema_name
+    `);
+    return result.rows.map(row => row.schema_name);
+  }
+
+  /**
+   * Process available events from the outbox across all tenant schemas
    */
   private async processAvailableEvents(): Promise<void> {
     if (!this.isRunning) return;
 
     const client = await this.pool.connect();
     try {
-      // Get unprocessed events using FOR UPDATE SKIP LOCKED for concurrency safety
-      const query = `
-        SELECT id, tenant, event_type, aggregate_id, aggregate_type, payload,
-               attempts, max_attempts, created_at, processed_at, available_at
-        FROM outbox_events
+      // Get all tenant schemas
+      const tenantSchemas = await this.getTenantSchemas(client);
+
+      if (tenantSchemas.length === 0) {
+        return; // No tenant schemas with outbox tables
+      }
+
+      // Build UNION ALL query to get events from all tenant schemas
+      const unionQueries = tenantSchemas.map(schema => `
+        SELECT
+          '${schema}'::text as tenant_schema,
+          id, event_type, aggregate_id, aggregate_type, payload,
+          attempts, max_attempts, created_at, processed_at, available_at
+        FROM "${schema}".outbox_events
         WHERE processed_at IS NULL
           AND attempts < max_attempts
           AND available_at <= NOW()
+      `);
+
+      const query = `
+        WITH all_events AS (
+          ${unionQueries.join(' UNION ALL ')}
+        )
+        SELECT * FROM all_events
         ORDER BY created_at ASC
         LIMIT $1
         FOR UPDATE SKIP LOCKED
@@ -321,7 +352,7 @@ export class OutboxEventProcessor {
         return; // No events to process
       }
 
-      console.log(`📋 Processing ${events.length} events...`);
+      console.log(`📋 Processing ${events.length} events across ${tenantSchemas.length} tenant(s)...`);
 
       // Process each event
       for (const event of events) {
@@ -344,7 +375,7 @@ export class OutboxEventProcessor {
    * Process a single event (pure logging - no side effects)
    */
   private async processEvent(event: OutboxEvent, client: PoolClient): Promise<void> {
-    console.log(`📦 Processing event: ${event.event_type} for ${event.aggregate_type}:${event.aggregate_id} (tenant: ${event.tenant})`);
+    console.log(`📦 Processing event: ${event.event_type} for ${event.aggregate_type}:${event.aggregate_id} (schema: ${event.tenant_schema})`);
 
     // Log event based on type for external system consumption
     switch (event.event_type) {
@@ -367,9 +398,9 @@ export class OutboxEventProcessor {
         this.logGenericEvent(event);
     }
 
-    // Mark event as processed
+    // Mark event as processed in the appropriate tenant schema
     await client.query(
-      'UPDATE outbox_events SET processed_at = NOW() WHERE id = $1',
+      `UPDATE "${event.tenant_schema}".outbox_events SET processed_at = NOW() WHERE id = $1`,
       [event.id]
     );
 
@@ -388,7 +419,7 @@ export class OutboxEventProcessor {
     const availableAt = new Date(Date.now() + delayMinutes * 60 * 1000);
 
     await client.query(`
-      UPDATE outbox_events
+      UPDATE "${event.tenant_schema}".outbox_events
       SET attempts = $1, available_at = $2
       WHERE id = $3
     `, [newAttempts, availableAt, event.id]);
@@ -408,7 +439,7 @@ export class OutboxEventProcessor {
 
     console.log(`📝 New vendor created: ${new_data?.vendor_name} (ID: ${event.aggregate_id})`);
     console.log(`📊 Event available for external workflow processing`);
-    console.log(`🏢 Tenant: ${event.tenant}, Created by: ${new_data?.created_by || 'Unknown'}`);
+    console.log(`🏢 Schema: ${event.tenant_schema}, Created by: ${new_data?.created_by || 'Unknown'}`);
   }
 
   /**
@@ -426,7 +457,7 @@ export class OutboxEventProcessor {
     }
 
     console.log(`📊 Event available for external workflow processing`);
-    console.log(`🏢 Tenant: ${event.tenant}, Vendor: ${new_data?.vendor_name}`);
+    console.log(`🏢 Schema: ${event.tenant_schema}, Vendor: ${new_data?.vendor_name}`);
   }
 
   /**
@@ -444,7 +475,7 @@ export class OutboxEventProcessor {
     }
 
     console.log(`📊 Event available for external workflow processing`);
-    console.log(`🏢 Tenant: ${event.tenant}`);
+    console.log(`🏢 Schema: ${event.tenant_schema}`);
   }
 
   /**
@@ -458,7 +489,7 @@ export class OutboxEventProcessor {
     }
 
     console.log(`📊 Event available for external workflow processing`);
-    console.log(`🏢 Tenant: ${event.tenant}`);
+    console.log(`🏢 Schema: ${event.tenant_schema}`);
   }
 
   /**
@@ -472,7 +503,7 @@ export class OutboxEventProcessor {
     }
 
     console.log(`📊 Event available for external workflow processing`);
-    console.log(`🏢 Tenant: ${event.tenant}`);
+    console.log(`🏢 Schema: ${event.tenant_schema}`);
   }
 
   /**
@@ -481,6 +512,6 @@ export class OutboxEventProcessor {
   private logGenericEvent(event: OutboxEvent): void {
     console.log(`📋 Generic event: ${event.event_type} for ${event.aggregate_type}:${event.aggregate_id}`);
     console.log(`📊 Event available for external workflow processing`);
-    console.log(`🏢 Tenant: ${event.tenant}`);
+    console.log(`🏢 Schema: ${event.tenant_schema}`);
   }
 }

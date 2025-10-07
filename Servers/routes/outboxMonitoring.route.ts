@@ -222,12 +222,12 @@ router.get("/events", authenticateJWT, validateOutboxEventsQuery, async (req: an
       ? (order_dir as string).toUpperCase()
       : 'DESC';
 
-    // Build WHERE conditions - ALWAYS filter by authenticated user's tenant
-    const conditions: string[] = ['oe.tenant = :tenant'];
+    // Build WHERE conditions - tenant isolation via schema
+    const conditions: string[] = [];
     const replacements: any = {
       limit: limitNum,
       offset: offsetNum,
-      tenant: userTenant // Force tenant to be the authenticated user's tenant
+      tenantSchema: userTenant // Force tenant schema to be the authenticated user's tenant
     };
 
     if (event_type) {
@@ -254,7 +254,7 @@ router.get("/events", authenticateJWT, validateOutboxEventsQuery, async (req: an
     // Exclude acknowledged events filter (user-specific)
     if (exclude_acknowledged === 'true' && userId) {
       conditions.push(`oe.id NOT IN (
-        SELECT event_id FROM event_acknowledgments
+        SELECT event_id FROM "${userTenant}".event_acknowledgments
         WHERE user_id = :userId AND status IN ('processed', 'skipped')
       )`);
       replacements.userId = userId;
@@ -263,17 +263,17 @@ router.get("/events", authenticateJWT, validateOutboxEventsQuery, async (req: an
     const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
     const orderClause = `ORDER BY oe.${orderBy} ${orderDir}`;
 
-    // Get events
+    // Get events from tenant-specific schema
     const eventsQuery = `
       SELECT
-        oe.id, oe.tenant, oe.event_type, oe.aggregate_id, oe.aggregate_type, oe.payload,
+        oe.id, oe.event_type, oe.aggregate_id, oe.aggregate_type, oe.payload,
         oe.attempts, oe.max_attempts, oe.available_at, oe.created_at, oe.processed_at,
         CASE
           WHEN oe.processed_at IS NOT NULL THEN 'processed'
           WHEN oe.attempts >= oe.max_attempts THEN 'failed'
           ELSE 'pending'
         END as status
-      FROM outbox_events oe
+      FROM "${userTenant}".outbox_events oe
       ${whereClause}
       ${orderClause}
       LIMIT :limit OFFSET :offset
@@ -282,7 +282,7 @@ router.get("/events", authenticateJWT, validateOutboxEventsQuery, async (req: an
     // Get total count
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM outbox_events oe
+      FROM "${userTenant}".outbox_events oe
       ${whereClause}
     `;
 
@@ -406,13 +406,13 @@ router.patch("/events/:id/acknowledge", authenticateJWT, sanitizeRequestBody(), 
       });
     }
 
-    // Verify event exists and belongs to user's tenant
+    // Verify event exists in user's tenant schema
     const eventCheck = await sequelize.query(`
-      SELECT id, tenant, event_type, aggregate_id
-      FROM outbox_events
-      WHERE id = :eventId AND tenant = :tenant
+      SELECT id, event_type, aggregate_id
+      FROM "${userTenant}".outbox_events
+      WHERE id = :eventId
     `, {
-      replacements: { eventId, tenant: userTenant },
+      replacements: { eventId },
       type: QueryTypes.SELECT
     });
 
@@ -428,7 +428,7 @@ router.patch("/events/:id/acknowledge", authenticateJWT, sanitizeRequestBody(), 
     // Check if user has already acknowledged this event
     const existingAck = await sequelize.query(`
       SELECT id, status, processed_at
-      FROM event_acknowledgments
+      FROM "${userTenant}".event_acknowledgments
       WHERE event_id = :eventId AND user_id = :userId
     `, {
       replacements: { eventId, userId },
@@ -447,17 +447,16 @@ router.patch("/events/:id/acknowledge", authenticateJWT, sanitizeRequestBody(), 
       });
     }
 
-    // Create acknowledgment record
+    // Create acknowledgment record in tenant schema
     const acknowledgmentResult = await sequelize.query(`
-      INSERT INTO event_acknowledgments
-      (event_id, user_id, tenant, processor, status, metadata, processed_at)
-      VALUES (:eventId, :userId, :tenant, :processor, :status, :metadata, NOW())
+      INSERT INTO "${userTenant}".event_acknowledgments
+      (event_id, user_id, processor, status, metadata, processed_at)
+      VALUES (:eventId, :userId, :processor, :status, :metadata, NOW())
       RETURNING id, processed_at
     `, {
       replacements: {
         eventId,
         userId,
-        tenant: userTenant,
         processor,
         status,
         metadata: metadata ? JSON.stringify(metadata) : null

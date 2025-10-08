@@ -16,7 +16,7 @@ import { Project } from "../../../domain/types/Project";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 
 interface ProjectTableViewProps {
   projects: Project[];

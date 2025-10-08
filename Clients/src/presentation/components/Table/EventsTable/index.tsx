@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";

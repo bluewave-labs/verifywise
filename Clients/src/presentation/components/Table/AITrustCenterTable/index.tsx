@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 
 const DEFAULT_ROWS_PER_PAGE = 5;

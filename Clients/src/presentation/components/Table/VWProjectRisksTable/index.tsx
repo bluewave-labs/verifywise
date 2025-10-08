@@ -13,7 +13,7 @@ import {
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import VWProjectRisksTableHead from "./VWProjectRisksTableHead";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";

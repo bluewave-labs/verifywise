@@ -1,6 +1,6 @@
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import { singleTheme } from "../../../themes";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import {
   Box,
   Stack,

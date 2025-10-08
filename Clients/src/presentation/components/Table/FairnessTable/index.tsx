@@ -13,7 +13,7 @@ import {
   import TablePaginationActions from "../../TablePagination";
   import TableHeader from "../TableHead";
   import placeholderImage from "../../../assets/imgs/empty-state.svg";
-  import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg';
+  import { ChevronsUpDown as SelectorVertical } from 'lucide-react';
   import {
     styles,
     paginationStatus,

@@ -19,7 +19,7 @@ import CustomizableButton from "../../Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import VendorRisksDialog from "../../VendorRisksDialog";
 import { VendorDetails } from "../../../pages/Vendors";
 import { User } from "../../../../domain/types/User";

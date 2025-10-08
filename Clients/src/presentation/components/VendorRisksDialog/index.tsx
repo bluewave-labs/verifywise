@@ -33,7 +33,7 @@ import {
 } from "../Table/styles";
 import placeholderImage from '../../assets/imgs/empty-state.svg';
 import TablePaginationActions from "../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 
 interface VendorRisk {
   id: number;

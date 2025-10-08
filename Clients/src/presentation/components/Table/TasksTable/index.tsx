@@ -17,7 +17,7 @@ import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import { ITask } from "../../../../domain/interfaces/i.task";
 import { User } from "../../../../domain/types/User";
 import CustomSelect from "../../CustomSelect";

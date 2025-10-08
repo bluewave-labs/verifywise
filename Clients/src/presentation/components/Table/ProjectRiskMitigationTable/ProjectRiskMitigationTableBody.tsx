@@ -10,7 +10,7 @@ import { ProjectRiskMitigation } from "../../../../domain/types/ProjectRisk";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useState } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import {
   paginationDropdown,
   paginationSelect,

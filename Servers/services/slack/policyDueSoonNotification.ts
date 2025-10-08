@@ -10,8 +10,9 @@ import { getTenantHash } from "../../tools/getTenantHash";
 import { sendSlackNotification } from "./slackNotificationService";
 import { SlackNotificationRoutingType } from "../../domain.layer/enums/slack.enum";
 import logger from "../../utils/logger/fileLogger";
+import { getAllUsersQuery } from "../../utils/user.utils";
 
-export const sendPolicyDueSoonNotification = async (): Promise<void> => {
+export const sendPolicyDueSoonNotification = async (): Promise<number> => {
   const functionName = "sendPolicyDueSoonNotification";
   const fileName = "policyDueSoonNotification.ts";
   logProcessing({
@@ -31,7 +32,7 @@ export const sendPolicyDueSoonNotification = async (): Promise<void> => {
         functionName,
         fileName,
       });
-      return;
+      return 0;
     }
 
     let totalPoliciesProcessed = 0;
@@ -40,6 +41,8 @@ export const sendPolicyDueSoonNotification = async (): Promise<void> => {
     for (const organization of organizations) {
       const organizationId = organization.id!;
       const tenantId = getTenantHash(organizationId);
+      const users = await getAllUsersQuery(organizationId);
+      const admins = users.filter((user) => user.role_id === 1);
 
       try {
         // Get all policies due soon for this tenant
@@ -86,6 +89,7 @@ export const sendPolicyDueSoonNotification = async (): Promise<void> => {
                     },
                     message,
                   );
+                  return userToNotify;
                 } catch (notificationError) {
                   // Log but don't stop processing other notifications
                   logger.error(
@@ -94,6 +98,7 @@ export const sendPolicyDueSoonNotification = async (): Promise<void> => {
                   );
                 }
               }
+              return userToNotify;
             } catch (policyError) {
               logger.error(
                 `Error processing policy ${policy.id} in organization ${organizationId}:`,
@@ -102,6 +107,7 @@ export const sendPolicyDueSoonNotification = async (): Promise<void> => {
             }
           }
         }
+        return admins[0].id || 0;
       } catch (orgError) {
         logger.error(
           `Error processing organization ${organizationId}:`,
@@ -126,4 +132,5 @@ export const sendPolicyDueSoonNotification = async (): Promise<void> => {
     });
     throw error;
   }
+  return 0;
 };

@@ -1,4 +1,5 @@
 import { Queue } from "bullmq";
+import logger from "../../utils/logger/fileLogger";
 
 // Create a new queue (connected to Redis using environment variable)
 export const notificationQueue = new Queue("slack-notifications", {
@@ -10,6 +11,7 @@ export const notificationQueue = new Queue("slack-notifications", {
 
 export async function scheduleDailyNotification() {
   await notificationQueue.obliterate();
+  logger.info("Adding Slack notification jobs to the queue...");
 
   // Policy Due Soon Slack Notification Every day at 9 am
   await notificationQueue.add(

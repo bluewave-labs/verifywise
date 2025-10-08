@@ -1,5 +1,6 @@
 import { Worker } from "bullmq";
 import { createNotificationWorker } from "../services/slack/slackWorker";
+import logger from "../utils/logger/fileLogger";
 
 const notificationWorker = createNotificationWorker();
 
@@ -9,16 +10,16 @@ const workers: Worker[] = [notificationWorker];
 // Global error handler for all workers
 workers.forEach((worker) => {
   worker.on("error", (err) => {
-    console.error(`Worker error on queue ${worker.name}:`, err);
+    logger.debug(`Worker error on queue ${worker.name}:`, err);
   });
 });
 
-console.log("All workers started and waiting for jobs...");
+logger.debug("All workers started and waiting for jobs...");
 
 // Graceful shutdown
 process.on("SIGINT", async () => {
-  console.log("Shutting down all workers...");
+  logger.debug("Shutting down all workers...");
   await Promise.all(workers.map((worker) => worker.close()));
-  console.log("All workers shut down successfully");
+  logger.debug("All workers shut down successfully");
   process.exit(0);
 });

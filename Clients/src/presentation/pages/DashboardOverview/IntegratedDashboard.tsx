@@ -15,10 +15,11 @@ import {
   useTheme,
 } from "@mui/material";
 import {
-  GripVertical as DragIcon,
-  RotateCcw as ResetIcon,
-  Lock as LockIcon,
-  Unlock as LockOpenIcon,
+  GripVertical,
+  RefreshCw,
+  Lock,
+  LockOpen,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -26,7 +27,6 @@ import { useDashboard } from "../../../application/hooks/useDashboard";
 import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetrics";
 import { cardStyles } from "../../themes";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ChevronRight as RightArrow } from "lucide-react";
 import StatusDonutChart from "../../components/Charts/StatusDonutChart";
 import { getDefaultStatusDistribution } from "../../utils/statusColors";
 import {
@@ -186,7 +186,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                 transition: "opacity 0.2s ease",
               }}
             >
-              <RightArrow size={16} />
+              <ChevronRight size={20} />
             </Box>
           )}
         </Box>
@@ -1126,13 +1126,13 @@ const IntegratedDashboard: React.FC = () => {
               size="medium"
             >
               {editMode ? (
-                <LockOpenIcon
+                <LockOpen
                   size={20}
                   color="#344054"
                   strokeWidth={1.5}
                 />
               ) : (
-                <LockIcon
+                <Lock
                   size={20}
                   color="#344054"
                   strokeWidth={1.5}
@@ -1143,7 +1143,7 @@ const IntegratedDashboard: React.FC = () => {
           {editMode && (
             <Tooltip title="Reset Layout">
               <IconButton onClick={resetLayout} size="small">
-                <ResetIcon size={16} />
+                <RefreshCw size={20} />
               </IconButton>
             </Tooltip>
           )}
@@ -1374,7 +1374,7 @@ const IntegratedDashboard: React.FC = () => {
                   },
                 }}
                 avatar={
-                  <DragIcon
+                  <GripVertical
                     size={16}
                     color={alpha(theme.palette.text.secondary, 0.6)}
                   />

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useState, useMemo, useCallback, useEffect } from "react";
 import {
   useTheme,
@@ -125,7 +126,18 @@ const NewTraining: FC<NewTrainingProps> = ({
 
     if (!values.duration || !String(values.duration).trim()) {
       newErrors.duration = "Duration is required.";
-    }
+    } else {
+      // Each part must be "<number> <unit>"
+      const durationPattern = /^\d+\s*(hour|hours|day|days|week|weeks|month|months|minute|minutes|h|hr|hrs|d|w|m)$/i;
+    
+      const parts = values.duration.split(",").map(p => p.trim());
+      const invalidParts = parts.filter(part => !durationPattern.test(part));
+    
+      if (invalidParts.length > 0) {
+        newErrors.duration =
+          "Invalid duration format. Use formats like '2 hours, 3 days, 4 weeks'.";
+      }
+    } 
 
     if (!values.provider || !String(values.provider).trim()) {
       newErrors.provider = "Provider is required.";

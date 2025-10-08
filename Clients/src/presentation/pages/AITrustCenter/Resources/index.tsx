@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, Suspense } from "react";
 import {
   Box,
@@ -344,6 +345,14 @@ const TrustCenterResources: React.FC = () => {
       setAddResourceError("Please fill in all fields and upload a file");
       return;
     }
+  
+    // Check if description is at least 10 characters
+    if (newResource.description.length < 10) {
+      setAddResourceError("Description must be at least 10 characters long");
+      return;
+    }
+    // Proceed with adding the resource
+    setAddResourceError(""); 
 
     try {
       await createResourceMutation.mutateAsync({
@@ -369,11 +378,20 @@ const TrustCenterResources: React.FC = () => {
     if (
       !formData?.info?.resources_visible ||
       !editResource.name ||
-      !editResource.description
+      !editResource.description 
     ) {
-      setEditResourceError("Please fill in all required fields");
+      setEditResourceError("Please fill in all fields and upload a file");
       return;
     }
+  
+    // Check if description is at least 10 characters
+    if (editResource.description.length < 10) {
+      setEditResourceError("Description must be at least 10 characters long");
+      return;
+    }
+  
+    // Proceed with adding the resource
+    setEditResourceError(""); 
 
     try {
       // Pass the old file ID only when a new file is being uploaded

@@ -17,7 +17,7 @@ import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-
 import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
 import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
 import {ReactComponent as EditIconGrey} from "../../assets/icons/edit.svg";
-import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
+import { ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -643,7 +643,7 @@ const Framework = () => {
             <>
               <Button
                 variant="contained"
-                endIcon={<WhiteDownArrowIcon />}
+                endIcon={<WhiteDownArrowIcon size={16} />}
                 onClick={(event) => {
                   setRotated((prev) => !prev);
                   handleManageProjectClick(event);

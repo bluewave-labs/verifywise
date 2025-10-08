@@ -5,7 +5,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Tab from "@mui/material/Tab";
-import {ReactComponent as VisibilityIcon} from "../../assets/icons/visibility-white.svg"
+import { Eye as VisibilityIcon } from "lucide-react";
 import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
 import AITrustCenterSettings from "./Settings";
@@ -141,7 +141,7 @@ const AITrustCenter: React.FC = () => {
                   opacity: !tenantHash ? 0.5 : 1,
                   cursor: !tenantHash ? "not-allowed" : "pointer",
                 }}
-                icon={<VisibilityIcon />}
+                icon={<VisibilityIcon size={20} />}
                 onClick={handlePreviewMode}
                 isDisabled={!tenantHash}
               />

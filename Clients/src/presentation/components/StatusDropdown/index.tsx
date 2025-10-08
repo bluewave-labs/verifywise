@@ -21,7 +21,7 @@ import {
   useTheme,
   SelectChangeEvent,
 } from "@mui/material";
-import { ReactComponent as WhiteDownArrowIcon  } from "../../assets/icons/chevron-down-white.svg";
+import { ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { getStatusColor } from "../../pages/ISO/style";
 
 interface StatusDropdownProps {

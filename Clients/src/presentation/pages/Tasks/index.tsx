@@ -13,8 +13,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
 import { SearchBox } from "../../components/Search";
-import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
-import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
+import { Filter as FilterIcon, XCircle as ClearIcon } from "lucide-react";
 import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
 import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.svg";
 import TasksTable from "../../components/Table/TasksTable";
@@ -475,7 +474,8 @@ const Tasks: React.FC = () => {
           >
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <FilterIcon
-                style={{ color: "#13715B", width: "20px", height: "20px" }}
+                style={{ color: "#13715B" }}
+                size={20}
               />
               <Typography
                 variant="subtitle2"
@@ -506,7 +506,7 @@ const Tasks: React.FC = () => {
               {activeFilterCount > 0 && (
                 <Button
                   size="small"
-                  startIcon={<ClearIcon />}
+                  startIcon={<ClearIcon size={16} />}
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     clearAllFilters();

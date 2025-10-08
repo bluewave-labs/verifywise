@@ -17,14 +17,14 @@ import {
 } from '@mui/material';
 import {
   Edit as EditIcon,
-  Visibility as ViewIcon,
-  DragIndicator as DragIcon,
+  Eye as ViewIcon,
+  GripVertical as DragIcon,
   Settings as SettingsIcon,
-  Refresh as RefreshIcon,
+  RefreshCw as RefreshIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
-  RestartAlt as ResetIcon,
-} from '@mui/icons-material';
+  RotateCcw as ResetIcon,
+} from 'lucide-react';
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
 import { DashboardProvider, useDashboardContext } from './contexts/DashboardContext';
 import { MetricsWidget, ProjectsWidget, RisksWidget } from './widgets';
@@ -231,14 +231,14 @@ const DashboardContent: React.FC = () => {
           {/* Refresh Button */}
           <Tooltip title="Refresh all widgets">
             <IconButton onClick={() => actions.refreshAllWidgets()}>
-              <RefreshIcon />
+              <RefreshIcon size={20} />
             </IconButton>
           </Tooltip>
 
           {/* Settings Menu */}
           <Tooltip title="Dashboard settings">
             <IconButton onClick={handleSettingsClick}>
-              <SettingsIcon />
+              <SettingsIcon size={20} />
             </IconButton>
           </Tooltip>
           <Menu
@@ -247,14 +247,14 @@ const DashboardContent: React.FC = () => {
             onClose={handleSettingsClose}
           >
             <MenuItem onClick={() => { actions.resetLayout(); handleSettingsClose(); }}>
-              <ResetIcon sx={{ mr: 1 }} /> Reset Layout
+              <ResetIcon size={20} style={{ marginRight: 8 }} /> Reset Layout
             </MenuItem>
             <MenuItem onClick={() => { actions.exportDashboard(); handleSettingsClose(); }}>
-              <DownloadIcon sx={{ mr: 1 }} /> Export Dashboard
+              <DownloadIcon size={20} style={{ marginRight: 8 }} /> Export Dashboard
             </MenuItem>
             <Divider />
             <MenuItem disabled>
-              <UploadIcon sx={{ mr: 1 }} /> Import Dashboard
+              <UploadIcon size={20} style={{ marginRight: 8 }} /> Import Dashboard
             </MenuItem>
           </Menu>
 
@@ -269,7 +269,7 @@ const DashboardContent: React.FC = () => {
             }
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {state.editMode ? <EditIcon /> : <ViewIcon />}
+                {state.editMode ? <EditIcon size={18} /> : <ViewIcon size={18} />}
                 <Typography>{state.editMode ? 'Edit Mode' : 'View Mode'}</Typography>
               </Box>
             }
@@ -429,9 +429,9 @@ const DashboardContent: React.FC = () => {
               avatar={
                 state.editMode && (
                   <DragIcon
-                    sx={{
+                    size={20}
+                    style={{
                       color: alpha(theme.palette.text.secondary, 0.6),
-                      fontSize: '1.2rem',
                     }}
                   />
                 )
@@ -441,7 +441,7 @@ const DashboardContent: React.FC = () => {
                 state.editMode && (
                   <Tooltip title="Widget settings">
                     <IconButton size="small" className="no-drag">
-                      <SettingsIcon fontSize="small" />
+                      <SettingsIcon size={16} />
                     </IconButton>
                   </Tooltip>
                 )

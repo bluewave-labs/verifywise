@@ -1,6 +1,6 @@
 import React from "react";
 import { IconButton } from "@mui/material";
-import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { Info as GreyCircleInfoIcon } from "lucide-react";
 
 interface HelperIconProps {
   onClick: () => void;
@@ -23,7 +23,7 @@ const HelperIcon: React.FC<HelperIconProps> = ({ onClick, size = "small" }) => {
         },
       }}
     >
-      <GreyCircleInfoIcon />
+      <GreyCircleInfoIcon size={20} />
     </IconButton>
   );
 };

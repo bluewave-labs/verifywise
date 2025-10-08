@@ -13,8 +13,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
-import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-grey.svg"
-import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-grey.svg"
+import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
 import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import Toggle from "../../../components/Inputs/Toggle";
@@ -105,13 +104,13 @@ const ResourceTableRow: React.FC<{
         {resource.visible ? (
           <Tooltip title="Click to make this resource invisible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityIcon/>
+              <VisibilityIcon size={20} />
             </Box>
           </Tooltip>
         ) : (
           <Tooltip title="Click to make this resource visible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityOffIcon/>
+              <VisibilityOffIcon size={20} />
             </Box>
           </Tooltip>
         )}

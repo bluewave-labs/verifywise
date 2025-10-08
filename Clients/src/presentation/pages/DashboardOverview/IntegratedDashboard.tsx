@@ -15,18 +15,18 @@ import {
   useTheme,
 } from "@mui/material";
 import {
-  DragIndicator as DragIcon,
-  Refresh as ResetIcon,
-  LockOutlined as LockIcon,
-  LockOpenOutlined as LockOpenIcon,
-} from "@mui/icons-material";
+  GripVertical,
+  RefreshCw,
+  Lock,
+  LockOpen,
+  ChevronRight,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
 import { useDashboard } from "../../../application/hooks/useDashboard";
 import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetrics";
 import { cardStyles } from "../../themes";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ReactComponent as RightArrow } from "../../assets/icons/right-arrow.svg";
 import StatusDonutChart from "../../components/Charts/StatusDonutChart";
 import { getDefaultStatusDistribution } from "../../utils/statusColors";
 import {
@@ -186,7 +186,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                 transition: "opacity 0.2s ease",
               }}
             >
-              <RightArrow />
+              <ChevronRight size={20} />
             </Box>
           )}
         </Box>
@@ -1126,18 +1126,16 @@ const IntegratedDashboard: React.FC = () => {
               size="medium"
             >
               {editMode ? (
-                <LockOpenIcon
-                  sx={{
-                    color: "#344054",
-                    "& path": { strokeWidth: "1.5px" },
-                  }}
+                <LockOpen
+                  size={20}
+                  color="#344054"
+                  strokeWidth={1.5}
                 />
               ) : (
-                <LockIcon
-                  sx={{
-                    color: "#344054",
-                    "& path": { strokeWidth: "1.5px" },
-                  }}
+                <Lock
+                  size={20}
+                  color="#344054"
+                  strokeWidth={1.5}
                 />
               )}
             </IconButton>
@@ -1145,7 +1143,7 @@ const IntegratedDashboard: React.FC = () => {
           {editMode && (
             <Tooltip title="Reset Layout">
               <IconButton onClick={resetLayout} size="small">
-                <ResetIcon />
+                <RefreshCw size={20} />
               </IconButton>
             </Tooltip>
           )}
@@ -1376,11 +1374,9 @@ const IntegratedDashboard: React.FC = () => {
                   },
                 }}
                 avatar={
-                  <DragIcon
-                    sx={{
-                      color: alpha(theme.palette.text.secondary, 0.6),
-                      fontSize: "1rem",
-                    }}
+                  <GripVertical
+                    size={16}
+                    color={alpha(theme.palette.text.secondary, 0.6)}
                   />
                 }
                 title={widget.title}

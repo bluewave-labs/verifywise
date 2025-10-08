@@ -11,8 +11,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
-import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
-import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.svg";
+import { ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
@@ -350,7 +349,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
             </Button>
           )}
           <IconButton size="small">
-            {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            {expanded ? <ExpandLessIcon size={16} /> : <ExpandMoreIcon size={16} />}
           </IconButton>
         </Stack>
       </Box>

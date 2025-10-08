@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import copy
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +28,9 @@ class DatasetConfig(BaseModel):
     )
     protected_attributes: List[str] = Field(
         default=[], description="List of protected attributes to check for bias"
+    )
+    legitimate_attributes: List[str] = Field(
+        default=[], description="List of legitimate (allowed) attributes for processing"
     )
     target_column: str = Field(..., description="Target column for prediction")
     sampling: SamplingConfig = Field(
@@ -130,11 +134,23 @@ class PostProcessingConfig(BaseModel):
 class ArtifactsConfig(BaseModel):
     """Configuration for on-disk artifact paths."""
 
+    reports_dir: Path = Field(
+        ..., description="Directory to save evaluation result JSON and summaries"
+    )
     inference_results_path: Path = Field(
         ..., description="Path to save raw inference results"
     )
     postprocessed_results_path: Path = Field(
         ..., description="Path to save post-processed results"
+    )
+
+
+class VisualizationItem(BaseModel):
+    """Specification for a single visualization to generate."""
+
+    type: str = Field(..., description="Plot type identifier")
+    attribute: Optional[str] = Field(
+        default=None, description="Protected attribute column for the plot"
     )
 
 
@@ -201,6 +217,10 @@ class Config(BaseModel):
     metrics: MetricsConfig
     post_processing: PostProcessingConfig
     artifacts: ArtifactsConfig
+    visualizations: List["VisualizationItem"] = Field(
+        default_factory=list,
+        description="List of visualization specifications to generate",
+    )
 
 
 class ConfigManager:
@@ -219,6 +239,7 @@ class ConfigManager:
             config_path = str(module_root / "configs" / "config.yaml")
 
         self.config_path = config_path
+        self._cfg: Dict[str, Any] = {}
         self._load_config()
 
     def _load_config(self) -> None:
@@ -232,7 +253,13 @@ class ConfigManager:
             according to the schema.
         """
         yaml_config = read_yaml(self.config_path)
+        # Store the raw parsed YAML content for hashing and snapshotting
+        self._cfg = yaml_config
         self.config = Config(**yaml_config)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return an immutable copy of the raw configuration content as a dict."""
+        return copy.deepcopy(self._cfg)
 
     def get_dataset_config(self) -> DatasetConfig:
         """Get the complete dataset configuration.
@@ -281,6 +308,10 @@ class ConfigManager:
             PromptingConfig: The prompt input and formatter configuration.
         """
         return self.config.prompting
+
+    def get_visualizations(self) -> List["VisualizationItem"]:
+        """Get visualization specifications from configuration."""
+        return self.config.visualizations
 
     def reload_config(self) -> None:
         """Reload the configuration from the YAML file."""

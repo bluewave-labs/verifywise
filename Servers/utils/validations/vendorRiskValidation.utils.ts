@@ -273,7 +273,11 @@ export const validateRiskLevelCalculation = (
     };
   }
 
-  if (providedRiskLevel !== calculatedRiskLevel) {
+  // Normalize risk levels for comparison
+  const normalizeRiskLevel = (riskLevel: string): string =>
+    riskLevel.replace(/risk/i, "").trim().toLowerCase();
+
+  if (normalizeRiskLevel(providedRiskLevel) !== normalizeRiskLevel(calculatedRiskLevel)) {
     return {
       isValid: false,
       message: `Risk level "${providedRiskLevel}" is incorrect. Expected "${calculatedRiskLevel}" for risk severity "${riskSeverity}" and likelihood "${likelihood}"`,

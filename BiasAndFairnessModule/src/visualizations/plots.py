@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, accuracy_score
 import pandas as pd
-from eval_engine.metrics import (
+from src.eval_engine.metrics import (
     equalized_odds,
     compute_group_metrics,
     conditional_statistical_parity,

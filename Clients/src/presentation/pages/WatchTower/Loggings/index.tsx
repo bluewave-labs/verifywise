@@ -81,7 +81,7 @@ const WatchTowerLogs = () => {
         <Typography
           variant="body2"
           sx={{
-            color: theme.palette.error.main,
+            color: theme.palette.error.contrastText,
             backgroundColor: theme.palette.error.light,
             padding: theme.spacing(2),
             borderRadius: theme.shape.borderRadius,

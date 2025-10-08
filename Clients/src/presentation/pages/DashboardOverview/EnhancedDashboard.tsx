@@ -247,14 +247,14 @@ const DashboardContent: React.FC = () => {
             onClose={handleSettingsClose}
           >
             <MenuItem onClick={() => { actions.resetLayout(); handleSettingsClose(); }}>
-              <ResetIcon sx={{ mr: 1 }} /> Reset Layout
+              <ResetIcon style={{ marginRight: 8 }} /> Reset Layout
             </MenuItem>
             <MenuItem onClick={() => { actions.exportDashboard(); handleSettingsClose(); }}>
-              <DownloadIcon sx={{ mr: 1 }} /> Export Dashboard
+              <DownloadIcon style={{ marginRight: 8 }} /> Export Dashboard
             </MenuItem>
             <Divider />
             <MenuItem disabled>
-              <UploadIcon sx={{ mr: 1 }} /> Import Dashboard
+              <UploadIcon style={{ marginRight: 8 }} /> Import Dashboard
             </MenuItem>
           </Menu>
 
@@ -429,7 +429,7 @@ const DashboardContent: React.FC = () => {
               avatar={
                 state.editMode && (
                   <DragIcon
-                    sx={{
+                    style={{
                       color: alpha(theme.palette.text.secondary, 0.6),
                       fontSize: '1.2rem',
                     }}

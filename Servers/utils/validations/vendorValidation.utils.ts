@@ -296,6 +296,11 @@ export const validateReviewStatusProgression = (
   currentStatus: string,
   newStatus: string
 ): ValidationResult => {
+  // If status hasn't changed, it's always valid
+  if (currentStatus === newStatus) {
+    return { isValid: true, message: '', code: '' };
+  }
+
   // Define valid status transitions
   const validTransitions: Record<string, string[]> = {
     'Not started': ['In review'],
@@ -314,7 +319,7 @@ export const validateReviewStatusProgression = (
     };
   }
 
-  return { isValid: true };
+  return { isValid: true, message: '', code: '' };
 };
 
 /**

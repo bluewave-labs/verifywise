@@ -46,6 +46,8 @@ export interface ICustomizableButtonProps {
   className?: string;
   /** Tooltip text */
   title?: string;
+  indicator?: boolean; //`indicator` prop: used to optionally show a custom visual indicator on the button.
+  textColor?: string; // Added textColor prop to allow custom inline text color customization when needed.
 }
 
 export interface IFilterButtonProps {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { Suspense } from "react";
 import {
   Box,
@@ -31,6 +32,12 @@ import {
 import { COMPLIANCE_BADGES, SUCCESS_MESSAGE } from "./constants";
 
 // Using standard TextField with theme styling for consistency
+
+interface OverviewFormDataErrors {
+  terms_text_error?: string;
+  privacy_contact_error?: string;
+  email_error?: string;
+}
 
 // Helper component for Section Header
 const SectionHeader: React.FC<{
@@ -96,6 +103,8 @@ const AITrustCenterOverview: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
   const [originalData, setOriginalData] = React.useState<any>(null);
   const [localFormData, setLocalFormData] = React.useState<any>(null);
+  const [errors, setErrors] = React.useState<OverviewFormDataErrors>({});
+
 
   // Update local form data when query data changes
   React.useEffect(() => {
@@ -116,7 +125,8 @@ const AITrustCenterOverview: React.FC = () => {
   const handleFieldChange = (
     section: string,
     field: string,
-    value: boolean | string
+    value: boolean | string,
+    errorKey?: string // optional key for clearing error
   ) => {
     setLocalFormData((prev: any) => ({
       ...prev,
@@ -125,6 +135,10 @@ const AITrustCenterOverview: React.FC = () => {
         [field]: value,
       },
     }));
+     // Clear the corresponding error if provided
+  if (errorKey) {
+    setErrors((prev) => ({ ...prev, [errorKey]: "" }));
+  }
   };
 
   // Helper function to safely get compliance badge value
@@ -133,10 +147,50 @@ const AITrustCenterOverview: React.FC = () => {
     return (localFormData.compliance_badges[badgeKey] as boolean) || false;
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: OverviewFormDataErrors = {};
+  
+    const { terms_and_contact } = localFormData;
+    const minLength = 10;
+  
+    // --- Terms ---
+    if (terms_and_contact.terms_visible) {
+      if (!terms_and_contact.terms_text || terms_and_contact.terms_text.trim().length < minLength) {
+        newErrors.terms_text_error = `Terms text must be at least ${minLength} characters long.`;
+      }
+    }
+  
+    // --- Privacy ---
+    if (terms_and_contact.privacy_visible) {
+      if (!terms_and_contact.privacy_text || terms_and_contact.privacy_text.trim().length < minLength) {
+        newErrors.privacy_contact_error = `Privacy text must be at least ${minLength} characters long.`;
+      }
+    }
+  
+    // --- Email ---
+    if (terms_and_contact.email_visible) {
+      const email = terms_and_contact.email_text?.trim() || "";
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email) {
+        newErrors.email_error = "Email is required.";
+      } else if (!emailPattern.test(email)) {
+        newErrors.email_error = "Email must be a valid email address.";
+      }
+    }
+  
+    setErrors(newErrors);
+  
+    // Return true if no errors
+    return Object.keys(newErrors).length === 0;
+  };
+  
+
   // Handle save
   const handleSave = async () => {
     try {
       console.log("Saving AI Trust Centre data:", localFormData);
+
+      if(validateForm()){
 
       // Prepare the data to send, ensuring all sections are included
       const dataToSave = {
@@ -161,7 +215,8 @@ const AITrustCenterOverview: React.FC = () => {
       });
 
       console.log("AI Trust Centre data saved successfully");
-    } catch (error) {
+    }
+   } catch (error) {
       console.error("Save failed:", error);
     }
   };
@@ -603,12 +658,14 @@ const AITrustCenterOverview: React.FC = () => {
                 placeholder="Enter terms of service URL..."
                 width={458}
                 value={localFormData.terms_and_contact?.terms_text || ""}
+                error={errors.terms_text_error}
                 onChange={(e) =>
                   localFormData.info?.terms_and_contact_visible &&
                   handleFieldChange(
                     "terms_and_contact",
                     "terms_text",
-                    e.target.value
+                    e.target.value,
+                    "terms_text_error"
                   )
                 }
                 disabled={
@@ -653,12 +710,14 @@ const AITrustCenterOverview: React.FC = () => {
                 placeholder="Enter privacy policy URL..."
                 width={458}
                 value={localFormData.terms_and_contact?.privacy_text || ""}
+                error={errors.privacy_contact_error}
                 onChange={(e) =>
                   localFormData.info?.terms_and_contact_visible &&
                   handleFieldChange(
                     "terms_and_contact",
                     "privacy_text",
-                    e.target.value
+                    e.target.value,
+                    "privacy_contact_error"
                   )
                 }
                 disabled={
@@ -703,12 +762,14 @@ const AITrustCenterOverview: React.FC = () => {
                 placeholder="Enter company email..."
                 width={458}
                 value={localFormData.terms_and_contact?.email_text || ""}
+                error={errors.email_error}
                 onChange={(e) =>
                   localFormData.info?.terms_and_contact_visible &&
                   handleFieldChange(
                     "terms_and_contact",
                     "email_text",
-                    e.target.value
+                    e.target.value,
+                    "email_error"
                   )
                 }
                 disabled={

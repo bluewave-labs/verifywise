@@ -10,7 +10,7 @@ import { ProjectRiskMitigation } from "../../../../domain/types/ProjectRisk";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useState } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import {
   paginationDropdown,
   paginationSelect,
@@ -189,7 +189,7 @@ export const ProjectRiskMitigationTableBody: React.FC<
                   sx: { mt: theme.spacing(-2) },
                 },
                 inputProps: { id: "pagination-dropdown" },
-                IconComponent: SelectorVertical,
+                IconComponent: () => <SelectorVertical size={16} />,
                 sx: paginationSelect,
               },
             }}

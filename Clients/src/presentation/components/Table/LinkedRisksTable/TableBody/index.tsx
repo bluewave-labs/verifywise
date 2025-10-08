@@ -4,7 +4,7 @@ import singleTheme from '../../../../themes/v1SingleTheme';
 import { TableBody, TableCell, TableRow, useTheme, Checkbox as MuiCheckbox, TableFooter, TablePagination, } from '@mui/material';
 import { ReactComponent as CheckboxOutline } from "../../../../assets/icons/checkbox-outline.svg";
 import { ReactComponent as CheckboxFilled } from "../../../../assets/icons/checkbox-filled.svg";
-import { ReactComponent as SelectorVertical } from '../../../../assets/icons/selector-vertical.svg'
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import RiskChip from '../../../RiskLevel/RiskChip';
 
 import {
@@ -148,7 +148,7 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
                   sx: { mt: theme.spacing(-2) },
                 },
                 inputProps: { id: "pagination-dropdown" },
-                IconComponent: SelectorVertical,
+                IconComponent: () => <SelectorVertical size={16} />,
                 sx: paginationSelect,
               },
             }}

@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import "./drop-file-input.css";
-import UploadSmallIcon from "../../assets/icons/folder-upload.svg";
+import { FolderUp as UploadSmallIcon } from "lucide-react";
 import { FileProps, FileUploadProps } from "./types";
 import {
   DragDropArea,
   fileListStyleFrame,
   fileListText,
   filesListItem,
-  Icon,
 } from "./FileUpload.styles";
 import {
   List,
@@ -18,7 +17,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
+import { Trash2 as DeleteIconGrey } from "lucide-react"
 
 const FileUploadComponent = ({
   onClose,
@@ -136,7 +135,7 @@ const FileUploadComponent = ({
             onDrop={onDrop}
           >
             <div className="drop-file-input__label">
-              <Icon src={UploadSmallIcon} alt="Upload Icon" sx={{ mb: 2 }} />
+              <UploadSmallIcon size={48} style={{ marginBottom: 16, color: '#6b7280' }} />
               <Typography variant="body2">
                 <span style={{ color: "#3b82f6" }}>Click to upload</span> or
                 drag and drop
@@ -160,7 +159,7 @@ const FileUploadComponent = ({
                       size="small"
                       sx={{ padding: "4px" }}
                     >
-                      <DeleteIconGrey fontSize="small" />
+                      <DeleteIconGrey size={16} />
                     </IconButton>
                   </ListItem>
                 ))}

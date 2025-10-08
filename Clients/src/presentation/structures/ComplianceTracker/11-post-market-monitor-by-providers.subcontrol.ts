@@ -1,5 +1,5 @@
-import Checked from "../../assets/icons/check-circle-green.svg";
-import Exclamation from "../../assets/icons/alert-circle-orange.svg";
+import { CheckCircle as Checked } from "lucide-react";
+import { AlertCircle as Exclamation } from "lucide-react";
 
 export const PostMarketMonitoringByProviders = {
   id: 11,

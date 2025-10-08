@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import singleTheme from '../../../themes/v1SingleTheme';
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
-import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg'
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import TablePaginationActions from '../../TablePagination';
 import TableHeader from '../TableHead';
 const ReportTableBody = lazy(() => import("./TableBody"))
@@ -113,7 +113,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                             sx: { mt: theme.spacing(-2) },
                           },
                           inputProps: { id: "pagination-dropdown" },
-                          IconComponent: SelectorVertical,
+                          IconComponent: () => <SelectorVertical size={16} />,
                           sx: paginationSelect,
                         },
                       }}

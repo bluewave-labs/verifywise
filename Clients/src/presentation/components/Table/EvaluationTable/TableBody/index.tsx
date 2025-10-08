@@ -1,6 +1,6 @@
 import { TableBody, TableRow, TableCell, Box } from "@mui/material";
 import singleTheme from '../../../../themes/v1SingleTheme';
-import trash from '../../../../assets/icons/trash-grey.svg';
+import { Trash2 as TrashIcon } from "lucide-react";
 import Button from '../../../../components/Button/index';
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 
@@ -111,7 +111,7 @@ const EvaluationTableBody: React.FC<EvaluationTableBodyProps> = ({
             onConfirm={(id) => onRemoveModel.onConfirm(String(id))}
             title={`Delete this evaluation?`}
             message={`Are you sure you want to delete evaluation ID ${row.id} (Status: ${row.status})? This action is non-recoverable.`}
-            customIcon={<img src={trash} alt="Delete" style={{ width: '20px', height: '20px' }} />}
+            customIcon={<TrashIcon size={20} />}
           />
           </TableCell>
         </TableRow>

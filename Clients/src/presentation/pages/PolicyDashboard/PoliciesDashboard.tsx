@@ -9,9 +9,8 @@ import {
   InputBase,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon, PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import {
@@ -197,7 +196,7 @@ const PolicyDashboard: React.FC = () => {
                 aria-expanded={isSearchBarVisible}
                 onClick={() => setIsSearchBarVisible((prev) => !prev)}
               >
-                <SearchIcon />
+                <SearchIcon size={20} />
               </IconButton>
 
               {isSearchBarVisible && (

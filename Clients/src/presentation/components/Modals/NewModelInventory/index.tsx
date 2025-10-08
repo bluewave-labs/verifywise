@@ -28,7 +28,7 @@ import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.en
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
 import { getAllProjects } from "../../../../application/repository/project.repository";
@@ -548,7 +548,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                           </Typography>
                         </Box>
                       )}
-                      popupIcon={<GreyDownArrowIcon />}
+                      popupIcon={<GreyDownArrowIcon size={20} />}
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -699,7 +699,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     </Box>
                   )}
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<GreyDownArrowIcon size={20} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -761,7 +761,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     </Box>
                   )}
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<GreyDownArrowIcon size={20} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}

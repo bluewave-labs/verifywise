@@ -7,7 +7,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { X as CloseGreyIcon } from "lucide-react";
 import { ReactComponent as CheckGreenIcon } from "../../../assets/icons/check-green.svg";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
@@ -173,7 +173,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
             onClick={onClose}
             sx={modalCloseButtonStyle}
           >
-            <CloseGreyIcon/>
+            <CloseGreyIcon size={20} />
           </IconButton>
         </Box>
         {/* Description */}

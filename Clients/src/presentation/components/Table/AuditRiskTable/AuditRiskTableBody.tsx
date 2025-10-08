@@ -11,7 +11,7 @@ import { useCallback, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
 import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import {
   paginationStyle,
   paginationDropdown,
@@ -194,7 +194,7 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
                   sx: { mt: theme.spacing(-2) },
                 },
                 inputProps: { id: "pagination-dropdown" },
-                IconComponent: SelectorVertical,
+                IconComponent: () => <SelectorVertical size={16} />,
                 sx: paginationSelect,
               },
             }}

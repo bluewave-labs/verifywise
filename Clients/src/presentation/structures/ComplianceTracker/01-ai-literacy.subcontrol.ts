@@ -1,4 +1,4 @@
-import Checked from "../../assets/icons/check-circle-green.svg";
+import { CheckCircle as Checked } from "lucide-react";
 
 export const AIliteracy = {
   id: 1,

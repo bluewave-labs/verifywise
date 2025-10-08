@@ -1,6 +1,6 @@
 import React, { useState, lazy, Suspense, useRef } from "react";
 import { IconButton, Box, Stack } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { X as CloseGreyIcon } from "lucide-react";
 import { styles } from "./styles";
 const GenerateReportFrom = lazy(() => import("./GenerateReportFrom"));
 const DownloadReportForm = lazy(() => import("./DownloadReportFrom"));
@@ -150,7 +150,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
 
 
 
-          <CloseGreyIcon />
+          <CloseGreyIcon size={20} />
         </IconButton>
         {isReportRequest ? (
           <Suspense fallback={<div>Loading...</div>}>

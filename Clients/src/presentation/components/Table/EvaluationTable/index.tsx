@@ -14,7 +14,7 @@ import {
   import TablePaginationActions from "../../TablePagination";
   import TableHeader from "../TableHead";
   import placeholderImage from "../../../assets/imgs/empty-state.svg";
-  import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+  import { ChevronsUpDown as SelectorVertical } from "lucide-react";
   import {
     emptyData,
     paginationStatus,
@@ -129,7 +129,7 @@ import {
                                     sx: { mt: theme.spacing(-2) },
                                   },
                                   inputProps: { id: "pagination-dropdown" },
-                                  IconComponent: SelectorVertical,
+                                  IconComponent: () => <SelectorVertical size={16} />,
                                   sx: paginationSelect(theme),
                                 },
                               }}

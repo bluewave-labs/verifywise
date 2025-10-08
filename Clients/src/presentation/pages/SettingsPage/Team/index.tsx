@@ -24,12 +24,12 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import {ReactComponent as GroupsIcon} from "../../../assets/icons/group.svg";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { Users as GroupsIcon } from "lucide-react";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
+import { Trash2 as DeleteIconGrey } from "lucide-react"
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -357,7 +357,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<GroupsIcon />}
+                icon={<GroupsIcon size={20} />}
                 onClick={() => inviteTeamMember()}
               />
             </Box>
@@ -475,7 +475,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 disableRipple
                                 disabled={member.id === userId}
                               >
-                                <DeleteIconGrey />
+                                <DeleteIconGrey size={20} />
                               </IconButton>
                             </TableCell>
                           </TableRow>
@@ -534,7 +534,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                               sx: { mt: theme.spacing(-2) },
                             },
                             inputProps: { id: "pagination-dropdown" },
-                            IconComponent: SelectorVertical,
+                            IconComponent: () => <SelectorVertical size={16} />,
                             sx: {
                               ml: theme.spacing(4),
                               mr: theme.spacing(12),

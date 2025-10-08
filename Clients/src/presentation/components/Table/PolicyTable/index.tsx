@@ -15,7 +15,7 @@ import {
 import TablePaginationActions from "../../TablePagination";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
 
 const DEFAULT_ROWS_PER_PAGE = 10;
@@ -205,7 +205,7 @@ const CustomizablePolicyTable = ({
                           sx: { mt: theme.spacing(-2) },
                         },
                         inputProps: { id: "pagination-dropdown" },
-                        IconComponent: SelectorVertical,
+                        IconComponent: () => <SelectorVertical size={16} />,
                         sx: {
                           ml: theme.spacing(4),
                           mr: theme.spacing(12),

@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
@@ -308,7 +308,7 @@ const EventsTable: React.FC<EventsTableProps> = ({
                       sx: { mt: theme.spacing(-2) },
                     },
                     inputProps: { id: "pagination-dropdown" },
-                    IconComponent: SelectorVertical,
+                    IconComponent: () => <SelectorVertical size={16} />,
                     sx: {
                       ml: theme.spacing(4),
                       mr: theme.spacing(12),

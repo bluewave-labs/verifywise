@@ -16,9 +16,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { ReactComponent as CopyIcon } from "../../assets/icons/copy.svg";
-import { ReactComponent as DownloadIcon } from "../../assets/icons/download.svg";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
@@ -1112,7 +1110,7 @@ export default function BiasAndFairnessResultsPage() {
                     }
                   }}
                 >
-                  <CopyIcon style={{ width: 24, height: 24 }} />
+                  <CopyIcon size={24} />
                 </IconButton>
                 <IconButton
                   onClick={handleDownloadJSON}
@@ -1128,7 +1126,7 @@ export default function BiasAndFairnessResultsPage() {
                     }
                   }}
                 >
-                  <DownloadIcon style={{ width: 24, height: 24 }} />
+                  <DownloadIcon size={24} />
                 </IconButton>
               </Box>
             </Box>

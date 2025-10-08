@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import React, {
   useState,
   useCallback,
@@ -939,7 +939,7 @@ const ProjectSettings = React.memo(
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<GreyDownArrowIcon size={20} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -1094,7 +1094,7 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<GreyDownArrowIcon />}
+              popupIcon={<GreyDownArrowIcon size={20} />}
               renderInput={(params) => (
                 <TextField
                   {...params}

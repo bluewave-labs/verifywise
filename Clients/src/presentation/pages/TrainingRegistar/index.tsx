@@ -27,7 +27,7 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import Select from "../../components/Inputs/Select";
 import { searchBoxStyle, inputStyle } from "./style";
 
@@ -334,7 +334,7 @@ const Training: React.FC = () => {
                   aria-expanded={isSearchBarVisible}
                   onClick={() => setIsSearchBarVisible((prev) => !prev)}
                 >
-                  <SearchIcon />
+                  <SearchIcon size={20} />
                 </IconButton>
 
                 {isSearchBarVisible && (

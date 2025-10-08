@@ -2,10 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Tooltip, IconButton, Stack, useTheme } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import {ReactComponent as FormatBold} from "../../assets/icons/formatBold.svg";
-import {ReactComponent as FormatItalic} from "../../assets/icons/formatItalic.svg";
-import {ReactComponent as FormatListBulleted} from "../../assets/icons/formatListBulleted.svg";
-import {ReactComponent as FormatListNumbered} from "../../assets/icons/formatListNumbered.svg";
+import { Bold as FormatBold, Italic as FormatItalic, List as FormatListBulleted, ListOrdered as FormatListNumbered } from "lucide-react";
 import "./index.css";
 
 interface RichTextEditorProps {
@@ -81,10 +78,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }}
       >
         {[
-          { title: "Bold", icon: <FormatBold />, action: "bold" },
-          { title: "Italic", icon: <FormatItalic />, action: "italic" },
-          { title: "Bullets", icon: <FormatListBulleted />, action: "bullets" },
-          { title: "Numbers", icon: <FormatListNumbered />, action: "numbers" },
+          { title: "Bold", icon: <FormatBold size={20} />, action: "bold" },
+          { title: "Italic", icon: <FormatItalic size={20} />, action: "italic" },
+          { title: "Bullets", icon: <FormatListBulleted size={20} />, action: "bullets" },
+          { title: "Numbers", icon: <FormatListNumbered size={20} />, action: "numbers" },
         ].map(({ title, icon, action }) => (
           <Tooltip
             key={action}

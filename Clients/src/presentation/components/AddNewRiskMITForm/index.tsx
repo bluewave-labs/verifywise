@@ -13,7 +13,7 @@ import {
   Radio,
   TextField,
 } from "@mui/material";
-import { ReactComponent as GreyCloseIconSVG } from "../../assets/icons/close-grey.svg";
+import { X as GreyCloseIconSVG } from "lucide-react";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import riskData from "../../assets/MITAIRISKDB.json";
 import CustomizableButton from "../Button/CustomizableButton";
@@ -263,7 +263,7 @@ const AddNewRiskMITModal = ({
           >
             Add a new risk from risk database
           </Typography>
-          <GreyCloseIconSVG onClick={handleClose} cursor={"pointer"} />
+          <GreyCloseIconSVG onClick={handleClose} cursor={"pointer"} size={20} />
         </Stack>
         <Stack
           direction="row"

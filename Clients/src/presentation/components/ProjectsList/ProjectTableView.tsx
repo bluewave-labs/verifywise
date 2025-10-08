@@ -16,7 +16,7 @@ import { Project } from "../../../domain/types/Project";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 
 interface ProjectTableViewProps {
   projects: Project[];
@@ -256,7 +256,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
                     sx: { mt: theme.spacing(-2) },
                   },
                   inputProps: { id: "pagination-dropdown" },
-                  IconComponent: SelectorVertical,
+                  IconComponent: () => <SelectorVertical size={16} />,
                   sx: {
                     ml: theme.spacing(4),
                     mr: theme.spacing(12),

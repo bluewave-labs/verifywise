@@ -16,7 +16,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { PlusCircle as AddCircleOutlineIcon } from "lucide-react"
-import {ReactComponent as CloseIcon} from "../../assets/icons/close-grey.svg"
+import { X as CloseIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";
 import { Suspense } from "react";
@@ -449,7 +449,7 @@ export default function BiasAndFairnessModule() {
               setDialogOpen(false);
               resetForm();
             }}>
-              <CloseIcon />
+              <CloseIcon size={20} />
             </IconButton>
           </Box>
         </DialogTitle>

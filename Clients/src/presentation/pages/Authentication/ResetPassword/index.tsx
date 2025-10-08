@@ -4,8 +4,7 @@
 
 import { Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import { ReactComponent as Email } from "../../../assets/icons/email.svg";
-import { ArrowLeft } from "lucide-react";
+import { Mail as Email, ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
@@ -102,7 +101,7 @@ const ResetPassword = () => {
             gap: theme.spacing(12),
           }}
         >
-          <Email />
+          <Email size={24} />
         </Stack>
         <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>

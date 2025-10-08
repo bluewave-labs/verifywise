@@ -8,7 +8,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import "./index.css"; // Include your existing styles
 import useUsers from "../../../../../application/hooks/useUsers";
 
@@ -87,7 +87,7 @@ const ReviewerMultiSelect: React.FC<ReviewerMultiSelectProps> = ({
         value={selected}
         onChange={handleChange}
         renderValue={renderSelected}
-        IconComponent={GreyDownArrowIcon}
+        IconComponent={() => <GreyDownArrowIcon size={20} />}
         error={!!error}
         size="small"
         displayEmpty

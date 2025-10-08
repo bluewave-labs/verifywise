@@ -17,7 +17,7 @@ import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
@@ -357,7 +357,7 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                       sx: { mt: theme.spacing(-2) },
                     },
                     inputProps: { id: "pagination-dropdown" },
-                    IconComponent: SelectorVertical,
+                    IconComponent: () => <SelectorVertical size={16} />,
                     sx: {
                       ml: theme.spacing(4),
                       mr: theme.spacing(12),

@@ -1,6 +1,6 @@
 import { TableBody, TableRow, TableCell, Box } from "@mui/material";
 import singleTheme from '../../../../themes/v1SingleTheme';
-import {ReactComponent as DeleteIconGrey} from "../../../../assets/icons/trash-grey.svg"
+import { Trash2 as DeleteIconGrey } from "lucide-react"
 import Button from '../../../../components/Button/index';
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 

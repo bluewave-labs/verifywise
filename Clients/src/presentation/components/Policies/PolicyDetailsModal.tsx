@@ -17,10 +17,7 @@ import { serializeHtml } from "platejs";
 import {ReactComponent as LooksThree} from "../../assets/icons/three.svg"
 import {ReactComponent as LooksOne} from "../../assets/icons/one.svg"
 import {ReactComponent as LooksTwo} from "../../assets/icons/two.svg"
-import {ReactComponent as FormatBold} from "../../assets/icons/formatBold.svg"
-import {ReactComponent as FormatQuote} from "../../assets/icons/formatQuote.svg"
-import {ReactComponent as FormatItalic} from "../../assets/icons/formatItalic.svg"
-import {ReactComponent as FormatUnderlined} from "../../assets/icons/formatUnderlined.svg"
+import { Bold as FormatBold, Quote as FormatQuote, Italic as FormatItalic, Underline as FormatUnderlined } from "lucide-react";
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
@@ -352,7 +349,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "bold",
                     title: "Bold",
-                    icon: <FormatBold />,
+                    icon: <FormatBold size={20} />,
                     action: () => {
                       editor.tf.bold.toggle();
                       setToolbarState((prev) => ({
@@ -364,7 +361,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "italic",
                     title: "Italic",
-                    icon: <FormatItalic />,
+                    icon: <FormatItalic size={20} />,
                     action: () => {
                       editor.tf.italic.toggle();
                       setToolbarState((prev) => ({
@@ -376,7 +373,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "underline",
                     title: "Underline",
-                    icon: <FormatUnderlined />,
+                    icon: <FormatUnderlined size={20} />,
                     action: () => {
                       editor.tf.underline.toggle();
                       setToolbarState((prev) => ({
@@ -415,7 +412,7 @@ const PolicyDetailModal: React.FC<Props> = ({
                   {
                     key: "blockquote",
                     title: "Blockquote",
-                    icon: <FormatQuote />,
+                    icon: <FormatQuote size={20} />,
                     action: () => {
                       editor.tf.blockquote.toggle();
                       setToolbarState((prev) => ({

@@ -24,7 +24,7 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { SelectProps } from "../../../../domain/interfaces/iWidget";
 
 const Select: React.FC<SelectProps> = ({
@@ -131,7 +131,7 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         renderValue={renderValue}
-        IconComponent={GreyDownArrowIcon}
+        IconComponent={() => <GreyDownArrowIcon size={20} />}
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,

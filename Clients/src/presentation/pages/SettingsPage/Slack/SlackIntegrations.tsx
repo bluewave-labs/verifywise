@@ -1,6 +1,6 @@
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import { singleTheme } from "../../../themes";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown as SelectorVertical } from "lucide-react";
 import {
   Box,
   Stack,
@@ -298,7 +298,7 @@ const SlackIntegrations = ({
                       sx: { mt: theme.spacing(-2) },
                     },
                     inputProps: { id: "pagination-dropdown" },
-                    IconComponent: SelectorVertical,
+                    IconComponent: () => <SelectorVertical size={16} />,
                     sx: {
                       ml: theme.spacing(4),
                       mr: theme.spacing(12),

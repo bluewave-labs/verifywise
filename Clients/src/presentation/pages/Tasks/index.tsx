@@ -11,11 +11,8 @@ import {
   TextField,
   Autocomplete,
 } from "@mui/material";
-import { PlusCircle as AddCircleIcon } from "lucide-react";
+import { PlusCircle as AddCircleIcon, Filter as FilterIcon, X as ClearIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { SearchBox } from "../../components/Search";
-import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
-import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -474,7 +471,8 @@ const Tasks: React.FC = () => {
           >
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <FilterIcon
-                style={{ color: "#13715B", width: "20px", height: "20px" }}
+                size={20}
+                style={{ color: "#13715B" }}
               />
               <Typography
                 variant="subtitle2"
@@ -505,7 +503,7 @@ const Tasks: React.FC = () => {
               {activeFilterCount > 0 && (
                 <Button
                   size="small"
-                  startIcon={<ClearIcon />}
+                  startIcon={<ClearIcon size={16} />}
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     clearAllFilters();

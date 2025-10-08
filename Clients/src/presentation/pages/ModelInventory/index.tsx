@@ -49,7 +49,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import Tab from "@mui/material/Tab";
 import { IconButton, InputBase } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import { searchBoxStyle, inputStyle } from "./style";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
@@ -720,7 +720,7 @@ const ModelInventory: React.FC = () => {
                     aria-expanded={isSearchBarVisible}
                     onClick={() => setIsSearchBarVisible((prev) => !prev)}
                   >
-                    <SearchIcon />
+                    <SearchIcon size={20} />
                   </IconButton>
 
                   {isSearchBarVisible && (

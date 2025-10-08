@@ -65,7 +65,7 @@ export async function deleteUserById({
 export async function checkUserExists(): Promise<any> {
   try {
     const response = await apiServices.get(`/users/check/exists`);
-     return response.data;
+    return response.data;
   } catch (error) {
     console.error("Error checking if user exists:", error);
     throw error;
@@ -73,17 +73,29 @@ export async function checkUserExists(): Promise<any> {
 }
 
 export async function loginUser({
-    body,
-  }: {
-    body: any;
-  }): Promise<any> {
-    try {
-      const response = await apiServices.post(`/users/login`, body);
-      return response;
-    } catch (error) {
-      console.error("Error logging in user:", error);
-      throw error;
-    }
+  body,
+}: {
+  body: any;
+}): Promise<any> {
+  try {
+    const response = await apiServices.post(`/users/login`, body);
+    return response;
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    throw error;
   }
+}
 
-
+export async function loginUserWithMicrosoft({
+  code,
+}: {
+  code: string;
+}): Promise<any> {
+  try {
+    const response = await apiServices.post(`/users/login-microsoft`, { code });
+    return response;
+  } catch (error) {
+    console.error("Error logging in with Microsoft:", error);
+    throw error;
+  }
+}

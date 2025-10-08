@@ -1,5 +1,5 @@
-import { Button, Stack, Typography, useTheme } from "@mui/material";
-import React, { Suspense, useState } from "react";
+import { Button, Divider, Stack, Typography, useTheme } from "@mui/material";
+import React, { Suspense, useState, useEffect } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
 import Field from "../../../components/Inputs/Field";
@@ -14,6 +14,8 @@ import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser } from "../../../../application/repository/user.repository";
+import { MicrosoftSignIn } from "../../../components/MicrosoftSignIn";
+import { GetSsoConfig } from "../../../../application/repository/ssoConfig.repository";
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
 
@@ -49,6 +51,36 @@ const Login: React.FC = () => {
     title?: string;
     body: string;
   } | null>(null);
+
+  // SSO configuration state
+  const [ssoConfig, setSsoConfig] = useState<{
+    tenantId?: string;
+    clientId?: string;
+    isEnabled?: boolean;
+  }>({});
+
+  // Fetch SSO configuration on mount
+  useEffect(() => {
+    const fetchSsoConfig = async () => {
+      try {
+        const response = await GetSsoConfig({
+          routeUrl: `ssoConfig?provider=AzureAD`,
+        });
+
+        if (response?.data && response.data.is_enabled) {
+          setSsoConfig({
+            tenantId: response.data.config_data?.tenant_id,
+            clientId: response.data.config_data?.client_id,
+            isEnabled: response.data.is_enabled,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch SSO config:', error);
+      }
+    };
+
+    fetchSsoConfig();
+  }, []);
 
   // Handle changes in input fields
   const handleChange =
@@ -215,6 +247,35 @@ const Login: React.FC = () => {
             {loginText}
           </Typography>
           <Stack sx={{ gap: theme.spacing(7.5) }}>
+            {ssoConfig.isEnabled && ssoConfig.tenantId && ssoConfig.clientId && (
+              <>
+                <MicrosoftSignIn
+                  isSubmitting={isSubmitting}
+                  setIsSubmitting={setIsSubmitting}
+                  tenantId={ssoConfig.tenantId}
+                  clientId={ssoConfig.clientId}
+                  text="Sign in with Microsoft"
+                />
+                <Stack sx={{ position: 'relative', my: 2 }}>
+                  <Divider />
+                  <Typography
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      backgroundColor: '#fff',
+                      px: 2,
+                      fontSize: 14,
+                      color: theme.palette.text.secondary,
+                      fontWeight: 500,
+                    }}
+                  >
+                    or
+                  </Typography>
+                </Stack>
+              </>
+            )}
             <Field
               label="Email"
               isRequired

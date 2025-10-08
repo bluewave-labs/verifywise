@@ -78,9 +78,17 @@ import {
   validateRoleUpdatePermission
 } from "../utils/validations/userValidation.utils";
 import { ValidationError } from "../utils/validations/validation.utils";
+import { ConfidentialClientApplication } from '@azure/msal-node';
+import { getAzureADConfigQuery } from "../utils/ssoConfig.utils";
+import Jwt from "jsonwebtoken";
+import { getAllOrganizationsQuery } from "../utils/organization.utils";
 import { sendSlackNotification } from "../services/slack/slackNotificationService";
 import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
 import { getRoleByIdQuery } from "../utils/role.utils";
+
+const roleMap = new Map<string, number>(
+  [["Admin", 1], ["Reviewer", 2], ["Editor", 3], ["Auditor", 4]]
+);
 
 /**
  * Retrieves all users within the authenticated user's organization
@@ -149,14 +157,14 @@ async function getUserByEmail(req: Request, res: Response) {
     };
 
     if (user) {
-      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');   
+      logStructured('successful', `user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('successful', `no user found: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');  
+    logStructured('error', `failed to fetch user: ${email}`, 'getUserByEmail', 'user.ctrl.ts');
     logger.error('❌ Error in getUserByEmail:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -176,14 +184,14 @@ async function getUserById(req: Request, res: Response) {
     const user = (await getUserByIdQuery(id)) as UserModel;
 
     if (user) {
-      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');      
+      logStructured('successful', `user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
       return res.status(200).json(STATUS_CODE[200](user.toSafeJSON()));
     }
 
-    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('successful', `no user found: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     return res.status(404).json(STATUS_CODE[404](user));
   } catch (error) {
-    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');   
+    logStructured('error', `failed to fetch user: ID ${id}`, 'getUserById', 'user.ctrl.ts');
     logger.error('❌ Error in getUserById:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
@@ -213,9 +221,9 @@ async function createNewUserWrapper(
     name,
     surname,
     email,
-    password,
     roleId,
-    organizationId
+    organizationId,
+    password,
   );
 
   // Validate user data before saving
@@ -429,7 +437,7 @@ async function loginUser(req: Request, res: Response): Promise<any> {
       try {
         passwordIsMatched = await user.comparePassword(password);
       } catch (modelError) {
-        passwordIsMatched = await bcrypt.compare(password, userData.password_hash);
+        passwordIsMatched = await bcrypt.compare(password, userData.password_hash!);
       }
 
       if (passwordIsMatched) {
@@ -462,6 +470,92 @@ async function loginUser(req: Request, res: Response): Promise<any> {
   } catch (error) {
     logStructured('error', `unexpected error during login: ${email}`, 'loginUser', 'user.ctrl.ts');
     logger.error('❌ Error in loginUser:', error);
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+async function loginUserWithMicrosoft(req: Request, res: Response): Promise<any> {
+  const { code } = req.body;
+
+  logStructured('processing', `attempting Microsoft SSO login with code`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+  logger.debug(`🔐 Microsoft SSO login attempt`);
+
+  try {
+    if (!code) {
+      return res.status(400).json(STATUS_CODE[400]('Authorization code is required'));
+    }
+
+    const azureADConfig = await getAzureADConfigQuery();
+
+    const cca = new ConfidentialClientApplication({
+      auth: {
+        clientId: azureADConfig.client_id,
+        authority: `https://login.microsoftonline.com/${azureADConfig.tenant_id}`,
+        clientSecret: Jwt.verify(azureADConfig.client_secret, process.env.SSO_SECRET as string) as string,
+      },
+    });
+
+    // Exchange code for Microsoft access token
+    const response = await cca.acquireTokenByCode({
+      code,
+      scopes: ['openid', 'profile', 'email', 'User.Read'],
+      redirectUri: "http://localhost:5173/auth/microsoft/callback",
+    });
+    if (!response) {
+      logStructured('error', `failed to acquire token from Microsoft`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+      return res.status(401).json(STATUS_CODE[401]('Failed to acquire token from Microsoft'));
+    }
+
+    // Get user info from Microsoft Graph API
+    const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+      headers: {
+        'Authorization': `Bearer ${response.accessToken}`,
+      },
+    });
+    const userInfo = await userInfoResponse.json();
+    // ROLE
+    const userRole = ((response.idTokenClaims as { [key: string]: any })?.roles || ['Editor'])[0] as string;
+
+    // Find or create user in database
+    let user = await getUserByEmailQuery(userInfo.mail || userInfo.userPrincipalName);
+    if (!user) {
+      const organizationId = await getAllOrganizationsQuery();
+      // Create user model with automatic password hashing
+      const userModel = await UserModel.createNewUser(
+        userInfo.givenName || userInfo.displayName,
+        userInfo.surname || userInfo.givenName || userInfo.displayName,
+        userInfo.mail || userInfo.userPrincipalName,
+        roleMap.get(userRole)!,
+        organizationId[0].id!,
+        null, 'AzureAD', userInfo.id
+      );
+      await userModel.validateUserData();
+      const createdUser = await createNewUserQuery(userModel);
+      user = { ...createdUser.toSafeJSON(), role_name: userRole };
+    } else if (user.role_name !== userRole) {
+      user.role_name = userRole;
+      await updateUserByIdQuery(user.id!, { role_id: roleMap.get(userRole)! });
+    }
+
+    // Generate JWT tokens
+    // Generate JWT tokens (access + refresh)
+    const { accessToken } = generateUserTokens({
+      id: user!.id!,
+      email: user!.email,
+      roleName: user!.role_name as string,
+      organizationId: user!.organization_id as number,
+    }, res);
+
+    // Placeholder response - implement actual Microsoft OAuth flow
+    logStructured('successful', `Microsoft SSO login successful for ${user!.email}`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+    return res.status(202).json(
+      STATUS_CODE[202]({
+        token: accessToken,
+      })
+    );
+  } catch (error) {
+    logStructured('error', `unexpected error during Microsoft SSO login`, 'loginUserWithMicrosoft', 'user.ctrl.ts');
+    logger.error('❌ Error in loginUserWithMicrosoft:', error);
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }
@@ -563,14 +657,14 @@ async function resetPassword(req: Request, res: Response) {
     const _user = (await getUserByEmailQuery(email)) as UserModel & {
       role_name: string;
     };
-    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.password_hash, _user.role_id, _user.organization_id!);
+    const user = await UserModel.createNewUser(_user.name, _user.surname, _user.email, _user.role_id, _user.organization_id!, _user.password_hash);
 
     if (user) {
       await user.updatePassword(newPassword);
 
       const updatedUser = (await resetPasswordQuery(
         email,
-        user.password_hash,
+        user.password_hash!,
         transaction
       )) as UserModel;
 
@@ -915,7 +1009,7 @@ async function calculateProgress(
       });
     }
 
-    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('successful', `progress calculated for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
 
     return res.status(200).json({
       assessmentsMetadata,
@@ -926,7 +1020,7 @@ async function calculateProgress(
       allDoneSubControls,
     });
   } catch (error) {
-    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');   
+    logStructured('error', `failed to calculate progress for user ID ${id}`, 'calculateProgress', 'user.ctrl.ts');
     logger.error('❌ Error in calculateProgress:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
@@ -962,7 +1056,7 @@ async function ChangePassword(req: Request, res: Response) {
 
     const updatedUser = (await resetPasswordQuery(
       user.email,
-      user.password_hash,
+      user.password_hash!,
       transaction
     )) as UserModel;
 
@@ -1141,6 +1235,7 @@ export {
   createNewUserWrapper,
   createNewUser,
   loginUser,
+  loginUserWithMicrosoft,
   resetPassword,
   updateUserById,
   deleteUserById,

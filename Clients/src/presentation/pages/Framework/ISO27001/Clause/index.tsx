@@ -10,7 +10,7 @@ import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
 import { useCallback, useEffect, useState } from "react";
 import { styles } from "./style";
-import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
+import { ArrowRight } from "lucide-react";
 import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
@@ -308,7 +308,8 @@ const ISO27001Clause = ({
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <RightArrowBlack
+                <ArrowRight
+                  size={20}
                   style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>

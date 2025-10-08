@@ -12,7 +12,7 @@ import {
   IconButton as MuiIconButton,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
+import { MoreVertical as Setting } from "lucide-react";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
@@ -282,7 +282,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         openMenu(event, id, "someUrl");
       }}
     >
-      <Setting />
+      <Setting size={20} />
     </MuiIconButton>
   );
 

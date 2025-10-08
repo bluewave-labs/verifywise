@@ -31,7 +31,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -617,7 +617,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                   gap: 2,
                 }}
                 onClick={handleSave}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIcon size={16} />}
                 isDisabled={isEditingDisabled}
               />
             </Stack>

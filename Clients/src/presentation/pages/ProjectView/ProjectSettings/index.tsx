@@ -34,8 +34,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
+import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -1222,7 +1221,7 @@ const ProjectSettings = React.memo(
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIcon size={16} />}
                 variant="contained"
                 onClick={(event: any) => {
                   handleSubmit(event);
@@ -1262,7 +1261,7 @@ const ProjectSettings = React.memo(
                   border: "1px solid #DB504A",
                   gap: 2,
                 }}
-                icon={<DeleteIconWhite />}
+                icon={<DeleteIcon size={16} />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete project"

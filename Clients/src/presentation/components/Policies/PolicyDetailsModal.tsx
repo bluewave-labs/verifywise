@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 
 import {
@@ -532,7 +532,7 @@ const PolicyDetailModal: React.FC<Props> = ({
               },
             }}
             onClick={save}
-            icon={<SaveIconSVGWhite />}
+            icon={<SaveIcon size={16} />}
           />
         </Box>
       </Drawer>

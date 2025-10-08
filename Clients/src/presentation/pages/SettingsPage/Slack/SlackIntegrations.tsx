@@ -15,7 +15,9 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as SliderIcon} from "../../../assets/icons/sliders.svg";
+import { SlidersHorizontal } from "lucide-react";
+
+const SliderIcon = () => <SlidersHorizontal size={20} />;
 import { sendSlackMessage } from "../../../../application/repository/slack.integration.repository";
 import { Suspense, useCallback, useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";

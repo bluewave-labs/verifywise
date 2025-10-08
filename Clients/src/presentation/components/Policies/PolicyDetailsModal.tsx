@@ -14,13 +14,31 @@ import {
   BlockquotePlugin,
 } from "@platejs/basic-nodes/react";
 import { serializeHtml } from "platejs";
-import {ReactComponent as LooksThree} from "../../assets/icons/three.svg"
-import {ReactComponent as LooksOne} from "../../assets/icons/one.svg"
-import {ReactComponent as LooksTwo} from "../../assets/icons/two.svg"
-import {ReactComponent as FormatBold} from "../../assets/icons/formatBold.svg"
-import {ReactComponent as FormatQuote} from "../../assets/icons/formatQuote.svg"
-import {ReactComponent as FormatItalic} from "../../assets/icons/formatItalic.svg"
-import {ReactComponent as FormatUnderlined} from "../../assets/icons/formatUnderlined.svg"
+import { Quote, Underline, Bold, Italic } from "lucide-react";
+
+// Custom number components for heading levels (Lucide doesn't have numbered heading icons)
+const LooksOne = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="14" fontWeight="600">1</text>
+  </svg>
+);
+
+const LooksTwo = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="14" fontWeight="600">2</text>
+  </svg>
+);
+
+const LooksThree = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="14" fontWeight="600">3</text>
+  </svg>
+);
+
+const FormatQuote = () => <Quote size={20} />;
+const FormatUnderlined = () => <Underline size={20} />;
+const FormatBold = () => <Bold size={20} />;
+const FormatItalic = () => <Italic size={20} />;
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";

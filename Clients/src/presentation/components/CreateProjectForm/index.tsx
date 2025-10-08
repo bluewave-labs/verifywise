@@ -16,7 +16,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useSelector } from "react-redux";
 import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
@@ -382,7 +382,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                   );
                 }}
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<GreyDownArrowIcon size={20} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}

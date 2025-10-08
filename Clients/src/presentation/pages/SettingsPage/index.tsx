@@ -23,7 +23,7 @@ import PageHeader from "../../components/Layout/PageHeader";
 import { ENV_VARs } from "../../../../env.vars";
 
 export default function ProfilePage() {
-  const authorizedActiveTabs = ["profile", "password", "team", "organization", "sso"];
+  // const authorizedActiveTabs = ["profile", "password", "team", "organization", "sso"];
   const { userRoleName, userId } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -200,8 +200,8 @@ export default function ProfilePage() {
               sx={settingTabStyle}
             />
             <Tab
-              label="SSO"
-              value="sso"
+              label="EntraID SSO"
+              value="entraid"
               disableRipple
               sx={settingTabStyle}
               disabled={isSsoTabDisabled}
@@ -241,7 +241,7 @@ export default function ProfilePage() {
           <Organization />
         </TabPanel>
 
-        <TabPanel value="sso">
+        <TabPanel value="entraid">
           <EntraIdConfig />
         </TabPanel>
 

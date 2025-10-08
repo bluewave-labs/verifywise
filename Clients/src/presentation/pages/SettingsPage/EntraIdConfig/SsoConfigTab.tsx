@@ -7,7 +7,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
-import Toggle from "../../../components/Toggle";
 import Alert from "../../../components/Alert";
 import Button from "../../../components/Button";
 import Select from "../../../components/Inputs/Select";
@@ -38,11 +37,11 @@ const cloudEnvironments = [
 ];
 
 // Authentication method policy options
-const authMethodPolicies = [
-  { _id: "both", name: "Allow both SSO and password authentication" },
-  { _id: "sso_only", name: "Require SSO authentication only" },
-  { _id: "password_only", name: "Allow password authentication only" }
-];
+// const authMethodPolicies = [
+//   { _id: "both", name: "Allow both SSO and password authentication" },
+//   { _id: "sso_only", name: "Require SSO authentication only" },
+//   { _id: "password_only", name: "Allow password authentication only" }
+// ];
 
 const SsoConfigTab: React.FC = () => {
   const { organizationId } = useAuth();
@@ -255,7 +254,7 @@ const SsoConfigTab: React.FC = () => {
       {/* Simplified SSO Configuration Card */}
       <Box sx={cardStyles}>
         <Typography fontSize={15} fontWeight={700} gutterBottom>
-          AzureAD SSO configuration
+          EntraID SSO configuration
         </Typography>
 
         <Stack spacing={0}>
@@ -356,7 +355,7 @@ const SsoConfigTab: React.FC = () => {
       {/* Enable SSO Card */}
       <Box sx={cardStyles}>
         <Typography fontSize={15} fontWeight={700} gutterBottom>
-          Enable SSO
+          Enable EntraID SSO
         </Typography>
 
         <Box sx={{ marginBottom: theme.spacing(3) }}>

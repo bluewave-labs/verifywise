@@ -10,7 +10,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, Suspense, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
@@ -19,7 +19,7 @@ import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIconSVGWhite } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 
 import {
@@ -465,7 +465,7 @@ const NewControlPane = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </Box>
           </Stack>
           <Typography component="span" fontSize={13}>
@@ -754,7 +754,7 @@ const NewControlPane = ({
                 gap: 2,
               }}
               onClick={confirmSave}
-              icon={<SaveIconSVGWhite />}
+              icon={<SaveIconSVGWhite size={20} />}
             />
           </Stack>
         </Stack>

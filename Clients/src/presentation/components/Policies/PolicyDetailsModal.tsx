@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
+import { Save as SaveIconSVGWhite } from "lucide-react";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
 
 import {
@@ -23,7 +23,7 @@ import {ReactComponent as FormatItalic} from "../../assets/icons/formatItalic.sv
 import {ReactComponent as FormatUnderlined} from "../../assets/icons/formatUnderlined.svg"
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
+import { X as CloseGreyIcon } from "lucide-react";
 import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
@@ -308,7 +308,7 @@ const PolicyDetailModal: React.FC<Props> = ({
               {isNew ? "Create new policy" : formData.title}
             </Typography>
           </Stack>
-          <CloseGreyIcon
+          <CloseGreyIcon size={20}
             style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={onClose}
           />
@@ -532,7 +532,7 @@ const PolicyDetailModal: React.FC<Props> = ({
               },
             }}
             onClick={save}
-            icon={<SaveIconSVGWhite />}
+            icon={<SaveIconSVGWhite size={20} />}
           />
         </Box>
       </Drawer>

@@ -27,7 +27,7 @@ import {
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { X as Close } from "lucide-react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
@@ -38,7 +38,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIconSVGWhite } from "lucide-react";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
@@ -836,7 +836,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
               {existingVendor ? "Edit vendor" : "Add new vendor"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
+            <Close size={20} style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
           </Stack>
           {!existingVendor && (
             <Typography
@@ -868,7 +868,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 gap: 2,
               }}
               onClick={handleSave}
-              icon={<SaveIconSVGWhite />}
+              icon={<SaveIconSVGWhite size={20} />}
               isDisabled={isEditingDisabled}
             />
           </Stack>

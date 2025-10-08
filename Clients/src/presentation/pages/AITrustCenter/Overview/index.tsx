@@ -19,7 +19,7 @@ import {
   useAITrustCentreOverviewMutation,
 } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIconSVGWhite } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
 
 import {
@@ -791,7 +791,7 @@ const AITrustCenterOverview: React.FC = () => {
             backgroundColor: hasUnsavedChanges ? "#13715B" : "#ccc",
             border: `1px solid ${hasUnsavedChanges ? "#13715B" : "#ccc"}`,
           }}
-          icon={<SaveIconSVGWhite />} // you might need a dark icon when active
+          icon={<SaveIconSVGWhite size={20} />} // you might need a dark icon when active
           variant="contained"
           onClick={handleSave}
           isDisabled={!hasUnsavedChanges}

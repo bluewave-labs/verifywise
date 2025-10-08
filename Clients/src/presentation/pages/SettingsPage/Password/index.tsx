@@ -13,7 +13,7 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIconSVGWhite } from "lucide-react";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast"; // Import CustomizableToast
 import { updatePassword } from "../../../../application/repository/user.repository";
@@ -285,7 +285,7 @@ const PasswordForm: React.FC = () => {
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIconSVGWhite size={20} />}
                 onClick={() => setIsConfirmationModalOpen(true)}
                 isDisabled={isSaveDisabled}
               />

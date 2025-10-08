@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIconSVGWhite } from "lucide-react";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
@@ -428,7 +428,7 @@ const Organization = () => {
                 isLoading ? (
                   <CircularProgress size={20} />
                 ) : (
-                  <SaveIconSVGWhite />
+                  <SaveIconSVGWhite size={20} />
                 )
               }
               onClick={organizationExists ? handleUpdate : handleCreate}

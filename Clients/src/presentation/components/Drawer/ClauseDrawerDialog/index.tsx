@@ -10,7 +10,7 @@ import {
   Dialog,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 import Field from "../../Inputs/Field";
 import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
@@ -18,7 +18,7 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIconSVGWhite } from "lucide-react";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
@@ -410,7 +410,7 @@ const VWISO42001ClauseDrawerDialog = ({
           <Typography fontSize={15} fontWeight={700}>
             {clause?.clause_no + "." + (index + 1)} {displayData?.title}
           </Typography>
-          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
+          <CloseIcon size={20} onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Divider />
         <Stack
@@ -824,7 +824,7 @@ const VWISO42001ClauseDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIconSVGWhite />}
+            icon={<SaveIconSVGWhite size={20} />}
           />
         </Stack>
       </Stack>

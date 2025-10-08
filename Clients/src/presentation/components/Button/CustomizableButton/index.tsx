@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/**
+ * Developer Note:
+ * ESLint rules disabled intentionally to allow use of flexible types and unused variables during
+ * theme-based dynamic prop handling and ref forwarding.
+ */
 /**
  * This file is currently in use
  */
@@ -6,6 +13,7 @@ import React, { memo, useCallback } from "react";
 import { Button, CircularProgress, Box } from "@mui/material";
 import { ButtonProps, SxProps, Theme } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { ICustomizableButtonProps } from "../../../../domain/interfaces/i.button";
 
 /**
  * CustomizableButton component
@@ -84,13 +92,15 @@ export interface CustomizableButtonProps {
   className?: string;
   /** Tooltip text */
   title?: string;
+  indicator?: boolean; //`indicator` prop: used to optionally show a custom visual indicator on the button.
+  textColor?: string; // Added textColor prop to allow custom inline text color customization when needed.
 }
 
 /**
  * CustomizableButton component implementation
  */
 const CustomizableButton = memo(
-  React.forwardRef<HTMLButtonElement, CustomizableButtonProps>(
+  React.forwardRef<HTMLButtonElement, ICustomizableButtonProps>(
     (
       {
         variant = "contained",
@@ -114,6 +124,8 @@ const CustomizableButton = memo(
         fullWidth = false,
         className,
         title,
+        indicator,
+        textColor, // 🧩 Add this line
         ...rest
       },
       ref
@@ -169,6 +181,10 @@ const CustomizableButton = memo(
         />
       );
 
+      // FIX: Filtered out `selectionFollowsFocus` — not a valid DOM attribute.
+// This avoids React warnings about invalid props being passed to DOM elements.
+      const { selectionFollowsFocus, ...filteredRest } = rest as any;
+
       return (
         <Button
           ref={ref}
@@ -211,7 +227,7 @@ const CustomizableButton = memo(
             )
           }
           endIcon={!loading ? endIcon : undefined}
-          {...rest}
+          {...filteredRest}
         >
           {loading && !resolvedStartIcon && !endIcon && (
             <Box

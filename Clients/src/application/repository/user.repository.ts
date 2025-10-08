@@ -1,27 +1,28 @@
 
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { ApiResponse, User } from "../../domain/types/User";
 
 export async function getUserById({
   userId,
 }: {
   userId: number;
-}): Promise<any> {
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.get(`/users/${userId}`);
-  return response.data;
+  return response.data as ApiResponse<User>;
 }
 
-export async function getAllUsers(): Promise<any> {
+export async function getAllUsers(): Promise<ApiResponse<User[]>> {
   const response = await apiServices.get(`/users`);
-  return response.data;
+  return response.data as ApiResponse<User[]>;
 }
 
 export async function createNewUser({
   userData,
 }: {
   userData: any;
-}): Promise<any> {
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.post(`/users/register`, userData);
-  return response;
+  return response as ApiResponse<User>;
 }
 
 export async function updateUserById({
@@ -30,9 +31,9 @@ export async function updateUserById({
 }: {
   userId: number;
   userData: any;
-}): Promise<any> {
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.patch(`/users/${userId}`, userData);
-  return response;
+  return response as ApiResponse<User>;
 }
 
 export async function updatePassword({

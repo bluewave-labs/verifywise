@@ -43,6 +43,8 @@ import {
   resetPasswordQuery,
   updateUserByIdQuery,
 } from "../utils/user.utils";
+import { sendMemberRoleChangedEditorToAdminNotification } from "../services/userNotification/projectNotifications";
+import { logFailure } from "../utils/logger/logHelper";
 import bcrypt from "bcrypt";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
@@ -80,6 +82,9 @@ import { ConfidentialClientApplication } from '@azure/msal-node';
 import { getAzureADConfigQuery } from "../utils/ssoConfig.utils";
 import Jwt from "jsonwebtoken";
 import { getAllOrganizationsQuery } from "../utils/organization.utils";
+import { sendSlackNotification } from "../services/slack/slackNotificationService";
+import { SlackNotificationRoutingType } from "../domain.layer/enums/slack.enum";
+import { getRoleByIdQuery } from "../utils/role.utils";
 
 const roleMap = new Map<string, number>(
   [["Admin", 1], ["Reviewer", 2], ["Editor", 3], ["Auditor", 4]]
@@ -699,10 +704,12 @@ async function resetPassword(req: Request, res: Response) {
 async function updateUserById(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const id = parseInt(req.params.id);
-  const { name, surname, email, roleId, last_login } = req.body;
+  const { name, surname, email, roleId: roleIdRaw, last_login } = req.body;
+
+  // Convert roleId to number if it exists (frontend may send as string)
+  const roleId = roleIdRaw ? parseInt(roleIdRaw) : undefined;
 
   logStructured('processing', `updating user ID ${id}`, 'updateUserById', 'user.ctrl.ts');
-  logger.debug(`✏️ Update requested for user ID ${id}`);
 
   try {
     // Validate user ID parameter
@@ -736,6 +743,9 @@ async function updateUserById(req: Request, res: Response) {
     const user = await getUserByIdQuery(id);
 
     if (user) {
+      // Capture the old role before updating (if roleId is being changed)
+      const oldRoleId = user.role_id;
+
       await user.updateCurrentUser({ name, surname, email });
       await user.validateUserData();
 
@@ -745,13 +755,70 @@ async function updateUserById(req: Request, res: Response) {
           name: user.name,
           surname: user.surname,
           last_login: last_login ?? user.last_login,
+          role_id: roleId ?? user.role_id,
         },
         transaction
       )) as UserModel;
 
       await transaction.commit();
+
+      const actor = await getUserByIdQuery(req.userId!);
+      const role = await getRoleByIdQuery(updatedUser.role_id);
+
+      await sendSlackNotification(
+        {
+          userId: actor.id!,
+          routingType: SlackNotificationRoutingType.MEMBERSHIP_AND_ROLES,
+        },
+        {
+          title: `Membership update`,
+          message: `${updatedUser.name} ${updatedUser.surname} is now *Project ${role?.name}* (added by ${actor.name} ${actor.surname}).`,
+        },
+      );
+
       logStructured('successful', `user updated: ID ${id}`, 'updateUserById', 'user.ctrl.ts');
       await logEvent('Update', `User updated: ID ${id}, email: ${updatedUser.email}`);
+
+
+      // Convert to numbers explicitly for comparison
+      const oldRoleIdNum = Number(oldRoleId);
+      const newRoleIdNum = Number(roleId);
+
+      if (newRoleIdNum === 1 && oldRoleIdNum === 3) {
+
+        // Get all projects where the user is a member
+        try {
+          const userProjects = await getUserProjects(id, req.tenantId!);
+
+          // Send notification for each project (fire-and-forget)
+          for (const project of userProjects) {
+            sendMemberRoleChangedEditorToAdminNotification({
+              projectId: project.id!,
+              projectName: project.project_title,
+              actorId: currentUserId || id, // Use currentUserId if available, otherwise use the user's own id
+              userId: id,
+            }).catch(async (emailError) => {
+              await logFailure({
+                eventType: "Update",
+                description: `Failed to send role changed notification for project ${project.id} to user ${id}`,
+                functionName: "updateUserById",
+                fileName: "user.ctrl.ts",
+                error: emailError as Error,
+              });
+            });
+          }
+        } catch (projectError) {
+          // Log error but don't fail the user update
+          await logFailure({
+            eventType: "Update",
+            description: `Failed to fetch user projects for role change notification: user ${id}`,
+            functionName: "updateUserById",
+            fileName: "user.ctrl.ts",
+            error: projectError as Error,
+          });
+        }
+      }
+
       return res.status(202).json(STATUS_CODE[202](updatedUser.toSafeJSON()));
     }
 
@@ -881,7 +948,7 @@ async function calculateProgress(
   logger.debug(`📊 Starting progress calculation for user ID ${id}`);
 
   try {
-    const userProjects = await getUserProjects(id);
+    const userProjects = await getUserProjects(id, req.tenantId!);
 
     let assessmentsMetadata = [];
     let allTotalAssessments = 0;
@@ -1027,7 +1094,11 @@ async function ChangePassword(req: Request, res: Response) {
 async function updateUserRole(req: Request, res: Response) {
   const transaction = await sequelize.transaction();
   const { id } = req.params;
-  const { newRoleId } = req.body;
+  const { newRoleId: newRoleIdRaw } = req.body;
+
+  // Normalize newRoleId from the request payload (frontend may send as string)
+  const newRoleId = typeof newRoleIdRaw === "string" ? parseInt(newRoleIdRaw, 10) : newRoleIdRaw;
+
   const currentUserId = (req as any).user?.id;
   const currentUserRoleId = (req as any).user?.role_id;
 
@@ -1082,6 +1153,9 @@ async function updateUserRole(req: Request, res: Response) {
       return res.status(404).json({ message: 'Current user not found' });
     }
 
+    // Capture the old role before updating
+    const oldRoleId = targetUser.role_id;
+
     await targetUser.updateRole(newRoleId, currentUser);
 
     const updatedUser = (await updateUserByIdQuery(
@@ -1093,6 +1167,41 @@ async function updateUserRole(req: Request, res: Response) {
     await transaction.commit();
     logStructured('successful', `role updated for user ID ${id}`, 'updateUserRole', 'user.ctrl.ts');
     await logEvent('Update', `User role updated: ID ${id}, new role ID: ${newRoleId}, by admin ID: ${currentUserId}`);
+
+    // Send email notifications for role change from Editor (3) to Admin (1)
+    if (oldRoleId === 3 && newRoleId === 1) {
+      // Get all projects where the user is a member
+      try {
+        const userProjects = await getUserProjects(parseInt(id), req.tenantId!);
+
+        // Send notification for each project (fire-and-forget)
+        for (const project of userProjects) {
+          sendMemberRoleChangedEditorToAdminNotification({
+            projectId: project.id!,
+            projectName: project.project_title,
+            actorId: currentUserId,
+            userId: parseInt(id),
+          }).catch(async (emailError) => {
+            await logFailure({
+              eventType: "Update",
+              description: `Failed to send role changed notification for project ${project.id} to user ${id}`,
+              functionName: "updateUserRole",
+              fileName: "user.ctrl.ts",
+              error: emailError as Error,
+            });
+          });
+        }
+      } catch (projectError) {
+        // Log error but don't fail the role update
+        await logFailure({
+          eventType: "Update",
+          description: `Failed to fetch user projects for role change notification: user ${id}`,
+          functionName: "updateUserRole",
+          fileName: "user.ctrl.ts",
+          error: projectError as Error,
+        });
+      }
+    }
 
     return res.status(202).json({
       message: 'User role updated successfully',

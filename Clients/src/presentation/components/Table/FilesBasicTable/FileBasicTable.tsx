@@ -14,7 +14,7 @@ import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
-import {ReactComponent as OpenInNewIcon} from "../../../assets/icons/openInNewTab.svg";
+import {ReactComponent as LinkExternalIcon } from "../../../assets/icons/link-external.svg";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
@@ -156,6 +156,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                       alignItems: "flex-end",
                       gap: "4px",
                       textDecoration: "underline",
+                      "& svg": {visibility: "hidden"},
                       "&:hover": {
                         cursor: "pointer",
                         "& svg": { visibility: "visible" },
@@ -164,10 +165,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                     onClick={(event) => handleRowClick(row, event)}
                   >
                     {row.source}
-                    <OpenInNewIcon
-                      fontSize="small"
-                      style={{ visibility: "hidden" }}
-                    />
+                    <LinkExternalIcon />
                   </Box>
                 </TableCell>
                 {/* Add any additional cells here */}

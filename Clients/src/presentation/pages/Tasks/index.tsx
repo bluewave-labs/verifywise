@@ -56,11 +56,12 @@ const TASK_STATUS_OPTIONS = [
 ];
 
 // Status display mapping
-const STATUS_DISPLAY_MAP = {
+const STATUS_DISPLAY_MAP: Record<string, string> = {
   [TaskStatus.OPEN]: "Open",
-  [TaskStatus.IN_PROGRESS]: "In progress",
+  [TaskStatus.IN_PROGRESS]: "In progress", // Show lowercase in UI
   [TaskStatus.COMPLETED]: "Completed",
   [TaskStatus.OVERDUE]: "Overdue",
+  [TaskStatus.DELETED]: "Deleted",
 };
 
 // Reverse mapping for API calls
@@ -162,8 +163,8 @@ const Tasks: React.FC = () => {
       open: tasks.filter((task) => task.status === "Open").length,
       inProgress: tasks.filter(
         (task) =>
-          (task.status as string) === "In progress" ||
-          (task.status as string) === "In Progress"
+          (task.status as string) === "In Progress" || // API response
+          (task.status as string) === "In progress"    // UI display
       ).length,
       completed: tasks.filter((task) => task.status === "Completed").length,
       overdue: tasks.filter((task) => task.isOverdue === true).length,
@@ -181,8 +182,8 @@ const Tasks: React.FC = () => {
         const apiStatusFilters = statusFilters
           .filter((status) => status !== TaskStatus.OVERDUE)
           .map((status) => {
-            // Convert display values to API values
-            if (status === "In progress") return "In Progress";
+            // Convert enum values to API values
+            if (status === TaskStatus.IN_PROGRESS) return "In Progress";
             return status;
           }) as string[];
 
@@ -784,7 +785,11 @@ const Tasks: React.FC = () => {
             onEdit={handleEditTask}
             onStatusChange={handleTaskStatusChange}
             statusOptions={TASK_STATUS_OPTIONS.map(
-              (status) => STATUS_DISPLAY_MAP[status as TaskStatus] || status
+              (status) => {
+                const displayStatus = STATUS_DISPLAY_MAP[status as TaskStatus] || status;
+                console.log('Task status mapping:', status, '->', displayStatus);
+                return displayStatus;
+              }
             )}
             isUpdateDisabled={isCreatingDisabled}
             onRowClick={handleEditTask}

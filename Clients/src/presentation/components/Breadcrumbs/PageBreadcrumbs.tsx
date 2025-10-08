@@ -1,38 +1,7 @@
 import React, { memo } from "react";
-import { Stack, useTheme, SxProps, Theme, Divider } from "@mui/material";
-import Breadcrumbs, { BreadcrumbItem } from "./index";
-
-/**
- * Props for the PageBreadcrumbs component
- */
-export interface PageBreadcrumbsProps {
-  /** Custom breadcrumb items (overrides auto-generation) */
-  items?: BreadcrumbItem[];
-  /** Whether to auto-generate breadcrumbs from current route */
-  autoGenerate?: boolean;
-  /** Custom route mapping (extends the default mapping) */
-  customRouteMapping?: Record<string, string>;
-  /** Whether to show the current page as the last item */
-  showCurrentPage?: boolean;
-  /** Custom home label */
-  homeLabel?: string;
-  /** Custom home path */
-  homePath?: string;
-  /** Whether to truncate long labels */
-  truncateLabels?: boolean;
-  /** Maximum length for truncated labels */
-  maxLabelLength?: number;
-  /** Custom click handler for breadcrumb items */
-  onItemClick?: (item: BreadcrumbItem, index: number) => void;
-  /** Additional styling with proper MUI typing */
-  sx?: SxProps<Theme>;
-  /** Additional className for custom styling */
-  className?: string;
-  /** Test identifier for automated testing */
-  testId?: string;
-  /** Whether to show the divider below breadcrumbs */
-  showDivider?: boolean;
-}
+import { Stack, useTheme, Divider } from "@mui/material";
+import Breadcrumbs from "./index";
+import { IPageBreadcrumbsProps } from "../../../domain/interfaces/i.breadcrumbs";
 
 /**
  * A standardized PageBreadcrumbs component that follows the application's design patterns.
@@ -49,7 +18,7 @@ export interface PageBreadcrumbsProps {
  * @param {PageBreadcrumbsProps} props - The props for the PageBreadcrumbs component
  * @returns {JSX.Element} A styled breadcrumbs component
  */
-const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = memo(
+const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
   ({
     items,
     autoGenerate = true,
@@ -108,7 +77,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = memo(
         />
         {showDivider && <Divider sx={{ mb: 2 }} />}
       </Stack>
-    )
+    );
   }
 );
 

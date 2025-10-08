@@ -109,7 +109,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             name: member.name,
             surname: member.surname,
             email: member.email,
-            roleId: newRole,
+            roleId: parseInt(newRole),
           },
         });
 
@@ -127,7 +127,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
         } else {
           setAlert({
             variant: "error",
-            body: response.data?.data?.message || "An error occurred.",
+            body: (response as any)?.data?.message || "An error occurred.",
           });
           setTimeout(() => setAlert(null), 3000);
         }
@@ -443,7 +443,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                   "& .MuiSelect-select": {
                                     fontSize: "13px",
                                     fontFamily: "Inter, sans-serif",
-                                    padding: "4px 8px",
+                                    padding: "0",
                                   },
                                 }}
                                 disabled={member.id === userId}

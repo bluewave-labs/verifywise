@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Box, Stack } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import TabContext from "@mui/lab/TabContext";
@@ -15,10 +15,12 @@ import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import EntraIdConfig from "./EntraIdConfig";
 // import Slack from "./Slack";
+import Slack from "./Slack";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import PageHeader from "../../components/Layout/PageHeader";
+import { ENV_VARs } from "../../../../env.vars";
 
 export default function ProfilePage() {
   const authorizedActiveTabs = ["profile", "password", "team", "organization", "sso"];
@@ -29,13 +31,24 @@ export default function ProfilePage() {
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isSsoTabDisabled = !allowedRoles.sso.view.includes(userRoleName);
   // const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
+  const [isPasswordTabDisabled, setIsPasswordTabDisabled] = useState(false);
+  const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeSetting = searchParams.get("activeTab");
-  const [isPasswordTabDisabled, setIsPasswordTabDisabled] = useState(false);
+  const activeSetting = searchParams.get("activeTab") || "";
+  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const isSlackVisible = ENV_VARs.IS_SLACK_VISIBLE === "true";
+
+  const validTabs = useMemo(() => {
+    const tabs = ["profile", "password", "team", "organization"];
+    if (isSlackVisible) {
+      tabs.push("slack")
+    }
+    return tabs;
+  }, [isSlackVisible])
 
   useEffect(() => {
-    if (activeSetting && authorizedActiveTabs.includes(activeSetting)) {
+    if (activeSetting && validTabs.includes(activeSetting)) {
       setActiveTab(activeSetting);
     } else {
       searchParams.delete("activeTab");
@@ -69,7 +82,6 @@ export default function ProfilePage() {
 
     checkSsoStatus();
   }, [userId, activeTab]);
-  const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Handle navigation state from command palette
   useEffect(() => {
@@ -94,7 +106,7 @@ export default function ProfilePage() {
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     if (activeSetting) {
-      searchParams.delete("activeTab");
+      searchParams.set("activeTab", newValue);
       setSearchParams(searchParams);
     }
     setActiveTab(newValue);
@@ -201,6 +213,15 @@ export default function ProfilePage() {
               sx={settingTabStyle}
               disabled={isSlackTabDisabled}
             /> */}
+            {isSlackVisible && (
+              <Tab
+                label="Slack"
+                value="slack"
+                disableRipple
+                sx={settingTabStyle}
+                disabled={isSlackTabDisabled}
+              /> 
+            )}
           </TabList>
         </Box>
 
@@ -228,6 +249,11 @@ export default function ProfilePage() {
         {/* <TabPanel value="slack">
           <Slack />
         </TabPanel> */}
+        {isSlackVisible && (
+          <TabPanel value="slack">
+            <Slack />
+          </TabPanel>
+        )}
       </TabContext>
     </Stack>
   );

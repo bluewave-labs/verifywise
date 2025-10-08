@@ -33,7 +33,7 @@ import WatchTower from "../../presentation/pages/WatchTower";
 import ModelInventory from "../../presentation/pages/ModelInventory";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
-import WorkingDashboard from "../../presentation/pages/DashboardOverview/WorkingDashboard";
+import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 
 export const createRoutes = (
@@ -57,7 +57,7 @@ export const createRoutes = (
     <Route path="/test/project-view" element={<ProjectView />} />
     <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
-    <Route index element={<WorkingDashboard />} />
+    <Route index element={<IntegratedDashboard />} />
     <Route path="/overview" element={<VWHome />} />
     <Route path="/framework" element={<Framework />} />
     <Route path="/project-view" element={<VWProjectView />} />

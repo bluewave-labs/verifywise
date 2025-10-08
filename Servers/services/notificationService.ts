@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs/promises";
 import { sendEmail } from "./emailService";
+import { TEMPLATES_DIR } from "../constants/emailTemplates";
 import {
   logProcessing,
   logSuccess,
@@ -15,9 +16,6 @@ interface QueuedEmail {
   resolve: (value: void | PromiseLike<void>) => void;
   reject: (reason?: any) => void;
 }
-
-// Process-rooted templates directory for security and post-transpile compatibility
-const templatesDir = path.resolve(process.cwd(), "Servers/templates");
 
 // Rate limiting state file for persistence across restarts
 const rateLimitStateFile = path.resolve(process.cwd(), ".rate-limit-state.json");
@@ -275,7 +273,7 @@ export class NotificationService {
 
     try {
       // Read the template file
-      const templatePath = path.join(templatesDir, path.basename(templateFileName));
+      const templatePath = path.join(TEMPLATES_DIR, path.basename(templateFileName));
       const template = await fs.readFile(templatePath, "utf8");
 
       // Send the email

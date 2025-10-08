@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button, Card, CardContent } from '@mui/material';
-import { Error as ErrorIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { AlertCircle as ErrorIcon, RefreshCw as RefreshIcon } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -83,10 +83,10 @@ class DashboardErrorBoundary extends Component<Props, State> {
           >
             <CardContent sx={{ p: 4 }}>
               <ErrorIcon
-                sx={{
-                  fontSize: 64,
-                  color: 'error.main',
-                  mb: 2
+                size={64}
+                style={{
+                  color: '#d32f2f',
+                  marginBottom: 16
                 }}
               />
 
@@ -111,7 +111,7 @@ class DashboardErrorBoundary extends Component<Props, State> {
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
                 <Button
                   variant="contained"
-                  startIcon={<RefreshIcon />}
+                  startIcon={<RefreshIcon size={16} />}
                   onClick={this.handleReset}
                 >
                   Try Again

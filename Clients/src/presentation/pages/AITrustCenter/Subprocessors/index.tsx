@@ -15,8 +15,7 @@ import { useStyles } from "./styles";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Modal, IconButton } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
+import { X as CloseGreyIcon, CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 import Alert from "../../../components/Alert";
@@ -473,7 +472,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
               onClick={handleOpenAddModal}
               isDisabled={!formData?.info?.subprocessor_visible}
               text="Add new subprocessor"
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
             />
             <Box sx={styles.toggleRow}>
               <Typography sx={styles.toggleLabel}>
@@ -522,7 +521,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
             <Box sx={styles.modalHeader}>
               <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
               <IconButton onClick={handleCloseEditModal} sx={{ p: 0 }}>
-                <CloseGreyIcon />
+                <CloseGreyIcon size={16} />
               </IconButton>
             </Box>
             <Stack spacing={3}>
@@ -590,7 +589,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 Add new subprocessor
               </Typography>
               <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
-                <CloseGreyIcon />
+                <CloseGreyIcon size={16} />
               </IconButton>
             </Box>
             <Stack spacing={3}>

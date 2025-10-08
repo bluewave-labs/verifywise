@@ -3,7 +3,7 @@ import { Box, Stack } from "@mui/material";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
@@ -389,7 +389,7 @@ const RiskManagement = () => {
                 gap: 2,
               }}
               onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
               }
@@ -403,7 +403,7 @@ const RiskManagement = () => {
                 gap: 2,
               }}
               onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
               }

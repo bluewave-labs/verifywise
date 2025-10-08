@@ -13,11 +13,7 @@ import {
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo } from "react";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
-import { Trash2 as DeleteIconRed } from "lucide-react";
-import {ReactComponent as EditIconGrey} from "../../assets/icons/edit.svg";
-import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
+import { CirclePlus as AddCircleOutlineIcon, Settings as SettingsIcon, Trash2 as DeleteIconRed, Pencil as EditIconGrey, ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -643,7 +639,7 @@ const Framework = () => {
             <>
               <Button
                 variant="contained"
-                endIcon={<WhiteDownArrowIcon />}
+                endIcon={<WhiteDownArrowIcon size={16} />}
                 onClick={(event) => {
                   setRotated((prev) => !prev);
                   handleManageProjectClick(event);
@@ -706,10 +702,9 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <SettingsIcon
-                      fontSize="small"
+                      size={16}
                       style={{
                         color: "text.secondary",
-                        fontSize: "16px",
                       }}
                     />
                   </ListItemIcon>
@@ -728,9 +723,9 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <EditIconGrey
+                      size={16}
                       style={{
                         color: "text.secondary",
-                        fontSize: "16px",
                       }}
                     />
                   </ListItemIcon>
@@ -772,7 +767,7 @@ const Framework = () => {
           ) : (
             <Button
               variant="contained"
-              startIcon={<AddCircleOutlineIcon />}
+              startIcon={<AddCircleOutlineIcon size={16} />}
               onClick={() => setIsProjectFormModalOpen(true)}
               disabled={!allowedRoles.projects.create.includes(userRoleName)}
               sx={{

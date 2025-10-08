@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { getAllLogs } from "../../../../application/repository/logs.repository";
 import LogLine from "../../../components/LogLine";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
-import {ReactComponent as RefreshIcon} from "../../../assets/icons/refresh.svg";
+import { RefreshCw as RefreshIcon } from "lucide-react";
 
 const WatchTowerLogs = () => {
   const theme = useTheme();
@@ -167,24 +167,15 @@ const WatchTowerLogs = () => {
                   disabled={isLoading}
                   sx={{
                     "&:focus": { outline: "none" },
-                    "& svg": {
-                      width: "20px",
-                      height: "20px",
-                    },
-                    "& svg path": {
-                      stroke: theme.palette.text.secondary,
-                    },
                     "&:hover": {
                       backgroundColor: theme.palette.grey[100],
                     },
-                    "&:disabled": {
-                      "& svg path": {
-                        stroke: theme.palette.action.disabled,
-                      },
+                    "&:disabled svg": {
+                      color: theme.palette.action.disabled,
                     },
                   }}
                 >
-                  <RefreshIcon />
+                  <RefreshIcon size={20} color={theme.palette.text.secondary} />
                 </IconButton>
               </Tooltip>
             </Box>

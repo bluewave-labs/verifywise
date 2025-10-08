@@ -15,8 +15,7 @@ import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.s
 import { SearchBox } from "../../components/Search";
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
-import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
-import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.svg";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -524,7 +523,7 @@ const Tasks: React.FC = () => {
                 </Button>
               )}
               <IconButton size="small">
-                {filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                {filtersExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </IconButton>
             </Stack>
           </Box>
@@ -634,7 +633,7 @@ const Tasks: React.FC = () => {
                     }}
                     getOptionLabel={(option: string) => option}
                     filterSelectedOptions
-                    popupIcon={<ExpandMoreIcon />}
+                    popupIcon={<ChevronDown size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}

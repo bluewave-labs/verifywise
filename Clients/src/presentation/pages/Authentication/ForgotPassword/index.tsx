@@ -5,7 +5,7 @@
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import React, { useState } from "react";
 import { ReactComponent as Key } from "../../../assets/icons/key.svg";
-import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import { ArrowLeft } from "lucide-react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -177,7 +177,7 @@ const ForgotPassword: React.FC = () => {
                 navigate("/login");
               }}
             >
-              <LeftArrowLong />
+              <ArrowLeft size={20} />
               <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
                 Back to log in
               </Typography>

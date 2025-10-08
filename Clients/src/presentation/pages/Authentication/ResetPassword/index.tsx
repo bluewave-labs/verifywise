@@ -5,7 +5,7 @@
 import { Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import { ReactComponent as Email } from "../../../assets/icons/email.svg";
-import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
@@ -146,7 +146,7 @@ const ResetPassword = () => {
               navigate("/login");
             }}
           >
-            <LeftArrowLong />
+            <ArrowLeft size={20} />
             <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
               Back to log in
             </Typography>

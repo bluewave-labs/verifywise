@@ -9,7 +9,7 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/style";
-import { ReactComponent as ExpandMoreIcon } from "../../../assets/icons/expand-down.svg";
+import { ChevronDown } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import {
   sendSlackMessage,
@@ -226,7 +226,7 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
                   );
                 }}
                 filterSelectedOptions
-                popupIcon={<ExpandMoreIcon />}
+                popupIcon={<ChevronDown size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}

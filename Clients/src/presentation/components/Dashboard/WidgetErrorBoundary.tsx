@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Card, CardContent, Typography, Button } from '@mui/material';
-import { Error as ErrorIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -73,11 +73,11 @@ class WidgetErrorBoundary extends Component<Props, State> {
           }}
         >
           <CardContent sx={{ textAlign: 'center', p: 3 }}>
-            <ErrorIcon
-              sx={{
-                fontSize: 48,
-                color: 'error.main',
-                mb: 2
+            <AlertCircle
+              size={48}
+              style={{
+                color: '#d32f2f',
+                marginBottom: 16
               }}
             />
 
@@ -101,7 +101,7 @@ class WidgetErrorBoundary extends Component<Props, State> {
             <Button
               variant="contained"
               size="small"
-              startIcon={<RefreshIcon />}
+              startIcon={<RefreshCw size={16} />}
               onClick={this.handleRetry}
               sx={{ fontSize: '0.75rem' }}
             >

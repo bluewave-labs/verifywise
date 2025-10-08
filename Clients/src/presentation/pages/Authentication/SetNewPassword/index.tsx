@@ -7,7 +7,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
-import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
+import { ArrowLeft } from "lucide-react";
 import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -299,7 +299,7 @@ const SetNewPassword: React.FC = () => {
               }}
               onClick={() => navigate("/login")}
             >
-              <LeftArrowLong />
+              <ArrowLeft size={20} />
               <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
                 Back to log in
               </Typography>

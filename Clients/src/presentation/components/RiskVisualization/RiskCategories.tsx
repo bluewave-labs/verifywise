@@ -8,8 +8,7 @@ import {
   Grid,
   Collapse,
 } from "@mui/material";
-import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.svg";
-import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import ButtonToggle from "../ButtonToggle";
@@ -222,7 +221,7 @@ const RiskCategories: React.FC<RiskCategoriesProps> = ({
                       </Typography>
                     </Box>
                     
-                    {isExpanded ? <ExpandLessIcon style={{ color: '#6B7280' }} /> : <ExpandMoreIcon style={{ color: '#6B7280' }} />}
+                    {isExpanded ? <ChevronUp size={16} style={{ color: '#6B7280' }} /> : <ChevronDown size={16} style={{ color: '#6B7280' }} />}
                   </Box>
 
                   <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>

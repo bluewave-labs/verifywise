@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { ControlCategory as ControlCategoryModel } from "../../../../domain/types/ControlCategory";
 import { useState } from "react";
-import { ReactComponent as RightArrowBlack } from "../../../assets/icons/right-arrow-black.svg";
+import { ArrowRight } from "lucide-react";
 import ControlsTable from "./ControlsTable";
 
 const Table_Columns = [
@@ -66,7 +66,8 @@ const ControlCategoryTile: React.FC<ControlCategoryProps> = ({
         <AccordionSummary
           className="control-category-accordion-summary"
           expandIcon={
-            <RightArrowBlack
+            <ArrowRight
+              size={20}
               style={{
                 transform:
                   expanded === controlCategory.id

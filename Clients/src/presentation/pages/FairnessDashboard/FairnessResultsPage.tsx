@@ -8,7 +8,7 @@ import {
   CircularProgress,
   Tooltip,
 } from "@mui/material";
-import {ReactComponent as ArrowBackIcon} from "../../assets/icons/left-arrow-long.svg";
+import { ArrowLeft } from "lucide-react";
 import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
@@ -96,7 +96,7 @@ export default function FairnessResultsPage() {
           onClick={() => navigate("/fairness-dashboard")}
           sx={{ mr: 2 }}
         >
-          <ArrowBackIcon />
+          <ArrowLeft size={20} />
         </IconButton>
         <Typography
           sx={{

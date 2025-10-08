@@ -15,8 +15,8 @@ import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo } from "react";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
 import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
-import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
-import {ReactComponent as EditIconGrey} from "../../assets/icons/edit.svg";
+import { Trash2 as DeleteIconRed } from "lucide-react";
+import { Pencil as EditIconGrey } from "lucide-react";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -728,9 +728,9 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <EditIconGrey
+                      size={16}
                       style={{
                         color: "text.secondary",
-                        fontSize: "16px",
                       }}
                     />
                   </ListItemIcon>
@@ -752,10 +752,9 @@ const Framework = () => {
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
                     <DeleteIconRed
-                      fontSize="small"
+                      size={16}
                       style={{
-                        color: "error.main",
-                        fontSize: "16px",
+                        color: "#f04438",
                       }}
                     />
                   </ListItemIcon>

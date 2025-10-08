@@ -22,7 +22,7 @@ import { ReactComponent as GreenSuccessIcon } from "../../assets/icons/success-c
 import { ReactComponent as OrangeWarningIcon } from "../../assets/icons/warning-orange.svg";
 import { ReactComponent as RedErrorIcon } from "../../assets/icons/error-circle-red.svg";
 
-import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
+import { X as CloseGreyIcon } from "lucide-react";
 
 /**
  * Mapping of alert variants to their respective icons.
@@ -46,7 +46,7 @@ const icons: { [s: string]: JSX.Element } = {
 const CloseButton: React.FC<CloseIconProps> = ({
   text,
 }: CloseIconProps): JSX.Element => (
-  <CloseGreyIcon style={closeIconStyles(text)} />
+  <CloseGreyIcon size={16} style={closeIconStyles(text)} />
 );
 
 /**

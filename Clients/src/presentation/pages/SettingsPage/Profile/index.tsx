@@ -17,8 +17,7 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
+import { Save as SaveIconSVGWhite, Trash2 as DeleteIconWhite } from "lucide-react";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";
@@ -486,7 +485,7 @@ const ProfileForm: React.FC = () => {
                 : "1px solid #13715B",
               gap: 2,
             }}
-            icon={<SaveIconSVGWhite />}
+            icon={<SaveIconSVGWhite size={16} />}
             onClick={handleSave}
             isDisabled={isSaveDisabled}
           />
@@ -537,7 +536,7 @@ const ProfileForm: React.FC = () => {
                   border: `1px solid ${isAdmin ? "#C2C2C2" : "#DB504A"}`,
                   gap: 2,
                 }}
-                icon={<DeleteIconWhite />}
+                icon={<DeleteIconWhite size={16} />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete account"

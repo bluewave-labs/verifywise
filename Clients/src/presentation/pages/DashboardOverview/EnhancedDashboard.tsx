@@ -16,7 +16,6 @@ import {
   alpha,
 } from '@mui/material';
 import {
-  Edit as EditIcon,
   Visibility as ViewIcon,
   DragIndicator as DragIcon,
   Settings as SettingsIcon,
@@ -25,6 +24,7 @@ import {
   Upload as UploadIcon,
   RestartAlt as ResetIcon,
 } from '@mui/icons-material';
+import { Pencil as EditIcon } from 'lucide-react';
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
 import { DashboardProvider, useDashboardContext } from './contexts/DashboardContext';
 import { MetricsWidget, ProjectsWidget, RisksWidget } from './widgets';
@@ -269,7 +269,7 @@ const DashboardContent: React.FC = () => {
             }
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {state.editMode ? <EditIcon /> : <ViewIcon />}
+                {state.editMode ? <EditIcon size={20} /> : <ViewIcon />}
                 <Typography>{state.editMode ? 'Edit Mode' : 'View Mode'}</Typography>
               </Box>
             }

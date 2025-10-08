@@ -15,8 +15,10 @@ import {
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 const DEFAULT_ROWS_PER_PAGE = 5;
 

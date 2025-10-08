@@ -9,8 +9,7 @@ import {
   Collapse,
   IconButton,
 } from "@mui/material";
-import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
-import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
+import { Filter as FilterIcon, X as ClearIcon } from "lucide-react";
 import { ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import Select from "../Inputs/Select";
@@ -304,7 +303,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
         onClick={() => handleExpandedChange(!expanded)}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          <FilterIcon style={{ color: "#13715B", height: "20px", width:"20px" }} />
+          <FilterIcon size={20} style={{ color: "#13715B" }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
             Filters
           </Typography>
@@ -331,7 +330,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
           {activeFilterCount > 0 && (
             <Button
               size="small"
-              startIcon={<ClearIcon />}
+              startIcon={<ClearIcon size={16} />}
               onClick={(e) => {
                 e.stopPropagation();
                 clearAllFilters();

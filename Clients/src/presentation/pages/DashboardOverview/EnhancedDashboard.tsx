@@ -17,14 +17,14 @@ import {
 } from '@mui/material';
 import {
   Edit as EditIcon,
-  Visibility as ViewIcon,
-  DragIndicator as DragIcon,
+  Eye as ViewIcon,
+  GripVertical as DragIcon,
   Settings as SettingsIcon,
-  Refresh as RefreshIcon,
+  RefreshCw as RefreshIcon,
   Download as DownloadIcon,
   Upload as UploadIcon,
-  RestartAlt as ResetIcon,
-} from '@mui/icons-material';
+  RotateCcw as ResetIcon,
+} from 'lucide-react';
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
 import { DashboardProvider, useDashboardContext } from './contexts/DashboardContext';
 import { MetricsWidget, ProjectsWidget, RisksWidget } from './widgets';

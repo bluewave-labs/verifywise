@@ -29,7 +29,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
   };
 
   return (
-    <Typography sx={{ fontWeight: 400, color: textColor }}>
+    <Typography sx={{ fontWeight: 400, color: textColor, whiteSpace: 'pre-line' }}>
       {link ? (
         <>
           {bodyString.split(link)[0]}

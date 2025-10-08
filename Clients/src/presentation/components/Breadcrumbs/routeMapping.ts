@@ -28,7 +28,7 @@ export const routeMapping: Record<string, string> = {
   "/organization": "Organization Settings",
 
   // File management
-  "/file-manager": "Evidences",
+  "/file-manager": "Evidence",
 
   // Reporting
   "/reporting": "Reporting Dashboard",

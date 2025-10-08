@@ -362,13 +362,12 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
                 onChange={handleOnMultiSelect("members")}
                 getOptionLabel={(user) => `${user.name} ${user.surname}`}
                 renderOption={(props, option) => {
-                  const { key, ...optionProps } = props;
                   const userEmail =
                     option.email.length > 30
                       ? `${option.email.slice(0, 30)}...`
                       : option.email;
                   return (
-                    <Box key={key} component="li" {...optionProps}>
+                    <Box component="li" {...props}>
                       <Typography
                         sx={createProjectFormStyles.autocompleteOptionText}
                       >

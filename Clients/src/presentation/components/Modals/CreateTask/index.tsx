@@ -29,7 +29,7 @@ import { datePickerStyle } from "../../Forms/ProjectForm/style";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import { TaskPriority } from "../../../../domain/enums/task.enum";
+import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 
 interface CreateTaskProps {
   isOpen: boolean;
@@ -43,6 +43,7 @@ interface CreateTaskFormValues {
   title: string;
   description: string;
   priority: TaskPriority;
+  status: TaskStatus;
   due_date: string;
   assignees: Array<{
     id: number;
@@ -57,6 +58,7 @@ interface CreateTaskFormErrors {
   title?: string;
   description?: string;
   priority?: string;
+  status?: string;
   due_date?: string;
   assignees?: string;
   categories?: string;
@@ -66,6 +68,7 @@ const initialState: CreateTaskFormValues = {
   title: "",
   description: "",
   priority: TaskPriority.MEDIUM,
+  status: TaskStatus.OPEN,
   due_date: "",
   assignees: [],
   categories: [],
@@ -75,6 +78,12 @@ const priorityOptions = [
   { _id: TaskPriority.LOW, name: "Low" },
   { _id: TaskPriority.MEDIUM, name: "Medium" },
   { _id: TaskPriority.HIGH, name: "High" },
+];
+
+const statusOptions = [
+  { _id: TaskStatus.OPEN, name: "Open" },
+  { _id: TaskStatus.IN_PROGRESS, name: "In progress" },
+  { _id: TaskStatus.COMPLETED, name: "Completed" },
 ];
 
 const CreateTask: FC<CreateTaskProps> = ({
@@ -100,6 +109,7 @@ const CreateTask: FC<CreateTaskProps> = ({
         title: initialData.title,
         description: initialData.description || "",
         priority: initialData.priority,
+        status: initialData.status,
         due_date: initialData.due_date
           ? dayjs(initialData.due_date).format("YYYY-MM-DD")
           : "",
@@ -228,6 +238,10 @@ const CreateTask: FC<CreateTaskProps> = ({
       newErrors.priority = "Priority is required.";
     }
 
+    if (!values.status) {
+      newErrors.status = "Status is required.";
+    }
+
     if (!values.due_date) {
       newErrors.due_date = "Due date is required.";
     }
@@ -339,12 +353,9 @@ const CreateTask: FC<CreateTaskProps> = ({
 
         {/* Form Content */}
         <form onSubmit={handleSubmit}>
-          <Stack
-            className="vwtask-form-body"
-            sx={{ display: "flex", flexDirection: "column", gap: 8 }}
-          >
-            {/* Row 1: Task Title and Assignees */}
-            <Stack direction="row" sx={{ gap: 8 }}>
+          <Stack direction="row" sx={{ gap: 8 }}>
+            {/* Left Column */}
+            <Stack sx={{ gap: 8 }}>
               <Suspense fallback={<div>Loading...</div>}>
                 <Field
                   id="title"
@@ -354,16 +365,59 @@ const CreateTask: FC<CreateTaskProps> = ({
                   onChange={handleOnTextFieldChange("title")}
                   error={errors.title}
                   isRequired
-                  sx={{
-                    backgroundColor: theme.palette.background.main,
-                    "& input": {
-                      padding: "0 14px",
-                    },
-                  }}
+                  sx={fieldStyle}
                   placeholder="Enter task title"
                 />
               </Suspense>
 
+              <Suspense fallback={<div>Loading...</div>}>
+                <DatePicker
+                  label="Due date"
+                  date={values.due_date ? dayjs(values.due_date) : null}
+                  handleDateChange={handleDateChange}
+                  sx={{
+                    ...datePickerStyle,
+                    width: "350px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  isRequired
+                  error={errors.due_date}
+                />
+              </Suspense>
+
+              <SelectComponent
+                items={statusOptions}
+                value={values.status}
+                error={errors.status}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                id="status"
+                label="Status"
+                isRequired
+                onChange={handleOnSelectChange("status")}
+                placeholder="Select status"
+              />
+
+              <SelectComponent
+                items={priorityOptions}
+                value={values.priority}
+                error={errors.priority}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                id="priority"
+                label="Priority"
+                isRequired
+                onChange={handleOnSelectChange("priority")}
+                placeholder="Select priority"
+              />
+            </Stack>
+
+            {/* Right Column */}
+            <Stack sx={{ gap: 8 }}>
               <Suspense fallback={<div>Loading...</div>}>
                 <Stack gap={theme.spacing(2)}>
                   <Typography
@@ -374,7 +428,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     fontSize={"13px"}
                     sx={{ margin: 0, height: "22px" }}
                   >
-                    Assignees
+                    Assignees *
                   </Typography>
                   <Autocomplete
                     multiple
@@ -481,24 +535,6 @@ const CreateTask: FC<CreateTaskProps> = ({
                     }}
                   />
                 </Stack>
-              </Suspense>
-            </Stack>
-
-            {/* Row 2: Due Date and Categories */}
-            <Stack direction="row" sx={{ gap: 8, alignItems: "flex-start" }}>
-              <Suspense fallback={<div>Loading...</div>}>
-                <DatePicker
-                  label="Due date"
-                  date={values.due_date ? dayjs(values.due_date) : null}
-                  handleDateChange={handleDateChange}
-                  sx={{
-                    ...datePickerStyle,
-                    width: "350px",
-                    backgroundColor: theme.palette.background.main,
-                  }}
-                  isRequired
-                  error={errors.due_date}
-                />
               </Suspense>
 
               <Suspense fallback={<div>Loading...</div>}>
@@ -621,24 +657,6 @@ const CreateTask: FC<CreateTaskProps> = ({
                   )}
                 </Stack>
               </Suspense>
-            </Stack>
-
-            {/* Row 3: Priority and Description */}
-            <Stack direction="row" sx={{ gap: 8 }}>
-              <SelectComponent
-                items={priorityOptions}
-                value={values.priority}
-                error={errors.priority}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                id="priority"
-                label="Priority"
-                isRequired
-                onChange={handleOnSelectChange("priority")}
-                placeholder="Select priority"
-              />
 
               <Suspense fallback={<div>Loading...</div>}>
                 <Field

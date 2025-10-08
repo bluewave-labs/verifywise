@@ -8,7 +8,7 @@ import { ReactComponent as Background } from "../../../assets/imgs/background-gr
 import Check from "../../../components/Checks";
 import Field from "../../../components/Inputs/Field";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
-import { ReactComponent as Lock } from "../../../assets/icons/lock.svg";
+import { Lock } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { validatePassword } from "../../../../application/validations/formValidation";
@@ -226,7 +226,7 @@ const SetNewPassword: React.FC = () => {
               gap: theme.spacing(12),
             }}
           >
-            <Lock />
+            <Lock size={24} />
           </Stack>
           <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>

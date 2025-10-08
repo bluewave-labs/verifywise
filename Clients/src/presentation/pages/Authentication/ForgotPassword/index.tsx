@@ -4,7 +4,7 @@
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import React, { useState } from "react";
-import { ReactComponent as Key } from "../../../assets/icons/key.svg";
+import { Key } from "lucide-react";
 import { ReactComponent as LeftArrowLong } from "../../../assets/icons/left-arrow-long.svg";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Field from "../../../components/Inputs/Field";
@@ -128,7 +128,7 @@ const ForgotPassword: React.FC = () => {
               gap: theme.spacing(12),
             }}
           >
-            <Key />
+            <Key size={24} />
           </Stack>
           <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
             <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>

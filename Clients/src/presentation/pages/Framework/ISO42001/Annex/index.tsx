@@ -10,7 +10,7 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repos
 import { useEffect, useState } from "react";
 import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../../ISO27001/Clause/style";
-import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
+import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
@@ -262,7 +262,7 @@ const ISO42001Annex = ({
               onChange={handleAccordionChange(annex.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <RightArrowBlack
+                <RightArrowBlack size={16}
                   style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
                    />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>

@@ -19,8 +19,10 @@ import {
   useAITrustCentreOverviewMutation,
 } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 
 import {
   SectionPaper,

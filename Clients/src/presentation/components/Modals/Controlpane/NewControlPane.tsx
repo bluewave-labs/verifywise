@@ -19,8 +19,10 @@ import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 
 import {
   AlertBox,

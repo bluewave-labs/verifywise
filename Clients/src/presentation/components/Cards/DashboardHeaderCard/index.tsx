@@ -1,7 +1,9 @@
 import { Stack, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { ReactComponent as RightArrow } from "../../../assets/icons/right-arrow.svg";
+import { ChevronRight } from "lucide-react";
 import { useState } from "react";
+
+const RightArrow = () => <ChevronRight size={16} />;
 
 const HeaderCard = ({ title, count }: { title: string; count: number }) => {
   const navigate = useNavigate();

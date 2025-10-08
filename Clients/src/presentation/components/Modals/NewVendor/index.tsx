@@ -38,8 +38,10 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,

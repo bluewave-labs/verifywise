@@ -12,8 +12,10 @@ import {
 import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 import Select from "../../Inputs/Select";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 

@@ -19,11 +19,12 @@ import {
   useTheme,
 } from "@mui/material";
 import "./index.css";
-
-import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
+import { Square, CheckSquare } from "lucide-react";
 import { FC } from "react";
 import { CheckboxProps } from "../../../../domain/interfaces/iWidget";
+
+const CheckboxOutline = () => <Square size={20} />;
+const CheckboxFilled = () => <CheckSquare size={20} />;
 
 const Checkbox: FC<CheckboxProps> = ({
   id,

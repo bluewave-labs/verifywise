@@ -31,8 +31,10 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import { RiskCalculator } from "../../../tools/riskCalculator";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
 import { SelectChangeEvent } from "@mui/material";

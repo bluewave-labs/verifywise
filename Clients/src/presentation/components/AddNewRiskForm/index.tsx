@@ -10,9 +10,11 @@ import React, {
 import { useSearchParams } from "react-router-dom";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
-import { ReactComponent as UpdateIconSVGWhite } from "../../assets/icons/update-white.svg";
+import { Save, RefreshCw } from "lucide-react";
 import dayjs from "dayjs";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
+const UpdateIconSVGWhite = () => <RefreshCw size={20} />;
 
 import { Likelihood, Severity } from "../RiskLevel/constants";
 import { RiskLikelihood, RiskSeverity } from "../RiskLevel/riskValues";

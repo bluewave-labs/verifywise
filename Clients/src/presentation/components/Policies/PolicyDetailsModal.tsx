@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import { Plate, PlateContent, usePlateEditor } from "platejs/react";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 
 import {
   BoldPlugin,

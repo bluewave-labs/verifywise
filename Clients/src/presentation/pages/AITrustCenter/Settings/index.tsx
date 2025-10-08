@@ -13,8 +13,10 @@ import { useStyles } from "./styles";
 import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,

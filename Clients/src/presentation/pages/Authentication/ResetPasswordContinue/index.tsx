@@ -4,8 +4,10 @@
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import { ReactComponent as Success } from "../../../assets/icons/check-outlined.svg";
+import { Check } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
+
+const Success = () => <Check size={24} />;
 import { useNavigate } from "react-router-dom";
 
 const ResetPasswordContinue = () => {

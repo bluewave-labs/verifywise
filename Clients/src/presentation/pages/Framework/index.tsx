@@ -14,10 +14,12 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo } from "react";
 import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as SettingsIcon } from "../../assets/icons/setting-small.svg";
-import { ReactComponent as DeleteIconRed } from "../../assets/icons/trash-filled-red.svg";
-import {ReactComponent as EditIconGrey} from "../../assets/icons/edit.svg";
+import { Settings, Trash2, Edit } from "lucide-react";
 import { ReactComponent as WhiteDownArrowIcon } from "../../assets/icons/chevron-down-white.svg";
+
+const SettingsIcon = () => <Settings size={16} />;
+const DeleteIconRed = () => <Trash2 size={16} color="#D92D20" />;
+const EditIconGrey = () => <Edit size={16} />;
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -705,13 +707,7 @@ const Framework = () => {
                   }
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <SettingsIcon
-                      fontSize="small"
-                      style={{
-                        color: "text.secondary",
-                        fontSize: "16px",
-                      }}
-                    />
+                    <SettingsIcon />
                   </ListItemIcon>
                   <ListItemText
                     primary="Manage Frameworks"
@@ -727,12 +723,7 @@ const Framework = () => {
                   disabled={!allowedRoles.projects.edit.includes(userRoleName)}
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <EditIconGrey
-                      style={{
-                        color: "text.secondary",
-                        fontSize: "16px",
-                      }}
-                    />
+                    <EditIconGrey />
                   </ListItemIcon>
                   <ListItemText
                     primary="Edit Project"
@@ -751,13 +742,7 @@ const Framework = () => {
                   }
                 >
                   <ListItemIcon sx={{ minWidth: 32 }}>
-                    <DeleteIconRed
-                      fontSize="small"
-                      style={{
-                        color: "error.main",
-                        fontSize: "16px",
-                      }}
-                    />
+                    <DeleteIconRed />
                   </ListItemIcon>
                   <ListItemText
                     primary="Delete Project"

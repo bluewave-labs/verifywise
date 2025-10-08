@@ -13,11 +13,12 @@
 
 import { Box, Button } from "@mui/material";
 import "../Table/index.css";
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
 
-import { ReactComponent as LeftArrowDouble } from "../../assets/icons/left-arrow-double.svg";
-import { ReactComponent as LeftArrow } from "../../assets/icons/left-arrow.svg";
-import { ReactComponent as RightArrow } from "../../assets/icons/right-arrow.svg";
-import { ReactComponent as RightArrowDouble } from "../../assets/icons/right-arrow-double.svg";
+const LeftArrowDouble = () => <ChevronsLeft size={20} />;
+const LeftArrow = () => <ChevronLeft size={20} />;
+const RightArrow = () => <ChevronRight size={20} />;
+const RightArrowDouble = () => <ChevronsRight size={20} />;
 
 interface TablePaginationActionsProps {
   count: number;

@@ -9,9 +9,11 @@ import {
 } from "@mui/material";
 import { useCallback, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
+import { Square, CheckSquare } from "lucide-react";
 import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+
+const CheckboxOutline = () => <Square size={20} />;
+const CheckboxFilled = () => <CheckSquare size={20} />;
 import {
   paginationStyle,
   paginationDropdown,

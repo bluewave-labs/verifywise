@@ -18,8 +18,10 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import { User } from "../../../../domain/types/User";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
 import Alert from "../../Alert";

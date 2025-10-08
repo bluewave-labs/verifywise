@@ -17,8 +17,10 @@ import Alert from "../../../components/Alert";
 import { store } from "../../../../application/redux/store";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import CustomizableSkeleton from "../../../components/Skeletons";
 import CustomizableToast from "../../../components/Toast";
 import useLogout from "../../../../application/hooks/useLogout";

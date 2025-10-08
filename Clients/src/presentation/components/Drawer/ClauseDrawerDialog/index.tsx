@@ -18,8 +18,10 @@ import DatePicker from "../../Inputs/Datepicker";
 import { Dayjs } from "dayjs";
 import { useState, useEffect, Suspense } from "react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import { useAuth } from "../../../../application/hooks/useAuth";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import useUsers from "../../../../application/hooks/useUsers";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../Inputs/FileUpload";

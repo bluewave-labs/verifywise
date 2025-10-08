@@ -8,8 +8,10 @@ import {
   Button,
 } from "@mui/material";
 import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
-import { ReactComponent as CheckGreenIcon } from "../../../assets/icons/check-green.svg";
+import { CheckCircle } from "lucide-react";
 import { Project } from "../../../../domain/types/Project";
+
+const CheckGreenIcon = () => <CheckCircle size={20} color="#12B76A" />;
 import { Framework } from "../../../../domain/types/Framework";
 import {
   modalContainerStyle,

@@ -9,8 +9,10 @@ import {
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save } from "lucide-react";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
+
+const SaveIconSVGWhite = () => <Save size={20} />;
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
   CreateMyOrganization,

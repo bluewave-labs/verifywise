@@ -11,10 +11,11 @@
 
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import "./index.css";
-
-import { ReactComponent as CheckGrey } from "../../assets/icons/check.svg";
-import { ReactComponent as CheckOutlined } from "../../assets/icons/checkbox-outline.svg";
+import { Check as CheckIcon, Square } from "lucide-react";
 import { CheckVariants } from "../../../domain/enums/checkVariants";
+
+const CheckGrey = () => <CheckIcon size={16} />;
+const CheckOutlined = () => <Square size={16} />;
 
 const Check = ({
   text,

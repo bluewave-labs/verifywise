@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from "react";
 import FileBasicTable from "../FilesBasicTable/FileBasicTable";
 import { Stack, Box, Typography } from "@mui/material";
-import AscendingIcon from "../../../assets/icons/up-arrow.svg";
-import DescendingIcon from "../../../assets/icons/down-arrow.svg";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
 import { FileData } from "../../../../domain/types/File";
 
@@ -100,16 +99,13 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files }) => {
                   sx={{ cursor: "pointer" }}
                 >
                   {col.name}
-                  <Box
-                    component="img"
-                    src={
-                      sortField === colKey && sortDirection === "asc"
-                        ? AscendingIcon
-                        : DescendingIcon
-                    }
-                    alt="Sort"
-                    sx={{ width: 16, height: 16, ml: 0.5 }}
-                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5 }}>
+                    {sortField === colKey && sortDirection === "asc" ? (
+                      <ArrowUp size={16} />
+                    ) : (
+                      <ArrowDown size={16} />
+                    )}
+                  </Box>
                 </Stack>
               ),
             }

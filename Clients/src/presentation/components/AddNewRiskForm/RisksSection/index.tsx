@@ -15,7 +15,7 @@ import {
   Box,
   TextField,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import Alert from "../../Alert";
@@ -248,7 +248,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                     </Box>
                   );
                 }}
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<ChevronDown size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -354,7 +354,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                     </Box>
                   );
                 }}
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<ChevronDown size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -532,7 +532,7 @@ const RiskSection: FC<RiskSectionProps> = ({
                       </Box>
                     );
                   }}
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<ChevronDown size={16} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}

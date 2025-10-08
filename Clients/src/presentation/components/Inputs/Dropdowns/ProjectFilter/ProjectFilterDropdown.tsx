@@ -2,7 +2,7 @@ import React from "react";
 import { Select, MenuItem, FormControl, useTheme } from "@mui/material";
 import { dropdownStyles, inputStyles } from "./style";
 import { ProjectFilterDropdownProps } from "../../../../../domain/interfaces/iDropdown";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 
 
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
@@ -22,7 +22,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
           value={selectedProject || ""}
           onChange={(e) => onChange(e.target.value)}
           displayEmpty
-          IconComponent={GreyDownArrowIcon}
+          IconComponent={() => <ChevronDown size={16} />}
           sx={{
             ...inputStyles,
             ...dropdownStyles,

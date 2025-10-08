@@ -8,8 +8,7 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping } from "./routeMapping";
-
-import { ReactComponent as ChevronRightGreyIcon } from "../../assets/icons/chevron-right-grey.svg";
+import { ChevronRight } from "lucide-react";
 import {
   IBreadcrumbItem,
   IBreadcrumbsProps,
@@ -25,7 +24,7 @@ import {
  */
 const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   items,
-  separator = <ChevronRightGreyIcon style={{ width: "80%", height: "auto" }} />,
+  separator = <ChevronRight size={16} />,
   maxItems = 8,
   sx,
   autoGenerate = false,

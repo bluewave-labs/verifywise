@@ -10,7 +10,7 @@ import {
   Dialog,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 import Field from "../../Inputs/Field";
 import { FileData } from "../../../../domain/types/File";
 import Select from "../../Inputs/Select";
@@ -408,7 +408,7 @@ const VWISO27001ClauseDrawerDialog = ({
           <Typography fontSize={15} fontWeight={700}>
             {clause?.arrangement + "." + (index + 1)} {displayData?.title}
           </Typography>
-          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
+          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} size={20} />
         </Stack>
         <Divider />
         <Stack

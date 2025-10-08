@@ -19,10 +19,8 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
-import { Save as SaveIcon } from "lucide-react";
+import { Save as SaveIcon, X as CloseIcon, ChevronDown } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { X as CloseIcon } from "lucide-react";
 import { ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
@@ -478,7 +476,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         : "No options"
                     }
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<ChevronDown size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -566,7 +564,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     }}
                     getOptionLabel={(option: string) => option}
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<ChevronDown size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}

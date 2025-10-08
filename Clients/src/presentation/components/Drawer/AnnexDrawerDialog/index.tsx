@@ -9,7 +9,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { FileData } from "../../../../domain/types/File";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 import Checkbox from "../../Inputs/Checkbox";
 import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
@@ -398,7 +398,7 @@ const VWISO42001AnnexDrawerDialog = ({
           <Typography fontSize={15} fontWeight={700}>
             {title}
           </Typography>
-          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
+          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} size={20} />
         </Stack>
         <Divider />
         <Stack

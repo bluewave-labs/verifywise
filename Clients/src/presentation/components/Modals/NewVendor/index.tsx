@@ -38,8 +38,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { Save as SaveIconSVGWhite } from "lucide-react";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { Save as SaveIconSVGWhite, ChevronDown } from "lucide-react";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,
@@ -556,7 +555,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 );
               }}
               filterSelectedOptions
-              popupIcon={<GreyDownArrowIcon />}
+              popupIcon={<ChevronDown size={16} />}
               renderInput={(params: AutocompleteRenderInputParams) => (
                 <TextField
                   {...params}

@@ -41,7 +41,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import CustomizableToast from "../../Toast";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
@@ -740,7 +740,7 @@ const ProjectForm = ({
                   );
                 }}
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<ChevronDown size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -836,7 +836,7 @@ const ProjectForm = ({
                       option.name.includes("coming soon")
                     }
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<ChevronDown size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -948,7 +948,7 @@ const ProjectForm = ({
                   option.name.includes("coming soon")
                 }
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<ChevronDown size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}

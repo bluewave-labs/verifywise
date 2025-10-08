@@ -108,8 +108,8 @@ const RegisterUser: React.FC = () => {
           variant: "error",
           body:
             isSuccess === 409
-              ? "This user already exists."
-              : "Registration failed.",
+              ? "An account with this email address already exists. Please try logging in instead, or contact your administrator if you believe this is an error."
+              : "Registration failed. Please check your information and try again.",
           setAlert,
         });
       }

@@ -24,7 +24,7 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react"
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../components/Skeletons";
@@ -524,7 +524,7 @@ const Vendors = () => {
                       border: "1px solid #13715B",
                       gap: 2,
                     }}
-                    icon={<AddCircleOutlineIcon />}
+                    icon={<AddCircleOutlineIcon size={20} />}
                     onClick={() => {
                       openAddNewVendor();
                       setSelectedVendor(null);

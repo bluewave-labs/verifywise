@@ -19,7 +19,7 @@ import {
   IconButton,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react"
 import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Tab from "@mui/material/Tab";

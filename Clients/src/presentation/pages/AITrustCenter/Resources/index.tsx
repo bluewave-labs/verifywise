@@ -15,7 +15,7 @@ import {
 import Alert from "../../../components/Alert";
 import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-grey.svg"
 import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-grey.svg"
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";

@@ -9,7 +9,7 @@ import {
   InputBase,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
 import {
@@ -359,7 +359,7 @@ const Training: React.FC = () => {
                         gap: 2,
                       }}
                       text="New training"
-                      icon={<AddCircleOutlineIcon />}
+                      icon={<AddCircleOutlineIcon size={20} />}
                       onClick={handleNewTrainingClick}
                       isDisabled={isCreatingDisabled}
                     />

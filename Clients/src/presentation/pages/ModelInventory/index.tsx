@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
@@ -741,7 +741,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add new model"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={20} />}
                 onClick={handleNewModelInventoryClick}
                 isDisabled={isCreatingDisabled}
               />
@@ -813,7 +813,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add model risk"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={20} />}
                 onClick={handleNewModelRiskClick}
                 isDisabled={isCreatingDisabled}
               />

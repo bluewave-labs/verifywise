@@ -15,7 +15,7 @@ import {
   MenuItem,
   CircularProgress,
 } from "@mui/material";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react"
 import {ReactComponent as CloseIcon} from "../../assets/icons/close-grey.svg"
 import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";

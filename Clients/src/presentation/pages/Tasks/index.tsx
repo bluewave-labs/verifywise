@@ -11,7 +11,7 @@ import {
   TextField,
   Autocomplete,
 } from "@mui/material";
-import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
+import { PlusCircle as AddCircleIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
 import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
@@ -406,7 +406,7 @@ const Tasks: React.FC = () => {
               border: "1px solid #13715B",
               gap: 2,
             }}
-            icon={<AddCircleIcon />}
+            icon={<AddCircleIcon size={20} />}
             onClick={handleCreateTask}
             isDisabled={isCreatingDisabled}
           />

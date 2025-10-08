@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { X as Close } from "lucide-react";
 import { Suspense, useEffect, useState, lazy, useCallback } from "react";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
@@ -589,7 +589,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             >
               {existingRisk ? "Edit risk" : "Add a new vendor risk"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
+            <Close size={20} style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
           {!existingRisk && (
             <Typography

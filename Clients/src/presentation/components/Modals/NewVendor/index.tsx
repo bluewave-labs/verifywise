@@ -27,7 +27,7 @@ import {
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { X as Close } from "lucide-react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
@@ -836,7 +836,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
               {existingVendor ? "Edit vendor" : "Add new vendor"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
+            <Close size={20} style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
           </Stack>
           {!existingVendor && (
             <Typography

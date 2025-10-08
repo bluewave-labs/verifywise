@@ -19,7 +19,7 @@ const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
 import { Save as SaveIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 import {
   ModelRiskCategory,
   ModelRiskLevel,
@@ -382,7 +382,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </Box>
           </Stack>
 

@@ -9,7 +9,7 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
@@ -131,7 +131,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
             {title}
           </Typography>
 
-          <CloseIcon onClick={handleClose} style={{ cursor: "pointer" }} />
+          <CloseIcon size={20} onClick={handleClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Typography fontSize={13}>{content}</Typography>
         <DropDowns />

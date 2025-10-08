@@ -12,9 +12,8 @@ import {
 import { Suspense, lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 import Select from "../../Inputs/Select";
-import { Save as SaveIcon } from "lucide-react";
+import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 
 interface NewTrainingProps {
@@ -262,7 +261,7 @@ const NewTraining: FC<NewTrainingProps> = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </Box>
           </Stack>
           <Typography 

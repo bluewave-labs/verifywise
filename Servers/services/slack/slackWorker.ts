@@ -25,13 +25,13 @@ export const createNotificationWorker = () => {
   );
 
   worker.on("completed", (job) => {
-    const userId = job.returnvalue.userId;
+    const userId = job.returnvalue?.userId;
     logSuccess({
       eventType: "Update",
       description: "Completed Job Processing",
       functionName: "createNotificationWorker",
       fileName: "slackWorker.ts",
-      userId: userId,
+      userId,
     });
   });
 

@@ -21,5 +21,6 @@ process.on("SIGINT", async () => {
   logger.debug("Shutting down all workers...");
   await Promise.all(workers.map((worker) => worker.close()));
   logger.debug("All workers shut down successfully");
+  notificationWorker.close();
   process.exit(0);
 });

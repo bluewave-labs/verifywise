@@ -414,52 +414,18 @@ const Vendors = () => {
         tourKey="vendor-tour"
       />
       <Stack gap={"16px"} maxWidth={1400}>
-        {value === "1" ? (
-          <>
-            {alert && (
-              <Suspense fallback={<div>Loading...</div>}>
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              </Suspense>
-            )}
-             <PageHeader
-               title="Vendor list"
-               description="This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(true)
-                     }
-                     size="small"
-                    />
-                 }
-             />
-          </>
-        ) : (
-          <>
-            {alert && (
-              <Suspense fallback={<div>Loading...</div>}>
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              </Suspense>
-            )}
-
-            <PageHeader
-                title="Vendor risks list"
-                description="This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
-                />
-          </>
+        {alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
         )}
+
         <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList
@@ -473,6 +439,22 @@ const Vendors = () => {
               <Tab label="Vendors" value="1" sx={tabStyle} disableRipple />
               <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
             </TabList>
+          </Box>
+
+          <Box sx={{ mt: "48px", mb: "16px" }}>
+            <PageHeader
+              title={value === "1" ? "Vendor list" : "Vendor risks list"}
+              description={value === "1"
+                ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+                : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+              }
+              rightContent={value === "1" ? (
+                <HelperIcon
+                  onClick={() => setIsHelperDrawerOpen(true)}
+                  size="small"
+                />
+              ) : undefined}
+            />
           </Box>
           {value !== "1" &&
             (loadingVendorRisks || isVendorsLoading ? (

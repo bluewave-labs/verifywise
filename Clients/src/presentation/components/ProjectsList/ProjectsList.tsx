@@ -89,7 +89,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
+          mb: "16px",
         }}
       >
         {/* Search Box */}

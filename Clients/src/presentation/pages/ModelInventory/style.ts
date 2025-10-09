@@ -152,6 +152,7 @@ export const emptyStateContainerStyle = (_: Theme) => ({
   padding: "60px 20px 80px 20px",
   gap: "20px",
   minHeight: 200,
+  backgroundColor: "#FFFFFF", // Ensure white background
 });
 
 export const emptyStateTextStyle = {

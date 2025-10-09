@@ -10,7 +10,7 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { X as ClearIcon } from "lucide-react";
 import {
   Suspense,
   useCallback,
@@ -455,7 +455,8 @@ const ProjectForm = ({
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -585,7 +586,8 @@ const ProjectForm = ({
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>

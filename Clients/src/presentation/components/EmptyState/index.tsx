@@ -1,5 +1,5 @@
 import React from "react";
-import { Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import {
   emptyStateTextStyle
@@ -25,7 +25,6 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   message = "There is currently no data in this table.",
   imageAlt = "No data available"
 }) => {
-  const theme = useTheme();
 
   return (
     <Stack

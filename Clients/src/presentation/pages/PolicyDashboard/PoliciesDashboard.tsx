@@ -4,10 +4,8 @@ import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import {
   Box,
   Stack,
-  Typography,
   IconButton,
   InputBase,
-  useTheme,
 } from "@mui/material";
 import { Search as SearchIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -38,8 +36,6 @@ const PolicyDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
-
-  const theme = useTheme();
 
   const fetchAll = async () => {
     const [pRes, tRes] = await Promise.all([getAllPolicies(), getAllTags()]);

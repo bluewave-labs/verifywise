@@ -10,7 +10,7 @@ import React, {
 import { useSearchParams } from "react-router-dom";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { ReactComponent as UpdateIconSVGWhite } from "../../assets/icons/update-white.svg";
 import dayjs from "dayjs";
 
@@ -813,7 +813,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             }}
             icon={
               popupStatus === "new" ? (
-                <SaveIconSVGWhite />
+                <SaveIcon size={16} />
               ) : (
                 <UpdateIconSVGWhite />
               )

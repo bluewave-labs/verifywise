@@ -105,6 +105,7 @@ class InferencePipeline:
             "features": sample["features"],
             "answer": sample["answer"],
             "protected_attributes": sample["protected_attributes"],
+            "legitimate_attributes": sample.get("legitimate_attributes"),
             "raw_output": raw_output,
             "prediction": pred_value,
             "confidence": conf_value,

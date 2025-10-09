@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Box, Typography, IconButton } from '@mui/material'
-import { ReactComponent as CloseIcon } from '../../assets/icons/close-grey.svg'
+import { X as CloseIcon } from 'lucide-react'
 import { useAuth } from '../../../application/hooks/useAuth'
 import commandRegistry from '../../../application/commands/registry'
 import CommandActionHandler, { CommandActionHandlers } from '../../../application/commands/actionHandler'
@@ -192,7 +192,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                         height: 24
                       }}
                     >
-                      <CloseIcon/>
+                      <CloseIcon size={16}/>
                     </IconButton>
                   </Box>
 

@@ -17,7 +17,9 @@ import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
@@ -171,23 +173,47 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   e.stopPropagation();
                   onEdit?.(training.id.toString());
                 }}
-              >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+              > 
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.training_name}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.duration}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.provider}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   {training.department}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   <StatusBadge status={training.status} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   {training.people}
                 </TableCell>
                 <TableCell

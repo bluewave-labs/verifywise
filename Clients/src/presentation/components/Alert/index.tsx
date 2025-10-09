@@ -17,12 +17,7 @@ import { closeIconStyles, iconButtonStyles } from "./style";
 import { CloseIconProps } from "../../../domain/interfaces/iWidget";
 import AlertBody from "./AlertBody";
 
-import { ReactComponent as BlueInfoIcon } from "../../assets/icons/info-circle-blue.svg";
-import { ReactComponent as GreenSuccessIcon } from "../../assets/icons/success-circle-green.svg";
-import { ReactComponent as OrangeWarningIcon } from "../../assets/icons/warning-orange.svg";
-import { ReactComponent as RedErrorIcon } from "../../assets/icons/error-circle-red.svg";
-
-import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
+import { Info as BlueInfoIcon, CheckCircle as GreenSuccessIcon, AlertTriangle as OrangeWarningIcon, XCircle as RedErrorIcon, X as CloseGreyIcon } from "lucide-react";
 
 /**
  * Mapping of alert variants to their respective icons.
@@ -31,10 +26,10 @@ import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.s
  * @type {object}
  */
 const icons: { [s: string]: JSX.Element } = {
-  success: <GreenSuccessIcon />, // #079455
-  info: <BlueInfoIcon />, // #0288d1
-  error: <RedErrorIcon />, // #f04438
-  warning: <OrangeWarningIcon />, // #DC6803
+  success: <GreenSuccessIcon size={20} />, // #079455
+  info: <BlueInfoIcon size={20} />, // #0288d1
+  error: <RedErrorIcon size={20} />, // #f04438
+  warning: <OrangeWarningIcon size={20} />, // #DC6803
 };
 
 /**
@@ -46,7 +41,7 @@ const icons: { [s: string]: JSX.Element } = {
 const CloseButton: React.FC<CloseIconProps> = ({
   text,
 }: CloseIconProps): JSX.Element => (
-  <CloseGreyIcon style={closeIconStyles(text)} />
+  <CloseGreyIcon size={16} style={closeIconStyles(text)} />
 );
 
 /**

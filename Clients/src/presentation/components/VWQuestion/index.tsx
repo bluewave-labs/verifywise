@@ -1,6 +1,6 @@
 import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { Info as GreyCircleInfoIcon } from "lucide-react";
 import {
   priorities,
   PriorityLevel,
@@ -260,7 +260,7 @@ const QuestionFrame = ({
                 }}
               >
                 <Box component="span" sx={{ display: "inline-flex", cursor: "pointer" }}>
-          <GreyCircleInfoIcon />
+          <GreyCircleInfoIcon size={16} />
         </Box>
               </Tooltip>
             </Box>

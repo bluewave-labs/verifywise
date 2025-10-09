@@ -2,9 +2,11 @@ import React, { useCallback, useState } from 'react'
 import { ProjectRisk } from '../../../../../domain/types/ProjectRisk'
 import singleTheme from '../../../../themes/v1SingleTheme';
 import { TableBody, TableCell, TableRow, useTheme, Checkbox as MuiCheckbox, TableFooter, TablePagination, } from '@mui/material';
-import { ReactComponent as CheckboxOutline } from "../../../../assets/icons/checkbox-outline.svg";
+import { Square as CheckboxOutline } from "lucide-react";
 import { ReactComponent as CheckboxFilled } from "../../../../assets/icons/checkbox-filled.svg";
-import { ReactComponent as SelectorVertical } from '../../../../assets/icons/selector-vertical.svg'
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import RiskChip from '../../../RiskLevel/RiskChip';
 
 import {
@@ -84,7 +86,7 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
                     onChange={(e) => handleRowClick(row, e)}
                     onClick={(e) => e.stopPropagation()}  
                     checkedIcon={<CheckboxFilled />}
-                    icon={<CheckboxOutline />}
+                    icon={<CheckboxOutline size={16} />}
                     sx={{
                       borderRadius: "4px",
                       "&:hover": { backgroundColor: "transparent" },

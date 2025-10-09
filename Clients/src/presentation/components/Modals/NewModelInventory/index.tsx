@@ -21,14 +21,12 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon, X as CloseIcon, ChevronDown } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
 import { getAllProjects } from "../../../../application/repository/project.repository";
@@ -507,7 +505,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </Box>
           </Stack>
 
@@ -749,7 +747,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     );
                   }}
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<ChevronDown size={16} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -814,7 +812,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     );
                   }}
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<ChevronDown size={16} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -940,7 +938,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 gap: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIconSVGWhite />}
+              icon={<SaveIcon size={16} />}
             />
           </Stack>
         </form>

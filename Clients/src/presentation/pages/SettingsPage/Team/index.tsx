@@ -24,12 +24,10 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import {ReactComponent as GroupsIcon} from "../../../assets/icons/group.svg";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { UserPlus as GroupsIcon, ChevronsUpDown as SelectorVertical, Trash2 as DeleteIconGrey } from "lucide-react";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -357,7 +355,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<GroupsIcon />}
+                icon={<GroupsIcon size={16} />}
                 onClick={() => inviteTeamMember()}
               />
             </Box>
@@ -475,7 +473,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 disableRipple
                                 disabled={member.id === userId}
                               >
-                                <DeleteIconGrey />
+                                <DeleteIconGrey size={16} />
                               </IconButton>
                             </TableCell>
                           </TableRow>

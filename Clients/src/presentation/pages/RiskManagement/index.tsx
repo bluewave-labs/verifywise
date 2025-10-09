@@ -3,7 +3,7 @@ import { Box, Stack } from "@mui/material";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
@@ -294,7 +294,7 @@ const RiskManagement = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
@@ -330,7 +330,7 @@ const RiskManagement = () => {
         ]}
       />
 
-      <Stack gap={"24px"} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"
@@ -360,18 +360,14 @@ const RiskManagement = () => {
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
-      <Stack spacing={3}>
-        <RiskFilters
-          risks={projectRisks}
-          onFilterChange={handleRiskFilterChange}
-        />
-      </Stack>
+      <RiskFilters
+        risks={projectRisks}
+        onFilterChange={handleRiskFilterChange}
+      />
       <Stack
         className="risk-management-row"
         sx={{
           gap: 10,
-          mb: 1,
-          mt: 2,
         }}
       >
         <Stack
@@ -389,7 +385,7 @@ const RiskManagement = () => {
                 gap: 2,
               }}
               onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
               }
@@ -403,7 +399,7 @@ const RiskManagement = () => {
                 gap: 2,
               }}
               onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
               }

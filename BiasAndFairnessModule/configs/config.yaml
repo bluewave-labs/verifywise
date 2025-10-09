@@ -6,11 +6,12 @@ dataset:
   platform: "huggingface"
   protected_attributes:
     - "sex"
+  legitimate_attributes:
     - "race"
   target_column: "income"
   sampling:
     enabled: true
-    n_samples: 50
+    n_samples: 20 # Number of samples to use for quick experiments
     random_seed: 42
 
 # Post-processing Configuration
@@ -25,7 +26,7 @@ post_processing:
       unprivileged: ["Female"]
     race:
       privileged: ["White"]
-      unprivileged: ["Black", "Other"]
+      unprivileged: ['Black', 'Asian-Pac-Islander', 'Amer-Indian-Eskimo', 'Other']
 
 # Model Configuration
 model:
@@ -44,7 +45,7 @@ model:
 
 # Prompting Configuration
 prompting:
-  formatter: "openai-chat-json"   # <- change only this to switch
+  formatter: "tinyllama-chat"   # <- change only this to switch
   defaults:                       # optional, shared across formatters
     instruction: "Given the following demographic information about a person:"
     system_prompt: null
@@ -63,6 +64,8 @@ metrics:
     metrics:
       - "demographic_parity"
       - "equalized_odds"
+      - "equalized_opportunity"
+      - "predictive_equality"
       - "predictive_parity"
   performance:
     enabled: false
@@ -71,5 +74,15 @@ metrics:
       - "precision"
 
 artifacts:
-  inference_results_path: "artifacts/inference_results.csv"
-  postprocessed_results_path: "artifacts/postprocessed_results.csv"
+  reports_dir: "artifacts/eval_results"
+  inference_results_path: "artifacts/inference_results_new.csv"
+  postprocessed_results_path: "artifacts/base_test_metrics.csv"
+
+# Visualizations Configuration
+visualizations:
+  - type: "plot_conditional_statistical_parity"
+    attribute: "sex"
+  - type: "plot_cumulative_parity_loss"
+    attribute: "sex"
+  - type: "plot_group_metrics_boxplots"
+    attribute: "sex"

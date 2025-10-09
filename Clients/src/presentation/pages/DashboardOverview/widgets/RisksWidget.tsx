@@ -9,10 +9,10 @@ import {
   alpha,
 } from '@mui/material';
 import {
-  Warning as WarningIcon,
-  Error as ErrorIcon,
-  Info as InfoIcon,
-} from '@mui/icons-material';
+  AlertTriangle,
+  AlertCircle,
+  Info,
+} from 'lucide-react';
 
 interface RiskData {
   level: 'high' | 'medium' | 'low';
@@ -58,28 +58,28 @@ export const RisksWidget: React.FC<RisksWidgetProps> = ({
         return {
           color: theme.palette.error.main,
           background: alpha(theme.palette.error.main, 0.1),
-          icon: <ErrorIcon />,
+          icon: <AlertCircle size={20} />,
           label: 'High Risk',
         };
       case 'medium':
         return {
           color: theme.palette.warning.main,
           background: alpha(theme.palette.warning.main, 0.1),
-          icon: <WarningIcon />,
+          icon: <AlertTriangle size={20} />,
           label: 'Medium Risk',
         };
       case 'low':
         return {
           color: theme.palette.success.main,
           background: alpha(theme.palette.success.main, 0.1),
-          icon: <InfoIcon />,
+          icon: <Info size={20} />,
           label: 'Low Risk',
         };
       default:
         return {
           color: theme.palette.text.primary,
           background: theme.palette.grey[100],
-          icon: <InfoIcon />,
+          icon: <Info size={20} />,
           label: 'Unknown',
         };
     }

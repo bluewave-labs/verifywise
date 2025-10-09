@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef } from "react";
 import {
   Box,
@@ -12,7 +13,7 @@ import { useStyles } from "./styles";
 import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   useAITrustCentreOverviewQuery,
@@ -338,6 +339,12 @@ const AITrustCenterSettings: React.FC = () => {
 
   const handleSave = async () => {
     if (!formData) return;
+
+      // Check if logo exists
+      if (!formData?.info?.logo_url) {
+        setLogoError("Company logo is required before saving");
+        return; // stop save
+      }
 
     try {
       console.log("Saving AI Trust Centre data from Settings", formData);
@@ -705,7 +712,7 @@ const AITrustCenterSettings: React.FC = () => {
             backgroundColor: hasUnsavedChanges ? "#13715B" : "#ccc",
             border: `1px solid ${hasUnsavedChanges ? "#13715B" : "#ccc"}`,
           }}
-          icon={<SaveIconSVGWhite />}
+          icon={<SaveIcon size={16} />}
           variant="contained"
           onClick={handleSave}
           isDisabled={!hasUnsavedChanges}

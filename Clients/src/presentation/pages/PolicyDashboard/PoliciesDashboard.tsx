@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import {
@@ -223,7 +223,7 @@ const PolicyDashboard: React.FC = () => {
               gap: 3,
               height: "fit-content",
             }}
-            icon={<AddCircleOutlineIcon />}
+            icon={<AddCircleOutlineIcon size={16} />}
             onClick={handleAddNewPolicy}
           />
         </Stack>

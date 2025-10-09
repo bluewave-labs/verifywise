@@ -340,13 +340,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
         // Handle server-side validation errors
         let errorData = null;
         
-        // Check if it's a CustomException with response property
-        if (error?.response) {
-          errorData = error.response;
-        }
-        // Check if it's an axios error with response.data
-        else if (error?.response?.data) {
+        // Check if it's an axios error with response.data first
+        if (error?.response?.data) {
           errorData = error.response.data;
+        }
+        // Check if it's a CustomException with response property
+        else if (error?.response) {
+          errorData = error.response;
         }
         // Check if the error itself has the data structure
         else if (error?.status && error?.errors) {
@@ -592,7 +592,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                           </Box>
                         );
                       }}
-                      popupIcon={<GreyDownArrowIcon />}
+                      popupIcon={<i data-lucide="chevron-downa"></i>}
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -747,7 +747,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                     );
                   }}
                   filterSelectedOptions
-                  popupIcon={<ChevronDown size={16} />}
+                  popupIcon={<ChevronDown />}
                   renderInput={(params) => (
                     <TextField
                       {...params}

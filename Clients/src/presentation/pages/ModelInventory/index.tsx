@@ -365,13 +365,13 @@ const ModelInventory: React.FC = () => {
     // Check different error structures
     let errorData = null;
     
-    // Check if it's a CustomException with response property
-    if (error?.response) {
-      errorData = error.response;
-    }
-    // Check if it's an axios error with response.data
-    else if (error?.response?.data) {
+    // Check if it's an axios error with response.data first
+    if (error?.response?.data) {
       errorData = error.response.data;
+    }
+    // Check if it's a CustomException with response property
+    else if (error?.response) {
+      errorData = error.response;
     }
     // Check if the error itself has the data structure
     else if (error?.status && error?.errors) {

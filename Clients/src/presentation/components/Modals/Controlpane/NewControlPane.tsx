@@ -19,7 +19,7 @@ import { Control } from "../../../../domain/types/Control";
 import { FileData } from "../../../../domain/types/File";
 import Alert from "../../Alert";
 import CustomizableToast from "../../Toast";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 
 import {
@@ -754,7 +754,7 @@ const NewControlPane = ({
                 gap: 2,
               }}
               onClick={confirmSave}
-              icon={<SaveIconSVGWhite />}
+              icon={<SaveIcon size={16} />}
             />
           </Stack>
         </Stack>

@@ -11,12 +11,8 @@ import {
   TextField,
   Autocomplete,
 } from "@mui/material";
-import { ReactComponent as AddCircleIcon } from "../../assets/icons/add-circle.svg";
+import { CirclePlus as AddCircleIcon, Filter as FilterIcon, XCircle as ClearIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
-import { ReactComponent as FilterIcon } from "../../assets/icons/filter.svg";
-import { ReactComponent as ClearIcon } from "../../assets/icons/clear.svg";
-import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-down.svg";
-import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-up.svg";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -407,7 +403,7 @@ const Tasks: React.FC = () => {
               border: "1px solid #13715B",
               gap: 2,
             }}
-            icon={<AddCircleIcon />}
+            icon={<AddCircleIcon size={16} />}
             onClick={handleCreateTask}
             isDisabled={isCreatingDisabled}
           />
@@ -422,36 +418,34 @@ const Tasks: React.FC = () => {
         <HeaderCard title="Completed" count={summary.completed} />
       </Stack>
 
-      {/* Search, Filter, and Sort Controls  */}
-      <Box sx={{ mt: 6, mb: 6 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <SearchBox
-            placeholder="Search tasks by title or description..."
-            value={searchQuery}
-            onChange={setSearchQuery}
-            sx={{ mr: 2 }}
-            inputProps={{ "aria-label": "Search tasks" }}
+      {/* Search and Sort Controls  */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <SearchBox
+          placeholder="Search tasks by title or description..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+          sx={{ mr: 2 }}
+          inputProps={{ "aria-label": "Search tasks" }}
+        />
+
+        <Stack direction="row" spacing={3} alignItems="center">
+          <CustomSelect
+            currentValue={sortBy}
+            onValueChange={async (newSort: string) => {
+              setSortBy(newSort);
+              return true;
+            }}
+            options={["Newest", "Oldest", "Priority", "Due date"]}
+            sx={{ minWidth: 150 }}
           />
-
-          <Stack direction="row" spacing={3} alignItems="center">
-            <CustomSelect
-              currentValue={sortBy}
-              onValueChange={async (newSort: string) => {
-                setSortBy(newSort);
-                return true;
-              }}
-              options={["Newest", "Oldest", "Priority", "Due date"]}
-              sx={{ minWidth: 150 }}
-            />
-          </Stack>
         </Stack>
+      </Stack>
 
-        {/* Filter Block */}
+      {/* Filter Block */}
         <Paper
           elevation={0}
           sx={{
@@ -473,9 +467,10 @@ const Tasks: React.FC = () => {
             }}
             onClick={() => handleExpandedChange(!filtersExpanded)}
           >
-            <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Stack direction="row" alignItems="center" spacing={2}>
               <FilterIcon
-                style={{ color: "#13715B", width: "20px", height: "20px" }}
+                size={16}
+                style={{ color: "#667085" }}
               />
               <Typography
                 variant="subtitle2"
@@ -506,7 +501,7 @@ const Tasks: React.FC = () => {
               {activeFilterCount > 0 && (
                 <Button
                   size="small"
-                  startIcon={<ClearIcon />}
+                  startIcon={<ClearIcon size={16} />}
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     clearAllFilters();
@@ -524,7 +519,7 @@ const Tasks: React.FC = () => {
                 </Button>
               )}
               <IconButton size="small">
-                {filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                {filtersExpanded ? <ExpandLessIcon size={20} /> : <ExpandMoreIcon size={20} />}
               </IconButton>
             </Stack>
           </Box>
@@ -634,7 +629,7 @@ const Tasks: React.FC = () => {
                     }}
                     getOptionLabel={(option: string) => option}
                     filterSelectedOptions
-                    popupIcon={<ExpandMoreIcon />}
+                    popupIcon={<ExpandMoreIcon size={20} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -761,7 +756,6 @@ const Tasks: React.FC = () => {
             </Box>
           </Collapse>
         </Paper>
-      </Box>
 
       {/* Content Area */}
       <Box>

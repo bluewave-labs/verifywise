@@ -9,7 +9,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMapping } from "./routeMapping";
 
-import { ReactComponent as ChevronRightGreyIcon } from "../../assets/icons/chevron-right-grey.svg";
+import { ChevronRight as ChevronRightGreyIcon } from "lucide-react";
 import {
   IBreadcrumbItem,
   IBreadcrumbsProps,
@@ -25,7 +25,7 @@ import {
  */
 const Breadcrumbs: React.FC<IBreadcrumbsProps> = ({
   items,
-  separator = <ChevronRightGreyIcon style={{ width: "80%", height: "auto" }} />,
+  separator = <ChevronRightGreyIcon size={16} style={{ width: "80%", height: "auto" }} />,
   maxItems = 8,
   sx,
   autoGenerate = false,

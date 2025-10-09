@@ -11,7 +11,7 @@ import {
   Stack,
   Tooltip,
   Typography,
-  Badge,
+  Chip,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -64,6 +64,7 @@ interface MenuItem {
   icon: React.ReactNode;
   path: string;
   highlightPaths?: string[];
+  taskCount?: number;
 }
 
 interface MenuGroup {
@@ -157,24 +158,9 @@ const topItems = (openTasksCount: number): MenuItem[] => [
   },
   {
     name: "Tasks",
-    icon: (
-      <Badge
-        badgeContent={openTasksCount > 0 ? openTasksCount : null}
-        color="error"
-        sx={{
-          "& .MuiBadge-badge": {
-            fontSize: "10px",
-            minWidth: "18px",
-            height: "18px",
-            backgroundColor: "#ef4444",
-            color: "white",
-          },
-        }}
-      >
-        <Flag size={16} strokeWidth={1.5} />
-      </Badge>
-    ),
+    icon: <Flag size={16} strokeWidth={1.5} />,
     path: "/tasks",
+    taskCount: openTasksCount,
   },
 ];
 
@@ -480,6 +466,39 @@ const Sidebar = () => {
               >
                 {item.name}
               </ListItemText>
+              {item.taskCount && item.taskCount > 0 && (
+                <Chip
+                  label={item.taskCount > 99 ? "99+" : item.taskCount}
+                  size="small"
+                  sx={{
+                    height: collapsed ? "14px" : "18px",
+                    fontSize: collapsed ? "8px" : "10px",
+                    fontWeight: 500,
+                    backgroundColor: (
+                      location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                    ) ? "#f8fafc" : "#e2e8f0", // lighter when active, blueish-grayish when inactive
+                    color: "#475569", // darker text for contrast
+                    borderRadius: collapsed ? "7px" : "9px",
+                    minWidth: collapsed ? "14px" : "18px", // ensure minimum width
+                    maxWidth: collapsed ? "28px" : "36px", // cap maximum width
+                    "& .MuiChip-label": {
+                      px: collapsed ? "4px" : "6px",
+                      py: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    },
+                    ml: "auto",
+                    position: collapsed ? "absolute" : "static",
+                    top: collapsed ? "6px" : "auto",
+                    right: collapsed ? "4px" : "auto",
+                  }}
+                />
+              )}
             </ListItemButton>
           </Tooltip>
         ))}

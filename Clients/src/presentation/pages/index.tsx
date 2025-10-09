@@ -1,5 +1,5 @@
 import { Stack, Typography, Paper, Divider, useTheme } from "@mui/material";
-import { ReactComponent as Assessment } from "../assets/icons/assessment.svg";
+import { ClipboardCheck as Assessment } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { IBreadcrumbItem } from "../../domain/interfaces/i.breadcrumbs";
 
@@ -145,7 +145,7 @@ const Playground = () => {
         </Typography>
         <Breadcrumbs
           items={manualBreadcrumbs}
-          separator={<Assessment fontSize="small" />}
+          separator={<Assessment size={16} />}
         />
       </Paper>
 

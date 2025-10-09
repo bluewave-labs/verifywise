@@ -10,7 +10,7 @@ import {
 import { useCallback, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Square as CheckboxOutline } from "lucide-react";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
+import { CheckSquare as CheckboxFilled } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
 
 const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
@@ -113,7 +113,7 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
                     }
                     onChange={(e) => handleChange(row, e)}
                     onClick={(e) => e.stopPropagation()}
-                    checkedIcon={<CheckboxFilled />}
+                    checkedIcon={<CheckboxFilled size={16} />}
                     icon={<CheckboxOutline size={16} />}
                     sx={{
                       borderRadius: "4px",

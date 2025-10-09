@@ -80,7 +80,7 @@ const RegisterUser: React.FC = () => {
       setErrors(errors);
       setIsSubmitting(false);
     } else {
-      const { isSuccess } = await registerUser({
+      const { isSuccess, response } = await registerUser({
         values,
         user,
         setIsSubmitting,
@@ -104,12 +104,28 @@ const RegisterUser: React.FC = () => {
         });
         setIsSubmitting(false);
 
+        // Extract error message from server response
+        let errorMessage = "Registration failed. Please check your information and try again.";
+        
+        console.log("Registration error response:", response); // Debug log
+        
+        if (response?.data) {
+          errorMessage = response.data;
+        } else if (response?.response?.data?.data) {
+          errorMessage = response.response.data.data;
+        } else if (response?.response?.data?.message) {
+          errorMessage = response.response.data.message;
+        } else if (response?.message) {
+          errorMessage = response.message;
+        } else if (isSuccess === 409) {
+          errorMessage = "An account with this email address already exists. Please try logging in instead, or contact your administrator if you believe this is an error.";
+        }
+        
+        console.log("Final error message:", errorMessage); // Debug log
+
         handleAlert({
           variant: "error",
-          body:
-            isSuccess === 409
-              ? "An account with this email address already exists. Please try logging in instead, or contact your administrator if you believe this is an error."
-              : "Registration failed. Please check your information and try again.",
+          body: errorMessage,
           setAlert,
         });
       }

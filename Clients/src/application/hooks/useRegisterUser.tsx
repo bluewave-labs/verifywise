@@ -47,8 +47,9 @@ const useRegisterUser = () => {
       handleApiResponse({ response, user, setIsSubmitting });
       return {
         isSuccess: response.status,
+        response: response,
       };
-    } catch (error) {
+    } catch (error: any) {
       logEngine({
         type: "error",
         message: `An error occurred: ${
@@ -57,7 +58,8 @@ const useRegisterUser = () => {
       });
       setIsSubmitting(false);
       return {
-        isSuccess: false,
+        isSuccess: error.status || false,
+        response: error,
       };
     }
   };

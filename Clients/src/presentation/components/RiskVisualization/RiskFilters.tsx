@@ -302,8 +302,8 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
         }}
         onClick={() => handleExpandedChange(!expanded)}
       >
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <FilterIcon size={20} style={{ color: "#13715B" }} />
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <FilterIcon size={16} style={{ color: "#667085" }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1A1919" }}>
             Filters
           </Typography>

@@ -139,7 +139,7 @@ const Home = () => {
   // };
 
   return (
-    <Stack className="vwhome">
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
@@ -186,74 +186,70 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
-      <Stack className="vwhome-body">
-        <Stack sx={vwhomeBody}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>Projects overview</Typography>
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
+      {/* New Project Header */}
+      <Stack sx={vwhomeBody}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Typography sx={vwhomeHeading}>Projects overview</Typography>
+          <HelperIcon
+            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            size="small"
+          />
+        </Stack>
+        <Stack sx={vwhomeBodyControls}>
+          {/* {projects.length === 0 && (
+            <CustomizableButton
+              variant="contained"
+              text="Create demo project"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<CloudDownloadIcon />}
+              onClick={() => handleGenerateDemoDataClick()}
+              isDisabled={
+                !allowedRoles.projects.create.includes(userRoleName)
+              }
             />
-          </Stack>
-          <Stack sx={vwhomeBodyControls}>
-            {/* {projects.length === 0 && (
-              <CustomizableButton
-                variant="contained"
-                text="Create demo project"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<CloudDownloadIcon />}
-                onClick={() => handleGenerateDemoDataClick()}
-                isDisabled={
-                  !allowedRoles.projects.create.includes(userRoleName)
-                }
-              />
-            )} */}
-            <div data-joyride-id="new-project-button" ref={refs[0]}>
-              <CustomizableButton
-                variant="contained"
-                text="New project"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<AddCircleOutlineIcon size={16} />}
-                onClick={() => setIsProjectFormModalOpen(true)}
-                isDisabled={
-                  !allowedRoles.projects.create.includes(userRoleName)
-                }
-              />
-            </div>
-          </Stack>
+          )} */}
+          <div data-joyride-id="new-project-button" ref={refs[0]}>
+            <CustomizableButton
+              variant="contained"
+              text="New project"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<AddCircleOutlineIcon size={16} />}
+              onClick={() => setIsProjectFormModalOpen(true)}
+              isDisabled={
+                !allowedRoles.projects.create.includes(userRoleName)
+              }
+            />
+          </div>
         </Stack>
-        <Stack sx={vwhomeBody}>
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "20px",
-              mt: "16px",
-              mb: "16px",
-            }}
-          >
-            <HeaderCard title="Projects" count={dashboard?.projects || 0} />
-            <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
-            <HeaderCard title="Models" count={dashboard?.models || 0} />
-            <HeaderCard title="Reports" count={dashboard?.reports || 0} />
-          </Box>
-        </Stack>
-
-        {/* TODO: Add TaskRadar visualization when backend data is ready */}
-
-        <ProjectList projects={projects} />
       </Stack>
+
+      {/* Header Cards */}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "20px",
+        }}
+      >
+        <HeaderCard title="Projects" count={dashboard?.projects || 0} />
+        <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
+        <HeaderCard title="Models" count={dashboard?.models || 0} />
+        <HeaderCard title="Reports" count={dashboard?.reports || 0} />
+      </Box>
+
+      {/* Projects List */}
+      <ProjectList projects={projects} />
 
       <Modal
         open={isProjectFormModalOpen}

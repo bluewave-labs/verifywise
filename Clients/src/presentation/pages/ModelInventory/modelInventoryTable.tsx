@@ -220,7 +220,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }),
               }}
             >
-              <div style={{ fontWeight: 400 }}>{column.label}</div>
+              {column.label}
             </TableCell>
           ))}
         </TableRow>

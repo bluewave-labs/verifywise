@@ -597,7 +597,6 @@ const Organization = () => {
             </Typography>
           </Stack>
         </Box>
-        <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       </Stack>
 
       {/* Remove Logo Confirmation Modal */}

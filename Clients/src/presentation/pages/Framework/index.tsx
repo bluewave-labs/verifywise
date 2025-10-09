@@ -55,7 +55,6 @@ const tabStyle = {
 
 const tabPanelStyle = {
   padding: 0,
-  pt: 10,
 };
 
 const tabListStyle = {
@@ -398,9 +397,9 @@ const Framework = () => {
 
     if (isISO27001) {
       return (
-        <Box sx={{ mt: 6 }}>
+        <Box>
           <TabContext value={iso27001TabValue}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
                 onChange={handleIso27001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -465,9 +464,9 @@ const Framework = () => {
 
     if (isISO42001) {
       return (
-        <Box sx={{ mt: 6 }}>
+        <Box>
           <TabContext value={iso42001TabValue}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
                 onChange={handleIso42001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -534,7 +533,6 @@ const Framework = () => {
     return (
       <Box
         sx={{
-          mt: 6,
           p: 6,
           backgroundColor: "#000000",
           borderRadius: 3,
@@ -560,7 +558,7 @@ const Framework = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"} ref={refs[0]}>
+    <Stack className="vwhome" gap={"16px"} ref={refs[0]}>
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -595,7 +593,6 @@ const Framework = () => {
         ]}
       />
       <PageBreadcrumbs />
-      <Stack>
       <PageHeader
                title="Framework"
                description="This page provides an overview of available AI compliance frameworks.
@@ -610,17 +607,15 @@ const Framework = () => {
                     />
                  }
        />
-        {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
-        <Box
-          sx={{
-            mt: "24px",
-            mb: "0px",
-            display: "flex",
-            gap: 2,
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+      {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
           {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
           {organizationalProject && filteredFrameworks.length > 0 && (
             <ButtonToggle
@@ -787,11 +782,10 @@ const Framework = () => {
             </Button>
           )}
         </Box>
-      </Stack>
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
-        <Stack className="frameworks-switch" sx={{ mt: 0 }}>
+        <Stack className="frameworks-switch">
           {/* Content that changes based on selected framework */}
           {renderFrameworkContent()}
         </Stack>

@@ -294,7 +294,7 @@ const RiskManagement = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
@@ -330,7 +330,7 @@ const RiskManagement = () => {
         ]}
       />
 
-      <Stack gap={"24px"} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"
@@ -360,18 +360,14 @@ const RiskManagement = () => {
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
-      <Stack spacing={3}>
-        <RiskFilters
-          risks={projectRisks}
-          onFilterChange={handleRiskFilterChange}
-        />
-      </Stack>
+      <RiskFilters
+        risks={projectRisks}
+        onFilterChange={handleRiskFilterChange}
+      />
       <Stack
         className="risk-management-row"
         sx={{
           gap: 10,
-          mb: 1,
-          mt: 2,
         }}
       >
         <Stack

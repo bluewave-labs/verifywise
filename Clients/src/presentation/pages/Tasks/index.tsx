@@ -418,36 +418,34 @@ const Tasks: React.FC = () => {
         <HeaderCard title="Completed" count={summary.completed} />
       </Stack>
 
-      {/* Search, Filter, and Sort Controls  */}
-      <Box sx={{ mt: 6, mb: 6 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <SearchBox
-            placeholder="Search tasks by title or description..."
-            value={searchQuery}
-            onChange={setSearchQuery}
-            sx={{ mr: 2 }}
-            inputProps={{ "aria-label": "Search tasks" }}
+      {/* Search and Sort Controls  */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <SearchBox
+          placeholder="Search tasks by title or description..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+          sx={{ mr: 2 }}
+          inputProps={{ "aria-label": "Search tasks" }}
+        />
+
+        <Stack direction="row" spacing={3} alignItems="center">
+          <CustomSelect
+            currentValue={sortBy}
+            onValueChange={async (newSort: string) => {
+              setSortBy(newSort);
+              return true;
+            }}
+            options={["Newest", "Oldest", "Priority", "Due date"]}
+            sx={{ minWidth: 150 }}
           />
-
-          <Stack direction="row" spacing={3} alignItems="center">
-            <CustomSelect
-              currentValue={sortBy}
-              onValueChange={async (newSort: string) => {
-                setSortBy(newSort);
-                return true;
-              }}
-              options={["Newest", "Oldest", "Priority", "Due date"]}
-              sx={{ minWidth: 150 }}
-            />
-          </Stack>
         </Stack>
+      </Stack>
 
-        {/* Filter Block */}
+      {/* Filter Block */}
         <Paper
           elevation={0}
           sx={{
@@ -469,10 +467,10 @@ const Tasks: React.FC = () => {
             }}
             onClick={() => handleExpandedChange(!filtersExpanded)}
           >
-            <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Stack direction="row" alignItems="center" spacing={2}>
               <FilterIcon
-                size={20}
-                style={{ color: "#13715B" }}
+                size={16}
+                style={{ color: "#667085" }}
               />
               <Typography
                 variant="subtitle2"
@@ -758,7 +756,6 @@ const Tasks: React.FC = () => {
             </Box>
           </Collapse>
         </Paper>
-      </Box>
 
       {/* Content Area */}
       <Box>

@@ -579,18 +579,21 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                           setValues({ ...values, model: newInputValue });
                         }
                       }}
-                      renderOption={(props, option) => (
-                        <Box component="li" {...props}>
-                          <Typography
-                            sx={{
-                              fontSize: 13,
-                              color: theme.palette.text.primary,
-                            }}
-                          >
-                            {option.name}
-                          </Typography>
-                        </Box>
-                      )}
+                      renderOption={(props, option) => {
+                        const { key, ...otherProps } = props;
+                        return (
+                          <Box component="li" key={key} {...otherProps}>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                color: theme.palette.text.primary,
+                              }}
+                            >
+                              {option.name}
+                            </Typography>
+                          </Box>
+                        );
+                      }}
                       popupIcon={<GreyDownArrowIcon />}
                       renderInput={(params) => (
                         <TextField
@@ -735,13 +738,16 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       ? "All capabilities selected"
                       : "No options"
                   }
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
-                        {option}
-                      </Typography>
-                    </Box>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
                   filterSelectedOptions
                   popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (
@@ -797,13 +803,16 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       ? "All projects selected"
                       : "No options"
                   }
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
-                        {option}
-                      </Typography>
-                    </Box>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
                   filterSelectedOptions
                   popupIcon={<GreyDownArrowIcon />}
                   renderInput={(params) => (

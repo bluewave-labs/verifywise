@@ -1,6 +1,6 @@
 import { Stack, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { ReactComponent as RightArrow } from "../../../assets/icons/right-arrow.svg";
+import { ArrowRight as RightArrow } from "lucide-react";
 import { useState } from "react";
 
 const HeaderCard = ({ title, count }: { title: string; count: number }) => {
@@ -86,7 +86,7 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
             transition: "opacity 0.2s ease",
           }}
         >
-          <RightArrow />
+          <RightArrow size={16} />
         </Box>
       )}
     </Stack>

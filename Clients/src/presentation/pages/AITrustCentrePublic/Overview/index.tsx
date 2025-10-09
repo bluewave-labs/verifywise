@@ -1,6 +1,6 @@
 import { Box, Paper, Typography, Stack, Button } from "@mui/material";
 import CustomTextField from "../Components/CustomTextField/CustomTextField";
-import {ReactComponent as CheckCircleOutlineIcon} from '../../../assets/icons/check-circle-green.svg';
+import { CheckCircle as CheckCircleOutlineIcon } from 'lucide-react';
 import { downloadResource } from "../../../../application/tools/downloadResource";
 
 const Overview = ({
@@ -154,7 +154,8 @@ const Overview = ({
                 >
                   <Box display="flex" alignItems="center" gap={1}>
                     <CheckCircleOutlineIcon
-                      style={{ height: "24px", width: "24px" }}
+                      size={24}
+                      style={{ color: "#10B981" }}
                     />
                     <Typography variant="body2">{resource.name}</Typography>
                   </Box>

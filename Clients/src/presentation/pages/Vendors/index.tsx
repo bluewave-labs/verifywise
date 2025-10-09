@@ -441,20 +441,21 @@ const Vendors = () => {
             </TabList>
           </Box>
 
-          <PageHeader
-            title={value === "1" ? "Vendor list" : "Vendor risks list"}
-            description={value === "1"
-              ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
-              : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
-            }
-            rightContent={value === "1" ? (
-              <HelperIcon
-                onClick={() => setIsHelperDrawerOpen(true)}
-                size="small"
-              />
-            ) : undefined}
-            sx={{ mt: "48px", mb: "16px" }}
-          />
+          <Box sx={{ mt: "48px", mb: "16px" }}>
+            <PageHeader
+              title={value === "1" ? "Vendor list" : "Vendor risks list"}
+              description={value === "1"
+                ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+                : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+              }
+              rightContent={value === "1" ? (
+                <HelperIcon
+                  onClick={() => setIsHelperDrawerOpen(true)}
+                  size="small"
+                />
+              ) : undefined}
+            />
+          </Box>
           {value !== "1" &&
             (loadingVendorRisks || isVendorsLoading ? (
               <CustomizableSkeleton

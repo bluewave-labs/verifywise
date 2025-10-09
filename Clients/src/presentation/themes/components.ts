@@ -440,7 +440,23 @@ export const emptyStateStyles = {
     width: { xs: "90%", sm: "90%", md: "1056px" },
     maxWidth: "100%",
     height: { xs: "100%", md: "418px" },
-    backgroundColor: theme.palette.background.main,
+    backgroundColor: "#FFFFFF", // Explicitly ensure white background
+  }),
+
+  // Compact version for table placeholders
+  tableContainer: (theme: Theme): SxProps<Theme> => ({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    padding: theme.spacing(15, 5),
+    paddingBottom: theme.spacing(20),
+    gap: theme.spacing(10),
+    border: "1px solid #EEEEEE",
+    borderRadius: "4px",
+    minHeight: 200,
+    backgroundColor: "#FFFFFF", // Explicitly ensure white background
   }),
 
   image: (): SxProps<Theme> => ({

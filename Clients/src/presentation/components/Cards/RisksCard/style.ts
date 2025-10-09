@@ -4,7 +4,7 @@ export const projectRisksCard = {
   height: "100%",
   display: "flex",
   flexDirection: { xs: "column", sm: "row" },
-  gap: "24px",
+  gap: "16px",
   overflow: "auto",
 };
 

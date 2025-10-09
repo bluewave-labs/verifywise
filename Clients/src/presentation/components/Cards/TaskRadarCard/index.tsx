@@ -1,7 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { ReactComponent as CalendarIcon } from "../../../assets/icons/calendar-check.svg";
-import { ReactComponent as ClockIcon } from "../../../assets/icons/clock.svg";
-import { ReactComponent as AlertIcon } from "../../../assets/icons/alert-circle.svg";
+import { CalendarCheck as CalendarIcon, Clock as ClockIcon, AlertCircle as AlertIcon } from "lucide-react";
 
 const TaskRadar = ({ overdue, due, upcoming }: { overdue: number; due: number; upcoming: number }) => {
   return (
@@ -39,7 +37,7 @@ const TaskRadar = ({ overdue, due, upcoming }: { overdue: number; due: number; u
           justifyContent: "space-between",
         }}>
           <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "6px" }}>
-            <AlertIcon />
+            <AlertIcon size={16} />
             <Typography
               sx={{
                 fontSize: 13,
@@ -69,7 +67,7 @@ const TaskRadar = ({ overdue, due, upcoming }: { overdue: number; due: number; u
           justifyContent: "space-between",
         }}>
           <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "6px" }}>
-            <ClockIcon />
+            <ClockIcon size={16} />
             <Typography
               sx={{
                 fontSize: 13,
@@ -99,7 +97,7 @@ const TaskRadar = ({ overdue, due, upcoming }: { overdue: number; due: number; u
           justifyContent: "space-between",
         }}>
           <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "6px" }}>
-            <CalendarIcon />
+            <CalendarIcon size={16} />
             <Typography
               sx={{
                 fontSize: 13,

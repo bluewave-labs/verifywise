@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 import React, {
   useState,
   useCallback,
@@ -34,8 +34,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite } from "../../../assets/icons/trash-filled-white.svg";
+import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -939,15 +938,15 @@ const ProjectSettings = React.memo(
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<ChevronDown size={16} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       placeholder="Select regulations and standards"
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          paddingTop: "3.8px !important",
-                          paddingBottom: "3.8px !important",
+                          height: "34px",
+                          padding: "0 10px",
                         },
                         "& ::placeholder": {
                           fontSize: "13px",
@@ -962,7 +961,7 @@ const ProjectSettings = React.memo(
                       display: "none",
                     },
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "5px",
+                      borderRadius: "4px",
                       "&:hover .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#777",
                       },
@@ -1094,15 +1093,15 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<GreyDownArrowIcon />}
+              popupIcon={<ChevronDown size={16} />}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   placeholder="Select Users"
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      paddingTop: "3.8px !important",
-                      paddingBottom: "3.8px !important",
+                      height: "34px",
+                      padding: "0 10px",
                     },
                     "& ::placeholder": {
                       fontSize: "13px",
@@ -1114,7 +1113,7 @@ const ProjectSettings = React.memo(
                 width: "458px",
                 backgroundColor: theme.palette.background.main,
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "5px",
+                  borderRadius: "4px",
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#777",
                   },
@@ -1222,7 +1221,7 @@ const ProjectSettings = React.memo(
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIcon size={16} />}
                 variant="contained"
                 onClick={(event: any) => {
                   handleSubmit(event);
@@ -1262,7 +1261,7 @@ const ProjectSettings = React.memo(
                   border: "1px solid #DB504A",
                   gap: 2,
                 }}
-                icon={<DeleteIconWhite />}
+                icon={<DeleteIcon size={16} />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
                 text="Delete project"

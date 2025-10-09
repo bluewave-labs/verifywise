@@ -10,7 +10,7 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { X as ClearIcon } from "lucide-react";
 import {
   Suspense,
   useCallback,
@@ -20,7 +20,7 @@ import {
   useEffect,
 } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
@@ -455,7 +455,8 @@ const ProjectForm = ({
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -585,7 +586,8 @@ const ProjectForm = ({
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -1013,7 +1015,7 @@ const ProjectForm = ({
         <CustomizableButton
           text={projectToEdit ? "Update project" : "Create project"}
           sx={createProjectButtonStyle}
-          icon={<AddCircleOutlineIcon />}
+          icon={<AddCircleOutlineIcon size={20} />}
           onClick={() => handleSubmit()}
         />
       </Stack>

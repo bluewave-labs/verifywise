@@ -6,7 +6,7 @@ import {
   Stack,
   IconButton,
 } from '@mui/material';
-import {ReactComponent as CloseIcon} from "../../assets/icons/close-grey.svg"
+import { X as CloseIcon } from "lucide-react";
 
 // Simple markdown parser for **bold** and *italic*
 const parseMarkdown = (text: string) => {
@@ -148,7 +148,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </IconButton>
           </Stack>
         </Box>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
@@ -49,7 +49,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import Tab from "@mui/material/Tab";
 import { IconButton, InputBase } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import { searchBoxStyle, inputStyle } from "./style";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
@@ -720,7 +720,7 @@ const ModelInventory: React.FC = () => {
                     aria-expanded={isSearchBarVisible}
                     onClick={() => setIsSearchBarVisible((prev) => !prev)}
                   >
-                    <SearchIcon />
+                    <SearchIcon size={16} />
                   </IconButton>
 
                   {isSearchBarVisible && (
@@ -741,7 +741,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add new model"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={16} />}
                 onClick={handleNewModelInventoryClick}
                 isDisabled={isCreatingDisabled}
               />
@@ -813,7 +813,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add model risk"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={16} />}
                 onClick={handleNewModelRiskClick}
                 isDisabled={isCreatingDisabled}
               />

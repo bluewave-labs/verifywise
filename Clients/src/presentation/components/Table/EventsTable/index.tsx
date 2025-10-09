@@ -13,12 +13,14 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
 import { User } from "../../../../domain/types/User";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 const TABLE_COLUMNS = [
   { id: "id", label: "ID" },

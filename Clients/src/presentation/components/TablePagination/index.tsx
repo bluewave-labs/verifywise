@@ -14,10 +14,7 @@
 import { Box, Button } from "@mui/material";
 import "../Table/index.css";
 
-import { ReactComponent as LeftArrowDouble } from "../../assets/icons/left-arrow-double.svg";
-import { ReactComponent as LeftArrow } from "../../assets/icons/left-arrow.svg";
-import { ReactComponent as RightArrow } from "../../assets/icons/right-arrow.svg";
-import { ReactComponent as RightArrowDouble } from "../../assets/icons/right-arrow-double.svg";
+import { ChevronsLeft as LeftArrowDouble, ChevronLeft as LeftArrow, ChevronRight as RightArrow, ChevronsRight as RightArrowDouble } from "lucide-react";
 
 interface TablePaginationActionsProps {
   count: number;
@@ -67,7 +64,7 @@ const TablePaginationActions: React.FC<TablePaginationActionsProps> = ({
         disabled={page === 0}
         aria-label="first page"
       >
-        <LeftArrowDouble />
+        <LeftArrowDouble size={16} />
       </Button>
       <Button
         variant="text"
@@ -75,7 +72,7 @@ const TablePaginationActions: React.FC<TablePaginationActionsProps> = ({
         disabled={page === 0}
         aria-label="previous page"
       >
-        <LeftArrow />
+        <LeftArrow size={16} />
       </Button>
       <Button
         variant="text"
@@ -83,7 +80,7 @@ const TablePaginationActions: React.FC<TablePaginationActionsProps> = ({
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="next page"
       >
-        <RightArrow />
+        <RightArrow size={16} />
       </Button>
       <Button
         variant="text"
@@ -91,7 +88,7 @@ const TablePaginationActions: React.FC<TablePaginationActionsProps> = ({
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="last page"
       >
-        <RightArrowDouble />
+        <RightArrowDouble size={16} />
       </Button>
     </Box>
   );

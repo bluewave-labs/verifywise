@@ -13,10 +13,8 @@ import {
   Tooltip,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
-import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-grey.svg"
-import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-grey.svg"
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, X as CloseGreyIcon } from "lucide-react";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -105,13 +103,13 @@ const ResourceTableRow: React.FC<{
         {resource.visible ? (
           <Tooltip title="Click to make this resource invisible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityIcon/>
+              <VisibilityIcon size={20} />
             </Box>
           </Tooltip>
         ) : (
           <Tooltip title="Click to make this resource visible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityOffIcon/>
+              <VisibilityOffIcon size={20} />
             </Box>
           </Tooltip>
         )}
@@ -578,7 +576,7 @@ const TrustCenterResources: React.FC = () => {
             onClick={handleOpenAddModal}
             isDisabled={!formData?.info?.resources_visible}
             text="Add new resource"
-            icon={<AddCircleOutlineIcon />}
+            icon={<AddCircleOutlineIcon size={16} />}
           />
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
@@ -631,7 +629,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Add a new resource
             <IconButton onClick={handleCloseAddModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
+              <CloseGreyIcon size={16} />
             </IconButton>
           </DialogTitle>
 
@@ -721,7 +719,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Edit resource
             <IconButton onClick={handleCloseEditModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
+              <CloseGreyIcon size={16} />
             </IconButton>
           </DialogTitle>
 

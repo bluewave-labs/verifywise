@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { X as Close } from "lucide-react";
 import { Suspense, useEffect, useState, lazy, useCallback } from "react";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
@@ -31,7 +31,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -589,7 +589,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             >
               {existingRisk ? "Edit risk" : "Add a new vendor risk"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
+            <Close size={20} style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
           {!existingRisk && (
             <Typography
@@ -617,7 +617,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                   gap: 2,
                 }}
                 onClick={handleSave}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIcon size={16} />}
                 isDisabled={isEditingDisabled}
               />
             </Stack>

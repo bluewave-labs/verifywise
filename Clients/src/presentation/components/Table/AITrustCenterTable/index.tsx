@@ -17,27 +17,13 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
+import { IAITrustCenterTableProps } from "../../../../domain/interfaces/i.table";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 const DEFAULT_ROWS_PER_PAGE = 5;
-
-interface Column {
-  id: string;
-  label: string;
-}
-
-interface AITrustCenterTableProps<T> {
-  data: T[];
-  columns: Column[];
-  isLoading?: boolean;
-  paginated?: boolean;
-  emptyStateText?: string;
-  renderRow: (item: T) => React.ReactNode;
-  onRowClick?: (item: T) => void;
-  tableId?: string;
-  disabled?: boolean;
-}
 
 const AITrustCenterTable = <T extends { id: number }>({
   data,
@@ -49,7 +35,7 @@ const AITrustCenterTable = <T extends { id: number }>({
   onRowClick,
   tableId = "ai-trust-center-table",
   disabled = false,
-}: AITrustCenterTableProps<T>) => {
+}: IAITrustCenterTableProps<T>) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
@@ -131,12 +117,13 @@ const AITrustCenterTable = <T extends { id: number }>({
                     minWidth: "auto",
                     width: "auto",
                   },
-                  ...(onRowClick && !disabled && {
-                    cursor: "pointer",
-                    "&:hover": {
-                      backgroundColor: "#FBFBFB",
-                    },
-                  }),
+                  ...(onRowClick &&
+                    !disabled && {
+                      cursor: "pointer",
+                      "&:hover": {
+                        backgroundColor: "#FBFBFB",
+                      },
+                    }),
                 }}
                 onClick={() => !disabled && onRowClick?.(item)}
               >

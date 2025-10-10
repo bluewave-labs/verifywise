@@ -6,7 +6,10 @@ import { AuditRiskTableBody } from "./AuditRiskTableBody";
 import { useEffect, useState } from "react";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
-import { IAuditRiskTableProps } from "../../../../domain/interfaces/i.table";
+import {
+  IAuditRiskTableProps,
+  ITypeRisk,
+} from "../../../../domain/interfaces/i.table";
 
 const TITLE_OF_COLUMNS = [
   "Unlink",
@@ -27,7 +30,7 @@ export const AuditRiskTable: React.FC<IAuditRiskTableProps> = ({
   const setCurrentPagingation = (page: number) => {
     setCurrentPage(page);
   };
-  const [riskDetails, setRiskDetails] = useState<Risk[]>([]);
+  const [riskDetails, setRiskDetails] = useState<ITypeRisk[]>([]);
 
   useEffect(() => {
     const fetchRiskDetails = async () => {

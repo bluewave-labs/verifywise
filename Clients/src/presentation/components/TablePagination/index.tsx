@@ -20,18 +20,9 @@ import {
   ChevronRight as RightArrow,
   ChevronsRight as RightArrowDouble,
 } from "lucide-react";
+import { ITablePaginationActionsProps } from "../../../domain/interfaces/i.tablePagination";
 
-interface TablePaginationActionsProps {
-  count: number;
-  page: number;
-  rowsPerPage: number;
-  onPageChange: (
-    event: React.MouseEvent<HTMLButtonElement>,
-    newPage: number
-  ) => void;
-}
-
-const TablePaginationActions: React.FC<TablePaginationActionsProps> = ({
+const TablePaginationActions: React.FC<ITablePaginationActionsProps> = ({
   count,
   page,
   rowsPerPage,

@@ -39,10 +39,24 @@ export const validateRiskProjectsQuery = async (
 };
 
 export const getAllRisksQuery = async (
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IRisk[]> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".risks ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".risks ${whereClause} ORDER BY created_at DESC, id ASC`,
   ) as [IRisk[], number];
   const projectRisks = result[0]
 
@@ -218,10 +232,12 @@ export const getRisksByFrameworkQuery = async (
 
 export const getRiskByIdQuery = async (
   id: number,
-  tenant: string
+  tenant: string,
+  includeDeleted: boolean = false
 ): Promise<IRisk | null> => {
+  const whereClause = includeDeleted ? 'WHERE id = :id' : 'WHERE id = :id AND is_deleted = false';
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".risks WHERE id = :id`,
+    `SELECT * FROM "${tenant}".risks ${whereClause}`,
     { replacements: { id } }
   ) as [IRisk[], number];
   const projectRisk = result[0][0];
@@ -655,12 +671,12 @@ export const deleteRiskByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".risks WHERE id = :id RETURNING *`,
+    `UPDATE "${tenant}".risks SET is_deleted = true, deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND is_deleted = false RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
       model: RiskModel,
-      type: QueryTypes.DELETE,
+      type: QueryTypes.UPDATE,
       transaction,
     }
   );

@@ -175,7 +175,7 @@ const WatchTowerLogs = () => {
                     },
                   }}
                 >
-                  <RefreshIcon size={20} color={theme.palette.text.secondary} />
+                  <RefreshIcon size={16} color={theme.palette.text.disabled} />
                 </IconButton>
               </Tooltip>
             </Box>

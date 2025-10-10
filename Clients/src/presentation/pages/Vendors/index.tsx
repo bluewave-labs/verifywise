@@ -427,21 +427,7 @@ const Vendors = () => {
         )}
 
         <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList
-              onChange={handleChange}
-              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
-              sx={{
-                minHeight: "20px",
-                "& .MuiTabs-flexContainer": { columnGap: "34px" },
-              }}
-            >
-              <Tab label="Vendors" value="1" sx={tabStyle} disableRipple />
-              <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
-            </TabList>
-          </Box>
-
-          <Box sx={{ mt: "48px", mb: "16px" }}>
+          <Box sx={{ mt: 4 }}>
             <PageHeader
               title={value === "1" ? "Vendor list" : "Vendor risks list"}
               description={value === "1"
@@ -455,6 +441,20 @@ const Vendors = () => {
                 />
               ) : undefined}
             />
+          </Box>
+
+          <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 2 }}>
+            <TabList
+              onChange={handleChange}
+              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              sx={{
+                minHeight: "20px",
+                "& .MuiTabs-flexContainer": { columnGap: "34px" },
+              }}
+            >
+              <Tab label="Vendors" value="1" sx={tabStyle} disableRipple />
+              <Tab label="Risks" value="2" sx={tabStyle} disableRipple />
+            </TabList>
           </Box>
           {value !== "1" &&
             (loadingVendorRisks || isVendorsLoading ? (

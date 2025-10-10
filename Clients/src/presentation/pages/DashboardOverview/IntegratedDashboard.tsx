@@ -470,27 +470,20 @@ const MetricCard: React.FC<MetricCardProps> = ({
   );
 
   // Priority visual cues
-  const getPriorityStyles = (theme: any) => {
+  const getPriorityStyles = () => {
     switch (priorityLevel) {
       case "high":
         return {
-          borderLeft: "4px solid #EF4444 !important",
-          borderTop: `1px solid ${theme.palette.divider} !important`,
-          borderRight: `1px solid ${theme.palette.divider} !important`,
-          borderBottom: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FEF2F2 0%, #FDE8E8 100%)",
+          borderLeft: "4px solid #EF4444",
         };
       case "medium":
         return {
-          borderLeft: "4px solid #F59E0B !important",
-          borderTop: `1px solid ${theme.palette.divider} !important`,
-          borderRight: `1px solid ${theme.palette.divider} !important`,
-          borderBottom: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FFFBEB 0%, #FEF6D3 100%)",
+          borderLeft: "4px solid #F59E0B",
         };
       default:
         return {
-          border: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
         };
     }
@@ -504,7 +497,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       sx={(theme) => ({
         ...(cardStyles.base(theme) as any),
-        ...getPriorityStyles(theme),
+        ...getPriorityStyles(),
+        border: "none", // Remove border from MetricCard
+        margin: 0, // Remove any default margin
         height: "100%",
         minHeight: compact ? "90px" : "auto",
         cursor: navigable ? "pointer" : "default",
@@ -513,24 +508,26 @@ const MetricCard: React.FC<MetricCardProps> = ({
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
+        borderRadius: 0, // Remove border radius to fill the wrapper completely
         "&:hover": navigable
           ? {
               background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-              borderColor: "#D1D5DB",
+              borderColor: "transparent",
             }
           : {},
       })}
     >
       <CardContent
         sx={{
-          pt: 0,
-          pb: compact ? 1.5 : 2,
-          px: compact ? 1.5 : 2,
+          p: compact ? 1.5 : 2,
           position: "relative",
-          height: "calc(100% - 1px)",
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           flex: 1,
+          "&:last-child": {
+            paddingBottom: compact ? 1.5 : 2,
+          },
         }}
       >
         {/* Header section with title and arrow icon */}
@@ -1764,8 +1761,12 @@ const IntegratedDashboard: React.FC = () => {
               flexDirection: "column",
               overflow: "hidden",
               boxShadow: "none",
-              border: `1px solid ${theme.palette.divider}`,
-              background: "transparent",
+              border: `1px solid #DCDFE3`,
+              backgroundColor: "inherit",
+              "& .MuiCard-root": {
+                height: "100%",
+                margin: 0,
+              },
             }}
           >
             {editMode && (
@@ -1789,7 +1790,7 @@ const IntegratedDashboard: React.FC = () => {
                 title={widget.title}
               />
             )}
-            <Box sx={{ flexGrow: 1, p: editMode ? 2 : 0 }}>
+            <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
               <WidgetErrorBoundary
                 widgetId={widget.id}
                 widgetTitle={widget.title}

@@ -5,9 +5,6 @@ import path from "path";
 import { generateToken } from "../utils/jwt.utils";
 import { frontEndUrl } from "../config/constants";
 import { invite } from "../controllers/vwmailer.ctrl";
-import {
-  validateCompletePasswordResetEmail
-} from "../utils/validations/mailValidation.utils";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 
 const router = express.Router();
@@ -17,27 +14,6 @@ router.post("/invite", async (req, res) => {
 });
 
 router.post("/reset-password", async (req, res) => {
-  // Validation for password reset
-  const validationErrors = validateCompletePasswordResetEmail(req.body);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Create",
-      description: `Password reset email validation failed for ${req.body.to}`,
-      functionName: "reset-password",
-      fileName: "vwmailer.route.ts",
-      error: new Error('Password reset email validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Password reset email validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const { to, name, email } = req.body;
 
   logProcessing({

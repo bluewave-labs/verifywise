@@ -39,9 +39,6 @@ import { sequelize } from "../database/db";
 import { RoleModel } from "../domain.layer/models/role/role.model";
 import { ValidationException } from "../domain.layer/exceptions/custom.exception";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
-import {
-  validateRoleIdParam
-} from '../utils/validations/roleValidation.utils';
 
 /**
  * Retrieves all roles from the system
@@ -127,23 +124,6 @@ export async function getAllRoles(req: Request, res: Response): Promise<any> {
  */
 export async function getRoleById(req: Request, res: Response): Promise<any> {
   const roleId = parseInt(req.params.id);
-
-  // Validate role ID parameter
-  const roleIdValidation = validateRoleIdParam(roleId);
-  if (!roleIdValidation.isValid) {
-    await logFailure({
-      eventType: "Read",
-      description: `Invalid role ID parameter: ${req.params.id}`,
-      functionName: "getRoleById",
-      fileName: "role.ctrl.ts",
-      error: new Error(roleIdValidation.message || 'Invalid role ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: roleIdValidation.message || 'Invalid role ID',
-      code: roleIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting getRoleById for ID ${roleId}`,

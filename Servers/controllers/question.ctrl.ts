@@ -21,11 +21,6 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
-import {
-  validateQuestionIdParam,
-  validateSubtopicIdParam,
-  validateTopicIdParam
-} from '../utils/validations/questionValidation.utils';
 
 export async function getAllQuestions(
   req: Request,
@@ -80,23 +75,6 @@ export async function getQuestionById(
   res: Response
 ): Promise<any> {
   const questionId = parseInt(req.params.id);
-
-  // Validate question ID parameter
-  const questionIdValidation = validateQuestionIdParam(questionId);
-  if (!questionIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid question ID parameter: ${req.params.id}`,
-      "getQuestionById",
-      "question.ctrl.ts"
-    );
-    await logEvent("Error", `Invalid question ID parameter: ${req.params.id}`);
-    return res.status(400).json({
-      status: 'error',
-      message: questionIdValidation.message || 'Invalid question ID',
-      code: questionIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logStructured(
     "processing",
@@ -466,23 +444,6 @@ export async function deleteQuestionById(
 export async function getQuestionsBySubtopicId(req: Request, res: Response) {
   const subtopicId = parseInt(req.params.id);
 
-  // Validate subtopic ID parameter
-  const subtopicIdValidation = validateSubtopicIdParam(subtopicId);
-  if (!subtopicIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid subtopic ID parameter: ${req.params.id}`,
-      "getQuestionsBySubtopicId",
-      "question.ctrl.ts"
-    );
-    await logEvent("Error", `Invalid subtopic ID parameter: ${req.params.id}`);
-    return res.status(400).json({
-      status: 'error',
-      message: subtopicIdValidation.message || 'Invalid subtopic ID',
-      code: subtopicIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logStructured(
     "processing",
     `fetching questions by subtopic ID: ${subtopicId}`,
@@ -537,23 +498,6 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
 
 export async function getQuestionsByTopicId(req: Request, res: Response) {
   const topicId = parseInt(req.params.id);
-
-  // Validate topic ID parameter
-  const topicIdValidation = validateTopicIdParam(topicId);
-  if (!topicIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid topic ID parameter: ${req.params.id}`,
-      "getQuestionsByTopicId",
-      "question.ctrl.ts"
-    );
-    await logEvent("Error", `Invalid topic ID parameter: ${req.params.id}`);
-    return res.status(400).json({
-      status: 'error',
-      message: topicIdValidation.message || 'Invalid topic ID',
-      code: topicIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logStructured(
     "processing",

@@ -61,7 +61,7 @@ export function getFormattedReportName(name: string, type: string | string[]) {
 
   if (name.length === 0) {
     if (Array.isArray(type)) {
-      return `Multi-reports_${year}${month}${day}_${hour}${minute}${second}`;
+      return `Multi_reports_${year}${month}${day}_${hour}${minute}${second}`;
     }
     return `${type}_${year}${month}${day}_${hour}${minute}${second}`;
   } else {

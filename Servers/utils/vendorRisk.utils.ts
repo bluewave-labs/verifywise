@@ -135,12 +135,12 @@ export const deleteVendorRiskByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".vendorRisks WHERE id = :id RETURNING id`,
+    `UPDATE "${tenant}".vendorrisks SET is_deleted = true, deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND is_deleted = false RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
       model: VendorRiskModel,
-      type: QueryTypes.DELETE,
+      type: QueryTypes.UPDATE,
       transaction,
     }
   );
@@ -166,8 +166,22 @@ export const deleteVendorRisksForVendorQuery = async (
 };
 
 export const getAllVendorRisksAllProjectsQuery = async (
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ) => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE vr.is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE vr.is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const risks = await sequelize.query(
     `SELECT 
       vr.id AS risk_id,
@@ -179,6 +193,7 @@ export const getAllVendorRisksAllProjectsQuery = async (
     JOIN "${tenant}".vendors AS v ON vr.vendor_id = v.id
     LEFT JOIN "${tenant}".vendors_projects AS vp ON v.id = vp.vendor_id
     LEFT JOIN "${tenant}".projects AS p ON vp.project_id = p.id
+    ${whereClause}
     ORDER BY vp.project_id, v.id, vr.id`,
     {
       mapToModel: true,

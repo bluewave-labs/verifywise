@@ -1487,10 +1487,10 @@ const IntegratedDashboard: React.FC = () => {
         <Box>
           <Typography
             variant="h5"
-            sx={(theme) => ({
+            sx={{
               fontWeight: 400,
               fontSize: "1.5rem",
-            })}
+            }}
           >
             <Box component="span" sx={{ color: "#13715B" }}>
               {greeting.greetingText}

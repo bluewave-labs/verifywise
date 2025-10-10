@@ -13,3 +13,10 @@ export interface IAITrustCenterTableProps<T> {
   tableId?: string;
   disabled?: boolean;
 }
+
+export interface IAuditRiskTableProps {
+  risks: number[];
+  deletedRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+}

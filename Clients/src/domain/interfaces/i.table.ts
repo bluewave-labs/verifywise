@@ -20,3 +20,19 @@ export interface IAuditRiskTableProps {
   checkedRows: number[];
   setCheckedRows: (checkedRows: number[]) => void;
 }
+
+export type ITypeRisk = {
+  id: number;
+  title: string;
+  status: string;
+  severity: string;
+};
+
+export interface IAuditRiskTableBodyProps {
+  rows: ITypeRisk[];
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+  deletedRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+}

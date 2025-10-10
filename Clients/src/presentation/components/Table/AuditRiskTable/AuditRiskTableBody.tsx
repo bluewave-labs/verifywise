@@ -26,21 +26,13 @@ import RiskChip from "../../RiskLevel/RiskChip";
 import { Risk } from "./AuditRiskTable";
 import { useSearchParams } from "react-router-dom";
 import CustomizableButton from "../../Button/CustomizableButton";
-
-interface AuditRiskTableBodyProps {
-  rows: Risk[];
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  deletedRisks: number[];
-  checkedRows: number[];
-  setCheckedRows: (checkedRows: number[]) => void;
-}
+import { IAuditRiskTableBodyProps } from "../../../../domain/interfaces/i.table";
 
 const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
-export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
+export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
   rows,
   page,
   setCurrentPagingation,

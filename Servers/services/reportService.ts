@@ -24,7 +24,7 @@ export interface ReportBodyData {
  * if request body includes report name, return the report name as user requested
  * If not, return as {type}_{YYYYMMDD}_{HHMMSS}
  */
-export function getFormattedReportName(name: string, type: string) {
+export function getFormattedReportName(name: string, type: string | string[]) {
   let reportType;
   switch (type) {
     case ReportType.PROJECTRISK_REPORT:
@@ -42,8 +42,11 @@ export function getFormattedReportName(name: string, type: string) {
     case ReportType.CLAUSES_AND_ANNEXES_REPORT:
       reportType = DefaultReportName.CLAUSES_AND_ANNEXES_REPORT;
       break;
-    default:
+    case ReportType.ALL_REPORT:
       reportType = DefaultReportName.ALL_REPORT;
+      break;
+    default:
+      reportType = DefaultReportName.MULTI_REPORT;
   }
 
   const date = new Date();
@@ -57,6 +60,9 @@ export function getFormattedReportName(name: string, type: string) {
   const second = String(date.getSeconds()).padStart(2, "0");
 
   if (name.length === 0) {
+    if (Array.isArray(type)) {
+      return `Multi-reports_${year}${month}${day}_${hour}${minute}${second}`;
+    }
     return `${type}_${year}${month}${day}_${hour}${minute}${second}`;
   } else {
     return name;

@@ -212,7 +212,7 @@ export const validateEnum = <T extends string>(
   }
 
   // Handle array values
-  if (Array.isArray(value)) {
+  if (Array.isArray(value) && value.length > 1) {
     // Check if array is empty and required
     if (value.length === 0) {
       if (required) {

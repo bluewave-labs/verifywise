@@ -31,7 +31,7 @@ import {
 import { ValidationError } from "../utils/validations/validation.utils";
 
 function mapReportTypeToFileSource(
-  reportType: string
+  reportType: string | string[]
 ):
   | "Project risks report"
   | "Compliance tracker report"
@@ -44,6 +44,9 @@ function mapReportTypeToFileSource(
   | "Policy manager report"
   | "All reports" {
   // These values must match the enum_files_source in the database
+  if (Array.isArray(reportType) && reportType.length > 1) {
+    return "All reports";
+  }
   switch (reportType) {
     case "Project risks report":
       return "Project risks report";

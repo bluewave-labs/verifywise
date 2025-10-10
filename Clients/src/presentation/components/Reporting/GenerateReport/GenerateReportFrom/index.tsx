@@ -132,8 +132,15 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   }, [values.project]);
 
   const handleFormSubmit = () => {
+    const normalizedReportType = Array.isArray(values.report_type)
+      ? values.report_type.length === 1
+        ? values.report_type[0]
+        : values.report_type
+      : values.report_type;
+
     const newValues = {
       ...values,
+      report_type: normalizedReportType,
       projectFrameworkId: projectFrameworkId,
       reportType: reportType,
     };

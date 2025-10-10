@@ -9,9 +9,11 @@ import {
 } from "@mui/material";
 import { useCallback, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { Square as CheckboxOutline } from "lucide-react";
+import { CheckSquare as CheckboxFilled } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import {
   paginationStyle,
   paginationDropdown,
@@ -111,8 +113,8 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
                     }
                     onChange={(e) => handleChange(row, e)}
                     onClick={(e) => e.stopPropagation()}
-                    checkedIcon={<CheckboxFilled />}
-                    icon={<CheckboxOutline />}
+                    checkedIcon={<CheckboxFilled size={16} />}
+                    icon={<CheckboxOutline size={16} />}
                     sx={{
                       borderRadius: "4px",
                       "&:hover": { backgroundColor: "transparent" },

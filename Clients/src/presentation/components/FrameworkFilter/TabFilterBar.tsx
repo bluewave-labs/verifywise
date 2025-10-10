@@ -24,7 +24,7 @@ const TabFilterBar = ({
 
   return (
     <Box
-      sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2, mt: 8 }}
+      sx={{ display: "flex", flexDirection: "column", gap: 1, mt: "16px", mb: "16px" }}
     >
       <Box
         sx={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}

@@ -15,8 +15,7 @@ import {
   MenuItem,
   CircularProgress,
 } from "@mui/material";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
-import {ReactComponent as CloseIcon} from "../../assets/icons/close-grey.svg"
+import { CirclePlus as AddCircleOutlineIcon, X as CloseIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import Alert from "../../components/Alert";
 import { Suspense } from "react";
@@ -401,7 +400,7 @@ export default function BiasAndFairnessModule() {
             border: "1px solid #13715B",
             gap: 2,
           }}
-          icon={<AddCircleOutlineIcon />}
+          icon={<AddCircleOutlineIcon size={16} />}
           onClick={() => {
             setDialogOpen(true);
             setShowAdvancedSettings(false);
@@ -449,7 +448,7 @@ export default function BiasAndFairnessModule() {
               setDialogOpen(false);
               resetForm();
             }}>
-              <CloseIcon />
+              <CloseIcon size={16} />
             </IconButton>
           </Box>
         </DialogTitle>

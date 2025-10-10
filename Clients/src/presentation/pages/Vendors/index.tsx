@@ -24,7 +24,7 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import AddNewRisk from "../../components/Modals/NewRisk";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import CustomizableSkeleton from "../../components/Skeletons";
@@ -414,54 +414,36 @@ const Vendors = () => {
         tourKey="vendor-tour"
       />
       <Stack gap={"16px"} maxWidth={1400}>
-        {value === "1" ? (
-          <>
-            {alert && (
-              <Suspense fallback={<div>Loading...</div>}>
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              </Suspense>
-            )}
-             <PageHeader
-               title="Vendor list"
-               description="This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(true)
-                     }
-                     size="small"
-                    />
-                 }
-             />
-          </>
-        ) : (
-          <>
-            {alert && (
-              <Suspense fallback={<div>Loading...</div>}>
-                <Alert
-                  variant={alert.variant}
-                  title={alert.title}
-                  body={alert.body}
-                  isToast={true}
-                  onClick={() => setAlert(null)}
-                />
-              </Suspense>
-            )}
-
-            <PageHeader
-                title="Vendor risks list"
-                description="This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
-                />
-          </>
+        {alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
         )}
+
         <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Box sx={{ mt: 4 }}>
+            <PageHeader
+              title={value === "1" ? "Vendor list" : "Vendor risks list"}
+              description={value === "1"
+                ? "This table includes a list of external entities that provide AI-related products, services, or components. You can create and manage all vendors here."
+                : "This table includes a list of risks related to a vendor. You can create and manage all vendor risks here."
+              }
+              rightContent={value === "1" ? (
+                <HelperIcon
+                  onClick={() => setIsHelperDrawerOpen(true)}
+                  size="small"
+                />
+              ) : undefined}
+            />
+          </Box>
+
+          <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 2 }}>
             <TabList
               onChange={handleChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -524,7 +506,7 @@ const Vendors = () => {
                       border: "1px solid #13715B",
                       gap: 2,
                     }}
-                    icon={<AddCircleOutlineIcon />}
+                    icon={<AddCircleOutlineIcon size={16} />}
                     onClick={() => {
                       openAddNewVendor();
                       setSelectedVendor(null);
@@ -594,7 +576,7 @@ const Vendors = () => {
                     border: "1px solid #13715B",
                     gap: 2,
                   }}
-                  icon={<AddCircleOutlineIcon />}
+                  icon={<AddCircleOutlineIcon size={16} />}
                   onClick={() => {
                     setSelectedRisk(null);
                     handleRiskModal();

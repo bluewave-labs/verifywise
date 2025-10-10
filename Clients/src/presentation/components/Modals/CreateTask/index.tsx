@@ -19,10 +19,9 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
-import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
+import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import { ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
@@ -346,6 +345,7 @@ const CreateTask: FC<CreateTaskProps> = ({
             </Typography>
           </Stack>
           <CloseIcon
+            size={20}
             style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={handleClose}
           />
@@ -477,7 +477,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         : "No options"
                     }
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<GreyDownArrowIcon size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -565,7 +565,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     }}
                     getOptionLabel={(option: string) => option}
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<GreyDownArrowIcon size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -692,7 +692,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                 marginTop: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIcon />}
+              icon={<SaveIcon size={16} />}
             />
           </Stack>
         </form>

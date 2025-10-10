@@ -13,7 +13,7 @@ import {
   Box,
 } from "@mui/material";
 import "./index.css";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 
 
 interface CustomizableMultiSelectProps {
@@ -71,7 +71,7 @@ const CustomizableMultiSelect = ({
             key={getOptionValue ? getOptionValue(item) : item._id}
             label={item.name + (item.surname ? " " + item.surname : "")}
             sx={{
-              borderRadius: theme.shape.borderRadius,
+              borderRadius: 4,
               height: 24,
               fontSize: 12,
             }}
@@ -127,7 +127,7 @@ const CustomizableMultiSelect = ({
         multiple
         displayEmpty
         renderValue={renderValue}
-        IconComponent={GreyDownArrowIcon}
+        IconComponent={() => <ChevronDown size={16} />}
         error={!!error}
         MenuProps={{
           disableScrollLock: true,

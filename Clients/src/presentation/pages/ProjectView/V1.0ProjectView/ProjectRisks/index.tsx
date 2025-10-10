@@ -240,8 +240,6 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         <RiskFilters
           risks={projectRisks}
           onFilterChange={handleRiskFilterChange}
-          hideProjectFilter={true}
-          hideFrameworkFilter={true}
         />
 
         {/* Risk Visualization Section */}

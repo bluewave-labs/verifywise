@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Box, Tooltip, IconButton, Stack, useTheme } from "@mui/material";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import {ReactComponent as FormatBold} from "../../assets/icons/formatBold.svg";
-import {ReactComponent as FormatItalic} from "../../assets/icons/formatItalic.svg";
-import {ReactComponent as FormatListBulleted} from "../../assets/icons/formatListBulleted.svg";
-import {ReactComponent as FormatListNumbered} from "../../assets/icons/formatListNumbered.svg";
+import { Bold, Italic, List, ListOrdered } from "lucide-react";
 import "./index.css";
+
+const FormatBold = () => <Bold size={20} />;
+const FormatItalic = () => <Italic size={20} />;
+const FormatListBulleted = () => <List size={20} />;
+const FormatListNumbered = () => <ListOrdered size={20} />;
 
 interface RichTextEditorProps {
   onContentChange?: (content: string) => void;

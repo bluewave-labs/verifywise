@@ -1,5 +1,5 @@
 import { Button, Typography, useTheme, Stack } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { X as ClearIcon } from "lucide-react";
 import React from "react";
 import { FC } from "react";
 import { Unstable_Popup as BasePopup } from "@mui/base/Unstable_Popup";
@@ -130,7 +130,7 @@ const Popup: FC<PopupProps> = ({
             </Typography>
           )}
           <Button onClick={handleOpenOrClose} sx={styles.closePopupButton}>
-            <ClearIcon />
+            <ClearIcon size={20} />
           </Button>
           {popupContent}
         </Stack>

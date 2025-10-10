@@ -1,7 +1,7 @@
 // New component file: ProjectList.tsx
 import { useState, useMemo } from "react";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
@@ -89,7 +89,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
+          mb: "16px",
         }}
       >
         {/* Search Box */}
@@ -102,7 +102,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
             aria-expanded={isSearchBarVisible}
             onClick={() => setIsSearchBarVisible((prev) => !prev)}
           >
-            <SearchIcon />
+            <SearchIcon size={16} />
           </IconButton>
 
           {isSearchBarVisible && (

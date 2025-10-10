@@ -18,7 +18,9 @@
   "description": "",
   "dependencies": {
     "@awaismirza/bypass-cors": "^1.1.2",
+    "@aws-sdk/client-ses": "^3.901.0",
     "@slack/web-api": "^7.10.0",
+    "@smithy/node-http-handler": "^4.3.0",
     "@types/passport-jwt": "^4.0.1",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.59.0",
@@ -45,6 +47,7 @@
     "resend": "^4.6.0",
     "sequelize": "^6.37.6",
     "sequelize-typescript": "^2.1.6",
+    "tslib": "^2.8.1",
     "typescript": "^5.6.2",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",

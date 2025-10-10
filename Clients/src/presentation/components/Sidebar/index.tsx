@@ -11,7 +11,7 @@ import {
   Stack,
   Tooltip,
   Typography,
-  Badge,
+  Chip,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -64,6 +64,7 @@ interface MenuItem {
   icon: React.ReactNode;
   path: string;
   highlightPaths?: string[];
+  taskCount?: number;
 }
 
 interface MenuGroup {
@@ -157,24 +158,9 @@ const topItems = (openTasksCount: number): MenuItem[] => [
   },
   {
     name: "Tasks",
-    icon: (
-      <Badge
-        badgeContent={openTasksCount > 0 ? openTasksCount : null}
-        color="error"
-        sx={{
-          "& .MuiBadge-badge": {
-            fontSize: "10px",
-            minWidth: "18px",
-            height: "18px",
-            backgroundColor: "#ef4444",
-            color: "white",
-          },
-        }}
-      >
-        <Flag size={16} strokeWidth={1.5} />
-      </Badge>
-    ),
+    icon: <Flag size={16} strokeWidth={1.5} />,
     path: "/tasks",
+    taskCount: openTasksCount,
   },
 ];
 
@@ -457,6 +443,13 @@ const Sidebar = () => {
                       ? "#E8E8E8" // keep same color if already selected
                       : "#F9F9F9", // hover color only if not selected
                 },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
               }}
             >
               <ListItemIcon
@@ -467,6 +460,39 @@ const Sidebar = () => {
                   justifyContent: "flex-start",
                   width: "16px",
                   mr: 0,
+                  "& svg": {
+                    color: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    stroke: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
                 }}
               >
                 {item.icon}
@@ -480,6 +506,39 @@ const Sidebar = () => {
               >
                 {item.name}
               </ListItemText>
+              {item.taskCount && item.taskCount > 0 && (
+                <Chip
+                  label={item.taskCount > 99 ? "99+" : item.taskCount}
+                  size="small"
+                  sx={{
+                    height: collapsed ? "14px" : "18px",
+                    fontSize: collapsed ? "8px" : "10px",
+                    fontWeight: 500,
+                    backgroundColor: (
+                      location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                    ) ? "#f8fafc" : "#e2e8f0", // lighter when active, blueish-grayish when inactive
+                    color: "#475569", // darker text for contrast
+                    borderRadius: collapsed ? "7px" : "9px",
+                    minWidth: collapsed ? "14px" : "18px", // ensure minimum width
+                    maxWidth: collapsed ? "28px" : "36px", // cap maximum width
+                    "& .MuiChip-label": {
+                      px: collapsed ? "4px" : "6px",
+                      py: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    },
+                    ml: "auto",
+                    position: collapsed ? "absolute" : "static",
+                    top: collapsed ? "6px" : "auto",
+                    right: collapsed ? "4px" : "auto",
+                  }}
+                />
+              )}
             </ListItemButton>
           </Tooltip>
         ))}
@@ -567,6 +626,13 @@ const Sidebar = () => {
                           ? "#E8E8E8" // keep same color if already selected
                           : "#F9F9F9", // hover color only if not selected
                     },
+                    "&:hover svg": {
+                      color: "#13715B !important",
+                      stroke: "#13715B !important",
+                    },
+                    "&:hover svg path": {
+                      stroke: "#13715B !important",
+                    },
                   }}
                 >
                   <ListItemIcon
@@ -577,6 +643,39 @@ const Sidebar = () => {
                       justifyContent: "flex-start",
                       width: "16px",
                       mr: 0,
+                      "& svg": {
+                        color: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                        stroke: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                        transition: "color 0.2s ease, stroke 0.2s ease",
+                      },
+                      "& svg path": {
+                        stroke: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
                     }}
                   >
                     {item.icon}
@@ -654,6 +753,13 @@ const Sidebar = () => {
                       ? "#E8E8E8" // keep same color if already selected
                       : "#F9F9F9", // hover color only if not selected
                 },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
               }}
             >
               <ListItemIcon
@@ -664,6 +770,27 @@ const Sidebar = () => {
                   justifyContent: "flex-start",
                   width: "16px",
                   mr: 0,
+                  "& svg": {
+                    color: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
                 }}
               >
                 {item.icon}

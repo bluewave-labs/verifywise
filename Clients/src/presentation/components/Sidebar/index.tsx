@@ -12,12 +12,13 @@ import {
   Tooltip,
   Typography,
   Chip,
+  Drawer,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 
 // Lucide Icons
@@ -194,6 +195,8 @@ const Sidebar = () => {
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = useState(null);
   const [popup, setPopup] = useState();
+  const [slideoverOpen, setSlideoverOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
 
   const { userId, changeComponentVisibility, users } =
@@ -222,11 +225,14 @@ const Sidebar = () => {
   const menuGroups = getMenuGroups();
 
   const openPopup = (event: any, id: any) => {
+    setSlideoverOpen(true);
+    // Keep the old logic for backwards compatibility if needed
     setAnchorEl(event.currentTarget);
     setPopup(id);
   };
 
   const closePopup = () => {
+    setSlideoverOpen(false);
     setAnchorEl(null);
   };
 
@@ -264,6 +270,23 @@ const Sidebar = () => {
     const interval = setInterval(fetchOpenTasksCount, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Click outside to close drawer
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (slideoverOpen && drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+        closePopup();
+      }
+    };
+
+    if (slideoverOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [slideoverOpen]);
 
   return (
     <Stack
@@ -880,182 +903,182 @@ const Sidebar = () => {
                 {ROLES[user.roleId as keyof typeof ROLES]}
               </Typography>
             </Box>
-            <Tooltip title="Controls" disableInteractive sx={{ fontSize: 13 }}>
-              <IconButton
-                disableRipple={
-                  theme.components?.MuiIconButton?.defaultProps?.disableRipple
-                }
-                sx={{
-                  ml: "auto",
-                  mr: "-8px",
-                  "&:focus": { outline: "none" },
-                  "& svg": {
-                    width: "20px",
-                    height: "20px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                }}
-                onClick={(event) => openPopup(event, "logout")}
-              >
-                <MoreVertical size={16} strokeWidth={1.5} />
-              </IconButton>
-            </Tooltip>
+            <IconButton
+              disableRipple={
+                theme.components?.MuiIconButton?.defaultProps?.disableRipple
+              }
+              sx={{
+                ml: "auto",
+                mr: "-8px",
+                "&:focus": { outline: "none" },
+                "& svg": {
+                  width: "20px",
+                  height: "20px",
+                },
+                "& svg path": {
+                  stroke: theme.palette.other.icon,
+                },
+              }}
+              onClick={(event) => openPopup(event, "logout")}
+            >
+              <MoreVertical size={16} strokeWidth={1.5} />
+            </IconButton>
           </>
         )}
-        <Menu
-          className="sidebar-popup"
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl) && popup === "logout"}
+        <Drawer
+          anchor="bottom"
+          open={slideoverOpen}
           onClose={closePopup}
-          disableScrollLock
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          slotProps={{
-            paper: {
-              sx: {
-                marginTop: theme.spacing(-4),
-                marginLeft: collapsed ? theme.spacing(2) : 0,
-                fontSize: 13,
-              },
-            },
-          }}
-          MenuListProps={{
+          hideBackdrop={true}
+          transitionDuration={0}
+          PaperProps={{
             sx: {
-              p: 2,
-              "& li": { m: 0 },
-              "& li:has(.MuiBox-root):hover": {
-                backgroundColor: "transparent",
-                fontSize: 13,
-              },
+              width: collapsed ? "180px" : "220px", // Slightly smaller than sidebar to fit within
+              height: "auto", // Let height adjust to content
+              maxHeight: "fit-content",
+              position: "absolute",
+              bottom: "80px", // Position closer to the 3-dot button
+              left: collapsed ? "30px" : "30px", // Center within sidebar with some margin
+              borderRadius: "4px",
+              boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
+              border: `1px solid ${theme.palette.divider}`,
+              backgroundColor: "transparent",
+              transition: "none",
             },
-          }}
-          sx={{
-            ml: theme.spacing(12),
           }}
         >
-          {collapsed && (
-            <MenuItem sx={{ cursor: "default", minWidth: "150px" }}>
-              <Box mb={theme.spacing(2)}>
+          <Box
+            ref={drawerRef}
+            sx={{
+              backgroundColor: theme.palette.background.main,
+              borderRadius: "4px",
+              border: `1px solid ${theme.palette.divider}`,
+              p: 1.5,
+              animation: slideoverOpen ? "fadeIn 0.2s ease-in-out" : "none",
+              "@keyframes fadeIn": {
+                "0%": {
+                  opacity: 0,
+                },
+                "100%": {
+                  opacity: 1,
+                },
+              },
+            }}
+          >
+            {collapsed && (
+              <Box sx={{ mb: 1.5, pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
                 <Typography component="span" fontWeight={500} fontSize="13px">
                   {user.name} {user.surname}
                 </Typography>
                 <Typography
-                  sx={{ textTransform: "capitalize", fontSize: "13px" }}
+                  sx={{ textTransform: "capitalize", fontSize: "13px", color: theme.palette.text.secondary }}
                 >
                   {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
               </Box>
-            </MenuItem>
-          )}
-          <MenuItem
-            onClick={() => {
-              window.open(
-                "https://verifywise.ai/contact",
-                "_blank",
-                "noreferrer"
-              );
-              closePopup();
-            }}
-            sx={{
-              gap: theme.spacing(4),
-              borderRadius: theme.shape.borderRadius,
-              pl: theme.spacing(4),
-              "& svg": {
-                width: "fit-content",
-                height: "fit-content",
-              },
-              "& svg path": {
-                stroke: theme.palette.other.icon,
-              },
-              "&:hover svg": {
-                color: "#13715B !important",
-                stroke: "#13715B !important",
-              },
-              "&:hover svg path": {
-                stroke: "#13715B !important",
-              },
-              fontSize: "13px",
+            )}
 
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            <MessageCircle size={16} strokeWidth={1.5} />
-            Feedback
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              window.open(
-                "https://discord.gg/d3k3E4uEpR",
-                "_blank",
-                "noreferrer"
-              );
-              closePopup();
-            }}
-            sx={{
-              gap: theme.spacing(4),
-              borderRadius: theme.shape.borderRadius,
-              pl: theme.spacing(4),
-              "& svg": {
-                width: "fit-content",
-                height: "fit-content",
-              },
-              "& svg path": {
-                stroke: theme.palette.other.icon,
-              },
-              "&:hover svg": {
-                color: "#13715B !important",
-                stroke: "#13715B !important",
-              },
-              "&:hover svg path": {
-                stroke: "#13715B !important",
-              },
-              fontSize: "13px",
+            <Stack spacing={0.5}>
+              <ListItemButton
+                onClick={() => {
+                  window.open(
+                    "https://verifywise.ai/contact",
+                    "_blank",
+                    "noreferrer"
+                  );
+                  closePopup();
+                }}
+                sx={{
+                  gap: theme.spacing(3),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(2),
+                  py: theme.spacing(1.5),
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
+                  "& svg path": {
+                    stroke: theme.palette.other.icon,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                  fontSize: "13px",
+                }}
+              >
+                <MessageCircle size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Feedback</Typography>
+              </ListItemButton>
 
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            <MessageSquare size={16} strokeWidth={1.5} />
-            Ask on Discord
-          </MenuItem>
-          <MenuItem
-            onClick={logout}
-            sx={{
-              gap: theme.spacing(4),
-              borderRadius: theme.shape.borderRadius,
-              pl: theme.spacing(4),
-              "& svg": {
-                width: "fit-content",
-                height: "fit-content",
-              },
-              "& svg path": {
-                stroke: theme.palette.other.icon,
-              },
-              "&:hover svg": {
-                color: "#13715B !important",
-                stroke: "#13715B !important",
-              },
-              "&:hover svg path": {
-                stroke: "#13715B !important",
-              },
-              fontSize: "13px",
+              <ListItemButton
+                onClick={() => {
+                  window.open(
+                    "https://discord.gg/d3k3E4uEpR",
+                    "_blank",
+                    "noreferrer"
+                  );
+                  closePopup();
+                }}
+                sx={{
+                  gap: theme.spacing(3),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(2),
+                  py: theme.spacing(1.5),
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
+                  "& svg path": {
+                    stroke: theme.palette.other.icon,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                  fontSize: "13px",
+                }}
+              >
+                <MessageSquare size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Ask on Discord</Typography>
+              </ListItemButton>
 
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            <LogOut size={16} strokeWidth={1.5} />
-            Log out
-          </MenuItem>
-        </Menu>
+              <ListItemButton
+                onClick={logout}
+                sx={{
+                  gap: theme.spacing(3),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(2),
+                  py: theme.spacing(1.5),
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
+                  "& svg path": {
+                    stroke: theme.palette.other.icon,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                  fontSize: "13px",
+                }}
+              >
+                <LogOut size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Log out</Typography>
+              </ListItemButton>
+            </Stack>
+          </Box>
+        </Drawer>
       </Stack>
     </Stack>
   );

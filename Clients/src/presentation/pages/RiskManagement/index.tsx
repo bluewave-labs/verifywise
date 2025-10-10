@@ -375,7 +375,7 @@ const RiskManagement = () => {
             risks={projectRisks}
             onFilterChange={handleRiskFilterChange}
           />
-          <Stack direction="row" gap={10}>
+          <Stack direction="row" gap={4}>
             <CustomizableButton
               variant="contained"
               text="Insert from AI risks database"

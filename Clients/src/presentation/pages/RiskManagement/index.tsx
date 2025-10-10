@@ -356,7 +356,7 @@ const RiskManagement = () => {
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={rowStyle}>
+      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 

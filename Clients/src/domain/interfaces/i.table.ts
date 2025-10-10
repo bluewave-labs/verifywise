@@ -53,3 +53,14 @@ export interface IEvaluationTableBodyProps {
     onConfirm: (id: string) => void;
   };
 }
+
+export interface IEvaluationTableProps {
+  columns: string[];
+  rows: IEvaluationRow[];
+  removeModel: {
+    onConfirm: (id: string) => void; // actually deletes
+  };
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+  onShowDetails: (model: IEvaluationRow) => void;
+}

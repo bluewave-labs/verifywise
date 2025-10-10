@@ -31,25 +31,19 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
+import { IEvaluationRow } from "../../../../domain/interfaces/i.table";
 
 const EvaluationTableBody = lazy(() => import("./TableBody"));
 
-interface EvaluationRow {
-  id: string;
-  model: string;
-  dataset: string;
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
-}
-
 interface EvaluationTableProps {
   columns: string[];
-  rows: EvaluationRow[];
+  rows: IEvaluationRow[];
   removeModel: {
     onConfirm: (id: string) => void; // actually deletes
   };
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
-  onShowDetails: (model: EvaluationRow) => void;
+  onShowDetails: (model: IEvaluationRow) => void;
 }
 
 const EvaluationTable: React.FC<EvaluationTableProps> = ({

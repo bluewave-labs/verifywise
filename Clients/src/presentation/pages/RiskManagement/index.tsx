@@ -369,7 +369,7 @@ const RiskManagement = () => {
         <Stack
           direction="row"
           justifyContent="space-between"
-          alignItems="center"
+          alignItems="flex-end"
         >
           <RiskFilters
             risks={projectRisks}

@@ -43,3 +43,13 @@ export interface IEvaluationRow {
   dataset: string;
   status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
 }
+
+export interface IEvaluationTableBodyProps {
+  rows: IEvaluationRow[];
+  page: number;
+  rowsPerPage: number;
+  onShowDetails: (model: IEvaluationRow) => void;
+  onRemoveModel: {
+    onConfirm: (id: string) => void;
+  };
+}

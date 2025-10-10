@@ -48,12 +48,6 @@ const initialLoadingState: LoadingStatus = {
   message: "",
 };
 
-const rowStyle = {
-  display: "flex",
-  flexDirection: "row",
-  gap: 10,
-  mb: 10,
-};
 
 const RiskManagement = () => {
   const { userRoleName } = useAuth();

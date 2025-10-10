@@ -115,18 +115,6 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     applyFilters(newFilters);
   };
 
-  const clearAllFilters = () => {
-    setFilters(initialFilterState);
-    applyFilters(initialFilterState);
-  };
-
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (filters.riskLevel !== "all") count++;
-    if (filters.owner !== "all") count++;
-    if (filters.mitigationStatus !== "all") count++;
-    return count;
-  };
 
   // Helper function to get user name by ID
   const getUserNameById = (userId: string): string => {

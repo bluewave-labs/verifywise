@@ -14,7 +14,12 @@
 import { Box, Button } from "@mui/material";
 import "../Table/index.css";
 
-import { ChevronsLeft as LeftArrowDouble, ChevronLeft as LeftArrow, ChevronRight as RightArrow, ChevronsRight as RightArrowDouble } from "lucide-react";
+import {
+  ChevronsLeft as LeftArrowDouble,
+  ChevronLeft as LeftArrow,
+  ChevronRight as RightArrow,
+  ChevronsRight as RightArrowDouble,
+} from "lucide-react";
 
 interface TablePaginationActionsProps {
   count: number;

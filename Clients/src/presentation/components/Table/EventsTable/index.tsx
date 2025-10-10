@@ -58,7 +58,7 @@ const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
         backgroundColor: style.bg,
         color: style.color,
         padding: "4px 8px",
-        borderRadius: "12px",
+        borderRadius: "4px",
         fontWeight: 500,
         fontSize: 11,
         textTransform: "uppercase",
@@ -328,6 +328,13 @@ const EventsTable: React.FC<EventsTableProps> = ({
                   borderTop: "none",
                   borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
                   color: theme.palette.text.secondary,
+                  height: "50px",
+                  minHeight: "50px",
+                  "& .MuiTablePagination-toolbar": {
+                    minHeight: "50px",
+                    paddingTop: "4px",
+                    paddingBottom: "4px",
+                  },
                   "& .MuiSelect-icon": {
                     width: "24px",
                     height: "fit-content",

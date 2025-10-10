@@ -7,7 +7,7 @@ import {
   vwhomeHeading,
 } from "./style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg"
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -221,7 +221,7 @@ const Home = () => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={16} />}
                 onClick={() => setIsProjectFormModalOpen(true)}
                 isDisabled={
                   !allowedRoles.projects.create.includes(userRoleName)

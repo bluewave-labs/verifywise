@@ -1,21 +1,21 @@
 import { Command, CommandGroup, CommandContext, CommandRegistry } from './types'
 import allowedRoles from '../constants/permissions'
 import {
-  HomeOutlined,
-  WarningAmberOutlined,
-  BusinessOutlined,
-  AccountTreeOutlined,
-  SchoolOutlined,
-  FolderOutlined,
-  TimelineOutlined,
-  AccountBalanceOutlined,
-  BalanceOutlined,
-  SettingsOutlined,
-  AssignmentOutlined,
-  PolicyOutlined,
-  VerifiedUserOutlined,
-  GroupOutlined
-} from '@mui/icons-material'
+  Home as HomeOutlined,
+  AlertTriangle as WarningAmberOutlined,
+  Building as BusinessOutlined,
+  GitBranch as AccountTreeOutlined,
+  GraduationCap as SchoolOutlined,
+  Folder as FolderOutlined,
+  Activity as TimelineOutlined,
+  Landmark as AccountBalanceOutlined,
+  Scale as BalanceOutlined,
+  Settings as SettingsOutlined,
+  ClipboardList as AssignmentOutlined,
+  FileText as PolicyOutlined,
+  ShieldCheck as VerifiedUserOutlined,
+  Users as GroupOutlined
+} from 'lucide-react'
 
 // Define command groups
 export const COMMAND_GROUPS: CommandGroup[] = [

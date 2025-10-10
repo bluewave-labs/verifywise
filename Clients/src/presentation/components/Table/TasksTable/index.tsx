@@ -17,13 +17,16 @@ import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
 import { ITask } from "../../../../domain/interfaces/i.task";
 import { User } from "../../../../domain/types/User";
 import CustomSelect from "../../CustomSelect";
 import IconButton from "../../IconButton";
 import RiskChip from "../../RiskLevel/RiskChip";
+
 import { TaskStatus } from "../../../../domain/enums/task.enum";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 // Status display mapping
 const STATUS_DISPLAY_MAP: Record<string, string> = {

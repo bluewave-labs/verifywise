@@ -19,7 +19,9 @@ import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";

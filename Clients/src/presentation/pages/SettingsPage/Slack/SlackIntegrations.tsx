@@ -1,6 +1,8 @@
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import { singleTheme } from "../../../themes";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import {
   Box,
   Stack,
@@ -15,7 +17,9 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as SliderIcon} from "../../../assets/icons/sliders.svg";
+import { SlidersHorizontal } from "lucide-react";
+
+const SliderIcon = () => <SlidersHorizontal size={20} />;
 import { sendSlackMessage } from "../../../../application/repository/slack.integration.repository";
 import { Suspense, useCallback, useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";

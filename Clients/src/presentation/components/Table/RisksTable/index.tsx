@@ -18,10 +18,12 @@ import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
 import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 const titleOfTableColumns = [
   "risk description",

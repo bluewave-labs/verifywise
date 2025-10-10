@@ -10,16 +10,17 @@ import {
   useTheme,
   Stack,
   Typography,
-  Box,
 } from "@mui/material";
 import TablePaginationActions from "../../TablePagination";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
 import { User } from "../../../../domain/types/User";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 const TABLE_COLUMNS = [
   { id: "id", label: "ID" },
@@ -103,11 +104,6 @@ const EventsTable: React.FC<EventsTableProps> = ({
     []
   );
 
-  const getRange = useMemo(() => {
-    const start = page * rowsPerPage + 1;
-    const end = Math.min(page * rowsPerPage + rowsPerPage, data?.length ?? 0);
-    return `${start} - ${end}`;
-  }, [page, rowsPerPage, data?.length]);
 
   const tableHeader = useMemo(
     () => (
@@ -274,94 +270,79 @@ const EventsTable: React.FC<EventsTableProps> = ({
       </TableContainer>
 
       {paginated && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: theme.spacing(3, 4),
-            paddingBottom: 0,
-            backgroundColor: theme.palette.grey[50],
-            border: `1px solid ${theme.palette.border.light}`,
-            borderTop: "none",
-            borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: "13px",
-              color: theme.palette.text.secondary,
-            }}
-          >
-            Showing {getRange} of {data?.length} event
-            {data?.length !== 1 ? "s" : ""}
-          </Typography>
-
-          <TablePagination
-            count={data?.length ?? 0}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 15, 25]}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={(props) => <TablePaginationActions {...props} />}
-            labelRowsPerPage="Rows per page"
-            labelDisplayedRows={({ page, count }) =>
-              `Page ${page + 1} of ${Math.max(
-                0,
-                Math.ceil(count / rowsPerPage)
-              )}`
-            }
-            slotProps={{
-              select: {
-                MenuProps: {
-                  keepMounted: true,
-                  PaperProps: {
-                    className: "pagination-dropdown",
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TablePagination
+                count={data?.length ?? 0}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 15, 25]}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                labelRowsPerPage="Rows per page"
+                labelDisplayedRows={({ page, count }) =>
+                  `Page ${page + 1} of ${Math.max(
+                    0,
+                    Math.ceil(count / rowsPerPage)
+                  )}`
+                }
+                slotProps={{
+                  select: {
+                    MenuProps: {
+                      keepMounted: true,
+                      PaperProps: {
+                        className: "pagination-dropdown",
+                        sx: {
+                          mt: 0,
+                          mb: theme.spacing(2),
+                        },
+                      },
+                      transformOrigin: {
+                        vertical: "bottom",
+                        horizontal: "left",
+                      },
+                      anchorOrigin: {
+                        vertical: "top",
+                        horizontal: "left",
+                      },
+                      sx: { mt: theme.spacing(-2) },
+                    },
+                    inputProps: { id: "pagination-dropdown" },
+                    IconComponent: SelectorVertical,
                     sx: {
-                      mt: 0,
-                      mb: theme.spacing(2),
+                      ml: theme.spacing(4),
+                      mr: theme.spacing(12),
+                      minWidth: theme.spacing(20),
+                      textAlign: "left",
+                      "&.Mui-focused > div": {
+                        backgroundColor: theme.palette.background.main,
+                      },
                     },
                   },
-                  transformOrigin: {
-                    vertical: "bottom",
-                    horizontal: "left",
+                }}
+                sx={{
+                  backgroundColor: theme.palette.grey[50],
+                  border: `1px solid ${theme.palette.border.light}`,
+                  borderTop: "none",
+                  borderRadius: `0 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px`,
+                  color: theme.palette.text.secondary,
+                  "& .MuiSelect-icon": {
+                    width: "24px",
+                    height: "fit-content",
                   },
-                  anchorOrigin: {
-                    vertical: "top",
-                    horizontal: "left",
+                  "& .MuiSelect-select": {
+                    width: theme.spacing(10),
+                    borderRadius: theme.shape.borderRadius,
+                    border: `1px solid ${theme.palette.border.light}`,
+                    padding: theme.spacing(4),
                   },
-                  sx: { mt: theme.spacing(-2) },
-                },
-                inputProps: { id: "pagination-dropdown" },
-                IconComponent: SelectorVertical,
-                sx: {
-                  ml: theme.spacing(4),
-                  mr: theme.spacing(12),
-                  minWidth: theme.spacing(20),
-                  textAlign: "left",
-                  "&.Mui-focused > div": {
-                    backgroundColor: theme.palette.background.main,
-                  },
-                },
-              },
-            }}
-            sx={{
-              mt: 0,
-              color: theme.palette.text.secondary,
-              "& .MuiSelect-icon": {
-                width: "24px",
-                height: "fit-content",
-              },
-              "& .MuiSelect-select": {
-                width: theme.spacing(10),
-                borderRadius: theme.shape.borderRadius,
-                border: `1px solid ${theme.palette.border.light}`,
-                padding: theme.spacing(4),
-              },
-            }}
-          />
-        </Box>
+                }}
+              />
+            </TableRow>
+          </TableBody>
+        </Table>
       )}
     </Stack>
   );

@@ -28,6 +28,7 @@ export const handleDownload = async (fileId: string, fileName: string) => {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error downloading file:", error);
+    throw error;
   }
 };
 

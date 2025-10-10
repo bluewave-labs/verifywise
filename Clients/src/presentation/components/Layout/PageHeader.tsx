@@ -8,7 +8,7 @@ interface PageHeaderProps {
 
 const PageHeader = ({ title, description, rightContent }: PageHeaderProps) => {
     return (
-        <Stack spacing={2}>
+        <Stack spacing={1}>
             {/* Title + description */}
             {title && (
               <Stack direction="row" alignItems="center" spacing={1} pt={2}>
@@ -20,7 +20,7 @@ const PageHeader = ({ title, description, rightContent }: PageHeaderProps) => {
             )}
 
             {description && (
-                <Typography variant="body2" color="text.secondary"  sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     {description}
                 </Typography>
             )}

@@ -11,7 +11,7 @@ export const searchBoxStyle =
         borderRadius: theme.shape.borderRadius,
         p: isSearchBarVisible ? "6px 8px" : "0",
         bgcolor: "#fff",
-        width: isSearchBarVisible ? "23.8%" : "34px",
+        width: isSearchBarVisible ? "300px" : "34px",
         height: "34px",
         transition: "all 0.3s ease",
         mb: 9,

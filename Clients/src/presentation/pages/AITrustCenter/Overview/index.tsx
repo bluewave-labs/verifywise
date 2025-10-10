@@ -295,6 +295,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -337,6 +344,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -379,6 +393,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -399,7 +420,7 @@ const AITrustCenterOverview: React.FC = () => {
             handleFieldChange("info", "compliance_badges_visible", checked)
           }
         />
-        <Typography sx={styles.sectionDescription}>
+        <Typography sx={{ ...styles.sectionDescription, mb: 8 }}>
           Compliance badges for certifications and standards (e.g., EU AI Act,
           NIST, SOC2, ISO 27001, GDPR).
         </Typography>
@@ -492,6 +513,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -546,6 +574,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -600,6 +635,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -626,31 +668,33 @@ const AITrustCenterOverview: React.FC = () => {
           questions and incidents.
         </Typography>
         <PrivacyFields>
-          <Stack direction="column" spacing={2} sx={{ width: "100%" }}>
+          <Stack direction="column" spacing={3} sx={{ width: "100%", mt: 3 }}>
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1}
+              spacing={2}
               sx={{ width: "100%" }}
             >
-              <Checkbox
-                id="terms-visible"
-                label="Terms of service"
-                isChecked={
-                  localFormData.terms_and_contact?.terms_visible || false
-                }
-                value={
-                  localFormData.terms_and_contact?.terms_visible ? "true" : "false"
-                }
-                onChange={(event) =>
-                  handleFieldChange(
-                    "terms_and_contact",
-                    "terms_visible",
-                    event.target.checked
-                  )
-                }
-                isDisabled={!localFormData.info?.terms_and_contact_visible}
-              />
+              <Box sx={{ minWidth: "160px" }}>
+                <Checkbox
+                  id="terms-visible"
+                  label="Terms of service"
+                  isChecked={
+                    localFormData.terms_and_contact?.terms_visible || false
+                  }
+                  value={
+                    localFormData.terms_and_contact?.terms_visible ? "true" : "false"
+                  }
+                  onChange={(event) =>
+                    handleFieldChange(
+                      "terms_and_contact",
+                      "terms_visible",
+                      event.target.checked
+                    )
+                  }
+                  isDisabled={!localFormData.info?.terms_and_contact_visible}
+                />
+              </Box>
               <Field
                 id="terms-of-service-input"
                 placeholder="Enter terms of service URL..."
@@ -676,27 +720,29 @@ const AITrustCenterOverview: React.FC = () => {
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1}
+              spacing={2}
               sx={{ width: "100%" }}
             >
-              <Checkbox
-                id="privacy-visible"
-                label="Privacy policy"
-                isChecked={
-                  localFormData.terms_and_contact?.privacy_visible || false
-                }
-                value={
-                  localFormData.terms_and_contact?.privacy_visible ? "true" : "false"
-                }
-                onChange={(event) =>
-                  handleFieldChange(
-                    "terms_and_contact",
-                    "privacy_visible",
-                    event.target.checked
-                  )
-                }
-                isDisabled={!localFormData.info?.terms_and_contact_visible}
-              />
+              <Box sx={{ minWidth: "160px" }}>
+                <Checkbox
+                  id="privacy-visible"
+                  label="Privacy policy"
+                  isChecked={
+                    localFormData.terms_and_contact?.privacy_visible || false
+                  }
+                  value={
+                    localFormData.terms_and_contact?.privacy_visible ? "true" : "false"
+                  }
+                  onChange={(event) =>
+                    handleFieldChange(
+                      "terms_and_contact",
+                      "privacy_visible",
+                      event.target.checked
+                    )
+                  }
+                  isDisabled={!localFormData.info?.terms_and_contact_visible}
+                />
+              </Box>
               <Field
                 id="privacy-policy-input"
                 placeholder="Enter privacy policy URL..."
@@ -722,27 +768,29 @@ const AITrustCenterOverview: React.FC = () => {
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1}
+              spacing={2}
               sx={{ width: "100%" }}
             >
-              <Checkbox
-                id="email-visible"
-                label="Company email"
-                isChecked={
-                  localFormData.terms_and_contact?.email_visible || false
-                }
-                value={
-                  localFormData.terms_and_contact?.email_visible ? "true" : "false"
-                }
-                onChange={(event) =>
-                  handleFieldChange(
-                    "terms_and_contact",
-                    "email_visible",
-                    event.target.checked
-                  )
-                }
-                isDisabled={!localFormData.info?.terms_and_contact_visible}
-              />
+              <Box sx={{ minWidth: "160px" }}>
+                <Checkbox
+                  id="email-visible"
+                  label="Company email"
+                  isChecked={
+                    localFormData.terms_and_contact?.email_visible || false
+                  }
+                  value={
+                    localFormData.terms_and_contact?.email_visible ? "true" : "false"
+                  }
+                  onChange={(event) =>
+                    handleFieldChange(
+                      "terms_and_contact",
+                      "email_visible",
+                      event.target.checked
+                    )
+                  }
+                  isDisabled={!localFormData.info?.terms_and_contact_visible}
+                />
+              </Box>
               <Field
                 id="company-email-input"
                 placeholder="Enter company email..."

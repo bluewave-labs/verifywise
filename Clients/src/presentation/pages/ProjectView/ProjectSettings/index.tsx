@@ -784,7 +784,7 @@ const ProjectSettings = React.memo(
             <Field
               id="project-title-input"
               label="Project title"
-              width={458}
+              width={400}
               value={values.projectTitle}
               onChange={handleOnTextFieldChange("projectTitle")}
               sx={fieldStyle}
@@ -794,7 +794,7 @@ const ProjectSettings = React.memo(
             <Field
               id="goal-input"
               label="Goal"
-              width={458}
+              width={400}
               type="description"
               value={values.goal}
               onChange={handleOnTextFieldChange("goal")}
@@ -811,7 +811,7 @@ const ProjectSettings = React.memo(
               onChange={handleOnSelectChange("status")}
               items={projectStatusItems}
               sx={{
-                width: 357,
+                width: 400,
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.status}
@@ -830,7 +830,7 @@ const ProjectSettings = React.memo(
                 })) || []
               }
               sx={{
-                width: 357,
+                width: 400,
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.owner}
@@ -938,7 +938,7 @@ const ProjectSettings = React.memo(
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<ChevronDown size={16} />}
+                  popupIcon={<ChevronDown size={16} color={theme.palette.text.tertiary} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -947,6 +947,21 @@ const ProjectSettings = React.memo(
                         "& .MuiOutlinedInput-root": {
                           height: "34px",
                           padding: "0 10px",
+                          display: "flex",
+                          alignItems: "center",
+                        },
+                        "& .MuiInputBase-root": {
+                          height: "34px !important",
+                          padding: "0 10px !important",
+                          display: "flex !important",
+                          alignItems: "center !important",
+                          justifyContent: "flex-start !important",
+                        },
+                        "& .MuiInputBase-input": {
+                          padding: "0 !important",
+                          margin: "0 !important",
+                          fontSize: "13px",
+                          lineHeight: "1 !important",
                         },
                         "& ::placeholder": {
                           fontSize: "13px",
@@ -955,7 +970,7 @@ const ProjectSettings = React.memo(
                     />
                   )}
                   sx={{
-                    width: "458px",
+                    width: "400px",
                     backgroundColor: theme.palette.background.main,
                     ".MuiAutocomplete-clearIndicator": {
                       display: "none",
@@ -1093,7 +1108,7 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<ChevronDown size={16} />}
+              popupIcon={<ChevronDown size={16} color={theme.palette.text.tertiary} />}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -1102,6 +1117,21 @@ const ProjectSettings = React.memo(
                     "& .MuiOutlinedInput-root": {
                       height: "34px",
                       padding: "0 10px",
+                      display: "flex",
+                      alignItems: "center",
+                    },
+                    "& .MuiInputBase-root": {
+                      height: "34px !important",
+                      padding: "0 10px !important",
+                      display: "flex !important",
+                      alignItems: "center !important",
+                      justifyContent: "flex-start !important",
+                    },
+                    "& .MuiInputBase-input": {
+                      padding: "0 !important",
+                      margin: "0 !important",
+                      fontSize: "13px",
+                      lineHeight: "1 !important",
                     },
                     "& ::placeholder": {
                       fontSize: "13px",
@@ -1110,7 +1140,7 @@ const ProjectSettings = React.memo(
                 />
               )}
               sx={{
-                width: "458px",
+                width: "400px",
                 backgroundColor: theme.palette.background.main,
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "4px",
@@ -1174,7 +1204,7 @@ const ProjectSettings = React.memo(
               onChange={handleOnSelectChange("riskClassification")}
               items={riskClassificationItems}
               sx={{
-                width: 357,
+                width: 400,
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.riskClassification}
@@ -1204,7 +1234,7 @@ const ProjectSettings = React.memo(
               onChange={handleOnSelectChange("typeOfHighRiskRole")}
               items={highRiskRoleItems}
               sx={{
-                width: 357,
+                width: 400,
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.typeOfHighRiskRole}

@@ -8,13 +8,6 @@ import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import { IAuditRiskTableProps } from "../../../../domain/interfaces/i.table";
 
-export type Risk = {
-  id: number;
-  title: string;
-  status: string;
-  severity: string;
-};
-
 const TITLE_OF_COLUMNS = [
   "Unlink",
   "ID",

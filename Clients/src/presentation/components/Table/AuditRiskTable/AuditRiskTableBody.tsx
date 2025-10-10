@@ -23,10 +23,12 @@ import {
 } from "../styles";
 import TablePaginationActions from "../../TablePagination";
 import RiskChip from "../../RiskLevel/RiskChip";
-import { Risk } from "./AuditRiskTable";
 import { useSearchParams } from "react-router-dom";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { IAuditRiskTableBodyProps } from "../../../../domain/interfaces/i.table";
+import {
+  IAuditRiskTableBodyProps,
+  ITypeRisk,
+} from "../../../../domain/interfaces/i.table";
 
 const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
@@ -61,7 +63,7 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
   );
 
   const handleChange = (
-    riskData: Risk,
+    riskData: ITypeRisk,
     event: React.ChangeEvent | React.MouseEvent
   ) => {
     event.stopPropagation();
@@ -74,7 +76,7 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
     }
   };
 
-  const handleRowClick = (riskData: Risk, event: React.MouseEvent) => {
+  const handleRowClick = (riskData: ITypeRisk, event: React.MouseEvent) => {
     event.stopPropagation();
     const riskId = riskData.id;
     if (riskId) {
@@ -92,7 +94,7 @@ export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
         {rows &&
           rows
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: Risk, index: number) => (
+            .map((row: ITypeRisk, index: number) => (
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}

@@ -2,7 +2,9 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import { singleTheme } from "../../../themes";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 import {
   Box,
   Stack,
@@ -38,12 +40,14 @@ interface SlackIntegrationsProps {
     body: string,
   ) => void;
   refreshSlackIntegrations: () => void;
+  slackUrl: string;
 }
 
 const SlackIntegrations = ({
   integrationData,
   showAlert,
   refreshSlackIntegrations,
+  slackUrl: url,
 }: SlackIntegrationsProps) => {
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
@@ -151,7 +155,24 @@ const SlackIntegrations = ({
           <Typography sx={vwhomeHeading}>Integrations</Typography>
         </Box>
 
-        <Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 10,
+          }}
+        >
+          {/* This is embeddable html provided by Slack */}
+          <a href={`${url}`}>
+            <img
+              alt="Add to Slack"
+              height="34"
+              width="139"
+              src="https://platform.slack-edge.com/img/add_to_slack.png"
+              srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
+            />
+          </a>
           <CustomizableButton
             variant="contained"
             text="Configure"

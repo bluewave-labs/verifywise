@@ -10,17 +10,31 @@ export const getAllPoliciesQuery = async (
     {
       replacements: { tenant },
       mapToModel: true,
-      model: PolicyManagerModel
-    }
-  )
+      model: PolicyManagerModel,
+    },
+  );
 
-  return result
-}
+  return result;
+};
 
-export const getPolicyByIdQuery = async (
-  tenant: string,
-  id: number
-) => {
+export const getAllPoliciesDueSoonQuery = async (tenant: string, daysAhead: number = 7) => {
+  const result = await sequelize.query(
+    `SELECT * FROM "${tenant}".policy_manager
+     WHERE next_review_date IS NOT NULL
+     AND next_review_date <= NOW() + INTERVAL '${daysAhead} days'
+     AND next_review_date >= NOW()
+     ORDER BY next_review_date ASC`,
+    {
+      replacements: { tenant },
+      mapToModel: true,
+      model: PolicyManagerModel,
+    },
+  );
+
+  return result;
+};
+
+export const getPolicyByIdQuery = async (tenant: string, id: number) => {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".policy_manager WHERE id = :id`,
     {

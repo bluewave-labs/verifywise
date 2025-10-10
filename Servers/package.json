@@ -9,6 +9,7 @@
     "start": "npm run migrate-db && node dist/index.js",
     "postbuild": "node scripts/copyFiles.js",
     "migrate-db": "npx sequelize db:migrate --debug",
+    "worker": "node dist/jobs/worker.js",
     "watch": "tsc-watch --noClear --onSuccess \"npm-run-all postbuild start\"",
     "reset-db": "ts-node scripts/resetDatabase.ts"
   },
@@ -22,7 +23,7 @@
     "@smithy/node-http-handler": "^4.3.0",
     "@types/passport-jwt": "^4.0.1",
     "bcrypt": "^5.1.1",
-    "bull": "^4.16.5",
+    "bullmq": "^5.59.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

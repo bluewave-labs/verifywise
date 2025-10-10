@@ -131,23 +131,38 @@ export async function getModelInventoryById(req: Request, res: Response) {
 }
 
 export async function createNewModelInventory(req: Request, res: Response) {
-  // Validate model inventory creation request
-  const validationErrors = validateCompleteModelInventoryCreation(req.body);
-  if (validationErrors.length > 0) {
+  try {
+    // Validate model inventory creation request
+    const validationErrors = validateCompleteModelInventoryCreation(req.body);
+    if (validationErrors.length > 0) {
+      logStructured(
+        "error",
+        `Model inventory creation validation failed: ${validationErrors.map(e => e.message).join(', ')}`,
+        "createNewModelInventory",
+        "modelInventory.ctrl.ts"
+      );
+      return res.status(400).json({
+        status: 'error',
+        message: 'Model inventory creation validation failed',
+        errors: validationErrors.map((err: ValidationError) => ({
+          field: err.field,
+          message: err.message,
+          code: err.code
+        }))
+      });
+    }
+  } catch (validationError) {
+    // Catch any unexpected errors in validation
     logStructured(
       "error",
-      "Model inventory creation validation failed",
+      `Unexpected validation error: ${(validationError as Error).message}`,
       "createNewModelInventory",
       "modelInventory.ctrl.ts"
     );
-    return res.status(400).json({
+    return res.status(500).json({
       status: 'error',
-      message: 'Model inventory creation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
+      message: 'Internal server error',
+      error: (validationError as Error).message
     });
   }
 

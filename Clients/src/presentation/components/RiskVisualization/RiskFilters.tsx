@@ -153,7 +153,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
   return (
     <Box>
       {/* Filter Dropdowns */}
-      <Stack direction="row" spacing={4} alignItems="flex-end">
+      <Stack direction="row" spacing="16px" alignItems="flex-end">
               <Select
                 id="risk-level-filter"
                 label="Risk Level"

@@ -71,7 +71,7 @@ const CustomizableMultiSelect = ({
             key={getOptionValue ? getOptionValue(item) : item._id}
             label={item.name + (item.surname ? " " + item.surname : "")}
             sx={{
-              borderRadius: theme.shape.borderRadius,
+              borderRadius: 4,
               height: 24,
               fontSize: 12,
             }}

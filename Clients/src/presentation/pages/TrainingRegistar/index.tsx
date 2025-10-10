@@ -340,7 +340,7 @@ const Training: React.FC = () => {
                 {isSearchBarVisible && (
                   <InputBase
                     autoFocus
-                    placeholder="Search trainings..."
+                    placeholder="Search trainings"
                     inputProps={{ "aria-label": "Search trainings" }}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}

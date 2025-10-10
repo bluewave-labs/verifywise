@@ -971,6 +971,13 @@ const Sidebar = () => {
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },
+              "&:hover svg": {
+                color: "#13715B !important",
+                stroke: "#13715B !important",
+              },
+              "&:hover svg path": {
+                stroke: "#13715B !important",
+              },
               fontSize: "13px",
 
               "& .MuiTouchRipple-root": {
@@ -1001,6 +1008,13 @@ const Sidebar = () => {
               "& svg path": {
                 stroke: theme.palette.other.icon,
               },
+              "&:hover svg": {
+                color: "#13715B !important",
+                stroke: "#13715B !important",
+              },
+              "&:hover svg path": {
+                stroke: "#13715B !important",
+              },
               fontSize: "13px",
 
               "& .MuiTouchRipple-root": {
@@ -1023,6 +1037,13 @@ const Sidebar = () => {
               },
               "& svg path": {
                 stroke: theme.palette.other.icon,
+              },
+              "&:hover svg": {
+                color: "#13715B !important",
+                stroke: "#13715B !important",
+              },
+              "&:hover svg path": {
+                stroke: "#13715B !important",
               },
               fontSize: "13px",
 

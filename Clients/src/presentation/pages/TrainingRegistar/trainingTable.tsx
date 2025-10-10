@@ -77,7 +77,7 @@ const StatusBadge: React.FC<{ status: IAITraining["status"] }> = ({
       sx={{
         backgroundColor: style.bg,
         color: style.color,
-        borderRadius: 4,
+        borderRadius: "4px !important",
         fontWeight: 600,
         fontSize: "0.75rem",
         textTransform: "uppercase",

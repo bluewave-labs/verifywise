@@ -1,13 +1,19 @@
 .select-wrapper .select-component > .MuiSelect-select {
-  padding: 0 30px 0 10px;
+  padding: 0 32px 0 10px !important;
   height: 34px;
   display: flex;
   align-items: center;
   line-height: 2;
 }
 
-.MuiSelect-icon {
-    top: auto !important;
+.select-wrapper .MuiSelect-icon {
+    top: 50% !important;
     right: 8px !important;
     position: absolute !important;
+    transform: translateY(-50%) !important;
+    pointer-events: none !important;
+}
+
+.select-wrapper .select-component .MuiOutlinedInput-root {
+  overflow: hidden !important;
 }

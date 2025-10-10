@@ -7,9 +7,25 @@ import { QueryTypes } from "sequelize";
 /**
  * Get all model risks for a tenant
  */
-export async function getAllModelRisksQuery(tenant: string): Promise<ModelRiskModel[]> {
+export async function getAllModelRisksQuery(
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
+): Promise<ModelRiskModel[]> {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const modelRisks = await sequelize.query(
-    `SELECT * FROM "${tenant}".model_risks ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".model_risks ${whereClause} ORDER BY created_at DESC, id ASC`,
     {
       mapToModel: true,
       model: ModelRiskModel,
@@ -127,20 +143,20 @@ export async function updateModelRiskByIdQuery(
 }
 
 /**
- * Delete a model risk by ID
+ * Delete a model risk by ID (soft delete)
  */
 export async function deleteModelRiskByIdQuery(
   id: number,
   tenant: string
 ): Promise<boolean> {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".model_risks WHERE id = :id RETURNING id`,
+    `UPDATE "${tenant}".model_risks SET is_deleted = true, deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND is_deleted = false RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
       model: ModelRiskModel,
-      type: QueryTypes.DELETE,
+      type: QueryTypes.UPDATE,
     }
   );
-  return result.length > 0; // Returns true if a row was deleted
+  return result.length > 0; // Returns true if a row was updated
 }

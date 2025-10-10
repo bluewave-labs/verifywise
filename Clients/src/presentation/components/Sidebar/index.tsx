@@ -443,6 +443,13 @@ const Sidebar = () => {
                       ? "#E8E8E8" // keep same color if already selected
                       : "#F9F9F9", // hover color only if not selected
                 },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
               }}
             >
               <ListItemIcon
@@ -453,6 +460,39 @@ const Sidebar = () => {
                   justifyContent: "flex-start",
                   width: "16px",
                   mr: 0,
+                  "& svg": {
+                    color: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    stroke: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
                 }}
               >
                 {item.icon}
@@ -586,6 +626,13 @@ const Sidebar = () => {
                           ? "#E8E8E8" // keep same color if already selected
                           : "#F9F9F9", // hover color only if not selected
                     },
+                    "&:hover svg": {
+                      color: "#13715B !important",
+                      stroke: "#13715B !important",
+                    },
+                    "&:hover svg path": {
+                      stroke: "#13715B !important",
+                    },
                   }}
                 >
                   <ListItemIcon
@@ -596,6 +643,39 @@ const Sidebar = () => {
                       justifyContent: "flex-start",
                       width: "16px",
                       mr: 0,
+                      "& svg": {
+                        color: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                        stroke: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                        transition: "color 0.2s ease, stroke 0.2s ease",
+                      },
+                      "& svg path": {
+                        stroke: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
                     }}
                   >
                     {item.icon}
@@ -673,6 +753,13 @@ const Sidebar = () => {
                       ? "#E8E8E8" // keep same color if already selected
                       : "#F9F9F9", // hover color only if not selected
                 },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
               }}
             >
               <ListItemIcon
@@ -683,6 +770,27 @@ const Sidebar = () => {
                   justifyContent: "flex-start",
                   width: "16px",
                   mr: 0,
+                  "& svg": {
+                    color: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
                 }}
               >
                 {item.icon}

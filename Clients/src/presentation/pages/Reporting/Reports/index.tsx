@@ -9,7 +9,7 @@ import { styles, reportTablePlaceholder } from "./styles";
 import { deleteEntityById } from "../../../../application/repository/entity.repository";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../../components/Alert";
-import ProjectFilterDropdown from "../../../components/Inputs/Dropdowns/ProjectFilter/ProjectFilterDropdown";
+import Select from "../../../components/Inputs/Select";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import { Project } from "../../../../domain/types/Project";
@@ -155,6 +155,8 @@ const Reports: React.FC<ReportsProps> = ({
       sx={{
         ...styles.tableContainer,
         opacity: isRefreshing ? 0.7 : 1,
+        padding: 0,
+        margin: 0,
       }}
     >
       {alert && (
@@ -184,25 +186,29 @@ const Reports: React.FC<ReportsProps> = ({
           <Stack
             direction="row"
             justifyContent="space-between"
-            alignItems="center"
-            sx={{ marginBottom: "24px" }}
+            alignItems="flex-end"
+            sx={{ marginBottom: "16px", marginTop: "0px !important" }}
           >
-            <ProjectFilterDropdown
-              projects={[
+            <Select
+              id="project-filter"
+              label="Filter by project"
+              value={selectedProject || "all"}
+              items={[
+                { _id: "all", name: "All" },
                 // Add organization entry if any project has framework_id !== 1
-                ...(projects.some(project => project.framework.some(f => f.framework_id !== 1)) 
-                  ? [{ id: "org", name: organizationName }] 
+                ...(projects.some(project => project.framework.some(f => f.framework_id !== 1))
+                  ? [{ _id: "org", name: organizationName }]
                   : []),
                 // Add individual projects that don't have framework_id !== 1
                 ...projects
                   .filter(project => !project.framework.some(f => f.framework_id !== 1))
                   .map((project: Project) => ({
-                    id: project.id.toString(),
+                    _id: project.id.toString(),
                     name: project.project_title,
                   }))
               ]}
-              selectedProject={selectedProject}
-              onChange={setSelectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              sx={{ minWidth: 200, maxWidth: 300 }}
             />
             {generateReportButton}
           </Stack>

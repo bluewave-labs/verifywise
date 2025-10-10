@@ -470,7 +470,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   );
 
   // Priority visual cues
-  const getPriorityStyles = (theme: any) => {
+  const getPriorityStyles = () => {
     switch (priorityLevel) {
       case "high":
         return {
@@ -497,7 +497,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       sx={(theme) => ({
         ...(cardStyles.base(theme) as any),
-        ...getPriorityStyles(theme),
+        ...getPriorityStyles(),
         border: "none", // Remove border from MetricCard
         margin: 0, // Remove any default margin
         height: "100%",

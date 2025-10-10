@@ -6,8 +6,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Menu,
-  MenuItem,
   Stack,
   Tooltip,
   Typography,
@@ -193,8 +191,6 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [popup, setPopup] = useState();
   const [slideoverOpen, setSlideoverOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
@@ -224,16 +220,12 @@ const Sidebar = () => {
 
   const menuGroups = getMenuGroups();
 
-  const openPopup = (event: any, id: any) => {
+  const openPopup = () => {
     setSlideoverOpen(true);
-    // Keep the old logic for backwards compatibility if needed
-    setAnchorEl(event.currentTarget);
-    setPopup(id);
   };
 
   const closePopup = () => {
     setSlideoverOpen(false);
-    setAnchorEl(null);
   };
 
   const customMenuHandler = () => {
@@ -875,7 +867,7 @@ const Sidebar = () => {
               disableInteractive
             >
               <IconButton
-                onClick={(event) => openPopup(event, "logout")}
+                onClick={openPopup}
                 sx={{
                   p: 0,
                   "&:focus": { outline: "none" },
@@ -919,7 +911,7 @@ const Sidebar = () => {
                   stroke: theme.palette.other.icon,
                 },
               }}
-              onClick={(event) => openPopup(event, "logout")}
+              onClick={openPopup}
             >
               <MoreVertical size={16} strokeWidth={1.5} />
             </IconButton>

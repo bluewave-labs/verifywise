@@ -131,7 +131,7 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         renderValue={renderValue}
-        IconComponent={() => <ChevronDown size={16} className="dropdown-chevron" />}
+        IconComponent={() => <ChevronDown size={16} className="dropdown-chevron" style={{ color: 'red' }} />}
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,

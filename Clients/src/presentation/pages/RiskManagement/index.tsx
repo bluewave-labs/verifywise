@@ -360,10 +360,6 @@ const RiskManagement = () => {
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
-      <RiskFilters
-        risks={projectRisks}
-        onFilterChange={handleRiskFilterChange}
-      />
       <Stack
         className="risk-management-row"
         sx={{
@@ -372,9 +368,13 @@ const RiskManagement = () => {
       >
         <Stack
           direction="row"
-          justifyContent="flex-end"
+          justifyContent="space-between"
           alignItems="center"
         >
+          <RiskFilters
+            risks={projectRisks}
+            onFilterChange={handleRiskFilterChange}
+          />
           <Stack direction="row" gap={10}>
             <CustomizableButton
               variant="contained"

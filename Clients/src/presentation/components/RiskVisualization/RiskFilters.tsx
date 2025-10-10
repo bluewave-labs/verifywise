@@ -163,7 +163,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
   const uniqueOwners = getUniqueOwners();
 
   return (
-    <Box sx={{ mb: 2 }}>
+    <Box>
       {/* Filter Dropdowns */}
       <Stack direction="row" spacing={4}>
               <Select

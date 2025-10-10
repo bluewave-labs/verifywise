@@ -131,7 +131,7 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         renderValue={renderValue}
-        IconComponent={() => <ChevronDown size={16} className="dropdown-chevron" style={{ color: 'red' }} />}
+        IconComponent={() => null}
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
@@ -163,12 +163,30 @@ const Select: React.FC<SelectProps> = ({
           fontSize: 13,
           minWidth: "125px",
           backgroundColor: theme.palette.background.main,
+          position: "relative",
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
             borderColor: theme.palette.border.dark,
           },
           "&:not(.Mui-focused):hover fieldset": {
             borderColor: theme.palette.border.dark,
+          },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            right: "12px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "16px",
+            height: "16px",
+            backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(
+              '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>'
+            )}")`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "contain",
+            pointerEvents: "none",
+            zIndex: 1,
           },
           ...sx,
         }}

@@ -3,23 +3,7 @@ import singleTheme from "../../../../themes/v1SingleTheme";
 import { Trash2 as TrashIcon } from "lucide-react";
 import Button from "../../../../components/Button/index";
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
-
-interface EvaluationRow {
-  id: string;
-  model: string;
-  dataset: string;
-  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
-}
-
-interface EvaluationTableBodyProps {
-  rows: EvaluationRow[];
-  page: number;
-  rowsPerPage: number;
-  onShowDetails: (model: EvaluationRow) => void;
-  onRemoveModel: {
-    onConfirm: (id: string) => void;
-  };
-}
+import { IEvaluationTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
 const StatusBadge: React.FC<{
   status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
@@ -57,7 +41,7 @@ const StatusBadge: React.FC<{
   );
 };
 
-const EvaluationTableBody: React.FC<EvaluationTableBodyProps> = ({
+const EvaluationTableBody: React.FC<IEvaluationTableBodyProps> = ({
   rows,
   page,
   rowsPerPage,

@@ -76,7 +76,13 @@ const CustomizableMultiSelect = ({
       selected.includes(getOptionValue ? getOptionValue(item) : item._id)
     );
     return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+      <Box sx={{
+        display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflowX: 'auto', '::-webkit-scrollbar': {
+          display: 'none',
+        },
+        '-ms-overflow-style': 'none', // IE and Edge
+        'scrollbar-width': 'none',
+      }}>
         {selectedItems.map((item) => {
           const idVal = getOptionValue ? getOptionValue(item) : item._id;
           return (

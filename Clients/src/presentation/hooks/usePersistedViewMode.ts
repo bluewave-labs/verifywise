@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ViewMode } from "../components/ViewToggle";
+import { IViewMode } from "../../domain/interfaces/i.toggle";
 
 /**
  * Custom hook for managing view mode with localStorage persistence
@@ -10,13 +10,13 @@ import { ViewMode } from "../components/ViewToggle";
  */
 export const usePersistedViewMode = (
   key: string,
-  defaultValue: ViewMode = "card"
-): [ViewMode, (mode: ViewMode) => void] => {
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+  defaultValue: IViewMode = "card"
+): [IViewMode, (mode: IViewMode) => void] => {
+  const [viewMode, setViewMode] = useState<IViewMode>(() => {
     try {
       const savedValue = localStorage.getItem(key);
       if (savedValue && (savedValue === "card" || savedValue === "table")) {
-        return savedValue as ViewMode;
+        return savedValue as IViewMode;
       }
     } catch (error) {
       console.warn("Failed to read view mode from localStorage:", error);
@@ -24,7 +24,7 @@ export const usePersistedViewMode = (
     return defaultValue;
   });
 
-  const updateViewMode = (mode: ViewMode) => {
+  const updateViewMode = (mode: IViewMode) => {
     setViewMode(mode);
     try {
       localStorage.setItem(key, mode);

@@ -36,3 +36,10 @@ export interface IAuditRiskTableBodyProps {
   checkedRows: number[];
   setCheckedRows: (checkedRows: number[]) => void;
 }
+
+export interface IEvaluationRow {
+  id: string;
+  model: string;
+  dataset: string;
+  status: "In Progress" | "Completed" | "Failed" | "Pending" | "Running";
+}

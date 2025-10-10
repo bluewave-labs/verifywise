@@ -50,8 +50,6 @@ export const sendPolicyDueSoonNotification = async (): Promise<number> => {
           await getAllPoliciesDueSoonQuery(tenantId);
 
         if (policies.length > 0) {
-          totalPoliciesProcessed += policies.length;
-
           // Send notification for each policy
           for (const policy of policies) {
             try {
@@ -89,6 +87,7 @@ export const sendPolicyDueSoonNotification = async (): Promise<number> => {
                     },
                     message,
                   );
+                  totalPoliciesProcessed += 1;
                   return userToNotify;
                 } catch (notificationError) {
                   // Log but don't stop processing other notifications

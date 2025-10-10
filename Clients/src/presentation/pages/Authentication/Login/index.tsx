@@ -1,4 +1,4 @@
-import { Button, Stack, Typography, useTheme } from "@mui/material";
+import { Button, Stack, Typography, useTheme, Box } from "@mui/material";
 import React, { Suspense, useState } from "react";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
 import Checkbox from "../../../components/Inputs/Checkbox";
@@ -14,6 +14,85 @@ import Alert from "../../../components/Alert";
 import { ENV_VARs } from "../../../../../env.vars";
 import { useIsMultiTenant } from "../../../../application/hooks/useIsMultiTenant";
 import { loginUser } from "../../../../application/repository/user.repository";
+
+// Animated loading component specifically for login
+const LoginLoadingOverlay: React.FC = () => {
+  const theme = useTheme();
+  const text = "Processing your request. Please wait...";
+  const words = text.split(' ');
+
+  return (
+    <Stack
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 9999,
+        backdropFilter: "blur(8px)",
+        background: "rgba(255, 255, 255, 0.37)",
+      }}
+    >
+      <Stack
+        sx={{
+          border: 1,
+          borderColor: theme.palette.border.light,
+          borderRadius: theme.shape.borderRadius,
+          backgroundColor: theme.palette.background.main,
+          width: "fit-content",
+          height: "fit-content",
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
+          padding: "20px 40px",
+          fontSize: 13,
+        }}
+      >
+        <Box sx={{ display: 'inline-block' }}>
+          {words.map((word, wordIndex) => (
+            <React.Fragment key={wordIndex}>
+              {word.split('').map((char, charIndex) => {
+                const totalIndex = words.slice(0, wordIndex).join(' ').length +
+                                 (wordIndex > 0 ? 1 : 0) + charIndex;
+
+                return (
+                  <Box
+                    key={`${wordIndex}-${charIndex}`}
+                    component="span"
+                    sx={{
+                      display: 'inline-block',
+                      animation: `colorWave 2s ease-in-out infinite`,
+                      animationDelay: `${totalIndex * 0.1}s`,
+                      '@keyframes colorWave': {
+                        '0%, 100%': {
+                          color: '#6b7280',
+                        },
+                        '50%': {
+                          color: '#13715B',
+                        },
+                      },
+                    }}
+                  >
+                    {char}
+                  </Box>
+                );
+              })}
+              {wordIndex < words.length - 1 && <span> </span>}
+            </React.Fragment>
+          ))}
+        </Box>
+      </Stack>
+    </Stack>
+  );
+};
 
 const isDemoApp = ENV_VARs.IS_DEMO_APP || false;
 
@@ -176,7 +255,7 @@ const Login: React.FC = () => {
       )}
 
       {isSubmitting && (
-        <CustomizableToast title="Processing your request. Please wait..." />
+        <LoginLoadingOverlay />
       )}
       <Background
         style={{

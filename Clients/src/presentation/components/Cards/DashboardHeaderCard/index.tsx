@@ -34,7 +34,7 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
       sx={{
         border: "1px solid #eaecf0",
         borderRadius: 2,
-        backgroundColor: "#FFFFFF",
+        background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
         minWidth: 228,
         width: "100%",
         padding: "8px 36px 14px 14px",
@@ -44,7 +44,7 @@ const HeaderCard = ({ title, count }: { title: string; count: number }) => {
         transition: "all 0.2s ease",
         "&:hover": isClickable
           ? {
-            backgroundColor: "#F9FAFB",
+            background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
             borderColor: "#D1D5DB",
           }
           : {},

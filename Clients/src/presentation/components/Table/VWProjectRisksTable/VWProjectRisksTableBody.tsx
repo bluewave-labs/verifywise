@@ -174,7 +174,7 @@ const VWProjectRisksTableBody = ({
                         ),
                         color: "white",
                         fontWeight: 500,
-                        borderRadius: 12,
+                        borderRadius: 4,
                         height: 24,
                       }}
                     />

@@ -37,20 +37,16 @@ import {
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import TablePaginationActions from "../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
-import { IVendorRisk } from "../../../domain/interfaces/i.vendor";
+import {
+  IVendorRisk,
+  IVendorRisksDialogProps,
+} from "../../../domain/interfaces/i.vendor";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
 );
 
-interface VendorRisksDialogProps {
-  open: boolean;
-  onClose: () => void;
-  vendorId: number;
-  vendorName?: string;
-}
-
-const VendorRisksDialog: React.FC<VendorRisksDialogProps> = ({
+const VendorRisksDialog: React.FC<IVendorRisksDialogProps> = ({
   open,
   onClose,
   vendorId,

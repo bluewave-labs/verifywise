@@ -9,3 +9,10 @@ export interface IVendorRisk {
   action_plan: string;
   vendor_id: number;
 }
+
+export interface IVendorRisksDialogProps {
+  open: boolean;
+  onClose: () => void;
+  vendorId: number;
+  vendorName?: string;
+}

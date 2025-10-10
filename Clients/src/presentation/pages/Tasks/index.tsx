@@ -3,15 +3,8 @@ import {
   Box,
   Stack,
   Typography,
-  Collapse,
-  Paper,
-  Chip,
-  IconButton,
-  Button,
-  TextField,
-  Autocomplete,
 } from "@mui/material";
-import { CirclePlus as AddCircleIcon, Filter as FilterIcon, XCircle as ClearIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
+import { CirclePlus as AddCircleIcon } from "lucide-react";
 import { SearchBox } from "../../components/Search";
 import TasksTable from "../../components/Table/TasksTable";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -32,15 +25,12 @@ import HeaderCard from "../../components/Cards/DashboardHeaderCard";
 import CreateTask from "../../components/Modals/CreateTask";
 import Select from "../../components/Inputs/Select";
 import useUsers from "../../../application/hooks/useUsers";
-import CustomSelect from "../../components/CustomSelect";
 import DualButtonModal from "../../components/Dialogs/DualButtonModal";
 import {
   vwhomeHeaderCards,
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
-import DatePicker from "../../components/Inputs/Datepicker";
-import dayjs from "dayjs";
 import Toggle from "../../components/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 
@@ -72,76 +62,24 @@ const Tasks: React.FC = () => {
   const [taskToDelete, setTaskToDelete] = useState<ITask | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("Newest");
+  const [sortBy] = useState("Newest");
   const [statusFilters, setStatusFilters] = useState<TaskStatus[]>([]);
   const [priorityFilters, setPriorityFilters] = useState<TaskPriority[]>([]);
   const [assigneeFilters, setAssigneeFilters] = useState<number[]>([]);
-  const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
-  const [dueDateFrom, setDueDateFrom] = useState("");
-  const [dueDateTo, setDueDateTo] = useState("");
+  const [categoryFilters] = useState<string[]>([]);
+  const [dueDateFrom] = useState("");
+  const [dueDateTo] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  const handleDateFromChange = (newDate: dayjs.Dayjs | null) => {
-    if (newDate?.isValid()) {
-      setDueDateFrom(newDate.format("YYYY-MM-DD"));
-    } else {
-      setDueDateFrom("");
-    }
-  };
 
-  const handleDateToChange = (newDate: dayjs.Dayjs | null) => {
-    if (newDate?.isValid()) {
-      setDueDateTo(newDate.format("YYYY-MM-DD"));
-    } else {
-      setDueDateTo("");
-    }
-  };
-
-  // Filter expansion state (like RiskFilters)
-  const getInitialExpandedState = (): boolean => {
-    const saved = localStorage.getItem("taskFilters_expanded");
-    return saved !== null ? JSON.parse(saved) : false;
-  };
-  const [filtersExpanded, setFiltersExpanded] = useState<boolean>(
-    getInitialExpandedState()
-  );
 
   const { userRoleName } = useContext(VerifyWiseContext);
   const { users } = useUsers();
   const isCreatingDisabled =
     !userRoleName || !["Admin", "Editor"].includes(userRoleName);
 
-  // Handle expanded state changes and save to localStorage
-  const handleExpandedChange = (newExpanded: boolean) => {
-    setFiltersExpanded(newExpanded);
-    localStorage.setItem("taskFilters_expanded", JSON.stringify(newExpanded));
-  };
 
-  // Get active filter count (like RiskFilters)
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (statusFilters.length > 0) count++;
-    if (priorityFilters.length > 0) count++;
-    if (assigneeFilters.length > 0) count++;
-    if (categoryFilters.length > 0) count++;
-    if (dueDateFrom !== "" || dueDateTo !== "") count++;
-    if (includeArchived) count++;
-    return count;
-  };
-
-  const activeFilterCount = getActiveFilterCount();
-
-  // Clear all filters function
-  const clearAllFilters = () => {
-    setStatusFilters([]);
-    setPriorityFilters([]);
-    setAssigneeFilters([]);
-    setCategoryFilters([]);
-    setDueDateFrom("");
-    setDueDateTo("");
-    setIncludeArchived(false);
-  };
 
   // Debounce search query
   useEffect(() => {

@@ -106,6 +106,7 @@
   },
   "include": [
     "./*.ts",
+    "./jobs/**/*.ts",
     "./routes/**/*.ts",
     "./controllers/**/*.ts",
     "./models/**/*.ts",

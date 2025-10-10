@@ -50,7 +50,6 @@
   outline: none;
   background: transparent;
   color: #000;
-  border-bottom: 1px solid #e5e5e5;
 }
 
 .command-input::placeholder {
@@ -141,40 +140,6 @@
   opacity: 0.9 !important;
 }
 
-/* What's New Section */
-.whats-new-section {
-  border-bottom: 1px solid #e5e5e5;
-  margin-bottom: 12px;
-}
-
-.whats-new-big-block {
-  background: linear-gradient(135deg, #1e2a1e 0%, #2d4a2d 50%, #0f1a0f 100%);
-  border-radius: 8px;
-  margin: 8px;
-  border: 1px solid rgba(123, 154, 122, 0.2);
-  transition: all 0.2s ease;
-  cursor: default;
-  position: relative;
-  overflow: hidden;
-}
-
-.whats-new-big-block::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(123, 154, 122, 0.1) 0%, rgba(107, 138, 106, 0.05) 100%);
-  pointer-events: none;
-}
-
-.whats-new-big-block:hover {
-  background: linear-gradient(135deg, #22312a 0%, #2f4f2f 50%, #152115 100%);
-  border-color: rgba(123, 154, 122, 0.3);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 10px rgba(123, 154, 122, 0.08);
-}
 
 /* Custom scrollbar */
 .command-list::-webkit-scrollbar {
@@ -248,8 +213,7 @@
 
 /* Focus styles for accessibility */
 .command-input:focus-visible {
-  outline: 2px solid #007acc;
-  outline-offset: 2px;
+  outline: none;
 }
 
 .command-item:focus-visible {
@@ -374,20 +338,6 @@
     background: #555;
   }
 
-  /* What's New Section - Dark Mode */
-  .whats-new-section {
-    border-bottom-color: #333;
-  }
-
-  .whats-new-big-block {
-    background: linear-gradient(135deg, #1e1e1e 0%, #0e0e0e 100%);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .whats-new-big-block:hover {
-    background: linear-gradient(135deg, #252525 0%, #151515 100%);
-    border-color: rgba(255, 255, 255, 0.12);
-  }
 }
 
 /* Navigation hints footer */

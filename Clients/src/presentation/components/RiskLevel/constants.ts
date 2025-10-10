@@ -83,6 +83,6 @@ export const getSeverityColorByText = (severity: string): string => {
 export const getRiskChipStyle = () => ({
   color: 'white',
   fontWeight: 500,
-  borderRadius: 4,
+  borderRadius: "4px !important",
   height: 24,
 });

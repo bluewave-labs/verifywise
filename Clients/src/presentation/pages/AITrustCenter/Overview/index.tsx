@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Stack,
-  Checkbox,
   FormControlLabel,
   useTheme,
   CircularProgress,
@@ -13,6 +12,7 @@ import {
 import Alert from "../../../components/Alert";
 import Toggle from "../../../components/Inputs/Toggle";
 import ToggleCard from "../../../components/Inputs/ToggleCard";
+import Checkbox from "../../../components/Inputs/Checkbox";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import {
   useAITrustCentreOverviewQuery,
@@ -73,16 +73,14 @@ const ComplianceBadge: React.FC<{
   onChange: (checked: boolean) => void;
   disabled: boolean;
 }> = ({ badge, checked, onChange, disabled }) => (
-  <FormControlLabel
-    control={
-      <Checkbox
-        checked={checked}
-        onChange={(_, checked) => onChange(checked)}
-        disabled={disabled}
-      />
-    }
+  <Checkbox
+    id={`compliance-badge-${badge.key}`}
     label={badge.label}
-    sx={{ ...styles.badge, ...styles.checkbox }}
+    size="small"
+    isChecked={checked}
+    value={checked.toString()}
+    onChange={(event) => onChange(event.target.checked)}
+    isDisabled={disabled}
   />
 );
 
@@ -408,9 +406,15 @@ const AITrustCenterOverview: React.FC = () => {
         <Box
           display="flex"
           flexWrap="wrap"
-          rowGap={0.5}
-          mt={1}
-          sx={styles.badgesContainer}
+          gap={12}
+          mt={3}
+          sx={{
+            maxWidth: '100%',
+            '& > *': {
+              flex: '0 0 auto',
+              minWidth: 'fit-content',
+            }
+          }}
         >
           {COMPLIANCE_BADGES.map((badge) => (
             <ComplianceBadge
@@ -629,29 +633,23 @@ const AITrustCenterOverview: React.FC = () => {
               spacing={1}
               sx={{ width: "100%" }}
             >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      localFormData.terms_and_contact?.terms_visible || false
-                    }
-                    onChange={(_, checked) =>
-                      handleFieldChange(
-                        "terms_and_contact",
-                        "terms_visible",
-                        checked
-                      )
-                    }
-                    disabled={!localFormData.info?.terms_and_contact_visible}
-                  />
-                }
+              <Checkbox
+                id="terms-visible"
                 label="Terms of service"
-                sx={{
-                  mr: 2,
-                  minWidth: 160,
-                  "& .MuiFormControlLabel-label": { fontSize: 13 },
-                  ...styles.checkbox,
-                }}
+                isChecked={
+                  localFormData.terms_and_contact?.terms_visible || false
+                }
+                value={
+                  localFormData.terms_and_contact?.terms_visible ? "true" : "false"
+                }
+                onChange={(event) =>
+                  handleFieldChange(
+                    "terms_and_contact",
+                    "terms_visible",
+                    event.target.checked
+                  )
+                }
+                isDisabled={!localFormData.info?.terms_and_contact_visible}
               />
               <Field
                 id="terms-of-service-input"
@@ -681,29 +679,23 @@ const AITrustCenterOverview: React.FC = () => {
               spacing={1}
               sx={{ width: "100%" }}
             >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      localFormData.terms_and_contact?.privacy_visible || false
-                    }
-                    onChange={(_, checked) =>
-                      handleFieldChange(
-                        "terms_and_contact",
-                        "privacy_visible",
-                        checked
-                      )
-                    }
-                    disabled={!localFormData.info?.terms_and_contact_visible}
-                  />
-                }
+              <Checkbox
+                id="privacy-visible"
                 label="Privacy policy"
-                sx={{
-                  mr: 2,
-                  minWidth: 160,
-                  "& .MuiFormControlLabel-label": { fontSize: 13 },
-                  ...styles.checkbox,
-                }}
+                isChecked={
+                  localFormData.terms_and_contact?.privacy_visible || false
+                }
+                value={
+                  localFormData.terms_and_contact?.privacy_visible ? "true" : "false"
+                }
+                onChange={(event) =>
+                  handleFieldChange(
+                    "terms_and_contact",
+                    "privacy_visible",
+                    event.target.checked
+                  )
+                }
+                isDisabled={!localFormData.info?.terms_and_contact_visible}
               />
               <Field
                 id="privacy-policy-input"
@@ -733,29 +725,23 @@ const AITrustCenterOverview: React.FC = () => {
               spacing={1}
               sx={{ width: "100%" }}
             >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      localFormData.terms_and_contact?.email_visible || false
-                    }
-                    onChange={(_, checked) =>
-                      handleFieldChange(
-                        "terms_and_contact",
-                        "email_visible",
-                        checked
-                      )
-                    }
-                    disabled={!localFormData.info?.terms_and_contact_visible}
-                  />
-                }
+              <Checkbox
+                id="email-visible"
                 label="Company email"
-                sx={{
-                  mr: 2,
-                  minWidth: 160,
-                  "& .MuiFormControlLabel-label": { fontSize: 13 },
-                  ...styles.checkbox,
-                }}
+                isChecked={
+                  localFormData.terms_and_contact?.email_visible || false
+                }
+                value={
+                  localFormData.terms_and_contact?.email_visible ? "true" : "false"
+                }
+                onChange={(event) =>
+                  handleFieldChange(
+                    "terms_and_contact",
+                    "email_visible",
+                    event.target.checked
+                  )
+                }
+                isDisabled={!localFormData.info?.terms_and_contact_visible}
               />
               <Field
                 id="company-email-input"

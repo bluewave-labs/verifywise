@@ -36,6 +36,7 @@ interface NewModelInventoryProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSuccess?: (data: NewModelInventoryFormValues) => void;
+  onError?: (error: any) => void;
   initialData?: NewModelInventoryFormValues;
   isEdit?: boolean;
 }
@@ -74,7 +75,7 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: -1,
+  approver: 0,
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,
@@ -120,6 +121,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
+  onError,
   initialData,
   isEdit = false,
 }) => {
@@ -293,6 +295,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
       newErrors.model = "Model is required.";
     }
 
+    if (!values.version || !String(values.version).trim()) {
+      newErrors.version = "Version is required.";
+    }
+
     if (!values.approver || !String(values.approver).trim()) {
       newErrors.approver = "Approver is required.";
     }
@@ -318,17 +324,54 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     onClose: handleClose,
   });
 
-  const handleSubmit = (event?: React.FormEvent) => {
+  const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     if (validateForm()) {
-      if (onSuccess) {
-        onSuccess({
-          ...values,
-          capabilities: values.capabilities,
-          security_assessment: values.security_assessment,
-        });
+      try {
+        if (onSuccess) {
+          await onSuccess({
+            ...values,
+            capabilities: values.capabilities,
+            security_assessment: values.security_assessment,
+          });
+        }
+        handleClose();
+      } catch (error: any) {
+        // Handle server-side validation errors
+        let errorData = null;
+        
+        // Check if it's an axios error with response.data first
+        if (error?.response?.data) {
+          errorData = error.response.data;
+        }
+        // Check if it's a CustomException with response property
+        else if (error?.response) {
+          errorData = error.response;
+        }
+        // Check if the error itself has the data structure
+        else if (error?.status && error?.errors) {
+          errorData = error;
+        }
+
+        if (errorData?.errors && Array.isArray(errorData.errors)) {
+          const serverErrors: NewModelInventoryFormErrors = {};
+          
+          errorData.errors.forEach((err: any) => {
+            if (err.field && err.message) {
+              // Map server field names to form field names
+              const fieldName = err.field as keyof NewModelInventoryFormErrors;
+              serverErrors[fieldName] = err.message;
+            }
+          });
+          
+          setErrors(serverErrors);
+        }
+        
+        // Propagate error to parent for toast notification
+        if (onError) {
+          onError(error);
+        }
       }
-      handleClose();
     }
   };
 
@@ -534,19 +577,22 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                           setValues({ ...values, model: newInputValue });
                         }
                       }}
-                      renderOption={(props, option) => (
-                        <Box component="li" {...props}>
-                          <Typography
-                            sx={{
-                              fontSize: 13,
-                              color: theme.palette.text.primary,
-                            }}
-                          >
-                            {option.name}
-                          </Typography>
-                        </Box>
-                      )}
-                      popupIcon={<ChevronDown size={16} />}
+                      renderOption={(props, option) => {
+                        const { key, ...otherProps } = props;
+                        return (
+                          <Box component="li" key={key} {...otherProps}>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                color: theme.palette.text.primary,
+                              }}
+                            >
+                              {option.name}
+                            </Typography>
+                          </Box>
+                        );
+                      }}
+                      popupIcon={<i data-lucide="chevron-downa"></i>}
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -605,11 +651,12 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="version"
-                    label="Version (if applicable)"
+                    label="Version"
                     width={220}
                     value={values.version}
                     onChange={handleOnTextFieldChange("version")}
                     error={errors.version}
+                    isRequired
                     sx={fieldStyle}
                     placeholder="e.g., 4.0, 1.5"
                   />
@@ -689,15 +736,18 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       ? "All capabilities selected"
                       : "No options"
                   }
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
-                        {option}
-                      </Typography>
-                    </Box>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
                   filterSelectedOptions
-                  popupIcon={<ChevronDown size={16} />}
+                  popupIcon={<ChevronDown />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -751,13 +801,16 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       ? "All projects selected"
                       : "No options"
                   }
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
-                        {option}
-                      </Typography>
-                    </Box>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
                   filterSelectedOptions
                   popupIcon={<ChevronDown size={16} />}
                   renderInput={(params) => (

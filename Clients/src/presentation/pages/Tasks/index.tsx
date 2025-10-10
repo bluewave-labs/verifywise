@@ -31,7 +31,7 @@ import {
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
-import Toggle from "../../components/Toggle";
+import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 
 // Task status options for CustomSelect
@@ -473,7 +473,7 @@ const Tasks: React.FC = () => {
                   >
                     <Toggle
                       checked={includeArchived}
-                      onChange={(checked) => setIncludeArchived(checked)}
+                      onChange={(_, checked) => setIncludeArchived(checked)}
                     />
                   </Box>
                 </Stack>

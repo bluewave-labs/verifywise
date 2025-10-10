@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, InputBase, SxProps, Theme } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../../assets/icons/search.svg";
+import { Search } from "lucide-react";
 
 export interface SearchBoxProps {
   placeholder?: string;
@@ -45,7 +45,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 
   return (
     <Box sx={searchBoxStyle}>
-      <SearchIcon style={{ color: "#6b7280", marginRight: "8px" }} />
+      <Search size={16} style={{ color: "#6b7280", marginRight: "8px" }} />
       <InputBase
         placeholder={placeholder}
         value={value}

@@ -16,7 +16,9 @@ import { Project } from "../../../domain/types/Project";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 interface ProjectTableViewProps {
   projects: Project[];
@@ -62,7 +64,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
       backgroundColor: style.bg,
       color: style.color,
       padding: "4px 8px",
-      borderRadius: 12,
+      borderRadius: "4px !important",
       fontWeight: 500,
       fontSize: "11px",
       textTransform: "uppercase" as const,

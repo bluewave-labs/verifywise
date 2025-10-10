@@ -27,7 +27,7 @@ import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import { apiServices } from "../../../../infrastructure/api/networkServices";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
-import { ReactComponent as ForwardToInboxIcon } from "../../../assets/icons/email.svg";
+import { Mail as ForwardToInboxIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
 import { useRoles } from "../../../../application/hooks/useRoles";
 import { isValidEmail } from "../../../../application/validations/emailAddress.rule";
@@ -272,7 +272,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({
               border: "1px solid #13715B",
               gap: 2,
             }}
-            icon={<ForwardToInboxIcon />}
+            icon={<ForwardToInboxIcon size={16} />}
             onClick={() => handleSendInvitation()}
           />
         </Stack>

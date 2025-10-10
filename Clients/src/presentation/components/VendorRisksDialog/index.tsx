@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import React from "react";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { X as ClearIcon } from "lucide-react";
 import { getSeverityColorByText, getRiskChipStyle } from "../RiskLevel/constants";
 import { getVendorRisksByVendorId } from "../../../application/repository/vendorRisk.repository";
 import AddNewRisk from "../Modals/NewRisk";
@@ -33,7 +33,9 @@ import {
 } from "../Table/styles";
 import placeholderImage from '../../assets/imgs/empty-state.svg';
 import TablePaginationActions from "../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 interface VendorRisk {
   id: number;
@@ -160,10 +162,12 @@ const VendorRisksDialog: React.FC<VendorRisksDialogProps> = ({
             }}>
               Vendor Risks {vendorName ? `- ${vendorName}` : ""} ({vendorRisks.length})
             </Typography>
-            <ClearIcon sx={{
-              color: "#98A2B3",
-              cursor: "pointer"
-            }}
+            <ClearIcon
+              size={20}
+              style={{
+                color: "#98A2B3",
+                cursor: "pointer"
+              }}
               onClick={onClose}
             />
           </Stack>

@@ -3,7 +3,7 @@ import { Box, Stack } from "@mui/material";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import VWProjectRisksTable from "../../components/Table/VWProjectRisksTable";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import AddNewRiskForm from "../../components/AddNewRiskForm";
@@ -48,12 +48,6 @@ const initialLoadingState: LoadingStatus = {
   message: "",
 };
 
-const rowStyle = {
-  display: "flex",
-  flexDirection: "row",
-  gap: 10,
-  mb: 10,
-};
 
 const RiskManagement = () => {
   const { userRoleName } = useAuth();
@@ -294,7 +288,7 @@ const RiskManagement = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
@@ -330,7 +324,7 @@ const RiskManagement = () => {
         ]}
       />
 
-      <Stack gap={"24px"} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"
@@ -356,30 +350,26 @@ const RiskManagement = () => {
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={rowStyle}>
+      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
-      <Stack spacing={3}>
-        <RiskFilters
-          risks={projectRisks}
-          onFilterChange={handleRiskFilterChange}
-        />
-      </Stack>
       <Stack
         className="risk-management-row"
         sx={{
           gap: 10,
-          mb: 1,
-          mt: 2,
         }}
       >
         <Stack
           direction="row"
-          justifyContent="flex-end"
-          alignItems="center"
+          justifyContent="space-between"
+          alignItems="flex-end"
         >
-          <Stack direction="row" gap={10}>
+          <RiskFilters
+            risks={projectRisks}
+            onFilterChange={handleRiskFilterChange}
+          />
+          <Stack direction="row" gap={4}>
             <CustomizableButton
               variant="contained"
               text="Insert from AI risks database"
@@ -389,7 +379,7 @@ const RiskManagement = () => {
                 gap: 2,
               }}
               onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
               }
@@ -403,7 +393,7 @@ const RiskManagement = () => {
                 gap: 2,
               }}
               onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
               isDisabled={
                 !allowedRoles.projectRisks.create.includes(userRoleName)
               }

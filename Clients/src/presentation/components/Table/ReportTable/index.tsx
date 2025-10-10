@@ -12,12 +12,14 @@ import {
 } from "@mui/material";
 import singleTheme from '../../../themes/v1SingleTheme';
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
-import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg'
+import { ChevronsUpDown } from "lucide-react";
 import TablePaginationActions from '../../TablePagination';
 import TableHeader from '../TableHead';
 const ReportTableBody = lazy(() => import("./TableBody"))
 import {styles, tableWrapper, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
 import { getPaginationRowCount, setPaginationRowCount } from '../../../../application/utils/paginationStorage';
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 interface ReportTableProps {
   columns: any[];

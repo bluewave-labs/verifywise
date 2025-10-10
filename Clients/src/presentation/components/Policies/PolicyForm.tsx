@@ -12,7 +12,7 @@ import DatePicker from "../Inputs/Datepicker";
 import dayjs, { Dayjs } from "dayjs";
 import { User } from "../../../domain/types/User";
 import useUsers from "../../../application/hooks/useUsers";
-import { ReactComponent as GreyDownArrowIcon } from "../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { useCallback } from "react";
 import { FormErrors } from "./PolicyDetailsModal";
 
@@ -136,7 +136,7 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               );
             }}
             filterSelectedOptions
-            popupIcon={<GreyDownArrowIcon />}
+            popupIcon={<GreyDownArrowIcon size={16} />}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -219,7 +219,7 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               );
             }}
             filterSelectedOptions
-            popupIcon={<GreyDownArrowIcon />}
+            popupIcon={<GreyDownArrowIcon size={16} />}
             renderInput={(params) => (
               <TextField
                 {...params}

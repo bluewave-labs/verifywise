@@ -23,6 +23,7 @@ const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
         sx={{
           ...getRiskChipStyle(),
           backgroundColor,
+          borderRadius: "4px !important",
         }}
       />
     );

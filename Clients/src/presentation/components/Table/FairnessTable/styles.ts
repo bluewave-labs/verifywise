@@ -45,5 +45,6 @@
   export const emptyData = ( theme:any ) => ({
     padding: theme.spacing(15, 5),
     paddingBottom: theme.spacing(20),
+    backgroundColor: "#FFFFFF", // Ensure white background
   })
   

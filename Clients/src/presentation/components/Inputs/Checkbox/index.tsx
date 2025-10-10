@@ -20,8 +20,7 @@ import {
 } from "@mui/material";
 import "./index.css";
 
-import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
+import { Square, CheckSquare2 } from "lucide-react";
 import { FC } from "react";
 import { CheckboxProps } from "../../../../domain/interfaces/iWidget";
 
@@ -48,8 +47,8 @@ const Checkbox: FC<CheckboxProps> = ({
         <MuiCheckbox
           disableRipple
           checked={isChecked}
-          checkedIcon={<CheckboxFilled />}
-          icon={<CheckboxOutline />}
+          checkedIcon={<CheckSquare2 size={16} />}
+          icon={<Square size={16} />}
           value={value}
           onChange={onChange}
           inputProps={{
@@ -76,7 +75,7 @@ const Checkbox: FC<CheckboxProps> = ({
         "& .MuiButtonBase-root": {
           width: theme.spacing(10),
           p: 0,
-          mr: theme.spacing(6),
+          mr: theme.spacing(3),
         },
         "&:hover": {
           backgroundColor: "transparent",

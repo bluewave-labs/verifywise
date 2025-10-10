@@ -1,8 +1,7 @@
 import React from "react";
 import { ToggleButton, ToggleButtonGroup, useTheme } from "@mui/material";
 import { SxProps, Theme } from "@mui/material/styles";
-import {ReactComponent as ViewModuleIcon} from "../../assets/icons/viewModule.svg";
-import {ReactComponent as TableRowsIcon} from "../../assets/icons/tableRows.svg";
+import { LayoutGrid as ViewModuleIcon, List as TableRowsIcon } from "lucide-react";
 
 export type ViewMode = "card" | "table";
 
@@ -92,10 +91,10 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
       ]}
     >
       <ToggleButton value="card" aria-label="card view" disableRipple>
-        <ViewModuleIcon/>
+        <ViewModuleIcon size={16}/>
       </ToggleButton>
       <ToggleButton value="table" aria-label="table view" disableRipple>
-        <TableRowsIcon />
+        <TableRowsIcon size={16} />
       </ToggleButton>
     </ToggleButtonGroup>
   );

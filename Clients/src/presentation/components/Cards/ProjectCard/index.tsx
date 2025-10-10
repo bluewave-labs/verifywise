@@ -1,5 +1,5 @@
 import { Stack, Typography, Tooltip, Button } from "@mui/material";
-import { ReactComponent as WhiteUpRightArrowIcon } from "../../../assets/icons/up-right-arrow-white.svg";
+import { ArrowUpRight as WhiteUpRightArrowIcon } from "lucide-react";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import CustomizableButton from "../../Button/CustomizableButton";
 import {
@@ -142,7 +142,7 @@ const FrameworkButton = ({
           },
         }}
         size="small"
-        endIcon={<WhiteUpRightArrowIcon />}
+        endIcon={<WhiteUpRightArrowIcon size={16} />}
       >
         {label}
       </Button>

@@ -95,7 +95,7 @@ const CustomizableMultiSelect = ({
                 e.stopPropagation();
               }}
               sx={{
-                borderRadius: theme.shape.borderRadius,
+                borderRadius: 4,
                 height: 24,
                 fontSize: 12,
                 backgroundColor: theme.palette.background.accent,

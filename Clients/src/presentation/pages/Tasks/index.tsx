@@ -418,122 +418,12 @@ const Tasks: React.FC = () => {
         <HeaderCard title="Completed" count={summary.completed} />
       </Stack>
 
-      {/* Search and Sort Controls  */}
+
+      {/* Filter Dropdowns */}
       <Stack
         direction="row"
-        justifyContent="space-between"
-        alignItems="center"
+        spacing={4}
       >
-        <SearchBox
-          placeholder="Search tasks by title or description..."
-          value={searchQuery}
-          onChange={setSearchQuery}
-          sx={{ mr: 2 }}
-          inputProps={{ "aria-label": "Search tasks" }}
-        />
-
-        <Stack direction="row" spacing={3} alignItems="center">
-          <CustomSelect
-            currentValue={sortBy}
-            onValueChange={async (newSort: string) => {
-              setSortBy(newSort);
-              return true;
-            }}
-            options={["Newest", "Oldest", "Priority", "Due date"]}
-            sx={{ minWidth: 150 }}
-          />
-        </Stack>
-      </Stack>
-
-      {/* Filter Block */}
-        <Paper
-          elevation={0}
-          sx={{
-            border: "1px solid #E5E7EB",
-            borderRadius: 2,
-            backgroundColor: "transparent",
-            boxShadow: "none",
-          }}
-        >
-          {/* Filter Header */}
-          <Box
-            sx={{
-              p: 2,
-              borderBottom: filtersExpanded ? "1px solid #E5E7EB" : "none",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              cursor: "pointer",
-            }}
-            onClick={() => handleExpandedChange(!filtersExpanded)}
-          >
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <FilterIcon
-                size={16}
-                style={{ color: "#667085" }}
-              />
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: 600, color: "#1A1919" }}
-              >
-                Filters
-              </Typography>
-              {activeFilterCount > 0 && (
-                <Chip
-                  label={activeFilterCount}
-                  size="small"
-                  sx={{
-                    backgroundColor: "#13715B",
-                    color: "white",
-                    fontWeight: 600,
-                    minWidth: 20,
-                    height: 20,
-                    "& .MuiChip-label": {
-                      px: 1,
-                      fontSize: 11,
-                    },
-                  }}
-                />
-              )}
-            </Stack>
-
-            <Stack direction="row" alignItems="center" spacing={1}>
-              {activeFilterCount > 0 && (
-                <Button
-                  size="small"
-                  startIcon={<ClearIcon size={16} />}
-                  onClick={(e: React.MouseEvent) => {
-                    e.stopPropagation();
-                    clearAllFilters();
-                  }}
-                  sx={{
-                    color: "#6B7280",
-                    textTransform: "none",
-                    fontSize: 12,
-                    "&:hover": {
-                      backgroundColor: "#F3F4F6",
-                    },
-                  }}
-                >
-                  Clear All
-                </Button>
-              )}
-              <IconButton size="small">
-                {filtersExpanded ? <ExpandLessIcon size={20} /> : <ExpandMoreIcon size={20} />}
-              </IconButton>
-            </Stack>
-          </Box>
-
-          {/* Filter Content */}
-          <Collapse in={filtersExpanded}>
-            <Box sx={{ p: 3, pt: 5, pb: 7, backgroundColor: "#FFFFFF" }}>
-              {/* All Filters in One Row */}
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                spacing={2}
-                sx={{ ml: "12px", mr: "12px", width: "calc(100% - 24px)" }}
-              >
                 <Select
                   id="status-filter"
                   label="Status"
@@ -606,7 +496,7 @@ const Tasks: React.FC = () => {
                   sx={{ width: 160 }}
                 />
 
-                <Stack gap={2} sx={{ width: "160px" }}>
+                <Stack direction="column" spacing={1} sx={{ width: 300 }}>
                   <Typography
                     component="p"
                     variant="body1"
@@ -615,118 +505,15 @@ const Tasks: React.FC = () => {
                     fontSize={"13px"}
                     sx={{ margin: 0, height: "22px" }}
                   >
-                    Categories
+                    Search
                   </Typography>
-                  <Autocomplete
-                    multiple
-                    id="category-filter"
-                    size="small"
-                    freeSolo
-                    value={categoryFilters}
-                    options={[]}
-                    onChange={(_event, newValue: string[]) => {
-                      setCategoryFilters(newValue);
-                    }}
-                    getOptionLabel={(option: string) => option}
-                    filterSelectedOptions
-                    popupIcon={<ExpandMoreIcon size={20} />}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="Enter categories"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            minHeight: "34px",
-                            height: "auto",
-                            alignItems: "flex-start",
-                            paddingY: "3px !important",
-                            flexWrap: "wrap",
-                            gap: "2px",
-                          },
-                          "& ::placeholder": {
-                            fontSize: "13px",
-                          },
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const input = e.target as HTMLInputElement;
-                            const value = input.value.trim();
-                            if (value && !categoryFilters.includes(value)) {
-                              setCategoryFilters((prev) => [...prev, value]);
-                              input.value = "";
-                            }
-                          }
-                        }}
-                      />
-                    )}
-                    sx={{
-                      width: "100%",
-                      backgroundColor: "background.main",
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "3px",
-                        overflowY: "auto",
-                        flexWrap: "wrap",
-                        maxHeight: "115px",
-                        alignItems: "flex-start",
-                        border: "1px solid #D1D5DB",
-                        "&:hover": {
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            border: "none",
-                          },
-                        },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          border: "none",
-                        },
-                        "&.Mui-focused": {
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            border: "none",
-                          },
-                        },
-                      },
-                      "& .MuiAutocomplete-tag": {
-                        margin: "2px",
-                        maxWidth: "calc(100% - 25px)",
-                        "& .MuiChip-label": {
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        },
-                      },
-                    }}
-                    slotProps={{
-                      paper: {
-                        sx: {
-                          display: "none",
-                        },
-                      },
-                    }}
+                  <SearchBox
+                    placeholder="Search tasks by title or description..."
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    inputProps={{ "aria-label": "Search tasks" }}
                   />
                 </Stack>
-
-                <DatePicker
-                  label="From"
-                  date={dueDateFrom ? dayjs(dueDateFrom) : null}
-                  handleDateChange={handleDateFromChange}
-                  sx={{
-                    width: 140,
-                    "& > p": {
-                      marginBottom: "-3px !important",
-                    },
-                  }}
-                />
-
-                <DatePicker
-                  label="To"
-                  date={dueDateTo ? dayjs(dueDateTo) : null}
-                  handleDateChange={handleDateToChange}
-                  sx={{
-                    width: 140,
-                    "& > p": {
-                      marginBottom: "-3px !important",
-                    },
-                  }}
-                />
 
                 <Stack direction="column" spacing={1}>
                   <Typography
@@ -753,9 +540,6 @@ const Tasks: React.FC = () => {
                   </Box>
                 </Stack>
               </Stack>
-            </Box>
-          </Collapse>
-        </Paper>
 
       {/* Content Area */}
       <Box>

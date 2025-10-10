@@ -13,7 +13,9 @@ import { Square as CheckboxOutline } from "lucide-react";
 import { CheckSquare as CheckboxFilled } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 import {
   paginationStyle,
   paginationDropdown,

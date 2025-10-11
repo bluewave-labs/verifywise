@@ -39,10 +39,12 @@ export async function getAllModelRisksQuery(
  */
 export async function getModelRiskByIdQuery(
   id: number,
-  tenant: string
+  tenant: string,
+  includeDeleted: boolean = false
 ): Promise<ModelRiskModel | null> {
+  const whereClause = includeDeleted ? 'WHERE id = :id' : 'WHERE id = :id AND is_deleted = false';
   const modelRisk = await sequelize.query(
-    `SELECT * FROM "${tenant}".model_risks WHERE id = :id`,
+    `SELECT * FROM "${tenant}".model_risks ${whereClause}`,
     {
       replacements: { id },
       mapToModel: true,

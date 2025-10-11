@@ -196,6 +196,19 @@ const CreateTask: FC<CreateTaskProps> = ({
 
   const handleAssigneesChange = useCallback(
     (_event: React.SyntheticEvent, newValue: any[]) => {
+      // Check for duplicates in real-time
+      const assigneeIds = newValue.map(assignee => assignee.id);
+      const uniqueAssigneeIds = [...new Set(assigneeIds)];
+      
+      if (uniqueAssigneeIds.length !== assigneeIds.length) {
+        // If duplicates detected, don't update the value and show error
+        setErrors((prev) => ({ 
+          ...prev, 
+          assignees: "Assignees cannot contain duplicates." 
+        }));
+        return;
+      }
+
       setValues((prevValues) => ({
         ...prevValues,
         assignees: newValue,
@@ -243,6 +256,15 @@ const CreateTask: FC<CreateTaskProps> = ({
 
     if (!values.due_date) {
       newErrors.due_date = "Due date is required.";
+    }
+
+    // Validate assignees for duplicates
+    if (values.assignees && values.assignees.length > 0) {
+      const assigneeIds = values.assignees.map(assignee => assignee.id);
+      const uniqueAssigneeIds = [...new Set(assigneeIds)];
+      if (uniqueAssigneeIds.length !== assigneeIds.length) {
+        newErrors.assignees = "Assignees cannot contain duplicates.";
+      }
     }
 
     setErrors(newErrors);
@@ -534,6 +556,15 @@ const CreateTask: FC<CreateTaskProps> = ({
                       },
                     }}
                   />
+                  {errors.assignees && (
+                    <Typography
+                      color="error"
+                      variant="caption"
+                      sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+                    >
+                      {errors.assignees}
+                    </Typography>
+                  )}
                 </Stack>
               </Suspense>
 

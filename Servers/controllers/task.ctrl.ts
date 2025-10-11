@@ -14,6 +14,7 @@ import { TaskStatus } from "../domain.layer/enums/task-status.enum";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { ValidationException, BusinessLogicException } from "../domain.layer/exceptions/custom.exception";
+import { validateCompleteTaskCreation, validateCompleteTaskUpdate } from "../utils/validations/tasksValidation.utils";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -30,6 +31,25 @@ export async function createTask(req: Request, res: Response): Promise<any> {
     }
 
     const { title, description, due_date, priority, status, categories, assignees } = req.body;
+
+    // Validate request data including assignees
+    const validationData = {
+      title,
+      description,
+      creator_id: userId,
+      organization_id: req.organizationId,
+      due_date,
+      priority: priority || TaskPriority.MEDIUM,
+      status: status || TaskStatus.OPEN,
+      categories: categories || [],
+      assignees: assignees || []
+    };
+
+    const validationErrors = validateCompleteTaskCreation(validationData);
+    if (validationErrors.length > 0) {
+      const errorMessage = validationErrors.map(err => err.message).join(', ');
+      throw new ValidationException(errorMessage, 'validation', 'task_creation');
+    }
 
     // Create task with current user as creator
     const taskData: ITask = {
@@ -280,6 +300,22 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
 
     const updateData: Partial<ITask> = {};
     const { title, description, due_date, priority, status, categories, assignees } = req.body;
+
+    // Validate update data including assignees
+    const validationData: any = {};
+    if (title !== undefined) validationData.title = title;
+    if (description !== undefined) validationData.description = description;
+    if (due_date !== undefined) validationData.due_date = due_date;
+    if (priority !== undefined) validationData.priority = priority;
+    if (status !== undefined) validationData.status = status;
+    if (categories !== undefined) validationData.categories = categories;
+    if (assignees !== undefined) validationData.assignees = assignees;
+
+    const validationErrors = validateCompleteTaskUpdate(validationData, existingTask);
+    if (validationErrors.length > 0) {
+      const errorMessage = validationErrors.map(err => err.message).join(', ');
+      throw new ValidationException(errorMessage, 'validation', 'task_update');
+    }
 
     // Only include fields that are being updated
     if (title !== undefined) updateData.title = title;

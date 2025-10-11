@@ -20,30 +20,21 @@ import {
 } from "../../../../application/repository/clause_struct_iso.repository";
 import type { LucideIcon } from "lucide-react";
 import { getStatusColor } from "../../ISO/style";
-
-interface FrameworkData {
-  frameworkId: number;
-  frameworkName: string;
-  projectFrameworkId: number;
-}
+import { isISO42001, isISO27001 } from "../../../../application/constants/frameworks";
+import {
+  validateApiResponse,
+  processSubItems,
+  calculateItemPercentages,
+  isValidClauseNumber,
+  getClauseNumber,
+  createErrorLogData,
+  type BaseFrameworkData,
+  type SubClauseData,
+  type ClauseData
+} from "../../../../application/utils/frameworkDataUtils";
 
 interface ControlCategoriesCardProps {
-  frameworksData: FrameworkData[];
-}
-
-interface ClauseData {
-  id: number;
-  title: string;
-  clause_no: string;
-  arrangement: string;
-  subClauses: SubClauseData[];
-}
-
-interface SubClauseData {
-  id: number;
-  title: string;
-  status: string;
-  owner?: number | null;
+  frameworksData: BaseFrameworkData[];
 }
 
 interface CategoryData {
@@ -94,13 +85,11 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
 
         // Find both frameworks
         const iso42001Framework = frameworksData.find((framework) =>
-          framework.frameworkId === 2 || // Use framework ID as primary
-          framework.frameworkName.toLowerCase().replace(/[\s-]/g, '').includes('iso42001')
+          isISO42001(framework.frameworkId, framework.frameworkName)
         );
 
         const iso27001Framework = frameworksData.find((framework) =>
-          framework.frameworkId === 3 || // Use framework ID as primary
-          framework.frameworkName.toLowerCase().replace(/[\s-]/g, '').includes('iso27001')
+          isISO27001(framework.frameworkId, framework.frameworkName)
         );
 
         // Fetch ISO 42001 data if framework is present
@@ -110,41 +99,38 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
               routeUrl: `/iso-42001/clauses/struct/byProjectId/${iso42001Framework.projectFrameworkId}`,
             });
 
-            const clauses: ClauseData[] = clausesResponse;
+            // Validate response using utility function
+            const validation = validateApiResponse(clausesResponse, iso42001Framework.frameworkName, 'clauses');
+            if (!validation.isValid) {
+              console.warn(validation.error, {
+                projectFrameworkId: iso42001Framework.projectFrameworkId,
+                frameworkName: iso42001Framework.frameworkName
+              });
+              setIso42001CategoriesData([]);
+              return;
+            }
 
-            // Filter clauses 4-10 only and process them directly
-            const targetClauses = clauses.filter((clause) => {
-              const clauseNum = parseInt(clause.clause_no);
-              return clauseNum >= 4 && clauseNum <= 10;
-            });
+            const clauses: ClauseData[] = validation.data;
+
+            // Filter clauses 4-10 only using utility function
+            const targetClauses = clauses.filter(clause =>
+              isValidClauseNumber(clause, iso42001Framework.frameworkName)
+            );
 
             // Process ISO 42001 clauses
             const iso42001Categories = targetClauses.map((clause) => {
-              const clauseNum = parseInt(clause.clause_no);
+              const clauseNum = getClauseNumber(clause, iso42001Framework.frameworkName);
               const mapping = ISO42001_CLAUSE_MAPPINGS[clauseNum as keyof typeof ISO42001_CLAUSE_MAPPINGS];
 
-              const subClausesWithStatus: SubClauseData[] = clause.subClauses.map((sub: any) => ({
-                id: sub.id,
-                title: sub.title || "Untitled",
-                status: sub.status || "Not started",
-                owner: sub.owner || null,
-              }));
+              // Process subclauses using utility function
+              const subClausesWithStatus = processSubItems(
+                clause.subClauses,
+                clause.clause_no,
+                iso42001Framework.frameworkName
+              );
 
-              // Calculate completion percentage (implemented subclauses)
-              const implementedCount = subClausesWithStatus.filter(
-                (sub) => sub.status === "Implemented"
-              ).length;
-              const completionPercentage = subClausesWithStatus.length > 0
-                ? Math.round((implementedCount / subClausesWithStatus.length) * 100)
-                : 0;
-
-              // Calculate assignment percentage (subclauses with owner assigned)
-              const assignedCount = subClausesWithStatus.filter(
-                (sub) => sub.owner !== null && sub.owner !== undefined
-              ).length;
-              const assignmentPercentage = subClausesWithStatus.length > 0
-                ? Math.round((assignedCount / subClausesWithStatus.length) * 100)
-                : 0;
+              // Calculate percentages using utility function
+              const { completionPercentage, assignmentPercentage } = calculateItemPercentages(subClausesWithStatus);
 
               return {
                 id: clause.id,
@@ -159,7 +145,13 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
 
             setIso42001CategoriesData(iso42001Categories);
           } catch (error) {
-            console.error("Error fetching ISO 42001 categories data:", error);
+            const errorData = createErrorLogData(error, {
+              frameworkName: iso42001Framework.frameworkName,
+              projectFrameworkId: iso42001Framework.projectFrameworkId,
+              operation: 'fetching ISO 42001 categories data',
+              routeUrl: `/iso-42001/clauses/struct/byProjectId/${iso42001Framework.projectFrameworkId}`
+            });
+            console.error("Error fetching ISO 42001 categories data:", errorData);
             setIso42001CategoriesData([]);
           }
         }
@@ -171,43 +163,38 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
               routeUrl: `/iso-27001/clauses/struct/byProjectId/${iso27001Framework.projectFrameworkId}`,
             });
 
-            // Handle different response structure for ISO 27001
-            const clauses: ClauseData[] = clausesResponse.data || clausesResponse;
+            // Validate response using utility function
+            const validation = validateApiResponse(clausesResponse, iso27001Framework.frameworkName, 'clauses');
+            if (!validation.isValid) {
+              console.warn(validation.error, {
+                projectFrameworkId: iso27001Framework.projectFrameworkId,
+                frameworkName: iso27001Framework.frameworkName
+              });
+              setIso27001CategoriesData([]);
+              return;
+            }
 
-            // Filter clauses 4-10 only and process them directly
-            // ISO 27001 uses 'arrangement' field instead of 'clause_no'
-            const targetClauses = clauses.filter((clause: any) => {
-              const clauseNum = parseInt(clause.arrangement || clause.clause_no);
-              return clauseNum >= 4 && clauseNum <= 10;
-            });
+            const clauses: ClauseData[] = validation.data;
+
+            // Filter clauses 4-10 only using utility function
+            const targetClauses = clauses.filter(clause =>
+              isValidClauseNumber(clause, iso27001Framework.frameworkName)
+            );
 
             // Process ISO 27001 clauses
             const iso27001Categories = targetClauses.map((clause: any) => {
-              const clauseNum = parseInt(clause.arrangement || clause.clause_no);
+              const clauseNum = getClauseNumber(clause, iso27001Framework.frameworkName);
               const mapping = ISO27001_CLAUSE_MAPPINGS[clauseNum as keyof typeof ISO27001_CLAUSE_MAPPINGS];
 
-              const subClausesWithStatus: SubClauseData[] = clause.subClauses.map((sub: any) => ({
-                id: sub.id,
-                title: sub.title || "Untitled",
-                status: sub.status || "Not started",
-                owner: sub.owner || null,
-              }));
+              // Process subclauses using utility function
+              const subClausesWithStatus = processSubItems(
+                clause.subClauses,
+                clause.arrangement || clause.clause_no,
+                iso27001Framework.frameworkName
+              );
 
-              // Calculate completion percentage (implemented subclauses)
-              const implementedCount = subClausesWithStatus.filter(
-                (sub) => sub.status === "Implemented"
-              ).length;
-              const completionPercentage = subClausesWithStatus.length > 0
-                ? Math.round((implementedCount / subClausesWithStatus.length) * 100)
-                : 0;
-
-              // Calculate assignment percentage (subclauses with owner assigned)
-              const assignedCount = subClausesWithStatus.filter(
-                (sub) => sub.owner !== null && sub.owner !== undefined
-              ).length;
-              const assignmentPercentage = subClausesWithStatus.length > 0
-                ? Math.round((assignedCount / subClausesWithStatus.length) * 100)
-                : 0;
+              // Calculate percentages using utility function
+              const { completionPercentage, assignmentPercentage } = calculateItemPercentages(subClausesWithStatus);
 
               return {
                 id: clause.id,
@@ -222,12 +209,26 @@ const ControlCategoriesCard = ({ frameworksData }: ControlCategoriesCardProps) =
 
             setIso27001CategoriesData(iso27001Categories);
           } catch (error) {
-            console.error("Error fetching ISO 27001 categories data:", error);
+            const errorData = createErrorLogData(error, {
+              frameworkName: iso27001Framework.frameworkName,
+              projectFrameworkId: iso27001Framework.projectFrameworkId,
+              operation: 'fetching ISO 27001 categories data',
+              routeUrl: `/iso-27001/clauses/struct/byProjectId/${iso27001Framework.projectFrameworkId}`
+            });
+            console.error("Error fetching ISO 27001 categories data:", errorData);
             setIso27001CategoriesData([]);
           }
         }
       } catch (error) {
-        console.error("Error fetching control categories data:", error);
+        console.error("Error fetching control categories data:", {
+          error: error instanceof Error ? error.message : error,
+          frameworksCount: frameworksData?.length || 0,
+          frameworks: frameworksData?.map(f => ({
+            id: f.frameworkId,
+            name: f.frameworkName,
+            projectFrameworkId: f.projectFrameworkId
+          })) || []
+        });
         setIso42001CategoriesData([]);
         setIso27001CategoriesData([]);
       } finally {

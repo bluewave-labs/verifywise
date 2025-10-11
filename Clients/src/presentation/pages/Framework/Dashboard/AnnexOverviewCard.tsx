@@ -18,6 +18,12 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
 import { getStatusColor } from "../../ISO/style";
+import { isISO42001, isISO27001 } from "../../../../application/constants/frameworks";
+import {
+  processAnnexNumber,
+  calculateItemPercentages,
+  clampValue
+} from "../../../../application/utils/frameworkDataUtils";
 
 interface FrameworkData {
   frameworkId: number;
@@ -131,13 +137,11 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
 
         // Find both frameworks
         const iso42001Framework = frameworksData.find((framework) =>
-          framework.frameworkId === 2 ||
-          framework.frameworkName.toLowerCase().replace(/[\s-]/g, '').includes('iso42001')
+          isISO42001(framework.frameworkId, framework.frameworkName)
         );
 
         const iso27001Framework = frameworksData.find((framework) =>
-          framework.frameworkId === 3 ||
-          framework.frameworkName.toLowerCase().replace(/[\s-]/g, '').includes('iso27001')
+          isISO27001(framework.frameworkId, framework.frameworkName)
         );
 
         // Fetch ISO 42001 annexes data if framework is present
@@ -153,40 +157,9 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
             const iso42001Categories = annexes.map((annex) => {
               const annexItems: AnnexItemData[] = annex.annexCategories || [];
 
-              // Calculate completion percentage (implemented items)
-              const implementedCount = annexItems.filter(
-                (item) => item.status === "Implemented"
-              ).length;
-              const completionPercentage = annexItems.length > 0
-                ? Math.round((implementedCount / annexItems.length) * 100)
-                : 0;
-
-              // Calculate assignment percentage (items with owner assigned)
-              const assignedCount = annexItems.filter(
-                (item) => item.owner !== null && item.owner !== undefined
-              ).length;
-              const assignmentPercentage = annexItems.length > 0
-                ? Math.round((assignedCount / annexItems.length) * 100)
-                : 0;
-
-              // Clean the title to remove redundant numbering if it already exists
-              let cleanTitle = annex.title;
-              let displayNumber = "";
-
-              // Check if title already starts with annex number (like "A.5 Organizational...")
-              const annexNumberRegex = /^A\.\d+\s*/;
-              if (annexNumberRegex.test(cleanTitle)) {
-                // Extract the number and clean title
-                const match = cleanTitle.match(/^(A\.\d+)\s*(.+)$/);
-                if (match) {
-                  displayNumber = match[1]; // "A.5"
-                  cleanTitle = match[2]; // "Organizational policies and governance"
-                }
-              } else {
-                // If no number in title, use arrangement/annex_no
-                const annexNumber = annex.arrangement || annex.annex_no || annex.id;
-                displayNumber = `A.${annexNumber}`;
-              }
+              // Use shared utility functions for calculations and processing
+              const { completionPercentage, assignmentPercentage } = calculateItemPercentages(annexItems);
+              const { displayNumber, cleanTitle } = processAnnexNumber(annex, iso42001Framework.frameworkName);
 
               return {
                 id: annex.id,
@@ -194,8 +167,8 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
                 name: cleanTitle,
                 icon: getAnnexIcon(cleanTitle, iso42001Framework.frameworkName),
                 items: annexItems,
-                completionPercentage,
-                assignmentPercentage,
+                completionPercentage: clampValue(completionPercentage),
+                assignmentPercentage: clampValue(assignmentPercentage),
               };
             });
 
@@ -221,42 +194,9 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
               // ISO 27001 API returns annexControls (camelCase) not annexcontrols
               const annexItems: AnnexItemData[] = annex.annexControls || annex.annexcontrols || [];
 
-
-              // Calculate completion percentage (implemented items)
-              const implementedCount = annexItems.filter(
-                (item) => item.status === "Implemented"
-              ).length;
-              const completionPercentage = annexItems.length > 0
-                ? Math.round((implementedCount / annexItems.length) * 100)
-                : 0;
-
-              // Calculate assignment percentage (items with owner assigned)
-              const assignedCount = annexItems.filter(
-                (item) => item.owner !== null && item.owner !== undefined
-              ).length;
-              const assignmentPercentage = annexItems.length > 0
-                ? Math.round((assignedCount / annexItems.length) * 100)
-                : 0;
-
-              // Clean the title to remove redundant numbering if it already exists
-              let cleanTitle = annex.title;
-              let displayNumber = "";
-
-              // Check if title already starts with annex number (like "A.5 Organizational...")
-              const annexNumberRegex = /^A\.\d+\s*/;
-              if (annexNumberRegex.test(cleanTitle)) {
-                // Extract the number and clean title
-                const match = cleanTitle.match(/^(A\.\d+)\s*(.+)$/);
-                if (match) {
-                  displayNumber = match[1]; // "A.5"
-                  cleanTitle = match[2]; // "Organizational policies and governance"
-                }
-              } else {
-                // For ISO 27001, use id + 4 to get correct annex numbers (id 1->A.5, 2->A.6, 3->A.7, 4->A.8)
-                const annexNumber = annex.id + 4; // Maps id 1,2,3,4 to 5,6,7,8
-                displayNumber = `A.${annexNumber}`;
-              }
-
+              // Use shared utility functions for calculations and processing
+              const { completionPercentage, assignmentPercentage } = calculateItemPercentages(annexItems);
+              const { displayNumber, cleanTitle } = processAnnexNumber(annex, iso27001Framework.frameworkName);
 
               return {
                 id: annex.id,
@@ -264,8 +204,8 @@ const AnnexOverviewCard = ({ frameworksData }: AnnexOverviewCardProps) => {
                 name: cleanTitle,
                 icon: getAnnexIcon(cleanTitle, iso27001Framework.frameworkName),
                 items: annexItems,
-                completionPercentage,
-                assignmentPercentage,
+                completionPercentage: clampValue(completionPercentage),
+                assignmentPercentage: clampValue(assignmentPercentage),
               };
             });
 

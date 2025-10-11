@@ -3,6 +3,11 @@ import { CircleDashed, CircleDot, CircleDotDashed, CircleCheck } from "lucide-re
 import { useEffect, useState } from "react";
 import { GetClausesByProjectFrameworkId } from "../../../../application/repository/clause_struct_iso.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../application/repository/annex_struct_iso.repository";
+import {
+  validateDataConsistency,
+  createErrorLogData,
+  type BaseFrameworkData
+} from "../../../../application/utils/frameworkDataUtils";
 
 /**
  * Assignment Status Card Component
@@ -18,27 +23,6 @@ import { GetAnnexesByProjectFrameworkId } from "../../../../application/reposito
  * - Defensive error handling and loading states
  */
 
-/** Framework data structure from parent component */
-interface FrameworkData {
-  frameworkId: number;
-  frameworkName: string;
-  projectFrameworkId: number;
-  clauseProgress?: {
-    totalSubclauses: number;
-    doneSubclauses: number;
-  };
-  annexProgress?: {
-    // ISO 27001 uses these fields
-    totalAnnexControls?: number;
-    doneAnnexControls?: number;
-    // ISO 42001 uses these fields
-    totalAnnexcategories?: number;
-    doneAnnexcategories?: number;
-  };
-}
-
-
-
 /** Assignment statistics for a framework */
 interface AssignmentCounts {
   clauseAssigned: number;
@@ -49,7 +33,7 @@ interface AssignmentCounts {
 
 /** Component props */
 interface AssignmentStatusCardProps {
-  frameworksData: FrameworkData[];
+  frameworksData: BaseFrameworkData[];
 }
 
 const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => {
@@ -61,6 +45,8 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
    * Uses dedicated assignment endpoints to get accurate owner-based counts
    */
   useEffect(() => {
+    const abortController = new AbortController();
+
     const fetchAssignmentData = async () => {
       setLoading(true);
 
@@ -84,14 +70,39 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
 
             const clausesResponse = await GetClausesByProjectFrameworkId({ routeUrl });
 
-            // Parse assignment count response (direct data access for clauses)
+            // Validate and parse assignment count response with detailed logging
             if (clausesResponse?.data) {
-              clauseTotal = clausesResponse.data.totalSubclauses || 0;
-              clauseAssigned = clausesResponse.data.assignedSubclauses || 0;
+              clauseTotal = Number(clausesResponse.data.totalSubclauses) || 0;
+              clauseAssigned = Number(clausesResponse.data.assignedSubclauses) || 0;
+
+              // Validate data consistency using utility function
+              clauseAssigned = validateDataConsistency(
+                clauseAssigned,
+                clauseTotal,
+                'clause assignment',
+                framework.frameworkName
+              );
+            } else {
+              console.warn(`Invalid clause assignment response structure for ${framework.frameworkName}:`, {
+                projectFrameworkId: framework.projectFrameworkId,
+                routeUrl,
+                responseStructure: clausesResponse ? Object.keys(clausesResponse) : 'null response'
+              });
             }
 
           } catch (error) {
-            console.error(`Error fetching clause assignments for framework ${framework.frameworkId}:`, error);
+            if (!abortController.signal.aborted) {
+              const errorData = createErrorLogData(error, {
+                frameworkName: framework.frameworkName,
+                projectFrameworkId: framework.projectFrameworkId,
+                operation: 'fetching clause assignments',
+                isISO27001,
+                routeUrl: isISO27001
+                  ? `/iso-27001/clauses/assignments/${framework.projectFrameworkId}`
+                  : `/iso-42001/clauses/assignments/${framework.projectFrameworkId}`
+              });
+              console.error(`Error fetching clause assignments for ${framework.frameworkName} (ID: ${framework.frameworkId}):`, errorData);
+            }
           }
 
           // Fetch annexes assignment data from dedicated assignment endpoints
@@ -102,20 +113,52 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
 
             const annexesResponse = await GetAnnexesByProjectFrameworkId({ routeUrl });
 
-            // Parse assignment count response (nested data access for annexes due to API structure)
+            // Validate and parse assignment count response with detailed error handling
             if (annexesResponse?.data?.data) {
               if (isISO27001) {
-                annexTotal = annexesResponse.data.data.totalAnnexControls || 0;
-                annexAssigned = annexesResponse.data.data.assignedAnnexControls || 0;
+                annexTotal = Number(annexesResponse.data.data.totalAnnexControls) || 0;
+                annexAssigned = Number(annexesResponse.data.data.assignedAnnexControls) || 0;
               } else {
                 // ISO 42001
-                annexTotal = annexesResponse.data.data.totalAnnexcategories || 0;
-                annexAssigned = annexesResponse.data.data.assignedAnnexcategories || 0;
+                annexTotal = Number(annexesResponse.data.data.totalAnnexcategories) || 0;
+                annexAssigned = Number(annexesResponse.data.data.assignedAnnexcategories) || 0;
               }
+
+              // Validate data consistency using utility function
+              annexAssigned = validateDataConsistency(
+                annexAssigned,
+                annexTotal,
+                'annex assignment',
+                framework.frameworkName
+              );
+            } else {
+              console.warn(`Invalid annex assignment response structure for ${framework.frameworkName}:`, {
+                projectFrameworkId: framework.projectFrameworkId,
+                routeUrl,
+                isISO27001,
+                responseStructure: annexesResponse ? {
+                  hasData: !!annexesResponse.data,
+                  hasNestedData: !!annexesResponse.data?.data,
+                  topLevelKeys: annexesResponse.data ? Object.keys(annexesResponse.data) : [],
+                  nestedKeys: annexesResponse.data?.data ? Object.keys(annexesResponse.data.data) : []
+                } : 'null response'
+              });
             }
 
           } catch (error) {
-            console.error(`Error fetching annex assignments for framework ${framework.frameworkId}:`, error);
+            if (!abortController.signal.aborted) {
+              const errorData = createErrorLogData(error, {
+                frameworkName: framework.frameworkName,
+                projectFrameworkId: framework.projectFrameworkId,
+                operation: 'fetching annex assignments',
+                isISO27001,
+                expectedFields: isISO27001 ? ['totalAnnexControls', 'assignedAnnexControls'] : ['totalAnnexcategories', 'assignedAnnexcategories'],
+                routeUrl: isISO27001
+                  ? `/iso-27001/annexes/assignments/${framework.projectFrameworkId}`
+                  : `/iso-42001/annexes/assignments/${framework.projectFrameworkId}`
+              });
+              console.error(`Error fetching annex assignments for ${framework.frameworkName} (ID: ${framework.frameworkId}):`, errorData);
+            }
           }
 
           // Store assignment counts for this framework
@@ -129,9 +172,13 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
 
         setAssignmentCounts(countsMap);
       } catch (error) {
-        console.error("Error fetching assignment data:", error);
+        if (!abortController.signal.aborted) {
+          console.error("Error fetching assignment data:", error);
+        }
       } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -139,6 +186,11 @@ const AssignmentStatusCard = ({ frameworksData }: AssignmentStatusCardProps) => 
     if (frameworksData.length > 0) {
       fetchAssignmentData();
     }
+
+    // Cleanup function to abort ongoing requests
+    return () => {
+      abortController.abort();
+    };
   }, [frameworksData]);
 
   /**

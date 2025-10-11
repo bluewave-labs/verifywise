@@ -84,6 +84,8 @@ const FrameworkDashboard = ({
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     const fetchFrameworkData = async () => {
       if (!organizationalProject || filteredFrameworks.length === 0) {
         setLoading(false);
@@ -110,18 +112,52 @@ const FrameworkDashboard = ({
               const clauseProgressRes = await getEntityById({
                 routeUrl: `/iso-27001/clauses/progress/${projectFrameworkId}`,
               });
-              clauseProgress = clauseProgressRes.data;
+
+              // Validate response structure and provide fallback data
+              if (clauseProgressRes?.data) {
+                clauseProgress = {
+                  totalSubclauses: clauseProgressRes.data.totalSubclauses || 0,
+                  doneSubclauses: clauseProgressRes.data.doneSubclauses || 0,
+                };
+              } else {
+                console.warn(`Invalid clause progress response structure for ISO 27001 framework ${framework.id}`);
+                clauseProgress = { totalSubclauses: 0, doneSubclauses: 0 };
+              }
             } catch (error) {
-              console.error("Error fetching ISO 27001 clause progress:", error);
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching ISO 27001 clause progress for framework ${framework.id}:`, {
+                  error: error instanceof Error ? error.message : error,
+                  projectFrameworkId,
+                  frameworkName: framework.name,
+                });
+              }
+              clauseProgress = { totalSubclauses: 0, doneSubclauses: 0 };
             }
 
             try {
               const annexProgressRes = await getEntityById({
                 routeUrl: `/iso-27001/annexes/progress/${projectFrameworkId}`,
               });
-              annexProgress = annexProgressRes.data;
+
+              // Validate response structure and provide fallback data
+              if (annexProgressRes?.data) {
+                annexProgress = {
+                  totalAnnexControls: annexProgressRes.data.totalAnnexControls || 0,
+                  doneAnnexControls: annexProgressRes.data.doneAnnexControls || 0,
+                };
+              } else {
+                console.warn(`Invalid annex progress response structure for ISO 27001 framework ${framework.id}`);
+                annexProgress = { totalAnnexControls: 0, doneAnnexControls: 0 };
+              }
             } catch (error) {
-              console.error("Error fetching ISO 27001 annex progress:", error);
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching ISO 27001 annex progress for framework ${framework.id}:`, {
+                  error: error instanceof Error ? error.message : error,
+                  projectFrameworkId,
+                  frameworkName: framework.name,
+                });
+              }
+              annexProgress = { totalAnnexControls: 0, doneAnnexControls: 0 };
             }
           } else if (isISO42001) {
             // Fetch ISO 42001 data
@@ -129,18 +165,52 @@ const FrameworkDashboard = ({
               const clauseProgressRes = await getEntityById({
                 routeUrl: `/iso-42001/clauses/progress/${projectFrameworkId}`,
               });
-              clauseProgress = clauseProgressRes.data;
+
+              // Validate response structure and provide fallback data
+              if (clauseProgressRes?.data) {
+                clauseProgress = {
+                  totalSubclauses: clauseProgressRes.data.totalSubclauses || 0,
+                  doneSubclauses: clauseProgressRes.data.doneSubclauses || 0,
+                };
+              } else {
+                console.warn(`Invalid clause progress response structure for ISO 42001 framework ${framework.id}`);
+                clauseProgress = { totalSubclauses: 0, doneSubclauses: 0 };
+              }
             } catch (error) {
-              console.error("Error fetching ISO 42001 clause progress:", error);
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching ISO 42001 clause progress for framework ${framework.id}:`, {
+                  error: error instanceof Error ? error.message : error,
+                  projectFrameworkId,
+                  frameworkName: framework.name,
+                });
+              }
+              clauseProgress = { totalSubclauses: 0, doneSubclauses: 0 };
             }
 
             try {
               const annexProgressRes = await getEntityById({
                 routeUrl: `/iso-42001/annexes/progress/${projectFrameworkId}`,
               });
-              annexProgress = annexProgressRes.data;
+
+              // Validate response structure and provide fallback data
+              if (annexProgressRes?.data) {
+                annexProgress = {
+                  totalAnnexcategories: annexProgressRes.data.totalAnnexcategories || 0,
+                  doneAnnexcategories: annexProgressRes.data.doneAnnexcategories || 0,
+                };
+              } else {
+                console.warn(`Invalid annex progress response structure for ISO 42001 framework ${framework.id}`);
+                annexProgress = { totalAnnexcategories: 0, doneAnnexcategories: 0 };
+              }
             } catch (error) {
-              console.error("Error fetching ISO 42001 annex progress:", error);
+              if (!abortController.signal.aborted) {
+                console.error(`Error fetching ISO 42001 annex progress for framework ${framework.id}:`, {
+                  error: error instanceof Error ? error.message : error,
+                  projectFrameworkId,
+                  frameworkName: framework.name,
+                });
+              }
+              annexProgress = { totalAnnexcategories: 0, doneAnnexcategories: 0 };
             }
           }
 
@@ -158,13 +228,21 @@ const FrameworkDashboard = ({
         const data = await Promise.all(dataPromises);
         setFrameworksData(data);
       } catch (error) {
-        console.error("Error fetching framework data:", error);
+        if (!abortController.signal.aborted) {
+          console.error("Error fetching framework data:", error);
+        }
       } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchFrameworkData();
+
+    return () => {
+      abortController.abort();
+    };
   }, [organizationalProject, filteredFrameworks]);
 
   if (loading) {

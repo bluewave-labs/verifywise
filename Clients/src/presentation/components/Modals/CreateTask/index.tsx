@@ -560,7 +560,12 @@ const CreateTask: FC<CreateTaskProps> = ({
                     <Typography
                       color="error"
                       variant="caption"
-                      sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+                      sx={{ 
+                        mt: theme.spacing(1), 
+                        ml: theme.spacing(1), 
+                        color: theme.palette.error.main, 
+                        fontSize: theme.typography.caption.fontSize
+                      }}
                     >
                       {errors.assignees}
                     </Typography>

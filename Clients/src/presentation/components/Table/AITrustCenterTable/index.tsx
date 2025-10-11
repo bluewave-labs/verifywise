@@ -147,6 +147,7 @@ const AITrustCenterTable = <T extends { id: number }>({
           paddingBottom: theme.spacing(20),
           gap: theme.spacing(10),
           minHeight: 200,
+          backgroundColor: "#FFFFFF",
         }}
       >
         <img src={Placeholder} alt="Empty state" />

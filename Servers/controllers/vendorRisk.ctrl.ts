@@ -58,6 +58,7 @@ export async function getAllVendorRisks(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id);
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   // Validate project ID parameter
   const projectIdValidation = validateProjectIdParam(projectId);
@@ -77,18 +78,18 @@ export async function getAllVendorRisks(
   }
 
   logProcessing({
-    description: `starting getAllVendorRisks for project ID ${projectId}`,
+    description: `starting getAllVendorRisks for project ID ${projectId} with filter: ${filter}`,
     functionName: 'getAllVendorRisks',
     fileName: 'vendorRisk.ctrl.ts'
   });
 
   try {
-    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId, req.tenantId!);
+    const vendorRisks = await getVendorRisksByProjectIdQuery(projectId, req.tenantId!, filter);
 
     if (vendorRisks) {
       await logSuccess({
         eventType: 'Read',
-        description: `Retrieved vendor risks for project ID ${projectId}`,
+        description: `Retrieved vendor risks for project ID ${projectId} with filter: ${filter}`,
         functionName: 'getAllVendorRisks',
         fileName: 'vendorRisk.ctrl.ts'
       });
@@ -97,7 +98,7 @@ export async function getAllVendorRisks(
 
     await logSuccess({
       eventType: 'Read',
-      description: `No vendor risks found for project ID ${projectId}`,
+      description: `No vendor risks found for project ID ${projectId} with filter: ${filter}`,
       functionName: 'getAllVendorRisks',
       fileName: 'vendorRisk.ctrl.ts'
     });
@@ -119,6 +120,7 @@ export async function getAllVendorRisksByVendorId(
   res: Response
 ) {
   const vendorId = parseInt(req.params.id);
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
   // Validate vendor ID parameter
   const vendorIdValidation = validateVendorIdParam(vendorId);
@@ -138,18 +140,18 @@ export async function getAllVendorRisksByVendorId(
   }
 
   logProcessing({
-    description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId}`,
+    description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId} with filter: ${filter}`,
     functionName: 'getAllVendorRisksByVendorId',
     fileName: 'vendorRisk.ctrl.ts'
   });
 
   try {
-    const vendorRisks = await getVendorRisksByVendorIdQuery(vendorId, req.tenantId!);
+    const vendorRisks = await getVendorRisksByVendorIdQuery(vendorId, req.tenantId!, filter);
 
     if (vendorRisks) {
       await logSuccess({
         eventType: 'Read',
-        description: `Retrieved vendor risks for vendor ID ${vendorId}`,
+        description: `Retrieved vendor risks for vendor ID ${vendorId} with filter: ${filter}`,
         functionName: 'getAllVendorRisksByVendorId',
         fileName: 'vendorRisk.ctrl.ts'
       });
@@ -158,7 +160,7 @@ export async function getAllVendorRisksByVendorId(
 
     await logSuccess({
       eventType: 'Read',
-      description: `No vendor risks found for vendor ID ${vendorId}`,
+      description: `No vendor risks found for vendor ID ${vendorId} with filter: ${filter}`,
       functionName: 'getAllVendorRisksByVendorId',
       fileName: 'vendorRisk.ctrl.ts'
     });

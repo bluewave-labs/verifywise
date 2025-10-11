@@ -175,8 +175,22 @@ export const getAllRisksQuery = async (
 
 export const getRisksByProjectQuery = async (
   projectId: number,
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IRisk[] | null> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE r.is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE r.is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const result = await sequelize.query(
     `SELECT
       r.*,
@@ -194,6 +208,7 @@ export const getRisksByProjectQuery = async (
       LEFT JOIN "${tenant}".projects p ON pr.project_id = p.id
       LEFT JOIN "${tenant}".frameworks_risks fr ON r.id = fr.risk_id
       LEFT JOIN public.frameworks f ON fr.framework_id = f.id
+      ${whereClause}
       GROUP BY r.id
       ORDER BY r.created_at DESC, r.id ASC`,
     { replacements: { projectId } }
@@ -203,8 +218,22 @@ export const getRisksByProjectQuery = async (
 
 export const getRisksByFrameworkQuery = async (
   frameworkId: number,
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IRisk[] | null> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE r.is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE r.is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const result = await sequelize.query(
     `SELECT
       r.*,
@@ -222,6 +251,7 @@ export const getRisksByFrameworkQuery = async (
     LEFT JOIN "${tenant}".projects p ON pr.project_id = p.id
     LEFT JOIN "${tenant}".frameworks_risks fr ON r.id = fr.risk_id
     LEFT JOIN public.frameworks f ON fr.framework_id = f.id
+    ${whereClause}
     GROUP BY r.id
     ORDER BY r.created_at DESC, r.id ASC;
     `,

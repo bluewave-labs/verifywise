@@ -336,20 +336,20 @@ export const validatePolicyCreationBusinessRules = (data: any): ValidationError[
     }
   }
 
-  // Validate title doesn't contain inappropriate terms
-  if (data.title) {
-    const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'draft policy', 'untitled'];
-    const containsInappropriate = inappropriateTerms.some(term =>
-      data.title.toLowerCase().includes(term.toLowerCase())
-    );
-    if (containsInappropriate) {
-      errors.push({
-        field: 'title',
-        message: 'Policy title should not contain test or placeholder terms',
-        code: 'INAPPROPRIATE_POLICY_TITLE'
-      });
-    }
-  }
+  // // Validate title doesn't contain inappropriate terms
+  // if (data.title) {
+  //   const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'draft policy', 'untitled'];
+  //   const containsInappropriate = inappropriateTerms.some(term =>
+  //     data.title.toLowerCase().includes(term.toLowerCase())
+  //   );
+  //   if (containsInappropriate) {
+  //     errors.push({
+  //       field: 'title',
+  //       message: 'Policy title should not contain test or placeholder terms',
+  //       code: 'INAPPROPRIATE_POLICY_TITLE'
+  //     });
+  //   }
+  // }
 
   // Validate content HTML has meaningful content
   if (data.content_html) {

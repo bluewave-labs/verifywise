@@ -20,12 +20,6 @@ import {
   ValidationException,
   BusinessLogicException,
 } from "../domain.layer/exceptions/custom.exception";
-import {
-  validateCompleteVendorWithBusinessRules,
-  validateUpdateVendorWithBusinessRules,
-  validateVendorIdParam,
-  validateProjectIdParam
-} from '../utils/validations/vendorValidation.utils';
 
 export async function getAllVendors(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -68,23 +62,6 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
 
 export async function getVendorById(req: Request, res: Response): Promise<any> {
   const vendorId = parseInt(req.params.id);
-
-  // Validate vendor ID parameter
-  const vendorIdValidation = validateVendorIdParam(vendorId);
-  if (!vendorIdValidation.isValid) {
-    await logFailure({
-      eventType: "Read",
-      description: `Invalid vendor ID parameter: ${req.params.id}`,
-      functionName: "getVendorById",
-      fileName: "vendor.ctrl.ts",
-      error: new Error(vendorIdValidation.message || 'Invalid vendor ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorIdValidation.message || 'Invalid vendor ID',
-      code: vendorIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting getVendorById for ID ${vendorId}`,
@@ -130,23 +107,6 @@ export async function getVendorByProjectId(
 ): Promise<any> {
   const projectId = parseInt(req.params.id);
 
-  // Validate project ID parameter
-  const projectIdValidation = validateProjectIdParam(projectId);
-  if (!projectIdValidation.isValid) {
-    await logFailure({
-      eventType: "Read",
-      description: `Invalid project ID parameter: ${req.params.id}`,
-      functionName: "getVendorByProjectId",
-      fileName: "vendor.ctrl.ts",
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logProcessing({
     description: `starting getVendorByProjectId for ID ${projectId}`,
     functionName: "getVendorByProjectId",
@@ -188,27 +148,6 @@ export async function getVendorByProjectId(
 export async function createVendor(req: Request, res: Response): Promise<any> {
   const transaction = await sequelize.transaction();
   const vendorData = req.body;
-
-  // Validate request body with business rules
-  const validationErrors = validateCompleteVendorWithBusinessRules(vendorData);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Create",
-      description: `Validation failed for createVendor: ${validationErrors.map(e => e.message).join(', ')}`,
-      functionName: "createVendor",
-      fileName: "vendor.ctrl.ts",
-      error: new Error('Validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
 
   logProcessing({
     description: "starting createVendor",
@@ -307,23 +246,6 @@ export async function updateVendorById(
   const vendorId = parseInt(req.params.id);
   const updateData = req.body;
 
-  // Validate vendor ID parameter
-  const vendorIdValidation = validateVendorIdParam(vendorId);
-  if (!vendorIdValidation.isValid) {
-    await logFailure({
-      eventType: "Update",
-      description: `Invalid vendor ID parameter: ${req.params.id}`,
-      functionName: "updateVendorById",
-      fileName: "vendor.ctrl.ts",
-      error: new Error(vendorIdValidation.message || 'Invalid vendor ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorIdValidation.message || 'Invalid vendor ID',
-      code: vendorIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logProcessing({
     description: `starting updateVendorById for ID ${vendorId}`,
     functionName: "updateVendorById",
@@ -354,27 +276,6 @@ export async function updateVendorById(
         fileName: "vendor.ctrl.ts",
       });
       return res.status(404).json(STATUS_CODE[404]({}));
-    }
-
-    // Validate request body with business rules and current vendor data
-    const validationErrors = validateUpdateVendorWithBusinessRules(updateData, existingVendor);
-    if (validationErrors.length > 0) {
-      await logFailure({
-        eventType: "Update",
-        description: `Validation failed for updateVendorById: ${validationErrors.map(e => e.message).join(', ')}`,
-        functionName: "updateVendorById",
-        fileName: "vendor.ctrl.ts",
-        error: new Error('Validation failed')
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Validation failed',
-        errors: validationErrors.map(err => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
     }
 
     // Create VendorModel instance and update it
@@ -469,23 +370,6 @@ export async function deleteVendorById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const vendorId = parseInt(req.params.id);
-
-  // Validate vendor ID parameter
-  const vendorIdValidation = validateVendorIdParam(vendorId);
-  if (!vendorIdValidation.isValid) {
-    await logFailure({
-      eventType: "Delete",
-      description: `Invalid vendor ID parameter: ${req.params.id}`,
-      functionName: "deleteVendorById",
-      fileName: "vendor.ctrl.ts",
-      error: new Error(vendorIdValidation.message || 'Invalid vendor ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorIdValidation.message || 'Invalid vendor ID',
-      code: vendorIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting deleteVendorById for ID ${vendorId}`,

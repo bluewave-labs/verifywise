@@ -11,12 +11,6 @@ import {
 } from "../utils/modelInventory.utils";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
-import {
-  validateModelInventoryIdParam,
-  validateCompleteModelInventoryCreation,
-  validateCompleteModelInventoryUpdate
-} from "../utils/validations/modelInventoryValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllModelInventories(req: Request, res: Response) {
   logStructured(
@@ -71,22 +65,6 @@ export async function getAllModelInventories(req: Request, res: Response) {
 export async function getModelInventoryById(req: Request, res: Response) {
   const modelInventoryId = parseInt(req.params.id);
 
-  // Validate model inventory ID parameter
-  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
-  if (!modelInventoryIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid model inventory ID parameter: ${req.params.id}`,
-      "getModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
-      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logStructured(
     "processing",
     `fetching model inventory by id: ${modelInventoryId}`,
@@ -131,40 +109,6 @@ export async function getModelInventoryById(req: Request, res: Response) {
 }
 
 export async function createNewModelInventory(req: Request, res: Response) {
-  try {
-    // Validate model inventory creation request
-    const validationErrors = validateCompleteModelInventoryCreation(req.body);
-    if (validationErrors.length > 0) {
-      logStructured(
-        "error",
-        `Model inventory creation validation failed: ${validationErrors.map(e => e.message).join(', ')}`,
-        "createNewModelInventory",
-        "modelInventory.ctrl.ts"
-      );
-      return res.status(400).json({
-        status: 'error',
-        message: 'Model inventory creation validation failed',
-        errors: validationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
-    }
-  } catch (validationError) {
-    // Catch any unexpected errors in validation
-    logStructured(
-      "error",
-      `Unexpected validation error: ${(validationError as Error).message}`,
-      "createNewModelInventory",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(500).json({
-      status: 'error',
-      message: 'Internal server error',
-      error: (validationError as Error).message
-    });
-  }
 
   const {
     provider_model,
@@ -257,22 +201,6 @@ export async function createNewModelInventory(req: Request, res: Response) {
 export async function updateModelInventoryById(req: Request, res: Response) {
   const modelInventoryId = parseInt(req.params.id);
 
-  // Validate model inventory ID parameter
-  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
-  if (!modelInventoryIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid model inventory ID parameter: ${req.params.id}`,
-      "updateModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
-      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   // Get existing model inventory for business rule validation
   let existingModelInventory = null;
   try {
@@ -282,26 +210,6 @@ export async function updateModelInventoryById(req: Request, res: Response) {
     )) as unknown as ModelInventoryModel;
   } catch (error) {
     // Continue without existing data if query fails
-  }
-
-  // Validate model inventory update request
-  const validationErrors = validateCompleteModelInventoryUpdate(req.body, existingModelInventory);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      `Model inventory update validation failed for ID ${modelInventoryId}`,
-      "updateModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Model inventory update validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
   }
 
   const {
@@ -417,22 +325,6 @@ export async function updateModelInventoryById(req: Request, res: Response) {
 export async function deleteModelInventoryById(req: Request, res: Response) {
   const modelInventoryId = parseInt(req.params.id);
   const deleteRisks = req.query.deleteRisks === "true";
-
-  // Validate model inventory ID parameter
-  const modelInventoryIdValidation = validateModelInventoryIdParam(modelInventoryId);
-  if (!modelInventoryIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid model inventory ID parameter: ${req.params.id}`,
-      "deleteModelInventoryById",
-      "modelInventory.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: modelInventoryIdValidation.message || 'Invalid model inventory ID',
-      code: modelInventoryIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logStructured(
     "processing",

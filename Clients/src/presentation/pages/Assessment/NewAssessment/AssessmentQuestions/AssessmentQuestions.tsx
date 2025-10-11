@@ -11,7 +11,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { Info as GreyCircleInfoIcon } from "lucide-react";
 import RichTextEditor from "../../../../components/RichTextEditor";
 import { priorities, PriorityLevel } from "../priorities";
 import { Topic } from "../../../../../application/hooks/useAssessmentAnswers";
@@ -104,7 +104,7 @@ const AssessmentQuestions = ({
                           },
                         }}
                       >
-                        <GreyCircleInfoIcon fontSize="inherit" />
+                        <GreyCircleInfoIcon size={16} />
                       </Tooltip>
                     </Box>
                   )}

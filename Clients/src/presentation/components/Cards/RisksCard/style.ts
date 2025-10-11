@@ -18,9 +18,14 @@ export const projectRisksTileCard = {
   cursor: "default",
   minWidth: { xs: "120px", sm: "140px" },
   width: { xs: "120px", sm: "140px" },
-  backgroundColor: "#FFFFFF",
+  background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
   border: "1px solid #E5E7EB",
   borderRadius: 2,
+  transition: "all 0.2s ease",
+  "&:hover": {
+    background: "linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%)",
+    borderColor: "#D1D5DB",
+  },
 };
 
 export const projectRisksTileCardKey = {

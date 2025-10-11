@@ -48,12 +48,6 @@ const initialLoadingState: LoadingStatus = {
   message: "",
 };
 
-const rowStyle = {
-  display: "flex",
-  flexDirection: "row",
-  gap: 10,
-  mb: 10,
-};
 
 const RiskManagement = () => {
   const { userRoleName } = useAuth();
@@ -356,14 +350,10 @@ const RiskManagement = () => {
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={rowStyle}>
+      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
-      <RiskFilters
-        risks={projectRisks}
-        onFilterChange={handleRiskFilterChange}
-      />
       <Stack
         className="risk-management-row"
         sx={{
@@ -372,10 +362,14 @@ const RiskManagement = () => {
       >
         <Stack
           direction="row"
-          justifyContent="flex-end"
-          alignItems="center"
+          justifyContent="space-between"
+          alignItems="flex-end"
         >
-          <Stack direction="row" gap={10}>
+          <RiskFilters
+            risks={projectRisks}
+            onFilterChange={handleRiskFilterChange}
+          />
+          <Stack direction="row" gap={4}>
             <CustomizableButton
               variant="contained"
               text="Insert from AI risks database"

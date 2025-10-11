@@ -21,8 +21,20 @@ export async function createNewUser({
 }: {
   userData: any;
 }): Promise<ApiResponse<User>> {
-  const response = await apiServices.post(`/users/register`, userData);
-  return response as ApiResponse<User>;
+  try {
+    const response = await apiServices.post(`/users/register`, userData);
+    return response as ApiResponse<User>;
+  } catch (error: any) {
+    // Re-throw the error with the response data intact
+    if (error.response) {
+      throw {
+        ...error,
+        status: error.response.status,
+        data: error.response.data
+      };
+    }
+    throw error;
+  }
 }
 
 export async function updateUserById({

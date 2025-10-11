@@ -47,17 +47,7 @@ const WatchTower = () => {
         description="Monitor system activities and maintain comprehensive audit trails"
         whatItDoes="Track all **system events** and *user activities* across your **AI governance platform**. Capture detailed *audit logs* for **compliance monitoring**, *security analysis*, and **operational oversight**."
         whyItMatters="**Audit trails** are essential for demonstrating *compliance*, investigating incidents, and maintaining **accountability**. They provide *forensic evidence* for security reviews and help identify patterns in **system usage** and potential anomalies."
-        quickActions={[
-          {
-            label: "View Recent Events",
-            description: "Monitor latest system activities and user actions",
-            primary: true
-          },
-          {
-            label: "Export Audit Logs",
-            description: "Generate compliance reports for specific time periods"
-          }
-        ]}
+        quickActions={[]}
         useCases={[
           "**Compliance auditing** to demonstrate *control effectiveness* and **user activities**",
           "**Security investigations** when analyzing potential incidents or *unauthorized access*"
@@ -67,11 +57,7 @@ const WatchTower = () => {
           "**Immutable audit logs** with *timestamps* and **user attribution**",
           "**Export functionality** for *compliance reporting* and **external analysis**"
         ]}
-        tips={[
-          "Set up **alerts** for *critical events* like **permission changes** or data exports",
-          "**Regular log reviews** can help identify *unusual patterns* before they become issues",
-          "Archive older logs according to your **retention policy** while maintaining *accessibility*"
-        ]}
+        tips={[]}
       />
     
       <Stack gap={"24px"} maxWidth={1400}>

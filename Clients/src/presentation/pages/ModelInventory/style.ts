@@ -80,7 +80,7 @@ export const statusBadgeStyle = (status: ModelInventoryStatus) => {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: 12,
+    borderRadius: "4px !important",
     fontWeight: 500,
     fontSize: 11,
     textTransform: "uppercase" as const,
@@ -97,7 +97,7 @@ export const securityAssessmentBadgeStyle = (assessment: boolean) => {
     backgroundColor: style.bg,
     color: style.color,
     padding: "4px 8px",
-    borderRadius: 12,
+    borderRadius: "4px !important",
     fontWeight: 500,
     fontSize: 11,
     textTransform: "uppercase" as const,
@@ -152,6 +152,7 @@ export const emptyStateContainerStyle = (_: Theme) => ({
   padding: "60px 20px 80px 20px",
   gap: "20px",
   minHeight: 200,
+  backgroundColor: "#FFFFFF", // Ensure white background
 });
 
 export const emptyStateTextStyle = {

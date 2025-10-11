@@ -64,7 +64,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
       backgroundColor: style.bg,
       color: style.color,
       padding: "4px 8px",
-      borderRadius: 12,
+      borderRadius: "4px !important",
       fontWeight: 500,
       fontSize: "11px",
       textTransform: "uppercase" as const,

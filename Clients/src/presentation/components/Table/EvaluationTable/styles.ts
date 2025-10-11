@@ -54,4 +54,5 @@ export const emptyData = {
   textAlign: "center" as const,
   padding: "40px 20px",
   border: "none",
+  backgroundColor: "#FFFFFF", // Ensure white background
 };

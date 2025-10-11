@@ -75,7 +75,7 @@ const Checkbox: FC<CheckboxProps> = ({
         "& .MuiButtonBase-root": {
           width: theme.spacing(10),
           p: 0,
-          mr: theme.spacing(6),
+          mr: theme.spacing(3),
         },
         "&:hover": {
           backgroundColor: "transparent",

@@ -11,6 +11,7 @@ import {
   Stack,
   Typography,
   TableFooter,
+  Chip,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
@@ -70,20 +71,19 @@ const StatusBadge: React.FC<{ status: IAITraining["status"] }> = ({
   const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
 
   return (
-    <span
-      style={{
+    <Chip
+      label={status}
+      size="small"
+      sx={{
         backgroundColor: style.bg,
         color: style.color,
-        padding: "4px 8px",
-        borderRadius: 8,
+        borderRadius: "4px !important",
         fontWeight: 600,
         fontSize: "0.75rem",
         textTransform: "uppercase",
-        display: "inline-block",
+        height: 24,
       }}
-    >
-      {status}
-    </span>
+    />
   );
 };
 

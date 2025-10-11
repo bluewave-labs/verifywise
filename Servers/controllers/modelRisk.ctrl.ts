@@ -19,17 +19,20 @@ import {
 import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllModelRisks(req: Request, res: Response) {
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+  
   logStructured(
     "processing",
-    "starting getAllModelRisks",
+    `starting getAllModelRisks with filter: ${filter}`,
     "getAllModelRisks",
     "modelRisk.ctrl.ts"
   );
-  logger.debug("🔍 Fetching all model risks");
+  logger.debug(`🔍 Fetching all model risks with filter: ${filter}`);
 
   try {
     const modelRisks = await getAllModelRisksQuery(
-      req.tenantId!
+      req.tenantId!,
+      filter
     );
     if (modelRisks && modelRisks.length > 0) {
       logStructured(

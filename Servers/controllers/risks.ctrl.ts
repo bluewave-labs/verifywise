@@ -30,15 +30,17 @@ export async function getAllRisks(
   req: Request,
   res: Response
 ): Promise<any> {
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+  
   logStructured(
     "processing",
-    `fetching all project risks`,
+    `fetching all project risks with filter: ${filter}`,
     "getAllProjectRisks",
     "projectRisks.ctrl.ts"
   );
-  logger.debug(`🔍 Fetching all project risks`);
+  logger.debug(`🔍 Fetching all project risks with filter: ${filter}`);
   try {
-    const projectRisks = await getAllRisksQuery(req.tenantId!);
+    const projectRisks = await getAllRisksQuery(req.tenantId!, filter);
 
     if (projectRisks) {
       logStructured(

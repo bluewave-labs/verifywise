@@ -24,14 +24,16 @@ export async function getAllVendorRisksAllProjects(
   req: Request,
   res: Response
 ): Promise<any> {
+  const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
+  
   logProcessing({
-    description: 'starting getAllVendorRisksAllProjects',
+    description: `starting getAllVendorRisksAllProjects with filter: ${filter}`,
     functionName: 'getAllVendorRisksAllProjects',
     fileName: 'vendorRisk.ctrl.ts'
   });
 
   try {
-    const risks = await getAllVendorRisksAllProjectsQuery(req.tenantId!);
+    const risks = await getAllVendorRisksAllProjectsQuery(req.tenantId!, filter);
     await logSuccess({
       eventType: 'Read',
       description: 'Retrieved all vendor risks across all projects',

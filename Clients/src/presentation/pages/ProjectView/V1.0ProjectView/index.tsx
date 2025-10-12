@@ -144,7 +144,7 @@ const VWProjectView = () => {
               />
               <Tab
                 sx={tabStyle}
-                label="Project risks"
+                label="Use case risks"
                 value="project-risks"
                 disableRipple
               />

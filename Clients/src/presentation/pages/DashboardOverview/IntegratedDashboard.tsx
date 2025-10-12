@@ -547,8 +547,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
           <Box
             sx={{
               position: "absolute",
-              bottom: "-24px",
-              right: "-24px",
+              bottom: "-48px",
+              right: "-48px",
               opacity: 0.015,
               zIndex: 0,
               pointerEvents: "none",

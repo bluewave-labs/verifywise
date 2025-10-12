@@ -372,19 +372,17 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
         {/* View Use Case Details Button */}
         <Stack sx={{ mt: "auto", alignItems: "flex-end" }}>
           <Tooltip title="View use case details" sx={{ fontSize: 13 }}>
-            <Button
+            <CustomizableButton
               variant="contained"
               onClick={() =>
                 navigate("/project-view", {
                   projectId: project.id.toString(),
                 })
               }
-              size="medium"
-              startIcon={<EyeIcon size={14} />}
+              icon={<EyeIcon size={14} />}
+              text="View use case details"
               sx={viewProjectButtonStyle}
-            >
-              View use case details
-            </Button>
+            />
           </Tooltip>
         </Stack>
       </Stack>

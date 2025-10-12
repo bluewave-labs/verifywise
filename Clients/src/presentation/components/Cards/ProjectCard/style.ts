@@ -45,6 +45,7 @@ export const viewProjectButtonStyle = {
   fontWeight: 600,
   px: 3,
   mt: 1,
+  height: 34,
   "&:hover": {
     backgroundColor: "#0e5c47",
   },

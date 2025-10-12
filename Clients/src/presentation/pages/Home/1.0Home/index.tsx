@@ -1,13 +1,9 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
-  vwhomeBody,
-  vwhomeBodyControls,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -17,10 +13,8 @@ import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/HelperDrawer";
 import HelperIcon from "../../../components/HelperIcon";
-import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
@@ -54,7 +48,8 @@ const Home = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const [runHomeTour, setRunHomeTour] = useState(false);
-  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+  const newProjectButtonRef = useRef<HTMLDivElement>(null);
+  const { allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
   useEffect(() => {
@@ -186,70 +181,27 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
-      {/* New Project Header */}
-      <Stack sx={vwhomeBody}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={vwhomeHeading}>Projects overview</Typography>
+      {/* Use Cases Header */}
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="center" spacing={1} pt={2}>
+          <Typography sx={vwhomeHeading}>Use cases</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />
         </Stack>
-        <Stack sx={vwhomeBodyControls}>
-          {/* {projects.length === 0 && (
-            <CustomizableButton
-              variant="contained"
-              text="Create demo project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<CloudDownloadIcon />}
-              onClick={() => handleGenerateDemoDataClick()}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          )} */}
-          <div data-joyride-id="new-project-button" ref={refs[0]}>
-            <CustomizableButton
-              variant="contained"
-              text="New project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleOutlineIcon size={16} />}
-              onClick={() => setIsProjectFormModalOpen(true)}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          </div>
-        </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+        </Typography>
       </Stack>
 
-      {/* Header Cards */}
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "20px",
-        }}
-      >
-        <HeaderCard title="Projects" count={dashboard?.projects || 0} />
-        <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
-        <HeaderCard title="Models" count={dashboard?.models || 0} />
-        <HeaderCard title="Reports" count={dashboard?.reports || 0} />
-      </Box>
-
       {/* Projects List */}
-      <ProjectList projects={projects} />
+      <ProjectList
+        projects={projects}
+        onNewProject={() => setIsProjectFormModalOpen(true)}
+        userRoleName={userRoleName}
+        newProjectButtonRef={newProjectButtonRef}
+      />
 
       <Modal
         open={isProjectFormModalOpen}

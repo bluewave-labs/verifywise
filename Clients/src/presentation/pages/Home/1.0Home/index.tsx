@@ -234,23 +234,6 @@ const Home = () => {
         </Stack>
       </Stack>
 
-      {/* Header Cards */}
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "20px",
-        }}
-      >
-        <HeaderCard title="Projects" count={dashboard?.projects || 0} />
-        <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
-        <HeaderCard title="Models" count={dashboard?.models || 0} />
-        <HeaderCard title="Reports" count={dashboard?.reports || 0} />
-      </Box>
-
       {/* Projects List */}
       <ProjectList projects={projects} />
 

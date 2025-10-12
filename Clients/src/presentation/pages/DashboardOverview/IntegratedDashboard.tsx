@@ -550,9 +550,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
               bottom: "-48px",
               right: "-48px",
               opacity: isHovered ? 0.04 : 0.015,
+              transform: isHovered ? "translateY(-10px)" : "translateY(0px)",
               zIndex: 0,
               pointerEvents: "none",
-              transition: "opacity 0.2s ease",
+              transition: "opacity 0.2s ease, transform 0.3s ease",
             }}
           >
             <BackgroundIcon size={120} />
@@ -1402,7 +1403,7 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Users"
           value={usersMetrics?.total || 0}
-          onClick={() => navigate("/settings")}
+          onClick={() => navigate("/settings?activeTab=profile")}
           navigable={true}
           backgroundIcon={Users}
         />

@@ -112,8 +112,10 @@ const VWProjectView = () => {
               Use-case general view
             </Typography>
             <Typography sx={projectViewHeaderDesc}>
-              This use case includes all the governance process status of the{" "}
-              {project.project_title} use case
+              This use case includes all the governance process status of{" "}
+              <Typography component="span" sx={{ color: "#13715B", fontWeight: 500 }}>
+                {project.project_title}
+              </Typography>
             </Typography>
           </>
         ) : (

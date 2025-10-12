@@ -38,6 +38,7 @@ export const routeMapping: Record<string, string> = {
   // Project related
   "/project-view": "Use case overview",
   "/test/project-view": "Use case overview",
+  "/overview": "Use case overview",
 
   // Vendor management
   "/vendors": "Vendor Management",

@@ -20,6 +20,15 @@ import {
   Lock,
   LockOpen,
   ChevronRight,
+  Lightbulb,
+  FileText,
+  BarChart3,
+  Users,
+  Brain,
+  Building2,
+  ShieldAlert,
+  GraduationCap,
+  ScrollText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -429,6 +438,7 @@ interface MetricCardProps {
   statusData?: IStatusData[];
   entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks";
   compact?: boolean;
+  backgroundIcon?: React.ComponentType<any>;
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -439,6 +449,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   statusData,
   entityType,
   compact = false,
+  backgroundIcon: BackgroundIcon,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
@@ -525,11 +536,28 @@ const MetricCard: React.FC<MetricCardProps> = ({
           display: "flex",
           flexDirection: "column",
           flex: 1,
+          overflow: "hidden",
           "&:last-child": {
             paddingBottom: compact ? 1.5 : 2,
           },
         }}
       >
+        {/* Background Icon */}
+        {BackgroundIcon && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              right: "-20px",
+              transform: "translateY(-50%)",
+              opacity: 0.03,
+              zIndex: 0,
+              pointerEvents: "none",
+            }}
+          >
+            <BackgroundIcon size={120} />
+          </Box>
+        )}
         {/* Header section with title and arrow icon */}
         <Box
           sx={{
@@ -539,6 +567,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
             justifyContent: "space-between",
             mb: compact ? 1 : 2,
             mt: compact ? 1.5 : 2,
+            zIndex: 1,
           }}
         >
           <Typography
@@ -571,6 +600,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: compact ? "center" : "flex-start",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           {showChart ? (
@@ -1334,6 +1365,7 @@ const IntegratedDashboard: React.FC = () => {
           value={dashboard?.projects_list?.filter((p) => !p.is_organizational)?.length || 0}
           onClick={() => navigate("/overview")}
           navigable={true}
+          backgroundIcon={Lightbulb}
         />
       ),
       title: "Use cases",
@@ -1346,6 +1378,7 @@ const IntegratedDashboard: React.FC = () => {
           value={evidenceMetrics?.total || 0}
           onClick={() => navigate("/file-manager")}
           navigable={true}
+          backgroundIcon={FileText}
         />
       ),
       title: "Evidence",
@@ -1358,6 +1391,7 @@ const IntegratedDashboard: React.FC = () => {
           value={dashboard?.reports || 0}
           onClick={() => navigate("/reporting")}
           navigable={true}
+          backgroundIcon={BarChart3}
         />
       ),
       title: "Reports",
@@ -1370,6 +1404,7 @@ const IntegratedDashboard: React.FC = () => {
           value={usersMetrics?.total || 0}
           onClick={() => navigate("/settings")}
           navigable={true}
+          backgroundIcon={Users}
         />
       ),
       title: "Users",
@@ -1387,6 +1422,7 @@ const IntegratedDashboard: React.FC = () => {
             dashboard?.models || 0
           )}
           entityType="models"
+          backgroundIcon={Brain}
         />
       ),
       title: "AI Models",
@@ -1404,6 +1440,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="vendors"
+          backgroundIcon={Building2}
         />
       ),
       title: "Vendors",
@@ -1421,6 +1458,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="vendorRisks"
+          backgroundIcon={ShieldAlert}
         />
       ),
       title: "Vendor Risks",
@@ -1438,6 +1476,7 @@ const IntegratedDashboard: React.FC = () => {
             dashboard?.trainings || 0
           )}
           entityType="trainings"
+          backgroundIcon={GraduationCap}
         />
       ),
       title: "Trainings",
@@ -1455,6 +1494,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="policies"
+          backgroundIcon={ScrollText}
         />
       ),
       title: "Policies",

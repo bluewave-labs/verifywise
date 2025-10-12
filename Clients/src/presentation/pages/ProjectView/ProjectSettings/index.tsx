@@ -569,7 +569,7 @@ const ProjectSettings = React.memo(
       if (!goal.accepted) {
         newErrors.goal = goal.message;
       }
-      const status = selectValidation("Project status", values.status);
+      const status = selectValidation("Use case status", values.status);
       if (!status.accepted) {
         newErrors.status = status.message;
       }
@@ -806,7 +806,7 @@ const ProjectSettings = React.memo(
             />
             <Select
               id="project-status"
-              label="Project status"
+              label="Use case status"
               value={values.status || 1}
               onChange={handleOnSelectChange("status")}
               items={projectStatusItems}

@@ -76,7 +76,7 @@ const getMenuGroups = (): MenuGroup[] => [
     name: "DISCOVERY",
     items: [
       {
-        name: "Use case oriented view",
+        name: "Use cases",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
       },

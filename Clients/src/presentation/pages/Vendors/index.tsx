@@ -362,8 +362,8 @@ const Vendors = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Vendor management"
         description="Manage your AI vendors and their associated risks"
-        whatItDoes="Track and manage **external entities** that provide AI-related products, services, or components to your organization. Monitor their *compliance status* and assess **associated risks**."
-        whyItMatters="Vendor management is crucial for maintaining *supply chain security*, ensuring **compliance**, and mitigating **third-party risks** in your AI ecosystem."
+        whatItDoes="Track and manage *external entities* that provide AI-related products, services, or components to your organization. Monitor their *compliance status* and assess *associated risks*."
+        whyItMatters="**Vendor management** is crucial for maintaining *supply chain security*, ensuring *compliance*, and mitigating *third-party risks* in your AI ecosystem."
         quickActions={[
           {
             label: "Add Your First Vendor",
@@ -384,24 +384,22 @@ const Vendors = () => {
           }
         ]}
         useCases={[
-          "**AI model vendors** providing machine learning algorithms and *pre-trained models*",
-          "**Cloud AI platforms** offering infrastructure and *development environments*",
-          "**Data processing services** handling *sensitive or regulated information*",
-          "**Third-party analytics tools** integrated with your AI systems"
+          "*AI model vendors* providing machine learning algorithms and *pre-trained models*",
+          "*Cloud AI platforms* offering infrastructure and *development environments*",
+          "*Data processing services* handling *sensitive or regulated information*",
+          "*Third-party analytics tools* integrated with your AI systems"
         ]}
         keyFeatures={[
-          "Centralized vendor database with contact and contract information",
-          "Risk assessment workflows with customizable scoring criteria",
-          "Compliance tracking and certification management",
-          "Integration with project management and audit trails"
+          "**Centralized vendor database** with basic vendor information and contact details",
+          "*Vendor risk management* with description, severity, likelihood, and action planning",
+          "*Project-based filtering* to view vendors and risks by specific use cases",
+          "*Dual-tab interface* for managing both vendors and their associated risks"
         ]}
         tips={[
-          "Start with your **most critical AI vendors** - those providing *core ML services* or data",
-          "**Regular vendor assessments** help maintain compliance and identify risks early",
-          "Use *vendor risk scoring* to prioritize your management efforts",
-          "Document all vendor communications and maintain **audit trails**",
-          "Set up *automated reminders* for contract renewals and **compliance reviews**",
-          "Establish clear **escalation procedures** for vendor-related incidents"
+          "Use the *project filter* to focus on vendors and risks for specific use cases",
+          "Track *risk severity* and *likelihood* to understand which risks need attention",
+          "Add *action plans* to vendor risks to document mitigation strategies",
+          "Switch between *Vendors* and *Risks* tabs to manage different aspects of vendor oversight"
         ]}
       />
       <PageTour

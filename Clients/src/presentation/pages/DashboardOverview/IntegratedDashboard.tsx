@@ -549,9 +549,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
               position: "absolute",
               bottom: "-48px",
               right: "-48px",
-              opacity: 0.015,
+              opacity: isHovered ? 0.04 : 0.015,
               zIndex: 0,
               pointerEvents: "none",
+              transition: "opacity 0.2s ease",
             }}
           >
             <BackgroundIcon size={120} />

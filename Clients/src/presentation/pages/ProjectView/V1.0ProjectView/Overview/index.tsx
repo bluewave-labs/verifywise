@@ -217,7 +217,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
               icon={<UserIcon size={16} />}
             />
             <InfoCard
-              title="Project status"
+              title="Use case status"
               body={project.status || "Not started"}
               icon={<ActivityIcon size={16} />}
             />

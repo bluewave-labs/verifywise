@@ -564,8 +564,8 @@ const Framework = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Organizational frameworks"
         description="Navigate compliance frameworks like ISO 27001 and ISO 42001 for AI governance"
-        whatItDoes="Provide **structured guidance** for implementing *organizational frameworks* and **compliance standards**. Access detailed requirements, clauses, and annexes for *ISO 27001* and **ISO 42001 frameworks**."
-        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and **regulatory requirements**. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating **due diligence** to stakeholders and regulators."
+        whatItDoes="Provide *structured guidance* for implementing *organizational frameworks* and *compliance standards*. Access detailed requirements, clauses, and annexes for *ISO 27001* and *ISO 42001 frameworks*."
+        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and *regulatory requirements*. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating *due diligence* to stakeholders and regulators."
         quickActions={[
           {
             label: "Explore Framework Requirements",
@@ -578,18 +578,18 @@ const Framework = () => {
           }
         ]}
         useCases={[
-          "**ISO 27001 implementation** for *information security management systems*",
-          "**ISO 42001 compliance** for *artificial intelligence management systems* and **governance**"
+          "*ISO 27001 implementation* for *information security management systems*",
+          "*ISO 42001 compliance* for *artificial intelligence management systems* and *governance*"
         ]}
         keyFeatures={[
           "**Comprehensive framework navigation** with *hierarchical clause structure*",
-          "**Cross-referencing** between different *standards* and requirements",
-          "**Progress tracking** and *compliance gap analysis* tools for implementation planning"
+          "*Cross-referencing* between different *standards* and requirements",
+          "*Progress tracking* and *compliance gap analysis* tools for implementation planning"
         ]}
         tips={[
-          "Start with **gap analysis** to understand your *current compliance position*",
-          "Focus on *foundational clauses* before moving to **specific technical requirements**",
-          "Document your **implementation decisions** and evidence for *audit readiness*"
+          "Start with *gap analysis* to understand your *current compliance position*",
+          "Focus on *foundational clauses* before moving to *specific technical requirements*",
+          "Document your *implementation decisions* and evidence for *audit readiness*"
         ]}
       />
       <PageBreadcrumbs />

@@ -108,8 +108,8 @@ const PolicyDashboard: React.FC = () => {
           onClose={() => setIsHelperDrawerOpen(false)}
           title="Policy manager"
           description="Create and maintain AI governance policies aligned with regulatory requirements"
-          whatItDoes="Centralize **policy creation**, *version control*, and **distribution** for all *AI-related governance documentation*. Track **policy reviews**, *approvals*, and **acknowledgments** across your organization."
-          whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to **responsible AI**, ensure *consistent practices* across teams, and satisfy **regulatory requirements** for documented controls."
+          whatItDoes="Centralize *policy creation*, *version control*, and *distribution* for all *AI-related governance documentation*. Track *policy reviews*, *approvals*, and *acknowledgments* across your organization."
+          whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to *responsible AI*, ensure *consistent practices* across teams, and satisfy *regulatory requirements* for documented controls."
           quickActions={[
             {
               label: "Create New Policy",
@@ -122,18 +122,18 @@ const PolicyDashboard: React.FC = () => {
             }
           ]}
           useCases={[
-            "**AI ethics policies** defining *acceptable use* and **development principles**",
-            "**Data governance policies** for handling *sensitive information* in **AI systems**"
+            "*AI ethics policies* defining *acceptable use* and *development principles*",
+            "*Data governance policies* for handling *sensitive information* in *AI systems*"
           ]}
           keyFeatures={[
-            "**Policy lifecycle management** from *draft* through **approval** to *retirement*",
-            "**Version control** with *change tracking* and **approval workflows**",
-            "**Distribution tracking** to ensure all *stakeholders* have **acknowledged current policies**"
+            "**Policy lifecycle management** from *draft* through *approval* to *retirement*",
+            "*Version control* with *change tracking* and *approval workflows*",
+            "*Distribution tracking* to ensure all *stakeholders* have *acknowledged current policies*"
           ]}
           tips={[
-            "Start with **template policies** and customize them to your *organization's needs*",
-            "Schedule **regular policy reviews** to ensure they remain *current and relevant*",
-            "Track **acknowledgments** to demonstrate *policy awareness* across your teams"
+            "Start with *template policies* and customize them to your *organization's needs*",
+            "Schedule *regular policy reviews* to ensure they remain *current and relevant*",
+            "Track *acknowledgments* to demonstrate *policy awareness* across your teams"
           ]}
         />
 

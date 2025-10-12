@@ -295,8 +295,8 @@ const RiskManagement = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Risk management & mitigation"
         description="Identify, assess, and mitigate risks across your AI projects and operations"
-        whatItDoes="Manage **risk lifecycle** from *identification* to **mitigation** across all AI projects. Track **risk severity**, *likelihood assessments*, and **mitigation strategies**. Maintain comprehensive **risk registers** with *ownership assignments* and **progress monitoring**."
-        whyItMatters="Effective **risk management** is crucial for maintaining *operational resilience* and **regulatory compliance**. Proactive risk identification and mitigation help prevent incidents, protect assets, and ensure **business continuity** while meeting *governance requirements*."
+        whatItDoes="Manage *risk lifecycle* from *identification* to *mitigation* across all AI projects. Track *risk severity*, *likelihood assessments*, and *mitigation strategies*. Maintain comprehensive *risk registers* with *ownership assignments* and *progress monitoring*."
+        whyItMatters="Effective **risk management** is crucial for maintaining *operational resilience* and *regulatory compliance*. Proactive risk identification and mitigation help prevent incidents, protect assets, and ensure *business continuity* while meeting *governance requirements*."
         quickActions={[
           {
             label: "Add New Risk",
@@ -309,18 +309,18 @@ const RiskManagement = () => {
           }
         ]}
         useCases={[
-          "**Operational risk assessment** for *AI model deployments* and **data processing activities**",
-          "**Regulatory compliance** tracking for *governance frameworks* like **EU AI Act** and ISO standards"
+          "*Operational risk assessment* for *AI model deployments* and *data processing activities*",
+          "*Regulatory compliance* tracking for *governance frameworks* like *EU AI Act* and ISO standards"
         ]}
         keyFeatures={[
-          "**Comprehensive risk assessment** with *severity* and **likelihood scoring**",
-          "**MIT AI Risk Database** integration for *industry-standard risk templates*",
-          "**Risk visualization** and *filtering* with **real-time dashboard updates**"
+          "**Comprehensive risk assessment** with *severity* and *likelihood scoring*",
+          "*MIT AI Risk Database* integration for *industry-standard risk templates*",
+          "*Risk visualization* and *filtering* with *real-time dashboard updates*"
         ]}
         tips={[
-          "**Regular risk reviews** help identify *emerging threats* before they impact operations",
-          "Use **risk categories** to organize threats by *impact area* and **regulatory requirements**",
-          "Set **clear ownership** and *target dates* for effective **risk mitigation tracking**"
+          "*Regular risk reviews* help identify *emerging threats* before they impact operations",
+          "Use *risk categories* to organize threats by *impact area* and *regulatory requirements*",
+          "Set *clear ownership* and *target dates* for effective *risk mitigation tracking*"
         ]}
       />
 

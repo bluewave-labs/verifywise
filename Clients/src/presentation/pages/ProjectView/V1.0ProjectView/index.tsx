@@ -22,6 +22,7 @@ import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
+import { Target as TargetIcon } from "lucide-react";
 
 const VWProjectView = () => {
   const { userRoleName } = useAuth();
@@ -61,6 +62,7 @@ const VWProjectView = () => {
         label: project.project_title,
         path: "", // No path since this is the current page
         disabled: true, // Make it non-clickable as it's the current page
+        icon: <TargetIcon size={14} strokeWidth={1.5} />,
       });
     }
 

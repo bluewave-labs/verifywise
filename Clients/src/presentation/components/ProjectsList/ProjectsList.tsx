@@ -1,11 +1,13 @@
 // New component file: ProjectList.tsx
 import { useState, useMemo } from "react";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
-import { Search as SearchIcon } from "lucide-react";
+import { Search as SearchIcon, CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
 import ViewToggle from "../ViewToggle";
+import CustomizableButton from "../Button/CustomizableButton";
+import allowedRoles from "../../../application/constants/permissions";
 import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
 
 import { Project } from "../../../domain/types/Project";
@@ -19,9 +21,12 @@ import {
 
 interface ProjectListProps {
   projects: Project[];
+  onNewProject?: () => void;
+  userRoleName?: string;
+  newProjectButtonRef?: React.RefObject<HTMLElement>;
 }
 
-const ProjectList = ({ projects }: ProjectListProps) => {
+const ProjectList = ({ projects, onNewProject, userRoleName, newProjectButtonRef }: ProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [viewMode, setViewMode] = usePersistedViewMode(
@@ -92,7 +97,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           mb: "16px",
         }}
       >
-        {/* Search Box */}
+        {/* Left Side: Search Box */}
         <Box sx={searchBoxStyle(isSearchBarVisible)}>
           <IconButton
             disableRipple
@@ -117,10 +122,33 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           )}
         </Box>
 
-        {/* View Toggle */}
-        {projects && projects.length > 0 && (
-          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-        )}
+        {/* Right Side: New Project Button + View Toggle */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {/* New Project Button */}
+          {onNewProject && (
+            <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
+              <CustomizableButton
+                variant="contained"
+                text="New project"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<AddCircleOutlineIcon size={16} />}
+                onClick={onNewProject}
+                isDisabled={
+                  userRoleName ? !allowedRoles.projects.create.includes(userRoleName) : false
+                }
+              />
+            </div>
+          )}
+
+          {/* View Toggle */}
+          {projects && projects.length > 0 && (
+            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+          )}
+        </Box>
       </Box>
 
       {/* Projects List */}

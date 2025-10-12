@@ -198,44 +198,15 @@ const Home = () => {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
         </Typography>
-        <Stack sx={vwhomeBodyControls}>
-          {/* {projects.length === 0 && (
-            <CustomizableButton
-              variant="contained"
-              text="Create demo project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<CloudDownloadIcon />}
-              onClick={() => handleGenerateDemoDataClick()}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          )} */}
-          <div data-joyride-id="new-project-button" ref={refs[0]}>
-            <CustomizableButton
-              variant="contained"
-              text="New project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleOutlineIcon size={16} />}
-              onClick={() => setIsProjectFormModalOpen(true)}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          </div>
-        </Stack>
       </Stack>
 
       {/* Projects List */}
-      <ProjectList projects={projects} />
+      <ProjectList
+        projects={projects}
+        onNewProject={() => setIsProjectFormModalOpen(true)}
+        userRoleName={userRoleName}
+        newProjectButtonRef={refs[0]}
+      />
 
       <Modal
         open={isProjectFormModalOpen}

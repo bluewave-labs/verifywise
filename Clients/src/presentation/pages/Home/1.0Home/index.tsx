@@ -186,9 +186,9 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
-      {/* New Project Header */}
-      <Stack sx={vwhomeBody}>
-        <Stack direction="row" alignItems="center" spacing={1}>
+      {/* Use Cases Header */}
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="center" spacing={1} pt={2}>
           <Typography sx={vwhomeHeading}>Use cases</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}

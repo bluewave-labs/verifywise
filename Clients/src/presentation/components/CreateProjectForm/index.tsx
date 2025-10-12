@@ -65,10 +65,10 @@ interface CreateProjectFormProps {
 }
 
 /**
- * `CreateProjectForm` is a functional component that renders a form for creating a new project.
- * It includes fields for project title, users, owner, start date, AI risk classification, type of high risk role, and goal.
+ * `CreateProjectForm` is a functional component that renders a form for creating a new use case.
+ * It includes fields for use case title, users, owner, start date, AI risk classification, type of high risk role, and goal.
  * The form validates the input fields and displays error messages if validation fails.
- * On successful submission, it shows a newly created project on project overview page.
+ * On successful submission, it shows a newly created use case on use case overview page.
  *
  * @component
  * @returns {JSX.Element} The rendered component.
@@ -124,7 +124,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
     const newErrors: CreateProjectFormErrors = {};
 
     const projectTitle = checkStringValidation(
-      "Project title",
+      "Use case title",
       values.project_title,
       1,
       64
@@ -209,7 +209,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
         });
       }
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error("Error creating use case:", error);
     }
   };
 
@@ -260,7 +260,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
             <Suspense fallback={<div>Loading...</div>}>
               <Field
                 id="project-title-input"
-                label="Project title"
+                label="Use case title"
                 width="350px"
                 value={values.project_title}
                 onChange={handleOnTextFieldChange("project_title")}
@@ -441,7 +441,7 @@ const CreateProjectForm: FC<CreateProjectFormProps> = ({
           }
           sx={createProjectFormStyles.submitButton}
         >
-          Create project
+          Create use case
         </Button>
       </Stack>
     </Stack>

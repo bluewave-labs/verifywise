@@ -484,7 +484,7 @@ const Vendors = () => {
                   id="projects"
                   value={selectedProjectId ?? ""}
                   items={[
-                    { _id: "all", name: "All Projects" },
+                    { _id: "all", name: "All Use Cases" },
                     ...projects.map((project) => ({
                       _id: project.id.toString(),
                       name: project.project_title,
@@ -537,7 +537,7 @@ const Vendors = () => {
                     id="projects"
                     value={selectedProjectId ?? ""}
                     items={[
-                      { _id: "all", name: "All Projects" },
+                      { _id: "all", name: "All Use Cases" },
                       ...projects.map((project) => ({
                         _id: project.id.toString(),
                         name: project.project_title,

@@ -322,6 +322,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
             paddingBottom: theme.spacing(20),
             gap: theme.spacing(10),
             minHeight: 200,
+            backgroundColor: "white",
           }}
         >
           <img src={Placeholder} alt="Placeholder" />

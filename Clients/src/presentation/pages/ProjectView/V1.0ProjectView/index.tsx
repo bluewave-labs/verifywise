@@ -73,11 +73,11 @@ const VWProjectView = () => {
         {project ? (
           <>
             <Typography sx={projectViewHeaderTitle}>
-              {project.project_title} project view
+              Use-case general view
             </Typography>
             <Typography sx={projectViewHeaderDesc}>
-              This project includes all the governance process status of the{" "}
-              {project.project_title} project
+              This page includes the governance process status of{" "}
+              <span style={{ color: "#13715B" }}>{project.project_title}</span>
             </Typography>
           </>
         ) : (
@@ -106,12 +106,12 @@ const VWProjectView = () => {
               />
               <Tab
                 sx={tabStyle}
-                label="Project risks"
+                label="Use case risks"
                 value="project-risks"
                 disableRipple
               />
               <Tab
-                label="Frameworks"
+                label="Frameworks/regulations"
                 value="frameworks"
                 sx={tabStyle}
                 disableRipple

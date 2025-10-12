@@ -1,7 +1,7 @@
-import { Stack, Typography, Tooltip, Button } from "@mui/material";
-import { ArrowUpRight as WhiteUpRightArrowIcon } from "lucide-react";
+import { Stack, Typography, Tooltip } from "@mui/material";
+import Button from "../../Button";
+import { ArrowUpRight as WhiteUpRightArrowIcon, Eye as EyeIcon } from "lucide-react";
 import ProgressBar from "../../ProjectCard/ProgressBar";
-import CustomizableButton from "../../Button/CustomizableButton";
 import {
   progressStyle,
   projectCardSpecKeyStyle,
@@ -369,20 +369,21 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             </Typography>
           </Stack>
         </Stack>
-        {/* View Project Button */}
-        <Stack sx={{ mt: "auto" }}>
-          <Tooltip title="View project details" sx={{ fontSize: 13 }}>
-            <CustomizableButton
-              variant="outlined"
+        {/* View Use Case Details Button */}
+        <Stack sx={{ mt: "auto", alignItems: "flex-end" }}>
+          <Tooltip title="View use case details" sx={{ fontSize: 13 }}>
+            <Button
+              variant="contained"
               onClick={() =>
                 navigate("/project-view", {
                   projectId: project.id.toString(),
                 })
               }
-              size="medium"
-              text="View project"
               sx={viewProjectButtonStyle}
-            />
+              startIcon={<EyeIcon size={14} />}
+            >
+              View use case details
+            </Button>
           </Tooltip>
         </Stack>
       </Stack>

@@ -40,11 +40,15 @@ export const projectCardSpecKeyStyle = { fontSize: 11, color: "#8594AC" };
 export const projectCardSpecValueyStyle = { fontSize: 13, color: "#344054" };
 
 export const viewProjectButtonStyle = {
-  border: "1px solid #D0D5DD",
-  color: "#344054",
+  backgroundColor: "#13715B",
+  color: "#fff",
+  fontWeight: 600,
+  px: 3,
+  mt: 1,
   "&:hover": {
-    backgroundColor: "transparent",
+    backgroundColor: "#0e5c47",
   },
+  border: "none",
 };
 
 export const euAiActChipStyle = {

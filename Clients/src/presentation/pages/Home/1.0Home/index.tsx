@@ -2,7 +2,6 @@ import { useContext, useEffect, useState } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
-  vwhomeBodyControls,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
@@ -20,7 +19,6 @@ import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScre
 import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/HelperDrawer";
 import HelperIcon from "../../../components/HelperIcon";
-import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
@@ -150,7 +148,7 @@ const Home = () => {
         whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or **governance issues**. It provides **executive visibility** into *AI program health* and helps prioritize resources where they're needed most."
         quickActions={[
           {
-            label: "Create New Project",
+            label: "Create New Use Case",
             description: "Start a new AI governance project or compliance initiative",
             primary: true
           },
@@ -164,13 +162,13 @@ const Home = () => {
           "**Executive reporting** with *real-time metrics* and **progress tracking**"
         ]}
         keyFeatures={[
-          "**Real-time project status tracking** with *progress indicators*",
+          "**Real-time use case status tracking** with *progress indicators*",
           "**Aggregated compliance metrics** across all *governance areas*",
           "**Quick access** to *pending tasks* and **upcoming deadlines**"
         ]}
         tips={[
           "**Check the dashboard daily** to stay on top of *governance activities*",
-          "Use **project filters** to focus on *specific initiatives* or teams",
+          "Use **use case filters** to focus on *specific initiatives* or teams",
           "Set up **dashboard alerts** for *critical compliance thresholds*"
         ]}
       />
@@ -186,36 +184,28 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
-      {/* New Project Header */}
-      <Stack sx={vwhomeBody}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={vwhomeHeading}>Projects overview</Typography>
+      {/* Projects Header */}
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
+          <Typography sx={vwhomeHeading}>Use cases</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />
         </Stack>
-        <Stack sx={vwhomeBodyControls}>
-          {/* {projects.length === 0 && (
-            <CustomizableButton
-              variant="contained"
-              text="Create demo project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<CloudDownloadIcon />}
-              onClick={() => handleGenerateDemoDataClick()}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          )} */}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+        </Typography>
+      </Stack>
+
+      {/* Projects List */}
+      <ProjectList
+        projects={projects}
+        newProjectButton={
           <div data-joyride-id="new-project-button" ref={refs[0]}>
             <CustomizableButton
               variant="contained"
-              text="New project"
+              text="New use case"
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",
@@ -228,28 +218,8 @@ const Home = () => {
               }
             />
           </div>
-        </Stack>
-      </Stack>
-
-      {/* Header Cards */}
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "20px",
-        }}
-      >
-        <HeaderCard title="Projects" count={dashboard?.projects || 0} />
-        <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
-        <HeaderCard title="Models" count={dashboard?.models || 0} />
-        <HeaderCard title="Reports" count={dashboard?.reports || 0} />
-      </Box>
-
-      {/* Projects List */}
-      <ProjectList projects={projects} />
+        }
+      />
 
       <Modal
         open={isProjectFormModalOpen}

@@ -23,7 +23,7 @@ interface ProjectListProps {
   projects: Project[];
   onNewProject?: () => void;
   userRoleName?: string;
-  newProjectButtonRef?: React.RefObject<HTMLElement>;
+  newProjectButtonRef?: React.RefObject<HTMLDivElement>;
 }
 
 const ProjectList = ({ projects, onNewProject, userRoleName, newProjectButtonRef }: ProjectListProps) => {

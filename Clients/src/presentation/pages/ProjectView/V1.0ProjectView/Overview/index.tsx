@@ -330,7 +330,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
       <Stack sx={{ gap: 10 }}>
         {project ? (
           <>
-            <Typography sx={projectRiskSection}>Project risks</Typography>
+            <Typography sx={projectRiskSection}>Use case risks</Typography>
             <RisksCard risksSummary={projectRisksSummary} />
           </>
         ) : (

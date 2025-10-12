@@ -88,14 +88,14 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
         );
         setAlert({
           variant: "success",
-          body: "Project deleted successfully",
+          body: "Use case deleted successfully",
           isToast: true,
           visible: true,
         });
       } else {
         setAlert({
           variant: "error",
-          body: "Failed to delete project",
+          body: "Failed to delete use case",
           isToast: true,
           visible: true,
         });
@@ -202,7 +202,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             color: "#000000",
           }}
         >
-          Project Settings
+          Use Case Settings
         </Typography>
 
         <Box
@@ -221,7 +221,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               {organizationalProject.project_title}
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#666666" }}>
-              Organizational Project
+              Organizational Use Case
             </Typography>
           </Box>
 
@@ -229,7 +229,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             <CustomizableButton
               variant="outlined"
               icon={<EditIconGrey size={16} />}
-              text="Edit Project"
+              text="Edit Use Case"
               onClick={handleEditProjectClick}
               isDisabled={!allowedRoles.projects.edit.includes(userRoleName)}
               sx={{
@@ -245,7 +245,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             <CustomizableButton
               variant="outlined"
               icon={<DeleteIconRed size={16} />}
-              text="Delete Project"
+              text="Delete Use Case"
               onClick={handleDeleteProjectClick}
               isDisabled={!allowedRoles.projects.delete.includes(userRoleName)}
               sx={{
@@ -423,7 +423,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           title="Confirm Delete"
           body={
             <Typography fontSize={13}>
-              Are you sure you want to delete the project "
+              Are you sure you want to delete the use case "
               {organizationalProject.project_title}"? This action cannot be
               undone and will remove all associated data.
             </Typography>
@@ -444,7 +444,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove {frameworkToRemove.name} from
-              the project?
+              the use case?
             </Typography>
           }
           cancelText="Cancel"

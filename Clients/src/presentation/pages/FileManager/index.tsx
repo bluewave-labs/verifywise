@@ -150,7 +150,7 @@ const FileManager: React.FC = (): JSX.Element => {
               id="project-filter"
               value={selectedProject || "all"}
               items={[
-                { _id: "all", name: "All projects" },
+                { _id: "all", name: "All use cases" },
                 ...projects.map((project: Project) => ({
                   _id: project.id.toString(),
                   name: project.project_title,

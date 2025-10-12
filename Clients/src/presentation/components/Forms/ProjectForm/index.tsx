@@ -277,7 +277,7 @@ const ProjectForm = ({
     const newErrors: FormErrors = {};
 
     const projectTitle = checkStringValidation(
-      "Project title",
+      "Use case title",
       values.project_title,
       1,
       64
@@ -440,17 +440,17 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit ? "Edit use case" : "Create new use case"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? "Update your use case details below"
               : defaultFrameworkType
               ? `Creating a ${
                   defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
                     ? "organization-wide"
                     : "project-based"
-                } project`
+                } use case`
               : "Please select the type of frameworks you need"}
           </Typography>
         </Stack>
@@ -556,8 +556,8 @@ const ProjectForm = ({
           <CustomizableToast
             title={
               projectToEdit
-                ? "Updating project. Please wait..."
-                : "Creating project. Please wait..."
+                ? "Updating use case. Please wait..."
+                : "Creating use case. Please wait..."
             }
           />
         </Stack>
@@ -575,13 +575,13 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit ? "Edit use case" : "Create new use case"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? "Update your use case details below"
               : values.framework_type === FrameworkTypeEnum.ProjectBased
-              ? "Create a new project from scratch by filling in the following."
+              ? "Create a new use case from scratch by filling in the following."
               : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
         </Stack>
@@ -598,7 +598,7 @@ const ProjectForm = ({
         <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
           <Field
             id="project-title-input"
-            label="Project title"
+            label="Use case title"
             width="350px"
             value={values.project_title}
             onChange={handleOnTextFieldChange("project_title")}
@@ -644,7 +644,7 @@ const ProjectForm = ({
               />
               <Select
                 id="project-status-input"
-                label="Project status"
+                label="Use case status"
                 placeholder="Select status"
                 value={values.status || ""}
                 onChange={handleOnSelectChange("status")}
@@ -784,7 +784,7 @@ const ProjectForm = ({
                       mb: 2,
                     }}
                   >
-                    Monitored regulations and standards *
+                    Applicable regulations *
                   </Typography>
                   <Autocomplete
                     multiple
@@ -896,7 +896,7 @@ const ProjectForm = ({
                   mb: 2,
                 }}
               >
-                Monitored regulations and standards *
+                Applicable regulations *
               </Typography>
               <Autocomplete
                 multiple
@@ -1013,7 +1013,7 @@ const ProjectForm = ({
         }}
       >
         <CustomizableButton
-          text={projectToEdit ? "Update project" : "Create project"}
+          text={projectToEdit ? "Update use case" : "Create use case"}
           sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon size={20} />}
           onClick={() => handleSubmit()}

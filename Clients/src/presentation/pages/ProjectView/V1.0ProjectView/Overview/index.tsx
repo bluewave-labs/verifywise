@@ -204,7 +204,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
         {project ? (
           <>
             <InfoCard title="Owner" body={projectOwner || "N/A"} />
-            <InfoCard title="Project status" body={project.status || "Not started"} />
+            <InfoCard title="Use case status" body={project.status || "Not started"} />
             <InfoCard
               title="Last updated"
               body={formatDate(project.last_updated.toString())}
@@ -300,7 +300,7 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
       <Stack sx={{ gap: 10 }}>
         {project ? (
           <>
-            <Typography sx={projectRiskSection}>Project risks</Typography>
+            <Typography sx={projectRiskSection}>Use case risks</Typography>
             <RisksCard risksSummary={projectRisksSummary} />
           </>
         ) : (

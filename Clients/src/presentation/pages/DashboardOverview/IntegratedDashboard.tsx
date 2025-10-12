@@ -749,56 +749,11 @@ const IntegratedDashboard: React.FC = () => {
   // Heights: Users/Reports/Projects/Evidence are always small (85px), others can be big (170px)
   const defaultLayouts: Layouts = {
     lg: [
-      // First row - 4 widgets (small widgets = h:2, fixed width, not resizable)
-      {
-        i: "projects",
-        x: 0,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "evidences",
-        x: 3,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "reports",
-        x: 6,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "users",
-        x: 9,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      // Second row - 4 widgets (can be big = h:4)
+      // First row - 4 widgets (can be big = h:4)
       {
         i: "models",
         x: 0,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -809,7 +764,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendors",
         x: 3,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -820,7 +775,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendor-risks",
         x: 6,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -831,7 +786,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "trainings",
         x: 9,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -839,11 +794,11 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
-      // Third row - 2 widgets (can be big = h:4)
+      // Second row - 1 widget (can be big = h:4)
       {
         i: "policies",
         x: 0,
-        y: 6,
+        y: 4,
         w: 3,
         h: 4,
         minW: 3,

@@ -1332,7 +1332,8 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Use cases"
           value={dashboard?.projects_list?.filter((p) => !p.is_organizational)?.length || 0}
-          navigable={false}
+          onClick={() => navigate("/overview")}
+          navigable={true}
         />
       ),
       title: "Use cases",

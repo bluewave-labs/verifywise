@@ -5,6 +5,7 @@ export const infoCardStyle = {
   minWidth: 228,
   width: "100%",
   padding: "8px 36px 14px 14px",
+  position: "relative",
 };
 
 export const infoCardTitleStyle = {

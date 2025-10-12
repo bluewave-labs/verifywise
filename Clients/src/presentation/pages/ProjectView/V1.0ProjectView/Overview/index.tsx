@@ -19,7 +19,9 @@ import {
   User as UserIcon,
   Activity as ActivityIcon,
   Clock as ClockIcon,
-  UserCheck as UserCheckIcon
+  UserCheck as UserCheckIcon,
+  Target as TargetIcon,
+  Users as UsersIcon
 } from "lucide-react";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
@@ -253,8 +255,16 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
       <Stack className="vw-project-overview-row" sx={rowStyle}>
         {project ? (
           <>
-            <DescriptionCard title="Goal" body={project.goal} />
-            <TeamCard title="Team members" members={projectMembers} />
+            <DescriptionCard
+              title="Goal"
+              body={project.goal}
+              icon={<TargetIcon size={16} />}
+            />
+            <TeamCard
+              title="Team members"
+              members={projectMembers}
+              icon={<UsersIcon size={16} />}
+            />
           </>
         ) : (
           <>

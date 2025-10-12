@@ -189,12 +189,15 @@ const Home = () => {
       {/* New Project Header */}
       <Stack sx={vwhomeBody}>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={vwhomeHeading}>Projects overview</Typography>
+          <Typography sx={vwhomeHeading}>Use cases</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />
         </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+        </Typography>
         <Stack sx={vwhomeBodyControls}>
           {/* {projects.length === 0 && (
             <CustomizableButton

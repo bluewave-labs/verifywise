@@ -73,11 +73,11 @@ const VWProjectView = () => {
         {project ? (
           <>
             <Typography sx={projectViewHeaderTitle}>
-              {project.project_title} project view
+              Use-case general view
             </Typography>
             <Typography sx={projectViewHeaderDesc}>
-              This project includes all the governance process status of the{" "}
-              {project.project_title} project
+              This use case includes all the governance process status of the{" "}
+              {project.project_title} use case
             </Typography>
           </>
         ) : (

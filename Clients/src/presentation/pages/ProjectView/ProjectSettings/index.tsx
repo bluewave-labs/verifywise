@@ -557,7 +557,7 @@ const ProjectSettings = React.memo(
       const newErrors: FormErrors = {};
 
       const projectTitle = checkStringValidation(
-        "Project title",
+        "Use case title",
         values.projectTitle,
         1,
         64
@@ -783,7 +783,7 @@ const ProjectSettings = React.memo(
           <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
             <Field
               id="project-title-input"
-              label="Project title"
+              label="Use case title"
               width={400}
               value={values.projectTitle}
               onChange={handleOnTextFieldChange("projectTitle")}
@@ -875,7 +875,7 @@ const ProjectSettings = React.memo(
                   Monitored regulations and standards *
                 </Typography>
                 <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                  Add all monitored regulations and standards of the project.
+                  Add all monitored regulations and standards of the use case.
                 </Typography>
                 <Autocomplete
                   multiple
@@ -1048,8 +1048,8 @@ const ProjectSettings = React.memo(
                 Team members
               </Typography>
               <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                Add all team members of the project. Only those who are added
-                will be able to see the project.
+                Add all team members of the use case. Only those who are added
+                will be able to see the use case.
               </Typography>
             </Stack>
 
@@ -1269,7 +1269,7 @@ const ProjectSettings = React.memo(
                   mb: 4,
                 }}
               >
-                Delete project
+                Delete use case
               </Typography>
               <Typography
                 sx={{
@@ -1278,8 +1278,8 @@ const ProjectSettings = React.memo(
                   mb: 8,
                 }}
               >
-                Note that deleting a project will remove all data related to
-                that project from our system. This is permanent and
+                Note that deleting a use case will remove all data related to
+                that use case from your system. This is permanent and
                 non-recoverable.
               </Typography>
               <CustomizableButton
@@ -1294,7 +1294,7 @@ const ProjectSettings = React.memo(
                 icon={<DeleteIcon size={16} />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
-                text="Delete project"
+                text="Delete use case"
                 isDisabled={
                   !allowedRoles.projects.delete.includes(userRoleName)
                 }
@@ -1308,7 +1308,7 @@ const ProjectSettings = React.memo(
             title="Confirm Delete"
             body={
               <Typography fontSize={13}>
-                Are you sure you want to delete the project?
+                Are you sure you want to delete the use case?
               </Typography>
             }
             cancelText="Cancel"
@@ -1327,7 +1327,7 @@ const ProjectSettings = React.memo(
             body={
               <Typography fontSize={13}>
                 Are you sure you want to remove {frameworkToRemove?.name} from
-                the project?
+                the use case?
               </Typography>
             }
             cancelText="Cancel"

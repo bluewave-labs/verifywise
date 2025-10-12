@@ -15,6 +15,12 @@ import { User } from "../../../../../domain/types/User";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import useProjectRisks from "../../../../../application/hooks/useProjectRisks";
 import useUsers from "../../../../../application/hooks/useUsers";
+import {
+  User as UserIcon,
+  Activity as ActivityIcon,
+  Clock as ClockIcon,
+  UserCheck as UserCheckIcon
+} from "lucide-react";
 
 const VWProjectOverview = ({ project }: { project?: Project }) => {
   const [projectFrameworkId, setProjectFrameworkId] = useState<number | null>(
@@ -203,22 +209,36 @@ const VWProjectOverview = ({ project }: { project?: Project }) => {
       <Stack className="vw-project-overview-row" sx={rowStyle}>
         {project ? (
           <>
-            <InfoCard title="Owner" body={projectOwner || "N/A"} />
-            <InfoCard title="Project status" body={project.status || "Not started"} />
+            <InfoCard
+              title="Owner"
+              body={projectOwner || "N/A"}
+              icon={<UserIcon size={16} />}
+            />
+            <InfoCard
+              title="Project status"
+              body={project.status || "Not started"}
+              icon={<ActivityIcon size={16} />}
+            />
             <InfoCard
               title="Last updated"
               body={formatDate(project.last_updated.toString())}
+              icon={<ClockIcon size={16} />}
             />
             {user.name !== undefined && user.surname !== undefined ? (
               <>
                 <InfoCard
                   title="Last updated by"
                   body={`${user.name} ${user.surname}`}
+                  icon={<UserCheckIcon size={16} />}
                 />
               </>
             ) : (
               <>
-                <InfoCard title="Last updated by" body="N/A" />
+                <InfoCard
+                  title="Last updated by"
+                  body="N/A"
+                  icon={<UserCheckIcon size={16} />}
+                />
               </>
             )}
           </>

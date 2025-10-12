@@ -1330,12 +1330,12 @@ const IntegratedDashboard: React.FC = () => {
       id: "projects",
       content: (
         <MetricCard
-          title="Projects"
-          value={dashboard?.projects || 0}
+          title="Use cases"
+          value={dashboard?.projects_list?.filter((p) => !p.is_organizational)?.length || 0}
           navigable={false}
         />
       ),
-      title: "Projects",
+      title: "Use cases",
     },
     {
       id: "evidences",
@@ -1343,7 +1343,8 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Evidence"
           value={evidenceMetrics?.total || 0}
-          navigable={false}
+          onClick={() => navigate("/file-manager")}
+          navigable={true}
         />
       ),
       title: "Evidence",
@@ -1354,7 +1355,8 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Reports"
           value={dashboard?.reports || 0}
-          navigable={false}
+          onClick={() => navigate("/reporting")}
+          navigable={true}
         />
       ),
       title: "Reports",
@@ -1365,7 +1367,8 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Users"
           value={usersMetrics?.total || 0}
-          navigable={false}
+          onClick={() => navigate("/settings")}
+          navigable={true}
         />
       ),
       title: "Users",

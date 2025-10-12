@@ -49,7 +49,7 @@ const Home = () => {
 
   const [runHomeTour, setRunHomeTour] = useState(false);
   const newProjectButtonRef = useRef<HTMLDivElement>(null);
-  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+  const { allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
   useEffect(() => {

@@ -236,8 +236,6 @@ export const getAllAnnexesWithSubAnnexQuery = async (
       }
     )) as [any[], number];
 
-    console.log(`🔍 ISO 27001 Debug - Annex ${annex.id} controls raw from DB:`, JSON.stringify(annexControls[0].slice(0, 3), null, 2));
-
     (annex as any).annexcontrols = annexControls[0];
   }
   return annexes[0];
@@ -430,7 +428,6 @@ export const getAllAnnexesWithControlsQuery = async (
         number,
       ];
 
-    console.log(`🔍 ISO 27001 Debug getAllAnnexesWithControlsQuery - Annex ${annex.id} controls:`, JSON.stringify(annexControls[0].slice(0, 3), null, 2));
     (
       annex as ISO27001AnnexStructModel & {
         annexControls: Partial<

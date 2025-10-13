@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-} from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import LinkIcon from "@mui/icons-material/Link";
+import Field from "../../Inputs/Field";
+import CustomizableButton from "../../Button/CustomizableButton";
 
 interface InsertLinkModalProps {
   open: boolean;
@@ -47,37 +42,40 @@ const InsertLinkModal: React.FC<InsertLinkModalProps> = ({
       </DialogTitle>
 
       <DialogContent>
-        <TextField
+        <Field
           label="URL"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          fullWidth
-          variant="outlined"
-          margin="dense"
-          autoFocus
+          https
+          placeholder="Enter the link URL"
+          isRequired
+          sx={{ mb: 2 }} 
         />
-        <TextField
+        <Field
           label="Display Text (optional)"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          fullWidth
-          variant="outlined"
-          margin="dense"
+          type="text"
+          placeholder="Enter the display text (optional)"
+          sx={{ mb: 2 }}
         />
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} color="inherit">
-          Cancel
-        </Button>
-        <Button
+      <DialogActions sx={{ padding: 2 }}>
+        <CustomizableButton
+          text="Cancel"
+          variant="text"
+          sx={{ color: "#344054", px: "32px", width: 120 }}
+          onClick={onClose}
+        />
+        <CustomizableButton
+          text="Insert"
           variant="contained"
-          onClick={handleInsert}
           color="primary"
-          disabled={!url.trim()}
-        >
-          Insert
-        </Button>
+          sx={{ width: 120 }}
+          onClick={handleInsert}
+          isDisabled={!url.trim()}
+        />
       </DialogActions>
     </Dialog>
   );

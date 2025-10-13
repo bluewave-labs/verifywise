@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Stack } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import Field from "../../Inputs/Field"; // Adjust the path to your actual Field component
 import CustomizableButton from "../../Button/CustomizableButton"; // Adjust the path as needed

@@ -1,11 +1,13 @@
 // New component file: ProjectList.tsx
 import { useState, useMemo } from "react";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon, CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
 import ViewToggle from "../ViewToggle";
+import CustomizableButton from "../Button/CustomizableButton";
+import allowedRoles from "../../../application/constants/permissions";
 import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
 
 import { Project } from "../../../domain/types/Project";
@@ -19,9 +21,12 @@ import {
 
 interface ProjectListProps {
   projects: Project[];
+  onNewProject?: () => void;
+  userRoleName?: string;
+  newProjectButtonRef?: React.RefObject<HTMLDivElement>;
 }
 
-const ProjectList = ({ projects }: ProjectListProps) => {
+const ProjectList = ({ projects, onNewProject, userRoleName, newProjectButtonRef }: ProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [viewMode, setViewMode] = usePersistedViewMode(
@@ -42,7 +47,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
       return viewMode === "table" ? (
         <ProjectTableView projects={[]} />
       ) : (
-        <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />
+        <NoProject message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace. You can either create a demo use case, or click on the 'New use case' button to start with one." />
       );
     }
 
@@ -51,7 +56,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
         <ProjectTableView projects={[]} />
       ) : (
         <Typography variant="body1" sx={noProjectsTextStyle}>
-          No projects found. Try another search term or create a new project.
+          No use cases found. Try another search term or create a new use case.
         </Typography>
       );
     }
@@ -89,27 +94,27 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
+          mb: "16px",
         }}
       >
-        {/* Search Box */}
+        {/* Left Side: Search Box */}
         <Box sx={searchBoxStyle(isSearchBarVisible)}>
           <IconButton
             disableRipple
             disableFocusRipple
             sx={{ "&:hover": { backgroundColor: "transparent" } }}
-            aria-label="Toggle project search"
+            aria-label="Toggle use case search"
             aria-expanded={isSearchBarVisible}
             onClick={() => setIsSearchBarVisible((prev) => !prev)}
           >
-            <SearchIcon />
+            <SearchIcon size={16} />
           </IconButton>
 
           {isSearchBarVisible && (
             <InputBase
               autoFocus
-              placeholder="Search projects..."
-              inputProps={{ "aria-label": "Search projects" }}
+              placeholder="Search use cases..."
+              inputProps={{ "aria-label": "Search use cases" }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={inputStyle(isSearchBarVisible)}
@@ -117,10 +122,33 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           )}
         </Box>
 
-        {/* View Toggle */}
-        {projects && projects.length > 0 && (
-          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-        )}
+        {/* Right Side: New Project Button + View Toggle */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {/* New Project Button */}
+          {onNewProject && (
+            <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
+              <CustomizableButton
+                variant="contained"
+                text="New use case"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<AddCircleOutlineIcon size={16} />}
+                onClick={onNewProject}
+                isDisabled={
+                  userRoleName ? !allowedRoles.projects.create.includes(userRoleName) : false
+                }
+              />
+            </div>
+          )}
+
+          {/* View Toggle */}
+          {projects && projects.length > 0 && (
+            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+          )}
+        </Box>
       </Box>
 
       {/* Projects List */}

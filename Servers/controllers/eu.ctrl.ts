@@ -35,20 +35,6 @@ import {
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
-import {
-  validateEUControlIdParam,
-  validateEUAnswerIdParam,
-  validateProjectFrameworkIdParam,
-  validateTopicIdParam,
-  validateControlIdParam,
-  validateControlCategoryIdParam,
-  validateProjectFrameworkIdQuery,
-  validateTopicIdQuery,
-  validateControlIdQuery,
-  validateCompleteControlUpdate,
-  validateCompleteAnswerUpdate
-} from "../utils/validations/euAIActValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAssessmentsByProjectId(
   req: Request,
@@ -65,22 +51,6 @@ export async function getAssessmentsByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "getAssessmentsByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const assessments = await getAssessmentsEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!
@@ -122,22 +92,6 @@ export async function getCompliancesByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "getCompliancesByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const complainces = await getComplianceEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!
@@ -178,40 +132,6 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
   );
 
   try {
-    // Validate topic ID query parameter
-    const topicIdValidation = validateTopicIdQuery(topicId);
-    if (!topicIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid topic ID query parameter: ${req.query.topicId}`,
-        functionName: "getTopicById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid topic ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: topicIdValidation.message || 'Invalid topic ID',
-        code: topicIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate project framework ID query parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdQuery(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID query parameter: ${req.query.projectFrameworkId}`,
-        functionName: "getTopicById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
     const topic = await getTopicByIdForProjectQuery(
       topicId,
       projectFrameworkId,
@@ -264,40 +184,6 @@ export async function getControlById(
   );
 
   try {
-    // Validate control ID query parameter
-    const controlIdValidation = validateControlIdQuery(controlId);
-    if (!controlIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid control ID query parameter: ${req.query.controlId}`,
-        functionName: "getControlById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid control ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: controlIdValidation.message || 'Invalid control ID',
-        code: controlIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate project framework ID query parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdQuery(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID query parameter: ${req.query.projectFrameworkId}`,
-        functionName: "getControlById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
     const topic = await getControlByIdForProjectQuery(
       controlId,
       projectFrameworkId,
@@ -348,45 +234,6 @@ export async function saveControls(
   logger.debug(`💾 Saving controls for control ID ${controlId}`);
 
   try {
-    // Validate control ID parameter
-    const controlIdValidation = validateEUControlIdParam(controlId);
-    if (!controlIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Invalid control ID parameter: ${req.params.id}`,
-        functionName: "saveControls",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid control ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: controlIdValidation.message || 'Invalid control ID',
-        code: controlIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate request body and files
-    const validationErrors = validateCompleteControlUpdate(req.body, req.files as any[]);
-    if (validationErrors.length > 0) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Control update validation failed for control ID ${controlId}`,
-        functionName: "saveControls",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Control update validation failed"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Control update validation failed',
-        errors: validationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
-    }
     const Control = req.body as ControlEU & {
       subControls: string;
       user_id: number;
@@ -552,45 +399,6 @@ export async function updateQuestionById(
   logger.debug(`✏️ Updating question ID ${questionId}`);
 
   try {
-    // Validate answer ID parameter
-    const answerIdValidation = validateEUAnswerIdParam(questionId);
-    if (!answerIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Invalid answer ID parameter: ${req.params.id}`,
-        functionName: "updateQuestionById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid answer ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: answerIdValidation.message || 'Invalid answer ID',
-        code: answerIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate request body
-    const validationErrors = validateCompleteAnswerUpdate(req.body);
-    if (validationErrors.length > 0) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Answer update validation failed for question ID ${questionId}`,
-        functionName: "updateQuestionById",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Answer update validation failed"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Answer update validation failed',
-        errors: validationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
-    }
     const body: Partial<AnswerEU & {
       risksDelete: number[];
       risksMitigated: number[];
@@ -662,23 +470,6 @@ export async function deleteAssessmentsByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "deleteAssessmentsByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const result = await deleteAssessmentEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -735,23 +526,6 @@ export async function deleteCompliancesByProjectId(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "deleteCompliancesByProjectId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const result = await deleteComplianeEUByProjectIdQuery(
       projectFrameworkId,
       req.tenantId!,
@@ -1109,39 +883,6 @@ export async function getControlsByControlCategoryId(
   );
 
   try {
-    // Validate control category ID parameter
-    const controlCategoryIdValidation = validateControlCategoryIdParam(controlCategoryId);
-    if (!controlCategoryIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid control category ID parameter: ${req.params.id}`,
-        functionName: "getControlsByControlCategoryId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid control category ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: controlCategoryIdValidation.message || 'Invalid control category ID',
-        code: controlCategoryIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate project framework ID query parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdQuery(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await logFailure({
-        eventType: "Read",
-        description: `Invalid project framework ID query parameter: ${req.query.projectFrameworkId}`,
-        functionName: "getControlsByControlCategoryId",
-        fileName: "eu.ctrl.ts",
-        error: new Error("Invalid project framework ID query parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
     const controls = await getControlStructByControlCategoryIdForAProjectQuery(
       controlCategoryId,
       projectFrameworkId,

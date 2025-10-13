@@ -55,7 +55,6 @@ const tabStyle = {
 
 const tabPanelStyle = {
   padding: 0,
-  pt: 10,
 };
 
 const tabListStyle = {
@@ -398,9 +397,9 @@ const Framework = () => {
 
     if (isISO27001) {
       return (
-        <Box sx={{ mt: 6 }}>
+        <Box>
           <TabContext value={iso27001TabValue}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
                 onChange={handleIso27001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -465,9 +464,9 @@ const Framework = () => {
 
     if (isISO42001) {
       return (
-        <Box sx={{ mt: 6 }}>
+        <Box>
           <TabContext value={iso42001TabValue}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
                 onChange={handleIso42001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -534,7 +533,6 @@ const Framework = () => {
     return (
       <Box
         sx={{
-          mt: 6,
           p: 6,
           backgroundColor: "#000000",
           borderRadius: 3,
@@ -560,14 +558,14 @@ const Framework = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"} ref={refs[0]}>
+    <Stack className="vwhome" gap={"16px"} ref={refs[0]}>
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Organizational frameworks"
         description="Navigate compliance frameworks like ISO 27001 and ISO 42001 for AI governance"
-        whatItDoes="Provide **structured guidance** for implementing *organizational frameworks* and **compliance standards**. Access detailed requirements, clauses, and annexes for *ISO 27001* and **ISO 42001 frameworks**."
-        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and **regulatory requirements**. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating **due diligence** to stakeholders and regulators."
+        whatItDoes="Provide *structured guidance* for implementing *organizational frameworks* and *compliance standards*. Access detailed requirements, clauses, and annexes for *ISO 27001* and *ISO 42001 frameworks*."
+        whyItMatters="**Compliance frameworks** ensure your organization meets *industry standards* and *regulatory requirements*. They provide *systematic approaches* to managing risks, implementing controls, and demonstrating *due diligence* to stakeholders and regulators."
         quickActions={[
           {
             label: "Explore Framework Requirements",
@@ -580,22 +578,21 @@ const Framework = () => {
           }
         ]}
         useCases={[
-          "**ISO 27001 implementation** for *information security management systems*",
-          "**ISO 42001 compliance** for *artificial intelligence management systems* and **governance**"
+          "*ISO 27001 implementation* for *information security management systems*",
+          "*ISO 42001 compliance* for *artificial intelligence management systems* and *governance*"
         ]}
         keyFeatures={[
           "**Comprehensive framework navigation** with *hierarchical clause structure*",
-          "**Cross-referencing** between different *standards* and requirements",
-          "**Progress tracking** and *compliance gap analysis* tools for implementation planning"
+          "*Cross-referencing* between different *standards* and requirements",
+          "*Progress tracking* and *compliance gap analysis* tools for implementation planning"
         ]}
         tips={[
-          "Start with **gap analysis** to understand your *current compliance position*",
-          "Focus on *foundational clauses* before moving to **specific technical requirements**",
-          "Document your **implementation decisions** and evidence for *audit readiness*"
+          "Start with *gap analysis* to understand your *current compliance position*",
+          "Focus on *foundational clauses* before moving to *specific technical requirements*",
+          "Document your *implementation decisions* and evidence for *audit readiness*"
         ]}
       />
       <PageBreadcrumbs />
-      <Stack>
       <PageHeader
                title="Framework"
                description="This page provides an overview of available AI compliance frameworks.
@@ -610,17 +607,15 @@ const Framework = () => {
                     />
                  }
        />
-        {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
-        <Box
-          sx={{
-            mt: "24px",
-            mb: "0px",
-            display: "flex",
-            gap: 2,
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+      {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
           {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
           {organizationalProject && filteredFrameworks.length > 0 && (
             <ButtonToggle
@@ -787,11 +782,10 @@ const Framework = () => {
             </Button>
           )}
         </Box>
-      </Stack>
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
-        <Stack className="frameworks-switch" sx={{ mt: 0 }}>
+        <Stack className="frameworks-switch">
           {/* Content that changes based on selected framework */}
           {renderFrameworkContent()}
         </Stack>

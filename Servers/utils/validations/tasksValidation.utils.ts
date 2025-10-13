@@ -357,19 +357,19 @@ export const validateTaskCreationBusinessRules = (data: any): ValidationError[] 
   }
 
   // Validate title doesn't contain inappropriate terms
-  if (data.title) {
-    const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'todo', 'fixme'];
-    const containsInappropriate = inappropriateTerms.some(term =>
-      data.title.toLowerCase().includes(term.toLowerCase())
-    );
-    if (containsInappropriate) {
-      errors.push({
-        field: 'title',
-        message: 'Task title should not contain test or placeholder terms',
-        code: 'INAPPROPRIATE_TASK_TITLE'
-      });
-    }
-  }
+  // if (data.title) {
+  //   const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'todo', 'fixme'];
+  //   const containsInappropriate = inappropriateTerms.some(term =>
+  //     data.title.toLowerCase().includes(term.toLowerCase())
+  //   );
+  //   if (containsInappropriate) {
+  //     errors.push({
+  //       field: 'title',
+  //       message: 'Task title should not contain test or placeholder terms',
+  //       code: 'INAPPROPRIATE_TASK_TITLE'
+  //     });
+  //   }
+  // }
 
   // Validate status for new tasks
   if (data.status) {

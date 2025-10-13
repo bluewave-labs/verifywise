@@ -7,8 +7,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
-import { ReactComponent as CheckGreenIcon } from "../../../assets/icons/check-green.svg";
+import { X as CloseGreyIcon, Check as CheckGreenIcon } from "lucide-react";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import {
@@ -173,7 +172,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
             onClick={onClose}
             sx={modalCloseButtonStyle}
           >
-            <CloseGreyIcon/>
+            <CloseGreyIcon size={16}/>
           </IconButton>
         </Box>
         {/* Description */}
@@ -213,7 +212,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
                           color: "#13715B",
                         }}
                       >
-                        <CheckGreenIcon />
+                        <CheckGreenIcon size={16} />
                         Added
                       </Box>
                     )}

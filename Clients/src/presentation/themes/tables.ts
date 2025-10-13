@@ -20,7 +20,8 @@ export const tableStyles = {
         borderBottom: "1px solid #EEEEEE",
       },
       cell: {
-        color: "#a1afc6",
+        color: "#475467",
+        fontSize: fontSizes.medium,
         fontWeight: 400,
         padding: "12px 10px",
         whiteSpace: "nowrap",

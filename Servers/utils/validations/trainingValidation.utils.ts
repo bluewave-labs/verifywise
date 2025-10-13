@@ -230,44 +230,32 @@ export const validateTrainingRegistrarCreationBusinessRules = (data: any): Valid
     }
   }
 
-  // Validate training name doesn't contain inappropriate terms
-  if (data.training_name) {
-    const inappropriateTerms = ['test', 'dummy', 'fake', 'sample'];
-    const containsInappropriate = inappropriateTerms.some(term =>
-      data.training_name.toLowerCase().includes(term.toLowerCase())
-    );
-    if (containsInappropriate) {
-      errors.push({
-        field: 'training_name',
-        message: 'Training name should not contain test or placeholder terms',
-        code: 'INAPPROPRIATE_TRAINING_NAME'
-      });
-    }
-  }
+  // // Validate training name doesn't contain inappropriate terms
+  // if (data.training_name) {
+  //   const inappropriateTerms = ['test', 'dummy', 'fake', 'sample'];
+  //   const containsInappropriate = inappropriateTerms.some(term =>
+  //     data.training_name.toLowerCase().includes(term.toLowerCase())
+  //   );
+  //   if (containsInappropriate) {
+  //     errors.push({
+  //       field: 'training_name',
+  //       message: 'Training name should not contain test or placeholder terms',
+  //       code: 'INAPPROPRIATE_TRAINING_NAME'
+  //     });
+  //   }
+  // }
 
-  // Validate status transitions for new trainings
-  if (data.status) {
-    const validInitialStatuses = ['Planned', 'Under Review'];
-    if (!validInitialStatuses.includes(data.status)) {
-      errors.push({
-        field: 'status',
-        message: 'New training registrations should start with "Planned" or "Under Review" status',
-        code: 'INVALID_INITIAL_STATUS'
-      });
-    }
-  }
-
-  // Cross-validate department and provider consistency
-  if (data.department && data.provider) {
-    if (data.department === 'All Departments' && data.provider === 'Internal') {
-      // This might be okay, but let's suggest verification
-      errors.push({
-        field: 'provider',
-        message: 'Company-wide training with internal provider - please verify resource availability',
-        code: 'RESOURCE_VERIFICATION_NEEDED'
-      });
-    }
-  }
+  // // Validate status transitions for new trainings
+  // if (data.status) {
+  //   const validInitialStatuses = ['Planned', 'Under Review'];
+  //   if (!validInitialStatuses.includes(data.status)) {
+  //     errors.push({
+  //       field: 'status',
+  //       message: 'New training registrations should start with "Planned" or "Under Review" status',
+  //       code: 'INVALID_INITIAL_STATUS'
+  //     });
+  //   }
+  // }
 
   return errors;
 };

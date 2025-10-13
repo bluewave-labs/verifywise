@@ -1,13 +1,9 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
-  vwhomeBody,
-  vwhomeBodyControls,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -17,10 +13,8 @@ import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/HelperDrawer";
 import HelperIcon from "../../../components/HelperIcon";
-import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
@@ -54,7 +48,8 @@ const Home = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const [runHomeTour, setRunHomeTour] = useState(false);
-  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+  const newProjectButtonRef = useRef<HTMLDivElement>(null);
+  const { allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
   useEffect(() => {
@@ -139,15 +134,15 @@ const Home = () => {
   // };
 
   return (
-    <Stack className="vwhome">
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Dashboard overview"
         description="Your central hub for AI governance management and compliance tracking"
-        whatItDoes="Provides a **comprehensive overview** of your *AI governance program*. View **project status**, *compliance metrics*, **pending tasks**, and *recent activities* all in one **centralized dashboard**."
-        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or **governance issues**. It provides **executive visibility** into *AI program health* and helps prioritize resources where they're needed most."
+        whatItDoes="Provides a *comprehensive overview* of your *AI governance program*. View *project status*, *compliance metrics*, *pending tasks*, and *recent activities* all in one **centralized dashboard**."
+        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or *governance issues*. It provides *executive visibility* into *AI program health* and helps prioritize resources where they're needed most."
         quickActions={[
           {
             label: "Create New Project",
@@ -160,18 +155,18 @@ const Home = () => {
           }
         ]}
         useCases={[
-          "**Daily monitoring** of *governance activities* and **compliance status**",
-          "**Executive reporting** with *real-time metrics* and **progress tracking**"
+          "*Daily monitoring* of *governance activities* and *compliance status*",
+          "*Executive reporting* with *real-time metrics* and *progress tracking*"
         ]}
         keyFeatures={[
           "**Real-time project status tracking** with *progress indicators*",
-          "**Aggregated compliance metrics** across all *governance areas*",
-          "**Quick access** to *pending tasks* and **upcoming deadlines**"
+          "*Aggregated compliance metrics* across all *governance areas*",
+          "*Quick access* to *pending tasks* and *upcoming deadlines*"
         ]}
         tips={[
-          "**Check the dashboard daily** to stay on top of *governance activities*",
-          "Use **project filters** to focus on *specific initiatives* or teams",
-          "Set up **dashboard alerts** for *critical compliance thresholds*"
+          "*Check the dashboard daily* to stay on top of *governance activities*",
+          "Use *project filters* to focus on *specific initiatives* or teams",
+          "Set up *dashboard alerts* for *critical compliance thresholds*"
         ]}
       />
       {alertState && (
@@ -186,74 +181,27 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
-      <Stack className="vwhome-body">
-        <Stack sx={vwhomeBody}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={vwhomeHeading}>Projects overview</Typography>
-            <HelperIcon
-              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-              size="small"
-            />
-          </Stack>
-          <Stack sx={vwhomeBodyControls}>
-            {/* {projects.length === 0 && (
-              <CustomizableButton
-                variant="contained"
-                text="Create demo project"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<CloudDownloadIcon />}
-                onClick={() => handleGenerateDemoDataClick()}
-                isDisabled={
-                  !allowedRoles.projects.create.includes(userRoleName)
-                }
-              />
-            )} */}
-            <div data-joyride-id="new-project-button" ref={refs[0]}>
-              <CustomizableButton
-                variant="contained"
-                text="New project"
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  gap: 2,
-                }}
-                icon={<AddCircleOutlineIcon size={16} />}
-                onClick={() => setIsProjectFormModalOpen(true)}
-                isDisabled={
-                  !allowedRoles.projects.create.includes(userRoleName)
-                }
-              />
-            </div>
-          </Stack>
+      {/* Use Cases Header */}
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="center" spacing={1} pt={2}>
+          <Typography sx={vwhomeHeading}>Use cases</Typography>
+          <HelperIcon
+            onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+            size="small"
+          />
         </Stack>
-        <Stack sx={vwhomeBody}>
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "20px",
-              mt: "16px",
-              mb: "16px",
-            }}
-          >
-            <HeaderCard title="Projects" count={dashboard?.projects || 0} />
-            <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
-            <HeaderCard title="Models" count={dashboard?.models || 0} />
-            <HeaderCard title="Reports" count={dashboard?.reports || 0} />
-          </Box>
-        </Stack>
-
-        {/* TODO: Add TaskRadar visualization when backend data is ready */}
-
-        <ProjectList projects={projects} />
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+        </Typography>
       </Stack>
+
+      {/* Projects List */}
+      <ProjectList
+        projects={projects}
+        onNewProject={() => setIsProjectFormModalOpen(true)}
+        userRoleName={userRoleName}
+        newProjectButtonRef={newProjectButtonRef}
+      />
 
       <Modal
         open={isProjectFormModalOpen}

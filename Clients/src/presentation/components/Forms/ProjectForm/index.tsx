@@ -10,7 +10,7 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { X as ClearIcon } from "lucide-react";
 import {
   Suspense,
   useCallback,
@@ -41,7 +41,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import CustomizableToast from "../../Toast";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
@@ -277,7 +277,7 @@ const ProjectForm = ({
     const newErrors: FormErrors = {};
 
     const projectTitle = checkStringValidation(
-      "Project title",
+      "Use case title",
       values.project_title,
       1,
       64
@@ -440,22 +440,23 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit ? "Edit use case" : "Create new use case"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? "Update your use case details below"
               : defaultFrameworkType
               ? `Creating a ${
                   defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
                     ? "organization-wide"
                     : "project-based"
-                } project`
+                } use case`
               : "Please select the type of frameworks you need"}
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -555,8 +556,8 @@ const ProjectForm = ({
           <CustomizableToast
             title={
               projectToEdit
-                ? "Updating project. Please wait..."
-                : "Creating project. Please wait..."
+                ? "Updating use case. Please wait..."
+                : "Creating use case. Please wait..."
             }
           />
         </Stack>
@@ -574,18 +575,19 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit ? "Edit use case" : "Create new use case"}
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? "Update your use case details below"
               : values.framework_type === FrameworkTypeEnum.ProjectBased
-              ? "Create a new project from scratch by filling in the following."
+              ? "Create a new use case from scratch by filling in the following."
               : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -596,7 +598,7 @@ const ProjectForm = ({
         <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
           <Field
             id="project-title-input"
-            label="Project title"
+            label="Use case title"
             width="350px"
             value={values.project_title}
             onChange={handleOnTextFieldChange("project_title")}
@@ -642,7 +644,7 @@ const ProjectForm = ({
               />
               <Select
                 id="project-status-input"
-                label="Project status"
+                label="Use case status"
                 placeholder="Select status"
                 value={values.status || ""}
                 onChange={handleOnSelectChange("status")}
@@ -740,7 +742,7 @@ const ProjectForm = ({
                   );
                 }}
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<GreyDownArrowIcon size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -836,7 +838,7 @@ const ProjectForm = ({
                       option.name.includes("coming soon")
                     }
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<GreyDownArrowIcon size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -948,7 +950,7 @@ const ProjectForm = ({
                   option.name.includes("coming soon")
                 }
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<GreyDownArrowIcon size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -1011,7 +1013,7 @@ const ProjectForm = ({
         }}
       >
         <CustomizableButton
-          text={projectToEdit ? "Update project" : "Create project"}
+          text={projectToEdit ? "Update use case" : "Create use case"}
           sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon size={20} />}
           onClick={() => handleSubmit()}

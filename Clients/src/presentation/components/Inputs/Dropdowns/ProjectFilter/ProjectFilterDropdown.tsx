@@ -4,7 +4,7 @@ import { dropdownStyles, inputStyles } from "./style";
 import { ProjectFilterDropdownProps } from "../../../../../domain/interfaces/iDropdown";
 import { ChevronDown } from "lucide-react";
 
-const GreyDownArrowIcon = (props: any) => <ChevronDown size={20} {...props} />;
+const GreyDownArrowIcon = () => <ChevronDown size={16} />;
 
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   projects,

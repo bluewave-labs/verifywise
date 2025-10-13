@@ -48,12 +48,6 @@ const initialLoadingState: LoadingStatus = {
   message: "",
 };
 
-const rowStyle = {
-  display: "flex",
-  flexDirection: "row",
-  gap: 10,
-  mb: 10,
-};
 
 const RiskManagement = () => {
   const { userRoleName } = useAuth();
@@ -294,15 +288,15 @@ const RiskManagement = () => {
   };
 
   return (
-    <Stack className="vwhome" gap={"24px"}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Risk management & mitigation"
         description="Identify, assess, and mitigate risks across your AI projects and operations"
-        whatItDoes="Manage **risk lifecycle** from *identification* to **mitigation** across all AI projects. Track **risk severity**, *likelihood assessments*, and **mitigation strategies**. Maintain comprehensive **risk registers** with *ownership assignments* and **progress monitoring**."
-        whyItMatters="Effective **risk management** is crucial for maintaining *operational resilience* and **regulatory compliance**. Proactive risk identification and mitigation help prevent incidents, protect assets, and ensure **business continuity** while meeting *governance requirements*."
+        whatItDoes="Manage *risk lifecycle* from *identification* to *mitigation* across all AI projects. Track *risk severity*, *likelihood assessments*, and *mitigation strategies*. Maintain comprehensive *risk registers* with *ownership assignments* and *progress monitoring*."
+        whyItMatters="Effective **risk management** is crucial for maintaining *operational resilience* and *regulatory compliance*. Proactive risk identification and mitigation help prevent incidents, protect assets, and ensure *business continuity* while meeting *governance requirements*."
         quickActions={[
           {
             label: "Add New Risk",
@@ -315,22 +309,22 @@ const RiskManagement = () => {
           }
         ]}
         useCases={[
-          "**Operational risk assessment** for *AI model deployments* and **data processing activities**",
-          "**Regulatory compliance** tracking for *governance frameworks* like **EU AI Act** and ISO standards"
+          "*Operational risk assessment* for *AI model deployments* and *data processing activities*",
+          "*Regulatory compliance* tracking for *governance frameworks* like *EU AI Act* and ISO standards"
         ]}
         keyFeatures={[
-          "**Comprehensive risk assessment** with *severity* and **likelihood scoring**",
-          "**MIT AI Risk Database** integration for *industry-standard risk templates*",
-          "**Risk visualization** and *filtering* with **real-time dashboard updates**"
+          "**Comprehensive risk assessment** with *severity* and *likelihood scoring*",
+          "*MIT AI Risk Database* integration for *industry-standard risk templates*",
+          "*Risk visualization* and *filtering* with *real-time dashboard updates*"
         ]}
         tips={[
-          "**Regular risk reviews** help identify *emerging threats* before they impact operations",
-          "Use **risk categories** to organize threats by *impact area* and **regulatory requirements**",
-          "Set **clear ownership** and *target dates* for effective **risk mitigation tracking**"
+          "*Regular risk reviews* help identify *emerging threats* before they impact operations",
+          "Use *risk categories* to organize threats by *impact area* and *regulatory requirements*",
+          "Set *clear ownership* and *target dates* for effective *risk mitigation tracking*"
         ]}
       />
 
-      <Stack gap={"24px"} maxWidth={1400} key={refreshKey}>
+      <Stack gap={"16px"} maxWidth={1400} key={refreshKey}>
         <PageHeader
           title="Risk Management"
           description="Manage and monitor risks across all your projects"
@@ -356,30 +350,26 @@ const RiskManagement = () => {
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={rowStyle}>
+      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
-      <Stack spacing={3}>
-        <RiskFilters
-          risks={projectRisks}
-          onFilterChange={handleRiskFilterChange}
-        />
-      </Stack>
       <Stack
         className="risk-management-row"
         sx={{
           gap: 10,
-          mb: 1,
-          mt: 2,
         }}
       >
         <Stack
           direction="row"
-          justifyContent="flex-end"
-          alignItems="center"
+          justifyContent="space-between"
+          alignItems="flex-end"
         >
-          <Stack direction="row" gap={10}>
+          <RiskFilters
+            risks={projectRisks}
+            onFilterChange={handleRiskFilterChange}
+          />
+          <Stack direction="row" gap={4}>
             <CustomizableButton
               variant="contained"
               text="Insert from AI risks database"

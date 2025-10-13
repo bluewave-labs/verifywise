@@ -10,7 +10,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 import DropDowns from "../../Inputs/Dropdowns";
 import { useState, Suspense, useEffect } from "react";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
@@ -465,7 +465,7 @@ const NewControlPane = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </Box>
           </Stack>
           <Typography component="span" fontSize={13}>

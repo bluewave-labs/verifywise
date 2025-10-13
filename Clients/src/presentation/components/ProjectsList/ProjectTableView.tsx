@@ -31,7 +31,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const columns = [
-    { id: "title", label: "Project Title", minWidth: 200 },
+    { id: "title", label: "Use case title", minWidth: 200 },
     { id: "risk", label: "AI Risk Level", minWidth: 130 },
     { id: "role", label: "Role", minWidth: 150 },
     { id: "startDate", label: "Start Date", minWidth: 120 },
@@ -64,7 +64,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
       backgroundColor: style.bg,
       color: style.color,
       padding: "4px 8px",
-      borderRadius: 12,
+      borderRadius: "4px !important",
       fontWeight: 500,
       fontSize: "11px",
       textTransform: "uppercase" as const,
@@ -130,7 +130,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
               >
                 <img src={placeholderImage} alt="No projects" />
                 <Typography sx={{ fontSize: "13px", color: "#475467", mt: 2 }}>
-                  A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace.
+                  A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace.
                 </Typography>
               </TableCell>
             </TableRow>
@@ -178,8 +178,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
                   border: 0,
                 },
                 "&:focus": {
-                  outline: `2px solid ${theme.palette.primary.main}`,
-                  outlineOffset: -2,
+                  outline: "none",
                 },
               }}
             >
@@ -220,7 +219,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
                 color: theme.palette.text.tertiary,
               }}
             >
-              Showing {getRange} of {projects.length} project(s)
+              Showing {getRange} of {projects.length} use case(s)
             </TableCell>
             <TablePagination
               count={projects.length}
@@ -232,7 +231,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
               ActionsComponent={(props) => (
                 <TablePaginationActions {...props} />
               )}
-              labelRowsPerPage="Projects per page"
+              labelRowsPerPage="Use cases per page"
               labelDisplayedRows={({ page, count }) =>
                 `Page ${page + 1} of ${Math.max(
                   0,

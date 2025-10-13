@@ -131,7 +131,19 @@ const Select: React.FC<SelectProps> = ({
         displayEmpty
         inputProps={{ id: id }}
         renderValue={renderValue}
-        IconComponent={() => <ChevronDown size={16} />}
+        IconComponent={() => (
+          <ChevronDown
+            size={16}
+            style={{
+              position: 'absolute',
+              right: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+              color: theme.palette.text.tertiary
+            }}
+          />
+        )}
         disabled={disabled}
         MenuProps={{
           disableScrollLock: true,
@@ -163,6 +175,7 @@ const Select: React.FC<SelectProps> = ({
           fontSize: 13,
           minWidth: "125px",
           backgroundColor: theme.palette.background.main,
+          position: "relative",
           "& fieldset": {
             borderRadius: theme.shape.borderRadius,
             borderColor: theme.palette.border.dark,

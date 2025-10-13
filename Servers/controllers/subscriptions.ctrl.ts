@@ -10,12 +10,6 @@ import {
 } from "../utils/subscription.util";
 import { sequelize } from "../database/db";
 import { SubscriptionModel } from "../domain.layer/models/subscriptions/subscriptions.model";
-import {
-  validateCompleteSubscriptionCreation,
-  validateSubscriptionIdParam,
-  validateCompleteSubscriptionUpdate
-} from "../utils/validations/subscriptionsValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getSubscriptionController(req: Request, res: Response) {
   logStructured(
@@ -66,26 +60,6 @@ export async function createSubscriptionController(
   req: Request,
   res: Response
 ) {
-  // Validate subscription creation request
-  const validationErrors = validateCompleteSubscriptionCreation(req.body);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      "Subscription creation validation failed",
-      "createSubscriptionController",
-      "subscriptions.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Subscription creation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const transaction = await sequelize.transaction();
   const {
     organization_id,
@@ -162,49 +136,12 @@ export async function updateSubscriptionController(
   res: Response
 ) {
   const subscriptionId = parseInt(req.params.id);
-
-  // Validate subscription ID parameter
-  const subscriptionIdValidation = validateSubscriptionIdParam(subscriptionId);
-  if (!subscriptionIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid subscription ID parameter: ${req.params.id}`,
-      "updateSubscriptionController",
-      "subscriptions.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: subscriptionIdValidation.message || 'Invalid subscription ID',
-      code: subscriptionIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   // Get existing subscription for business rule validation
   let existingSubscription = null;
   try {
     existingSubscription = await getSubscriptionById(subscriptionId);
   } catch (error) {
     // Continue without existing data if query fails
-  }
-
-  // Validate subscription update request
-  const validationErrors = validateCompleteSubscriptionUpdate(req.body, existingSubscription);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      `Subscription update validation failed for ID ${subscriptionId}`,
-      "updateSubscriptionController",
-      "subscriptions.ctrl.ts"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Subscription update validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
   }
 
   const transaction = await sequelize.transaction();

@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Box, Typography, IconButton } from '@mui/material'
-import { ReactComponent as CloseIcon } from '../../assets/icons/close-grey.svg'
+import { Box, Typography } from '@mui/material'
+import * as Dialog from '@radix-ui/react-dialog'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { useAuth } from '../../../application/hooks/useAuth'
 import commandRegistry from '../../../application/commands/registry'
 import CommandActionHandler, { CommandActionHandlers } from '../../../application/commands/actionHandler'
@@ -16,7 +17,6 @@ interface CommandPaletteProps {
 
 const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) => {
   const [search, setSearch] = useState('')
-  const [showWhatsNew, setShowWhatsNew] = useState(true)
   const navigate = useNavigate()
   const location = useLocation()
   const { userRoleName } = useAuth()
@@ -29,12 +29,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
     searchTerm: search
   }), [location.pathname, userRoleName, search])
 
-  // What's new data - could be fetched from API or stored in context
-  const whatsNewData = useMemo(() => ({
-    title: 'VerifyWise 1.4 Released',
-    description: 'Introducing AI Trust Center, Bias & Fairness Dashboard, and the new Command Palette for faster navigation. Enhanced ML bias detection tools and improved transparency features.',
-    date: 'Released on 17 September, 2025'
-  }), [])
 
   // Get filtered commands
   const commands = useMemo(() => {
@@ -118,15 +112,12 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
       onOpenChange={onOpenChange}
       className="command-dialog"
       onKeyDown={handleKeyDown}
-      aria-label="Command palette"
       aria-describedby="command-palette-description"
     >
-      <div
-        className="command-dialog-content"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="command-palette-title"
-      >
+      <Dialog.Title asChild>
+        <VisuallyHidden>Command Palette</VisuallyHidden>
+      </Dialog.Title>
+      <div className="command-dialog-content">
         <div id="command-palette-description" className="sr-only">
           Search for commands, navigate to pages, or perform actions using keyboard shortcuts.
           Use arrow keys to navigate, Enter to select, and Escape to close.
@@ -155,57 +146,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
             </Typography>
           </Command.Empty>
 
-          {/* What's New Section - Only show when no search and not dismissed */}
-          {!search && whatsNewData && showWhatsNew && (
-            <div className="whats-new-section" role="region" aria-labelledby="whats-new-title">
-              <div className="whats-new-big-block">
-                <Box sx={{ padding: '20px 24px' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <Typography
-                        id="whats-new-title"
-                        variant="h6"
-                        fontWeight={600}
-                        sx={{ color: '#fff', fontSize: '18px' }}
-                      >
-                        {whatsNewData.title}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px' }}
-                        aria-label={`Release date: ${whatsNewData.date}`}
-                      >
-                        {whatsNewData.date}
-                      </Typography>
-                    </Box>
-                    <IconButton
-                      size="small"
-                      onClick={() => setShowWhatsNew(false)}
-                      aria-label="Dismiss what's new section"
-                      sx={{
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        '&:hover': {
-                          color: 'rgba(255, 255, 255, 0.9)',
-                          backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        width: 24,
-                        height: 24
-                      }}
-                    >
-                      <CloseIcon/>
-                    </IconButton>
-                  </Box>
-
-                  <Typography variant="body2" sx={{
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    lineHeight: 1.5
-                  }}>
-                    {whatsNewData.description}
-                  </Typography>
-                </Box>
-              </div>
-            </div>
-          )}
 
           {groupedCommands.map(({ group, commands: groupCommands }: { group: any, commands: CommandType[] }) => (
             <Command.Group key={group.id} heading={group.label} className="command-group">
@@ -222,16 +162,14 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
                     {command.icon && (
                       <Box
                         sx={{
-                          fontSize: 18,
                           color: '#7B9A7A',
-                          strokeWidth: 0.5,
                           opacity: 0.8,
                           display: 'flex',
                           alignItems: 'center'
                         }}
                         aria-hidden="true"
                       >
-                        <command.icon />
+                        <command.icon size={16} strokeWidth={1.5} />
                       </Box>
                     )}
                     <Typography variant="body2" fontWeight={500} sx={{ flex: 0, whiteSpace: 'nowrap' }}>

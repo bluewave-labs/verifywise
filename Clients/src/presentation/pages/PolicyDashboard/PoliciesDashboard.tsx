@@ -4,12 +4,10 @@ import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import {
   Box,
   Stack,
-  Typography,
   IconButton,
   InputBase,
-  useTheme,
 } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import HelperDrawer from "../../components/HelperDrawer";
@@ -21,11 +19,7 @@ import {
 } from "../../../application/repository/policy.repository";
 import { Policy } from "../../../domain/types/Policy";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import placeholderImage from "../../assets/imgs/empty-state.svg";
-import {
-  emptyStateContainerStyle,
-  emptyStateTextStyle,
-} from "../ModelInventory/style";
+import EmptyState from "../../components/EmptyState";
 import PolicyStatusCard from "./PolicyStatusCard";
 import { searchBoxStyle, inputStyle } from "./style";
 import Select from "../../components/Inputs/Select";
@@ -42,8 +36,6 @@ const PolicyDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
-
-  const theme = useTheme();
 
   const fetchAll = async () => {
     const [pRes, tRes] = await Promise.all([getAllPolicies(), getAllTags()]);
@@ -116,8 +108,8 @@ const PolicyDashboard: React.FC = () => {
           onClose={() => setIsHelperDrawerOpen(false)}
           title="Policy manager"
           description="Create and maintain AI governance policies aligned with regulatory requirements"
-          whatItDoes="Centralize **policy creation**, *version control*, and **distribution** for all *AI-related governance documentation*. Track **policy reviews**, *approvals*, and **acknowledgments** across your organization."
-          whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to **responsible AI**, ensure *consistent practices* across teams, and satisfy **regulatory requirements** for documented controls."
+          whatItDoes="Centralize *policy creation*, *version control*, and *distribution* for all *AI-related governance documentation*. Track *policy reviews*, *approvals*, and *acknowledgments* across your organization."
+          whyItMatters="**Well-documented policies** are the foundation of effective *AI governance*. They demonstrate your commitment to *responsible AI*, ensure *consistent practices* across teams, and satisfy *regulatory requirements* for documented controls."
           quickActions={[
             {
               label: "Create New Policy",
@@ -130,18 +122,18 @@ const PolicyDashboard: React.FC = () => {
             }
           ]}
           useCases={[
-            "**AI ethics policies** defining *acceptable use* and **development principles**",
-            "**Data governance policies** for handling *sensitive information* in **AI systems**"
+            "*AI ethics policies* defining *acceptable use* and *development principles*",
+            "*Data governance policies* for handling *sensitive information* in *AI systems*"
           ]}
           keyFeatures={[
-            "**Policy lifecycle management** from *draft* through **approval** to *retirement*",
-            "**Version control** with *change tracking* and **approval workflows**",
-            "**Distribution tracking** to ensure all *stakeholders* have **acknowledged current policies**"
+            "**Policy lifecycle management** from *draft* through *approval* to *retirement*",
+            "*Version control* with *change tracking* and *approval workflows*",
+            "*Distribution tracking* to ensure all *stakeholders* have *acknowledged current policies*"
           ]}
           tips={[
-            "Start with **template policies** and customize them to your *organization's needs*",
-            "Schedule **regular policy reviews** to ensure they remain *current and relevant*",
-            "Track **acknowledgments** to demonstrate *policy awareness* across your teams"
+            "Start with *template policies* and customize them to your *organization's needs*",
+            "Schedule *regular policy reviews* to ensure they remain *current and relevant*",
+            "Track *acknowledgments* to demonstrate *policy awareness* across your teams"
           ]}
         />
 
@@ -197,7 +189,7 @@ const PolicyDashboard: React.FC = () => {
                 aria-expanded={isSearchBarVisible}
                 onClick={() => setIsSearchBarVisible((prev) => !prev)}
               >
-                <SearchIcon />
+                <SearchIcon size={16} />
               </IconButton>
 
               {isSearchBarVisible && (
@@ -231,22 +223,16 @@ const PolicyDashboard: React.FC = () => {
       {/* Table / Empty state */}
       <Box sx={{ mt: 1 }}>
         {filteredPolicies.length === 0 ? (
-          <Stack
-            alignItems="center"
-            justifyContent="center"
-            sx={emptyStateContainerStyle(theme)}
-          >
-            <img src={placeholderImage} alt="Placeholder" />
-            <Typography sx={emptyStateTextStyle}>
-              {
-                searchTerm
-                  ? "No matching policies found." // Search active
-                  : statusFilter !== "all"
-                  ? "No matching policies found." // Status filter active
-                  : "There is currently no data in this table." // Table empty
-              }
-            </Typography>
-          </Stack>
+          <EmptyState
+            message={
+              searchTerm
+                ? "No matching policies found." // Search active
+                : statusFilter !== "all"
+                ? "No matching policies found." // Status filter active
+                : "There is currently no data in this table." // Table empty
+            }
+            imageAlt="No policies available"
+          />
         ) : (
           <PolicyTable
             data={filteredPolicies}

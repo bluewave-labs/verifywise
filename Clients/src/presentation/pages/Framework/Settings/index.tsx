@@ -88,14 +88,14 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
         );
         setAlert({
           variant: "success",
-          body: "Use case deleted successfully",
+          body: "Framework deleted successfully",
           isToast: true,
           visible: true,
         });
       } else {
         setAlert({
           variant: "error",
-          body: "Failed to delete use case",
+          body: "Failed to delete framework",
           isToast: true,
           visible: true,
         });
@@ -192,7 +192,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
 
   return (
     <Stack spacing={4}>
-      {/* Project Settings Section */}
+      {/* Framework Settings Section */}
       <Box>
         <Typography
           sx={{
@@ -202,26 +202,34 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             color: "#000000",
           }}
         >
-          Use Case Settings
+          Framework Settings
         </Typography>
 
         <Box
           sx={{
-            background: "linear-gradient(135deg, #FFFFFF 0%, #FAFBFC 100%)",
-            border: "1px solid #EEEEEE",
-            borderRadius: "4px",
-            p: "24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 3,
+            alignItems: "stretch",
           }}
         >
+          <Box
+            sx={{
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+              border: "1px solid #eaecf0",
+              borderRadius: "8px",
+              p: "24px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
           <Box>
             <Typography sx={{ fontSize: 13, fontWeight: 500, mb: 1, color: "#000000" }}>
               {organizationalProject.project_title}
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#666666" }}>
-              Organizational Use Case
+              Organizational Framework
             </Typography>
           </Box>
 
@@ -229,7 +237,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             <CustomizableButton
               variant="outlined"
               icon={<EditIconGrey size={16} />}
-              text="Edit Use Case"
+              text="Edit framework"
               onClick={handleEditProjectClick}
               isDisabled={!allowedRoles.projects.edit.includes(userRoleName)}
               sx={{
@@ -245,7 +253,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
             <CustomizableButton
               variant="outlined"
               icon={<DeleteIconRed size={16} />}
-              text="Delete Use Case"
+              text="Delete framework"
               onClick={handleDeleteProjectClick}
               isDisabled={!allowedRoles.projects.delete.includes(userRoleName)}
               sx={{
@@ -258,6 +266,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               }}
             />
           </Stack>
+        </Box>
         </Box>
       </Box>
 
@@ -290,9 +299,9 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
               <Box
                 key={fw.id}
                 sx={{
-                  background: "linear-gradient(135deg, #FFFFFF 0%, #FAFBFC 100%)",
-                  border: "1px solid #EEEEEE",
-                  borderRadius: "4px",
+                  background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+                  border: "1px solid #eaecf0",
+                  borderRadius: "8px",
                   p: "24px",
                   display: "flex",
                   flexDirection: "column",
@@ -423,7 +432,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           title="Confirm Delete"
           body={
             <Typography fontSize={13}>
-              Are you sure you want to delete the use case "
+              Are you sure you want to delete the framework "
               {organizationalProject.project_title}"? This action cannot be
               undone and will remove all associated data.
             </Typography>
@@ -444,7 +453,7 @@ const FrameworkSettings: React.FC<FrameworkSettingsProps> = ({
           body={
             <Typography fontSize={13}>
               Are you sure you want to remove {frameworkToRemove.name} from
-              the use case?
+              the framework?
             </Typography>
           }
           cancelText="Cancel"

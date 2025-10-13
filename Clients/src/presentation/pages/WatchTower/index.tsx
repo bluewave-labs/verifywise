@@ -45,17 +45,17 @@ const WatchTower = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Event tracker & audit logs"
         description="Monitor system activities and maintain comprehensive audit trails"
-        whatItDoes="Track all **system events** and *user activities* across your **AI governance platform**. Capture detailed *audit logs* for **compliance monitoring**, *security analysis*, and **operational oversight**."
-        whyItMatters="**Audit trails** are essential for demonstrating *compliance*, investigating incidents, and maintaining **accountability**. They provide *forensic evidence* for security reviews and help identify patterns in **system usage** and potential anomalies."
+        whatItDoes="Track all *system events* and *user activities* across your *AI governance platform*. Capture detailed *audit logs* for *compliance monitoring*, *security analysis*, and *operational oversight*."
+        whyItMatters="**Audit trails** are essential for demonstrating *compliance*, investigating incidents, and maintaining *accountability*. They provide *forensic evidence* for security reviews and help identify patterns in *system usage* and potential anomalies."
         quickActions={[]}
         useCases={[
-          "**Compliance auditing** to demonstrate *control effectiveness* and **user activities**",
-          "**Security investigations** when analyzing potential incidents or *unauthorized access*"
+          "*Compliance auditing* to demonstrate *control effectiveness* and *user activities*",
+          "*Security investigations* when analyzing potential incidents or *unauthorized access*"
         ]}
         keyFeatures={[
-          "**Real-time event monitoring** with *filtering* and **search capabilities**",
-          "**Immutable audit logs** with *timestamps* and **user attribution**",
-          "**Export functionality** for *compliance reporting* and **external analysis**"
+          "*Real-time event monitoring* with *filtering* and *search capabilities*",
+          "*Immutable audit logs* with *timestamps* and *user attribution*",
+          "*Export functionality* for *compliance reporting* and *external analysis*"
         ]}
         tips={[]}
       />

@@ -42,9 +42,11 @@ export const projectCardSpecValueyStyle = { fontSize: 13, color: "#344054" };
 export const viewProjectButtonStyle = {
   backgroundColor: "#13715B",
   color: "#fff",
+  fontSize: 13,
   fontWeight: 600,
   px: 3,
   mt: 1,
+  height: 34,
   "&:hover": {
     backgroundColor: "#0e5c47",
   },

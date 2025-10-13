@@ -1,11 +1,13 @@
 // New component file: ProjectList.tsx
 import { useState, useMemo } from "react";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
-import { Search as SearchIcon } from "lucide-react";
+import { Search as SearchIcon, CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
 import ViewToggle from "../ViewToggle";
+import CustomizableButton from "../Button/CustomizableButton";
+import allowedRoles from "../../../application/constants/permissions";
 import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
 
 import { Project } from "../../../domain/types/Project";
@@ -43,7 +45,7 @@ const ProjectList = ({ projects, newProjectButton }: ProjectListProps) => {
       return viewMode === "table" ? (
         <ProjectTableView projects={[]} />
       ) : (
-        <NoProject message="A use-case is a project, AI product or an algorithm. Currently you don't have any use cases. You can click on the 'New use case' button to start with one." />
+        <NoProject message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace. You can either create a demo use case, or click on the 'New use case' button to start with one." />
       );
     }
 
@@ -99,7 +101,7 @@ const ProjectList = ({ projects, newProjectButton }: ProjectListProps) => {
             disableRipple
             disableFocusRipple
             sx={{ "&:hover": { backgroundColor: "transparent" } }}
-            aria-label="Toggle project search"
+            aria-label="Toggle use case search"
             aria-expanded={isSearchBarVisible}
             onClick={() => setIsSearchBarVisible((prev) => !prev)}
           >

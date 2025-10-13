@@ -1,12 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -16,7 +14,6 @@ import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/HelperDrawer";
 import HelperIcon from "../../../components/HelperIcon";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
@@ -52,7 +49,8 @@ const Home = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const [runHomeTour, setRunHomeTour] = useState(false);
-  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+  const newProjectButtonRef = useRef<HTMLDivElement>(null);
+  const { allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
   useEffect(() => {
@@ -144,8 +142,8 @@ const Home = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Dashboard overview"
         description="Your central hub for AI governance management and compliance tracking"
-        whatItDoes="Provides a **comprehensive overview** of your *AI governance program*. View **project status**, *compliance metrics*, **pending tasks**, and *recent activities* all in one **centralized dashboard**."
-        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or **governance issues**. It provides **executive visibility** into *AI program health* and helps prioritize resources where they're needed most."
+        whatItDoes="Provides a *comprehensive overview* of your *AI governance program*. View *project status*, *compliance metrics*, *pending tasks*, and *recent activities* all in one **centralized dashboard**."
+        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or *governance issues*. It provides *executive visibility* into *AI program health* and helps prioritize resources where they're needed most."
         quickActions={[
           {
             label: "Create New Project",
@@ -158,18 +156,18 @@ const Home = () => {
           }
         ]}
         useCases={[
-          "**Daily monitoring** of *governance activities* and **compliance status**",
-          "**Executive reporting** with *real-time metrics* and **progress tracking**"
+          "*Daily monitoring* of *governance activities* and *compliance status*",
+          "*Executive reporting* with *real-time metrics* and *progress tracking*"
         ]}
         keyFeatures={[
           "**Real-time project status tracking** with *progress indicators*",
-          "**Aggregated compliance metrics** across all *governance areas*",
-          "**Quick access** to *pending tasks* and **upcoming deadlines**"
+          "*Aggregated compliance metrics* across all *governance areas*",
+          "*Quick access* to *pending tasks* and *upcoming deadlines*"
         ]}
         tips={[
-          "**Check the dashboard daily** to stay on top of *governance activities*",
-          "Use **project filters** to focus on *specific initiatives* or teams",
-          "Set up **dashboard alerts** for *critical compliance thresholds*"
+          "*Check the dashboard daily* to stay on top of *governance activities*",
+          "Use *project filters* to focus on *specific initiatives* or teams",
+          "Set up *dashboard alerts* for *critical compliance thresholds*"
         ]}
       />
       {alertState && (
@@ -202,7 +200,7 @@ const Home = () => {
       <ProjectList
         projects={projects}
         newProjectButton={
-          <div data-joyride-id="new-project-button" ref={refs[0]}>
+          <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
             <CustomizableButton
               variant="contained"
               text="New project"

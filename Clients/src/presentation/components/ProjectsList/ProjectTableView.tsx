@@ -31,7 +31,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const columns = [
-    { id: "title", label: "Use Case Title", minWidth: 200 },
+    { id: "title", label: "Use case title", minWidth: 200 },
     { id: "risk", label: "AI Risk Level", minWidth: 130 },
     { id: "role", label: "Role", minWidth: 150 },
     { id: "startDate", label: "Start Date", minWidth: 120 },
@@ -130,7 +130,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
               >
                 <img src={placeholderImage} alt="No use cases" />
                 <Typography sx={{ fontSize: "13px", color: "#475467", mt: 2 }}>
-                  A use-case is a project, AI product or an algorithm. Currently you don't have any use cases.
+                  A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace.
                 </Typography>
               </TableCell>
             </TableRow>
@@ -178,8 +178,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
                   border: 0,
                 },
                 "&:focus": {
-                  outline: `2px solid ${theme.palette.primary.main}`,
-                  outlineOffset: -2,
+                  outline: "none",
                 },
               }}
             >

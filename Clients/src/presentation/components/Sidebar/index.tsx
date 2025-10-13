@@ -79,6 +79,7 @@ const getMenuGroups = (): MenuGroup[] => [
         name: "Projects",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
+        highlightPaths: ["/project-view"],
       },
       {
         name: "Organizational view",

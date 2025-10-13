@@ -85,4 +85,5 @@ export const getRiskChipStyle = () => ({
   fontWeight: 500,
   borderRadius: "4px !important",
   height: 24,
+  fontSize: 13,
 });

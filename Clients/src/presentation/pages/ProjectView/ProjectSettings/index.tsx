@@ -1048,8 +1048,8 @@ const ProjectSettings = React.memo(
                 Team members
               </Typography>
               <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                Add all team members of the project. Only those who are added
-                will be able to see the project.
+                Add all team members of the use case. Only those who are added
+                will be able to see the use case.
               </Typography>
             </Stack>
 
@@ -1308,7 +1308,7 @@ const ProjectSettings = React.memo(
             title="Confirm Delete"
             body={
               <Typography fontSize={13}>
-                Are you sure you want to delete the project?
+                Are you sure you want to delete the use case?
               </Typography>
             }
             cancelText="Cancel"
@@ -1327,7 +1327,7 @@ const ProjectSettings = React.memo(
             body={
               <Typography fontSize={13}>
                 Are you sure you want to remove {frameworkToRemove?.name} from
-                the project?
+                the use case?
               </Typography>
             }
             cancelText="Cancel"

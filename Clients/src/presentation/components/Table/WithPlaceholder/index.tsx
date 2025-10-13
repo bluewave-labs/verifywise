@@ -146,10 +146,24 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
             .map((row: any, index: number) => (
               <TableRow
                 key={index}
-                sx={singleTheme.tableStyles.primary.body.row}
-                // onClick={() => onEdit(row.id)}  
-                // Removed row-level onClick to prevent accidental edit modal opening
-                // Editing is now handled only through the actions menu (IconButton)    
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                  outline: 'none',
+                }}
+                onClick={() => onEdit(row.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onEdit(row.id);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Edit vendor ${row.vendor_name}`}
               >
                 <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   {row.vendor_name}
@@ -216,6 +230,9 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
       handleDropdownClose,
       openVendorRisksDialog,
       formattedUsers,
+      onEdit,
+      onDelete,
+      isDeletingAllowed,
     ]
   );
 

@@ -7,7 +7,7 @@ import {
 } from "./style";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
-import { SyntheticEvent, useState, useEffect } from "react";
+import { SyntheticEvent, useState, useEffect, useMemo } from "react";
 import TabContext from "@mui/lab/TabContext";
 import VWProjectOverview from "./Overview";
 import { useSearchParams } from "react-router-dom";
@@ -20,6 +20,9 @@ import CustomizableToast from "../../../components/Toast";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
+import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
+import { FileText as FileTextIcon } from "lucide-react";
 
 const VWProjectView = () => {
   const { userRoleName } = useAuth();
@@ -36,6 +39,34 @@ const VWProjectView = () => {
     message: "",
     visible: false,
   });
+
+  // Create custom breadcrumb items
+  const breadcrumbItems: IBreadcrumbItem[] = useMemo(() => {
+    const items: IBreadcrumbItem[] = [
+      {
+        label: "Dashboard",
+        path: "/",
+        icon: getRouteIcon("/"),
+      },
+      {
+        label: "Use cases",
+        path: "/overview",
+        icon: getRouteIcon("/overview"),
+      },
+    ];
+
+    // Add the project name as the last breadcrumb item if project is loaded
+    if (project) {
+      items.push({
+        label: project.project_title,
+        path: "", // No path since this is the current page
+        disabled: true, // Make it non-clickable as it's the current page
+        icon: <FileTextIcon size={14} strokeWidth={1.5} />,
+      });
+    }
+
+    return items;
+  }, [project]);
 
   // Update tab value when URL parameter changes
   useEffect(() => {
@@ -67,7 +98,11 @@ const VWProjectView = () => {
 
   return (
     <Stack className="vw-project-view" overflow={"hidden"}>
-      <PageBreadcrumbs />
+      <PageBreadcrumbs
+        items={breadcrumbItems}
+        autoGenerate={false}
+        showCurrentPage={true}
+      />
       {toast.visible && <CustomizableToast title={toast.message} />}
       <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
         {project ? (
@@ -76,8 +111,10 @@ const VWProjectView = () => {
               Use-case general view
             </Typography>
             <Typography sx={projectViewHeaderDesc}>
-              This page includes the governance process status of{" "}
-              <span style={{ color: "#13715B" }}>{project.project_title}</span>
+              This use case includes all the governance process status of{" "}
+              <Typography component="span" sx={{ color: "#13715B", fontSize: "inherit" }}>
+                {project.project_title}
+              </Typography>
             </Typography>
           </>
         ) : (

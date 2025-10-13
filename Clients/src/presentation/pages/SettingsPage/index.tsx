@@ -14,6 +14,7 @@ import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import Slack from "./Slack";
+import ApiKeys from "./ApiKeys";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
@@ -27,6 +28,7 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
+  const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab") || "";
@@ -38,6 +40,7 @@ export default function ProfilePage() {
     if (isSlackVisible) {
       tabs.push("slack")
     }
+    tabs.push("apikeys");
     return tabs;
   }, [isSlackVisible])
 
@@ -172,8 +175,15 @@ export default function ProfilePage() {
                 disableRipple
                 sx={settingTabStyle}
                 disabled={isSlackTabDisabled}
-              /> 
+              />
             )}
+            <Tab
+              label="API Keys"
+              value="apikeys"
+              disableRipple
+              sx={settingTabStyle}
+              disabled={isApiKeysDisabled}
+            />
           </TabList>
         </Box>
 
@@ -198,6 +208,10 @@ export default function ProfilePage() {
             <Slack />
           </TabPanel>
         )}
+
+        <TabPanel value="apikeys">
+          <ApiKeys />
+        </TabPanel>
       </TabContext>
     </Stack>
   );

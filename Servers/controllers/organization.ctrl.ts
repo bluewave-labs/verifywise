@@ -403,8 +403,7 @@ export async function createOrganization(
     );
     await logEvent(
       "Error",
-      `Unexpected error during organization creation: ${
-        (error as Error).message
+      `Unexpected error during organization creation: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in createOrganization:", error);
@@ -549,8 +548,7 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during update for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in updateOrganizationById:", error);
@@ -662,8 +660,7 @@ export async function deleteOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during delete for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in deleteOrganizationById:", error);

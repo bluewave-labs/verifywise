@@ -185,17 +185,17 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
-      {/* Projects Header */}
+      {/* Use Cases Header */}
       <Stack spacing={2}>
         <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
-          <Typography sx={vwhomeHeading}>Projects</Typography>
+          <Typography sx={vwhomeHeading}>Use cases</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Project is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
         </Typography>
       </Stack>
 

@@ -2,21 +2,12 @@ import {
   Stack,
   Typography,
   Box,
-  Button,
-  Modal,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
 } from "@mui/material";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useContext, useEffect, useState, useMemo } from "react";
-import { CirclePlus as AddCircleOutlineIcon, Settings as SettingsIcon, Trash2 as DeleteIconRed, Pencil as EditIconGrey, ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
-import singleTheme from "../../themes/v1SingleTheme";
 import useFrameworks from "../../../application/hooks/useFrameworks";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -27,17 +18,13 @@ import ISO27001Annex from "./ISO27001/Annex";
 import ISO42001Clause from "./ISO42001/Clause";
 import ISO42001Annex from "./ISO42001/Annex";
 import TabFilterBar from "../../components/FrameworkFilter/TabFilterBar";
-import ProjectForm from "../../components/Forms/ProjectForm";
-import AddFrameworkModal from "../ProjectView/AddNewFramework";
-import allowedRoles from "../../../application/constants/permissions";
-import DualButtonModal from "../../components/Dialogs/DualButtonModal";
-import { deleteProject } from "../../../application/repository/project.repository";
-import { FrameworkTypeEnum } from "../../components/Forms/ProjectForm/constants";
 import NoProject from "../../components/NoProject/NoProject";
 import { useSearchParams } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
+import FrameworkDashboard from "./Dashboard";
+import FrameworkSettings from "./Settings";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -81,57 +68,19 @@ const Framework = () => {
   const subClause27001Id = searchParams.get("subClause27001Id");
   const annex27001Id = searchParams.get("annex27001Id");
   const annexControl27001Id = searchParams.get("annexControl27001Id");
-  const [rotated, setRotated] = useState(false);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
-  const { changeComponentVisibility, projects, userRoleName, setProjects } =
+  const { changeComponentVisibility, projects, setProjects } =
     useContext(VerifyWiseContext);
   const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
-  const dropDownStyle = singleTheme.dropDownStyles.primary;
 
   // Check if there are any organizational projects
   const organizationalProject = useMemo(() => {
     return projects.find((project) => project.is_organizational === true);
   }, [projects]);
 
-  // State for modals
-  const [isProjectFormModalOpen, setIsProjectFormModalOpen] = useState(false);
-  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
-  const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  // State for dropdown menu
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const isMenuOpen = Boolean(anchorEl);
-
-  // Handle dropdown menu
-  const handleManageProjectClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setRotated(false);
-  };
-
-  const handleManageFrameworksClick = () => {
-    setIsFrameworkModalOpen(true);
-    handleMenuClose();
-  };
-
-  const handleEditProjectClick = () => {
-    setIsEditProjectModalOpen(true);
-    handleMenuClose();
-  };
-
-  const handleDeleteProjectClick = () => {
-    setIsDeleteModalOpen(true);
-    handleMenuClose();
-  };
 
   // Function to refresh project data after framework changes
   const refreshProjectData = async () => {
@@ -149,32 +98,6 @@ const Framework = () => {
     }
   };
 
-  // Function to handle project deletion
-  const handleDeleteProject = async () => {
-    if (!organizationalProject) return;
-
-    try {
-      const response = await deleteProject({
-        id: organizationalProject.id,
-      });
-
-      if (response.status >= 200 && response.status < 300) {
-        // Remove the project from context
-        setProjects((prevProjects) =>
-          prevProjects.filter(
-            (project) => project.id !== organizationalProject.id
-          )
-        );
-        // Stay on the Framework page - the UI will automatically show "No Organizational Project Found"
-      } else {
-        console.error("Failed to delete project");
-      }
-    } catch (error) {
-      console.error("Error deleting project:", error);
-    } finally {
-      setIsDeleteModalOpen(false);
-    }
-  };
 
   // Fetch all frameworks
   const { allFrameworks, loading, error, refreshFilteredFrameworks } =
@@ -194,7 +117,7 @@ const Framework = () => {
     );
 
     // Filter frameworks to only include those assigned to the project and exclude EU AI Act
-    return allFrameworks.filter((framework) => {
+    const filtered = allFrameworks.filter((framework) => {
       const frameworkId = Number(framework.id);
       const isAssignedToProject = projectFrameworkIds.includes(frameworkId);
       const isNotEuAiAct = !framework.name.toLowerCase().includes("eu ai act");
@@ -203,6 +126,21 @@ const Framework = () => {
         framework.name.toLowerCase().includes("iso 42001");
 
       return isAssignedToProject && isNotEuAiAct && isIsoFramework;
+    });
+
+    // Sort to ensure ISO 42001 appears first, then ISO 27001
+    return filtered.sort((a, b) => {
+      const aIsISO42001 = a.name.toLowerCase().includes("iso 42001");
+      const bIsISO42001 = b.name.toLowerCase().includes("iso 42001");
+      const aIsISO27001 = a.name.toLowerCase().includes("iso 27001");
+      const bIsISO27001 = b.name.toLowerCase().includes("iso 27001");
+
+      // ISO 42001 comes first
+      if (aIsISO42001 && bIsISO27001) return -1;
+      if (aIsISO27001 && bIsISO42001) return 1;
+
+      // Keep other frameworks in their original order
+      return 0;
     });
   }, [allFrameworks, organizationalProject]);
 
@@ -217,6 +155,7 @@ const Framework = () => {
     return projectFramework?.project_framework_id || null;
   };
 
+  const [mainTabValue, setMainTabValue] = useState("dashboard");
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [iso27001TabValue, setIso27001TabValue] = useState("clause");
   const [iso42001TabValue, setIso42001TabValue] = useState("clauses");
@@ -338,6 +277,13 @@ const Framework = () => {
     newValue: string
   ) => {
     setIso42001TabValue(newValue);
+  };
+
+  const handleMainTabChange = (
+    _: React.SyntheticEvent,
+    newValue: string
+  ) => {
+    setMainTabValue(newValue);
   };
 
   const renderFrameworkContent = () => {
@@ -594,10 +540,8 @@ const Framework = () => {
       />
       <PageBreadcrumbs />
       <PageHeader
-               title="Framework"
-               description="This page provides an overview of available AI compliance frameworks.
-              Explore different frameworks to understand their requirements and
-              implementation guidelines."
+               title="Frameworks"
+               description="This page provides an overview of available AI and data governance frameworks to your organization."
                rightContent={
                   <HelperIcon
                      onClick={() =>
@@ -607,325 +551,81 @@ const Framework = () => {
                     />
                  }
        />
-      {/* Framework Controls Section - ISO selectors and Manage Project button on same line */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 2,
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-          {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
-          {organizationalProject && filteredFrameworks.length > 0 && (
-            <ButtonToggle
-              options={filteredFrameworks.map((framework, index) => ({
-                value: index.toString(),
-                label: framework.name,
-              }))}
-              value={selectedFramework.toString()}
-              onChange={(value) => handleFrameworkSelect(parseInt(value))}
-              height={34}
-            />
-          )}
-
-          {/* Manage Project Button */}
-          {organizationalProject ? (
-            <>
-              <Button
-                variant="contained"
-                endIcon={<WhiteDownArrowIcon size={16} />}
-                onClick={(event) => {
-                  setRotated((prev) => !prev);
-                  handleManageProjectClick(event);
-                }}
-                disableRipple
-                disabled={
-                  !allowedRoles.frameworks.manage.includes(userRoleName) &&
-                  !allowedRoles.projects.edit.includes(userRoleName) &&
-                  !allowedRoles.projects.delete.includes(userRoleName)
-                }
-                sx={{
-                  backgroundColor: "#13715B",
-                  border: "1px solid #13715B",
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: "#0e5c47",
-                    boxShadow: "0px 4px 8px rgba(19, 113, 91, 0.3)",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#cccccc",
-                    color: "#666666",
-                    boxShadow: "none",
-                  },
-                  "& .MuiButton-endIcon": {
-                    marginLeft: 1,
-                    transition: "transform 0.2s ease",
-                    transform: rotated ? "rotate(180deg)" : "rotate(0deg)",
-                  },
-                }}
-              >
-                Manage Project
-              </Button>
-              <Menu
-                anchorEl={anchorEl}
-                open={isMenuOpen}
-                onClose={handleMenuClose}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                slotProps={{
-                  paper: {
-                    sx: {
-                      ...dropDownStyle,
-                      width: 200,
-                      mt: 1,
-                    },
-                  },
-                }}
-              >
-                <MenuItem
-                  onClick={handleManageFrameworksClick}
-                  disabled={
-                    !allowedRoles.frameworks.manage.includes(userRoleName)
-                  }
-                >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <SettingsIcon
-                      size={16}
-                      style={{
-                        color: "text.secondary",
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Manage Frameworks"
-                    primaryTypographyProps={{
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      color: "text.primary",
-                    }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={handleEditProjectClick}
-                  disabled={!allowedRoles.projects.edit.includes(userRoleName)}
-                >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <EditIconGrey
-                      size={16}
-                      style={{
-                        color: "text.secondary",
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Edit Project"
-                    primaryTypographyProps={{
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      color: "text.primary",
-                    }}
-                  />
-                </MenuItem>
-                <Divider sx={{ my: 0.5 }} />
-                <MenuItem
-                  onClick={handleDeleteProjectClick}
-                  disabled={
-                    !allowedRoles.projects.delete.includes(userRoleName)
-                  }
-                >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <DeleteIconRed
-                      size={16}
-                      style={{
-                        color: "#DB504A",
-                      }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Delete Project"
-                    primaryTypographyProps={{
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      color: "error.main",
-                    }}
-                  />
-                </MenuItem>
-              </Menu>
-            </>
-          ) : (
-            <Button
-              variant="contained"
-              startIcon={<AddCircleOutlineIcon size={16} />}
-              onClick={() => setIsProjectFormModalOpen(true)}
-              disabled={!allowedRoles.projects.create.includes(userRoleName)}
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#0e5c47",
-                },
-                "&:disabled": {
-                  backgroundColor: "#cccccc",
-                  color: "#666666",
-                },
-              }}
-            >
-              New Project
-            </Button>
-          )}
-        </Box>
 
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
-        <Stack className="frameworks-switch">
-          {/* Content that changes based on selected framework */}
-          {renderFrameworkContent()}
-        </Stack>
+        <TabContext value={mainTabValue}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList
+              onChange={handleMainTabChange}
+              TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              sx={tabListStyle}
+            >
+              <Tab
+                label="Dashboard"
+                value="dashboard"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
+                label="Controls and Requirements"
+                value="controls"
+                sx={tabStyle}
+                disableRipple
+              />
+              <Tab
+                label="Settings"
+                value="settings"
+                sx={tabStyle}
+                disableRipple
+              />
+            </TabList>
+          </Box>
+
+          <TabPanel value="dashboard" sx={tabPanelStyle}>
+            <FrameworkDashboard
+              organizationalProject={organizationalProject}
+              filteredFrameworks={filteredFrameworks}
+            />
+          </TabPanel>
+
+          <TabPanel value="controls" sx={tabPanelStyle}>
+            <Stack className="frameworks-switch" spacing={3}>
+              {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
+              {organizationalProject && filteredFrameworks.length > 0 && (
+                <Box>
+                  <ButtonToggle
+                    options={filteredFrameworks.map((framework, index) => ({
+                      value: index.toString(),
+                      label: framework.name,
+                    }))}
+                    value={selectedFramework.toString()}
+                    onChange={(value) => handleFrameworkSelect(parseInt(value))}
+                    height={34}
+                  />
+                </Box>
+              )}
+              {/* Content that changes based on selected framework */}
+              {renderFrameworkContent()}
+            </Stack>
+          </TabPanel>
+
+          <TabPanel value="settings" sx={tabPanelStyle}>
+            <FrameworkSettings
+              organizationalProject={organizationalProject}
+              allFrameworks={allFrameworks}
+              filteredFrameworks={filteredFrameworks}
+              onProjectDataChanged={refreshProjectData}
+              onFrameworksChanged={refreshFilteredFrameworks}
+              setProjects={setProjects}
+            />
+          </TabPanel>
+        </TabContext>
       )}
 
       {/* Show message when no organizational project exists */}
       {!organizationalProject && (
         <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001 and ISO 42001 frameworks for your organization." />
-      )}
-
-      {/* Modals */}
-      {isProjectFormModalOpen && (
-        <Modal
-          open={isProjectFormModalOpen}
-          onClose={async (_event, reason) => {
-            // Prevent closing on backdrop click
-            if (reason === "backdropClick") {
-              return;
-            }
-            setIsProjectFormModalOpen(false);
-            // Refresh project data after editing the project
-            await refreshProjectData();
-          }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              backgroundColor: "white",
-              borderRadius: 2,
-              boxShadow: 24,
-              maxHeight: "90vh",
-              maxWidth: "90vw",
-              overflow: "auto",
-              outline: "none",
-              p: 0,
-            }}
-          >
-            <ProjectForm
-              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
-              onClose={async () => {
-                setIsProjectFormModalOpen(false);
-                // Refresh project data after creating a new project
-                await refreshProjectData();
-              }}
-            />
-          </Box>
-        </Modal>
-      )}
-
-      {isEditProjectModalOpen && organizationalProject && (
-        <Modal
-          open={isEditProjectModalOpen}
-          onClose={async (_event, reason) => {
-            // Prevent closing on backdrop click
-            if (reason === "backdropClick") {
-              return;
-            }
-            setIsEditProjectModalOpen(false);
-            // Refresh project data after editing the project
-            await refreshProjectData();
-          }}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              backgroundColor: "white",
-              borderRadius: 2,
-              boxShadow: 24,
-              maxHeight: "90vh",
-              maxWidth: "90vw",
-              overflow: "auto",
-              outline: "none",
-              p: 0,
-            }}
-          >
-            <ProjectForm
-              projectToEdit={organizationalProject}
-              defaultFrameworkType={FrameworkTypeEnum.OrganizationWide}
-              onClose={async () => {
-                setIsEditProjectModalOpen(false);
-                // Refresh project data after editing the project
-                await refreshProjectData();
-              }}
-            />
-          </Box>
-        </Modal>
-      )}
-
-      {isFrameworkModalOpen && organizationalProject && (
-        <AddFrameworkModal
-          open={isFrameworkModalOpen}
-          onClose={() => setIsFrameworkModalOpen(false)}
-          frameworks={allFrameworks.filter((framework) => {
-            // Only show organizational frameworks (ISO 27001 and ISO 42001) for organizational projects
-            const isNotEuAiAct = !framework.name
-              .toLowerCase()
-              .includes("eu ai act");
-            const isIsoFramework =
-              framework.name.toLowerCase().includes("iso 27001") ||
-              framework.name.toLowerCase().includes("iso 42001");
-            return isNotEuAiAct && isIsoFramework;
-          })}
-          project={organizationalProject}
-          onFrameworksChanged={async () => {
-            // Refresh both frameworks and project data
-            await refreshProjectData();
-            refreshFilteredFrameworks();
-            setIsFrameworkModalOpen(false);
-          }}
-        />
-      )}
-
-      {isDeleteModalOpen && organizationalProject && (
-        <DualButtonModal
-          title="Confirm Delete"
-          body={
-            <Typography fontSize={13}>
-              Are you sure you want to delete the project "
-              {organizationalProject.project_title}"? This action cannot be
-              undone and will remove all associated data.
-            </Typography>
-          }
-          cancelText="Cancel"
-          proceedText="Delete"
-          onCancel={() => setIsDeleteModalOpen(false)}
-          onProceed={handleDeleteProject}
-          proceedButtonColor="error"
-          proceedButtonVariant="contained"
-          TitleFontSize={0}
-        />
       )}
     </Stack>
   );

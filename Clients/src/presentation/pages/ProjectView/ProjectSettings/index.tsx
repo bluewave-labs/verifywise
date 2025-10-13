@@ -602,7 +602,7 @@ const ProjectSettings = React.memo(
       }
 
       const monitoredRegulationsAndStandards = selectValidation(
-        "Monitored regulations and standards",
+        "Applicable regulations",
         values.monitoredRegulationsAndStandards.length
       );
       if (!monitoredRegulationsAndStandards.accepted) {
@@ -734,7 +734,7 @@ const ProjectSettings = React.memo(
           setProjects((prevProjects) =>
             prevProjects.filter((project) => project.id !== Number(projectId))
           );
-          navigate("/");
+          navigate("/overview");
           setTimeout(() => {
             setAlert(null);
           }, 3000);
@@ -872,7 +872,7 @@ const ProjectSettings = React.memo(
                 <Typography
                   sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
                 >
-                  Monitored regulations and standards *
+                  Applicable regulations *
                 </Typography>
                 <Typography sx={{ fontSize: theme.typography.fontSize }}>
                   Add all monitored regulations and standards of the use case.

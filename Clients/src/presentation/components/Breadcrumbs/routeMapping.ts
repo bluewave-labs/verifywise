@@ -34,11 +34,11 @@ export const routeMapping: Record<string, string> = {
   // Main pages
   "/": "Dashboard",
   "/test": "Dashboard",
+  "/overview": "Use cases",
 
   // Project related
-  "/project-view": "Use case overview",
-  "/test/project-view": "Use case overview",
-  "/overview": "Use cases",
+  "/project-view": "Project overview",
+  "/test/project-view": "Project overview",
 
   // Vendor management
   "/vendors": "Vendor Management",
@@ -148,8 +148,8 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 export const dynamicRoutePatterns = [
   {
     pattern: /\/project-view.*projectId=/,
-    label: "Use case details",
-    description: "Use case view with specific project ID",
+    label: "Project details",
+    description: "Project view with specific project ID",
   },
   {
     pattern: /\/fairness-results\/\w+/,

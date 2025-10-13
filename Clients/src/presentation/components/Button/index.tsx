@@ -54,13 +54,13 @@ export interface ButtonProps extends Omit<MUIButtonProps, 'sx'> {
 /**
  * Button component implementation
  */
-const Button: React.FC<ButtonProps> = memo(({ 
-  children, 
-  sx, 
+const Button = memo(React.forwardRef<HTMLButtonElement, ButtonProps>(({
+  children,
+  sx,
   testId,
   className,
-  ...rest 
-}) => {
+  ...rest
+}, ref) => {
   const theme = useTheme();
   
   // Define default styles using theme values
@@ -122,7 +122,8 @@ const Button: React.FC<ButtonProps> = memo(({
   };
 
   return (
-    <MUIButton 
+    <MUIButton
+      ref={ref}
       className={className}
       data-testid={testId}
       sx={{ ...defaultStyles, ...sx }}
@@ -132,7 +133,7 @@ const Button: React.FC<ButtonProps> = memo(({
       {children}
     </MUIButton>
   );
-});
+}));
 
 // Set display name for better debugging and dev tools
 Button.displayName = 'Button';

@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState, useRef } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
+  vwhomeBody,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
@@ -19,6 +20,9 @@ import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import allowedRoles from "../../../../application/constants/permissions";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 
 
 const Home = () => {
@@ -183,7 +187,7 @@ const Home = () => {
       )}
       {/* Use Cases Header */}
       <Stack spacing={2}>
-        <Stack direction="row" alignItems="center" spacing={1} pt={2}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Use cases</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
@@ -198,9 +202,24 @@ const Home = () => {
       {/* Projects List */}
       <ProjectList
         projects={projects}
-        onNewProject={() => setIsProjectFormModalOpen(true)}
-        userRoleName={userRoleName}
-        newProjectButtonRef={newProjectButtonRef}
+        newProjectButton={
+          <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
+            <CustomizableButton
+              variant="contained"
+              text="New project"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<AddCircleOutlineIcon size={16} />}
+              onClick={() => setIsProjectFormModalOpen(true)}
+              isDisabled={
+                !allowedRoles.projects.create.includes(userRoleName)
+              }
+            />
+          </div>
+        }
       />
 
       <Modal

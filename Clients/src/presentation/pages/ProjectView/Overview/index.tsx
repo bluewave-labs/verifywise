@@ -145,7 +145,7 @@ const Overview: FC<OverviewProps> = memo(({ projectRisksSummary }) => {
         <Typography
           sx={{ color: "#1A1919", fontWeight: 600, mb: "10px", fontSize: 16 }}
         >
-          Project risks
+          Use case risks
         </Typography>
         <Risks {...projectRisksSummary} />
       </Stack>

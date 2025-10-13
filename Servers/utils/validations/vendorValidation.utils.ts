@@ -108,7 +108,7 @@ export const validateVendorContactPerson = (value: any): ValidationResult => {
  */
 export const validateReviewResult = (value: any): ValidationResult => {
   return validateString(value, 'Review result', {
-    required: true,
+    required: false,
     minLength: VENDOR_VALIDATION_LIMITS.REVIEW_RESULT.MIN,
     maxLength: VENDOR_VALIDATION_LIMITS.REVIEW_RESULT.MAX,
     trimWhitespace: true
@@ -119,7 +119,7 @@ export const validateReviewResult = (value: any): ValidationResult => {
  * Validates review status enum field
  */
 export const validateReviewStatus = (value: any): ValidationResult => {
-  return validateEnum(value, 'Review status', VENDOR_REVIEW_STATUS_ENUM, true);
+  return validateEnum(value, 'Review status', VENDOR_REVIEW_STATUS_ENUM, false);
 };
 
 /**
@@ -133,7 +133,7 @@ export const validateAssignee = (value: any): ValidationResult => {
  * Validates reviewer foreign key
  */
 export const validateReviewer = (value: any): ValidationResult => {
-  return validateForeignKey(value, 'Reviewer', true);
+  return validateForeignKey(value, 'Reviewer', false);
 };
 
 /**
@@ -141,7 +141,7 @@ export const validateReviewer = (value: any): ValidationResult => {
  */
 export const validateReviewDate = (value: any): ValidationResult => {
   return validateDate(value, 'Review date', {
-    required: true
+    required: false
   });
 };
 

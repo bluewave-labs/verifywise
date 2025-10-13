@@ -16,7 +16,6 @@ import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import VWISO42001ClauseDrawerDialog from "../../../../components/Drawer/ClauseDrawerDialog";
-import StatsCard from "../../../../components/Cards/StatsCard";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";
 import StatusDropdown from "../../../../components/StatusDropdown";
@@ -54,7 +53,7 @@ const ISO42001Clause = ({
   const [loadingSubClauses, setLoadingSubClauses] = useState<{
     [key: number]: boolean;
   }>({});
-  const [clauseProgress, setClauseProgress] = useState<{
+  const [, setClauseProgress] = useState<{
     totalSubclauses: number;
     doneSubclauses: number;
   }>();
@@ -282,12 +281,6 @@ const ISO42001Clause = ({
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
-      <StatsCard
-        completed={clauseProgress?.doneSubclauses ?? 0}
-        total={clauseProgress?.totalSubclauses ?? 0}
-        title="Clauses"
-        progressbarColor="#13715B"
-      />
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Management System Clauses"}
       </Typography>

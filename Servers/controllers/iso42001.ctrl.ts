@@ -7,6 +7,8 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   countAnnexCategoriesISOByProjectId,
   countSubClausesISOByProjectId,
+  countSubClauseAssignmentsISOByProjectId,
+  countAnnexCategoryAssignmentsISOByProjectId,
   deleteAnnexCategoriesISOByProjectIdQuery,
   deleteSubClausesISOByProjectIdQuery,
   getAllAnnexesQuery,
@@ -1048,6 +1050,115 @@ export async function getAllProjectsAnnxesProgress(
       eventType: "Read",
       description: "Failed to get annexes progress across all projects",
       functionName: "getAllProjectsAnnxesProgress",
+      fileName: "iso42001.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Retrieves assignment statistics for ISO 42001 subclauses within a project framework.
+ * Returns total count and number of subclauses that have been assigned to owners.
+ *
+ * @route GET /api/iso-42001/clauses/assignments/:id
+ * @param req - Express request object with project framework ID in params
+ * @param res - Express response object
+ * @returns JSON response with totalSubclauses and assignedSubclauses counts
+ */
+export async function getProjectClausesAssignments(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectClausesAssignments for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectClausesAssignments",
+    fileName: "iso42001.ctrl.ts",
+  });
+  logger.debug(
+    `📊 Calculating clauses assignments for project framework ID ${projectFrameworkId}`
+  );
+
+  try {
+    const { totalSubclauses, assignedSubclauses } =
+      await countSubClauseAssignmentsISOByProjectId(projectFrameworkId, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved clauses assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectClausesAssignments",
+      fileName: "iso42001.ctrl.ts",
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        totalSubclauses: parseInt(totalSubclauses),
+        assignedSubclauses: parseInt(assignedSubclauses),
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get clauses assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectClausesAssignments",
+      fileName: "iso42001.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Retrieves assignment statistics for ISO 42001 annex categories within a project framework.
+ * Returns total count and number of annex categories that have been assigned to owners.
+ *
+ * @route GET /api/iso-42001/annexes/assignments/:id
+ * @param req - Express request object with project framework ID in params
+ * @param res - Express response object
+ * @returns JSON response with totalAnnexcategories and assignedAnnexcategories counts
+ */
+export async function getProjectAnnexesAssignments(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectAnnexesAssignments for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectAnnexesAssignments",
+    fileName: "iso42001.ctrl.ts",
+  });
+  logger.debug(
+    `📊 Calculating annexes assignments for project framework ID ${projectFrameworkId}`
+  );
+
+  try {
+    const { totalAnnexcategories, assignedAnnexcategories } =
+      await countAnnexCategoryAssignmentsISOByProjectId(
+        projectFrameworkId,
+        req.tenantId!
+      );
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved annexes assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAnnexesAssignments",
+      fileName: "iso42001.ctrl.ts",
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        totalAnnexcategories: parseInt(totalAnnexcategories),
+        assignedAnnexcategories: parseInt(assignedAnnexcategories),
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get annexes assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAnnexesAssignments",
       fileName: "iso42001.ctrl.ts",
       error: error as Error,
     });

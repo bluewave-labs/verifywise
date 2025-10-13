@@ -23,7 +23,7 @@
     "@smithy/node-http-handler": "^4.3.0",
     "@types/passport-jwt": "^4.0.1",
     "bcrypt": "^5.1.1",
-    "bullmq": "^5.59.0",
+    "bullmq": "^5.61.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

@@ -2,7 +2,7 @@ import { Transaction } from "sequelize";
 import { sequelize } from "../database/db";
 import { VendorModel } from "../domain.layer/models/vendor/vendor.model";
 
-export async function checkOrganizationalProjectExists(tenant: string, transaction: Transaction) {
+export async function checkOrganizationalProjectExists(tenant: string, transaction: Transaction): Promise<number> {
   const result = await sequelize.query(
     `SELECT COUNT(*) as count FROM "${tenant}".projects WHERE is_organizational;`,
     { transaction }
@@ -10,7 +10,7 @@ export async function checkOrganizationalProjectExists(tenant: string, transacti
   return parseInt(result[0][0].count) || 0;
 }
 
-export async function getData(tableName: string, tenant: string, transaction: Transaction) {
+export async function getData(tableName: string, tenant: string, transaction: Transaction): Promise<any[]> {
   const result = await sequelize.query(
     `SELECT * FROM "${tenant}".${tableName} WHERE is_demo;`,
     { transaction }
@@ -21,12 +21,12 @@ export async function getData(tableName: string, tenant: string, transaction: Tr
 export async function insertData(
   insertQuery: string,
   transaction: Transaction
-) {
+): Promise<any> {
   const result = await sequelize.query(insertQuery, { transaction });
   return result;
 }
 
-export async function deleteDemoVendorsData(tenant: string, transaction: Transaction) {
+export async function deleteDemoVendorsData(tenant: string, transaction: Transaction): Promise<void> {
   const result = await sequelize.query(
     `SELECT id FROM "${tenant}".vendors WHERE is_demo;`,
     {

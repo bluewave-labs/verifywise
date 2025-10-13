@@ -148,7 +148,7 @@ const VWProjectView = () => {
                 disableRipple
               />
               <Tab
-                label="Frameworks"
+                label="Frameworks/regulations"
                 value="frameworks"
                 sx={tabStyle}
                 disableRipple

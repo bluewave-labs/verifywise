@@ -128,7 +128,7 @@ const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
                   paddingBottom: theme.spacing(20),
                 }}
               >
-                <img src={placeholderImage} alt="No projects" />
+                <img src={placeholderImage} alt="No use cases" />
                 <Typography sx={{ fontSize: "13px", color: "#475467", mt: 2 }}>
                   A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace.
                 </Typography>

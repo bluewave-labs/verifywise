@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
 import { Plate, PlateContent, createPlateEditor, createPlatePlugin } from "platejs/react";
 import { AutoformatPlugin } from '@platejs/autoformat';
 import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
@@ -39,7 +38,7 @@ import {
   Redo,
   Undo,
 } from "@mui/icons-material";
-import { Quote, Underline, Bold, Italic } from "lucide-react";
+import { Quote, Underline, Bold, Italic, SaveIcon } from "lucide-react";
 
 // Custom number components for heading levels (Lucide doesn't have numbered heading icons)
 const LooksOne = () => (

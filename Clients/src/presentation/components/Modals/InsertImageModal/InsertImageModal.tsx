@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-} from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Stack } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
+import Field from "../../Inputs/Field"; // Adjust the path to your actual Field component
+import CustomizableButton from "../../Button/CustomizableButton"; // Adjust the path as needed
 
 interface InsertImageModalProps {
   open: boolean;
@@ -47,37 +42,41 @@ const InsertImageModal: React.FC<InsertImageModalProps> = ({
       </DialogTitle>
 
       <DialogContent>
-        <TextField
+        <Field
           label="Image URL"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          fullWidth
-          variant="outlined"
-          margin="dense"
-          autoFocus
+          type="url"
+          https
+          placeholder="Enter the image URL"
+          isRequired
+          sx={{ mb: 2 }} // Custom styles for spacing
         />
-        <TextField
+        <Field
           label="Alt Text (optional)"
           value={alt}
           onChange={(e) => setAlt(e.target.value)}
-          fullWidth
-          variant="outlined"
-          margin="dense"
+          type="text"
+          placeholder="Enter the alt text (optional)"
+          sx={{ mb: 2 }} // Custom styles for spacing
         />
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} color="inherit">
-          Cancel
-        </Button>
-        <Button
+      <DialogActions sx={{ padding: 2 }}>
+        <CustomizableButton
+          text="Cancel"
+          variant="text"
+          sx={{ color: "#344054", px: "32px", width: 120 }}
+          onClick={onClose}
+        />
+        <CustomizableButton
+          text="Insert"
           variant="contained"
-          onClick={handleInsert}
           color="primary"
-          disabled={!url.trim()}
-        >
-          Insert
-        </Button>
+          sx={{ width: 120 }}
+          onClick={handleInsert}
+          isDisabled={!url.trim()}
+        />
       </DialogActions>
     </Dialog>
   );

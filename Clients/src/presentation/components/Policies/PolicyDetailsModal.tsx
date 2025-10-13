@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { CSSProperties, useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
 import { Plate, PlateContent, createPlateEditor, createPlatePlugin } from "platejs/react";
@@ -599,7 +599,10 @@ const hrPlugin = createPlatePlugin({
                   fontSize: theme.typography.fontSize,
                   color: theme.palette.text.primary,
                   boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
-                }}
+                  "&:focus": {
+                    outline: "none",
+                  }
+                } as CSSProperties}
                 placeholder="Start typing..."
               />
             </Plate>

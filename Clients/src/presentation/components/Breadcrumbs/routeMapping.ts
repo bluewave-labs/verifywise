@@ -34,11 +34,11 @@ export const routeMapping: Record<string, string> = {
   // Main pages
   "/": "Dashboard",
   "/test": "Dashboard",
-  "/overview": "Use cases",
+  "/overview": "Projects",
 
   // Project related
-  "/project-view": "Use case overview",
-  "/test/project-view": "Use case overview",
+  "/project-view": "Project overview",
+  "/test/project-view": "Project overview",
 
   // Vendor management
   "/vendors": "Vendor Management",

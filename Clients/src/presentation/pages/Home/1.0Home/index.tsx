@@ -148,7 +148,7 @@ const Home = () => {
         whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or **governance issues**. It provides **executive visibility** into *AI program health* and helps prioritize resources where they're needed most."
         quickActions={[
           {
-            label: "Create New Use Case",
+            label: "Create New Project",
             description: "Start a new AI governance project or compliance initiative",
             primary: true
           },
@@ -162,13 +162,13 @@ const Home = () => {
           "**Executive reporting** with *real-time metrics* and **progress tracking**"
         ]}
         keyFeatures={[
-          "**Real-time use case status tracking** with *progress indicators*",
+          "**Real-time project status tracking** with *progress indicators*",
           "**Aggregated compliance metrics** across all *governance areas*",
           "**Quick access** to *pending tasks* and **upcoming deadlines**"
         ]}
         tips={[
           "**Check the dashboard daily** to stay on top of *governance activities*",
-          "Use **use case filters** to focus on *specific initiatives* or teams",
+          "Use **project filters** to focus on *specific initiatives* or teams",
           "Set up **dashboard alerts** for *critical compliance thresholds*"
         ]}
       />
@@ -187,14 +187,14 @@ const Home = () => {
       {/* Projects Header */}
       <Stack spacing={2}>
         <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
-          <Typography sx={vwhomeHeading}>Use cases</Typography>
+          <Typography sx={vwhomeHeading}>Projects</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+          Project is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
         </Typography>
       </Stack>
 
@@ -205,7 +205,7 @@ const Home = () => {
           <div data-joyride-id="new-project-button" ref={refs[0]}>
             <CustomizableButton
               variant="contained"
-              text="New use case"
+              text="New project"
               sx={{
                 backgroundColor: "#13715B",
                 border: "1px solid #13715B",

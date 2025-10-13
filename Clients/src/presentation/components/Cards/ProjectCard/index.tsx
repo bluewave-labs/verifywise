@@ -369,9 +369,9 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             </Typography>
           </Stack>
         </Stack>
-        {/* View Use Case Details Button */}
+        {/* View Project Details Button */}
         <Stack sx={{ mt: "auto", alignItems: "flex-end" }}>
-          <Tooltip title="View use case details" sx={{ fontSize: 13 }}>
+          <Tooltip title="View project details" sx={{ fontSize: 13 }}>
             <Button
               variant="contained"
               onClick={() =>
@@ -382,7 +382,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
               sx={viewProjectButtonStyle}
               startIcon={<EyeIcon size={14} />}
             >
-              View use case details
+              View project details
             </Button>
           </Tooltip>
         </Stack>

@@ -76,7 +76,7 @@ const getMenuGroups = (): MenuGroup[] => [
     name: "DISCOVERY",
     items: [
       {
-        name: "Use cases",
+        name: "Projects",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
       },

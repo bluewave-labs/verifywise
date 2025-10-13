@@ -20,6 +20,9 @@ import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import allowedRoles from "../../../../application/constants/permissions";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 
 
 const Home = () => {

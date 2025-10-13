@@ -1,13 +1,11 @@
 // New component file: ProjectList.tsx
 import { useState, useMemo } from "react";
 import { Box, Typography, InputBase, IconButton } from "@mui/material";
-import { Search as SearchIcon, CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import { Search as SearchIcon } from "lucide-react";
 import ProjectCard from "../Cards/ProjectCard";
 import ProjectTableView from "./ProjectTableView";
 import NoProject from "../NoProject/NoProject";
 import ViewToggle from "../ViewToggle";
-import CustomizableButton from "../Button/CustomizableButton";
-import allowedRoles from "../../../application/constants/permissions";
 import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
 
 import { Project } from "../../../domain/types/Project";

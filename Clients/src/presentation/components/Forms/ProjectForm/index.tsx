@@ -632,6 +632,19 @@ const ProjectForm = ({
             error={errors.owner}
             isRequired
           />
+          <Select
+            id="project-status-input"
+            label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework status" : "Use case status"}
+            placeholder="Select status"
+            value={values.status || ""}
+            onChange={handleOnSelectChange("status")}
+            items={projectStatusItems}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.status}
+          />
           {values.framework_type === FrameworkTypeEnum.ProjectBased && (
             <>
               <Select
@@ -647,19 +660,6 @@ const ProjectForm = ({
                 }}
                 error={errors.riskClassification}
                 isRequired
-              />
-              <Select
-                id="project-status-input"
-                label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework status" : "Use case status"}
-                placeholder="Select status"
-                value={values.status || ""}
-                onChange={handleOnSelectChange("status")}
-                items={projectStatusItems}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                error={errors.status}
               />
               <Select
                 id="type-of-high-risk-role-input"

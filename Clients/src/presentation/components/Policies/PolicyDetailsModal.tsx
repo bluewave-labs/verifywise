@@ -72,7 +72,9 @@ import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandl
 import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
 import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
-import SuccessToast from "../Toast/SuccessToast";
+import { handleAlert } from "../../../application/tools/alertUtils";
+import Alert from "../Alert";
+import { AlertProps } from "../../../domain/interfaces/iAlert";
 
 
 interface Props {
@@ -103,7 +105,7 @@ const PolicyDetailModal: React.FC<Props> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   const [openLink, setOpenLink] = useState(false);
   const [openImage, setOpenImage] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   // const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -354,13 +356,20 @@ const PolicyDetailModal: React.FC<Props> = ({
         await updatePolicy(policy!.id, payload);
       }
 
-      // Show success toast
-      setShowSuccessToast(true);
+      // Show success alert using VerifyWise standard pattern
+      handleAlert({
+        variant: "success",
+        body: isNew
+          ? "Policy created successfully!"
+          : "Policy updated successfully!",
+        setAlert,
+        alertTimeout: 4000, // 4 seconds to give users time to read
+      });
 
-      // Delay closing the modal slightly to allow user to see the success message
+      // Delay closing the modal to allow user to see the success message
       setTimeout(() => {
         onSaved();
-      }, 500);
+      }, 2000);
     } catch (err: any) {
       // setIsSubmitting(false);
       console.error("Full error object:", err);
@@ -584,15 +593,15 @@ const PolicyDetailModal: React.FC<Props> = ({
         </Box>
       </Drawer>
 
-      <SuccessToast
-        open={showSuccessToast}
-        message={
-          isNew
-            ? "Policy created successfully!"
-            : "Policy updated successfully!"
-        }
-        onClose={() => setShowSuccessToast(false)}
-      />
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
+        />
+      )}
     </>
   );
 };

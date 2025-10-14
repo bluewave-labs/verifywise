@@ -45,6 +45,10 @@ const allowedRoles = {
     view: ["Admin"],
     manage: ["Admin"],
   },
+  apiKeys: {
+    view: ["Admin"],
+    manage: ["Admin"],
+  },
 };
 
 export default allowedRoles;

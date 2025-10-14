@@ -776,6 +776,16 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_task_id_idx" ON "${tenantHash}".task_assignees (task_id);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_user_id_idx" ON "${tenantHash}".task_assignees (user_id);`
     ].map(query => sequelize.query(query, { transaction })));
+
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".api_tokens
+    (
+      id SERIAL PRIMARY KEY,
+      token TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ,
+      created_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL
+    );`, { transaction });
   }
   catch (error) {
     throw error;

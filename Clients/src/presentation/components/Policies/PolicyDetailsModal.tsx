@@ -1,7 +1,7 @@
 import React, { CSSProperties, useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import { Plate, PlateContent, createPlateEditor, createPlatePlugin } from "platejs/react";
+import { Plate, PlateContent, createPlateEditor } from "platejs/react";
 import { AutoformatPlugin } from '@platejs/autoformat';
 import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
@@ -19,7 +19,6 @@ import { ListPlugin, BulletedListPlugin, NumberedListPlugin, ListItemPlugin, Lis
 import { TextAlignPlugin } from '@platejs/basic-styles/react';
 import { serializeHtml } from "platejs";
 import {
-  Quote,
   Underline,
   Bold,
   Italic,
@@ -55,7 +54,6 @@ const LooksThree = () => (
   </svg>
 );
 
-const FormatQuote = () => <Quote size={16} />;
 const FormatUnderlined = () => <Underline size={16} />;
 const FormatBold = () => <Bold size={16} />;
 const FormatItalic = () => <Italic size={16} />;

@@ -9,7 +9,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { FileData } from "../../../../domain/types/File";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
+import { X as CloseIcon } from "lucide-react";
 import Field from "../../Inputs/Field";
 import { inputStyles } from "../ClauseDrawerDialog";
 import DatePicker from "../../Inputs/Datepicker";
@@ -18,7 +18,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { User } from "../../../../domain/types/User";
 import UppyUploadFile from "../../Inputs/FileUpload";
 import { STATUSES } from "../../../../domain/types/Status";
@@ -410,7 +410,7 @@ const VWISO27001AnnexDrawerDialog = ({
           <Typography fontSize={15} fontWeight={700}>
             {title}
           </Typography>
-          <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
+          <CloseIcon size={20} onClick={onClose} style={{ cursor: "pointer" }} />
         </Stack>
         <Divider />
         <Stack sx={{ padding: "15px 20px", gap: "15px" }}>
@@ -787,7 +787,7 @@ const VWISO27001AnnexDrawerDialog = ({
               gap: 2,
             }}
             onClick={handleSave}
-            icon={<SaveIconSVGWhite />}
+            icon={<SaveIcon size={16} />}
           />
         </Stack>
       </Stack>

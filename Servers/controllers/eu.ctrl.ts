@@ -146,19 +146,6 @@ export async function getTopicById(req: Request, res: Response): Promise<any> {
   );
 
   try {
-    if (isNaN(topicId) || isNaN(projectFrameworkId)) {
-      await logFailure({
-        eventType: "Read",
-        description: "Invalid query parameters for getTopicById",
-        functionName: "getTopicById",
-        fileName: "eu.ctrl.ts",
-        userId: req.userId!,
-      tenantId: req.tenantId!,
-        error: new Error("Invalid query parameters"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
-    }
-
     const topic = await getTopicByIdForProjectQuery(
       topicId,
       projectFrameworkId,
@@ -219,19 +206,6 @@ export async function getControlById(
   );
 
   try {
-    if (isNaN(controlId) || isNaN(projectFrameworkId)) {
-      await logFailure({
-        eventType: "Read",
-        description: "Invalid query parameters for getControlById",
-        functionName: "getControlById",
-        fileName: "eu.ctrl.ts",
-        userId: req.userId!,
-      tenantId: req.tenantId!,
-        error: new Error("Invalid query parameters"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid query parameters"));
-    }
-
     const topic = await getControlByIdForProjectQuery(
       controlId,
       projectFrameworkId,
@@ -472,7 +446,6 @@ export async function updateQuestionById(
       req.tenantId!,
       transaction
     )) as AnswerEU;
-    console.log("Updated question:", question);
 
     if (!question) {
       await transaction.rollback();

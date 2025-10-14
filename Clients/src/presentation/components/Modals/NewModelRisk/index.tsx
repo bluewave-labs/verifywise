@@ -17,9 +17,8 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
 import {
   ModelRiskCategory,
   ModelRiskLevel,
@@ -147,7 +146,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
     try {
       const response = await getAllUsers();
       // Handle both direct array and {message, data} format
-      let userData = [];
+      let userData: any[] = [];
       if (Array.isArray(response)) {
         userData = response;
       } else if (response && response.data && Array.isArray(response.data)) {
@@ -223,6 +222,12 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
   const handleOnSelectChange = useCallback(
     (prop: keyof IModelRiskFormData) => (event: any) => {
       const value = event.target.value;
+      if (prop === "model_id" && value === "") {
+        // Allow clearing the model selection - explicitly set to null
+        setValues((prev) => ({ ...prev, [prop]: null }));
+        setErrors((prev) => ({ ...prev, [prop]: "" }));
+        return;
+      }
       setValues((prev) => ({ ...prev, [prop]: value }));
       setErrors((prev) => ({ ...prev, [prop]: "" }));
     },
@@ -376,7 +381,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </Box>
           </Stack>
 
@@ -487,7 +492,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 <SelectComponent
                   id="modelId"
                   label="Associated model (optional)"
-                  value={values.model_id || ""}
+                  value={values.model_id ?? ""}
                   sx={{ width: 220 }}
                   items={modelOptions}
                   onChange={handleOnSelectChange("model_id")}
@@ -584,7 +589,7 @@ const NewModelRisk: FC<NewModelRiskProps> = ({
                 gap: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIconSVGWhite/>}
+              icon={<SaveIcon size={16} />}
             />
           </Stack>
         </form>

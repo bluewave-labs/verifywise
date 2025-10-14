@@ -6,6 +6,8 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   countAnnexControlsISOByProjectId,
   countSubClausesISOByProjectId,
+  countSubClauseAssignmentsISOByProjectId,
+  countAnnexControlAssignmentsISOByProjectId,
   deleteAnnexControlsISO27001ByProjectIdQuery,
   deleteSubClausesISO27001ByProjectIdQuery,
   getAllAnnexesQuery,
@@ -1209,6 +1211,124 @@ export async function getAllProjectsAnnxesProgress(
       userId: req.userId!,
       tenantId: req.tenantId!,
       error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Retrieves assignment statistics for ISO 27001 subclauses within a project framework.
+ * Returns total count and number of subclauses that have been assigned to owners.
+ *
+ * @route GET /api/iso-27001/clauses/assignments/:id
+ * @param req - Express request object with project framework ID in params
+ * @param res - Express response object
+ * @returns JSON response with totalSubclauses and assignedSubclauses counts
+ */
+export async function getProjectClausesAssignments(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectClausesAssignments for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectClausesAssignments",
+    fileName: "iso27001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+  logger.debug(
+    `📊 Calculating clauses assignments for project framework ID ${projectFrameworkId}`
+  );
+
+  try {
+    const { totalSubclauses, assignedSubclauses } =
+      await countSubClauseAssignmentsISOByProjectId(projectFrameworkId, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved clauses assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectClausesAssignments",
+      fileName: "iso27001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        totalSubclauses: parseInt(totalSubclauses),
+        assignedSubclauses: parseInt(assignedSubclauses),
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get clauses assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectClausesAssignments",
+      fileName: "iso27001.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Retrieves assignment statistics for ISO 27001 annex controls within a project framework.
+ * Returns total count and number of annex controls that have been assigned to owners.
+ *
+ * @route GET /api/iso-27001/annexes/assignments/:id
+ * @param req - Express request object with project framework ID in params
+ * @param res - Express response object
+ * @returns JSON response with totalAnnexControls and assignedAnnexControls counts
+ */
+export async function getProjectAnnexesAssignments(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectAnnexesAssignments for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectAnnexesAssignments",
+    fileName: "iso27001.ctrl.ts",
+    userId: req.userId!,
+    tenantId: req.tenantId!,
+  });
+  logger.debug(
+    `📊 Calculating annexes assignments for project framework ID ${projectFrameworkId}`
+  );
+
+  try {
+    const { totalAnnexControls, assignedAnnexControls } =
+      await countAnnexControlAssignmentsISOByProjectId(projectFrameworkId, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved annexes assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAnnexesAssignments",
+      fileName: "iso27001.ctrl.ts",
+      userId: req.userId!,
+      tenantId: req.tenantId!,
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        totalAnnexControls: parseInt(totalAnnexControls),
+        assignedAnnexControls: parseInt(assignedAnnexControls),
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get annexes assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAnnexesAssignments",
+      fileName: "iso27001.ctrl.ts",
+      error: error as Error,
+      userId: req.userId!,
+      tenantId: req.tenantId!,
     });
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

@@ -81,6 +81,72 @@ export const countAnnexControlsISOByProjectId = async (
   return result[0][0];
 };
 
+/**
+ * Counts the total and assigned subclauses for an ISO 27001 project framework.
+ * A subclause is considered "assigned" if it has an owner (owner IS NOT NULL).
+ *
+ * @param projectFrameworkId - The ID of the project framework to count assignments for
+ * @param tenant - The tenant schema identifier for multi-tenant database access
+ * @returns Promise resolving to an object with total and assigned subclause counts as strings
+ *
+ * @example
+ * const counts = await countSubClauseAssignmentsISOByProjectId(2, 'tenant_123');
+ * // Returns: { totalSubclauses: "23", assignedSubclauses: "1" }
+ */
+export const countSubClauseAssignmentsISOByProjectId = async (
+  projectFrameworkId: number,
+  tenant: string
+): Promise<{
+  totalSubclauses: string;
+  assignedSubclauses: string;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+       COUNT(*) AS "totalSubclauses",
+       SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedSubclauses"
+     FROM "${tenant}".subclauses_iso27001
+     WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  )) as [{ totalSubclauses: string; assignedSubclauses: string }[], number];
+
+  return result[0][0];
+};
+
+/**
+ * Counts the total and assigned annex controls for an ISO 27001 project framework.
+ * An annex control is considered "assigned" if it has an owner (owner IS NOT NULL).
+ *
+ * @param projectFrameworkId - The ID of the project framework to count assignments for
+ * @param tenant - The tenant schema identifier for multi-tenant database access
+ * @returns Promise resolving to an object with total and assigned annex control counts as strings
+ *
+ * @example
+ * const counts = await countAnnexControlAssignmentsISOByProjectId(2, 'tenant_123');
+ * // Returns: { totalAnnexControls: "93", assignedAnnexControls: "3" }
+ */
+export const countAnnexControlAssignmentsISOByProjectId = async (
+  projectFrameworkId: number,
+  tenant: string
+): Promise<{
+  totalAnnexControls: string;
+  assignedAnnexControls: string;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+       COUNT(*) AS "totalAnnexControls",
+       SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedAnnexControls"
+     FROM "${tenant}".annexcontrols_iso27001
+     WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  )) as [{ totalAnnexControls: string; assignedAnnexControls: string }[], number];
+
+  return result[0][0];
+};
+
 export const getAllClausesQuery = async (
   tenant: string,
   transaction: Transaction | null = null
@@ -111,7 +177,7 @@ export const getAllClausesWithSubClauseQuery = async (
 
   for (let clause of clauses[0]) {
     const subClauses = (await sequelize.query(
-      `SELECT scs.id, scs.title, scs.order_no, sc.status FROM public.subclauses_struct_iso27001 scs JOIN "${tenant}".subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT scs.id, scs.title, scs.order_no, sc.status, sc.owner FROM public.subclauses_struct_iso27001 scs JOIN "${tenant}".subclauses_iso27001 sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: clause.id,
@@ -348,7 +414,7 @@ export const getAllAnnexesWithControlsQuery = async (
 
   for (let annex of annexes[0]) {
     const annexControls = (await sequelize.query(
-      `SELECT acs.id, acs.title, acs.requirement_summary, acs.order_no, ac.status FROM public.annexcontrols_struct_iso27001 acs JOIN "${tenant}".annexcontrols_iso27001 ac ON acs.id = ac.annexcontrol_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT acs.id, acs.title, acs.requirement_summary, acs.order_no, ac.status, ac.owner FROM public.annexcontrols_struct_iso27001 acs JOIN "${tenant}".annexcontrols_iso27001 ac ON acs.id = ac.annexcontrol_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: annex.id,
@@ -361,6 +427,7 @@ export const getAllAnnexesWithControlsQuery = async (
         Partial<ISO27001AnnexControlStructModel & ISO27001AnnexControlModel>[],
         number,
       ];
+
     (
       annex as ISO27001AnnexStructModel & {
         annexControls: Partial<

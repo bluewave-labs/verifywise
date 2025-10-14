@@ -16,7 +16,7 @@ import {
   getSlackWebhookByIdAndChannelQuery,
 } from "../utils/slackWebhook.utils";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
-import { sendImmediateMessage } from "../services/slackNotificationService";
+import { inviteBotToChannel, sendImmediateMessage } from "../services/slack/slackNotificationService";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 
 const fileName = "slackWebhook.ctrl.ts";
@@ -216,6 +216,8 @@ export async function createNewSlackWebhook(
       transaction,
     );
 
+    await inviteBotToChannel(slackWebhookData.authed_user.access_token, slackWebhookData.incoming_webhook.channel_id, slackWebhookData.bot_user_id);
+
     if (newSlackWebhook) {
       await transaction.commit();
       logStructured(
@@ -336,17 +338,8 @@ export async function updateSlackWebhookById(
 
     // Update slackWebhook using the enhanced method
     await existingSlackWebhook.updateSlackWebhook({
-      access_token: updateData.access_token,
-      scope: updateData.scope,
-      team_name: updateData.team_name,
-      team_id: updateData.team_id,
-      channel: updateData.channel,
-      channel_id: updateData.channel_id,
-      configuration_url: updateData.configuration_url,
-      url: updateData.url,
-      user_id: updateData.user_id,
-      created_at: updateData.created_at,
       is_active: updateData.is_active,
+      routing_type: updateData.routing_type,
     });
 
     // Validate updated data
@@ -465,6 +458,10 @@ export async function sendSlackMessage(
     const slackWebhook =
       await SlackWebhookModel.findByIdWithValidation(requestId);
 
+    if (!slackWebhook.is_active) {
+      throw new Error("This slack channel is no longer active");
+    }
+
     const slackMsgSent = await sendImmediateMessage(slackWebhook!, requestBody);
 
     if (slackMsgSent.success) {
@@ -476,7 +473,7 @@ export async function sendSlackMessage(
       );
       return res.status(200).json(STATUS_CODE[200](slackMsgSent));
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof ValidationException) {
       logStructured(
         "error",
@@ -504,6 +501,26 @@ export async function sendSlackMessage(
       fileName,
     );
     logger.error("❌ Error in sendSlackMessage:", error);
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json({message: (error as Error).message});
+  }
+}
+
+export async function disableSlackActivity(
+  id: number
+): Promise<any> {
+  const slackWebhook = await SlackWebhookModel.findByIdWithValidation(id);
+  const transaction = await sequelize.transaction();
+  await slackWebhook.updateSlackWebhook({
+    is_active: false
+  });
+
+  const updated = await updateSlackWebhookByIdQuery(id, slackWebhook, transaction);
+
+  if (updated) {
+    await transaction.commit();
+    return;
+  } else {
+    await transaction.rollback();
+    return;
   }
 }

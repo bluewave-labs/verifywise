@@ -21,22 +21,22 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon, X as CloseIcon, ChevronDown } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import { ModelInventoryStatus } from "../../../../domain/interfaces/i.modelInventory";
+import { ModelInventoryStatus } from "../../../../domain/enums/modelInventory.enum";
 import { getAllEntities } from "../../../../application/repository/entity.repository";
 import { User } from "../../../../domain/types/User";
 import dayjs, { Dayjs } from "dayjs";
-import { KeyboardArrowDown } from "@mui/icons-material";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import modelInventoryOptions from "../../../utils/model-inventory.json";
+import { getAllProjects } from "../../../../application/repository/project.repository";
+import { Project } from "../../../../domain/types/Project";
 
 interface NewModelInventoryProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSuccess?: (data: NewModelInventoryFormValues) => void;
+  onError?: (error: any) => void;
   initialData?: NewModelInventoryFormValues;
   isEdit?: boolean;
 }
@@ -51,10 +51,11 @@ interface NewModelInventoryFormValues {
   security_assessment: boolean;
   status: ModelInventoryStatus;
   status_date: string;
-  reference_link: string,
-  biases: string,
-  limitations: string,
-  hosting_provider: string,
+  reference_link: string;
+  biases: string;
+  limitations: string;
+  hosting_provider: string;
+  used_in_projects: string[];
 }
 
 interface NewModelInventoryFormErrors {
@@ -66,6 +67,7 @@ interface NewModelInventoryFormErrors {
   capabilities?: string;
   status?: string;
   status_date?: string;
+  used_in_projects?: string;
 }
 
 const initialState: NewModelInventoryFormValues = {
@@ -73,15 +75,16 @@ const initialState: NewModelInventoryFormValues = {
   provider: "",
   model: "",
   version: "",
-  approver: -1,
+  approver: 0,
   capabilities: [],
   security_assessment: false,
   status: ModelInventoryStatus.PENDING,
   status_date: new Date().toISOString().split("T")[0],
   reference_link: "",
-  biases:  "",
+  biases: "",
   limitations: "",
   hosting_provider: "",
+  used_in_projects: [],
 };
 
 const statusOptions = [
@@ -118,6 +121,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
+  onError,
   initialData,
   isEdit = false,
 }) => {
@@ -170,6 +174,41 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     }
   };
 
+  const [projectList, setProjects] = useState<Project[]>([]);
+  const [, setProjectsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setProjectsLoading(true);
+        const response = await getAllProjects();
+        if (response?.data) {
+          setProjects(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  const combinedList = useMemo(() => {
+    const targetFrameworks = ["ISO 42001", "ISO 27001"];
+
+    return projectList.flatMap((project) => {
+      // Get enabled framework names for this project
+      const enabledFrameworks = project.framework?.map((f) => f.name) || [];
+
+      // Only include target frameworks that are enabled
+      return targetFrameworks
+        .filter((fw) => enabledFrameworks.includes(fw))
+        .map((fw) => `${project.project_title.trim()} - ${fw}`);
+    });
+  }, [projectList]);
+
   // Transform users to the format expected by SelectComponent
   const userOptions = useMemo(() => {
     return users.map((user) => ({
@@ -180,17 +219,15 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   }, [users]);
 
   const modelInventoryList = useMemo(() => {
-    return modelInventoryOptions.map((u: {
-      model: string;
-      provider: string;
-    }) => ({
-      _id: u.model,          
-      name: `${u.provider} - ${u.model}`,
-      surname: u.model,
-      email: u.model
-    }));
-  }, []);  
-  
+    return modelInventoryOptions.map(
+      (u: { model: string; provider: string }) => ({
+        _id: u.model,
+        name: `${u.provider} - ${u.model}`,
+        surname: u.model,
+        email: u.model,
+      })
+    );
+  }, []);
 
   const handleOnTextFieldChange = useCallback(
     (prop: keyof NewModelInventoryFormValues) =>
@@ -219,11 +256,19 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     []
   );
 
+  const handleSelectUsedInProjectChange = useCallback(
+    (_event: React.SyntheticEvent, newValue: string[]) => {
+      setValues((prev) => ({ ...prev, used_in_projects: newValue }));
+      setErrors((prev) => ({ ...prev, used_in_projects: "" }));
+    },
+    []
+  );
+
   const handleDateChange = useCallback((newDate: Dayjs | null) => {
     if (newDate?.isValid()) {
       setValues((prev) => ({
         ...prev,
-        status_date: newDate ? newDate.format('YYYY-MM-DD') : "",
+        status_date: newDate ? newDate.format("YYYY-MM-DD") : "",
       }));
       setErrors((prev) => ({ ...prev, status_date: "" }));
     }
@@ -248,6 +293,10 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
 
     if (!values.model || !String(values.model).trim()) {
       newErrors.model = "Model is required.";
+    }
+
+    if (!values.version || !String(values.version).trim()) {
+      newErrors.version = "Version is required.";
     }
 
     if (!values.approver || !String(values.approver).trim()) {
@@ -275,17 +324,54 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
     onClose: handleClose,
   });
 
-  const handleSubmit = (event?: React.FormEvent) => {
+  const handleSubmit = async (event?: React.FormEvent) => {
     if (event) event.preventDefault();
     if (validateForm()) {
-      if (onSuccess) {
-        onSuccess({
-          ...values,
-          capabilities: values.capabilities,
-          security_assessment: values.security_assessment,
-        });
+      try {
+        if (onSuccess) {
+          await onSuccess({
+            ...values,
+            capabilities: values.capabilities,
+            security_assessment: values.security_assessment,
+          });
+        }
+        handleClose();
+      } catch (error: any) {
+        // Handle server-side validation errors
+        let errorData = null;
+        
+        // Check if it's an axios error with response.data first
+        if (error?.response?.data) {
+          errorData = error.response.data;
+        }
+        // Check if it's a CustomException with response property
+        else if (error?.response) {
+          errorData = error.response;
+        }
+        // Check if the error itself has the data structure
+        else if (error?.status && error?.errors) {
+          errorData = error;
+        }
+
+        if (errorData?.errors && Array.isArray(errorData.errors)) {
+          const serverErrors: NewModelInventoryFormErrors = {};
+          
+          errorData.errors.forEach((err: any) => {
+            if (err.field && err.message) {
+              // Map server field names to form field names
+              const fieldName = err.field as keyof NewModelInventoryFormErrors;
+              serverErrors[fieldName] = err.message;
+            }
+          });
+          
+          setErrors(serverErrors);
+        }
+        
+        // Propagate error to parent for toast notification
+        if (onError) {
+          onError(error);
+        }
       }
-      handleClose();
     }
   };
 
@@ -357,13 +443,13 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
   };
 
   return (
-    <Modal 
-      open={isOpen} 
+    <Modal
+      open={isOpen}
       onClose={(_event, reason) => {
-        if (reason !== 'backdropClick') {
+        if (reason !== "backdropClick") {
           handleClose();
         }
-      }} 
+      }}
       sx={{ overflowY: "scroll" }}
     >
       <Stack
@@ -419,7 +505,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </Box>
           </Stack>
 
@@ -447,15 +533,27 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   />
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
-              
-               <Box sx={{ display: 'flex', flexDirection: 'column', width: 220 }}>
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 2, fontWeight: 450, color: theme.palette.text.primary }}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      width: 220,
+                    }}
                   >
-                    Model <Typography component="span" color="black">*</Typography>
-                  </Typography>
-                  <Autocomplete
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 450,
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      Model{" "}
+                      <Typography component="span" color="black">
+                        *
+                      </Typography>
+                    </Typography>
+                    <Autocomplete
                       id="model-input"
                       size="small"
                       freeSolo
@@ -479,14 +577,22 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                           setValues({ ...values, model: newInputValue });
                         }
                       }}
-                      renderOption={(props, option) => (
-                        <Box component="li" {...props}>
-                          <Typography sx={{ fontSize: 13, color: theme.palette.text.primary }}>
-                            {option.name}
-                          </Typography>
-                        </Box>
-                      )}
-                      popupIcon={<KeyboardArrowDown />}
+                      renderOption={(props, option) => {
+                        const { key, ...otherProps } = props;
+                        return (
+                          <Box component="li" key={key} {...otherProps}>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                color: theme.palette.text.primary,
+                              }}
+                            >
+                              {option.name}
+                            </Typography>
+                          </Box>
+                        );
+                      }}
+                      popupIcon={<i data-lucide="chevron-downa"></i>}
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -510,7 +616,9 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       // noOptionsText="No matching models"
                       filterOptions={(options, state) => {
                         const filtered = options.filter((option) =>
-                          option.name.toLowerCase().includes(state.inputValue.toLowerCase())
+                          option.name
+                            .toLowerCase()
+                            .includes(state.inputValue.toLowerCase())
                         );
 
                         if (filtered.length === 0) {
@@ -529,7 +637,8 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                                 padding: "8px 12px",
                               },
                               "& .MuiAutocomplete-option.Mui-focused": {
-                                backgroundColor: theme.palette.background.accent,
+                                backgroundColor:
+                                  theme.palette.background.accent,
                               },
                             },
                           },
@@ -537,16 +646,17 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       }}
                       disabled={isLoadingUsers}
                     />
-                </Box>
+                  </Box>
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="version"
-                    label="Version (if applicable)"
+                    label="Version"
                     width={220}
                     value={values.version}
                     onChange={handleOnTextFieldChange("version")}
                     error={errors.version}
+                    isRequired
                     sx={fieldStyle}
                     placeholder="e.g., 4.0, 1.5"
                   />
@@ -626,15 +736,18 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                       ? "All capabilities selected"
                       : "No options"
                   }
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
-                        {option}
-                      </Typography>
-                    </Box>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<ChevronDown />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -664,10 +777,72 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 )}
               </Stack>
 
-              <Stack
-                direction={"row"}
-                gap={theme.spacing(8)}
-              >
+              <Stack>
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    fontWeight: 400,
+                    mb: theme.spacing(2),
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  Used in projects
+                </Typography>
+                <Autocomplete
+                  multiple
+                  id="projects-framework"
+                  size="small"
+                  value={values.used_in_projects}
+                  options={combinedList}
+                  onChange={handleSelectUsedInProjectChange}
+                  getOptionLabel={(option) => option}
+                  noOptionsText={
+                    values.used_in_projects.length === combinedList.length
+                      ? "All projects selected"
+                      : "No options"
+                  }
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 400 }}>
+                          {option}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  filterSelectedOptions
+                  popupIcon={<ChevronDown size={16} />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.used_in_projects}
+                      placeholder="Select projects-framework"
+                      sx={capabilitiesRenderInputStyle}
+                    />
+                  )}
+                  sx={{
+                    backgroundColor: theme.palette.background.main,
+                    ...capabilitiesSxStyle,
+                  }}
+                  slotProps={capabilitiesSlotProps}
+                />
+                {errors.used_in_projects && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 1,
+                      color: "#f04438",
+                      fontWeight: 300,
+                      fontSize: 11,
+                    }}
+                  >
+                    {errors.used_in_projects}
+                  </Typography>
+                )}
+              </Stack>
+
+              <Stack direction={"row"} gap={theme.spacing(8)}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="reference_link"
@@ -680,8 +855,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                   />
                 </Suspense>
                 <Suspense fallback={<div>Loading...</div>}>
-
-                <Field
+                  <Field
                     id="biases"
                     label="Biases"
                     width={"50%"}
@@ -693,10 +867,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 </Suspense>
               </Stack>
 
-              <Stack
-                direction={"row"}
-                gap={theme.spacing(8)}
-              >
+              <Stack direction={"row"} gap={theme.spacing(8)}>
                 <Suspense fallback={<div>Loading...</div>}>
                   <Field
                     id="hosting_provider"
@@ -767,7 +938,7 @@ const NewModelInventory: FC<NewModelInventoryProps> = ({
                 gap: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIconSVGWhite />}
+              icon={<SaveIcon size={16} />}
             />
           </Stack>
         </form>

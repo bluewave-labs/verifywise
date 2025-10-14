@@ -15,8 +15,10 @@ export async function createModelInventory(
   try {
     const response = await apiServices.post(routeUrl, data);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating model inventory:", error);
+    // Re-throw the error with proper structure to preserve validation details
     throw error;
   }
 }
+

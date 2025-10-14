@@ -64,6 +64,8 @@ export async function getAllModelRisks(req: Request, res: Response) {
 
 export async function getModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
+  const modelRiskId = parseInt(id, 10);
+
   logStructured(
     "processing",
     `fetching model risk by ID: ${id}`,
@@ -73,7 +75,7 @@ export async function getModelRiskById(req: Request, res: Response) {
   logger.debug(`🔍 Looking up model risk with ID: ${id}`);
 
   try {
-    const modelRisk = await getModelRiskByIdQuery(parseInt(id, 10), req.tenantId!);
+    const modelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
     if (modelRisk) {
       logStructured(
         "successful",
@@ -141,6 +143,16 @@ export async function createNewModelRisk(req: Request, res: Response) {
 
 export async function updateModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
+  const modelRiskId = parseInt(id, 10);
+
+  // Get existing model risk for business rule validation
+  let existingModelRisk = null;
+  try {
+    existingModelRisk = await getModelRiskByIdQuery(modelRiskId, req.tenantId!);
+  } catch (error) {
+    // Continue without existing data if query fails
+  }
+
   logStructured(
     "processing",
     `updating model risk: ID ${id}`,
@@ -153,7 +165,7 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
   try {
     const modelRisk = await updateModelRiskByIdQuery(
-      parseInt(id, 10),
+      modelRiskId,
       req.body,
       req.tenantId!
     );
@@ -193,6 +205,8 @@ export async function updateModelRiskById(req: Request, res: Response) {
 
 export async function deleteModelRiskById(req: Request, res: Response) {
   const { id } = req.params;
+  const modelRiskId = parseInt(id, 10);
+
   logStructured(
     "processing",
     `deleting model risk: ID ${id}`,

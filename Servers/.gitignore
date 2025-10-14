@@ -28,3 +28,5 @@ dist-ssr
 *.prod
 
 README-Email-Notifications.md
+
+.rate-limit-state.json

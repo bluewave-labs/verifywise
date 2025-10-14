@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef } from "react";
 import {
   Box,
@@ -12,7 +13,7 @@ import { useStyles } from "./styles";
 import Toggle from "../../../components/Inputs/Toggle";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
 import {
   useAITrustCentreOverviewQuery,
@@ -339,6 +340,12 @@ const AITrustCenterSettings: React.FC = () => {
   const handleSave = async () => {
     if (!formData) return;
 
+      // Check if logo exists
+      if (!formData?.info?.logo_url) {
+        setLogoError("Company logo is required before saving");
+        return; // stop save
+      }
+
     try {
       console.log("Saving AI Trust Centre data from Settings", formData);
       const dataToSave = {
@@ -426,7 +433,7 @@ const AITrustCenterSettings: React.FC = () => {
           sx={{
             display: "grid",
             gridTemplateColumns: "220px 1fr",
-            rowGap: "50px",
+            rowGap: "25px",
             columnGap: "250px",
             alignItems: "center",
             mt: 2,
@@ -444,7 +451,7 @@ const AITrustCenterSettings: React.FC = () => {
             </Typography>
           </Box>
           <Stack>
-            <Box gap={1} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box gap={1} sx={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Box
                 sx={{
                   width: 120,
@@ -528,52 +535,54 @@ const AITrustCenterSettings: React.FC = () => {
                   </Box>
                 )}
               </Box>
-              <MUIButton
-                variant="outlined"
-                component="label"
-                sx={styles.replaceButton}
-                disabled={logoUploading || logoLoading}
-              >
-                {logoUploading ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Uploading...
-                  </>
-                ) : logoLoading ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Loading...
-                  </>
-                ) : (
-                  "Replace"
-                )}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
-                  hidden
-                  ref={fileInputRef}
-                  onChange={handleLogoChange}
-                />
-              </MUIButton>
-              <MUIButton
-                variant="outlined"
-                sx={styles.removeButton}
-                onClick={handleRemoveLogo}
-                disabled={logoRemoving || logoUploading || logoLoading}
-              >
-                {logoRemoving ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Removing...
-                  </>
-                ) : (
-                  "Remove"
-                )}
-              </MUIButton>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <MUIButton
+                  variant="outlined"
+                  component="label"
+                  sx={styles.replaceButton}
+                  disabled={logoUploading || logoLoading}
+                >
+                  {logoUploading ? (
+                    <>
+                      <CircularProgress size={16} sx={{ mr: 1 }} />
+                      Uploading...
+                    </>
+                  ) : logoLoading ? (
+                    <>
+                      <CircularProgress size={16} sx={{ mr: 1 }} />
+                      Loading...
+                    </>
+                  ) : (
+                    "Replace"
+                  )}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
+                    hidden
+                    ref={fileInputRef}
+                    onChange={handleLogoChange}
+                  />
+                </MUIButton>
+                <MUIButton
+                  variant="outlined"
+                  sx={styles.removeButton}
+                  onClick={handleRemoveLogo}
+                  disabled={logoRemoving || logoUploading || logoLoading}
+                >
+                  {logoRemoving ? (
+                    <>
+                      <CircularProgress size={16} sx={{ mr: 1 }} />
+                      Removing...
+                    </>
+                  ) : (
+                    "Remove"
+                  )}
+                </MUIButton>
+              </Box>
             </Box>
             <Stack
               direction="row"
-              sx={{ display: "flex", alignItems: "center", gap: 2 }}
+              sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}
             >
               <Typography
                 sx={{
@@ -654,7 +663,7 @@ const AITrustCenterSettings: React.FC = () => {
           </Box>
 
           {/* Trust Center Title Row */}
-          <Box sx={{ mb: 20 }}>
+          <Box sx={{ mb: 10 }}>
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
               Trust center title
             </Typography>
@@ -705,7 +714,7 @@ const AITrustCenterSettings: React.FC = () => {
             backgroundColor: hasUnsavedChanges ? "#13715B" : "#ccc",
             border: `1px solid ${hasUnsavedChanges ? "#13715B" : "#ccc"}`,
           }}
-          icon={<SaveIconSVGWhite />}
+          icon={<SaveIcon size={16} />}
           variant="contained"
           onClick={handleSave}
           isDisabled={!hasUnsavedChanges}

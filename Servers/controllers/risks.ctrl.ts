@@ -73,6 +73,7 @@ export async function getRisksByProject(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id as string);
+
   logStructured(
     "processing",
     `fetching risks for project ID: ${projectId}`,
@@ -126,6 +127,7 @@ export async function getRisksByFramework(
   res: Response
 ): Promise<any> {
   const frameworkId = parseInt(req.params.id as string);
+
   logStructured(
     "processing",
     `fetching risks for framework ID: ${frameworkId}`,
@@ -179,11 +181,12 @@ export async function getRiskById(
   res: Response
 ): Promise<any> {
   const projectRiskId = parseInt(req.params.id);
+
   logStructured(
     "processing",
     `fetching project risk by ID: ${projectRiskId}`,
-    "getProjectRiskById",
-    "projectRisks.ctrl.ts"
+    "getRiskById",
+    "risks.ctrl.ts"
   );
   logger.debug(`🔍 Looking up project risk with ID: ${projectRiskId}`);
   try {
@@ -232,15 +235,17 @@ export async function createRisk(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+  const riskData = req.body;
+
   logStructured(
     "processing",
-    "starting createProjectRisk",
-    "createProjectRisk",
-    "projectRisks.ctrl.ts"
+    "starting createRisk",
+    "createRisk",
+    "risks.ctrl.ts"
   );
   logger.debug("🛠️ Creating new project risk");
   try {
-    const projectRiskData = req.body as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
+    const projectRiskData = riskData as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
 
     const newProjectRisk = await createRiskQuery(
       { ...projectRiskData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
@@ -335,15 +340,17 @@ export async function updateRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectRiskId = parseInt(req.params.id);
+  const updateData = req.body;
+
   logStructured(
     "processing",
     `updating project risk ID: ${projectRiskId}`,
-    "updateProjectRiskById",
-    "projectRisks.ctrl.ts"
+    "updateRiskById",
+    "risks.ctrl.ts"
   );
   logger.debug(`✏️ Update requested for project risk ID: ${projectRiskId}`);
   try {
-    const updateData = req.body as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
+    const updateDataTyped = updateData as Partial<RiskModel & { projects: number[], frameworks: number[] }>;
 
     // if (!existingProjectRisk) {
     //   logStructured(
@@ -369,7 +376,7 @@ export async function updateRiskById(
 
     const updatedProjectRisk = await updateRiskByIdQuery(
       projectRiskId,
-      { ...updateData, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
+      { ...updateDataTyped, projects: req.body.projects || [], frameworks: req.body.frameworks || [] },
       req.tenantId!,
       transaction
     );
@@ -454,11 +461,12 @@ export async function deleteRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const projectRiskId = parseInt(req.params.id);
+
   logStructured(
     "processing",
     `attempting to delete project risk ID ${projectRiskId}`,
-    "deleteProjectRiskById",
-    "projectRisks.ctrl.ts"
+    "deleteRiskById",
+    "risks.ctrl.ts"
   );
   logger.debug(`🗑️ Delete request for project risk ID ${projectRiskId}`);
   try {

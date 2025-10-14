@@ -6,7 +6,7 @@ import {
   Stack,
   IconButton,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { X as CloseIcon } from "lucide-react";
 
 // Simple markdown parser for **bold** and *italic*
 const parseMarkdown = (text: string) => {
@@ -148,7 +148,7 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
                 },
               }}
             >
-              <CloseIcon />
+              <CloseIcon size={20} />
             </IconButton>
           </Stack>
         </Box>
@@ -225,26 +225,28 @@ const HelperDrawer: React.FC<HelperDrawerProps> = ({
             </Box>
 
             {/* Quick Actions */}
-            <Box>
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="subtitle1" fontWeight="600" color="#374151">
-                  Quick actions
-                </Typography>
-              </Box>
+            {quickActions.length > 0 && (
+              <Box>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="subtitle1" fontWeight="600" color="#374151">
+                    Quick actions
+                  </Typography>
+                </Box>
 
-              <Stack spacing={3}>
-                {quickActions.map((action, index) => (
-                  <Box key={index}>
-                    <Typography variant="subtitle2" fontWeight="600" color="#374151" mb={1}>
-                      {action.label}
-                    </Typography>
-                    <Typography sx={{ fontSize: '13px', color: 'text.secondary', lineHeight: 1.5 }}>
-                      {action.description}
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
-            </Box>
+                <Stack spacing={3}>
+                  {quickActions.map((action, index) => (
+                    <Box key={index}>
+                      <Typography variant="subtitle2" fontWeight="600" color="#374151" mb={1}>
+                        {action.label}
+                      </Typography>
+                      <Typography sx={{ fontSize: '13px', color: 'text.secondary', lineHeight: 1.5 }}>
+                        {action.description}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            )}
 
             {/* Common Use Cases */}
             {useCases.length > 0 && (

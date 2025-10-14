@@ -13,7 +13,7 @@ import {
   import TablePaginationActions from "../../TablePagination";
   import TableHeader from "../TableHead";
   import placeholderImage from "../../../assets/imgs/empty-state.svg";
-  import { ReactComponent as SelectorVertical } from '../../../assets/icons/selector-vertical.svg';
+  import { ChevronsUpDown } from "lucide-react";
   import {
     styles,
     paginationStatus,
@@ -23,7 +23,9 @@ import {
     emptyData
   } from "./styles";
   import singleTheme from '../../../themes/v1SingleTheme';
-  
+
+  const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+
   const FairnessTableBody = lazy(() => import("./TableBody"));
   
   interface FairnessTableProps {

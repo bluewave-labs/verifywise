@@ -29,24 +29,24 @@ export const invite = async (
     functionName: "invite",
     fileName: "vwmailer.ctrl.ts",
     userId: req.userId!,
-        tenantId: req.tenantId!,
+    tenantId: req.tenantId!,
   });
   logger.debug(
     `📧 Sending invitation email to ${to} for user ${name} ${surname || ""}`
   );
 
-  if (!to || !name || !roleId || !organizationId) {
-    await logFailure({
-      eventType: "Create",
-      description: `Missing required fields for invitation email to ${to}`,
-      functionName: "invite",
-      fileName: "vwmailer.ctrl.ts",
-      userId: req.userId!,
-        tenantId: req.tenantId!,
-      error: new Error("Missing required fields"),
-    });
-    return res.status(400).json({ error: "Missing required fields" });
-  }
+  // if (!to || !name || !roleId || !organizationId) {
+  //   await logFailure({
+  //     eventType: "Create",
+  //     description: `Missing required fields for invitation email to ${to}`,
+  //     functionName: "invite",
+  //     fileName: "vwmailer.ctrl.ts",
+  //     userId: req.userId!,
+  //       tenantId: req.tenantId!,
+  //     error: new Error("Missing required fields"),
+  //   });
+  //   return res.status(400).json({ error: "Missing required fields" });
+  // }
 
   try {
     // Read the MJML template file
@@ -114,7 +114,7 @@ export const invite = async (
       functionName: "invite",
       fileName: "vwmailer.ctrl.ts",
       userId: req.userId!,
-        tenantId: req.tenantId!,
+      tenantId: req.tenantId!,
       error: error as Error,
     });
     return res.status(500).json({

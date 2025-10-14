@@ -21,8 +21,10 @@ export async function getFileContentById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const fileId = parseInt(req.params.id);
+
   logProcessing({
-    description: "starting getFileContentById",
+    description: `starting getFileContentById for ID ${fileId}`,
     functionName: "getFileContentById",
     fileName: "file.ctrl.ts",
     userId: req.userId!,
@@ -30,7 +32,7 @@ export async function getFileContentById(
   });
 
   try {
-    const file = await getFileById(parseInt(req.params.id), req.tenantId!);
+    const file = await getFileById(fileId, req.tenantId!);
     if (file) {
       await logSuccess({
         eventType: "Read",
@@ -75,8 +77,10 @@ export async function getFileMetaByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
+  const projectId = parseInt(req.params.id);
+
   logProcessing({
-    description: "starting getFileMetaByProjectId",
+    description: `starting getFileMetaByProjectId for project ID ${projectId}`,
     functionName: "getFileMetaByProjectId",
     fileName: "file.ctrl.ts",
     userId: req.userId!,
@@ -84,19 +88,10 @@ export async function getFileMetaByProjectId(
   });
 
   try {
-    const id = req.params.id;
-
-    if (!id) {
-      return res.status(400).json(STATUS_CODE[400]("File ID is required"));
-    }
-    const fileId = parseInt(id);
-    if (isNaN(fileId) || fileId <= 0) {
-      return res.status(400).json(STATUS_CODE[400]("Invalid File ID"));
-    }
-    const files = await getFileMetadataByProjectId(fileId, req.tenantId!);
+    const files = await getFileMetadataByProjectId(projectId, req.tenantId!);
     await logSuccess({
       eventType: "Read",
-      description: `Retrieved file metadata for project ID ${fileId}`,
+      description: `Retrieved file metadata for project ID ${projectId}`,
       functionName: "getFileMetaByProjectId",
       fileName: "file.ctrl.ts",
       userId: req.userId!,
@@ -123,8 +118,14 @@ export async function getFileMetaByProjectId(
 }
 
 export const getUserFilesMetaData = async (req: Request, res: Response) => {
+  const userId = Number(req.userId);
+
+  // Validate pagination parameters
+  const page = req.query.page ? Number(req.query.page) : undefined;
+  const pageSize = req.query.pageSize ? Number(req.query.pageSize) : undefined;
+
   logProcessing({
-    description: "starting getUserFilesMetaData",
+    description: `starting getUserFilesMetaData for user ID ${userId}`,
     functionName: "getUserFilesMetaData",
     fileName: "file.ctrl.ts",
     userId: req.userId!,
@@ -132,15 +133,8 @@ export const getUserFilesMetaData = async (req: Request, res: Response) => {
   });
 
   try {
-    const userId = Number(req.userId);
-    if (isNaN(userId)) {
-      return res.status(400).json({ error: "Invalid user ID" });
-    }
-
-    const page = Number(req.query.page);
-    const pageSize = Number(req.query.pageSize);
-    const validPage = !isNaN(page) && page > 0 ? page : undefined;
-    const validPageSize = !isNaN(pageSize) && pageSize > 0 ? pageSize : undefined;
+    const validPage = page && page > 0 ? page : undefined;
+    const validPageSize = pageSize && pageSize > 0 ? pageSize : undefined;
     const offset =
       validPage !== undefined && validPageSize !== undefined
         ? (validPage - 1) * validPageSize
@@ -198,7 +192,7 @@ export async function postFileContent(
       delete: string;
     };
 
-    const filesToDelete = JSON.parse(body.delete) as number[];
+    const filesToDelete = JSON.parse(body.delete || "[]") as number[];
     for (let fileToDelete of filesToDelete) {
       await deleteFileById(fileToDelete, req.tenantId!, transaction);
     }

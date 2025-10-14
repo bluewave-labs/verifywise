@@ -19,15 +19,17 @@ import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import Placeholder from "../../assets/imgs/empty-state.svg";
-import {
-  IModelInventory,
-  ModelInventoryStatus,
-} from "../../../domain/interfaces/i.modelInventory";
+import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import { getAllEntities } from "../../../application/repository/entity.repository";
 import { User } from "../../../domain/types/User";
-import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../application/utils/paginationStorage";
 import {
   statusBadgeStyle,
   securityAssessmentBadgeStyle,
@@ -44,6 +46,7 @@ import {
 } from "./style";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
 dayjs.extend(utc);
 
@@ -64,14 +67,17 @@ interface ModelInventoryTableProps {
   data: IModelInventory[];
   isLoading?: boolean;
   onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string, deleteRisks?: boolean) => void;
+  onCheckModelHasRisks?: (id: string) => Promise<boolean>;
   paginated?: boolean;
   deletingId?: string | null;
 }
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-const TooltipCell: React.FC<{ value: string | null | undefined }> = ({ value }) => {
+const TooltipCell: React.FC<{ value: string | null | undefined }> = ({
+  value,
+}) => {
   const displayValue = value || "-";
   const shouldShowTooltip = displayValue.length > 24;
 
@@ -84,8 +90,9 @@ const TooltipCell: React.FC<{ value: string | null | undefined }> = ({ value }) 
   );
 };
 
-
-const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({ status }) => {
+const StatusBadge: React.FC<{ status: ModelInventoryStatus }> = ({
+  status,
+}) => {
   return <span style={statusBadgeStyle(status)}>{status}</span>;
 };
 
@@ -128,14 +135,15 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
   isLoading,
   onEdit,
   onDelete,
+  onCheckModelHasRisks,
   paginated = true,
   deletingId,
 }) => {
   const theme = useTheme();
   const { userRoleName } = useAuth();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('modelInventory', DEFAULT_ROWS_PER_PAGE)
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("modelInventory", DEFAULT_ROWS_PER_PAGE)
   );
   const [users, setUsers] = useState<User[]>([]);
 
@@ -175,7 +183,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('modelInventory', newRowsPerPage);
+      setPaginationRowCount("modelInventory", newRowsPerPage);
       setPage(0);
     },
     []
@@ -212,7 +220,7 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                 }),
               }}
             >
-              <div style={{ fontWeight: 400 }}>{column.label}</div>
+              {column.label}
             </TableCell>
           ))}
         </TableRow>
@@ -241,32 +249,75 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                   onEdit?.(modelInventory.id?.toString() || "");
                 }}
               >
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   <TooltipCell value={modelInventory.provider} />
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   <TooltipCell value={modelInventory.model} />
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   <TooltipCell value={modelInventory.version} />
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
-                  <TooltipCell value={userMap.get(modelInventory.approver.toString())} />
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <TooltipCell
+                    value={userMap.get(modelInventory.approver.toString())}
+                  />
                 </TableCell>
                 {/* <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
                   <CapabilitiesChips capabilities={modelInventory.capabilities} />
                 </TableCell> */}
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
-                  <SecurityAssessmentBadge assessment={modelInventory.security_assessment} />
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <SecurityAssessmentBadge
+                    assessment={modelInventory.security_assessment}
+                  />
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   <StatusBadge status={modelInventory.status} />
                 </TableCell>
-                <TableCell sx={{ ...singleTheme.tableStyles.primary.body.cell, whiteSpace: "nowrap" }}>
+                <TableCell
+                  sx={{
+                    ...singleTheme.tableStyles.primary.body.cell,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   <TooltipCell
-                    value={modelInventory.status_date
-                      ? dayjs.utc(modelInventory.status_date).format("YYYY-MM-DD")
-                      : "-"}
+                    value={
+                      modelInventory.status_date
+                        ? dayjs
+                            .utc(modelInventory.status_date)
+                            .format("YYYY-MM-DD")
+                        : "-"
+                    }
                   />
                 </TableCell>
                 <TableCell
@@ -294,6 +345,23 @@ const ModelInventoryTable: React.FC<ModelInventoryTableProps> = ({
                       warningTitle="Delete this model?"
                       warningMessage="When you delete this model, all data related to this model will be removed. This action is non-recoverable."
                       type=""
+                      checkForRisks={
+                        onCheckModelHasRisks
+                          ? () =>
+                              onCheckModelHasRisks(
+                                modelInventory.id?.toString() || "0"
+                              )
+                          : undefined
+                      }
+                      onDeleteWithRisks={
+                        onDelete
+                          ? (deleteRisks: boolean) =>
+                              onDelete(
+                                modelInventory.id?.toString() || "",
+                                deleteRisks
+                              )
+                          : undefined
+                      }
                     />
                   )}
                 </TableCell>

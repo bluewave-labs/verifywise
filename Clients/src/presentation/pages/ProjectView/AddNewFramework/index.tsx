@@ -7,8 +7,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
-import { ReactComponent as CheckGreenIcon } from "../../../assets/icons/check-green.svg";
+import { X as CloseGreyIcon, Check as CheckGreenIcon } from "lucide-react";
 import { Project } from "../../../../domain/types/Project";
 import { Framework } from "../../../../domain/types/Framework";
 import {
@@ -173,14 +172,13 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
             onClick={onClose}
             sx={modalCloseButtonStyle}
           >
-            <CloseGreyIcon/>
+            <CloseGreyIcon size={16}/>
           </IconButton>
         </Box>
         {/* Description */}
         <Box sx={{ p: 2, pt: 0 }}>
           <Typography sx={modalDescriptionStyle}>
-            Add or remove AI frameworks to your platform. Selected frameworks
-            will be integrated into your compliance workflow.
+            Add or remove AI frameworks or regulations to your platform. Those selected will be integrated into your use case.
           </Typography>
           <Stack spacing={6}>
             {frameworks.map((fw) => {
@@ -213,7 +211,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
                           color: "#13715B",
                         }}
                       >
-                        <CheckGreenIcon />
+                        <CheckGreenIcon size={16} />
                         Added
                       </Box>
                     )}

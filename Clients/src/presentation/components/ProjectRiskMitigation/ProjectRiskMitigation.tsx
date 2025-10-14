@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material"
-import { ClearIcon } from "@mui/x-date-pickers/icons"
+import { X as ClearIcon } from "lucide-react"
 import { ProjectRiskMitigationTable } from "../Table/ProjectRiskMitigationTable/ProjectRiskMitigationTable";
 import { ProjectRiskMitigation as ProjectRiskMitigationType } from "../../../domain/types/ProjectRisk";
 
@@ -42,10 +42,12 @@ export const ProjectRiskMitigation: React.FC<ProjectRiskMitigationProps> = ({
           color: "#344054", 
           fontWeight: "bold",
         }}>Linked controls components</Typography>
-        <ClearIcon sx={{
-          color: "#98A2B3", 
-          cursor: "pointer"
-        }}
+        <ClearIcon
+          size={20}
+          style={{
+            color: "#98A2B3",
+            cursor: "pointer"
+          }}
           onClick={onClose}
         />
       </Stack>

@@ -39,10 +39,12 @@ import subscriptionRoutes from "./routes/subscription.route";
 import autoDriverRoutes from "./routes/autoDriver.route";
 import taskRoutes from "./routes/task.route";
 import slackWebhookRoutes from "./routes/slackWebhook.route";
+import tokenRoutes from "./routes/tokens.route";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 import { frontEndUrl } from "./config/constants";
+import { addAllJobs } from "./jobs/producer";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -98,21 +100,21 @@ try {
   app.use("/api/questions", questionRoutes);
   app.use("/api/autoDrivers", autoDriverRoutes);
   app.use("/api/assessments", assessmentRoutes);
-  app.use("/api/controls", controlRoutes);
+  // app.use("/api/controls", controlRoutes);
   app.use("/api/projectRisks", risksRoutes);
-  app.use("/api/projectScopes", projectScopeRoutes);
-  app.use("/api/subcontrols", subcontrolRoutes);
-  app.use("/api/subtopics", subtopicRoutes);
-  app.use("/api/topics", topicRoutes);
+  // app.use("/api/projectScopes", projectScopeRoutes);
+  // app.use("/api/subcontrols", subcontrolRoutes);
+  // app.use("/api/subtopics", subtopicRoutes);
+  // app.use("/api/topics", topicRoutes);
   app.use("/api/roles", roleRoutes);
   app.use("/api/files", fileRoutes);
   app.use("/api/mail", mailRoutes);
-  app.use("/api/controlCategory", controlCategory);
+  // app.use("/api/controlCategory", controlCategory);
   app.use("/api/frameworks", frameworks);
-  app.use("/api/eu-ai-act", euRouter);
+  app.use("/api/eu-ai-act", euRouter); // **
   app.use("/api/organizations", organizationRoutes);
-  app.use("/api/iso-42001", isoRoutes);
-  app.use("/api/iso-27001", iso27001Routes);
+  app.use("/api/iso-42001", isoRoutes); // **
+  app.use("/api/iso-27001", iso27001Routes); // **
   app.use("/api/training", trainingRoutes);
   app.use("/api/bias_and_fairness", biasAndFairnessRoutes());
   app.use("/api/aiTrustCentre", aiTrustCentreRoutes);
@@ -127,6 +129,12 @@ try {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
+  app.use("/api/tokens", tokenRoutes);
+
+  // Adding background jobs in the Queue
+  (async () => {
+    await addAllJobs();
+  })();
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

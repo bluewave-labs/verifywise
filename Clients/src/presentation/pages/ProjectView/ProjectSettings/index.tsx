@@ -8,7 +8,7 @@ import {
   TextField,
   Box,
 } from "@mui/material";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 import React, {
   useState,
   useCallback,
@@ -34,8 +34,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useProjectData from "../../../../application/hooks/useProjectData";
 import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as DeleteIconWhite }from "../../../assets/icons/trash-filled-white.svg";
+import { Save as SaveIcon, Trash2 as DeleteIcon } from "lucide-react";
 import CustomizableToast from "../../../components/Toast";
 import CustomizableSkeleton from "../../../components/Skeletons";
 import useFrameworks from "../../../../application/hooks/useFrameworks";
@@ -48,40 +47,48 @@ import {
   updateProject,
 } from "../../../../application/repository/project.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
-
-enum RiskClassificationEnum {
-  HighRisk = "High risk",
-  LimitedRisk = "Limited risk",
-  MinimalRisk = "Minimal risk",
-}
+import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
+import { HighRiskRole } from "../../../../domain/enums/highRiskRole.enum";
 
 const riskClassificationItems = [
-  { _id: 1, name: RiskClassificationEnum.HighRisk },
-  { _id: 2, name: RiskClassificationEnum.LimitedRisk },
-  { _id: 3, name: RiskClassificationEnum.MinimalRisk },
+  { _id: 1, name: AiRiskClassification.HIGH_RISK },
+  { _id: 2, name: AiRiskClassification.LIMITED_RISK },
+  { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
 ];
 
-enum HighRiskRoleEnum {
-  Deployer = "Deployer",
-  Provider = "Provider",
-  Distributor = "Distributor",
-  Importer = "Importer",
-  ProductManufacturer = "Product manufacturer",
-  AuthorizedRepresentative = "Authorized representative",
+const highRiskRoleItems = [
+  { _id: 1, name: HighRiskRole.DEPLOYER },
+  { _id: 2, name: HighRiskRole.PROVIDER },
+  { _id: 3, name: HighRiskRole.DISTRIBUTOR },
+  { _id: 4, name: HighRiskRole.IMPORTER },
+  { _id: 5, name: HighRiskRole.PRODUCT_MANUFACTURER },
+  { _id: 6, name: HighRiskRole.AUTHORIZED_REPRESENTATIVE },
+];
+
+enum ProjectStatusEnum {
+  NotStarted = "Not started",
+  InProgress = "In progress",
+  UnderReview = "Under review",
+  Completed = "Completed",
+  Closed = "Closed",
+  OnHold = "On hold",
+  Rejected = "Rejected",
 }
 
-const highRiskRoleItems = [
-  { _id: 1, name: HighRiskRoleEnum.Deployer },
-  { _id: 2, name: HighRiskRoleEnum.Provider },
-  { _id: 3, name: HighRiskRoleEnum.Distributor },
-  { _id: 4, name: HighRiskRoleEnum.Importer },
-  { _id: 5, name: HighRiskRoleEnum.ProductManufacturer },
-  { _id: 6, name: HighRiskRoleEnum.AuthorizedRepresentative },
+const projectStatusItems = [
+  { _id: 1, name: ProjectStatusEnum.NotStarted },
+  { _id: 2, name: ProjectStatusEnum.InProgress },
+  { _id: 3, name: ProjectStatusEnum.UnderReview },
+  { _id: 4, name: ProjectStatusEnum.Completed },
+  { _id: 5, name: ProjectStatusEnum.Closed },
+  { _id: 6, name: ProjectStatusEnum.OnHold },
+  { _id: 7, name: ProjectStatusEnum.Rejected },
 ];
 
 interface FormValues {
   projectTitle: string;
   goal: string;
+  status: number;
   owner: number;
   members: number[];
   startDate: string;
@@ -98,6 +105,7 @@ interface FormValues {
 interface FormErrors {
   projectTitle?: string;
   goal?: string;
+  status?: string;
   owner?: string;
   startDate?: string;
   members?: string;
@@ -109,6 +117,7 @@ interface FormErrors {
 const initialState: FormValues = {
   projectTitle: "",
   goal: "",
+  status: 1,
   owner: 0,
   members: [],
   startDate: "",
@@ -163,6 +172,7 @@ const ProjectSettings = React.memo(
       const basicFieldsModified =
         values.projectTitle !== initialValuesRef.current.projectTitle ||
         values.goal !== initialValuesRef.current.goal ||
+        values.status !== initialValuesRef.current.status ||
         values.owner !== initialValuesRef.current.owner ||
         JSON.stringify(values.members) !==
           JSON.stringify(initialValuesRef.current.members) ||
@@ -243,6 +253,12 @@ const ProjectSettings = React.memo(
           ...initialState,
           projectTitle: project.project_title ?? "",
           goal: project.goal ?? "",
+          status:
+            projectStatusItems.find(
+              (item) =>
+                item.name.toLowerCase() ===
+                (project.status || "Not started").toLowerCase()
+            )?._id || 1,
           owner: project.owner ?? 0,
           startDate: project.start_date
             ? dayjs(project.start_date).toISOString()
@@ -300,7 +316,7 @@ const ProjectSettings = React.memo(
               return;
             }
           }
-          setValues({ ...values, [prop]: event.target.value });
+          setValues({ ...values, [prop]: selectedValue });
           setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
         },
       [users, values]
@@ -448,6 +464,7 @@ const ProjectSettings = React.memo(
               ...prevValues,
               [prop]: newValue.map((user) => user.id),
             }));
+            setErrors((prevErrors) => ({ ...prevErrors, [prop]: "" }));
           }
         },
       [values.monitoredRegulationsAndStandards, projectId, triggerRefresh]
@@ -540,7 +557,7 @@ const ProjectSettings = React.memo(
       const newErrors: FormErrors = {};
 
       const projectTitle = checkStringValidation(
-        "Project title",
+        "Use case title",
         values.projectTitle,
         1,
         64
@@ -551,6 +568,10 @@ const ProjectSettings = React.memo(
       const goal = checkStringValidation("Goal", values.goal, 1, 256);
       if (!goal.accepted) {
         newErrors.goal = goal.message;
+      }
+      const status = selectValidation("Use case status", values.status);
+      if (!status.accepted) {
+        newErrors.status = status.message;
       }
       const startDate = checkStringValidation(
         "Start date",
@@ -581,7 +602,7 @@ const ProjectSettings = React.memo(
       }
 
       const monitoredRegulationsAndStandards = selectValidation(
-        "Monitored regulations and standards",
+        "Applicable regulations",
         values.monitoredRegulationsAndStandards.length
       );
       if (!monitoredRegulationsAndStandards.accepted) {
@@ -636,6 +657,8 @@ const ProjectSettings = React.memo(
       const selectedHighRiskRole =
         highRiskRoleItems.find((item) => item._id === values.typeOfHighRiskRole)
           ?.name || "";
+      const selectedStatus =
+        projectStatusItems.find((item) => item._id === values.status)?.name || "";
       const selectedRegulations = values.monitoredRegulationsAndStandards.map(
         (reg) => reg.name
       );
@@ -651,6 +674,7 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
           last_updated_by: userId,
@@ -661,6 +685,11 @@ const ProjectSettings = React.memo(
         },
       }).then((response) => {
         if (response.status === 202) {
+          // Create new values reference and update both ref and form state
+          const newValues = { ...values };
+          initialValuesRef.current = newValues;
+          setValues(newValues);
+
           setAlert({
             variant: "success",
             body: "Project updated successfully",
@@ -705,7 +734,7 @@ const ProjectSettings = React.memo(
           setProjects((prevProjects) =>
             prevProjects.filter((project) => project.id !== Number(projectId))
           );
-          navigate("/");
+          navigate("/overview");
           setTimeout(() => {
             setAlert(null);
           }, 3000);
@@ -754,8 +783,8 @@ const ProjectSettings = React.memo(
           <Stack component="form" onSubmit={handleSubmit} rowGap="15px">
             <Field
               id="project-title-input"
-              label="Project title"
-              width={458}
+              label="Use case title"
+              width={400}
               value={values.projectTitle}
               onChange={handleOnTextFieldChange("projectTitle")}
               sx={fieldStyle}
@@ -765,7 +794,7 @@ const ProjectSettings = React.memo(
             <Field
               id="goal-input"
               label="Goal"
-              width={458}
+              width={400}
               type="description"
               value={values.goal}
               onChange={handleOnTextFieldChange("goal")}
@@ -773,6 +802,19 @@ const ProjectSettings = React.memo(
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.goal}
+              isRequired
+            />
+            <Select
+              id="project-status"
+              label="Use case status"
+              value={values.status || 1}
+              onChange={handleOnSelectChange("status")}
+              items={projectStatusItems}
+              sx={{
+                width: 400,
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.status}
               isRequired
             />
             <Select
@@ -788,7 +830,7 @@ const ProjectSettings = React.memo(
                 })) || []
               }
               sx={{
-                width: 357,
+                width: 400,
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.owner}
@@ -830,10 +872,10 @@ const ProjectSettings = React.memo(
                 <Typography
                   sx={{ fontSize: theme.typography.fontSize, fontWeight: 600 }}
                 >
-                  Monitored regulations and standards *
+                  Applicable regulations *
                 </Typography>
                 <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                  Add all monitored regulations and standards of the project.
+                  Add all monitored regulations and standards of the use case.
                 </Typography>
                 <Autocomplete
                   multiple
@@ -896,15 +938,30 @@ const ProjectSettings = React.memo(
                     option.name.includes("coming soon")
                   }
                   filterSelectedOptions
-                  popupIcon={<GreyDownArrowIcon />}
+                  popupIcon={<ChevronDown size={16} color={theme.palette.text.tertiary} />}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       placeholder="Select regulations and standards"
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          paddingTop: "3.8px !important",
-                          paddingBottom: "3.8px !important",
+                          height: "34px",
+                          padding: "0 10px",
+                          display: "flex",
+                          alignItems: "center",
+                        },
+                        "& .MuiInputBase-root": {
+                          height: "34px !important",
+                          padding: "0 10px !important",
+                          display: "flex !important",
+                          alignItems: "center !important",
+                          justifyContent: "flex-start !important",
+                        },
+                        "& .MuiInputBase-input": {
+                          padding: "0 !important",
+                          margin: "0 !important",
+                          fontSize: "13px",
+                          lineHeight: "1 !important",
                         },
                         "& ::placeholder": {
                           fontSize: "13px",
@@ -913,13 +970,13 @@ const ProjectSettings = React.memo(
                     />
                   )}
                   sx={{
-                    width: "458px",
+                    width: "400px",
                     backgroundColor: theme.palette.background.main,
                     ".MuiAutocomplete-clearIndicator": {
                       display: "none",
                     },
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "5px",
+                      borderRadius: "4px",
                       "&:hover .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#777",
                       },
@@ -991,8 +1048,8 @@ const ProjectSettings = React.memo(
                 Team members
               </Typography>
               <Typography sx={{ fontSize: theme.typography.fontSize }}>
-                Add all team members of the project. Only those who are added
-                will be able to see the project.
+                Add all team members of the use case. Only those who are added
+                will be able to see the use case.
               </Typography>
             </Stack>
 
@@ -1051,15 +1108,30 @@ const ProjectSettings = React.memo(
                   : "No options"
               }
               onChange={handleOnMultiSelect("members")}
-              popupIcon={<GreyDownArrowIcon />}
+              popupIcon={<ChevronDown size={16} color={theme.palette.text.tertiary} />}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   placeholder="Select Users"
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      paddingTop: "3.8px !important",
-                      paddingBottom: "3.8px !important",
+                      height: "34px",
+                      padding: "0 10px",
+                      display: "flex",
+                      alignItems: "center",
+                    },
+                    "& .MuiInputBase-root": {
+                      height: "34px !important",
+                      padding: "0 10px !important",
+                      display: "flex !important",
+                      alignItems: "center !important",
+                      justifyContent: "flex-start !important",
+                    },
+                    "& .MuiInputBase-input": {
+                      padding: "0 !important",
+                      margin: "0 !important",
+                      fontSize: "13px",
+                      lineHeight: "1 !important",
                     },
                     "& ::placeholder": {
                       fontSize: "13px",
@@ -1068,10 +1140,10 @@ const ProjectSettings = React.memo(
                 />
               )}
               sx={{
-                width: "458px",
+                width: "400px",
                 backgroundColor: theme.palette.background.main,
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "5px",
+                  borderRadius: "4px",
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#777",
                   },
@@ -1132,7 +1204,7 @@ const ProjectSettings = React.memo(
               onChange={handleOnSelectChange("riskClassification")}
               items={riskClassificationItems}
               sx={{
-                width: 357,
+                width: 400,
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.riskClassification}
@@ -1162,7 +1234,7 @@ const ProjectSettings = React.memo(
               onChange={handleOnSelectChange("typeOfHighRiskRole")}
               items={highRiskRoleItems}
               sx={{
-                width: 357,
+                width: 400,
                 backgroundColor: theme.palette.background.main,
               }}
               error={errors.typeOfHighRiskRole}
@@ -1179,7 +1251,7 @@ const ProjectSettings = React.memo(
                     : "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIcon size={16} />}
                 variant="contained"
                 onClick={(event: any) => {
                   handleSubmit(event);
@@ -1197,7 +1269,7 @@ const ProjectSettings = React.memo(
                   mb: 4,
                 }}
               >
-                Delete project
+                Delete use case
               </Typography>
               <Typography
                 sx={{
@@ -1206,8 +1278,8 @@ const ProjectSettings = React.memo(
                   mb: 8,
                 }}
               >
-                Note that deleting a project will remove all data related to
-                that project from our system. This is permanent and
+                Note that deleting a use case will remove all data related to
+                that use case from your system. This is permanent and
                 non-recoverable.
               </Typography>
               <CustomizableButton
@@ -1219,10 +1291,10 @@ const ProjectSettings = React.memo(
                   border: "1px solid #DB504A",
                   gap: 2,
                 }}
-                icon={<DeleteIconWhite />}
+                icon={<DeleteIcon size={16} />}
                 variant="contained"
                 onClick={handleOpenDeleteDialog}
-                text="Delete project"
+                text="Delete use case"
                 isDisabled={
                   !allowedRoles.projects.delete.includes(userRoleName)
                 }
@@ -1236,7 +1308,7 @@ const ProjectSettings = React.memo(
             title="Confirm Delete"
             body={
               <Typography fontSize={13}>
-                Are you sure you want to delete the project?
+                Are you sure you want to delete the use case?
               </Typography>
             }
             cancelText="Cancel"
@@ -1255,7 +1327,7 @@ const ProjectSettings = React.memo(
             body={
               <Typography fontSize={13}>
                 Are you sure you want to remove {frameworkToRemove?.name} from
-                the project?
+                the use case?
               </Typography>
             }
             cancelText="Cancel"
@@ -1267,7 +1339,6 @@ const ProjectSettings = React.memo(
             TitleFontSize={0}
           />
         )}
-
       </Stack>
     );
   }

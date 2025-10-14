@@ -1,9 +1,9 @@
-import { logStructured } from './fileLogger';
-import { logEvent } from './dbLogger';
-import logger from './fileLogger';
+import { logStructured } from "./fileLogger";
+import { logEvent } from "./dbLogger";
+import logger from "./fileLogger";
 
-type LogState = 'processing' | 'successful' | 'error';
-type EventType = 'Create' | 'Read' | 'Update' | 'Delete' | 'Error';
+type LogState = "processing" | "successful" | "error";
+type EventType = "Create" | "Read" | "Update" | "Delete" | "Error";
 
 interface LogProcessingParams {
   logState?: LogState;
@@ -22,7 +22,7 @@ interface LogFailureParams extends LogProcessingParams {
 }
 
 export function logProcessing({
-  logState = 'processing',
+  logState = "processing",
   description,
   functionName,
   fileName,
@@ -31,9 +31,8 @@ export function logProcessing({
   logger.debug(`🔄 ${description}`);
 }
 
-
 export async function logSuccess({
-  logState = 'successful',
+  logState = "successful",
   eventType,
   description,
   functionName,
@@ -43,17 +42,17 @@ export async function logSuccess({
 }: LogSuccessParams): Promise<void> {
   logStructured(logState, description, functionName, fileName);
   logger.debug(`✅ ${description}`);
-  if (eventType != 'Read') {
+  if (eventType != "Read") {
     try {
       await logEvent(eventType, description, userId, tenantId);
     } catch (error) {
-      console.error('Failed to log success event to database:', error);
+      console.error("Failed to log success event to database:", error);
     }
   }
 }
 
 export async function logFailure({
-  logState = 'error',
+  logState = "error",
   description,
   functionName,
   fileName,
@@ -64,11 +63,11 @@ export async function logFailure({
 }: LogFailureParams): Promise<void> {
   logStructured(logState, description, functionName, fileName);
   logger.error(`❌ ${description}:`, error);
-  if (eventType != 'Read') {
+  if (eventType != "Read") {
     try {
       await logEvent('Error', `${description}: ${error.message}`, userId, tenantId);
     } catch (dbError) {
-      console.error('Failed to log failure event to database:', dbError);
+      console.error("Failed to log failure event to database:", dbError);
     }
   }
 }

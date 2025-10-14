@@ -18,9 +18,8 @@ export class PolicyController {
   // Get policy by ID
   static async getPolicyById(req: Request, res: Response) {
     try {
-      const id = parseInt(req.params.id);
-
-      const policy = await getPolicyByIdQuery(req.tenantId!, id);
+      const policyId = parseInt(req.params.id);
+      const policy = await getPolicyByIdQuery(req.tenantId!, policyId);
 
       if (policy) {
         return res.status(200).json(STATUS_CODE[200](policy));
@@ -36,11 +35,11 @@ export class PolicyController {
   static async createPolicy(req: Request, res: Response) {
     try {
       const userId = req.userId!;
-      const policyData = req.body as IPolicy;
-
-      if (!policyData.title) {
-        return res.status(400).json(STATUS_CODE[400]({ error: 'Policy title is required' }));
-      }
+      const policyData = {
+        ...req.body,
+        author_id: userId,
+        last_updated_by: userId
+      } as IPolicy;
 
       const policy = await createPolicyQuery(policyData, req.tenantId!, userId);
 
@@ -56,11 +55,22 @@ export class PolicyController {
   // Update policy
   static async updatePolicy(req: Request, res: Response) {
     try {
-      const id = parseInt(req.params.id);
+      const policyId = parseInt(req.params.id);
       const userId = req.userId!;
-      const policyData = req.body as Partial<IPolicy>;
+      // Get existing policy for business rule validation
+      let existingPolicy = null;
+      try {
+        existingPolicy = await getPolicyByIdQuery(req.tenantId!, policyId);
+      } catch (error) {
+        // Continue without existing data if query fails
+      }
 
-      const policy = await updatePolicyByIdQuery(id, policyData, req.tenantId!, userId);
+      const policyData = {
+        ...req.body,
+        last_updated_by: userId
+      } as Partial<IPolicy>;
+
+      const policy = await updatePolicyByIdQuery(policyId, policyData, req.tenantId!, userId);
 
       if (policy) {
         return res.status(202).json(STATUS_CODE[202](policy));
@@ -84,8 +94,9 @@ export class PolicyController {
   // In PolicyController
   static async deletePolicyById(req: Request, res: Response) {
     try {
-      const id = parseInt(req.params.id);
-      const deleted = await deletePolicyByIdQuery(req.tenantId!, id);
+      const policyId = parseInt(req.params.id);
+
+      const deleted = await deletePolicyByIdQuery(req.tenantId!, policyId);
 
       if (deleted) {
         return res.status(202).json(STATUS_CODE[202](deleted));

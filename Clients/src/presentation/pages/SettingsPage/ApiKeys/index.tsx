@@ -175,7 +175,7 @@ const ApiKeys = () => {
               <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#000000" }}>
                 API Keys
               </Typography>
-              <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
+              <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5, mb: 3 }}>
                 Manage your API keys for programmatic access to VerifyWise features
               </Typography>
             </Box>
@@ -244,7 +244,7 @@ const ApiKeys = () => {
             />
           </Box>
         ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {tokens.map((token) => (
               <Box
                 key={token.id}
@@ -253,7 +253,7 @@ const ApiKeys = () => {
                 sx={{
                   border: "1.5px solid #eaecf0",
                   borderRadius: "4px",
-                  p: 3,
+                  p: 4,
                   backgroundColor: hoveredTokenId === token.id ? "#f8fffe" : "#ffffff",
                   display: "flex",
                   justifyContent: "space-between",
@@ -268,7 +268,7 @@ const ApiKeys = () => {
                     fontSize: 14,
                     fontWeight: 600,
                     color: "#000000",
-                    mb: 1,
+                    mb: 2,
                     letterSpacing: "0.01em",
                   }}>
                     {token.name}
@@ -282,7 +282,7 @@ const ApiKeys = () => {
                         fontWeight: 500,
                         fontSize: "11px",
                         height: "20px",
-                        borderRadius: "12px",
+                        borderRadius: "4px",
                         "& .MuiChip-label": {
                           padding: "0 8px",
                           textTransform: "uppercase",

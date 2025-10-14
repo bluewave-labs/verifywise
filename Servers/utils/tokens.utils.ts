@@ -18,6 +18,19 @@ export const createApiTokenQuery = async (
   tenant: string,
   transaction: Transaction
 ) => {
+  // Check if a token with this name already exists
+  const existingToken = await sequelize.query(
+    `SELECT id FROM "${tenant}".api_tokens WHERE name = :name;`,
+    {
+      replacements: { name: tokenPayload.name },
+      transaction
+    }
+  ) as [{ id: number }[], number];
+
+  if (existingToken[0].length > 0) {
+    throw new ValidationException("A token with this name already exists. Please use a different name.");
+  }
+
   const result = await sequelize.query(
     `INSERT INTO "${tenant}".api_tokens (
       token, name, expires_at, created_by

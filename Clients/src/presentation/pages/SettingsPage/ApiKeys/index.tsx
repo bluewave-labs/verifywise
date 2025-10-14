@@ -157,6 +157,10 @@ const ApiKeys = () => {
     });
   };
 
+  const isTokenExpired = (expiresAt: string) => {
+    return new Date() > new Date(expiresAt);
+  };
+
   return (
     <Stack sx={{ mt: 3, maxWidth: 1000 }}>
       {alert && (
@@ -275,10 +279,10 @@ const ApiKeys = () => {
                   </Typography>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                     <Chip
-                      label="Active"
+                      label={isTokenExpired(token.expires_at) ? "Expired" : "Active"}
                       sx={{
-                        backgroundColor: "#c8e6c9",
-                        color: "#388e3c",
+                        backgroundColor: isTokenExpired(token.expires_at) ? "#ffebee" : "#c8e6c9",
+                        color: isTokenExpired(token.expires_at) ? "#d32f2f" : "#388e3c",
                         fontWeight: 500,
                         fontSize: "11px",
                         height: "20px",
@@ -293,14 +297,14 @@ const ApiKeys = () => {
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       •
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#666666" }}>
+                    <Typography sx={{ fontSize: 12, color: "#444444" }}>
                       Created {formatDate(token.created_at)}
                     </Typography>
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       •
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#666666" }}>
-                      Expires {formatDate(token.expires_at)}
+                    <Typography sx={{ fontSize: 12, color: "#444444" }}>
+                      {isTokenExpired(token.expires_at) ? "Expired" : "Expires"} {formatDate(token.expires_at)}
                     </Typography>
                   </Box>
                 </Box>

@@ -1,5 +1,5 @@
 import { Typography, Box, Grid } from "@mui/material";
-import {ReactComponent as SpeedGreenIcon} from "../../../assets/icons/speed.svg";
+import { Gauge as SpeedGreenIcon } from "lucide-react";
 import { RiskMetrics } from "../../../../domain/interfaces/iRiskSummary";
 
 interface RiskMetricsCardProps {
@@ -51,7 +51,7 @@ const RiskMetricsCard = ({ metrics, velocity }: RiskMetricsCardProps) => {
           gap: 1,
         }}
       >
-        <SpeedGreenIcon style={{ fontSize: 18}} />
+        <SpeedGreenIcon size={18} />
         Risk Intelligence
       </Typography>
 

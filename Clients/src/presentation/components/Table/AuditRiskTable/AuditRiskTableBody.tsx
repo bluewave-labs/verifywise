@@ -9,9 +9,13 @@ import {
 } from "@mui/material";
 import { useCallback, useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
-import { ReactComponent as CheckboxOutline } from "../../../assets/icons/checkbox-outline.svg";
-import { ReactComponent as CheckboxFilled } from "../../../assets/icons/checkbox-filled.svg";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { Square as CheckboxOutline } from "lucide-react";
+import { CheckSquare as CheckboxFilled } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 import {
   paginationStyle,
   paginationDropdown,
@@ -19,24 +23,18 @@ import {
 } from "../styles";
 import TablePaginationActions from "../../TablePagination";
 import RiskChip from "../../RiskLevel/RiskChip";
-import { Risk } from "./AuditRiskTable";
 import { useSearchParams } from "react-router-dom";
 import CustomizableButton from "../../Button/CustomizableButton";
-
-interface AuditRiskTableBodyProps {
-  rows: Risk[];
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  deletedRisks: number[];
-  checkedRows: number[];
-  setCheckedRows: (checkedRows: number[]) => void;
-}
+import {
+  IAuditRiskTableBodyProps,
+  ITypeRisk,
+} from "../../../../domain/interfaces/i.table";
 
 const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
-export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
+export const AuditRiskTableBody: React.FC<IAuditRiskTableBodyProps> = ({
   rows,
   page,
   setCurrentPagingation,
@@ -65,7 +63,7 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
   );
 
   const handleChange = (
-    riskData: Risk,
+    riskData: ITypeRisk,
     event: React.ChangeEvent | React.MouseEvent
   ) => {
     event.stopPropagation();
@@ -78,7 +76,7 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
     }
   };
 
-  const handleRowClick = (riskData: Risk, event: React.MouseEvent) => {
+  const handleRowClick = (riskData: ITypeRisk, event: React.MouseEvent) => {
     event.stopPropagation();
     const riskId = riskData.id;
     if (riskId) {
@@ -96,7 +94,7 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
         {rows &&
           rows
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row: Risk, index: number) => (
+            .map((row: ITypeRisk, index: number) => (
               <TableRow
                 key={index}
                 sx={singleTheme.tableStyles.primary.body.row}
@@ -111,8 +109,8 @@ export const AuditRiskTableBody: React.FC<AuditRiskTableBodyProps> = ({
                     }
                     onChange={(e) => handleChange(row, e)}
                     onClick={(e) => e.stopPropagation()}
-                    checkedIcon={<CheckboxFilled />}
-                    icon={<CheckboxOutline />}
+                    checkedIcon={<CheckboxFilled size={16} />}
+                    icon={<CheckboxOutline size={16} />}
                     sx={{
                       borderRadius: "4px",
                       "&:hover": { backgroundColor: "transparent" },

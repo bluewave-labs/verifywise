@@ -35,7 +35,7 @@ export interface IModelRisk {
   key_metrics?: string;
   current_values?: string;
   threshold?: string;
-  model_id?: number;
+  model_id?: number | null;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -54,5 +54,5 @@ export interface IModelRiskFormData {
   key_metrics?: string;
   current_values?: string;
   threshold?: string;
-  model_id?: number;
+  model_id?: number | null;
 }

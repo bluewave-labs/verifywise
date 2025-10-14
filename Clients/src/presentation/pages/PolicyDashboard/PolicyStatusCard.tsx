@@ -15,10 +15,11 @@ interface PolicyStatusCardProps {
 const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({ policies }) => {
   const statusLevels = [
     { key: "Draft", label: "Draft", color: "#9E9E9E" },
-    { key: "In review", label: "In Review", color: "#FF9800" },
+    { key: "Under Review", label: "Under Review", color: "#FF9800" },
     { key: "Approved", label: "Approved", color: "#4CAF50" },
     { key: "Published", label: "Published", color: "#2196F3" },
     { key: "Archived", label: "Archived", color: "#757575" },
+    { key: "Deprecated", label: "Deprecated", color: "#F44336" },
   ];
 
   // Count how many policies per status
@@ -44,6 +45,7 @@ const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({ policies }) => {
                 color: level.color,
                 border: `1px solid #E5E7EB`,
                 cursor: "default",
+                paddingX: { xs: "15px", sm: "20px" }, // Reduced from 30px to prevent text wrapping
               }}
             >
               <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>

@@ -6,15 +6,12 @@ import {
   Chip,
   Paper,
   Grid,
-  Button,
   Collapse,
 } from "@mui/material";
-import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-} from "@mui/icons-material";
+import { ChevronUp as ExpandLessIcon, ChevronDown as ExpandMoreIcon } from "lucide-react";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { getAllUsers } from "../../../application/repository/user.repository";
+import ButtonToggle from "../ButtonToggle";
 
 interface RiskCategoriesProps {
   risks: ProjectRisk[];
@@ -34,6 +31,7 @@ interface CategoryGroup {
     veryLow: number;
   };
 }
+
 
 const RiskCategories: React.FC<RiskCategoriesProps> = ({
   risks,
@@ -176,40 +174,15 @@ const RiskCategories: React.FC<RiskCategoriesProps> = ({
           Risk Categories Analysis
         </Typography>
         
-        <Stack direction="row" spacing={1}>
-          <Button
-            size="small"
-            variant={viewMode === 'category' ? 'contained' : 'outlined'}
-            onClick={() => setViewMode('category')}
-            sx={{
-              textTransform: 'none',
-              backgroundColor: viewMode === 'category' ? '#13715B' : 'transparent',
-              borderColor: '#13715B',
-              color: viewMode === 'category' ? 'white' : '#13715B',
-              '&:hover': {
-                backgroundColor: viewMode === 'category' ? '#13715B' : '#13715B10',
-              },
-            }}
-          >
-            Risk Categories
-          </Button>
-          <Button
-            size="small"
-            variant={viewMode === 'lifecycle' ? 'contained' : 'outlined'}
-            onClick={() => setViewMode('lifecycle')}
-            sx={{
-              textTransform: 'none',
-              backgroundColor: viewMode === 'lifecycle' ? '#13715B' : 'transparent',
-              borderColor: '#13715B',
-              color: viewMode === 'lifecycle' ? 'white' : '#13715B',
-              '&:hover': {
-                backgroundColor: viewMode === 'lifecycle' ? '#13715B' : '#13715B10',
-              },
-            }}
-          >
-            AI Lifecycle
-          </Button>
-        </Stack>
+        <ButtonToggle
+          options={[
+            { value: 'category', label: 'Risk Categories' },
+            { value: 'lifecycle', label: 'AI Lifecycle' },
+          ]}
+          value={viewMode}
+          onChange={(value) => setViewMode(value as 'category' | 'lifecycle')}
+          height={34}
+        />
       </Box>
 
       <Grid container spacing={2}>
@@ -248,7 +221,7 @@ const RiskCategories: React.FC<RiskCategoriesProps> = ({
                       </Typography>
                     </Box>
                     
-                    {isExpanded ? <ExpandLessIcon sx={{ color: '#6B7280' }} /> : <ExpandMoreIcon sx={{ color: '#6B7280' }} />}
+                    {isExpanded ? <ExpandLessIcon size={16} style={{ color: '#6B7280' }} /> : <ExpandMoreIcon size={16} style={{ color: '#6B7280' }} />}
                   </Box>
 
                   <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>

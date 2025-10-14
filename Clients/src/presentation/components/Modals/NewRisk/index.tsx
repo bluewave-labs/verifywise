@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { X as Close } from "lucide-react";
 import { Suspense, useEffect, useState, lazy, useCallback } from "react";
 import Alert from "../../Alert";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
@@ -31,7 +31,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { RiskCalculator } from "../../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "../../RiskLevel/riskValues";
 import allowedRoles from "../../../../application/constants/permissions";
@@ -418,7 +418,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   );
 
   const risksPanel = (
-    <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
+    <TabPanel value="2" sx={{ paddingTop: "16px", paddingX: 8 }}>
       <Stack direction="row" spacing={12}>
         <Stack flex={1} spacing={12}>
           <Stack direction="row" spacing={6}>
@@ -568,7 +568,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,
             boxShadow: 24,
-            p: theme.spacing(15),
+            p: theme.spacing(8),
             "&:focus": {
               outline: "none",
             },
@@ -581,6 +581,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             flexDirection={"row"}
             justifyContent={"space-between"}
             alignItems={"center"}
+            sx={{ paddingX: theme.spacing(8) }}
           >
             <Typography
               fontSize={16}
@@ -589,23 +590,29 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             >
               {existingRisk ? "Edit risk" : "Add a new vendor risk"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={setIsOpen} />
+            <Close size={20} style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
-          {!existingRisk && (
-            <Typography
-              fontSize={13}
-              color={theme.palette.text.secondary}
-              marginBottom={theme.spacing(2)}
-              sx={{ lineHeight: 1.4 }}
-            >
-              Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan.
-            </Typography>
-          )}
+          <Typography
+            fontSize={13}
+            color={theme.palette.text.secondary}
+            marginBottom={theme.spacing(1)}
+            sx={{
+              lineHeight: 1.4,
+              paddingX: theme.spacing(8)
+            }}
+          >
+            {existingRisk
+              ? "Update risk details including description, impact assessment, and mitigation plan."
+              : "Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan."
+            }
+          </Typography>
           <TabContext value={value}>
             {risksPanel}
             <Stack
               sx={{
                 alignItems: "flex-end",
+                paddingX: theme.spacing(8),
+                marginTop: theme.spacing(2),
               }}
             >
               <CustomizableButton
@@ -617,7 +624,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
                   gap: 2,
                 }}
                 onClick={handleSave}
-                icon={<SaveIconSVGWhite />}
+                icon={<SaveIcon size={16} />}
                 isDisabled={isEditingDisabled}
               />
             </Stack>

@@ -9,11 +9,15 @@ import {
   TableFooter,
   Typography,
   useTheme,
+  Stack,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+import { emptyStateStyles } from "../../../themes/components";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import VWProjectRisksTableHead from "./VWProjectRisksTableHead";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
@@ -92,18 +96,13 @@ const VWProjectRisksTable = ({
         ) : (
           <TableBody>
             <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                align="center"
-                style={{
-                  padding: theme.spacing(15, 5),
-                  paddingBottom: theme.spacing(20),
-                }}
-              >
-                <img src={placeholderImage} alt="Placeholder" />
-                <Typography sx={{ fontSize: "13px", color: "#475467" }}>
-                  There is currently no data in this table.
-                </Typography>
+              <TableCell colSpan={columns.length} sx={{ border: "none", p: 0 }}>
+                <Stack sx={emptyStateStyles.tableContainer(theme)}>
+                  <img src={placeholderImage} alt="Placeholder" />
+                  <Typography sx={{ fontSize: "13px", color: "#475467" }}>
+                    There is currently no data in this table.
+                  </Typography>
+                </Stack>
               </TableCell>
             </TableRow>
           </TableBody>

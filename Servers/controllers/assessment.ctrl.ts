@@ -83,6 +83,7 @@ export async function getAssessmentById(
   res: Response
 ): Promise<any> {
   const assessmentId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting getAssessmentById for ID ${assessmentId}`,
     functionName: "getAssessmentById",
@@ -362,6 +363,7 @@ export async function deleteAssessmentById(
 
 export async function getAnswers(req: Request, res: Response): Promise<any> {
   const assessmentId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting getAnswers for assessment ID ${assessmentId}`,
     functionName: "getAnswers",
@@ -427,6 +429,7 @@ export async function getAssessmentByProjectId(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting getAssessmentByProjectId for project ID ${projectId}`,
     functionName: "getAssessmentByProjectId",

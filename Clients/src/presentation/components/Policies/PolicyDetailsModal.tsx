@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { CSSProperties, useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
-import { Plate, PlateContent, usePlateEditor } from "platejs/react";
+import { Plate, PlateContent, createPlateEditor } from "platejs/react";
+import { AutoformatPlugin } from '@platejs/autoformat';
+import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
+import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 
 import {
   BoldPlugin,
@@ -11,21 +13,53 @@ import {
   H1Plugin,
   H2Plugin,
   H3Plugin,
-  BlockquotePlugin,
+  StrikethroughPlugin
 } from "@platejs/basic-nodes/react";
+import { ListPlugin, BulletedListPlugin, NumberedListPlugin, ListItemPlugin, ListItemContentPlugin } from '@platejs/list-classic/react';
+import { TextAlignPlugin } from '@platejs/basic-styles/react';
 import { serializeHtml } from "platejs";
 import {
-  FormatBold,
-  FormatItalic,
-  FormatUnderlined,
-  FormatQuote,
-  LooksOne,
-  LooksTwo,
-  Looks3,
-} from "@mui/icons-material";
+  Underline,
+  Bold,
+  Italic,
+  SaveIcon,
+  Strikethrough,
+  ListOrdered,
+  List,
+  AlignLeft,
+  AlignCenter,
+  Link,
+  AlignRight,
+  Image,
+  Redo2,
+  Undo2
+} from "lucide-react";
+
+// Custom number components for heading levels (Lucide doesn't have numbered heading icons)
+const LooksOne = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">1</text>
+  </svg>
+);
+
+const LooksTwo = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">2</text>
+  </svg>
+);
+
+const LooksThree = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">3</text>
+  </svg>
+);
+
+const FormatUnderlined = () => <Underline size={16} />;
+const FormatBold = () => <Bold size={16} />;
+const FormatItalic = () => <Italic size={16} />;
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../assets/icons/close-grey.svg";
+import { X as CloseGreyIcon } from "lucide-react";
 import CustomizableButton from "../Button/CustomizableButton";
 import {
   createPolicy,
@@ -35,12 +69,16 @@ import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
+import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
+import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
+import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
+
 
 interface Props {
   policy: Policy | null;
   tags: string[];
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (successMessage?: string) => void;
 }
 
 export interface FormErrors {
@@ -49,6 +87,7 @@ export interface FormErrors {
   tags?: string;
   nextReviewDate?: string;
   assignedReviewers?: string;
+  content?: string;
 }
 
 const PolicyDetailModal: React.FC<Props> = ({
@@ -61,7 +100,11 @@ const PolicyDetailModal: React.FC<Props> = ({
   const { users } = useUsers();
   const theme = useTheme();
   const [errors, setErrors] = useState<FormErrors>({});
+  const [openLink, setOpenLink] = useState(false);
+  const [openImage, setOpenImage] = useState(false);
+
   // const [isSubmitting, setIsSubmitting] = useState(false);
+  
   // Track toggle state for toolbar buttons
   type ToolbarKey =
     | "bold"
@@ -70,18 +113,35 @@ const PolicyDetailModal: React.FC<Props> = ({
     | "h1"
     | "h2"
     | "h3"
-    | "blockquote";
-  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>(
-    {
-      bold: false,
-      italic: false,
-      underline: false,
-      h1: false,
-      h2: false,
-      h3: false,
-      blockquote: false,
-    }
-  );
+    | "undo"
+    | "redo"
+    | "strike"
+    | "ol"
+    | "ul"
+    | "align-left"
+    | "align-center"
+    | "align-right"
+    | "link"
+    | "image";
+
+  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
+    bold: false,
+    italic: false,
+    underline: false,
+    h1: false,
+    h2: false,
+    h3: false,
+    undo: false,
+    redo: false,
+    strike: false,
+    ol: false,
+    ul: false,
+    "align-left": false,
+    "align-center": false,
+    "align-right": false,
+    link: false,
+    image: false,
+  });
 
   useModalKeyHandling({
     isOpen: true,
@@ -91,6 +151,7 @@ const PolicyDetailModal: React.FC<Props> = ({
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
+    // Title validation
     const policyTitle = checkStringValidation(
       "Policy title",
       formData.title,
@@ -118,6 +179,7 @@ const PolicyDetailModal: React.FC<Props> = ({
       newErrors.nextReviewDate = policyNextReviewDate.message;
     }
 
+    // Assigned reviewers validation
     const policyAssignedReviewers = formData.assignedReviewers.filter(
       (user) => user.id !== undefined
     );
@@ -131,12 +193,55 @@ const PolicyDetailModal: React.FC<Props> = ({
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
-    status: "Draft",
+    status: "Under Review",
     tags: [],
     nextReviewDate: "",
     assignedReviewers: [],
     content: "",
   });
+
+  // Create the editor with plugins
+  const [editor] = useState(() =>
+    createPlateEditor({
+      plugins: [
+        BoldPlugin,
+        ItalicPlugin,
+        UnderlinePlugin,
+        H1Plugin,
+        H2Plugin,
+        H3Plugin,
+        StrikethroughPlugin,
+        imagePlugin,
+        linkPlugin,
+    ListPlugin,
+    BulletedListPlugin.configure({
+      shortcuts: { toggle: { keys: 'mod+alt+5' } },
+    }),
+    NumberedListPlugin.configure({
+      shortcuts: { toggle: { keys: 'mod+alt+6' } },
+    }),
+    ListItemPlugin,
+    ListItemContentPlugin,
+        TextAlignPlugin.configure({
+          inject: {
+            nodeProps: {
+              nodeKey: 'align',
+              defaultNodeValue: 'start',
+              styleKey: 'textAlign',
+              validNodeValues: ['start', 'left', 'center', 'right', 'end', 'justify'],
+            },
+            targetPlugins: ['h1', 'h2', 'h3', 'p'],
+          },
+        }),
+        AutoformatPlugin.configure({
+          options: {
+            rules: [],
+          },
+        }),
+      ],
+      value: [{ type: 'p', children: [{ text: '' }] }],
+    }) as any
+  );
 
   useEffect(() => {
     if (policy) {
@@ -157,7 +262,7 @@ const PolicyDetailModal: React.FC<Props> = ({
     } else {
       setFormData({
         title: "",
-        status: "Draft",
+        status: "Under Review",
         tags: [],
         nextReviewDate: "",
         assignedReviewers: [],
@@ -166,18 +271,44 @@ const PolicyDetailModal: React.FC<Props> = ({
     }
   }, [policy, users]);
 
-  const editor = usePlateEditor({
-    plugins: [
-      BoldPlugin,
-      ItalicPlugin,
-      UnderlinePlugin,
-      H1Plugin,
-      H2Plugin,
-      H3Plugin,
-      BlockquotePlugin,
-    ],
-    value: formData.content || "<p></p>",
-  }) as any;
+  const toolbarConfig: Array<{
+    key: ToolbarKey;
+    title: string;
+    icon: React.ReactNode;
+    action: () => void;
+  }> = [
+    { key: "undo", title: "Undo", icon: <Undo2 size={16} />, action: () => editor.tf.undo() },
+    { key: "redo", title: "Redo", icon: <Redo2 size={16} />, action: () => editor.tf.redo() },
+    { key: "h1", title: "Heading 1", icon: <LooksOne />, action: () => editor.tf.h1.toggle() },
+    { key: "h2", title: "Heading 2", icon: <LooksTwo />, action: () => editor.tf.h2.toggle() },
+    { key: "h3", title: "Heading 3", icon: <LooksThree />, action: () => editor.tf.h3.toggle() },
+    { key: "bold", title: "Bold", icon: <FormatBold />, action: () => editor.tf.bold.toggle() },
+    { key: "italic", title: "Italic", icon: <FormatItalic />, action: () => editor.tf.italic.toggle() },
+    { key: "underline", title: "Underline", icon: <FormatUnderlined />, action: () => editor.tf.underline.toggle() },
+    { key: "strike", title: "Strikethrough", icon: <Strikethrough size={16} />, action: () => editor.tf.strikethrough.toggle() },
+    { key: "ol", title: "Numbered List", icon: <ListOrdered size={16} />, action: () => editor.tf.ol.toggle() },
+    { key: "ul", title: "Bulleted List", icon: <List size={16} />, action: () => editor.tf.ul.toggle() },
+    {
+      key: "align-left",
+      title: "Align Left",
+      icon: <AlignLeft size={16} />,
+      action: () => editor.tf.textAlign.setNodes("left"),
+    },
+    {
+      key: "align-center",
+      title: "Align Center",
+      icon: <AlignCenter size={16} />,
+      action: () => editor.tf.textAlign.setNodes("center"),
+    },
+    {
+      key: "align-right",
+      title: "Align Right",
+      icon: <AlignRight size={16} />,
+      action: () => editor.tf.textAlign.setNodes("right"),
+    },
+    { key: "link", title: "Insert Link", icon: <Link size={16} />, action: () => setOpenLink(true)},
+    { key: "image", title: "Insert Image", icon: <Image size={16} />,   action: () => setOpenImage(true)},
+  ];
 
   useEffect(() => {
     if (policy && editor) {
@@ -220,10 +351,47 @@ const PolicyDetailModal: React.FC<Props> = ({
       } else {
         await updatePolicy(policy!.id, payload);
       }
-      onSaved();
-    } catch (err) {
+
+      // Close modal immediately and pass success message to parent
+      const successMessage = isNew
+        ? "Policy created successfully!"
+        : "Policy updated successfully!";
+
+      onSaved(successMessage);
+    } catch (err: any) {
       // setIsSubmitting(false);
-      console.error(err);
+      console.error("Full error object:", err);
+      console.error("Original error:", err?.originalError);
+      console.error("Original error response:", err?.originalError?.response);
+      
+      // Handle server validation errors - the CustomException is in originalError
+      const errorData = err?.originalError?.response || err?.response?.data || err?.response;
+      console.error("Error data:", errorData);
+      
+      if (errorData?.errors) {
+        console.error("Processing server errors:", errorData.errors);
+        const serverErrors: FormErrors = {};
+        errorData.errors.forEach((error: any) => {
+          console.error("Processing error:", error);
+          if (error.field === 'title') {
+            serverErrors.title = error.message;
+          } else if (error.field === 'status') {
+            serverErrors.status = error.message;
+          } else if (error.field === 'tags') {
+            serverErrors.tags = error.message;
+          } else if (error.field === 'content_html') {
+            serverErrors.content = error.message;
+          } else if (error.field === 'next_review_date') {
+            serverErrors.nextReviewDate = error.message;
+          } else if (error.field === 'assigned_reviewer_ids') {
+            serverErrors.assignedReviewers = error.message;
+          }
+        });
+        console.error("Setting server errors:", serverErrors);
+        setErrors(serverErrors);
+      } else {
+        console.error("No errors found in response");
+      }
     }
   };
 
@@ -244,6 +412,17 @@ const PolicyDetailModal: React.FC<Props> = ({
         <CustomizableToast title="Creating project. Please wait..." />
       </Stack>
       )} */}
+      <InsertLinkModal
+        open={openLink}
+        onClose={() => setOpenLink(false)}
+        onInsert={(url, text) => insertLink(editor, url, text)}
+      />
+
+      <InsertImageModal
+        open={openImage}
+        onClose={() => setOpenImage(false)}
+        onInsert={(url, alt) => insertImage(editor, url, alt)}
+      />
       <Drawer
         open={true}
         onClose={(_event, reason) => {
@@ -253,9 +432,9 @@ const PolicyDetailModal: React.FC<Props> = ({
         }}
         anchor="right"
         sx={{
-          width: 800,
+          width: 900,
           "& .MuiDrawer-paper": {
-            width: 800,
+            width: 900,
             borderRadius: 0,
             padding: "15px 20px",
             marginTop: "0",
@@ -276,7 +455,7 @@ const PolicyDetailModal: React.FC<Props> = ({
               {isNew ? "Create new policy" : formData.title}
             </Typography>
           </Stack>
-          <CloseGreyIcon
+          <CloseGreyIcon size={16}
             style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={onClose}
           />
@@ -284,9 +463,7 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={4} sx={{
-            paddingBottom: 30, // leaves space so content won't hide under Save button
-          }}>
+        <Stack spacing={2} sx={{ marginBottom: "80px" }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -294,144 +471,41 @@ const PolicyDetailModal: React.FC<Props> = ({
             errors={errors}
             setErrors={setErrors}
           />
-          <Divider sx={{ my: 2 }} />
-          <Stack sx={{ width: "100%" }}>
-            <Typography
-              sx={{
-                fontSize: theme.typography.fontSize,
-                fontWeight: 500,
-                mb: 2,
-              }}
-            >
-              Content
-            </Typography>
+          <Stack sx={{ width: "100%", height: "100%" }}>
             <Box
               sx={{
                 display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
+                flexWrap: "wrap", // allow multiple lines
                 gap: 1,
                 mb: 2,
               }}
             >
               {/* Toolbar */}
-              {(
-                [
-                  {
-                    key: "bold",
-                    title: "Bold",
-                    icon: <FormatBold />,
-                    action: () => {
-                      editor.tf.bold.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        bold: !prev.bold,
-                      }));
-                    },
-                  },
-                  {
-                    key: "italic",
-                    title: "Italic",
-                    icon: <FormatItalic />,
-                    action: () => {
-                      editor.tf.italic.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        italic: !prev.italic,
-                      }));
-                    },
-                  },
-                  {
-                    key: "underline",
-                    title: "Underline",
-                    icon: <FormatUnderlined />,
-                    action: () => {
-                      editor.tf.underline.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        underline: !prev.underline,
-                      }));
-                    },
-                  },
-                  {
-                    key: "h1",
-                    title: "Heading 1",
-                    icon: <LooksOne />,
-                    action: () => {
-                      editor.tf.h1.toggle();
-                      setToolbarState((prev) => ({ ...prev, h1: !prev.h1 }));
-                    },
-                  },
-                  {
-                    key: "h2",
-                    title: "Heading 2",
-                    icon: <LooksTwo />,
-                    action: () => {
-                      editor.tf.h2.toggle();
-                      setToolbarState((prev) => ({ ...prev, h2: !prev.h2 }));
-                    },
-                  },
-                  {
-                    key: "h3",
-                    title: "Heading 3",
-                    icon: <Looks3 />,
-                    action: () => {
-                      editor.tf.h3.toggle();
-                      setToolbarState((prev) => ({ ...prev, h3: !prev.h3 }));
-                    },
-                  },
-                  {
-                    key: "blockquote",
-                    title: "Blockquote",
-                    icon: <FormatQuote />,
-                    action: () => {
-                      editor.tf.blockquote.toggle();
-                      setToolbarState((prev) => ({
-                        ...prev,
-                        blockquote: !prev.blockquote,
-                      }));
-                    },
-                  },
-                ] as Array<{
-                  key: ToolbarKey;
-                  title: string;
-                  icon: JSX.Element;
-                  action: () => void;
-                }>
-              ).map(({ key, title, icon, action }) => (
+              {toolbarConfig.map(({ key, title, icon, action }) => (
                 <Tooltip key={title} title={title}>
                   <IconButton
-                    onClick={action}
-                    disableRipple
+                    onClick={() => {
+                      action?.();
+                      setToolbarState(prev => ({ ...prev, [key]: !prev[key] }));
+                    }}
                     size="small"
                     sx={{
                       padding: "6px",
                       borderRadius: "3px",
-                      backgroundColor: toolbarState[key]
-                        ? "#E0F7FA"
-                        : "#FFFFFF",
-                      boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
+                      backgroundColor: toolbarState[key] ? "#E0F7FA" : "#FFFFFF",
                       border: "1px solid",
-                      borderColor: toolbarState[key]
-                        ? "#13715B"
-                        : "transparent",
-                      outline: toolbarState[key] ? "1px solid #13715B" : "none",
-                      mr: 1,
-                      transition:
-                        "border-color 0.2s ease, outline 0.2s ease, background-color 0.2s ease",
+                      borderColor: toolbarState[key] ? "#13715B" : "transparent",
                       "&:hover": {
-                        backgroundColor: theme.palette.background.main,
-                        borderColor: toolbarState[key] ? "#13715B" : "#888", // preserve selection color
-                        outline: "1px solid rgba(0, 0, 0, 0.08)", // subtle hover outline
+                        backgroundColor: "#F5F5F5",
                       },
                     }}
                   >
                     {icon}
-                    {toolbarState[key]}
                   </IconButton>
                 </Tooltip>
               ))}
             </Box>
+
             <Plate
               editor={editor}
               onChange={({ value }) =>
@@ -443,8 +517,8 @@ const PolicyDetailModal: React.FC<Props> = ({
             >
               <PlateContent
                 style={{
-                  minHeight: "400px",
-                  maxHeight: "400px",
+                  height: "calc(100vh - 280px)", // Dynamic height: viewport minus header, form, toolbar, and save button area
+                  minHeight: "300px", // Minimum height for usability
                   overflowY: "auto",
                   padding: "16px",
                   border: "1px solid #E0E0E0",
@@ -453,22 +527,37 @@ const PolicyDetailModal: React.FC<Props> = ({
                   fontSize: theme.typography.fontSize,
                   color: theme.palette.text.primary,
                   boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
-                }}
+                  "&:focus": {
+                    outline: "none",
+                  }
+                } as CSSProperties}
                 placeholder="Start typing..."
               />
             </Plate>
+            {errors.content && (
+              <Typography
+                component="span"
+                color={theme.palette.status?.error?.text || theme.palette.error.main}
+                sx={{
+                  opacity: 0.8,
+                  fontSize: 11,
+                  mt: 1,
+                }}
+              >
+                {errors.content}
+              </Typography>
+            )}
           </Stack>
         </Stack>
 
         <Box
           sx={{
-            position: "fixed",            
-            bottom: 0,
-            right: 0,
-            width: 800,                     // same width as Drawer
-            p: 2,
+            position: "fixed",
+            bottom: 16,
+            right: 20,                      // match drawer padding
+            width: 430,                     // half of content width (860/2) to align with right column
+            p: 1,
             backgroundColor: "#fff",        // give it a background to overlap content
-            borderTop: "1px solid #E0E0E0", 
             display: "flex",
             justifyContent: "flex-end",
             zIndex: 1201,                   // above Drawer content
@@ -487,7 +576,7 @@ const PolicyDetailModal: React.FC<Props> = ({
               },
             }}
             onClick={save}
-            icon={<SaveIconSVGWhite />}
+            icon={<SaveIcon size={16} />}
           />
         </Box>
       </Drawer>

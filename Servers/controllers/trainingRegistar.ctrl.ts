@@ -146,30 +146,6 @@ export async function createNewTrainingRegistar(
   try {
     const newTrainingRegistar: TrainingRegistarModel = req.body;
 
-    if (
-      !newTrainingRegistar.training_name ||
-      !newTrainingRegistar.duration ||
-      !newTrainingRegistar.department ||
-      !newTrainingRegistar.numberOfPeople ||
-      !newTrainingRegistar.provider ||
-      !newTrainingRegistar.status
-    ) {
-      await logFailure({
-        eventType: "Create",
-        description: "Missing required fields for training registrar creation",
-        functionName: "createNewTrainingRegistar",
-        fileName: "trainingRegistar.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-        error: new Error("Missing required fields"),
-      });
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "Missing field from Training Registar",
-        })
-      );
-    }
-
     const createdNewTrainingRegistar = await createNewTrainingRegistarQuery(
       newTrainingRegistar,
       req.tenantId!,
@@ -220,8 +196,16 @@ export async function updateTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const transaction = await sequelize.transaction();
   const trainingRegistarId = parseInt(req.params.id);
+
+  // Get existing training registrar for business rule validation
+  let existingTrainingRegistrar = null;
+  try {
+    existingTrainingRegistrar = await getTrainingRegistarByIdQuery(trainingRegistarId, req.tenantId!);
+  } catch (error) {
+    // Continue without existing data if query fails
+  }
+  const transaction = await sequelize.transaction();
 
   logProcessing({
     description: `starting updateTrainingRegistarById for training registrar ID ${trainingRegistarId}`,
@@ -239,30 +223,6 @@ export async function updateTrainingRegistarById(
       people: req.body.numberOfPeople,
     };
     delete updatedTrainingRegistar.numberOfPeople;
-
-    if (
-      !updatedTrainingRegistar.training_name ||
-      !updatedTrainingRegistar.department ||
-      !updatedTrainingRegistar.duration ||
-      !updatedTrainingRegistar.people ||
-      !updatedTrainingRegistar.provider ||
-      !updatedTrainingRegistar.status
-    ) {
-      await logFailure({
-        eventType: "Update",
-        description: `Missing required fields for updating training registrar ID ${trainingRegistarId}`,
-        functionName: "updateTrainingRegistarById",
-        fileName: "trainingRegistar.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-        error: new Error("Missing required fields"),
-      });
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "All the fields are required to be updated",
-        })
-      );
-    }
 
     const trainingRegistar = await updateTrainingRegistarByIdQuery(
       trainingRegistarId,
@@ -314,8 +274,8 @@ export async function deleteTrainingRegistarById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const transaction = await sequelize.transaction();
   const trainingRegistarId = parseInt(req.params.id);
+  const transaction = await sequelize.transaction();
 
   logProcessing({
     description: `starting deleteTrainingRegistarById for training registrar ID ${trainingRegistarId}`,

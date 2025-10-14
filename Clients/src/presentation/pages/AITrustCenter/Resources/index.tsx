@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, Suspense } from "react";
 import {
   Box,
@@ -9,12 +10,11 @@ import {
   DialogTitle,
   DialogContent,
   Stack,
+  Tooltip,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, X as CloseGreyIcon } from "lucide-react";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -43,6 +43,8 @@ interface Resource {
   name: string;
   description: string;
   visible: boolean;
+  file_id?: number;
+  filename?: string;
 }
 
 // Helper component for Resource Table Row
@@ -62,19 +64,54 @@ const ResourceTableRow: React.FC<{
   const theme = useTheme();
   const styles = useStyles(theme);
 
+  const handleRowClick = () => {
+    if (resource.visible) {
+      onEdit(resource.id);
+    }
+  };
+
   return (
     <>
-      <TableCell>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: resource.visible ? "pointer" : "default",
+          textTransform: "none !important",
+          opacity: resource.visible ? 1 : 0.5,
+        }}
+      >
         <Typography sx={styles.resourceName}>{resource.name}</Typography>
       </TableCell>
-      <TableCell>
+      <TableCell
+        onClick={handleRowClick}
+        sx={{
+          cursor: resource.visible ? "pointer" : "default",
+          textTransform: "none !important",
+          opacity: resource.visible ? 1 : 0.5,
+        }}
+      >
         <Typography sx={styles.resourceType}>{resource.description}</Typography>
       </TableCell>
-      <TableCell>
+      <TableCell
+        onClick={() => onMakeVisible(resource.id)}
+        sx={{
+          cursor: resource.visible ? "pointer" : "default",
+          textTransform: "none !important",
+          opacity: resource.visible ? 1 : 0.5,
+        }}
+      >
         {resource.visible ? (
-          <VisibilityIcon sx={styles.visibilityIcon} />
+          <Tooltip title="Click to make this resource invisible">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <VisibilityIcon size={20} />
+            </Box>
+          </Tooltip>
         ) : (
-          <VisibilityOffIcon sx={styles.visibilityOffIcon} />
+          <Tooltip title="Click to make this resource visible">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <VisibilityOffIcon size={20} />
+            </Box>
+          </Tooltip>
         )}
       </TableCell>
       <TableCell>
@@ -88,7 +125,7 @@ const ResourceTableRow: React.FC<{
           isVisible={resource.visible}
           warningTitle={WARNING_MESSAGES.deleteTitle}
           warningMessage={WARNING_MESSAGES.deleteMessage}
-          type="resource"
+          type="Resource"
         />
       </TableCell>
     </>
@@ -307,6 +344,14 @@ const TrustCenterResources: React.FC = () => {
       setAddResourceError("Please fill in all fields and upload a file");
       return;
     }
+  
+    // Check if description is at least 10 characters
+    if (newResource.description.length < 10) {
+      setAddResourceError("Description must be at least 10 characters long");
+      return;
+    }
+    // Proceed with adding the resource
+    setAddResourceError(""); 
 
     try {
       await createResourceMutation.mutateAsync({
@@ -332,11 +377,20 @@ const TrustCenterResources: React.FC = () => {
     if (
       !formData?.info?.resources_visible ||
       !editResource.name ||
-      !editResource.description
+      !editResource.description 
     ) {
-      setEditResourceError("Please fill in all required fields");
+      setEditResourceError("Please fill in all fields and upload a file");
       return;
     }
+  
+    // Check if description is at least 10 characters
+    if (editResource.description.length < 10) {
+      setEditResourceError("Description must be at least 10 characters long");
+      return;
+    }
+  
+    // Proceed with adding the resource
+    setEditResourceError(""); 
 
     try {
       // Pass the old file ID only when a new file is being uploaded
@@ -376,13 +430,15 @@ const TrustCenterResources: React.FC = () => {
   const handleEditResource = (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
     const resource = resources.find((r) => r.id === resourceId);
-    if (resource) {
+    if (resource && resource.visible) {
       handleOpenEditModal(resource);
     }
   };
 
   const handleDeleteResource = async (resourceId: number) => {
     if (!formData?.info?.resources_visible || !resources) return;
+    const resource = resources.find((r) => r.id === resourceId);
+    if (!resource?.visible) return;
     try {
       await deleteResourceMutation.mutateAsync(resourceId);
       handleAlert({
@@ -420,15 +476,29 @@ const TrustCenterResources: React.FC = () => {
     if (!formData?.info?.resources_visible || !resources) return;
 
     try {
-      // Find the resource to get its name for the download
+      // Find the resource to get its file_id and name for the download
       const resource = resources.find((r) => r.id === resourceId);
       if (!resource) {
         console.error("Resource not found");
         return;
       }
 
-      // Use the existing handleDownload function from the codebase
-      await downloadFile(resourceId.toString(), resource.name);
+      // Only allow download if resource is visible
+      if (!resource.visible) return;
+
+      // Check if file_id exists
+      if (!resource.file_id) {
+        console.error("File ID not found for resource");
+        handleAlert({
+          variant: "error",
+          body: "File not found for download",
+          setAlert,
+        });
+        return;
+      }
+
+      // Use the file_id for download
+      await downloadFile(resource.file_id.toString(), resource.filename || resource.name);
       handleAlert({
         variant: "success",
         body: "File downloaded successfully",
@@ -436,7 +506,11 @@ const TrustCenterResources: React.FC = () => {
       });
     } catch (error) {
       console.error("Download failed:", error);
-      // You could add error handling here if needed
+      handleAlert({
+        variant: "error",
+        body: "Failed to download file",
+        setAlert,
+      });
     }
   };
 
@@ -502,7 +576,7 @@ const TrustCenterResources: React.FC = () => {
             onClick={handleOpenAddModal}
             isDisabled={!formData?.info?.resources_visible}
             text="Add new resource"
-            icon={<AddCircleOutlineIcon />}
+            icon={<AddCircleOutlineIcon size={16} />}
           />
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
@@ -520,7 +594,7 @@ const TrustCenterResources: React.FC = () => {
             data={resources || []}
             columns={TABLE_COLUMNS}
             isLoading={resourcesLoading}
-            paginated={false}
+            paginated={true}
             disabled={!formData?.info?.resources_visible}
             emptyStateText="No resources found. Add your first resource to get started."
             renderRow={(resource) => (
@@ -555,7 +629,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Add a new resource
             <IconButton onClick={handleCloseAddModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
+              <CloseGreyIcon size={16} />
             </IconButton>
           </DialogTitle>
 
@@ -645,7 +719,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Edit resource
             <IconButton onClick={handleCloseEditModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
+              <CloseGreyIcon size={16} />
             </IconButton>
           </DialogTitle>
 

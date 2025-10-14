@@ -2,8 +2,9 @@ import React from "react";
 import { Select, MenuItem, FormControl, useTheme } from "@mui/material";
 import { dropdownStyles, inputStyles } from "./style";
 import { ProjectFilterDropdownProps } from "../../../../../domain/interfaces/iDropdown";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 
+const GreyDownArrowIcon = () => <ChevronDown size={16} />;
 
 const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
   projects,
@@ -58,7 +59,7 @@ const ProjectFilterDropdown: React.FC<ProjectFilterDropdownProps> = ({
           }}
         >     
           {projects.length > 0 ? 
-            <MenuItem value="all">All projects</MenuItem> : 
+            <MenuItem value="all">All</MenuItem> : 
             <MenuItem value="all">No project available</MenuItem>
           }
           {projects.map((project) => (

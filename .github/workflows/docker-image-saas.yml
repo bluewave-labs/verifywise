@@ -64,6 +64,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/verifywise-frontend-saas:latest
           build-args: |
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            VITE_SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4

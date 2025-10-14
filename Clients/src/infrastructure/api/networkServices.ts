@@ -26,8 +26,19 @@ interface ApiResponse<T> {
 const handleError = (error: any) => {
   try {
     if (axios.isAxiosError(error)) {
-      // Use backend message if available, otherwise fallback to generic
-      const errorMessage = error.response?.data?.message || error.message;
+      // Extract the most specific error message available
+      let errorMessage = error.message; // fallback
+
+      if (error.response?.data?.data && typeof error.response.data.data === 'string') {
+        // Validation errors from STATUS_CODE[400] put the specific message in data.data
+        errorMessage = error.response.data.data;
+      } else if (error.response?.data?.message) {
+        // Standard error format with message
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        // Alternative error format
+        errorMessage = error.response.data.error;
+      }
 
       return new CustomException(
         errorMessage,
@@ -35,7 +46,7 @@ const handleError = (error: any) => {
         error.response?.data
       );
     } else {
-      throw new CustomException(
+      return new CustomException(
         error.message || "An unknown error occurred",
         undefined,
         undefined

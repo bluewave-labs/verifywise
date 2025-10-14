@@ -20,15 +20,16 @@ export type Project = {
   framework: {
     project_framework_id: number;
     framework_id: number;
+    name: string;
   }[];
   monitored_regulations_and_standards: string[];
   is_organizational?: boolean;
+  status?: "Not started" | "In progress" | "Under review" | "Completed" | "Closed" | "On hold" | "Rejected";
   // vendors: string[];
 
   // statistical fields
   doneSubcontrols?: number;
   totalSubcontrols?: number;
-  answeredAssessments
-?: number;
+  answeredAssessments?: number;
   totalAssessments?: number;
 };

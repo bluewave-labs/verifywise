@@ -8,9 +8,8 @@ import {
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
 import { useCallback, useEffect, useState } from "react";
-import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../Clause/style";
-import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
+import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO27001AnnexDrawerDialog from "../../../../components/Drawer/ISO27001AnnexDrawerDialog";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
@@ -42,7 +41,7 @@ const ISO27001Annex = ({
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
-  const [annexesProgress, setAnnexesProgress] = useState<any>({});
+  const [, setAnnexesProgress] = useState<any>({});
   const [annexes, setAnnexes] = useState<any>();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState<any>(null);
@@ -218,12 +217,6 @@ const ISO27001Annex = ({
       )}
       {
         <>
-          <StatsCard
-            completed={annexesProgress?.doneAnnexControls ?? 0}
-            total={annexesProgress?.totalAnnexControls ?? 0}
-            title="Annexes"
-            progressbarColor="#13715B"
-          />
           <Typography sx={{ ...styles.title, mt: 4 }}>
             Annex A : Reference Controls (Statement of Applicability)
           </Typography>
@@ -237,7 +230,7 @@ const ISO27001Annex = ({
                   sx={styles.accordion}
                 >
                   <AccordionSummary sx={styles.accordionSummary}>
-                    <RightArrowBlack
+                    <RightArrowBlack size={16}
                       style={styles.expandIcon(expanded === annex.id) as React.CSSProperties}
                     />
                     <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>

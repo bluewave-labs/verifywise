@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg"
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
@@ -22,7 +22,10 @@ import ModelInventoryTable from "./modelInventoryTable";
 import { IModelInventory } from "../../../domain/interfaces/i.modelInventory";
 import NewModelInventory from "../../components/Modals/NewModelInventory";
 import ModelRisksTable from "./ModelRisksTable";
-import { IModelRisk, IModelRiskFormData } from "../../../domain/interfaces/i.modelRisk";
+import {
+  IModelRisk,
+  IModelRiskFormData,
+} from "../../../domain/interfaces/i.modelRisk";
 import NewModelRisk from "../../components/Modals/NewModelRisk";
 import ModelInventorySummary from "./ModelInventorySummary";
 import ModelRiskSummary from "./ModelRiskSummary";
@@ -39,18 +42,16 @@ import {
   aiTrustCenterTabStyle,
   aiTrustCenterTabListStyle,
 } from "../AITrustCenter/styles";
-import {
-  ModelInventoryStatus,
-  ModelInventorySummary as Summary,
-} from "../../../domain/interfaces/i.modelInventory";
+import { ModelInventorySummary as Summary } from "../../../domain/interfaces/i.modelInventory";
 import SelectComponent from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import Tab from "@mui/material/Tab";
 import { IconButton, InputBase } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import { searchBoxStyle, inputStyle } from "./style";
+import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -71,11 +72,17 @@ const ModelInventory: React.FC = () => {
   const [modelRisksData, setModelRisksData] = useState<IModelRisk[]>([]);
   const [isModelRisksLoading, setIsModelRisksLoading] = useState(false);
   const [isNewModelRiskModalOpen, setIsNewModelRiskModalOpen] = useState(false);
-  const [selectedModelRiskId, setSelectedModelRiskId] = useState<number | null>(null);
-  const [selectedModelRisk, setSelectedModelRisk] = useState<IModelRisk | null>(null);
+  const [selectedModelRiskId, setSelectedModelRiskId] = useState<number | null>(
+    null
+  );
+  const [selectedModelRisk, setSelectedModelRisk] = useState<IModelRisk | null>(
+    null
+  );
   const [modelRiskCategoryFilter, setModelRiskCategoryFilter] = useState("all");
   const [modelRiskLevelFilter, setModelRiskLevelFilter] = useState("all");
-  const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(null);
+  const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
+    null
+  );
   const [users, setUsers] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -102,7 +109,6 @@ const ModelInventory: React.FC = () => {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-
   // Calculate summary from data
   const summary: Summary = {
     approved: modelInventoryData.filter(
@@ -122,21 +128,22 @@ const ModelInventory: React.FC = () => {
 
   // Filter data based on status
   const filteredData = useMemo(() => {
-    let data = statusFilter === "all"
-      ? modelInventoryData
-      : modelInventoryData.filter((item) => item.status === statusFilter);
-  
+    let data =
+      statusFilter === "all"
+        ? modelInventoryData
+        : modelInventoryData.filter((item) => item.status === statusFilter);
+
     if (searchTerm) {
-      data = data.filter((item) =>
-        item.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.provider?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.version?.toLowerCase().includes(searchTerm.toLowerCase())
+      data = data.filter(
+        (item) =>
+          item.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.provider?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.version?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-  
+
     return data;
   }, [modelInventoryData, statusFilter, searchTerm]);
-  
 
   // Function to fetch model inventory data
   const fetchModelInventoryData = async (showLoading = true) => {
@@ -327,38 +334,75 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
-    try {
-      if (selectedModelInventory) {
-        // Update existing model inventory
-        await updateEntityById({
-          routeUrl: `/modelInventory/${selectedModelInventory.id}`,
-          body: formData,
-        });
-        setAlert({
-          variant: "success",
-          body: "Model inventory updated successfully!",
-        });
-      } else {
-        // Create new model inventory
-        await createModelInventory("/modelInventory", formData);
-        setAlert({
-          variant: "success",
-          body: "New model inventory added successfully!",
-        });
-      }
-      await fetchModelInventoryData();
-      handleCloseModal();
-    } catch (error) {
+    if (selectedModelInventory) {
+      // Update existing model inventory
+      await updateEntityById({
+        routeUrl: `/modelInventory/${selectedModelInventory.id}`,
+        body: formData,
+      });
       setAlert({
-        variant: "error",
-        body: selectedModelInventory
-          ? "Failed to update model inventory. Please try again."
-          : "Failed to add model inventory. Please try again.",
+        variant: "success",
+        body: "Model inventory updated successfully!",
+      });
+    } else {
+      // Create new model inventory
+      await createModelInventory("/modelInventory", formData);
+      setAlert({
+        variant: "success",
+        body: "New model inventory added successfully!",
       });
     }
+    await fetchModelInventoryData();
   };
 
-  const handleDeleteModelInventory = async (id: string) => {
+  const handleModelInventoryError = (error: any) => {
+    console.error("Model inventory operation error:", error);
+    
+    let errorMessage = selectedModelInventory
+      ? "Failed to update model inventory. Please try again."
+      : "Failed to add model inventory. Please try again.";
+
+    // Check different error structures
+    let errorData = null;
+    
+    // Check if it's an axios error with response.data first
+    if (error?.response?.data) {
+      errorData = error.response.data;
+    }
+    // Check if it's a CustomException with response property
+    else if (error?.response) {
+      errorData = error.response;
+    }
+    // Check if the error itself has the data structure
+    else if (error?.status && error?.errors) {
+      errorData = error;
+    }
+
+    if (errorData) {
+      // Handle validation errors with specific field messages
+      if (errorData.status === "error" && errorData.errors && Array.isArray(errorData.errors)) {
+        const validationMessages = errorData.errors.map((err: any) => {
+          return err.message || "Validation error";
+        }).join(", ");
+        
+        errorMessage = validationMessages;
+      } 
+      // Handle general error message
+      else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    }
+    
+    setAlert({
+      variant: "error",
+      body: errorMessage,
+    });
+  };
+
+  const handleDeleteModelInventory = async (
+    id: string,
+    deleteRisks: boolean = false
+  ) => {
     try {
       setDeletingId(id);
 
@@ -368,24 +412,44 @@ const ModelInventory: React.FC = () => {
         return newData;
       });
 
-      // Perform the actual delete operation
-      await deleteEntityById({ routeUrl: `/modelInventory/${id}` });
+      // If deleting risks, also optimistically remove related risks from the risks table
+      if (deleteRisks) {
+        setModelRisksData((prevData) =>
+          prevData.filter((risk) => risk.model_id?.toString() !== id)
+        );
+      }
+
+      await deleteEntityById({
+        routeUrl: `/modelInventory/${id}${
+          deleteRisks ? "?deleteRisks=true" : ""
+        }`,
+      });
 
       // Fetch fresh data to ensure consistency with server (without loading state)
       await fetchModelInventoryData(false);
+
+      // If risks were deleted, also refresh the model risks data
+      if (deleteRisks) {
+        await fetchModelRisksData(false);
+      }
 
       // Force a smooth table re-render after the data update
       setTableKey((prev) => prev + 1);
 
       setAlert({
         variant: "success",
-        body: "Model inventory deleted successfully!",
+        body: deleteRisks
+          ? "Model inventory and associated risks deleted successfully!"
+          : "Model inventory deleted successfully!",
       });
     } catch (error) {
       console.error("Error deleting model inventory:", error);
 
       // If delete failed, revert the optimistic update by fetching fresh data (without loading state)
       await fetchModelInventoryData(false);
+      if (deleteRisks) {
+        await fetchModelRisksData(false);
+      }
 
       setAlert({
         variant: "error",
@@ -393,6 +457,25 @@ const ModelInventory: React.FC = () => {
       });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleCheckModelHasRisks = async (id: string): Promise<boolean> => {
+    try {
+      // First check local data for immediate response
+      const numericId = parseInt(id);
+      const hasLocalRisks = modelRisksData.some(
+        (risk) => risk.model_id === numericId
+      );
+
+      // If local data shows risks, return true immediately
+      if (hasLocalRisks) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking model risks:", error);
+      return false;
     }
   };
 
@@ -422,11 +505,15 @@ const ModelInventory: React.FC = () => {
     let filtered = modelRisksData;
 
     if (modelRiskCategoryFilter !== "all") {
-      filtered = filtered.filter((risk) => risk.risk_category === modelRiskCategoryFilter);
+      filtered = filtered.filter(
+        (risk) => risk.risk_category === modelRiskCategoryFilter
+      );
     }
 
     if (modelRiskLevelFilter !== "all") {
-      filtered = filtered.filter((risk) => risk.risk_level === modelRiskLevelFilter);
+      filtered = filtered.filter(
+        (risk) => risk.risk_level === modelRiskLevelFilter
+      );
     }
 
     return filtered;
@@ -540,32 +627,34 @@ const ModelInventory: React.FC = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Model inventory & risk management"
         description="Track and assess AI models and their associated risks throughout their lifecycle"
-        whatItDoes="Maintain a **comprehensive inventory** of AI models including their *metadata*, *performance metrics*, and **deployment status**. Track *model versions*, dependencies, and **associated risks**."
-        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and **risk mitigation**. It provides **visibility into your AI assets** and helps identify potential issues before they impact production systems."
+        whatItDoes="Maintain a *comprehensive inventory* of AI models including their *metadata*, *approval status*, and *associated risks*. Track basic model information and assess potential risks."
+        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It provides *visibility into your AI assets* and helps assess model-related risks."
         quickActions={[
           {
             label: "Add New Model",
-            description: "Register a new AI model with comprehensive metadata and risk assessment",
-            primary: true
+            description:
+              "Register a new AI model with comprehensive metadata and risk assessment",
+            primary: true,
           },
           {
             label: "Assess Model Risk",
-            description: "Evaluate potential risks for existing models using our assessment framework"
-          }
+            description:
+              "Evaluate potential risks for existing models using our assessment framework",
+          },
         ]}
         useCases={[
-          "**Machine learning models** in production environments requiring *monitoring and governance*",
-          "**Pre-trained models** from external vendors that need *risk assessment* and **compliance tracking**"
+          "*Machine learning models* in production environments requiring *monitoring and governance*",
+          "*Pre-trained models* from external vendors that need *risk assessment* and *compliance tracking*",
         ]}
         keyFeatures={[
-          "**Complete model lifecycle tracking** from *development* to retirement",
-          "**Automated risk scoring** based on *model characteristics* and deployment context",
-          "**Integration** with model deployment pipelines and *monitoring systems*"
+          "**Model inventory management** with status tracking (Approved, Restricted, Pending, Blocked)",
+          "*Risk assessment framework* with categories like Performance, Security, and Bias & Fairness",
+          "*Advanced filtering* by status, risk category, risk level, and search functionality",
         ]}
         tips={[
-          "Start with your **production models** first - these carry the *highest operational risk*",
-          "**Regular model performance reviews** help catch *drift and degradation* early",
-          "Document **model lineage** and dependencies for better *impact assessment*"
+          "Use *status filters* to focus on models that need approval or attention",
+          "Categorize *model risks* to better understand different types of potential issues",
+          "Set *target dates* for risk mitigation to track resolution progress",
         ]}
       />
       {alert && (
@@ -588,26 +677,28 @@ const ModelInventory: React.FC = () => {
       )}
 
       <Stack sx={mainStackStyle}>
-            <PageHeader
-               title="Model Inventory"
-               description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
-               rightContent={
-                  <HelperIcon
-                     onClick={() =>
-                     setIsHelperDrawerOpen(!isHelperDrawerOpen)
-                     }
-                     size="small"
-                    />
-                 }
-             />
+        <PageHeader
+          title="Model Inventory"
+          description="This registry manages all AI/LLM models and their associated risks within your organization. You can view, add, and manage model details and track model-specific risks and mitigation plans."
+          rightContent={
+            <HelperIcon
+              onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+              size="small"
+            />
+          }
+        />
 
         {/* Summary Cards */}
         {activeTab === "models" && <ModelInventorySummary summary={summary} />}
-        {activeTab === "model-risks" && <ModelRiskSummary modelRisks={modelRisksData} />}
+        {activeTab === "model-risks" && (
+          <ModelRiskSummary modelRisks={modelRisksData} />
+        )}
 
         {/* Tab Bar */}
         <TabContext value={activeTab}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}>
+          <Box
+            sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}
+          >
             <TabList
               onChange={handleTabChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -663,7 +754,7 @@ const ModelInventory: React.FC = () => {
                     aria-expanded={isSearchBarVisible}
                     onClick={() => setIsSearchBarVisible((prev) => !prev)}
                   >
-                    <SearchIcon/>
+                    <SearchIcon size={16} />
                   </IconButton>
 
                   {isSearchBarVisible && (
@@ -684,7 +775,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add new model"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={16} />}
                 onClick={handleNewModelInventoryClick}
                 isDisabled={isCreatingDisabled}
               />
@@ -696,6 +787,7 @@ const ModelInventory: React.FC = () => {
               isLoading={isLoading}
               onEdit={handleEditModelInventory}
               onDelete={handleDeleteModelInventory}
+              onCheckModelHasRisks={handleCheckModelHasRisks}
               deletingId={deletingId}
             />
           </>
@@ -755,7 +847,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add model risk"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={16} />}
                 onClick={handleNewModelRiskClick}
                 isDisabled={isCreatingDisabled}
               />
@@ -777,6 +869,7 @@ const ModelInventory: React.FC = () => {
         isOpen={isNewModelInventoryModalOpen}
         setIsOpen={handleCloseModal}
         onSuccess={handleModelInventorySuccess}
+        onError={handleModelInventoryError}
         initialData={
           selectedModelInventory
             ? {
@@ -793,10 +886,11 @@ const ModelInventory: React.FC = () => {
                       .toISOString()
                       .split("T")[0]
                   : new Date().toISOString().split("T")[0],
-               reference_link: selectedModelInventory.reference_link || "",
-               biases: selectedModelInventory.biases || "",
-               limitations: selectedModelInventory.limitations || "",
-               hosting_provider: selectedModelInventory.hosting_provider || "",
+                reference_link: selectedModelInventory.reference_link || "",
+                biases: selectedModelInventory.biases || "",
+                limitations: selectedModelInventory.limitations || "",
+                hosting_provider: selectedModelInventory.hosting_provider || "",
+                used_in_projects: selectedModelInventory.used_in_projects,
               }
             : undefined
         }

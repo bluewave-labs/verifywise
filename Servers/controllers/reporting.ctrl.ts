@@ -24,7 +24,7 @@ import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 
 function mapReportTypeToFileSource(
-  reportType: string
+  reportType: string | string[]
 ):
   | "Project risks report"
   | "Compliance tracker report"
@@ -32,8 +32,14 @@ function mapReportTypeToFileSource(
   | "Vendors and risks report"
   | "Clauses and annexes report"
   | "ISO 27001 report"
+  | "Models and risks report"
+  | "Training registry report"
+  | "Policy manager report"
   | "All reports" {
   // These values must match the enum_files_source in the database
+  if (Array.isArray(reportType) && reportType.length > 1) {
+    return "All reports";
+  }
   switch (reportType) {
     case "Project risks report":
       return "Project risks report";
@@ -47,6 +53,12 @@ function mapReportTypeToFileSource(
       return "All reports";
     case "Clauses and annexes report":
       return "Clauses and annexes report";
+    case "Models and risks report":
+      return "Models and risks report";
+    case "Training registry report":
+      return "Training registry report";
+    case "Policy manager report":
+      return "Policy manager report";
     default:
       // fallback or throw error
       throw new Error(`Invalid report type for file source: ${reportType}`);
@@ -82,32 +94,8 @@ export async function generateReports(
   );
 
   try {
-    if (isNaN(projectId)) {
-      await logFailure({
-        eventType: "Create",
-        description: `Invalid project ID: ${projectIdRaw}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-        error: new Error("Invalid project ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid project ID"));
-    }
-    if (typeof userId !== "number" || isNaN(userId)) {
-      await logFailure({
-        eventType: "Create",
-        description: `Invalid user ID: ${userId}`,
-        functionName: "generateReports",
-        fileName: "reporting.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-        error: new Error("Invalid user ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
-    }
 
-    const user = await getUserByIdQuery(userId);
+    const user = await getUserByIdQuery(userId!);
     if (!user) {
       await logFailure({
         eventType: "Create",
@@ -154,7 +142,7 @@ export async function generateReports(
     try {
       uploadedFile = await uploadFile(
         docFile,
-        userId,
+        userId!,
         projectId,
         mapReportTypeToFileSource(reportType),
         req.tenantId!
@@ -295,8 +283,8 @@ export async function deleteGeneratedReportById(
   req: Request,
   res: Response
 ): Promise<any> {
-  const transaction = await sequelize.transaction();
   const reportId = parseInt(req.params.id);
+  const transaction = await sequelize.transaction();
   const userId = req.userId;
 
   logProcessing({
@@ -309,31 +297,6 @@ export async function deleteGeneratedReportById(
   logger.debug(`🗑️ Deleting generated report ID ${reportId}`);
 
   try {
-    if (isNaN(reportId)) {
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid report ID: ${req.params.id}`,
-        functionName: "deleteGeneratedReportById",
-        fileName: "reporting.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-        error: new Error("Invalid report ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid report ID"));
-    }
-    if (typeof userId !== "number" || isNaN(userId)) {
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid user ID: ${userId}`,
-        functionName: "deleteGeneratedReportById",
-        fileName: "reporting.ctrl.ts",
-        userId: req.userId!,
-        tenantId: req.tenantId!,
-        error: new Error("Invalid user ID"),
-      });
-      return res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
-    }
-
     const report = await getReportByIdQuery(reportId, req.tenantId!); // get report detail
     if (!report) {
       await logFailure({

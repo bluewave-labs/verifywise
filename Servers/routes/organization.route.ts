@@ -1,8 +1,22 @@
 /**
- * Express router for handling organization-related routes.
+ * @fileoverview Organization Routes
  *
- * This router provides endpoints for creating, retrieving, updating, and deleting organizations,
- * as well as managing organization members and projects.
+ * Defines RESTful API endpoints for organization management operations.
+ * Implements multi-tenant architecture with proper authentication and authorization.
+ *
+ * Public Endpoints:
+ * - GET /exists - Check if any organizations exist (setup flow)
+ *
+ * Protected Endpoints (require authentication):
+ * - GET /:id - Get organization by ID
+ * - PATCH /:id - Update organization
+ *
+ * Multi-Tenancy Protected Endpoints:
+ * - POST / - Create new organization with tenant provisioning
+ *
+ * Middleware:
+ * - authenticateJWT: Validates JWT tokens and enforces multi-tenant isolation
+ * - checkMultiTenancy: Validates multi-tenancy constraints for new organizations
  *
  * @module routes/organization.route
  */
@@ -23,18 +37,91 @@ import {
 import authenticateJWT from "../middleware/auth.middleware";
 import { checkMultiTenancy } from "../middleware/multiTenancy.middleware";
 
-// GET requests
+/**
+ * GET /organizations/exists
+ *
+ * Checks if any organizations exist in the system.
+ * Used for setup/initialization flows to determine fresh installation status.
+ *
+ * @name get/exists
+ * @function
+ * @memberof module:routes/organization.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {boolean} True if organizations exist, false otherwise
+ */
 router.get("/exists", getOrganizationsExists);
+
+/**
+ * GET /organizations/:id
+ *
+ * Retrieves a specific organization by ID.
+ * Requires authentication.
+ *
+ * @name get/:id
+ * @function
+ * @memberof module:routes/organization.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {Object} Organization object
+ */
 router.get("/:id", authenticateJWT, getOrganizationById);
 
-// POST requests
+/**
+ * POST /organizations
+ *
+ * Creates a new organization with complete onboarding:
+ * - Organization record creation
+ * - Tenant database provisioning
+ * - Admin user creation
+ * - JWT token generation
+ *
+ * Protected by multi-tenancy validation to enforce organizational constraints.
+ *
+ * @name post/
+ * @function
+ * @memberof module:routes/organization.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {Object} Created organization with admin user and access token
+ */
 router.post("/", checkMultiTenancy, createOrganization);
 router.post("/with-google", checkMultiTenancy, createOrganizationWithGoogle);
 
-// PATCH requests
+/**
+ * PATCH /organizations/:id
+ *
+ * Updates an existing organization's information.
+ * Requires authentication.
+ *
+ * @name patch/:id
+ * @function
+ * @memberof module:routes/organization.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {Object} Updated organization object
+ */
 router.patch("/:id", authenticateJWT, updateOrganizationById);
 
-// DELETE requests
+/**
+ * DELETE /organizations/:id
+ *
+ * Deletes an organization from the system.
+ * Currently disabled - uncomment to enable.
+ * Requires authentication when enabled.
+ *
+ * @name delete/:id
+ * @function
+ * @memberof module:routes/organization.route
+ * @inner
+ * @param {express.Request} req - Express request object
+ * @param {express.Response} res - Express response object
+ * @returns {Object} Deleted organization object
+ */
 // router.delete("/:id", authenticateJWT, deleteOrganizationById);
 
 export default router;

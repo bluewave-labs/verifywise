@@ -21,7 +21,7 @@ import {
   useTheme,
   SelectChangeEvent,
 } from "@mui/material";
-import { ReactComponent as WhiteDownArrowIcon  } from "../../assets/icons/chevron-down-white.svg";
+import { ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { getStatusColor } from "../../pages/ISO/style";
 
 interface StatusDropdownProps {
@@ -31,6 +31,7 @@ interface StatusDropdownProps {
   size?: 'small' | 'medium';
   allowedRoles?: string[];
   userRole?: string;
+  statusOptions?: string[];
 }
 
 const STATUS_OPTIONS = [
@@ -112,7 +113,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
 
   const dropdownHeight = size === 'small' ? 28 : 34;
   const fontSize = size === 'small' ? 12 : 13;
-  const padding = size === 'small' ? "4px 8px" : "5px 10px";
+  const padding = size === 'small' ? "4px 4px 4px 8px" : "5px 5px 5px 10px";
   const minWidth = size === 'small' ? '100px' : '120px';
 
   const handleClick = (event: React.MouseEvent) => {
@@ -128,7 +129,13 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
       disabled={isDisabled || isUpdating}
       displayEmpty
       renderValue={renderValue}
-      IconComponent={WhiteDownArrowIcon}
+      IconComponent={(props) => (
+        <WhiteDownArrowIcon
+          {...props}
+          size={size === 'small' ? 14 : 16}
+          strokeWidth={1.5}
+        />
+      )}
       MenuProps={{
         disableScrollLock: true,
         PaperProps: {
@@ -176,6 +183,9 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
         "& .MuiSelect-icon": {
           color: "#fff",
           right: size === 'small' ? 4 : 6,
+          top: "50%",
+          transform: "translateY(-50%)",
+          position: "absolute",
         },
         "&:hover": {
           backgroundColor: statusColor,

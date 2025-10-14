@@ -67,25 +67,71 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
   }, []);
 
   return (
-    <Stack spacing={4}>
-      {/* Policy Title */}
-      <Field
-        id="policy-title-input"
-        label="Policy title"
-        width="100%"
-        value={formData.title}
-        onChange={(e) =>
-          setFormData((prev) => ({ ...prev, title: e.target.value }))
-        }
-        error={errors.title}
-        sx={{
-          backgroundColor: "#FFFFFF",
-          "& input": {
-            padding: "0 14px",
-          },
-        }}
-        isRequired
-      />
+    <Stack spacing={2}>
+      {/* Policy Title + Next Review Date + Status */}
+      <Stack direction="row" justifyContent="space-between" spacing={4}>
+        {/* Policy Title */}
+        <Stack sx={{ width: "50%" }}>
+          <Field
+            id="policy-title-input"
+            label="Policy title"
+            width="100%"
+            value={formData.title}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, title: e.target.value }))
+            }
+            error={errors.title}
+            sx={{
+              backgroundColor: "#FFFFFF",
+              "& input": {
+                padding: "0 14px",
+              },
+            }}
+            isRequired
+          />
+        </Stack>
+
+        {/* Next Review Date + Status */}
+        <Stack direction="row" sx={{ width: "50%", gap: 2 }}>
+          {/* Next Review Date */}
+          <Stack sx={{ width: "50%" }}>
+            <DatePicker
+              label="Next review date"
+              date={formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null}
+              handleDateChange={handleDateChange}
+              sx={{
+                width: "100%",
+                "& input": { width: "85px" },
+              }}
+              isRequired
+              error={errors.nextReviewDate}
+            />
+          </Stack>
+
+          {/* Status */}
+          <Stack sx={{ width: "50%" }}>
+            <Select
+              id="status-input"
+              label="Status"
+              placeholder="Select status"
+              value={formData.status || ""}
+              onChange={(e) => {
+                const statusValue = e.target.value;
+                if (typeof statusValue === "string") {
+                  setFormData((prev) => ({ ...prev, status: statusValue }));
+                }
+              }}
+              items={statuses.map((s) => ({ _id: s, name: s }))}
+              sx={{
+                width: "100%",
+                backgroundColor: theme.palette.background.main,
+              }}
+              error={errors.status}
+              isRequired
+            />
+          </Stack>
+        </Stack>
+      </Stack>
 
       {/* Team Members + Tags */}
       <Stack direction="row" justifyContent="space-between" spacing={4}>
@@ -286,47 +332,6 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
               {errors.tags}
             </Typography>
           )}
-        </Stack>
-      </Stack>
-
-      {/* Status + Next Review Date */}
-      <Stack direction="row" justifyContent="space-between" spacing={4}>
-        {/* Status */}
-        <Stack sx={{ width: "50%" }}>
-          <Select
-            id="status-input"
-            label="Status"
-            placeholder="Select status"
-            value={formData.status || ""}
-            onChange={(e) => {
-              const statusValue = e.target.value;
-              if (typeof statusValue === "string") {
-                setFormData((prev) => ({ ...prev, status: statusValue }));
-              }
-            }}
-            items={statuses.map((s) => ({ _id: s, name: s }))}
-            sx={{
-              width: "100%",
-              backgroundColor: theme.palette.background.main,
-            }}
-            error={errors.status}
-            isRequired
-          />
-        </Stack>
-
-        {/* Next Review Date */}
-        <Stack sx={{ width: "50%" }}>
-          <DatePicker
-            label="Next review date"
-            date={formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null}
-            handleDateChange={handleDateChange}
-            sx={{
-              width: "100%",
-              "& input": { width: "85px" },
-            }}
-            isRequired
-            error={errors.nextReviewDate}
-          />
         </Stack>
       </Stack>
     </Stack>

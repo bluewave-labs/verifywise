@@ -141,10 +141,6 @@ const ApiKeys = () => {
         }
       }
 
-      // Only log unexpected errors to console, not business rule violations
-      if (!errorMessage.includes("Token limit reached") && !errorMessage.includes("already exists")) {
-        console.error("Unexpected API token creation error:", error);
-      }
 
       showAlert("error", "Error", errorMessage);
     } finally {

@@ -13,56 +13,52 @@ import {
   H1Plugin,
   H2Plugin,
   H3Plugin,
-  BlockquotePlugin,
-  StrikethroughPlugin,
-  CodePlugin
+  StrikethroughPlugin
 } from "@platejs/basic-nodes/react";
-import { CodeBlockPlugin, CodeLinePlugin, CodeSyntaxPlugin } from '@platejs/code-block/react';
-import { ListPlugin, BulletedListPlugin, NumberedListPlugin, TaskListPlugin, ListItemPlugin } from '@platejs/list-classic/react';
+import { ListPlugin, BulletedListPlugin, NumberedListPlugin, ListItemPlugin, ListItemContentPlugin } from '@platejs/list-classic/react';
 import { TextAlignPlugin } from '@platejs/basic-styles/react';
-import { KEYS, serializeHtml } from "platejs";
+import { serializeHtml } from "platejs";
 import {
-  StrikethroughS,
-  FormatListNumbered,
-  Code,
-  FormatListBulleted,
-  CodeOff,
-  CheckBox,
-  FormatAlignLeft,
-  FormatAlignCenter,
-  FormatClear,
-  HorizontalRule,
+  Quote,
+  Underline,
+  Bold,
+  Italic,
+  SaveIcon,
+  Strikethrough,
+  ListOrdered,
+  List,
+  AlignLeft,
+  AlignCenter,
   Link,
-  FormatAlignRight,
+  AlignRight,
   Image,
-  Redo,
-  Undo,
-} from "@mui/icons-material";
-import { Quote, Underline, Bold, Italic, SaveIcon } from "lucide-react";
+  Redo2,
+  Undo2
+} from "lucide-react";
 
 // Custom number components for heading levels (Lucide doesn't have numbered heading icons)
 const LooksOne = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="14" fontWeight="600">1</text>
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">1</text>
   </svg>
 );
 
 const LooksTwo = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="14" fontWeight="600">2</text>
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">2</text>
   </svg>
 );
 
 const LooksThree = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="14" fontWeight="600">3</text>
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">3</text>
   </svg>
 );
 
-const FormatQuote = () => <Quote size={20} />;
-const FormatUnderlined = () => <Underline size={20} />;
-const FormatBold = () => <Bold size={20} />;
-const FormatItalic = () => <Italic size={20} />;
+const FormatQuote = () => <Quote size={16} />;
+const FormatUnderlined = () => <Underline size={16} />;
+const FormatBold = () => <Bold size={16} />;
+const FormatItalic = () => <Italic size={16} />;
 import { IconButton, Tooltip, useTheme, Box } from "@mui/material";
 import { Drawer, Stack, Typography, Divider } from "@mui/material";
 import { X as CloseGreyIcon } from "lucide-react";
@@ -75,7 +71,6 @@ import useUsers from "../../../application/hooks/useUsers";
 import { User } from "../../../domain/types/User";
 import { checkStringValidation } from "../../../application/validations/stringValidation";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
-import { all, createLowlight } from "lowlight";
 import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
 import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
@@ -120,22 +115,16 @@ const PolicyDetailModal: React.FC<Props> = ({
     | "h1"
     | "h2"
     | "h3"
-    | "blockquote"
     | "undo"
     | "redo"
     | "strike"
-    | "code"
-    | "codeblock"
     | "ol"
     | "ul"
-    | "checklist"
     | "align-left"
     | "align-center"
     | "align-right"
     | "link"
-    | "image"
-    | "divider"
-    | "clear";
+    | "image";
 
   const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
     bold: false,
@@ -144,35 +133,17 @@ const PolicyDetailModal: React.FC<Props> = ({
     h1: false,
     h2: false,
     h3: false,
-    blockquote: false,
     undo: false,
     redo: false,
     strike: false,
-    code: false,
-    codeblock: false,
     ol: false,
     ul: false,
-    checklist: false,
     "align-left": false,
     "align-center": false,
     "align-right": false,
     link: false,
     image: false,
-    divider: false,
-    clear: false,
   });
-
-const HrElement = (props: any) => <hr {...props.attributes} />;
-
-const hrPlugin = createPlatePlugin({
-  key: 'hr',
-  node: {
-    isElement: true,
-    isVoid: true,
-    component: HrElement,
-  }
-});
-
 
   useModalKeyHandling({
     isOpen: true,
@@ -231,11 +202,8 @@ const hrPlugin = createPlatePlugin({
     content: "",
   });
 
-  const lowlight = createLowlight(all);
-
-
   // Create the editor with plugins
-  const [editor] = useState(() => 
+  const [editor] = useState(() =>
     createPlateEditor({
       plugins: [
         BoldPlugin,
@@ -244,8 +212,6 @@ const hrPlugin = createPlatePlugin({
         H1Plugin,
         H2Plugin,
         H3Plugin,
-        BlockquotePlugin,
-        hrPlugin,
         StrikethroughPlugin,
         imagePlugin,
         linkPlugin,
@@ -256,14 +222,8 @@ const hrPlugin = createPlatePlugin({
     NumberedListPlugin.configure({
       shortcuts: { toggle: { keys: 'mod+alt+6' } },
     }),
-    TaskListPlugin.configure({
-      shortcuts: { toggle: { keys: 'mod+alt+7' } },
-    }),
     ListItemPlugin,
-        CodePlugin.configure({
-          shortcuts: {toggle: {
-            keys: 'mod+e',}}
-        }),
+    ListItemContentPlugin,
         TextAlignPlugin.configure({
           inject: {
             nodeProps: {
@@ -272,33 +232,14 @@ const hrPlugin = createPlatePlugin({
               styleKey: 'textAlign',
               validNodeValues: ['start', 'left', 'center', 'right', 'end', 'justify'],
             },
-            targetPlugins: [...KEYS.heading, KEYS.p],
+            targetPlugins: ['h1', 'h2', 'h3', 'p'],
           },
         }),
         AutoformatPlugin.configure({
           options: {
-            rules: [
-              {
-                mode: 'block',
-                type: KEYS.hr,
-                match: ['---', '—-', '___ '],
-                format: (editor) => {
-                  editor.tf.setNodes({ type: KEYS.hr });
-                  editor.tf.insertNodes({
-                    type: KEYS.p,
-                    children: [{ text: '' }],
-                  });
-                },
-              },
-            ],
+            rules: [],
           },
         }),
-        CodeBlockPlugin.configure({
-          options: {lowlight},
-          shortcuts: { toggle: { keys: 'mod+alt+8' } },
-        }),
-        CodeLinePlugin,
-        CodeSyntaxPlugin,
       ],
       value: [{ type: 'p', children: [{ text: '' }] }],
     }) as any
@@ -338,43 +279,37 @@ const hrPlugin = createPlatePlugin({
     icon: React.ReactNode;
     action: () => void;
   }> = [
-    { key: "undo", title: "Undo", icon: <Undo />, action: () => editor.tf.undo() },
-    { key: "redo", title: "Redo", icon: <Redo />, action: () => editor.tf.redo() },
+    { key: "undo", title: "Undo", icon: <Undo2 size={16} />, action: () => editor.tf.undo() },
+    { key: "redo", title: "Redo", icon: <Redo2 size={16} />, action: () => editor.tf.redo() },
     { key: "h1", title: "Heading 1", icon: <LooksOne />, action: () => editor.tf.h1.toggle() },
     { key: "h2", title: "Heading 2", icon: <LooksTwo />, action: () => editor.tf.h2.toggle() },
     { key: "h3", title: "Heading 3", icon: <LooksThree />, action: () => editor.tf.h3.toggle() },
     { key: "bold", title: "Bold", icon: <FormatBold />, action: () => editor.tf.bold.toggle() },
     { key: "italic", title: "Italic", icon: <FormatItalic />, action: () => editor.tf.italic.toggle() },
     { key: "underline", title: "Underline", icon: <FormatUnderlined />, action: () => editor.tf.underline.toggle() },
-    { key: "strike", title: "Strikethrough", icon: <StrikethroughS />, action: () => editor.tf.strikethrough.toggle() },
-    { key: "code", title: "Code Inline", icon: <Code />, action: () => editor.tf.code.toggle() },
-    { key: "codeblock", title: "Code Block", icon: <CodeOff />, action: () => editor.tf.setNodes({ type: KEYS.codeBlock }) },
-    { key: "blockquote", title: "Blockquote", icon: <FormatQuote />, action: () => editor.tf.blockquote.toggle() },
-    { key: "ol", title: "Numbered List", icon: <FormatListNumbered />, action: () => editor.tf.ol.toggle() },
-    { key: "ul", title: "Bulleted List", icon: <FormatListBulleted />, action: () => editor.tf.ul.toggle() },
-    { key: "checklist", title: "Checklist", icon: <CheckBox />, action: () => editor.tf.taskList.toggle() },
-    { 
-      key: "align-left", 
-      title: "Align Left", 
-      icon: <FormatAlignLeft />, 
-      action: () => editor.tf.textAlign.setNodes("left"), 
+    { key: "strike", title: "Strikethrough", icon: <Strikethrough size={16} />, action: () => editor.tf.strikethrough.toggle() },
+    { key: "ol", title: "Numbered List", icon: <ListOrdered size={16} />, action: () => editor.tf.ol.toggle() },
+    { key: "ul", title: "Bulleted List", icon: <List size={16} />, action: () => editor.tf.ul.toggle() },
+    {
+      key: "align-left",
+      title: "Align Left",
+      icon: <AlignLeft size={16} />,
+      action: () => editor.tf.textAlign.setNodes("left"),
     },
-    { 
-      key: "align-center", 
-      title: "Align Center", 
-      icon: <FormatAlignCenter />, 
-      action: () => editor.tf.textAlign.setNodes("center"), 
+    {
+      key: "align-center",
+      title: "Align Center",
+      icon: <AlignCenter size={16} />,
+      action: () => editor.tf.textAlign.setNodes("center"),
     },
-    { 
-      key: "align-right", 
-      title: "Align Right", 
-      icon: <FormatAlignRight />, 
-      action: () => editor.tf.textAlign.setNodes("right"), 
+    {
+      key: "align-right",
+      title: "Align Right",
+      icon: <AlignRight size={16} />,
+      action: () => editor.tf.textAlign.setNodes("right"),
     },
-    { key: "link", title: "Insert Link", icon: <Link />, action: () => setOpenLink(true)},
-    { key: "image", title: "Insert Image", icon: <Image />,   action: () => setOpenImage(true)},
-    { key: "divider", title: "Insert Divider", icon: <HorizontalRule />, action: () => editor.tf.setNodes({ type: KEYS.hr }) },
-    { key: "clear", title: "Clear Formatting", icon: <FormatClear />, action: () => {}   },
+    { key: "link", title: "Insert Link", icon: <Link size={16} />, action: () => setOpenLink(true)},
+    { key: "image", title: "Insert Image", icon: <Image size={16} />,   action: () => setOpenImage(true)},
   ];
 
   useEffect(() => {
@@ -524,9 +459,7 @@ const hrPlugin = createPlatePlugin({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={4} sx={{
-            paddingBottom: 30, // leaves space so content won't hide under Save button
-          }}>
+        <Stack spacing={2} sx={{ marginBottom: "80px" }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -534,17 +467,7 @@ const hrPlugin = createPlatePlugin({
             errors={errors}
             setErrors={setErrors}
           />
-          <Divider sx={{ my: 2 }} />
           <Stack sx={{ width: "100%", height: "100%" }}>
-            <Typography
-              sx={{
-                fontSize: theme.typography.fontSize,
-                fontWeight: 500,
-                mb: 2,
-              }}
-            >
-              Content
-            </Typography>
             <Box
               sx={{
                 display: "flex",
@@ -590,7 +513,8 @@ const hrPlugin = createPlatePlugin({
             >
               <PlateContent
                 style={{
-                  height: "58vh",
+                  height: "calc(100vh - 280px)", // Dynamic height: viewport minus header, form, toolbar, and save button area
+                  minHeight: "300px", // Minimum height for usability
                   overflowY: "auto",
                   padding: "16px",
                   border: "1px solid #E0E0E0",
@@ -624,11 +548,11 @@ const hrPlugin = createPlatePlugin({
 
         <Box
           sx={{
-            position: "fixed",            
-            bottom: 10,
-            right: 15,
-            width: 800,                     // same width as Drawer
-            p: 2,
+            position: "fixed",
+            bottom: 16,
+            right: 20,                      // match drawer padding
+            width: 430,                     // half of content width (860/2) to align with right column
+            p: 1,
             backgroundColor: "#fff",        // give it a background to overlap content
             display: "flex",
             justifyContent: "flex-end",

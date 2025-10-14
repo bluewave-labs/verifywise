@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import ImageIcon from "@mui/icons-material/Image";
 import Field from "../../Inputs/Field"; // Adjust the path to your actual Field component
 import CustomizableButton from "../../Button/CustomizableButton"; // Adjust the path as needed
 
@@ -37,8 +36,8 @@ const InsertImageModal: React.FC<InsertImageModalProps> = ({
         sx: { borderRadius: 3, p: 1.5 },
       }}
     >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <ImageIcon color="primary" /> Insert Image
+      <DialogTitle>
+        Insert image
       </DialogTitle>
 
       <DialogContent>
@@ -46,23 +45,22 @@ const InsertImageModal: React.FC<InsertImageModalProps> = ({
           label="Image URL"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          type="url"
-          https
-          placeholder="Enter the image URL"
+          type="text"
+          placeholder="https://image-url"
           isRequired
           sx={{ mb: 2 }} // Custom styles for spacing
         />
         <Field
-          label="Alt Text (optional)"
+          label="Image description (optional)"
           value={alt}
           onChange={(e) => setAlt(e.target.value)}
           type="text"
-          placeholder="Enter the alt text (optional)"
-          sx={{ mb: 2 }} // Custom styles for spacing
+          placeholder="Enter the image description (optional)"
+          sx={{ mb: 2, mt: 1 }} // Custom styles for spacing
         />
       </DialogContent>
 
-      <DialogActions sx={{ padding: 2 }}>
+      <DialogActions sx={{ padding: 2, justifyContent: "flex-end", gap: 2 }}>
         <CustomizableButton
           text="Cancel"
           variant="text"

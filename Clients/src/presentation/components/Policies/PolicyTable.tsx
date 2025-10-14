@@ -1,7 +1,7 @@
 import React from "react";
 import { Policy } from "../../../domain/types/Policy";
 import CustomizablePolicyTable from "../Table/PolicyTable";
-import { TableRow, TableCell } from "@mui/material";
+import { TableRow, TableCell, Chip } from "@mui/material";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import useUsers from "../../../application/hooks/useUsers";
@@ -27,7 +27,7 @@ const tableHeaders = [
   { id: "actions", name: "Actions" },
 ];
 
-const policyStatusBadgeStyle = (status: string) => {
+const getStatusChipProps = (status: string) => {
   const statusStyles: Record<string, { bg: string; color: string }> = {
     Draft: { bg: "#e0e0e0", color: "#616161" },
     "In review": { bg: "#fff3e0", color: "#b71c1c" },
@@ -39,15 +39,20 @@ const policyStatusBadgeStyle = (status: string) => {
   const style = statusStyles[status] || { bg: "#f5f5f5", color: "#9e9e9e" };
 
   return {
-    backgroundColor: style.bg,
-    color: style.color,
-    padding: "4px 8px",
-    borderRadius: 12,
-    fontWeight: 500,
-    fontSize: "11px",
-    textTransform: "uppercase" as const,
-    display: "inline-block" as const,
-    letterSpacing: "0.5px",
+    label: status,
+    size: "small" as const,
+    sx: {
+      backgroundColor: style.bg,
+      color: style.color,
+      fontWeight: 500,
+      fontSize: "11px",
+      textTransform: "uppercase",
+      letterSpacing: "0.5px",
+      borderRadius: "4px",
+      "& .MuiChip-label": {
+        padding: "4px 8px",
+      },
+    },
   };
 };
 
@@ -128,9 +133,7 @@ const PolicyTable: React.FC<Props> = ({
                 : policy.title}
             </TableCell>
             <TableCell sx={cellStyle}>
-              <span style={policyStatusBadgeStyle(policy.status)}>
-                {policy.status}
-              </span>
+              <Chip {...getStatusChipProps(policy.status)} />
             </TableCell>
             <TableCell sx={cellStyle}>
               {(() => {

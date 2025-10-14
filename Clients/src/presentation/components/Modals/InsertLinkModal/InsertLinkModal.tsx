@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import LinkIcon from "@mui/icons-material/Link";
 import Field from "../../Inputs/Field";
 import CustomizableButton from "../../Button/CustomizableButton";
 
@@ -37,8 +36,8 @@ const InsertLinkModal: React.FC<InsertLinkModalProps> = ({
         sx: { borderRadius: 3, p: 1.5 },
       }}
     >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <LinkIcon color="primary" /> Insert Link
+      <DialogTitle>
+        Insert link
       </DialogTitle>
 
       <DialogContent>
@@ -52,16 +51,16 @@ const InsertLinkModal: React.FC<InsertLinkModalProps> = ({
           sx={{ mb: 2 }} 
         />
         <Field
-          label="Display Text (optional)"
+          label="Display text (optional)"
           value={text}
           onChange={(e) => setText(e.target.value)}
           type="text"
           placeholder="Enter the display text (optional)"
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, mt: 1 }}
         />
       </DialogContent>
 
-      <DialogActions sx={{ padding: 2 }}>
+      <DialogActions sx={{ padding: 2, justifyContent: "flex-end", gap: 2 }}>
         <CustomizableButton
           text="Cancel"
           variant="text"

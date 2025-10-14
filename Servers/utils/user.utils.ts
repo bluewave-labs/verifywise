@@ -31,10 +31,7 @@ import { AssessmentModel } from "../domain.layer/models/assessment/assessment.mo
 import { TopicModel } from "../domain.layer/models/topic/topic.model";
 import { SubtopicModel } from "../domain.layer/models/subtopic/subtopic.model";
 import { QuestionModel } from "../domain.layer/models/question/question.model";
-import {
-  createOrganizationQuery,
-  getAllOrganizationsQuery,
-} from "./organization.utils";
+import { deleteFileById } from "./fileUpload.utils";
 
 /**
  * Retrieves all users from the database.
@@ -136,17 +133,17 @@ export const getUserByEmailQuery = async (
  * ```
  */
 export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
-    const users = await sequelize.query<UserModel>(
-        "SELECT * FROM public.users WHERE id = :id",
-        {
-            replacements: { id },
-            model: UserModel,
-            mapToModel: true, // converts results into UserModel instances
+  const users = await sequelize.query<UserModel>(
+    "SELECT * FROM public.users WHERE id = :id",
+    {
+      replacements: { id },
+      model: UserModel,
+      mapToModel: true, // converts results into UserModel instances
         }
-    );
+  );
 
-    // users will be an array. Return first element or null if not found
-    return users[0];
+  // users will be an array. Return first element or null if not found
+  return users[0];
 };
 
 /**
@@ -529,4 +526,75 @@ export const getQuestionsForSubTopic = async (id: number) => {
     }
   );
   return result;
+};
+
+export const uploadUserProfilePhotoQuery = async (
+  userId: number,
+  fileId: number,
+  tenant: string,
+  transaction: Transaction,
+) => {
+  // Get current profile photo ID if exists
+  const getPhotoQuery = `SELECT profile_photo_id FROM users WHERE id = :userId;`;
+  const currentPhoto = (await sequelize.query(getPhotoQuery,
+    { replacements: { userId }, transaction },
+  )) as [{ profile_photo_id: number | null }[], number];
+  const deleteFileId = currentPhoto[0][0]?.profile_photo_id;
+
+  // Update user's profile_photo_id
+  const updatePhotoQuery = `UPDATE users SET profile_photo_id = :fileId WHERE id = :userId RETURNING profile_photo_id;`;
+  const result = (await sequelize.query(updatePhotoQuery,
+    { replacements: { fileId, userId }, transaction },
+  )) as [{ profile_photo_id: number }[], number];
+
+  // Delete old file if it exists
+  if (deleteFileId) {
+    await deleteFileById(deleteFileId, tenant, transaction);
+  }
+
+  return result[0][0];
+};
+
+export const getUserProfilePhotoQuery = async (
+  userId: number,
+  tenant: string,
+) => {
+  const result = (await sequelize.query(
+    `SELECT f.content, f.type
+     FROM users u
+     INNER JOIN "${tenant}".files f ON u.profile_photo_id = f.id
+     WHERE u.id = :userId
+     LIMIT 1;`,
+    { replacements: { userId } },
+  )) as [{ content: Buffer; type: string }[], number];
+
+  return result[0][0] || null;
+};
+
+export const deleteUserProfilePhotoQuery = async (
+  userId: number,
+  tenant: string,
+  transaction: Transaction,
+) => {
+  // Get current profile photo ID
+  const currentPhoto = (await sequelize.query(
+    `SELECT profile_photo_id FROM users WHERE id = :userId;`,
+    { replacements: { userId }, transaction },
+  )) as [{ profile_photo_id: number | null }[], number];
+
+  const deleteFileId = currentPhoto[0][0]?.profile_photo_id;
+
+  // Set profile_photo_id to NULL
+  const result = (await sequelize.query(
+    `UPDATE users SET profile_photo_id = NULL WHERE id = :userId RETURNING profile_photo_id;`,
+    { replacements: { userId }, transaction },
+  )) as [{ profile_photo_id: number | null }[], number];
+
+  // Delete the file if it exists
+  let deleted = false;
+  if (deleteFileId) {
+    deleted = await deleteFileById(deleteFileId, tenant, transaction);
+  }
+
+  return deleted && result[0][0].profile_photo_id === null;
 };

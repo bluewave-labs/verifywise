@@ -92,7 +92,7 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
         </Stack>
 
         {/* Next Review Date + Status */}
-        <Stack direction="row" sx={{ width: "50%" }}>
+        <Stack direction="row" sx={{ width: "50%", gap: 2 }}>
           {/* Next Review Date */}
           <Stack sx={{ width: "50%" }}>
             <DatePicker

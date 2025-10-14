@@ -458,12 +458,19 @@ const CreateTask: FC<CreateTaskProps> = ({
                     size="small"
                     value={values.assignees}
                     options={
-                      users?.map((user) => ({
-                        id: user.id,
-                        name: user.name,
-                        surname: user.surname || "",
-                        email: user.email,
-                      })) || []
+                      users
+                        ?.map((user) => ({
+                          id: user.id,
+                          name: user.name,
+                          surname: user.surname || "",
+                          email: user.email,
+                        }))
+                        .filter(
+                          (user) =>
+                            !values.assignees.some(
+                              (assignee) => assignee.id === user.id
+                            )
+                        ) || []
                     }
                     onChange={handleAssigneesChange}
                     getOptionLabel={(user) =>
@@ -498,7 +505,6 @@ const CreateTask: FC<CreateTaskProps> = ({
                         ? "All members selected"
                         : "No options"
                     }
-                    filterSelectedOptions
                     popupIcon={<GreyDownArrowIcon size={16} />}
                     renderInput={(params) => (
                       <TextField

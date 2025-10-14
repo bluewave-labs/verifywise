@@ -82,7 +82,7 @@ const PolicyDashboard: React.FC = () => {
   const statusOptions = [
     { _id: "all", name: "All Policies" },
     { _id: "Draft", name: "Draft" },
-    { _id: "In review", name: "In Review" },
+    { _id: "Under Review", name: "Under Review" },
     { _id: "Approved", name: "Approved" },
     { _id: "Published", name: "Published" },
     { _id: "Archived", name: "Archived" },

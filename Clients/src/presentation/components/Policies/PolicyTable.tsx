@@ -30,7 +30,7 @@ const tableHeaders = [
 const getStatusChipProps = (status: string) => {
   const statusStyles: Record<string, { bg: string; color: string }> = {
     Draft: { bg: "#e0e0e0", color: "#616161" },
-    "In review": { bg: "#fff3e0", color: "#b71c1c" },
+    "Under Review": { bg: "#fff3e0", color: "#b71c1c" },
     Approved: { bg: "#c8e6c9", color: "#388e3c" },
     Published: { bg: "#bbdefb", color: "#1976d2" },
     Archived: { bg: "#eeeeee", color: "#757575" },

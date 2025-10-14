@@ -107,7 +107,25 @@ const ApiKeys = () => {
       }
     } catch (error) {
       console.error("Error creating API token:", error);
-      showAlert("error", "Error", "Failed to create API token");
+
+      // Extract more specific error message from response
+      let errorMessage = "Failed to create API token";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const response = (error as any).response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        } else if (response?.data?.error) {
+          errorMessage = response.data.error;
+        } else if (response?.status === 409) {
+          errorMessage = "A token with this name already exists. Please use a different name.";
+        } else if (response?.status === 400) {
+          errorMessage = "Invalid token name. Please check your input and try again.";
+        } else if (response?.status === 429) {
+          errorMessage = "You have reached the maximum number of API tokens allowed.";
+        }
+      }
+
+      showAlert("error", "Error", errorMessage);
     } finally {
       setIsLoading(false);
     }

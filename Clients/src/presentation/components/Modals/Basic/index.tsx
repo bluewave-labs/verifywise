@@ -79,7 +79,7 @@ const BasicModal: React.FC<BasicModalProps> = ({
         <Typography
           id="delete-monitor-confirmation"
           fontSize={13}
-          textAlign={"justify"}
+          textAlign={"left"}
         >
           {warningMessage}
         </Typography>

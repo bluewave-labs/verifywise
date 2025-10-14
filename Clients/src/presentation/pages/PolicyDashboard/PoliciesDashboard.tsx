@@ -24,6 +24,9 @@ import PolicyStatusCard from "./PolicyStatusCard";
 import { searchBoxStyle, inputStyle } from "./style";
 import Select from "../../components/Inputs/Select";
 import PageHeader from "../../components/Layout/PageHeader";
+import { handleAlert } from "../../../application/tools/alertUtils";
+import Alert from "../../components/Alert";
+import { AlertProps } from "../../../domain/interfaces/iAlert";
 
 const PolicyDashboard: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -36,6 +39,7 @@ const PolicyDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const fetchAll = async () => {
     const [pRes, tRes] = await Promise.all([getAllPolicies(), getAllTags()]);
@@ -73,8 +77,24 @@ const PolicyDashboard: React.FC = () => {
     try {
       await deletePolicy(id);
       setPolicies((prev) => prev.filter((policy) => policy.id !== id));
+
+      // Show success alert using VerifyWise standard pattern
+      handleAlert({
+        variant: "success",
+        body: "Policy deleted successfully!",
+        setAlert,
+        alertTimeout: 4000, // 4 seconds to give users time to read
+      });
     } catch (err) {
       console.error(err);
+
+      // Show error alert for failed deletion
+      handleAlert({
+        variant: "error",
+        body: "Failed to delete policy. Please try again.",
+        setAlert,
+        alertTimeout: 4000,
+      });
     }
   };
 
@@ -250,6 +270,16 @@ const PolicyDashboard: React.FC = () => {
           tags={tags}
           onClose={handleClose}
           onSaved={handleSaved}
+        />
+      )}
+
+      {alert && (
+        <Alert
+          variant={alert.variant}
+          title={alert.title}
+          body={alert.body}
+          isToast={true}
+          onClick={() => setAlert(null)}
         />
       )}
     </Stack>

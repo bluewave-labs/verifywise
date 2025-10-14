@@ -10,8 +10,7 @@ import React, {
 import { useSearchParams } from "react-router-dom";
 import { Box, Stack, Tab, Typography, useTheme } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { ReactComponent as SaveIconSVGWhite } from "../../assets/icons/save-white.svg";
-import { ReactComponent as UpdateIconSVGWhite } from "../../assets/icons/update-white.svg";
+import { Save as SaveIcon, RotateCcw as UpdateIconSVGWhite } from "lucide-react";
 import dayjs from "dayjs";
 
 import { Likelihood, Severity } from "../RiskLevel/constants";
@@ -675,15 +674,45 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           closePopup();
           onSuccess();
         } else {
-          const errorMessage =
-            (response?.data as ApiResponse)?.message ||
-            "Unknown error occurred";
-          console.error((response?.data as ApiResponse)?.error);
+          const responseData = response?.data as ApiResponse;
+          let errorMessage = responseData?.message || "Unknown error occurred";
+          
+          // Handle validation errors with detailed field information
+          if (responseData?.errors && Array.isArray(responseData.errors)) {
+            const fieldErrors = responseData.errors.map((err: any) => 
+              `• ${err.message}`
+            ).join('\n');
+            errorMessage = `${errorMessage}:\n${fieldErrors}`;
+          }
+          
+          console.error(responseData?.error);
           onError(errorMessage);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error sending request", error);
-        onError(error || "Network error occurred");
+        
+        // Handle CustomException from networkServices
+        if (error instanceof Error && error.name === "CustomException") {
+          const customError = error as any; // Cast to access custom properties
+          console.log("CustomException response:", customError.response);
+          
+          let errorMessage = error.message || "Unknown error occurred";
+          
+          // Handle validation errors from CustomException response
+          if (customError.response && customError.response.errors && Array.isArray(customError.response.errors)) {
+            console.log("Processing validation errors:", customError.response.errors);
+            const fieldErrors = customError.response.errors.map((err: any) => 
+              `• ${err.message}`
+            ).join('\n');
+            errorMessage = `${errorMessage}:\n${fieldErrors}`;
+            console.log("Final error message:", errorMessage);
+          }
+          
+          onError(errorMessage);
+        } else {
+          // Fallback for other types of errors
+          onError(error?.message || "Network error occurred");
+        }
       }
     } else {
       if (Object.keys(errors).length) {
@@ -783,9 +812,9 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
             }}
             icon={
               popupStatus === "new" ? (
-                <SaveIconSVGWhite />
+                <SaveIcon size={16} />
               ) : (
-                <UpdateIconSVGWhite />
+                <UpdateIconSVGWhite size={16} />
               )
             }
             variant="contained"

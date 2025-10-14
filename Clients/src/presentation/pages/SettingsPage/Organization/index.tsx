@@ -2,14 +2,13 @@ import {
   Stack,
   useTheme,
   Box,
-  Divider,
   CircularProgress,
   Typography,
   Button as MUIButton,
 } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import { useState, useCallback, ChangeEvent, useEffect, useRef } from "react";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import {
@@ -428,7 +427,7 @@ const Organization = () => {
                 isLoading ? (
                   <CircularProgress size={20} />
                 ) : (
-                  <SaveIconSVGWhite />
+                  <SaveIcon size={16} />
                 )
               }
               onClick={organizationExists ? handleUpdate : handleCreate}
@@ -597,7 +596,6 @@ const Organization = () => {
             </Typography>
           </Stack>
         </Box>
-        <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
       </Stack>
 
       {/* Remove Logo Confirmation Modal */}

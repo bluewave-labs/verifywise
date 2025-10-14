@@ -1,6 +1,7 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 import { getAuthToken } from "../redux/auth/getAuthToken";
-import { ITask, TaskStatus, TaskPriority } from "../../domain/interfaces/i.task";
+import { ITask } from "../../domain/interfaces/i.task";
+import { TaskPriority, TaskStatus } from "../../domain/enums/task.enum";
 
 /**
  * Retrieves all tasks with optional filtering, sorting, and pagination
@@ -22,10 +23,10 @@ export async function getAllTasks({
   due_date_end,
   search,
   include_archived,
-  sort_by = 'created_at',
-  sort_order = 'DESC',
-  page = '1',
-  page_size = '25'
+  sort_by = "created_at",
+  sort_order = "DESC",
+  page = "1",
+  page_size = "25",
 }: {
   signal?: AbortSignal;
   authToken?: string;
@@ -37,45 +38,45 @@ export async function getAllTasks({
   due_date_end?: string;
   search?: string;
   include_archived?: boolean;
-  sort_by?: 'due_date' | 'priority' | 'created_at';
-  sort_order?: 'ASC' | 'DESC';
+  sort_by?: "due_date" | "priority" | "created_at";
+  sort_order?: "ASC" | "DESC";
   page?: string;
   page_size?: string;
 } = {}): Promise<any> {
   try {
     // Build query parameters
     const params = new URLSearchParams();
-    
+
     if (status?.length) {
-      status.forEach(s => params.append('status', s));
+      status.forEach((s) => params.append("status", s));
     }
     if (priority?.length) {
-      priority.forEach(p => params.append('priority', p));
+      priority.forEach((p) => params.append("priority", p));
     }
     if (category?.length) {
-      category.forEach(c => params.append('category', c));
+      category.forEach((c) => params.append("category", c));
     }
     if (assignee?.length) {
-      assignee.forEach(a => params.append('assignee', a.toString()));
+      assignee.forEach((a) => params.append("assignee", a.toString()));
     }
-    if (due_date_start) params.append('due_date_start', due_date_start);
-    if (due_date_end) params.append('due_date_end', due_date_end);
-    if (search) params.append('search', search);
-    if (include_archived) params.append('include_archived', 'true');
-    
-    params.append('sort_by', sort_by);
-    params.append('sort_order', sort_order);
-    params.append('page', page);
-    params.append('page_size', page_size);
+    if (due_date_start) params.append("due_date_start", due_date_start);
+    if (due_date_end) params.append("due_date_end", due_date_end);
+    if (search) params.append("search", search);
+    if (include_archived) params.append("include_archived", "true");
+
+    params.append("sort_by", sort_by);
+    params.append("sort_order", sort_order);
+    params.append("page", page);
+    params.append("page_size", page_size);
 
     const queryString = params.toString();
-    const url = `/tasks${queryString ? `?${queryString}` : ''}`;
+    const url = `/tasks${queryString ? `?${queryString}` : ""}`;
 
     const response = await apiServices.get(url, {
       headers: { Authorization: `Bearer ${authToken}` },
       signal,
     });
-    
+
     return response.data;
   } catch (error) {
     console.error("Error fetching tasks:", error);
@@ -218,9 +219,13 @@ export async function updateTaskStatus({
   authToken?: string;
 }): Promise<any> {
   try {
-    const response = await apiServices.put(`/tasks/${id}`, { status }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiServices.put(
+      `/tasks/${id}`,
+      { status },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error updating task status:", error);

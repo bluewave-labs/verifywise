@@ -1,27 +1,40 @@
 
 import { apiServices } from "../../infrastructure/api/networkServices";
+import { ApiResponse, User } from "../../domain/types/User";
 
 export async function getUserById({
   userId,
 }: {
   userId: number;
-}): Promise<any> {
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.get(`/users/${userId}`);
-  return  response.data;
+  return response.data as ApiResponse<User>;
 }
 
-export async function getAllUsers(): Promise<any> {
+export async function getAllUsers(): Promise<ApiResponse<User[]>> {
   const response = await apiServices.get(`/users`);
-  return response.data;
+  return response.data as ApiResponse<User[]>;
 }
 
 export async function createNewUser({
   userData,
 }: {
   userData: any;
-}): Promise<any> {
-  const response = await apiServices.post(`/users/register`, userData);
-  return response;
+}): Promise<ApiResponse<User>> {
+  try {
+    const response = await apiServices.post(`/users/register`, userData);
+    return response as ApiResponse<User>;
+  } catch (error: any) {
+    // Re-throw the error with the response data intact
+    if (error.response) {
+      throw {
+        ...error,
+        status: error.response.status,
+        data: error.response.data
+      };
+    }
+    throw error;
+  }
 }
 
 export async function updateUserById({
@@ -30,9 +43,9 @@ export async function updateUserById({
 }: {
   userId: number;
   userData: any;
-}): Promise<any> {
+}): Promise<ApiResponse<User>> {
   const response = await apiServices.patch(`/users/${userId}`, userData);
-  return response;
+  return response as ApiResponse<User>;
 }
 
 export async function updatePassword({
@@ -84,4 +97,5 @@ export async function loginUser({
       throw error;
     }
   }
+
 

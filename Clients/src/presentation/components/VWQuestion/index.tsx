@@ -1,6 +1,14 @@
-import { Box, Chip, Stack, Tooltip, Typography, Dialog, useTheme } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Stack,
+  Tooltip,
+  Typography,
+  Dialog,
+  useTheme,
+} from "@mui/material";
 import { Question } from "../../../domain/types/Question";
-import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { Info as GreyCircleInfoIcon } from "lucide-react";
 import {
   priorities,
   PriorityLevel,
@@ -22,12 +30,7 @@ import LinkedRisksPopup from "../LinkedRisks";
 import AuditRiskPopup from "../RiskPopup/AuditRiskPopup";
 import { updateEUAIActAnswerById } from "../../../application/repository/question.repository";
 import { useAuth } from "../../../application/hooks/useAuth";
-
-interface QuestionProps {
-  question: Question;
-  setRefreshKey: () => void;
-  currentProjectId: number;
-}
+import { IQuestionProps } from "../../../domain/interfaces/i.question";
 
 /**
  * QuestionFrame Component
@@ -48,7 +51,7 @@ const QuestionFrame = ({
   question,
   setRefreshKey,
   currentProjectId,
-}: QuestionProps) => {
+}: IQuestionProps) => {
   const theme = useTheme();
   const { userRoleName, userId } = useAuth();
   const [values, setValues] = useState<Question>({
@@ -253,16 +256,18 @@ const QuestionFrame = ({
             <Box component="span" ml={2}>
               <Tooltip
                 title={question.hint || ""}
-                sx={{ fontSize: 13 }}
-                componentsProps={{
+                slotProps={{
                   tooltip: {
-                    sx: {
-                      fontSize: 12,
-                    },
+                    sx: { fontSize: 12 },
                   },
                 }}
               >
-                <GreyCircleInfoIcon fontSize="inherit" />
+                <Box
+                  component="span"
+                  sx={{ display: "inline-flex", cursor: "pointer" }}
+                >
+                  <GreyCircleInfoIcon size={16} />
+                </Box>
               </Tooltip>
             </Box>
           )}

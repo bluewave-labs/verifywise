@@ -13,21 +13,23 @@ const Field = lazy(() => import("../../../Inputs/Field"));
 import { styles, fieldStyle, selectReportStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
+const MultiSelect = lazy(() => import("../../../Inputs/Select/Multi"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
 /**
  * Set form values
  */
 interface FormValues {
-  report_type: string;
+  report_type: string | string[];
   report_name: string;
   project: number;
   framework: number;
   projectFrameworkId: number;
+  reportType?: 'project' | 'organization' | null;
 }
 
 interface FormErrors {
-  report_type?: string;
+  report_type?: string | string[];
   report_name?: string;
   project?: string;
   framework?: string;
@@ -35,7 +37,7 @@ interface FormErrors {
 }
 
 const initialState: FormValues = {
-  report_type: "Project risks report",
+  report_type: ["Project risks report"],
   report_name: "",
   project: 1,
   framework: 1,
@@ -59,9 +61,10 @@ const initialFrameworkValue: FrameworkValues = {
 
 interface ReportProps {
   onGenerate: (formValues: any) => void;
+  reportType: 'project' | 'organization' | null;
 }
 
-const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
+const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) => {
   const { dashboardValues } = useContext(VerifyWiseContext);
   const [values, setValues] = useState<FormValues>({
     ...initialState,
@@ -74,10 +77,10 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     const availableTypes =
       values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
 
-    if (!availableTypes.includes(values.report_type)) {
+    if (!availableTypes.includes(values.report_type as string)) {
       setValues((prev) => ({
         ...prev,
-        report_type: availableTypes[0], // reset to the first valid type
+        report_type: [availableTypes[0]], // reset to the first valid type
       }));
 
       setErrors((prev) => ({
@@ -97,7 +100,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number | (string | number)[]>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
     },
@@ -123,52 +126,78 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
     );
   }, [projectFrameworks, values.framework]);
 
+  // Force EU AI Act framework for filtered projects
+  useEffect(() => {
+    setValues((prev) => ({ ...prev, framework: 1 }));
+  }, [values.project]);
+
   const handleFormSubmit = () => {
+    const normalizedReportType = Array.isArray(values.report_type)
+      ? values.report_type.length === 1
+        ? values.report_type[0]
+        : values.report_type
+      : values.report_type;
+
     const newValues = {
       ...values,
+      report_type: normalizedReportType,
       projectFrameworkId: projectFrameworkId,
+      reportType: reportType,
     };
     onGenerate(newValues);
   };
 
+  const euActProjects = dashboardValues.projects?.filter(
+    (project: { framework: [{ framework_id: number }] }) => project.framework.some(f => f.framework_id === 1)
+  );
+
   return (
     <Stack sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Stack>
-        <Typography sx={styles.titleText}>Generate Report</Typography>
-        <Typography sx={styles.baseText}>
-          Pick the kind of report you want to create.
+        <Typography sx={styles.titleText}>
+          Generate {reportType === 'organization' ? 'Organization' : 'Project'} Report
         </Typography>
-        <Stack sx={{ paddingTop: theme.spacing(8) }}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="project-input"
-              label="Project"
-              placeholder="Select project"
-              value={values.project}
-              onChange={handleOnSelectChange("project")}
-              items={
-                dashboardValues.projects?.map(
-                  (project: { id: any; project_title: any }) => ({
-                    _id: project.id,
-                    name: project.project_title,
-                  })
-                ) || []
-              }
-              sx={{
-                width: "100%",
-                backgroundColor: theme.palette.background.main,
-              }}
-              error={errors.project}
-              isRequired
-            />
-          </Suspense>
-        </Stack>
-        <Stack sx={{ paddingTop: theme.spacing(8) }}>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Select
+        <Typography sx={styles.baseText}>
+          {reportType === 'organization' 
+            ? 'Generate a comprehensive report for your entire organization.'
+            : 'Pick the project you want to generate a report for.'
+          }
+        </Typography>
+        {reportType === 'project' && (
+          <Stack sx={{ paddingTop: theme.spacing(8) }}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Select
+                id="project-input"
+                label="Project"
+                placeholder="Select project"
+                value={values.project}
+                onChange={handleOnSelectChange("project")}
+                items={
+                  euActProjects?.map(
+                    (project: { id: any; project_title: any }) => ({
+                      _id: project.id,
+                      name: project.project_title,
+                    })
+                  ) || []
+                }
+                sx={{
+                  width: "100%",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                error={errors.project}
+                isRequired
+              />
+            </Suspense>
+          </Stack>
+        )}
+
+        {reportType === 'organization' && (
+          <Stack sx={{ paddingTop: theme.spacing(8) }}>
+            <Suspense fallback={<div>Loading...</div>}>
+            <Select 
               id="framework-input"
               label="Framework"
-              placeholder="Select framework"
+              placeholder="Select Framework"
               value={values.framework}
               onChange={handleOnSelectChange("framework")}
               items={
@@ -185,13 +214,13 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
               error={errors.framework}
               isRequired
             />
-          </Suspense>
-        </Stack>
+            </Suspense>
+          </Stack>
+        )}
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="report-type-input"
+            <MultiSelect
               label="Report Type"
               placeholder="Select report type"
               value={values.report_type}
@@ -204,8 +233,8 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate }) => {
                 name: type, // display name
               }))}
               sx={selectReportStyle}
-              error={errors.report_type}
-              isRequired
+              error={errors.report_type as string | undefined}
+              required={true}
             />
           </Suspense>
         </Stack>

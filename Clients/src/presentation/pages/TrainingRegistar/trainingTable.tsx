@@ -11,13 +11,16 @@ import {
   Stack,
   Typography,
   TableFooter,
+  Chip,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import "../../components/Table/index.css";
 import singleTheme from "../../themes/v1SingleTheme";
 import CustomIconButton from "../../components/IconButton";
 import allowedRoles from "../../../application/constants/permissions";
-import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 import Placeholder from "../../assets/imgs/empty-state.svg";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getPaginationRowCount, setPaginationRowCount } from "../../../application/utils/paginationStorage";
@@ -68,20 +71,19 @@ const StatusBadge: React.FC<{ status: IAITraining["status"] }> = ({
   const style = statusStyles[status] || { bg: "#e0e0e0", color: "#424242" };
 
   return (
-    <span
-      style={{
+    <Chip
+      label={status}
+      size="small"
+      sx={{
         backgroundColor: style.bg,
         color: style.color,
-        padding: "4px 8px",
-        borderRadius: 8,
+        borderRadius: "4px !important",
         fontWeight: 600,
         fontSize: "0.75rem",
         textTransform: "uppercase",
-        display: "inline-block",
+        height: 24,
       }}
-    >
-      {status}
-    </span>
+    />
   );
 };
 
@@ -171,23 +173,47 @@ const TrainingTable: React.FC<TrainingTableProps> = ({
                   e.stopPropagation();
                   onEdit?.(training.id.toString());
                 }}
-              >
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+              > 
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.training_name}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.duration}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                ...singleTheme.tableStyles.primary.body.cell,
+                cursor: "pointer",
+                textTransform: "none !important",
+              }}>
                   {training.provider}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   {training.department}
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   <StatusBadge status={training.status} />
                 </TableCell>
-                <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <TableCell  sx={{
+                  ...singleTheme.tableStyles.primary.body.cell,
+                  cursor: "pointer",
+                  textTransform: "none !important",
+                }}>
                   {training.people}
                 </TableCell>
                 <TableCell

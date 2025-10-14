@@ -1,8 +1,28 @@
 /**
- * Express router for handling user-related routes.
+ * @fileoverview User Management Routes
  *
- * This router provides endpoints for creating, retrieving, updating, and deleting users,
- * as well as for user login and password reset functionalities.
+ * Defines RESTful API endpoints for user management, authentication, and account operations.
+ * All routes except login, registration, and token refresh require JWT authentication.
+ *
+ * Authentication Endpoints:
+ * - POST /login - User authentication with email/password
+ * - POST /refresh-token - Obtain new access token using refresh token
+ * - POST /check-user-exists - Check if any user exists (setup flow)
+ *
+ * User CRUD Endpoints:
+ * - GET / - List all users in organization (authenticated)
+ * - GET /by-email/:email - Get user by email (authenticated)
+ * - GET /:id - Get user by ID (authenticated)
+ * - POST / - Create new user (authenticated)
+ * - PUT /:id - Update user by ID (authenticated)
+ * - DELETE /:id - Delete user by ID (authenticated)
+ *
+ * Password Management:
+ * - POST /reset-password - Reset user password
+ * - POST /change-password - Change password (authenticated)
+ *
+ * User Analytics:
+ * - GET /:id/progress - Calculate user's project progress (authenticated)
  *
  * @module routes/user.route
  */

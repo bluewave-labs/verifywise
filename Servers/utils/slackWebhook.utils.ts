@@ -32,6 +32,21 @@ export const getSlackWebhookByIdAndChannelQuery = async (
   return result;
 };
 
+export const getSlackWebhookByIdAndRoutingType = async (
+  id: number,
+  routing_type: string,
+): Promise<ISlackWebhook[]> => {
+  const result = await sequelize.query(
+    `SELECT * FROM public.slack_webhooks WHERE user_id = :id AND routing_type && :routing_type`,
+    {
+      replacements: { id, routing_type: `{${routing_type}}` },
+      mapToModel: true,
+      model: SlackWebhookModel,
+    },
+  );
+  return result;
+};
+
 export const createNewSlackWebhookQuery = async (
   data: Partial<ISlackWebhook>,
   transaction: Transaction,
@@ -75,21 +90,17 @@ export const updateSlackWebhookByIdQuery = async (
 ): Promise<SlackWebhookModel | null> => {
   const updateSlackWebhookData: Partial<Record<keyof SlackWebhookModel, any>> =
     {};
-  const setClause = [
-    "access_token",
-    "access_token_iv",
-    "scope",
-    "user_id",
-    "team_name",
-    "team_id",
-    "channel",
-    "channel_id",
-    "configuration_url",
-    "url",
-    "url_iv",
-    "is_active",
-  ]
+  const setClause = ["routing_type", "is_active"]
     .filter((f) => {
+      if (
+        f == "routing_type" &&
+        updateData.routing_type 
+      ) {
+        // Mapping this as Postgres takes the array of string as {a, b, c }
+        updateSlackWebhookData["routing_type"] =
+          updateData.routing_type?.length > 0 ? `{${updateData.routing_type.map((item) => `"${item}"`).join(",")}}`: `{}`;
+        return true;
+      }
       if (updateData[f as keyof SlackWebhookModel] !== undefined) {
         updateSlackWebhookData[f as keyof SlackWebhookModel] =
           updateData[f as keyof SlackWebhookModel];

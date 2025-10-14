@@ -1,7 +1,7 @@
 // AlertBody.tsx
 import React, { useState } from "react";
 import { Box, IconButton, Typography } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Copy as ContentCopyIcon } from "lucide-react";
 
 interface AlertBodyProps {
   body: string;
@@ -29,7 +29,7 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
   };
 
   return (
-    <Typography sx={{ fontWeight: 400, color: textColor }}>
+    <Typography sx={{ fontWeight: 400, color: textColor, whiteSpace: 'pre-line' }}>
       {link ? (
         <>
           {bodyString.split(link)[0]}
@@ -61,7 +61,8 @@ const AlertBody: React.FC<AlertBodyProps> = ({ body, textColor }) => {
                   </Typography>
                 ) : (
                   <ContentCopyIcon
-                    sx={{ fontSize: "13px", color: textColor }}
+                     size={13}
+                     style={{ color: textColor }}
                   />
                 )}
               </Box>

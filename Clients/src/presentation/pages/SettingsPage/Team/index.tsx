@@ -24,12 +24,10 @@ import {
   TablePagination,
   TableFooter,
 } from "@mui/material";
-import GroupsIcon from "@mui/icons-material/Groups";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { UserPlus as GroupsIcon, ChevronsUpDown as SelectorVertical, Trash2 as DeleteIconGrey } from "lucide-react";
 import TablePaginationActions from "../../../components/TablePagination";
 import InviteUserModal from "../../../components/Modals/InviteUser";
 import DualButtonModal from "../../../components/Dialogs/DualButtonModal";
-import {ReactComponent as DeleteIconGrey} from "../../../assets/icons/trash-grey.svg"
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import singleTheme from "../../../themes/v1SingleTheme";
@@ -109,7 +107,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
             name: member.name,
             surname: member.surname,
             email: member.email,
-            roleId: newRole,
+            roleId: parseInt(newRole),
           },
         });
 
@@ -127,7 +125,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
         } else {
           setAlert({
             variant: "error",
-            body: response.data?.data?.message || "An error occurred.",
+            body: (response as any)?.data?.message || "An error occurred.",
           });
           setTimeout(() => setAlert(null), 3000);
         }
@@ -357,7 +355,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                   border: "1px solid #13715B",
                   gap: 2,
                 }}
-                icon={<GroupsIcon />}
+                icon={<GroupsIcon size={16} />}
                 onClick={() => inviteTeamMember()}
               />
             </Box>
@@ -443,7 +441,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                   "& .MuiSelect-select": {
                                     fontSize: "13px",
                                     fontFamily: "Inter, sans-serif",
-                                    padding: "4px 8px",
+                                    padding: "0",
                                   },
                                 }}
                                 disabled={member.id === userId}
@@ -475,7 +473,7 @@ const TeamManagement: React.FC = (): JSX.Element => {
                                 disableRipple
                                 disabled={member.id === userId}
                               >
-                                <DeleteIconGrey />
+                                <DeleteIconGrey size={16} />
                               </IconButton>
                             </TableCell>
                           </TableRow>

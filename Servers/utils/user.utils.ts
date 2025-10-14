@@ -118,29 +118,60 @@ export const getUserByEmailQuery = async (
 /**
  * Retrieves a user from the database by their unique identifier.
  *
- * @param {string} id - The unique identifier of the user.
- * @returns {Promise<User>} A promise that resolves to the user object.
+ * @param {number} id - The unique identifier of the user.
+ * @returns {Promise<UserModel>} A promise that resolves to the user object.
  *
- * @throws {Error} If the query fails or the user is not found.
+ * @throws {Error} If the query fails.
  *
  * @example
  * ```typescript
- * const userId = "12345";
+ * const userId = 12345;
  * getUserByIdQuery(userId)
  *   .then(user => {
+ *     // user is a UserModel instance with all methods available
  *   })
  *   .catch(error => {
  *     console.error(error);
  *   });
  * ```
  */
-export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
-  const user = await sequelize.query("SELECT * FROM public.users WHERE id = :id", {
-    replacements: { id },
-    mapToModel: true,
-    model: UserModel,
-  });
-  return user[0];
+export const getUserByIdQuery = async (id: number, transaction: Transaction | null = null): Promise<UserModel> => {
+    const users = await sequelize.query<UserModel>(
+        "SELECT * FROM public.users WHERE id = :id",
+        {
+            replacements: { id },
+            model: UserModel,
+            mapToModel: true, // converts results into UserModel instances
+            ...(transaction ? { transaction } : {}) // include transaction if provided
+        }
+    );
+
+    // users will be an array. Return first element or null if not found
+    return users[0];
+};
+
+/**
+ * Retrieves a user from the database by their ID, throwing an error if not found.
+ * This is a safe wrapper around getUserByIdQuery for cases where the user must exist.
+ *
+ * @param {number} id - The unique identifier of the user.
+ * @returns {Promise<UserModel>} A promise that resolves to the user object.
+ * @throws {Error} If the user is not found or the query fails.
+ *
+ * @example
+ * ```typescript
+ * // Use this when you expect the user to exist
+ * const user = await getUserByIdOrThrow(12345);
+ * // No null check needed - will throw if user doesn't exist
+ * console.log(user.name);
+ * ```
+ */
+export const getUserByIdOrThrow = async (id: number): Promise<UserModel> => {
+  const user = await getUserByIdQuery(id);
+  if (!user) {
+    throw new Error(`User not found with ID: ${id}`);
+  }
+  return user;
 };
 
 export const doesUserBelongsToOrganizationQuery = async (
@@ -341,7 +372,6 @@ export const deleteUserByIdQuery = async (
   for (let entry of usersFK) {
     await Promise.all(
       entry.fields.map(async (f) => {
-        console.log(entry.table);
         await sequelize.query(
           `UPDATE "${tenant}".${entry.table} SET ${f} = :x WHERE ${f} = :id`,
           {
@@ -403,11 +433,13 @@ export const checkUserExistsQuery = async (): Promise<boolean> => {
   }
 };
 
-export const getUserProjects = async (id: number) => {
+export const getUserProjects = async (userId: number, tenant: string) => {
   const result = await sequelize.query(
-    "SELECT id FROM projects WHERE id = :id",
+    `SELECT p.* FROM "${tenant}".projects p
+     INNER JOIN "${tenant}".projects_members pm ON p.id = pm.project_id
+     WHERE pm.user_id = :user_id`,
     {
-      replacements: { id },
+      replacements: { user_id: userId },
       mapToModel: true,
       model: ProjectModel,
     }

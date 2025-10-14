@@ -12,9 +12,10 @@ import {
   IconButton as MuiIconButton,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
+import { Settings } from "lucide-react";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
+import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
 import singleTheme from "../../themes/v1SingleTheme";
 import Alert from "../Alert";
 import { IconButtonProps } from "../../../domain/interfaces/iWidget";
@@ -32,11 +33,14 @@ const IconButton: React.FC<IconButtonProps> = ({
   onDownload,
   isVisible,
   canDelete,
+  checkForRisks,
+  onDeleteWithRisks,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [actions, setActions] = useState({});
   const [isOpenRemoveModal, setIsOpenRemoveModal] = useState(false);
+  const [isOpenRiskConfirmationModal, setIsOpenRiskConfirmationModal] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
 
   const dropDownStyle = singleTheme.dropDownStyles.primary;
@@ -77,6 +81,39 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleDeleteWithRiskCheck = async (e?: React.SyntheticEvent) => {
+    if (checkForRisks && onDeleteWithRisks) {
+      try {
+        const hasRisks = await checkForRisks();
+        if (hasRisks) {
+          setIsOpenRiskConfirmationModal(true);
+        } else {
+          onDeleteWithRisks(false);
+        }
+      } catch (error) {
+        console.error("Error checking for risks:", error);
+        onDeleteWithRisks(false);
+      }
+    } else {
+      onDelete();
+    }
+
+    setIsOpenRemoveModal(false);
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleRiskConfirmation = (deleteRisks: boolean) => {
+    if (onDeleteWithRisks) {
+      onDeleteWithRisks(deleteRisks);
+    }
+  };
+
+  const handleRiskConfirmationCancel = () => {
+    setIsOpenRiskConfirmationModal(false);
+  };
+
   const handleEdit = (e?: React.SyntheticEvent) => {
     onEdit();
     if (e) {
@@ -94,9 +131,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
-  const handleDownload = (e?: React.SyntheticEvent) => {
+  const handleDownload = async (e?: React.SyntheticEvent) => {
     if (onDownload) {
-      onDownload();
+      await onDownload();
     }
     if (e) {
       closeDropDownMenu(e);
@@ -173,31 +210,48 @@ const IconButton: React.FC<IconButtonProps> = ({
         },
       }}
     >
-      {listOfButtons.map((item) => (
-        <MenuItem
-          key={item}
-          onClick={(e) => {
-            if (item === "edit") {
-              handleEdit(e);
-            } else if (item === "download") {
-              handleDownload(e);
-            } else if (item === "make visible") {
-              handleMakeVisible(e);
-            } else if (item === "remove") {
-              if (warningTitle && warningMessage) {
-                setIsOpenRemoveModal(true);
-                if (e) closeDropDownMenu(e);
-              } else {
-                onDelete();
-                if (e) closeDropDownMenu(e);
+      {listOfButtons.map((item) => {
+        // For resources, disable edit, download, and remove when not visible
+        const isResourceAction = (type === "Resource" || type === "resource") && item !== "make visible";
+        const isDisabled = isResourceAction && !isVisible;
+
+        return (
+          <MenuItem
+            key={item}
+            onClick={async (e) => {
+              // Prevent actions when disabled
+              if (isDisabled) {
+                e.stopPropagation();
+                return;
               }
-            }
-          }}
-          sx={item === "remove" ? { color: "#d32f2f" } : {}}
-        >
-          {getMenuItemText(item)}
-        </MenuItem>
-      ))}
+
+              if (item === "edit") {
+                handleEdit(e);
+              } else if (item === "download") {
+                await handleDownload(e);
+              } else if (item === "make visible") {
+                handleMakeVisible(e);
+              } else if (item === "remove") {
+                if (warningTitle && warningMessage) {
+                  setIsOpenRemoveModal(true);
+                  if (e) closeDropDownMenu(e);
+                } else {
+                  if (checkForRisks && onDeleteWithRisks) {
+                    handleDeleteWithRiskCheck(e);
+                  } else {
+                    onDelete();
+                    if (e) closeDropDownMenu(e);
+                  }
+                }
+              }
+            }}
+            disabled={isDisabled}
+            sx={item === "remove" ? { color: "#d32f2f" } : {}}
+          >
+            {getMenuItemText(item)}
+          </MenuItem>
+        );
+      })}
     </Menu>
   );
 
@@ -228,7 +282,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         openMenu(event, id, "someUrl");
       }}
     >
-      <Setting />
+      <Settings size={20} />
     </MuiIconButton>
   );
 
@@ -240,13 +294,19 @@ const IconButton: React.FC<IconButtonProps> = ({
         <BasicModal
           isOpen={isOpenRemoveModal}
           setIsOpen={() => setIsOpenRemoveModal(false)}
-          onDelete={(e) => handleDelete(e)}
+          onDelete={(e) => checkForRisks && onDeleteWithRisks ? handleDeleteWithRiskCheck(e) : handleDelete(e)}
           warningTitle={warningTitle}
           warningMessage={warningMessage}
           onCancel={(e) => handleCancle(e)}
           type={type}
         />
       )}
+      <ModelRiskConfirmation
+        isOpen={isOpenRiskConfirmationModal}
+        setIsOpen={setIsOpenRiskConfirmationModal}
+        onConfirm={handleRiskConfirmation}
+        onCancel={handleRiskConfirmationCancel}
+      />
       {alert && (
         <Alert
           variant={alert.variant}

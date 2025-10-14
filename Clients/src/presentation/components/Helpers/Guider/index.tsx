@@ -1,5 +1,5 @@
 import { Link, Stack, Tooltip, Typography } from "@mui/material";
-import QuestionMarkIcon from "@mui/icons-material/QuestionMark";
+import { HelpCircle as QuestionMarkIcon } from "lucide-react";
 import { GuiderStyler } from "./style";
 
 const Guider = ({
@@ -35,7 +35,7 @@ const Guider = ({
       }
     >
       <Stack component={"div"} sx={theme.helperFrameStyle}>
-        <QuestionMarkIcon />
+        <QuestionMarkIcon size={16} />
       </Stack>
     </Tooltip>
   );

@@ -62,6 +62,7 @@ export async function getAllVendors(req: Request, res: Response): Promise<any> {
 
 export async function getVendorById(req: Request, res: Response): Promise<any> {
   const vendorId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting getVendorById for ID ${vendorId}`,
     functionName: "getVendorById",
@@ -104,20 +105,21 @@ export async function getVendorByProjectId(
   req: Request,
   res: Response
 ): Promise<any> {
-  const vendorId = parseInt(req.params.id);
+  const projectId = parseInt(req.params.id);
+
   logProcessing({
-    description: `starting getVendorByProjectId for ID ${vendorId}`,
+    description: `starting getVendorByProjectId for ID ${projectId}`,
     functionName: "getVendorByProjectId",
     fileName: "vendor.ctrl.ts",
   });
 
   try {
-    const vendor = await getVendorByProjectIdQuery(vendorId, req.tenantId!);
+    const vendor = await getVendorByProjectIdQuery(projectId, req.tenantId!);
 
     if (vendor !== null) {
       await logSuccess({
         eventType: "Read",
-        description: `Retrieved vendor by project ID ${vendorId}`,
+        description: `Retrieved vendor by project ID ${projectId}`,
         functionName: "getVendorByProjectId",
         fileName: "vendor.ctrl.ts",
       });
@@ -126,7 +128,7 @@ export async function getVendorByProjectId(
 
     await logSuccess({
       eventType: "Read",
-      description: `Vendor not found for project ID ${vendorId}`,
+      description: `Vendor not found for project ID ${projectId}`,
       functionName: "getVendorByProjectId",
       fileName: "vendor.ctrl.ts",
     });

@@ -83,7 +83,7 @@ const RiskLevel: FC<RiskLevelProps> = ({
             color: theme.palette.background.main,
             p: "0 8px",
             height: 34,
-            borderRadius: theme.shape.borderRadius,
+            borderRadius: "4px",
             justifyContent: "center",
           }}
         >

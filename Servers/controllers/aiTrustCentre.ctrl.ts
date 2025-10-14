@@ -124,6 +124,7 @@ export async function getAITrustCentrePublicResource(
   res: Response
 ) {
   const { hash, id } = req.params;
+
   logStructured(
     "processing",
     `fetching AI Trust Centre public resource for hash: ${hash}, id: ${id}`,
@@ -403,6 +404,7 @@ export async function createAITrustResource(
 }
 
 export async function createAITrustSubprocessor(req: Request, res: Response) {
+
   const transaction = await sequelize.transaction();
   const body = req.body as IAITrustCentreSubprocessors;
 
@@ -493,19 +495,6 @@ export async function uploadCompanyLogo(req: RequestWithFile, res: Response) {
   logger.debug("🖼️ Uploading company logo");
 
   try {
-    if (!attachment || attachment.mimetype.includes("image/") === false) {
-      logStructured(
-        "error",
-        "invalid file type for company logo upload",
-        "uploadCompanyLogo",
-        "aiTrustCentre.ctrl.ts"
-      );
-      return res.status(400).json(
-        STATUS_CODE[400]({
-          message: "Invalid file, please upload an image file.",
-        })
-      );
-    }
 
     const file = await uploadFile(
       attachment,
@@ -655,6 +644,7 @@ export async function updateAITrustResource(
   req: RequestWithFile,
   res: Response
 ) {
+  const resourceId = parseInt(req.params.id);
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<{
     name: string;
@@ -663,7 +653,6 @@ export async function updateAITrustResource(
     visible: string;
     delete: string;
   }>;
-  const resourceId = parseInt(req.params.id);
 
   logStructured(
     "processing",
@@ -772,6 +761,7 @@ export async function updateAITrustResource(
 }
 
 export async function updateAITrustSubprocessor(req: Request, res: Response) {
+  const subprocessorId = parseInt(req.params.id);
   const transaction = await sequelize.transaction();
   const body = req.body as Partial<{
     name: string;
@@ -779,7 +769,6 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
     location: string;
     url: string;
   }>;
-  const subprocessorId = parseInt(req.params.id);
 
   logStructured(
     "processing",
@@ -853,8 +842,8 @@ export async function updateAITrustSubprocessor(req: Request, res: Response) {
 }
 
 export async function deleteAITrustResource(req: Request, res: Response) {
-  const transaction = await sequelize.transaction();
   const resourceId = parseInt(req.params.id);
+  const transaction = await sequelize.transaction();
 
   logStructured(
     "processing",
@@ -923,8 +912,8 @@ export async function deleteAITrustResource(req: Request, res: Response) {
 }
 
 export async function deleteAITrustSubprocessor(req: Request, res: Response) {
-  const transaction = await sequelize.transaction();
   const subprocessorId = parseInt(req.params.id);
+  const transaction = await sequelize.transaction();
 
   logStructured(
     "processing",

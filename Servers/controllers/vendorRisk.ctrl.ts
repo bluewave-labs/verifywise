@@ -49,6 +49,7 @@ export async function getAllVendorRisks(
   res: Response
 ): Promise<any> {
   const projectId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting getAllVendorRisks for project ID ${projectId}`,
     functionName: 'getAllVendorRisks',
@@ -92,6 +93,7 @@ export async function getAllVendorRisksByVendorId(
   res: Response
 ) {
   const vendorId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId}`,
     functionName: 'getAllVendorRisksByVendorId',
@@ -135,6 +137,7 @@ export async function getVendorRiskById(
   res: Response
 ): Promise<any> {
   const vendorRiskId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting getVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'getVendorRiskById',
@@ -178,6 +181,7 @@ export async function createVendorRisk(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
+
   logProcessing({
     description: 'starting createVendorRisk',
     functionName: 'createVendorRisk',
@@ -232,6 +236,7 @@ export async function updateVendorRiskById(
   const transaction = await sequelize.transaction();
   const vendorRiskId = parseInt(req.params.id);
   const updatedVendorRisk = req.body;
+
   logProcessing({
     description: `starting updateVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'updateVendorRiskById',
@@ -286,9 +291,10 @@ export async function deleteVendorRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const vendorRiskId = parseInt(req.params.id);
+
   logProcessing({
     description: `starting deleteVendorRiskById for ID ${vendorRiskId}`,
-    functionName: 'updateVedeleteVendorRiskByIdndorRiskById',
+    functionName: 'deleteVendorRiskById',
     fileName: 'vendorRisk.ctrl.ts'
   });
 

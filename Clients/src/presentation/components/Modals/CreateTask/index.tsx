@@ -19,16 +19,16 @@ import { lazy } from "react";
 const Field = lazy(() => import("../../Inputs/Field"));
 const DatePicker = lazy(() => import("../../Inputs/Datepicker"));
 import SelectComponent from "../../Inputs/Select";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
-import { ReactComponent as SaveIcon } from "../../../assets/icons/save.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
+import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as CloseIcon } from "../../../assets/icons/close.svg";
-import { TaskPriority, ITask } from "../../../../domain/interfaces/i.task";
+import { ITask } from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
 import useUsers from "../../../../application/hooks/useUsers";
 import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHandling";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
+import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 
 interface CreateTaskProps {
   isOpen: boolean;
@@ -42,6 +42,7 @@ interface CreateTaskFormValues {
   title: string;
   description: string;
   priority: TaskPriority;
+  status: TaskStatus;
   due_date: string;
   assignees: Array<{
     id: number;
@@ -56,6 +57,7 @@ interface CreateTaskFormErrors {
   title?: string;
   description?: string;
   priority?: string;
+  status?: string;
   due_date?: string;
   assignees?: string;
   categories?: string;
@@ -65,6 +67,7 @@ const initialState: CreateTaskFormValues = {
   title: "",
   description: "",
   priority: TaskPriority.MEDIUM,
+  status: TaskStatus.OPEN,
   due_date: "",
   assignees: [],
   categories: [],
@@ -74,6 +77,12 @@ const priorityOptions = [
   { _id: TaskPriority.LOW, name: "Low" },
   { _id: TaskPriority.MEDIUM, name: "Medium" },
   { _id: TaskPriority.HIGH, name: "High" },
+];
+
+const statusOptions = [
+  { _id: TaskStatus.OPEN, name: "Open" },
+  { _id: TaskStatus.IN_PROGRESS, name: "In progress" },
+  { _id: TaskStatus.COMPLETED, name: "Completed" },
 ];
 
 const CreateTask: FC<CreateTaskProps> = ({
@@ -99,6 +108,7 @@ const CreateTask: FC<CreateTaskProps> = ({
         title: initialData.title,
         description: initialData.description || "",
         priority: initialData.priority,
+        status: initialData.status,
         due_date: initialData.due_date
           ? dayjs(initialData.due_date).format("YYYY-MM-DD")
           : "",
@@ -227,6 +237,10 @@ const CreateTask: FC<CreateTaskProps> = ({
       newErrors.priority = "Priority is required.";
     }
 
+    if (!values.status) {
+      newErrors.status = "Status is required.";
+    }
+
     if (!values.due_date) {
       newErrors.due_date = "Due date is required.";
     }
@@ -322,7 +336,7 @@ const CreateTask: FC<CreateTaskProps> = ({
               id="task-form-title"
               sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
             >
-              {mode === 'edit' ? 'Edit task' : 'Create new task'}
+              {mode === "edit" ? "Edit task" : "Create new task"}
             </Typography>
             <Typography sx={{ fontSize: 13, color: "#344054" }}>
               {mode === "edit"
@@ -331,6 +345,7 @@ const CreateTask: FC<CreateTaskProps> = ({
             </Typography>
           </Stack>
           <CloseIcon
+            size={20}
             style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={handleClose}
           />
@@ -338,31 +353,71 @@ const CreateTask: FC<CreateTaskProps> = ({
 
         {/* Form Content */}
         <form onSubmit={handleSubmit}>
-            <Stack
-              className="vwtask-form-body"
-              sx={{ display: "flex", flexDirection: "column", gap: 8 }}
-            >
-              {/* Row 1: Task Title and Assignees */}
-              <Stack direction="row" sx={{ gap: 8 }}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Field
-                    id="title"
-                    label="Task title"
-                    width="350px"
-                    value={values.title}
-                    onChange={handleOnTextFieldChange("title")}
-                    error={errors.title}
-                    isRequired
-                    sx={{
-                      backgroundColor: theme.palette.background.main,
-                      "& input": {
-                        padding: "0 14px",
-                      },
-                    }}
-                    placeholder="Enter task title"
-                  />
-                </Suspense>
+          <Stack direction="row" sx={{ gap: 8 }}>
+            {/* Left Column */}
+            <Stack sx={{ gap: 8 }}>
+              <Suspense fallback={<div>Loading...</div>}>
+                <Field
+                  id="title"
+                  label="Task title"
+                  width="350px"
+                  value={values.title}
+                  onChange={handleOnTextFieldChange("title")}
+                  error={errors.title}
+                  isRequired
+                  sx={fieldStyle}
+                  placeholder="Enter task title"
+                />
+              </Suspense>
 
+              <Suspense fallback={<div>Loading...</div>}>
+                <DatePicker
+                  label="Due date"
+                  date={values.due_date ? dayjs(values.due_date) : null}
+                  handleDateChange={handleDateChange}
+                  sx={{
+                    ...datePickerStyle,
+                    width: "350px",
+                    backgroundColor: theme.palette.background.main,
+                  }}
+                  isRequired
+                  error={errors.due_date}
+                />
+              </Suspense>
+
+              <SelectComponent
+                items={statusOptions}
+                value={values.status}
+                error={errors.status}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                id="status"
+                label="Status"
+                isRequired
+                onChange={handleOnSelectChange("status")}
+                placeholder="Select status"
+              />
+
+              <SelectComponent
+                items={priorityOptions}
+                value={values.priority}
+                error={errors.priority}
+                sx={{
+                  width: "350px",
+                  backgroundColor: theme.palette.background.main,
+                }}
+                id="priority"
+                label="Priority"
+                isRequired
+                onChange={handleOnSelectChange("priority")}
+                placeholder="Select priority"
+              />
+            </Stack>
+
+            {/* Right Column */}
+            <Stack sx={{ gap: 8 }}>
               <Suspense fallback={<div>Loading...</div>}>
                 <Stack gap={theme.spacing(2)}>
                   <Typography
@@ -373,7 +428,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     fontSize={"13px"}
                     sx={{ margin: 0, height: "22px" }}
                   >
-                    Assignees
+                    Assignees *
                   </Typography>
                   <Autocomplete
                     multiple
@@ -422,7 +477,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         : "No options"
                     }
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<GreyDownArrowIcon size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -481,165 +536,127 @@ const CreateTask: FC<CreateTaskProps> = ({
                   />
                 </Stack>
               </Suspense>
-            </Stack>
 
-              {/* Row 2: Due Date and Categories */}
-              <Stack direction="row" sx={{ gap: 8, alignItems: "flex-start" }}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <DatePicker
-                    label="Due date"
-                    date={values.due_date ? dayjs(values.due_date) : null}
-                    handleDateChange={handleDateChange}
+              <Suspense fallback={<div>Loading...</div>}>
+                <Stack gap={theme.spacing(2)}>
+                  <Typography
+                    component="p"
+                    variant="body1"
+                    color={theme.palette.text.secondary}
+                    fontWeight={500}
+                    fontSize={"13px"}
+                    sx={{ margin: 0, height: "22px" }}
+                  >
+                    Categories
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    id="categories-input"
+                    size="small"
+                    freeSolo
+                    value={values.categories}
+                    options={[]}
+                    onChange={(_event, newValue: string[]) => {
+                      setValues((prevValues) => ({
+                        ...prevValues,
+                        categories: newValue,
+                      }));
+                      setErrors((prev) => ({ ...prev, categories: "" }));
+                    }}
+                    getOptionLabel={(option: string) => option}
+                    filterSelectedOptions
+                    popupIcon={<GreyDownArrowIcon size={16} />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Enter categories"
+                        error={!!errors.categories}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            minHeight: "34px",
+                            height: "auto",
+                            alignItems: "flex-start",
+                            paddingY: "3px !important",
+                            flexWrap: "wrap",
+                            gap: "2px",
+                          },
+                          "& ::placeholder": {
+                            fontSize: "13px",
+                          },
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value && !values.categories.includes(value)) {
+                              setValues((prevValues) => ({
+                                ...prevValues,
+                                categories: [...prevValues.categories, value],
+                              }));
+                              input.value = "";
+                            }
+                          }
+                        }}
+                      />
+                    )}
                     sx={{
-                      ...datePickerStyle,
                       width: "350px",
                       backgroundColor: theme.palette.background.main,
-                    }}
-                    isRequired
-                    error={errors.due_date}
-                  />
-                </Suspense>
-
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Stack
-                    gap={theme.spacing(2)}
-                  >
-                    <Typography
-                      component="p"
-                      variant="body1"
-                      color={theme.palette.text.secondary}
-                      fontWeight={500}
-                      fontSize={"13px"}
-                      sx={{ margin: 0, height: '22px' }}
-                    >
-                      Categories
-                    </Typography>
-                    <Autocomplete
-                      multiple
-                      id="categories-input"
-                      size="small"
-                      freeSolo
-                      value={values.categories}
-                      options={[]}
-                      onChange={(_event, newValue: string[]) => {
-                        setValues((prevValues) => ({
-                          ...prevValues,
-                          categories: newValue,
-                        }));
-                        setErrors((prev) => ({ ...prev, categories: "" }));
-                      }}
-                      getOptionLabel={(option: string) => option}
-                      filterSelectedOptions
-                      popupIcon={<GreyDownArrowIcon />}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          placeholder="Enter categories"
-                          error={!!errors.categories}
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              minHeight: "34px",
-                              height: "auto",
-                              alignItems: "flex-start",
-                              paddingY: "3px !important",
-                              flexWrap: "wrap",
-                              gap: "2px",
-                            },
-                            "& ::placeholder": {
-                              fontSize: "13px",
-                            },
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              const input = e.target as HTMLInputElement;
-                              const value = input.value.trim();
-                              if (value && !values.categories.includes(value)) {
-                                setValues((prevValues) => ({
-                                  ...prevValues,
-                                  categories: [...prevValues.categories, value],
-                                }));
-                                input.value = '';
-                              }
-                            }
-                          }}
-                        />
-                      )}
-                      sx={{
-                        width: "350px",
-                        backgroundColor: theme.palette.background.main,
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: "3px",
-                          overflowY: "auto",
-                          flexWrap: "wrap",
-                          maxHeight: "115px",
-                          alignItems: "flex-start",
-                          "&:hover": {
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              border: "none",
-                            },
-                          },
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "3px",
+                        overflowY: "auto",
+                        flexWrap: "wrap",
+                        maxHeight: "115px",
+                        alignItems: "flex-start",
+                        "&:hover": {
                           "& .MuiOutlinedInput-notchedOutline": {
                             border: "none",
                           },
-                          "&.Mui-focused": {
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              border: "none",
-                            },
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          border: "none",
+                        },
+                        "&.Mui-focused": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
                           },
                         },
-                        "& .MuiAutocomplete-tag": {
-                          margin: "2px",
-                          maxWidth: "calc(100% - 25px)",
-                          "& .MuiChip-label": {
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          },
+                      },
+                      "& .MuiAutocomplete-tag": {
+                        margin: "2px",
+                        maxWidth: "calc(100% - 25px)",
+                        "& .MuiChip-label": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         },
-                        border: errors.categories
-                          ? `1px solid #f04438`
-                          : `1px solid ${theme.palette.border.dark}`,
-                        borderRadius: "3px",
-                        opacity: errors.categories ? 0.8 : 1,
-                      }}
-                      slotProps={{
-                        paper: {
-                          sx: {
-                            display: 'none'
-                          }
-                        }
-                      }}
-                    />
-                    {errors.categories && (
-                      <Typography
-                        color="error"
-                        variant="caption"
-                        sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
-                      >
-                        {errors.categories}
-                      </Typography>
-                    )}
-                  </Stack>
-                </Suspense>
-              </Stack>
-
-            {/* Row 3: Priority and Description */}
-            <Stack direction="row" sx={{ gap: 8 }}>
-              <SelectComponent
-                items={priorityOptions}
-                value={values.priority}
-                error={errors.priority}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                id="priority"
-                label="Priority"
-                isRequired
-                onChange={handleOnSelectChange("priority")}
-                placeholder="Select priority"
-              />
+                      },
+                      border: errors.categories
+                        ? `1px solid #f04438`
+                        : `1px solid ${theme.palette.border.dark}`,
+                      borderRadius: "3px",
+                      opacity: errors.categories ? 0.8 : 1,
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          display: "none",
+                        },
+                      },
+                    }}
+                  />
+                  {errors.categories && (
+                    <Typography
+                      color="error"
+                      variant="caption"
+                      sx={{ mt: 0.5, ml: 1, color: "#f04438", opacity: 0.8 }}
+                    >
+                      {errors.categories}
+                    </Typography>
+                  )}
+                </Stack>
+              </Suspense>
 
               <Suspense fallback={<div>Loading...</div>}>
                 <Field
@@ -675,7 +692,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                 marginTop: 2,
               }}
               onClick={handleSubmit}
-              icon={<SaveIcon />}
+              icon={<SaveIcon size={16} />}
             />
           </Stack>
         </form>

@@ -127,83 +127,96 @@ def conditional_statistical_parity(
     legitimate_attributes: np.ndarray,
 ) -> List[Dict[str, Any]]:
     """
-    Calculate Conditional Statistical Parity metric.
+    Calculate Conditional Statistical Parity (CSP).
+
+    Computes selection-rate disparity within strata defined by legitimate attributes.
 
     Args:
-        y_pred: Predicted labels
-        protected_attributes: Protected group attributes
-        legitimate_attributes: Legitimate attributes to condition on
+        y_pred: Predicted labels or scores convertible to numeric; selection rate is mean(y_pred).
+        protected_attributes: Protected group attribute per sample (1D of length N).
+        legitimate_attributes: Attributes to stratify by. May be:
+            - 1D array of length N, or
+            - 2D array of shape (N, L) for L legitimate attributes.
 
     Returns:
-        List[Dict[str, Any]]: A list of per-stratum records. Each record has keys:
-            - "stratum": the stratum value
-            - "group_selection_rates": dict of group -> selection rate (float)
+        List[Dict[str, Any]]: Per-stratum records with keys:
+            - "stratum": stratum label (string)
+            - "group_selection_rates": mapping of protected group -> selection rate (float)
             - "disparity": max(group rates) - min(group rates) (float)
     """
-    # Flatten and validate inputs
-    y_pred_array = np.asarray(y_pred).ravel()
-    sensitive_features_array = np.asarray(protected_attributes).ravel()
-    legitimate_array = np.asarray(legitimate_attributes).ravel()
+    # Flatten core inputs
+    y_pred = np.asarray(y_pred).ravel()
+    sensitive = np.asarray(protected_attributes).ravel()
+    legit = np.asarray(legitimate_attributes)
 
-    num_samples = y_pred_array.shape[0]
-    if not (
-        sensitive_features_array.shape[0] == num_samples
-        and legitimate_array.shape[0] == num_samples
-    ):
-        raise ValueError(
-            "Length mismatch: y_pred, protected_attributes, and legitimate_attributes must have the same number of samples"
-        )
+    n = y_pred.shape[0]
+    if sensitive.shape[0] != n:
+        raise ValueError("Length mismatch: protected_attributes must have N samples")
 
-    if num_samples == 0:
-        return []
+    # --- Build a 1D stratum key per row ---
+    if legit.ndim == 1:
+        stratify = legit.ravel()
+    elif legit.ndim == 2:
+        if legit.shape[0] != n:
+            raise ValueError("Length mismatch: legitimate_attributes must have N rows")
+        if legit.shape[1] == 1:
+            stratify = legit[:, 0]
+        else:
+            # Composite stratum: join columns as strings (or use tuples)
+            # Example: "col0|col1|col2"
+            stratify = pd.DataFrame(legit).astype(str).agg("|".join, axis=1).to_numpy()
+    else:
+        raise ValueError("legitimate_attributes must be 1D or 2D (N or N x L)")
 
-    # Build DataFrame for stratum-wise computation
+    if stratify.shape[0] != n:
+        raise ValueError("Length mismatch after stratify derivation")
+
+    # DataFrame for groupby
     df = pd.DataFrame(
-        {
-            "y_pred": y_pred_array,
-            "sensitive": sensitive_features_array,
-            "stratify": legitimate_array,
-        }
+        {"y_pred": y_pred, "sensitive": sensitive, "stratify": stratify}
     )
 
-    # Compute disparity (max selection rate difference across sensitive groups) within each stratum
-    details: List[Dict[str, Any]] = []
-    for stratum_value in df["stratify"].unique():
-        subset = df[df["stratify"] == stratum_value]
+    # All protected groups to show in every stratum (e.g., [0, 1])
+    all_groups = np.sort(df["sensitive"].unique())
 
+    details: List[Dict[str, Any]] = []
+    for stratum_value, subset in df.groupby("stratify"):
         if subset.empty:
             continue
 
-        # Dummy y_true (not used by the mean metric, required by MetricFrame signature)
-        dummy_y_true = np.zeros_like(subset["y_pred"], dtype=float)
-
-        metric_frame = MetricFrame(
+        # selection rate = mean(y_pred) per sensitive group
+        dummy_y_true = np.zeros(len(subset), dtype=float)  # not used
+        mf = MetricFrame(
             metrics=lambda y_t, y_p: float(np.mean(y_p)),
             y_true=dummy_y_true,
             y_pred=subset["y_pred"].to_numpy(),
             sensitive_features=subset["sensitive"].to_numpy(),
         )
 
-        group_rates = metric_frame.by_group
-        # If only one group present in the stratum, disparity is zero
-        disparity_value = (
-            float(group_rates.max() - group_rates.min())
-            if len(group_rates) > 0
-            else 0.0
-        )
+        # Ensure both groups appear; fill missing with 0.0
+        by_group = mf.by_group
+        by_group = by_group.reindex(all_groups, fill_value=0.0)
 
-        # Collect structured details for this stratum
-        sorted_group_keys = sorted(group_rates.index.tolist())
+        disparity_value = float(by_group.max() - by_group.min())
+        # stringify keys (handle numpy types)
         group_rates_dict = {
-            str(k): float(group_rates.loc[k]) for k in sorted_group_keys
+            str(int(k)) if np.issubdtype(type(k), np.integer) else str(k): float(v)
+            for k, v in by_group.items()
         }
+
         details.append(
             {
                 "stratum": str(stratum_value),
                 "group_selection_rates": group_rates_dict,
-                "disparity": float(disparity_value),
+                "disparity": disparity_value,
             }
         )
+
+    # Optional: sort strata numerically when possible
+    try:
+        details.sort(key=lambda d: float(d["stratum"]))
+    except Exception:
+        details.sort(key=lambda d: d["stratum"])
 
     return details
 

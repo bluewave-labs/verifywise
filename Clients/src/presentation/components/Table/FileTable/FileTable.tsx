@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from "react";
 import FileBasicTable from "../FilesBasicTable/FileBasicTable";
-import { Stack, Box, Typography } from "@mui/material";
-import AscendingIcon from "../../../assets/icons/up-arrow.svg";
-import DescendingIcon from "../../../assets/icons/down-arrow.svg";
-import EmptyTableImage from "../../../assets/imgs/empty-state.svg";
+import { Stack } from "@mui/material";
+import { ArrowUp as AscendingIcon, ArrowDown as DescendingIcon } from "lucide-react";
+import EmptyState from "../../EmptyState";
 import { FileData } from "../../../../domain/types/File";
 
 type SortDirection = "asc" | "desc" | null;
@@ -19,43 +18,6 @@ interface FileTableProps {
   cols: any[];
   files: FileData[];
 }
-/**
- *
- * Displays an empty state when no files are available.
- * @returns {JSX.Element} The empty state component.
- *
- */
-const EmptyState: React.FC = (): JSX.Element => (
-  <Stack
-    direction="column"
-    alignItems="center"
-    justifyContent="center"
-    sx={{
-      flex: 1,
-      height: "100%",
-      width: "100%",
-      textAlign: "center",
-      border: "1px solid #eeeeee",
-      padding: 4,
-      boxSizing: "border-box",
-    }}
-  >
-    <Box
-      component="img"
-      src={EmptyTableImage}
-      alt="No files available"
-      sx={{
-        width: 250,
-        height: 176,
-        opacity: 0.7,
-        mb: 4,
-      }}
-    />
-    <Typography variant="body2" color="text.secondary" sx={{ margin: 0 }}>
-      There are currently no pieces of evidence or other documents uploaded.
-    </Typography>
-  </Stack>
-);
 
 const FileTable: React.FC<FileTableProps> = ({ cols, files }) => {
   const [sortField, setSortField] = useState<keyof FileData | null>(null);
@@ -100,16 +62,11 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files }) => {
                   sx={{ cursor: "pointer" }}
                 >
                   {col.name}
-                  <Box
-                    component="img"
-                    src={
-                      sortField === colKey && sortDirection === "asc"
-                        ? AscendingIcon
-                        : DescendingIcon
-                    }
-                    alt="Sort"
-                    sx={{ width: 16, height: 16, ml: 0.5 }}
-                  />
+                  {sortField === colKey && sortDirection === "asc" ? (
+                    <AscendingIcon size={16} style={{ marginLeft: 4 }} />
+                  ) : (
+                    <DescendingIcon size={16} style={{ marginLeft: 4 }} />
+                  )}
                 </Stack>
               ),
             }
@@ -130,7 +87,10 @@ const FileTable: React.FC<FileTableProps> = ({ cols, files }) => {
   );
 
   return files.length === 0 ? (
-    <EmptyState />
+    <EmptyState
+      message="There are currently no pieces of evidence or other documents uploaded."
+      imageAlt="No files available"
+    />
   ) : (
     <FileBasicTable
       data={{ cols: sortedCols, rows }}

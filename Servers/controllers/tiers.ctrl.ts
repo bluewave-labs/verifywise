@@ -4,14 +4,10 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 
 async function getTiersFeatures(req: Request, res: Response) {
-    logStructured("processing", "Fetching tiers features", "getTiersFeatures", "tiers.ctrl.ts");
-    logger.debug('🔍 Fetching tiers features');
     const tierId = parseInt(req.params.id);
 
-    if (!Number.isInteger(tierId) || tierId < 1 || tierId > 4) {
-        logStructured("error", `Invalid tier id: ${req.params.id}`, "getTiersFeatures", "tiers.ctrl.ts");
-        return res.status(400).json(STATUS_CODE[400]({ message: 'Invalid tier id' }));
-    }
+    logStructured("processing", "Fetching tiers features", "getTiersFeatures", "tiers.ctrl.ts");
+    logger.debug('🔍 Fetching tiers features');
 
     try {
         const tiersFeatures = await getTiersFeaturesQuery(tierId);

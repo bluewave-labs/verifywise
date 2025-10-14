@@ -75,6 +75,7 @@ export async function getQuestionById(
   res: Response
 ): Promise<any> {
   const questionId = parseInt(req.params.id);
+
   logStructured(
     "processing",
     `fetching question by ID: ${questionId}`,
@@ -452,18 +453,6 @@ export async function getQuestionsBySubtopicId(req: Request, res: Response) {
   logger.debug(`🔍 Looking up questions for subtopic ID: ${subtopicId}`);
 
   try {
-    if (isNaN(subtopicId)) {
-      logStructured(
-        "error",
-        `invalid subtopic ID: ${req.params.id}`,
-        "getQuestionsBySubtopicId",
-        "question.ctrl.ts"
-      );
-      await logEvent("Error", `Invalid subtopic ID provided: ${req.params.id}`);
-      return res
-        .status(400)
-        .json(STATUS_CODE[400]({ message: "Invalid subtopic ID" }));
-    }
 
     const questions = await getQuestionBySubTopicIdQuery(
       subtopicId,
@@ -519,18 +508,6 @@ export async function getQuestionsByTopicId(req: Request, res: Response) {
   logger.debug(`🔍 Looking up questions for topic ID: ${topicId}`);
 
   try {
-    if (isNaN(topicId)) {
-      logStructured(
-        "error",
-        `invalid topic ID: ${req.params.id}`,
-        "getQuestionsByTopicId",
-        "question.ctrl.ts"
-      );
-      await logEvent("Error", `Invalid topic ID provided: ${req.params.id}`);
-      return res
-        .status(400)
-        .json(STATUS_CODE[400]({ message: "Invalid topic ID" }));
-    }
 
     const questions = await getQuestionByTopicIdQuery(topicId, req.tenantId!);
 

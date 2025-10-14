@@ -33,8 +33,7 @@ import {
 } from "@mui/material";
 import "./index.css";
 import { forwardRef, useState } from "react";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-
+import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
 import { ForwardedRef } from "react";
 import { FieldProps as OriginalFieldProps } from "../../../../domain/interfaces/iWidget";
 
@@ -194,7 +193,7 @@ const Field = forwardRef(
                     },
                   }}
                 >
-                  {!isVisible ? <VisibilityOff /> : <Visibility />}
+                  {!isVisible ? <VisibilityOffIcon size={16} /> : <VisibilityIcon size={16} />}
                 </IconButton>
               </InputAdornment>
             ),

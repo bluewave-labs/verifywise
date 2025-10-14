@@ -36,11 +36,12 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         start_date timestamp with time zone NOT NULL,
         ai_risk_classification enum_projects_ai_risk_classification,
         type_of_high_risk_role enum_projects_type_of_high_risk_role,
-        goal character varying(255),
+        goal character varying(255) NOT NULL,
         last_updated timestamp with time zone NOT NULL,
         last_updated_by integer,
         is_demo boolean NOT NULL DEFAULT false,
         is_organizational boolean NOT NULL DEFAULT false,
+        status projects_status_enum NOT NULL DEFAULT 'Not started',
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT projects_pkey PRIMARY KEY (id),
         CONSTRAINT projects_owner_fkey FOREIGN KEY (owner)
@@ -63,10 +64,10 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         assignee integer,
         website character varying(255) NOT NULL,
         vendor_contact_person character varying(255) NOT NULL,
-        review_result character varying(255) NOT NULL,
-        review_status enum_vendors_review_status NOT NULL,
+        review_result character varying(255),
+        review_status enum_vendors_review_status,
         reviewer integer,
-        review_date timestamp with time zone NOT NULL,
+        review_date timestamp with time zone,
         is_demo boolean NOT NULL DEFAULT false,
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT vendors_pkey PRIMARY KEY (id),
@@ -667,6 +668,7 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         biases VARCHAR(255) NOT NULL,
         limitations VARCHAR(255) NOT NULL,
         hosting_provider VARCHAR(255) NOT NULL,
+        used_in_projects TEXT NOT NULL,
         is_demo BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -774,6 +776,16 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_task_id_idx" ON "${tenantHash}".task_assignees (task_id);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_user_id_idx" ON "${tenantHash}".task_assignees (user_id);`
     ].map(query => sequelize.query(query, { transaction })));
+
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".api_tokens
+    (
+      id SERIAL PRIMARY KEY,
+      token TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ,
+      created_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL
+    );`, { transaction });
   }
   catch (error) {
     throw error;

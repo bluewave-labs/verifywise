@@ -31,26 +31,6 @@ export async function createTask(req: Request, res: Response): Promise<any> {
 
     const { title, description, due_date, priority, status, categories, assignees } = req.body;
 
-    // Validate required fields
-    if (!title) {
-      return res.status(400).json(STATUS_CODE[400]("Task title is required"));
-    }
-
-    // Validate priority enum
-    if (priority && !Object.values(TaskPriority).includes(priority)) {
-      return res.status(400).json(STATUS_CODE[400](`Invalid priority. Must be one of: ${Object.values(TaskPriority).join(', ')}`));
-    }
-
-    // Validate status enum
-    if (status && !Object.values(TaskStatus).includes(status)) {
-      return res.status(400).json(STATUS_CODE[400](`Invalid status. Must be one of: ${Object.values(TaskStatus).join(', ')}`));
-    }
-
-    // Validate assignees (following project members pattern)
-    if (assignees && !Array.isArray(assignees)) {
-      return res.status(400).json(STATUS_CODE[400]("Assignees must be an array"));
-    }
-
     // Create task with current user as creator
     const taskData: ITask = {
       title,
@@ -277,6 +257,13 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
 
 export async function updateTask(req: Request, res: Response): Promise<any> {
   const taskId = parseInt(req.params.id);
+  // Get existing task for business rule validation
+  let existingTask = null;
+  try {
+    existingTask = await getTaskByIdQuery(taskId, { userId: req.userId!, role: req.role! }, req.tenantId!, req.organizationId!);
+  } catch (error) {
+    // Continue without existing data if query fails
+  }
 
   logProcessing({
     description: `starting updateTask for ID ${taskId}`,

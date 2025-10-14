@@ -135,8 +135,16 @@ export async function updateSubscriptionController(
   req: Request,
   res: Response
 ) {
+  const subscriptionId = parseInt(req.params.id);
+  // Get existing subscription for business rule validation
+  let existingSubscription = null;
+  try {
+    existingSubscription = await getSubscriptionById(subscriptionId);
+  } catch (error) {
+    // Continue without existing data if query fails
+  }
+
   const transaction = await sequelize.transaction();
-  const id = parseInt(req.params.id);
   const { tier_id, stripe_sub_id, status, start_date, end_date } = req.body;
 
   logStructured(
@@ -148,7 +156,7 @@ export async function updateSubscriptionController(
   logger.debug("✏️ Updating subscription");
 
   try {
-    const subscription = await getSubscriptionById(id);
+    const subscription = await getSubscriptionById(subscriptionId);
     if (subscription) {
       await subscription.updateSubscription({
         tier_id,
@@ -159,7 +167,7 @@ export async function updateSubscriptionController(
       });
 
       const updatedSubscription = (await updateSubscription(
-        id,
+        subscriptionId,
         {
           tier_id: subscription.tier_id,
           stripe_sub_id: subscription.stripe_sub_id,

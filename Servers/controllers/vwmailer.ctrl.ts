@@ -33,17 +33,6 @@ export const invite = async (
     `📧 Sending invitation email to ${to} for user ${name} ${surname || ""}`
   );
 
-  if (!to || !name || !roleId || !organizationId) {
-    await logFailure({
-      eventType: "Create",
-      description: `Missing required fields for invitation email to ${to}`,
-      functionName: "invite",
-      fileName: "vwmailer.ctrl.ts",
-      error: new Error("Missing required fields"),
-    });
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
   try {
     // Read the MJML template file
     const templatePath = path.resolve(

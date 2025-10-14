@@ -60,7 +60,6 @@ const ApiKeys = () => {
         setTokens(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching API tokens:", error);
       showAlert("error", "Error", "Failed to fetch API tokens");
     } finally {
       setIsLoading(false);
@@ -164,7 +163,6 @@ const ApiKeys = () => {
       setIsDeleteModalOpen(false);
       setTokenToDelete(null);
     } catch (error) {
-      console.error("Error deleting API token:", error);
       showAlert("error", "Error", "Failed to delete API token");
     } finally {
       setIsLoading(false);

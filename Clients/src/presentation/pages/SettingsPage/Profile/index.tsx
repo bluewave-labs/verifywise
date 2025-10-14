@@ -12,6 +12,7 @@ import {
   Stack,
   Typography,
   Button as MUIButton,
+  Avatar,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
@@ -761,7 +762,7 @@ const ProfileForm: React.FC = () => {
       </Box>
       {/* Profile Image Upload Section */}
       <Stack
-        sx={{ width: { xs: "100%", md: "40%", alignItems: "center" }, mt: 32 }}
+        sx={{ width: { xs: "100%", md: "40%" }, alignItems: "center", mt: 32 }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
           <Box
@@ -803,7 +804,7 @@ const ProfileForm: React.FC = () => {
               <Box
                 component="img"
                 src={imageUrl}
-                alt="Organization Image"
+                alt="User Profile Image"
                 onError={handleImageError}
                 onLoad={handleImageLoad}
                 sx={{
@@ -822,11 +823,7 @@ const ProfileForm: React.FC = () => {
                   gap: 1,
                 }}
               >
-                <Typography
-                  sx={{ fontSize: 10, color: "#888", textAlign: "center" }}
-                >
-                  {imageLoadError ? "Failed to load image" : "Profile Image"}
-                </Typography>
+                <Avatar sx={{ width: 76, height: 76, bgcolor: '#13715B' }}>{firstname && lastname ? `${firstname[0]}${lastname[0]}`: 'U'}</Avatar>
               </Box>
             )}
           </Box>

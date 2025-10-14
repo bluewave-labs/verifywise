@@ -1207,8 +1207,8 @@ async function deleteUserProfilePhoto(req: Request, res: Response) {
         "Error",
         `Failed to delete profile photo for user ID ${userId}`,
       );
-      return res.status(503).json(
-        STATUS_CODE[503]({
+      return res.status(500).json(
+        STATUS_CODE[500]({
           message: "Failed to delete profile photo",
         }),
       );

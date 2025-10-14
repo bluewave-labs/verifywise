@@ -118,13 +118,18 @@ const ApiKeys = () => {
       // Handle HTTP response errors
       else if (error && typeof error === 'object' && 'response' in error) {
         const response = (error as any).response;
-        if (response?.data?.message) {
+
+        // Check multiple possible locations for the error message
+        if (response?.data?.data && typeof response.data.data === 'string') {
+          // Validation errors from STATUS_CODE[400] put the message in data.data
+          errorMessage = response.data.data;
+        } else if (response?.data?.message) {
           errorMessage = response.data.message;
         } else if (response?.data?.error) {
           errorMessage = response.data.error;
-        } else if (response?.data?.data) {
-          // Sometimes the message is nested in data.data
-          errorMessage = response.data.data;
+        } else if (typeof response?.data === 'string') {
+          // Sometimes the data field itself is a string
+          errorMessage = response.data;
         } else if (response?.status === 409) {
           errorMessage = "A token with this name already exists. Please use a different name.";
         } else if (response?.status === 400) {

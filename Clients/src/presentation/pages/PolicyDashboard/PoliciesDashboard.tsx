@@ -68,9 +68,19 @@ const PolicyDashboard: React.FC = () => {
 
   const handleClose = () => setShowModal(false);
 
-  const handleSaved = () => {
+  const handleSaved = (successMessage?: string) => {
     fetchAll();
     handleClose();
+
+    // Show success alert if message is provided
+    if (successMessage) {
+      handleAlert({
+        variant: "success",
+        body: successMessage,
+        setAlert,
+        alertTimeout: 4000, // 4 seconds to give users time to read
+      });
+    }
   };
 
   const handleDelete = async (id: string) => {

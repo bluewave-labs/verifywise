@@ -72,16 +72,13 @@ import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandl
 import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
 import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
-import { handleAlert } from "../../../application/tools/alertUtils";
-import Alert from "../Alert";
-import { AlertProps } from "../../../domain/interfaces/iAlert";
 
 
 interface Props {
   policy: Policy | null;
   tags: string[];
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (successMessage?: string) => void;
 }
 
 export interface FormErrors {
@@ -105,7 +102,6 @@ const PolicyDetailModal: React.FC<Props> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   const [openLink, setOpenLink] = useState(false);
   const [openImage, setOpenImage] = useState(false);
-  const [alert, setAlert] = useState<AlertProps | null>(null);
 
   // const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -356,20 +352,12 @@ const PolicyDetailModal: React.FC<Props> = ({
         await updatePolicy(policy!.id, payload);
       }
 
-      // Show success alert using VerifyWise standard pattern
-      handleAlert({
-        variant: "success",
-        body: isNew
-          ? "Policy created successfully!"
-          : "Policy updated successfully!",
-        setAlert,
-        alertTimeout: 4000, // 4 seconds to give users time to read
-      });
+      // Close modal immediately and pass success message to parent
+      const successMessage = isNew
+        ? "Policy created successfully!"
+        : "Policy updated successfully!";
 
-      // Delay closing the modal to allow user to see the success message
-      setTimeout(() => {
-        onSaved();
-      }, 2000);
+      onSaved(successMessage);
     } catch (err: any) {
       // setIsSubmitting(false);
       console.error("Full error object:", err);
@@ -592,16 +580,6 @@ const PolicyDetailModal: React.FC<Props> = ({
           />
         </Box>
       </Drawer>
-
-      {alert && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={true}
-          onClick={() => setAlert(null)}
-        />
-      )}
     </>
   );
 };

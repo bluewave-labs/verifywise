@@ -125,7 +125,16 @@ const ApiKeys = () => {
 
       // Extract more specific error message from response
       let errorMessage = "Failed to create API token";
-      if (error && typeof error === 'object' && 'response' in error) {
+
+      // Handle CustomException objects (thrown by networkServices.ts)
+      if (error && typeof error === 'object' && 'message' in error) {
+        const message = (error as any).message;
+        if (typeof message === 'string') {
+          errorMessage = message;
+        }
+      }
+      // Handle HTTP response errors
+      else if (error && typeof error === 'object' && 'response' in error) {
         const response = (error as any).response;
         if (response?.data?.message) {
           errorMessage = response.data.message;

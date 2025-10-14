@@ -23,6 +23,8 @@ import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import { postAutoDrivers } from "../../../../application/repository/entity.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
 
 
 const Home = () => {
@@ -38,7 +40,7 @@ const Home = () => {
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, _] = useState<boolean>(false);
+  const [showToastNotification, setShowToastNotification] = useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
@@ -84,58 +86,58 @@ const Home = () => {
   };
 
 
-  // const handleGenerateDemoDataClick = async () => {
-  //   setShowToastNotification(true);
-  //   try {
-  //     const response = await postAutoDrivers();
-  //     if (response.status === 201) {
-  //       logEngine({
-  //         type: "info",
-  //         message: "Demo data generated successfully.",
-  //       });
-  //       setAlertState({
-  //         variant: "success",
-  //         body: "Demo data generated successfully.",
-  //       });
-  //       setTimeout(() => {
-  //         setAlertState(undefined);
-  //       }, 100);
+  const handleGenerateDemoDataClick = async () => {
+    setShowToastNotification(true);
+    try {
+      const response = await postAutoDrivers();
+      if (response.status === 201) {
+        logEngine({
+          type: "info",
+          message: "Demo data generated successfully.",
+        });
+        setAlertState({
+          variant: "success",
+          body: "Demo data generated successfully.",
+        });
+        setTimeout(() => {
+          setAlertState(undefined);
+        }, 3000);
 
-  //       await fetchDashboard();
-  //       setShowToastNotification(false);
-  //       window.location.reload();
-  //     } else {
-  //       logEngine({
-  //         type: "error",
-  //         message: "Failed to generate demo data.",
-  //       });
-  //       setAlertState({
-  //         variant: "error",
-  //         body: "Failed to generate demo data.",
-  //       });
-  //       setTimeout(() => {
-  //         setAlertState(undefined);
-  //       }, 100);
-  //     }
-  //     setShowToastNotification(false);
-  //   } catch (error) {
-  //     const errorMessage = (error as Error).message;
-  //     logEngine({
-  //       type: "error",
-  //       message: `An error occurred: ${errorMessage}`,
-  //     });
-  //     setAlertState({
-  //       variant: "error",
-  //       body: `An error occurred: ${errorMessage}`,
-  //     });
-  //     setTimeout(() => {
-  //       setAlertState(undefined);
-  //     }, 100);
-  //   } finally {
-  //     setShowToastNotification(false);
-  //     setRefreshProjectsFlag((prev) => !prev);
-  //   }
-  // };
+        await fetchDashboard();
+        setShowToastNotification(false);
+        window.location.reload();
+      } else {
+        logEngine({
+          type: "error",
+          message: "Failed to generate demo data.",
+        });
+        setAlertState({
+          variant: "error",
+          body: "Failed to generate demo data.",
+        });
+        setTimeout(() => {
+          setAlertState(undefined);
+        }, 3000);
+      }
+      setShowToastNotification(false);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      logEngine({
+        type: "error",
+        message: `An error occurred: ${errorMessage}`,
+      });
+      setAlertState({
+        variant: "error",
+        body: `An error occurred: ${errorMessage}`,
+      });
+      setTimeout(() => {
+        setAlertState(undefined);
+      }, 3000);
+    } finally {
+      setShowToastNotification(false);
+      setRefreshProjectsFlag((prev) => !prev);
+    }
+  };
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -203,22 +205,41 @@ const Home = () => {
       <ProjectList
         projects={projects}
         newProjectButton={
-          <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
-            <CustomizableButton
-              variant="contained"
-              text="New project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleOutlineIcon size={16} />}
-              onClick={() => setIsProjectFormModalOpen(true)}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          </div>
+          <Stack direction="row" spacing={2}>
+            <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
+              <CustomizableButton
+                variant="contained"
+                text="New project"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<AddCircleOutlineIcon size={16} />}
+                onClick={() => setIsProjectFormModalOpen(true)}
+                isDisabled={
+                  !allowedRoles.projects.create.includes(userRoleName)
+                }
+              />
+            </div>
+            {allowedRoles.projects.create.includes(userRoleName) && (
+              <CustomizableButton
+                variant="outlined"
+                text="Generate Demo Data"
+                sx={{
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                  gap: 2,
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.04)",
+                  },
+                }}
+                onClick={handleGenerateDemoDataClick}
+                isDisabled={showToastNotification}
+              />
+            )}
+          </Stack>
         }
       />
 

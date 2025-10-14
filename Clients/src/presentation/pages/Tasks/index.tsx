@@ -31,7 +31,7 @@ import {
   vwhomeBody,
   vwhomeBodyControls,
 } from "../Home/1.0Home/style";
-import Toggle from "../../components/Toggle";
+import Toggle from "../../components/Inputs/Toggle";
 import { TaskPriority, TaskStatus } from "../../../domain/enums/task.enum";
 
 // Task status options for CustomSelect
@@ -290,8 +290,8 @@ const Tasks: React.FC = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Task management"
         description="Coordinate AI governance activities and compliance tasks across your teams"
-        whatItDoes="Centralize **task assignment** and tracking for *AI governance activities*. Manage deadlines, priorities, and progress for **compliance requirements**, *audits*, and **implementation projects**."
-        whyItMatters="Effective **task management** ensures nothing falls through the cracks in your *AI governance program*. It provides **accountability** and visibility into team workload, helping meet *compliance deadlines* and **implementation milestones**."
+        whatItDoes="Centralize *task assignment* and tracking for *AI governance activities*. Manage deadlines, priorities, and progress for *compliance requirements*, *audits*, and *implementation projects*."
+        whyItMatters="Effective **task management** ensures nothing falls through the cracks in your *AI governance program*. It provides *accountability* and visibility into team workload, helping meet *compliance deadlines* and *implementation milestones*."
         quickActions={[
           {
             label: "Create New Task",
@@ -300,23 +300,23 @@ const Tasks: React.FC = () => {
             primary: true,
           },
           {
-            label: "View My Tasks",
-            description: "Filter tasks assigned to you and track your progress",
+            label: "Filter by Assignee",
+            description: "Use the assignee dropdown to view tasks assigned to specific users",
           },
         ]}
         useCases={[
-          "**Compliance activities** like *framework implementation steps* and **audit preparations**",
-          "**Risk remediation tasks** arising from *vendor assessments* and **model evaluations**",
+          "*Compliance activities* like *framework implementation steps* and *audit preparations*",
+          "*Risk remediation tasks* arising from *vendor assessments* and *model evaluations*",
         ]}
         keyFeatures={[
-          "**Priority-based task queuing** with *due date tracking* and automated reminders",
-          "**Assignment to individuals or teams** with *progress monitoring*",
-          "**Integration** with project timelines and *compliance calendars*",
+          "**Priority-based task management** with *due date tracking* and overdue detection",
+          "*Assignment to individual users* with *status tracking*",
+          "*Advanced filtering* by status, priority, assignee, and search functionality",
         ]}
         tips={[
-          "Break down **large compliance projects** into *manageable tasks* with **clear owners**",
-          "Set *realistic deadlines* considering **team capacity** and other commitments",
-          "**Regular task reviews** help identify *bottlenecks* and **resource constraints** early",
+          "Use the *priority levels* (High, Medium, Low) to focus on the most critical tasks first",
+          "Set *due dates* to track deadlines and automatically identify overdue tasks",
+          "Use the *search and filter options* to quickly find specific tasks or view by assignee",
         ]}
       />
 
@@ -473,7 +473,7 @@ const Tasks: React.FC = () => {
                   >
                     <Toggle
                       checked={includeArchived}
-                      onChange={(checked) => setIncludeArchived(checked)}
+                      onChange={(_, checked) => setIncludeArchived(checked)}
                     />
                   </Box>
                 </Stack>

@@ -277,7 +277,7 @@ const ProjectForm = ({
     const newErrors: FormErrors = {};
 
     const projectTitle = checkStringValidation(
-      "Project title",
+      values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title",
       values.project_title,
       1,
       64
@@ -440,17 +440,20 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
+              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
+            }
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
               : defaultFrameworkType
               ? `Creating a ${
                   defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
                     ? "organization-wide"
                     : "project-based"
-                } project`
+                } ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? "framework" : "use case"}`
               : "Please select the type of frameworks you need"}
           </Typography>
         </Stack>
@@ -556,8 +559,8 @@ const ProjectForm = ({
           <CustomizableToast
             title={
               projectToEdit
-                ? "Updating project. Please wait..."
-                : "Creating project. Please wait..."
+                ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Updating framework. Please wait..." : "Updating use case. Please wait...")
+                : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Creating framework. Please wait..." : "Creating use case. Please wait...")
             }
           />
         </Stack>
@@ -575,13 +578,16 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
+              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
+            }
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
               : values.framework_type === FrameworkTypeEnum.ProjectBased
-              ? "Create a new project from scratch by filling in the following."
+              ? "Create a new use case from scratch by filling in the following."
               : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
         </Stack>
@@ -598,7 +604,7 @@ const ProjectForm = ({
         <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
           <Field
             id="project-title-input"
-            label="Project title"
+            label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title"}
             width="350px"
             value={values.project_title}
             onChange={handleOnTextFieldChange("project_title")}
@@ -626,6 +632,19 @@ const ProjectForm = ({
             error={errors.owner}
             isRequired
           />
+          <Select
+            id="project-status-input"
+            label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework status" : "Use case status"}
+            placeholder="Select status"
+            value={values.status || ""}
+            onChange={handleOnSelectChange("status")}
+            items={projectStatusItems}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.status}
+          />
           {values.framework_type === FrameworkTypeEnum.ProjectBased && (
             <>
               <Select
@@ -641,19 +660,6 @@ const ProjectForm = ({
                 }}
                 error={errors.riskClassification}
                 isRequired
-              />
-              <Select
-                id="project-status-input"
-                label="Project status"
-                placeholder="Select status"
-                value={values.status || ""}
-                onChange={handleOnSelectChange("status")}
-                items={projectStatusItems}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                error={errors.status}
               />
               <Select
                 id="type-of-high-risk-role-input"
@@ -784,7 +790,7 @@ const ProjectForm = ({
                       mb: 2,
                     }}
                   >
-                    Monitored regulations and standards *
+                    Applicable regulations *
                   </Typography>
                   <Autocomplete
                     multiple
@@ -896,7 +902,7 @@ const ProjectForm = ({
                   mb: 2,
                 }}
               >
-                Monitored regulations and standards *
+                Applicable regulations *
               </Typography>
               <Autocomplete
                 multiple
@@ -1013,7 +1019,10 @@ const ProjectForm = ({
         }}
       >
         <CustomizableButton
-          text={projectToEdit ? "Update project" : "Create project"}
+          text={projectToEdit
+            ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update framework" : "Update use case")
+            : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create framework" : "Create use case")
+          }
           sx={createProjectButtonStyle}
           icon={<AddCircleOutlineIcon size={20} />}
           onClick={() => handleSubmit()}

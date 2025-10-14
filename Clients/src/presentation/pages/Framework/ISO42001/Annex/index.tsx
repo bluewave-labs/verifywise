@@ -8,7 +8,6 @@ import {
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { GetAnnexesByProjectFrameworkId } from "../../../../../application/repository/annex_struct_iso.repository";
 import { useEffect, useState } from "react";
-import StatsCard from "../../../../components/Cards/StatsCard";
 import { styles } from "../../ISO27001/Clause/style";
 import { ArrowRight as RightArrowBlack } from "lucide-react";
 import VWISO42001AnnexDrawerDialog from "../../../../components/Drawer/AnnexDrawerDialog";
@@ -39,7 +38,7 @@ const ISO42001Annex = ({
 }) => {
   const { userId, userRoleName } = useAuth();
   const [expanded, setExpanded] = useState<number | false>(false);
-  const [annexesProgress, setAnnexesProgress] = useState<any>({});
+  const [, setAnnexesProgress] = useState<any>({});
   const [annexes, setAnnexes] = useState<any>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedControl, setSelectedControl] = useState<any>(null);
@@ -243,12 +242,6 @@ const ISO42001Annex = ({
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
-      <StatsCard
-        completed={annexesProgress?.doneAnnexcategories ?? 0}
-        total={annexesProgress?.totalAnnexcategories ?? 0}
-        title="Annexes"
-        progressbarColor="#13715B"
-      />
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Information Security Controls"}
       </Typography>

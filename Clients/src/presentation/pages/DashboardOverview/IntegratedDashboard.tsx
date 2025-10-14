@@ -20,6 +20,15 @@ import {
   Lock,
   LockOpen,
   ChevronRight,
+  Lightbulb,
+  FileText,
+  BarChart3,
+  Users,
+  Brain,
+  Building2,
+  ShieldAlert,
+  GraduationCap,
+  ScrollText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -429,6 +438,7 @@ interface MetricCardProps {
   statusData?: IStatusData[];
   entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks";
   compact?: boolean;
+  backgroundIcon?: React.ComponentType<any>;
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -439,6 +449,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   statusData,
   entityType,
   compact = false,
+  backgroundIcon: BackgroundIcon,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
@@ -470,27 +481,20 @@ const MetricCard: React.FC<MetricCardProps> = ({
   );
 
   // Priority visual cues
-  const getPriorityStyles = (theme: any) => {
+  const getPriorityStyles = () => {
     switch (priorityLevel) {
       case "high":
         return {
-          borderLeft: "4px solid #EF4444 !important",
-          borderTop: `1px solid ${theme.palette.divider} !important`,
-          borderRight: `1px solid ${theme.palette.divider} !important`,
-          borderBottom: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FEF2F2 0%, #FDE8E8 100%)",
+          borderLeft: "4px solid #EF4444",
         };
       case "medium":
         return {
-          borderLeft: "4px solid #F59E0B !important",
-          borderTop: `1px solid ${theme.palette.divider} !important`,
-          borderRight: `1px solid ${theme.palette.divider} !important`,
-          borderBottom: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FFFBEB 0%, #FEF6D3 100%)",
+          borderLeft: "4px solid #F59E0B",
         };
       default:
         return {
-          border: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
         };
     }
@@ -504,7 +508,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       sx={(theme) => ({
         ...(cardStyles.base(theme) as any),
-        ...getPriorityStyles(theme),
+        ...getPriorityStyles(),
+        border: "none", // Remove border from MetricCard
+        margin: 0, // Remove any default margin
         height: "100%",
         minHeight: compact ? "90px" : "auto",
         cursor: navigable ? "pointer" : "default",
@@ -513,26 +519,46 @@ const MetricCard: React.FC<MetricCardProps> = ({
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
+        borderRadius: 0, // Remove border radius to fill the wrapper completely
         "&:hover": navigable
           ? {
               background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-              borderColor: "#D1D5DB",
+              borderColor: "transparent",
             }
           : {},
       })}
     >
       <CardContent
         sx={{
-          pt: 0,
-          pb: compact ? 1.5 : 2,
-          px: compact ? 1.5 : 2,
+          p: compact ? 1.5 : 2,
           position: "relative",
-          height: "calc(100% - 1px)",
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           flex: 1,
+          overflow: "hidden",
+          "&:last-child": {
+            paddingBottom: compact ? 1.5 : 2,
+          },
         }}
       >
+        {/* Background Icon */}
+        {BackgroundIcon && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: "-48px",
+              right: "-48px",
+              opacity: isHovered ? 0.04 : 0.015,
+              transform: isHovered ? "translateY(-10px)" : "translateY(0px)",
+              zIndex: 0,
+              pointerEvents: "none",
+              transition: "opacity 0.2s ease, transform 0.3s ease",
+            }}
+          >
+            <BackgroundIcon size={120} />
+          </Box>
+        )}
         {/* Header section with title and arrow icon */}
         <Box
           sx={{
@@ -542,6 +568,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
             justifyContent: "space-between",
             mb: compact ? 1 : 2,
             mt: compact ? 1.5 : 2,
+            zIndex: 1,
           }}
         >
           <Typography
@@ -574,6 +601,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: compact ? "center" : "flex-start",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           {showChart ? (
@@ -752,56 +781,11 @@ const IntegratedDashboard: React.FC = () => {
   // Heights: Users/Reports/Projects/Evidence are always small (85px), others can be big (170px)
   const defaultLayouts: Layouts = {
     lg: [
-      // First row - 4 widgets (small widgets = h:2, fixed width, not resizable)
-      {
-        i: "projects",
-        x: 0,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "evidences",
-        x: 3,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "reports",
-        x: 6,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "users",
-        x: 9,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      // Second row - 4 widgets (can be big = h:4)
+      // First row - 4 widgets (can be big = h:4)
       {
         i: "models",
         x: 0,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -812,7 +796,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendors",
         x: 3,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -823,7 +807,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendor-risks",
         x: 6,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -834,7 +818,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "trainings",
         x: 9,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -842,11 +826,11 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
-      // Third row - 2 widgets (can be big = h:4)
+      // Second row - 1 widget (can be big = h:4)
       {
         i: "policies",
         x: 0,
-        y: 6,
+        y: 4,
         w: 3,
         h: 4,
         minW: 3,
@@ -1333,12 +1317,14 @@ const IntegratedDashboard: React.FC = () => {
       id: "projects",
       content: (
         <MetricCard
-          title="Projects"
-          value={dashboard?.projects || 0}
-          navigable={false}
+          title="Use cases"
+          value={dashboard?.projects_list?.filter((p) => !p.is_organizational)?.length || 0}
+          onClick={() => navigate("/overview")}
+          navigable={true}
+          backgroundIcon={Lightbulb}
         />
       ),
-      title: "Projects",
+      title: "Use cases",
     },
     {
       id: "evidences",
@@ -1346,7 +1332,9 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Evidence"
           value={evidenceMetrics?.total || 0}
-          navigable={false}
+          onClick={() => navigate("/file-manager")}
+          navigable={true}
+          backgroundIcon={FileText}
         />
       ),
       title: "Evidence",
@@ -1357,7 +1345,9 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Reports"
           value={dashboard?.reports || 0}
-          navigable={false}
+          onClick={() => navigate("/reporting")}
+          navigable={true}
+          backgroundIcon={BarChart3}
         />
       ),
       title: "Reports",
@@ -1368,7 +1358,9 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Users"
           value={usersMetrics?.total || 0}
-          navigable={false}
+          onClick={() => navigate("/setting")}
+          navigable={true}
+          backgroundIcon={Users}
         />
       ),
       title: "Users",
@@ -1386,6 +1378,7 @@ const IntegratedDashboard: React.FC = () => {
             dashboard?.models || 0
           )}
           entityType="models"
+          backgroundIcon={Brain}
         />
       ),
       title: "AI Models",
@@ -1403,6 +1396,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="vendors"
+          backgroundIcon={Building2}
         />
       ),
       title: "Vendors",
@@ -1420,6 +1414,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="vendorRisks"
+          backgroundIcon={ShieldAlert}
         />
       ),
       title: "Vendor Risks",
@@ -1437,6 +1432,7 @@ const IntegratedDashboard: React.FC = () => {
             dashboard?.trainings || 0
           )}
           entityType="trainings"
+          backgroundIcon={GraduationCap}
         />
       ),
       title: "Trainings",
@@ -1454,6 +1450,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="policies"
+          backgroundIcon={ScrollText}
         />
       ),
       title: "Policies",
@@ -1764,8 +1761,12 @@ const IntegratedDashboard: React.FC = () => {
               flexDirection: "column",
               overflow: "hidden",
               boxShadow: "none",
-              border: `1px solid ${theme.palette.divider}`,
-              background: "transparent",
+              border: `1px solid #DCDFE3`,
+              backgroundColor: "inherit",
+              "& .MuiCard-root": {
+                height: "100%",
+                margin: 0,
+              },
             }}
           >
             {editMode && (
@@ -1789,7 +1790,7 @@ const IntegratedDashboard: React.FC = () => {
                 title={widget.title}
               />
             )}
-            <Box sx={{ flexGrow: 1, p: editMode ? 2 : 0 }}>
+            <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
               <WidgetErrorBoundary
                 widgetId={widget.id}
                 widgetTitle={widget.title}

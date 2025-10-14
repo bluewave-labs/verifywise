@@ -126,31 +126,50 @@ export const createNewVendorQuery = async (
   transaction: Transaction,
   is_demo: boolean = false
 ): Promise<VendorModel> => {
+  // Build dynamic query for optional fields
+  const fields = ['order_no', 'vendor_name', 'vendor_provides', 'assignee', 'website', 'vendor_contact_person', 'is_demo'];
+  const values = ['order_no', 'vendor_name', 'vendor_provides', 'assignee', 'website', 'vendor_contact_person', 'is_demo'];
+  const replacements: any = {
+    order_no: vendor.order_no || null,
+    vendor_name: vendor.vendor_name,
+    vendor_provides: vendor.vendor_provides,
+    assignee: vendor.assignee,
+    website: vendor.website,
+    vendor_contact_person: vendor.vendor_contact_person,
+    is_demo: is_demo,
+  };
+
+  // Add optional review fields only if provided
+  if (vendor.review_result !== undefined) {
+    fields.push('review_result');
+    values.push('review_result');
+    replacements.review_result = vendor.review_result;
+  }
+  if (vendor.review_status !== undefined) {
+    fields.push('review_status');
+    values.push('review_status');
+    replacements.review_status = vendor.review_status;
+  }
+  if (vendor.reviewer !== undefined) {
+    fields.push('reviewer');
+    values.push('reviewer');
+    replacements.reviewer = vendor.reviewer;
+  }
+  if (vendor.review_date !== undefined) {
+    fields.push('review_date');
+    values.push('review_date');
+    replacements.review_date = vendor.review_date;
+  }
+
+  const fieldsList = fields.join(', ');
+  const valuesList = values.map(v => `:${v}`).join(', ');
+
   const result = await sequelize.query(
-    `INSERT INTO "${tenant}".vendors (
-        order_no, vendor_name, vendor_provides, assignee, website, vendor_contact_person,
-        review_result, review_status, reviewer, review_date, is_demo
-      ) VALUES (
-        :order_no, :vendor_name, :vendor_provides, :assignee, :website, :vendor_contact_person,
-        :review_result, :review_status, :reviewer, :review_date, :is_demo
-      ) RETURNING *`,
+    `INSERT INTO "${tenant}".vendors (${fieldsList}) VALUES (${valuesList}) RETURNING *`,
     {
-      replacements: {
-        order_no: vendor.order_no || null,
-        vendor_name: vendor.vendor_name,
-        vendor_provides: vendor.vendor_provides,
-        assignee: vendor.assignee,
-        website: vendor.website,
-        vendor_contact_person: vendor.vendor_contact_person,
-        review_result: vendor.review_result,
-        review_status: vendor.review_status,
-        reviewer: vendor.reviewer,
-        review_date: vendor.review_date,
-        is_demo: is_demo,
-      },
+      replacements,
       mapToModel: true,
       model: VendorModel,
-      // type: QueryTypes.INSERT
       transaction,
     }
   );
@@ -200,13 +219,25 @@ export const updateVendorByIdQuery = async (
     "review_date",
   ]
     .filter((f) => {
-      if (
-        vendor[f as keyof IVendor] !== undefined &&
-        vendor[f as keyof IVendor]
-      ) {
-        updateVendor[f as keyof IVendor] = vendor[f as keyof IVendor];
-        return true;
+      // For review fields, allow undefined or null to be updated (to clear the field)
+      // For other required fields, only update if they have a value
+      const isReviewField = ["review_result", "review_status", "reviewer", "review_date"].includes(f);
+      const value = vendor[f as keyof IVendor];
+
+      if (isReviewField) {
+        // Review fields: include if explicitly provided (even if null/empty)
+        if (value !== undefined) {
+          updateVendor[f as keyof IVendor] = value;
+          return true;
+        }
+      } else {
+        // Required fields: include only if they have a value
+        if (value !== undefined && value) {
+          updateVendor[f as keyof IVendor] = value;
+          return true;
+        }
       }
+      return false;
     })
     .map((f) => `${f} = :${f}`)
     .join(", ");

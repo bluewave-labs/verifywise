@@ -1,32 +1,14 @@
 import React from "react";
 import { ToggleButton, ToggleButtonGroup, useTheme } from "@mui/material";
-import { SxProps, Theme } from "@mui/material/styles";
-import { LayoutGrid as ViewModuleIcon, List as TableRowsIcon } from "lucide-react";
 
-export type ViewMode = "card" | "table";
-
-interface ViewToggleProps {
-  /**
-   * Current view mode
-   */
-  viewMode: ViewMode;
-  /**
-   * Callback fired when the view mode changes
-   */
-  onViewChange: (mode: ViewMode) => void;
-  /**
-   * Whether the component is disabled
-   */
-  disabled?: boolean;
-  /**
-   * Size of the toggle buttons
-   */
-  size?: "small" | "medium" | "large";
-  /**
-   * Additional styling
-   */
-  sx?: SxProps<Theme>;
-}
+import {
+  LayoutGrid as ViewModuleIcon,
+  List as TableRowsIcon,
+} from "lucide-react";
+import {
+  IViewMode,
+  IViewToggleProps,
+} from "../../../domain/interfaces/i.toggle";
 
 /**
  * ViewToggle - Reusable component for switching between card and table views
@@ -41,7 +23,7 @@ interface ViewToggleProps {
  * />
  * ```
  */
-const ViewToggle: React.FC<ViewToggleProps> = ({
+const ViewToggle: React.FC<IViewToggleProps> = ({
   viewMode,
   onViewChange,
   disabled = false,
@@ -51,7 +33,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
   const theme = useTheme();
   const handleViewChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newView: ViewMode | null
+    newView: IViewMode | null
   ) => {
     if (newView !== null) {
       onViewChange(newView);
@@ -91,7 +73,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
       ]}
     >
       <ToggleButton value="card" aria-label="card view" disableRipple>
-        <ViewModuleIcon size={16}/>
+        <ViewModuleIcon size={16} />
       </ToggleButton>
       <ToggleButton value="table" aria-label="table view" disableRipple>
         <TableRowsIcon size={16} />

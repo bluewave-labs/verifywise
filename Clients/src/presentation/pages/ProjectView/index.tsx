@@ -126,8 +126,8 @@ const ProjectView = () => {
             {project.project_title} project overview
           </Typography>
           <Typography sx={projectDescriptionStyle}>
-            This project includes all the governance process status of the{" "}
-            {project.project_title} project.
+            This page includes the governance process status of{" "}
+            <span style={{ color: "#13715B" }}>{project.project_title}</span>
           </Typography>
           <Stack sx={tabContainerStyle}>
             <TabContext value={value}>
@@ -144,7 +144,7 @@ const ProjectView = () => {
                     disableRipple={disableRipple}
                   />
                   <Tab
-                    label="Project risks"
+                    label="Use case risks"
                     value="project-risks"
                     sx={tabStyle}
                     disableRipple={disableRipple}

@@ -371,10 +371,12 @@ export const validateForeignKey = (
   }
 
   // Check if it's a positive integer
-  if (!Number.isInteger(numValue) || numValue <= 0) {
+  // For non-required fields, allow 0 as a valid "unassigned" value
+  const minValue = required ? 1 : 0;
+  if (!Number.isInteger(numValue) || numValue < minValue) {
     return {
       isValid: false,
-      message: `${fieldName} must be a positive integer`,
+      message: `${fieldName} must be a ${required ? 'positive ' : ''}valid integer${required ? '' : ' (0 or greater)'}`,
       code: 'INVALID_ID'
     };
   }

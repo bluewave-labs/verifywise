@@ -1,13 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { Stack, Typography, Modal, Box } from "@mui/material";
 import {
   vwhomeBody,
-  vwhomeBodyControls,
   vwhomeCreateModalFrame,
   vwhomeHeading,
 } from "./style";
-import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { CirclePlus as AddCircleOutlineIcon } from "lucide-react"
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
 import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
@@ -17,14 +14,17 @@ import { AlertState } from "../../../../application/interfaces/appStates";
 import PageTour from "../../../components/PageTour";
 import HomeSteps from "./HomeSteps";
 import useMultipleOnScreen from "../../../../application/hooks/useMultipleOnScreen";
-import allowedRoles from "../../../../application/constants/permissions";
 import HelperDrawer from "../../../components/HelperDrawer";
 import HelperIcon from "../../../components/HelperIcon";
-import HeaderCard from "../../../components/Cards/DashboardHeaderCard";
 import { useDashboard } from "../../../../application/hooks/useDashboard";
 import { Project } from "../../../../domain/types/Project";
 import ProjectList from "../../../components/ProjectsList/ProjectsList";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
+import CustomizableButton from "../../../components/Button/CustomizableButton";
+import allowedRoles from "../../../../application/constants/permissions";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
+import { postAutoDrivers } from "../../../../application/repository/entity.repository";
+import { logEngine } from "../../../../application/tools/log.engine";
 
 
 const Home = () => {
@@ -40,7 +40,7 @@ const Home = () => {
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, _] = useState<boolean>(false);
+  const [showToastNotification, setShowToastNotification] = useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
@@ -54,7 +54,8 @@ const Home = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   const [runHomeTour, setRunHomeTour] = useState(false);
-  const { refs, allVisible } = useMultipleOnScreen<HTMLElement>({
+  const newProjectButtonRef = useRef<HTMLDivElement>(null);
+  const { allVisible } = useMultipleOnScreen<HTMLElement>({
     countToTrigger: 1,
   });
   useEffect(() => {
@@ -85,58 +86,58 @@ const Home = () => {
   };
 
 
-  // const handleGenerateDemoDataClick = async () => {
-  //   setShowToastNotification(true);
-  //   try {
-  //     const response = await postAutoDrivers();
-  //     if (response.status === 201) {
-  //       logEngine({
-  //         type: "info",
-  //         message: "Demo data generated successfully.",
-  //       });
-  //       setAlertState({
-  //         variant: "success",
-  //         body: "Demo data generated successfully.",
-  //       });
-  //       setTimeout(() => {
-  //         setAlertState(undefined);
-  //       }, 100);
+  const handleGenerateDemoDataClick = async () => {
+    setShowToastNotification(true);
+    try {
+      const response = await postAutoDrivers();
+      if (response.status === 201) {
+        logEngine({
+          type: "info",
+          message: "Demo data generated successfully.",
+        });
+        setAlertState({
+          variant: "success",
+          body: "Demo data generated successfully.",
+        });
+        setTimeout(() => {
+          setAlertState(undefined);
+        }, 3000);
 
-  //       await fetchDashboard();
-  //       setShowToastNotification(false);
-  //       window.location.reload();
-  //     } else {
-  //       logEngine({
-  //         type: "error",
-  //         message: "Failed to generate demo data.",
-  //       });
-  //       setAlertState({
-  //         variant: "error",
-  //         body: "Failed to generate demo data.",
-  //       });
-  //       setTimeout(() => {
-  //         setAlertState(undefined);
-  //       }, 100);
-  //     }
-  //     setShowToastNotification(false);
-  //   } catch (error) {
-  //     const errorMessage = (error as Error).message;
-  //     logEngine({
-  //       type: "error",
-  //       message: `An error occurred: ${errorMessage}`,
-  //     });
-  //     setAlertState({
-  //       variant: "error",
-  //       body: `An error occurred: ${errorMessage}`,
-  //     });
-  //     setTimeout(() => {
-  //       setAlertState(undefined);
-  //     }, 100);
-  //   } finally {
-  //     setShowToastNotification(false);
-  //     setRefreshProjectsFlag((prev) => !prev);
-  //   }
-  // };
+        await fetchDashboard();
+        setShowToastNotification(false);
+        window.location.reload();
+      } else {
+        logEngine({
+          type: "error",
+          message: "Failed to generate demo data.",
+        });
+        setAlertState({
+          variant: "error",
+          body: "Failed to generate demo data.",
+        });
+        setTimeout(() => {
+          setAlertState(undefined);
+        }, 3000);
+      }
+      setShowToastNotification(false);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      logEngine({
+        type: "error",
+        message: `An error occurred: ${errorMessage}`,
+      });
+      setAlertState({
+        variant: "error",
+        body: `An error occurred: ${errorMessage}`,
+      });
+      setTimeout(() => {
+        setAlertState(undefined);
+      }, 3000);
+    } finally {
+      setShowToastNotification(false);
+      setRefreshProjectsFlag((prev) => !prev);
+    }
+  };
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -146,8 +147,8 @@ const Home = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Dashboard overview"
         description="Your central hub for AI governance management and compliance tracking"
-        whatItDoes="Provides a **comprehensive overview** of your *AI governance program*. View **project status**, *compliance metrics*, **pending tasks**, and *recent activities* all in one **centralized dashboard**."
-        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or **governance issues**. It provides **executive visibility** into *AI program health* and helps prioritize resources where they're needed most."
+        whatItDoes="Provides a *comprehensive overview* of your *AI governance program*. View *project status*, *compliance metrics*, *pending tasks*, and *recent activities* all in one **centralized dashboard**."
+        whyItMatters="A **unified dashboard** ensures you never miss *critical compliance deadlines* or *governance issues*. It provides *executive visibility* into *AI program health* and helps prioritize resources where they're needed most."
         quickActions={[
           {
             label: "Create New Project",
@@ -160,18 +161,18 @@ const Home = () => {
           }
         ]}
         useCases={[
-          "**Daily monitoring** of *governance activities* and **compliance status**",
-          "**Executive reporting** with *real-time metrics* and **progress tracking**"
+          "*Daily monitoring* of *governance activities* and *compliance status*",
+          "*Executive reporting* with *real-time metrics* and *progress tracking*"
         ]}
         keyFeatures={[
           "**Real-time project status tracking** with *progress indicators*",
-          "**Aggregated compliance metrics** across all *governance areas*",
-          "**Quick access** to *pending tasks* and **upcoming deadlines**"
+          "*Aggregated compliance metrics* across all *governance areas*",
+          "*Quick access* to *pending tasks* and *upcoming deadlines*"
         ]}
         tips={[
-          "**Check the dashboard daily** to stay on top of *governance activities*",
-          "Use **project filters** to focus on *specific initiatives* or teams",
-          "Set up **dashboard alerts** for *critical compliance thresholds*"
+          "*Check the dashboard daily* to stay on top of *governance activities*",
+          "Use *project filters* to focus on *specific initiatives* or teams",
+          "Set up *dashboard alerts* for *critical compliance thresholds*"
         ]}
       />
       {alertState && (
@@ -186,70 +187,61 @@ const Home = () => {
       {showToastNotification && (
         <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
       )}
-      {/* New Project Header */}
-      <Stack sx={vwhomeBody}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography sx={vwhomeHeading}>Projects overview</Typography>
+      {/* Use Cases Header */}
+      <Stack spacing={2}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
+          <Typography sx={vwhomeHeading}>Use cases</Typography>
           <HelperIcon
             onClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
             size="small"
           />
         </Stack>
-        <Stack sx={vwhomeBodyControls}>
-          {/* {projects.length === 0 && (
-            <CustomizableButton
-              variant="contained"
-              text="Create demo project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<CloudDownloadIcon />}
-              onClick={() => handleGenerateDemoDataClick()}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          )} */}
-          <div data-joyride-id="new-project-button" ref={refs[0]}>
-            <CustomizableButton
-              variant="contained"
-              text="New project"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              icon={<AddCircleOutlineIcon size={16} />}
-              onClick={() => setIsProjectFormModalOpen(true)}
-              isDisabled={
-                !allowedRoles.projects.create.includes(userRoleName)
-              }
-            />
-          </div>
-        </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Use case is a real-world scenario describing how an AI system is applied within an organization to achieve a defined purpose or outcome.
+        </Typography>
       </Stack>
 
-      {/* Header Cards */}
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "20px",
-        }}
-      >
-        <HeaderCard title="Projects" count={dashboard?.projects || 0} />
-        <HeaderCard title="Trainings" count={dashboard?.trainings || 0} />
-        <HeaderCard title="Models" count={dashboard?.models || 0} />
-        <HeaderCard title="Reports" count={dashboard?.reports || 0} />
-      </Box>
-
       {/* Projects List */}
-      <ProjectList projects={projects} />
+      <ProjectList
+        projects={projects}
+        newProjectButton={
+          <Stack direction="row" spacing={2}>
+            <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
+              <CustomizableButton
+                variant="contained"
+                text="New project"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                icon={<AddCircleOutlineIcon size={16} />}
+                onClick={() => setIsProjectFormModalOpen(true)}
+                isDisabled={
+                  !allowedRoles.projects.create.includes(userRoleName)
+                }
+              />
+            </div>
+            {allowedRoles.projects.create.includes(userRoleName) && (
+              <CustomizableButton
+                variant="outlined"
+                text="Generate Demo Data"
+                sx={{
+                  borderColor: "#13715B",
+                  color: "#13715B",
+                  gap: 2,
+                  "&:hover": {
+                    borderColor: "#13715B",
+                    backgroundColor: "rgba(19, 113, 91, 0.04)",
+                  },
+                }}
+                onClick={handleGenerateDemoDataClick}
+                isDisabled={showToastNotification}
+              />
+            )}
+          </Stack>
+        }
+      />
 
       <Modal
         open={isProjectFormModalOpen}

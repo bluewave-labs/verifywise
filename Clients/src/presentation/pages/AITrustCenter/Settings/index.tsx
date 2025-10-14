@@ -433,7 +433,7 @@ const AITrustCenterSettings: React.FC = () => {
           sx={{
             display: "grid",
             gridTemplateColumns: "220px 1fr",
-            rowGap: "50px",
+            rowGap: "25px",
             columnGap: "250px",
             alignItems: "center",
             mt: 2,
@@ -451,7 +451,7 @@ const AITrustCenterSettings: React.FC = () => {
             </Typography>
           </Box>
           <Stack>
-            <Box gap={1} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box gap={1} sx={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Box
                 sx={{
                   width: 120,
@@ -535,52 +535,54 @@ const AITrustCenterSettings: React.FC = () => {
                   </Box>
                 )}
               </Box>
-              <MUIButton
-                variant="outlined"
-                component="label"
-                sx={styles.replaceButton}
-                disabled={logoUploading || logoLoading}
-              >
-                {logoUploading ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Uploading...
-                  </>
-                ) : logoLoading ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Loading...
-                  </>
-                ) : (
-                  "Replace"
-                )}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
-                  hidden
-                  ref={fileInputRef}
-                  onChange={handleLogoChange}
-                />
-              </MUIButton>
-              <MUIButton
-                variant="outlined"
-                sx={styles.removeButton}
-                onClick={handleRemoveLogo}
-                disabled={logoRemoving || logoUploading || logoLoading}
-              >
-                {logoRemoving ? (
-                  <>
-                    <CircularProgress size={16} sx={{ mr: 1 }} />
-                    Removing...
-                  </>
-                ) : (
-                  "Remove"
-                )}
-              </MUIButton>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <MUIButton
+                  variant="outlined"
+                  component="label"
+                  sx={styles.replaceButton}
+                  disabled={logoUploading || logoLoading}
+                >
+                  {logoUploading ? (
+                    <>
+                      <CircularProgress size={16} sx={{ mr: 1 }} />
+                      Uploading...
+                    </>
+                  ) : logoLoading ? (
+                    <>
+                      <CircularProgress size={16} sx={{ mr: 1 }} />
+                      Loading...
+                    </>
+                  ) : (
+                    "Replace"
+                  )}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
+                    hidden
+                    ref={fileInputRef}
+                    onChange={handleLogoChange}
+                  />
+                </MUIButton>
+                <MUIButton
+                  variant="outlined"
+                  sx={styles.removeButton}
+                  onClick={handleRemoveLogo}
+                  disabled={logoRemoving || logoUploading || logoLoading}
+                >
+                  {logoRemoving ? (
+                    <>
+                      <CircularProgress size={16} sx={{ mr: 1 }} />
+                      Removing...
+                    </>
+                  ) : (
+                    "Remove"
+                  )}
+                </MUIButton>
+              </Box>
             </Box>
             <Stack
               direction="row"
-              sx={{ display: "flex", alignItems: "center", gap: 2 }}
+              sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}
             >
               <Typography
                 sx={{
@@ -661,7 +663,7 @@ const AITrustCenterSettings: React.FC = () => {
           </Box>
 
           {/* Trust Center Title Row */}
-          <Box sx={{ mb: 20 }}>
+          <Box sx={{ mb: 10 }}>
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
               Trust center title
             </Typography>

@@ -43,6 +43,7 @@ import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 import { frontEndUrl } from "./config/constants";
+import { addAllJobs } from "./jobs/producer";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -127,6 +128,11 @@ try {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
   app.use("/api/policies", policyRoutes);
   app.use("/api/slackWebhooks", slackWebhookRoutes);
+
+  // Adding background jobs in the Queue
+  (async () => {
+    await addAllJobs();
+  })();
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

@@ -5,6 +5,7 @@ import {
   CircularProgress,
   Typography,
   IconButton,
+  Chip,
 } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -175,7 +176,7 @@ const ApiKeys = () => {
                 API Keys
               </Typography>
               <Typography sx={{ fontSize: 13, color: "#666666", mt: 0.5 }}>
-                Manage your API keys for programmatic access
+                Manage your API keys for programmatic access to VerifyWise features
               </Typography>
             </Box>
             {tokens.length > 0 && (
@@ -243,16 +244,15 @@ const ApiKeys = () => {
             />
           </Box>
         ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {tokens.map((token) => (
               <Box
                 key={token.id}
                 onMouseEnter={() => setHoveredTokenId(token.id)}
                 onMouseLeave={() => setHoveredTokenId(null)}
                 sx={{
-                  border: "1.5px solid",
-                  borderColor: hoveredTokenId === token.id ? theme.palette.primary.main : "#eaecf0",
-                  borderRadius: "8px",
+                  border: "1.5px solid #eaecf0",
+                  borderRadius: "4px",
                   p: 3,
                   backgroundColor: hoveredTokenId === token.id ? "#f8fffe" : "#ffffff",
                   display: "flex",
@@ -274,19 +274,22 @@ const ApiKeys = () => {
                     {token.name}
                   </Typography>
                   <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <Box
-                        sx={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          backgroundColor: "#10b981",
-                        }}
-                      />
-                      <Typography sx={{ fontSize: 12, color: "#666666", fontWeight: 500 }}>
-                        Active
-                      </Typography>
-                    </Box>
+                    <Chip
+                      label="Active"
+                      sx={{
+                        backgroundColor: "#c8e6c9",
+                        color: "#388e3c",
+                        fontWeight: 500,
+                        fontSize: "11px",
+                        height: "20px",
+                        borderRadius: "12px",
+                        "& .MuiChip-label": {
+                          padding: "0 8px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        },
+                      }}
+                    />
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       •
                     </Typography>
@@ -412,7 +415,7 @@ const ApiKeys = () => {
                   sx={{
                     backgroundColor: "#ecfdf3",
                     border: "1.5px solid #13715B",
-                    borderRadius: "8px",
+                    borderRadius: "4px",
                     p: 2.5,
                     display: "flex",
                     justifyContent: "space-between",

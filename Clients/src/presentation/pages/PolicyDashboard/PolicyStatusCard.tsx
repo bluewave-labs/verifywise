@@ -19,6 +19,7 @@ const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({ policies }) => {
     { key: "Approved", label: "Approved", color: "#4CAF50" },
     { key: "Published", label: "Published", color: "#2196F3" },
     { key: "Archived", label: "Archived", color: "#757575" },
+    { key: "Deprecated", label: "Deprecated", color: "#F44336" },
   ];
 
   // Count how many policies per status

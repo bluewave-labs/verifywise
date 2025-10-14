@@ -34,6 +34,7 @@ const getStatusChipProps = (status: string) => {
     Approved: { bg: "#c8e6c9", color: "#388e3c" },
     Published: { bg: "#bbdefb", color: "#1976d2" },
     Archived: { bg: "#eeeeee", color: "#757575" },
+    Deprecated: { bg: "#ffebee", color: "#c62828" },
   };
 
   const style = statusStyles[status] || { bg: "#f5f5f5", color: "#9e9e9e" };

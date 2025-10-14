@@ -86,6 +86,7 @@ const PolicyDashboard: React.FC = () => {
     { _id: "Approved", name: "Approved" },
     { _id: "Published", name: "Published" },
     { _id: "Archived", name: "Archived" },
+    { _id: "Deprecated", name: "Deprecated" },
   ];
 
   // ✅ Filter + search

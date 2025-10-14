@@ -108,6 +108,21 @@ const ApiKeys = () => {
     } catch (error) {
       console.error("Error creating API token:", error);
 
+      // Detailed debugging - log the full error structure
+      console.log("=== API TOKEN ERROR DEBUG ===");
+      console.log("Full error object:", error);
+      console.log("Error type:", typeof error);
+      console.log("Error constructor:", error?.constructor?.name);
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const response = (error as any).response;
+        console.log("Response object:", response);
+        console.log("Response status:", response?.status);
+        console.log("Response data:", response?.data);
+        console.log("Response headers:", response?.headers);
+      }
+      console.log("=== END DEBUG ===");
+
       // Extract more specific error message from response
       let errorMessage = "Failed to create API token";
       if (error && typeof error === 'object' && 'response' in error) {
@@ -116,12 +131,17 @@ const ApiKeys = () => {
           errorMessage = response.data.message;
         } else if (response?.data?.error) {
           errorMessage = response.data.error;
+        } else if (response?.data?.data) {
+          // Sometimes the message is nested in data.data
+          errorMessage = response.data.data;
         } else if (response?.status === 409) {
           errorMessage = "A token with this name already exists. Please use a different name.";
         } else if (response?.status === 400) {
           errorMessage = "Invalid token name. Please check your input and try again.";
         } else if (response?.status === 429) {
           errorMessage = "You have reached the maximum number of API tokens allowed.";
+        } else if (response?.status >= 500) {
+          errorMessage = "Server error occurred while creating API token. Please try again later.";
         }
       }
 

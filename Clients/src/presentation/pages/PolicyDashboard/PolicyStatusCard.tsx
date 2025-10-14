@@ -45,6 +45,7 @@ const PolicyStatusCard: React.FC<PolicyStatusCardProps> = ({ policies }) => {
                 color: level.color,
                 border: `1px solid #E5E7EB`,
                 cursor: "default",
+                paddingX: { xs: "15px", sm: "20px" }, // Reduced from 30px to prevent text wrapping
               }}
             >
               <Typography sx={projectRisksTileCardKey}>{level.label}</Typography>

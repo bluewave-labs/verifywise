@@ -100,7 +100,6 @@ const ApiKeys = () => {
       if (response && response.data && response.data.data) {
         const createdToken = response.data.data;
         setNewlyCreatedToken(createdToken.token || null);
-        showAlert("success", "Token Created", "API token created successfully. Make sure to copy it now as it won't be shown again.");
         await fetchTokens();
         setNewTokenName("");
         setNewTokenNameError(null);
@@ -403,9 +402,9 @@ const ApiKeys = () => {
           >
             <Stack sx={{ mb: 3 }}>
               <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 2 }}>
-                API Key Created
+                API key created
               </Typography>
-              <Typography sx={{ fontSize: 13, color: "#000000", mb: 2 }}>
+              <Typography sx={{ fontSize: 13, color: "#000000", mb: 3 }}>
                 Your API key has been created successfully. Make sure to copy it now as it won't be shown again.
               </Typography>
               <Box>
@@ -464,9 +463,14 @@ const ApiKeys = () => {
             </Stack>
             <Stack sx={{ display: "flex", flexDirection: "row", justifyContent: "flex-end", alignItems: "center" }}>
               <CustomizableButton
-                text="Cancel"
-                variant="text"
-                sx={{ color: "#344054", px: "32px", width: 120 }}
+                text="I copied the key"
+                variant="contained"
+                sx={{
+                  backgroundColor: "#13715B",
+                  color: "#fff",
+                  px: "32px",
+                  "&:hover": { backgroundColor: "#0e5c47" }
+                }}
                 onClick={handleCloseCreateModal}
               />
             </Stack>

@@ -72,6 +72,7 @@ import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandl
 import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
 import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
+import SuccessToast from "../Toast/SuccessToast";
 
 
 interface Props {
@@ -102,6 +103,7 @@ const PolicyDetailModal: React.FC<Props> = ({
   const [errors, setErrors] = useState<FormErrors>({});
   const [openLink, setOpenLink] = useState(false);
   const [openImage, setOpenImage] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   // const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -351,7 +353,14 @@ const PolicyDetailModal: React.FC<Props> = ({
       } else {
         await updatePolicy(policy!.id, payload);
       }
-      onSaved();
+
+      // Show success toast
+      setShowSuccessToast(true);
+
+      // Delay closing the modal slightly to allow user to see the success message
+      setTimeout(() => {
+        onSaved();
+      }, 500);
     } catch (err: any) {
       // setIsSubmitting(false);
       console.error("Full error object:", err);
@@ -574,6 +583,16 @@ const PolicyDetailModal: React.FC<Props> = ({
           />
         </Box>
       </Drawer>
+
+      <SuccessToast
+        open={showSuccessToast}
+        message={
+          isNew
+            ? "Policy created successfully!"
+            : "Policy updated successfully!"
+        }
+        onClose={() => setShowSuccessToast(false)}
+      />
     </>
   );
 };

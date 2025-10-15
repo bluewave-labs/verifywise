@@ -49,6 +49,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/verifywise-frontend:${{ env.TAG }}
             ghcr.io/${{ github.repository_owner }}/verifywise-frontend:latest
+          build-args: |
+            VITE_SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
 
       - name: Build and push Servers image
         uses: docker/build-push-action@v4

@@ -1,0 +1,336 @@
+import { TriggerTemplate, ActionTemplate } from '../../../../domain/types/Automation';
+
+export const mockTriggerTemplates: TriggerTemplate[] = [
+  {
+    type: 'vendor_risk_high',
+    name: 'Vendor Risk Severity High',
+    description: 'Triggered when a vendor risk severity escalates to High',
+    category: 'vendor',
+    icon: 'AlertTriangle',
+    defaultConfiguration: {
+      riskSeverity: 'High',
+    },
+    configurationSchema: [
+      {
+        key: 'riskSeverity',
+        label: 'Risk Severity Level',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'High', label: 'High' },
+          { value: 'Medium', label: 'Medium' },
+          { value: 'Low', label: 'Low' },
+        ],
+      },
+    ],
+  },
+  {
+    type: 'control_due_soon',
+    name: 'Control Due Date Approaching',
+    description: 'Triggered when control due date is approaching',
+    category: 'control',
+    icon: 'Calendar',
+    defaultConfiguration: {
+      daysBefore: 7,
+      controlTypes: [],
+      assignedUsers: [],
+    },
+    configurationSchema: [
+      {
+        key: 'daysBefore',
+        label: 'Days Before Due Date',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 1, label: '1 day' },
+          { value: 3, label: '3 days' },
+          { value: 7, label: '7 days' },
+          { value: 14, label: '14 days' },
+        ],
+      },
+      {
+        key: 'controlTypes',
+        label: 'Control Types',
+        type: 'multiselect',
+        required: false,
+        options: [
+          { value: 'security', label: 'Security Controls' },
+          { value: 'privacy', label: 'Privacy Controls' },
+          { value: 'operational', label: 'Operational Controls' },
+        ],
+        helpText: 'Leave empty to include all control types',
+      },
+    ],
+  },
+  {
+    type: 'project_member_added',
+    name: 'Project Member Added',
+    description: 'Triggered when a new user is added to a project',
+    category: 'project',
+    icon: 'UserPlus',
+    defaultConfiguration: {
+      projectTypes: [],
+      excludeAdmins: false,
+    },
+    configurationSchema: [
+      {
+        key: 'projectTypes',
+        label: 'Project Types',
+        type: 'multiselect',
+        required: false,
+        options: [
+          { value: 'ai_model', label: 'AI Model Projects' },
+          { value: 'data_governance', label: 'Data Governance' },
+          { value: 'compliance', label: 'Compliance Projects' },
+        ],
+      },
+      {
+        key: 'excludeAdmins',
+        label: 'Exclude Admin Users',
+        type: 'boolean',
+        required: false,
+      },
+    ],
+  },
+  {
+    type: 'project_risk_high',
+    name: 'High Risk Added',
+    description: 'Triggered when a high severity risk is added to a project',
+    category: 'risk',
+    icon: 'AlertCircle',
+    defaultConfiguration: {
+      riskCategories: [],
+      requiresApproval: true,
+    },
+    configurationSchema: [
+      {
+        key: 'riskCategories',
+        label: 'Risk Categories',
+        type: 'multiselect',
+        required: false,
+        options: [
+          { value: 'model_risk', label: 'Model Risk' },
+          { value: 'data_risk', label: 'Data Risk' },
+          { value: 'operational_risk', label: 'Operational Risk' },
+          { value: 'compliance_risk', label: 'Compliance Risk' },
+        ],
+      },
+      {
+        key: 'requiresApproval',
+        label: 'Requires Approval',
+        type: 'boolean',
+        required: false,
+      },
+    ],
+  },
+];
+
+export const mockActionTemplates: ActionTemplate[] = [
+  {
+    type: 'send_email',
+    name: 'Send Email Notification',
+    description: 'Send an email to specified recipients',
+    category: 'notification',
+    icon: 'Mail',
+    defaultConfiguration: {
+      recipients: 'project_members',
+      subject: 'Alert: {{trigger_name}}',
+      body: 'A {{trigger_name}} event has occurred for {{project_name}}.\n\nDetails:\n{{trigger_details}}',
+      includeDetails: true,
+    },
+    configurationSchema: [
+      {
+        key: 'recipients',
+        label: 'Recipients',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'project_members', label: 'All Project Members' },
+          { value: 'project_owner', label: 'Project Owner Only' },
+          { value: 'specific_users', label: 'Specific Users' },
+          { value: 'role_based', label: 'Role-Based Recipients' },
+        ],
+      },
+      {
+        key: 'subject',
+        label: 'Email Subject',
+        type: 'text',
+        required: true,
+        placeholder: 'Enter email subject',
+        helpText: 'Use {{variable_name}} for dynamic content',
+      },
+      {
+        key: 'body',
+        label: 'Email Body',
+        type: 'textarea',
+        required: true,
+        placeholder: 'Enter email content',
+        helpText: 'Available variables: {{project_name}}, {{trigger_name}}, {{trigger_details}}',
+      },
+      {
+        key: 'includeDetails',
+        label: 'Include Trigger Details',
+        type: 'boolean',
+        required: false,
+      },
+    ],
+    compatibleTriggers: ['vendor_risk_high', 'control_due_soon', 'project_risk_high'],
+  },
+  {
+    type: 'create_project_risk',
+    name: 'Create Project Risk',
+    description: 'Automatically create a new project risk entry',
+    category: 'record',
+    icon: 'Plus',
+    defaultConfiguration: {
+      riskName: 'Auto-generated from {{trigger_name}}',
+      riskCategory: 'Generated Risk',
+      severity: 'Medium',
+      assignToProjectOwner: true,
+    },
+    configurationSchema: [
+      {
+        key: 'riskName',
+        label: 'Risk Name',
+        type: 'text',
+        required: true,
+        placeholder: 'Enter risk name',
+      },
+      {
+        key: 'riskCategory',
+        label: 'Risk Category',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Model Risk', label: 'Model Risk' },
+          { value: 'Data Risk', label: 'Data Risk' },
+          { value: 'Vendor Risk', label: 'Vendor Risk' },
+          { value: 'Operational Risk', label: 'Operational Risk' },
+        ],
+      },
+      {
+        key: 'severity',
+        label: 'Initial Severity',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Low', label: 'Low' },
+          { value: 'Medium', label: 'Medium' },
+          { value: 'High', label: 'High' },
+        ],
+      },
+      {
+        key: 'assignToProjectOwner',
+        label: 'Assign to project owner',
+        type: 'boolean',
+        required: false,
+      },
+    ],
+    compatibleTriggers: ['vendor_risk_high', 'project_member_added'],
+  },
+  {
+    type: 'send_notification',
+    name: 'Send In-App Notification',
+    description: 'Send a notification within the VerifyWise application',
+    category: 'notification',
+    icon: 'Bell',
+    defaultConfiguration: {
+      recipients: 'project_members',
+      priority: 'medium',
+      message: '{{trigger_name}} event occurred',
+      actionRequired: false,
+    },
+    configurationSchema: [
+      {
+        key: 'recipients',
+        label: 'Recipients',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'project_members', label: 'All Project Members' },
+          { value: 'project_owner', label: 'Project Owner Only' },
+          { value: 'assigned_users', label: 'Assigned Users Only' },
+        ],
+      },
+      {
+        key: 'priority',
+        label: 'Priority Level',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'low', label: 'Low' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'high', label: 'High' },
+          { value: 'urgent', label: 'Urgent' },
+        ],
+      },
+      {
+        key: 'message',
+        label: 'Notification Message',
+        type: 'text',
+        required: true,
+        placeholder: 'Enter notification message',
+      },
+      {
+        key: 'actionRequired',
+        label: 'Action Required',
+        type: 'boolean',
+        required: false,
+        helpText: 'Mark notification as requiring user action',
+      },
+    ],
+    compatibleTriggers: ['control_due_soon', 'project_member_added', 'project_risk_high'],
+  },
+  {
+    type: 'schedule_reminder',
+    name: 'Schedule Follow-up Reminder',
+    description: 'Schedule a follow-up reminder for future action',
+    category: 'workflow',
+    icon: 'Clock',
+    defaultConfiguration: {
+      reminderDelay: 3,
+      reminderUnit: 'days',
+      reminderMessage: 'Follow-up required for {{trigger_name}}',
+      assignTo: 'project_owner',
+    },
+    configurationSchema: [
+      {
+        key: 'reminderDelay',
+        label: 'Reminder Delay',
+        type: 'number',
+        required: true,
+        validation: { min: 1, max: 365 },
+      },
+      {
+        key: 'reminderUnit',
+        label: 'Time Unit',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'hours', label: 'Hours' },
+          { value: 'days', label: 'Days' },
+          { value: 'weeks', label: 'Weeks' },
+        ],
+      },
+      {
+        key: 'reminderMessage',
+        label: 'Reminder Message',
+        type: 'text',
+        required: true,
+        placeholder: 'Enter reminder message',
+      },
+      {
+        key: 'assignTo',
+        label: 'Assign Reminder To',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'project_owner', label: 'Project Owner' },
+          { value: 'trigger_creator', label: 'Person Who Triggered' },
+          { value: 'specific_user', label: 'Specific User' },
+        ],
+      },
+    ],
+    compatibleTriggers: ['control_due_soon', 'vendor_risk_high', 'project_risk_high'],
+  },
+];

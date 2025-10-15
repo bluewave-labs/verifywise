@@ -34,6 +34,7 @@ import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
+import Automations from "../../presentation/pages/Automations";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -71,6 +72,7 @@ export const createRoutes = (
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
+    <Route path="/automations" element={<Automations />} />
   </Route>,
   <Route
     key="admin-reg"

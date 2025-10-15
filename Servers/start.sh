@@ -6,7 +6,7 @@
 crond
 
 # Start the worker process in background
-npm run worker &
+# npm run worker &
 
 # Start your Node.js app in foreground
 exec npm start

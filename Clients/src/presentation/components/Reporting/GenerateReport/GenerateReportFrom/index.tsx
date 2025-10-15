@@ -7,20 +7,19 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { Stack, Typography, useTheme, SelectChangeEvent } from "@mui/material";
+import { Autocomplete, Stack, Typography, useTheme, SelectChangeEvent, TextField } from "@mui/material";
 import CustomizableButton from "../../../Button/CustomizableButton";
 const Field = lazy(() => import("../../../Inputs/Field"));
-import { styles, fieldStyle, selectReportStyle } from "./styles";
+import { styles, fieldStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
-const MultiSelect = lazy(() => import("../../../Inputs/Select/Multi"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
 /**
  * Set form values
  */
 interface FormValues {
-  report_type: string | string[];
+  report_type: string[];
   report_name: string;
   project: number;
   framework: number;
@@ -29,7 +28,7 @@ interface FormValues {
 }
 
 interface FormErrors {
-  report_type?: string | string[];
+  report_type?: string;
   report_name?: string;
   project?: string;
   framework?: string;
@@ -77,15 +76,15 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
     const availableTypes =
       values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
 
-    if (!availableTypes.includes(values.report_type as string)) {
+    if (!availableTypes.includes(values.report_type as unknown as string)) {
       setValues((prev) => ({
         ...prev,
-        report_type: [availableTypes[0]], // reset to the first valid type
+        report_type: [availableTypes[0]],
       }));
 
       setErrors((prev) => ({
         ...prev,
-        report_type: undefined, // clear any error
+        report_type: undefined,
       }));
     }
   }, [values.framework]);
@@ -100,7 +99,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number | (string | number)[]>) => {
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
     },
@@ -220,21 +219,24 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>
-            <MultiSelect
-              label="Report Type"
-              placeholder="Select report type"
-              value={values.report_type}
-              onChange={handleOnSelectChange("report_type")}
-              items={(values.framework === 1
-                ? EUAI_REPORT_TYPES
-                : ISO_REPORT_TYPES
-              ).map((type) => ({
-                _id: type, // unique key / value
-                name: type, // display name
-              }))}
-              sx={selectReportStyle}
-              error={errors.report_type as string | undefined}
-              required={true}
+          <Typography sx={{ fontSize: "12px", fontWeight: 500, mb: 2 }}>
+            Report Type *
+          </Typography>
+            <Autocomplete
+              multiple
+              id="report-type"
+              options={values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES}
+              value={Array.isArray(values.report_type) ? values.report_type : []}
+              onChange={(_event, newValue) => {
+                setValues({ ...values, report_type: newValue });
+                setErrors({ ...errors, report_type: "" });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  size="small"
+                />
+              )}
             />
           </Suspense>
         </Stack>

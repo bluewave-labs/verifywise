@@ -12,7 +12,6 @@ import {
   Stack,
   Typography,
   Button as MUIButton,
-  Avatar,
 } from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
@@ -38,6 +37,7 @@ import {
 } from "../../../../application/repository/user.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { useProfilePhotoFetch } from "../../../../application/hooks/useProfilePhotoFetch";
+import Avatar from "../../../components/Avatar/VWAvatar";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -416,21 +416,6 @@ const ProfileForm: React.FC = () => {
     }
   }, [id, logout, showAlert]);
 
-  /**
-   * Handle image load success
-   */
-  const handleImageLoad = useCallback(() => {
-    setImageLoadError(false);
-    setImageLoading(false);
-  }, []);
-
-  /**
-   * Handle image load error
-   */
-  const handleImageError = useCallback(() => {
-    setImageLoadError(true);
-    setImageLoading(false);
-  }, []);
 
   // Utility function to clear preview and revoke URLs
   const clearImagePreview = useCallback(() => {
@@ -785,35 +770,6 @@ const ProfileForm: React.FC = () => {
           >
             {imageUploading || imageLoading ? (
               <CircularProgress size={24} />
-            ) : selectedImagePreview ? (
-              <Box
-                component="img"
-                src={selectedImagePreview}
-                alt="Selected Image Preview"
-                onError={handleImageError}
-                onLoad={handleImageLoad}
-                sx={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  borderRadius: 1,
-                  display: imageLoadError ? "none" : "block",
-                }}
-              />
-            ) : imageUrl && !imageLoadError ? (
-              <Box
-                component="img"
-                src={imageUrl}
-                alt="User Profile Image"
-                onError={handleImageError}
-                onLoad={handleImageLoad}
-                sx={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  borderRadius: 1,
-                }}
-              />
             ) : (
               <Box
                 sx={{
@@ -823,9 +779,12 @@ const ProfileForm: React.FC = () => {
                   gap: 1,
                 }}
               >
-                <Avatar sx={{ width: 76, height: 76, bgcolor: '#13715B' }}>{firstname && lastname ? `${firstname[0]}${lastname[0]}`: 'U'}</Avatar>
-              </Box>
-            )}
+                <Avatar
+                  user={{ firstname, lastname, pathToImage: !imageLoadError ? selectedImagePreview ?? imageUrl ?? "" : undefined }}
+                  size="medium"
+                  sx={{ width: 84, height: 84 }}
+                />
+              </Box>)}
           </Box>
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>

@@ -15,11 +15,11 @@ import {
   useTheme,
 } from "@mui/material";
 import {
-  DragIndicator as DragIcon,
-  Refresh as ResetIcon,
-  LockOutlined as LockIcon,
-  LockOpenOutlined as LockOpenIcon,
-} from "@mui/icons-material";
+  GripVertical as DragIcon,
+  RotateCcw as ResetIcon,
+  Lock as LockIcon,
+  Unlock as LockOpenIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
 import { useDashboard } from "../../../application/hooks/useDashboard";
@@ -1171,17 +1171,15 @@ const IntegratedDashboard: React.FC = () => {
             >
               {editMode ? (
                 <LockOpenIcon
-                  sx={{
-                    color: "#344054",
-                    "& path": { strokeWidth: "1.5px" },
-                  }}
+                  size={20}
+                  strokeWidth={1.5}
+                  color="#344054"
                 />
               ) : (
                 <LockIcon
-                  sx={{
-                    color: "#344054",
-                    "& path": { strokeWidth: "1.5px" },
-                  }}
+                  size={20}
+                  strokeWidth={1.5}
+                  color="#344054"
                 />
               )}
             </IconButton>
@@ -1189,7 +1187,7 @@ const IntegratedDashboard: React.FC = () => {
           {editMode && (
             <Tooltip title="Reset Layout">
               <IconButton onClick={resetLayout} size="small">
-                <ResetIcon />
+                <ResetIcon size={16} />
               </IconButton>
             </Tooltip>
           )}
@@ -1421,10 +1419,8 @@ const IntegratedDashboard: React.FC = () => {
                 }}
                 avatar={
                   <DragIcon
-                    sx={{
-                      color: alpha(theme.palette.text.secondary, 0.6),
-                      fontSize: "1rem",
-                    }}
+                    size={16}
+                    color={alpha(theme.palette.text.secondary, 0.6)}
                   />
                 }
                 title={widget.title}

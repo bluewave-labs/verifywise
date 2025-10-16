@@ -43,6 +43,7 @@ import {
   List as ListIcon,
   FolderTree,
   Layers,
+  Zap,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -144,6 +145,11 @@ const getMenuGroups = (): MenuGroup[] => [
         name: "Event Tracker",
         icon: <Telescope size={16} strokeWidth={1.5} />,
         path: "/event-tracker",
+      },
+      {
+        name: "Automations",
+        icon: <Zap size={16} strokeWidth={1.5} />,
+        path: "/automations",
       },
     ],
   },

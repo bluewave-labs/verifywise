@@ -18,8 +18,7 @@ export const routeMapping: Record<string, string> = {
 
   // Project related
   "/project-view": "Project Overview",
-  "/test/project-view": "Project Overview",
-
+  
   // Vendor management
   "/vendors": "Vendor Management",
 
@@ -46,6 +45,9 @@ export const routeMapping: Record<string, string> = {
 
   // Event tracking
   "/event-tracker": "Event Tracker",
+
+  // Automations
+  "/automations": "Automations",
 
   // Model inventory
   "/model-inventory": "Model Inventory",

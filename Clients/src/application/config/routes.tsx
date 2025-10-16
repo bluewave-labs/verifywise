@@ -34,7 +34,7 @@ import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
-import Automations from "../../presentation/pages/Automations";
+import AutomationsPage from "../../presentation/pages/Automations";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -54,8 +54,7 @@ export const createRoutes = (
     <Route path="/vendors" element={<Vendors />} />
     <Route path="/setting" element={<Setting />} />
     <Route path="/organization" element={<Organization />} />
-    <Route path="/test/project-view" element={<ProjectView />} />
-    <Route path="/file-manager" element={<FileManager />} />
+      <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
     <Route index element={<IntegratedDashboard />} />
     <Route path="/overview" element={<VWHome />} />
@@ -72,7 +71,7 @@ export const createRoutes = (
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
-    <Route path="/automations" element={<Automations />} />
+    <Route path="/automations" element={<AutomationsPage />} />
   </Route>,
   <Route
     key="admin-reg"

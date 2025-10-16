@@ -164,6 +164,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       return ["edit", "make visible", "download", "remove"];
     } else if (type === "Vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
+    } else if (type === "integration") { // slack integration
+      return ["Send Test", "remove"]
     } else {
       return ["edit", "remove"];
     }
@@ -225,7 +227,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                 return;
               }
 
-              if (item === "edit") {
+              if (item === "edit" || item === "Send Test") {
                 handleEdit(e);
               } else if (item === "download") {
                 await handleDownload(e);

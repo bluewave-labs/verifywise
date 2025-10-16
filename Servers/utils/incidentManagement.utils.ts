@@ -1,0 +1,238 @@
+import { sequelize } from "../database/db";
+import { Transaction } from "sequelize";
+import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
+
+export const getAllIncidentsQuery = async (tenant: string) => {
+    const incidents = await sequelize.query(
+        `SELECT * FROM "${tenant}".ai_incident_managements ORDER BY created_at DESC, id ASC`,
+        {
+            mapToModel: true,
+            model: AIIncidentManagementModel,
+        }
+    );
+    return incidents;
+};
+
+export const getIncidentByIdQuery = async (id: number, tenant: string) => {
+    const incidents = await sequelize.query(
+        `SELECT * FROM "${tenant}".ai_incident_managements WHERE id = :id`,
+        {
+            replacements: { id },
+            mapToModel: true,
+            model: AIIncidentManagementModel,
+        }
+    );
+    if (!incidents.length) return null;
+    return incidents[0];
+};
+
+export const createNewIncidentQuery = async (
+    incident: AIIncidentManagementModel,
+    tenant: string,
+    transaction: Transaction
+) => {
+    const created_at = new Date();
+    try {
+        const result = await sequelize.query(
+            `INSERT INTO "${tenant}".ai_incident_managements (
+        ai_project, type,
+        severity, status, occurred_date, date_detected, reporter, approval_status,
+        approved_by, categories_of_harm, affected_persons_groups, description, relationship_causality,
+        immediate_mitigations, planned_corrective_actions, model_system_version, interim_report, approval_date, approval_notes,
+        created_at, updated_at, archived
+      ) VALUES (
+        :ai_project, :type,
+        :severity, :status, :occurred_date, :date_detected, :reporter, :approval_status,
+        :approved_by, :categories_of_harm, :affected_persons_groups, :description, :relationship_causality,
+        :immediate_mitigations, :planned_corrective_actions, :model_system_version, :interim_report, :approval_date, :approval_notes,
+        :created_at, :updated_at, :archived
+      ) RETURNING *`,
+            {
+                replacements: {
+                    ai_project: incident.ai_project || "",
+                    type: incident.type,
+                    severity: incident.severity,
+                    status: incident.status,
+                    occurred_date: incident.occurred_date
+                        ? incident.occurred_date
+                        : null,
+                    date_detected: incident.date_detected
+                        ? incident.date_detected
+                        : null,
+                    reporter: incident.reporter,
+                    approval_status: incident.approval_status,
+                    approved_by: incident.approved_by,
+                    categories_of_harm: Array.isArray(
+                        incident.categories_of_harm
+                    )
+                        ? `{${incident.categories_of_harm.join(",")}}` // makes a valid Postgres array literal
+                        : "{}", // sends an empty array if undefined/null
+                    affected_persons_groups: incident.affected_persons_groups,
+                    description: incident.description,
+                    relationship_causality: incident.relationship_causality,
+                    immediate_mitigations: incident.immediate_mitigations,
+                    planned_corrective_actions:
+                        incident.planned_corrective_actions,
+                    model_system_version: incident.model_system_version,
+                    interim_report: incident.interim_report,
+                    approval_date: incident.approval_date
+                        ? incident.approval_date
+                        : null,
+                    approval_notes: incident.approval_notes,
+                    created_at,
+                    updated_at: created_at,
+                    archived: incident.archived || false,
+                },
+                mapToModel: true,
+                model: AIIncidentManagementModel,
+                transaction,
+            }
+        );
+        return result[0];
+    } catch (error) {
+        console.error("Error creating new incident:", error);
+        throw error;
+    }
+};
+
+export const updateIncidentByIdQuery = async (
+    id: number,
+    incident: AIIncidentManagementModel,
+    tenant: string,
+    transaction: Transaction
+) => {
+    const updated_at = new Date();
+    try {
+        await sequelize.query(
+            `UPDATE "${tenant}".ai_incident_managements SET
+        ai_project = :ai_project,
+        type = :type,
+        severity = :severity,
+        status = :status,
+        occurred_date = :occurred_date,
+        date_detected = :date_detected,
+        reporter = :reporter,
+        approval_status = :approval_status,
+        approved_by = :approved_by,
+        categories_of_harm = :categories_of_harm,
+        affected_persons_groups = :affected_persons_groups,
+        description = :description,
+        relationship_causality = :relationship_causality,
+        immediate_mitigations = :immediate_mitigations,
+        planned_corrective_actions = :planned_corrective_actions,
+        model_system_version = :model_system_version,
+        interim_report = :interim_report,
+        archived = :archived,
+        updated_at = :updated_at,
+        approval_date = :approval_date,
+        approval_notes = :approval_notes
+      WHERE id = :id`,
+            {
+                replacements: {
+                    id,
+                    ai_project: incident.ai_project,
+                    type: incident.type,
+                    severity: incident.severity,
+                    status: incident.status,
+                    occurred_date: incident.occurred_date,
+                    date_detected: incident.date_detected,
+                    reporter: incident.reporter,
+                    approval_status: incident.approval_status,
+                    approved_by: incident.approved_by,
+                    categories_of_harm: Array.isArray(
+                        incident.categories_of_harm
+                    )
+                        ? `{${incident.categories_of_harm.join(",")}}` // makes a valid Postgres array literal
+                        : "{}", // sends an empty array if undefined/null
+                    affected_persons_groups: incident.affected_persons_groups,
+                    description: incident.description,
+                    relationship_causality: incident.relationship_causality,
+                    immediate_mitigations: incident.immediate_mitigations,
+                    planned_corrective_actions:
+                        incident.planned_corrective_actions,
+                    model_system_version: incident.model_system_version,
+                    interim_report: incident.interim_report,
+                    archived: incident.archived || false,
+                    approval_date: incident.approval_date,
+                    approval_notes: incident.approval_notes,
+                    updated_at,
+                },
+                transaction,
+            }
+        );
+
+        const result = await sequelize.query(
+            `SELECT * FROM "${tenant}".ai_incident_managements WHERE id = :id`,
+            {
+                replacements: { id },
+                mapToModel: true,
+                model: AIIncidentManagementModel,
+                transaction,
+            }
+        );
+
+        return result[0];
+    } catch (error) {
+        console.error("Error updating incident:", error);
+        throw error;
+    }
+};
+
+export const deleteIncidentByIdQuery = async (
+    id: number,
+    tenant: string,
+    transaction: Transaction
+) => {
+    try {
+        const result = await sequelize.query(
+            `DELETE FROM "${tenant}".ai_incident_managements WHERE id = :id`,
+            {
+                replacements: { id },
+                transaction,
+            }
+        );
+        return result[0];
+    } catch (error) {
+        console.error("Error deleting incident:", error);
+        throw error;
+    }
+};
+
+/**
+ * Archive an incident by ID
+ */
+
+export const archiveIncidentByIdQuery = async (
+    id: number,
+    tenant: string,
+    transaction: Transaction
+) => {
+    const updated_at = new Date();
+    try {
+        await sequelize.query(
+            `UPDATE "${tenant}".ai_incident_managements
+         SET archived = true,
+             updated_at = :updated_at
+         WHERE id = :id`,
+            {
+                replacements: { id, updated_at },
+                transaction,
+            }
+        );
+
+        const result = await sequelize.query(
+            `SELECT * FROM "${tenant}".ai_incident_managements WHERE id = :id`,
+            {
+                replacements: { id },
+                mapToModel: true,
+                model: AIIncidentManagementModel,
+                transaction,
+            }
+        );
+
+        return result[0];
+    } catch (error) {
+        console.error("Error archiving incident:", error);
+        throw error;
+    }
+};

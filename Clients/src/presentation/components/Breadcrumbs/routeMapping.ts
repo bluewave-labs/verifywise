@@ -70,6 +70,9 @@ export const routeMapping: Record<string, string> = {
   // Model inventory
   "/model-inventory": "Model Inventory",
 
+  // Incident management
+  "/ai-incident-managements": "Incident Management",
+
   // Authentication
   "/login": "Sign In",
   "/register": "Create Account",
@@ -165,6 +168,11 @@ export const dynamicRoutePatterns = [
     pattern: /\/vendors\/[a-zA-Z0-9-]+/,
     label: "Vendor Details",
     description: "Specific vendor information",
+  },
+  {
+    pattern: /\/ai-incident-managements\/\d+/,
+    label: "Incident Management Details",
+    description: "Specific incident management information",
   },
 ] as const;
 

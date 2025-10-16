@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * IconButton component that renders a custom-styled Material-UI IconButton with a settings icon.
  * It includes a dropdown menu with options to edit or remove a vendor, and modals for adding or removing vendors.
@@ -35,6 +36,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   canDelete,
   checkForRisks,
   onDeleteWithRisks,
+  onView
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -122,6 +124,16 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleView = (e?: React.SyntheticEvent) => {
+    if (onView) {
+      onView();
+      if (e) {
+        closeDropDownMenu(e);
+        onMouseEvent?.(e); // optional chaining just in case
+      }
+    }
+  };
+  
   const handleMakeVisible = (e?: React.SyntheticEvent) => {
     if (onMakeVisible) {
       onMakeVisible();
@@ -164,6 +176,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       return ["edit", "make visible", "download", "remove"];
     } else if (type === "Vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
+    } else if(type === "Incident") {
+      return ["edit", "view", "archive"];
     } else {
       return ["edit", "remove"];
     }
@@ -231,7 +245,9 @@ const IconButton: React.FC<IconButtonProps> = ({
                 await handleDownload(e);
               } else if (item === "make visible") {
                 handleMakeVisible(e);
-              } else if (item === "remove") {
+              } else if(item === "view"){
+                handleView(e);
+              } else if (item === "remove" || item === "archive") {
                 if (warningTitle && warningMessage) {
                   setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
@@ -246,7 +262,7 @@ const IconButton: React.FC<IconButtonProps> = ({
               }
             }}
             disabled={isDisabled}
-            sx={item === "remove" ? { color: "#d32f2f" } : {}}
+            sx={item === "remove" || item === "archive" ? { color: "#d32f2f" } : {}}
           >
             {getMenuItemText(item)}
           </MenuItem>

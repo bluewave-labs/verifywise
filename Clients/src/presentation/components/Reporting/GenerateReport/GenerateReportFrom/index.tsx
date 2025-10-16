@@ -13,13 +13,14 @@ const Field = lazy(() => import("../../../Inputs/Field"));
 import { styles, fieldStyle, selectReportStyle } from "./styles";
 import { EUAI_REPORT_TYPES, ISO_REPORT_TYPES } from "../constants";
 const Select = lazy(() => import("../../../../components/Inputs/Select"));
+const MultiSelect = lazy(() => import("../../../Inputs/Select/Multi"));
 import { VerifyWiseContext } from "../../../../../application/contexts/VerifyWise.context";
 
 /**
  * Set form values
  */
 interface FormValues {
-  report_type: string;
+  report_type: string | string[];
   report_name: string;
   project: number;
   framework: number;
@@ -28,7 +29,7 @@ interface FormValues {
 }
 
 interface FormErrors {
-  report_type?: string;
+  report_type?: string | string[];
   report_name?: string;
   project?: string;
   framework?: string;
@@ -36,7 +37,7 @@ interface FormErrors {
 }
 
 const initialState: FormValues = {
-  report_type: "Risks report",
+  report_type: ["Project risks report"],
   report_name: "",
   project: 1,
   framework: 1,
@@ -76,10 +77,10 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
     const availableTypes =
       values.framework === 1 ? EUAI_REPORT_TYPES : ISO_REPORT_TYPES;
 
-    if (!availableTypes.includes(values.report_type)) {
+    if (!availableTypes.includes(values.report_type as string)) {
       setValues((prev) => ({
         ...prev,
-        report_type: availableTypes[0], // reset to the first valid type
+        report_type: [availableTypes[0]], // reset to the first valid type
       }));
 
       setErrors((prev) => ({
@@ -99,7 +100,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number>) => {
+    (prop: keyof FormValues) => (event: SelectChangeEvent<string | number | (string | number)[]>) => {
       setValues({ ...values, [prop]: event.target.value });
       setErrors({ ...errors, [prop]: "" });
     },
@@ -131,8 +132,15 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   }, [values.project]);
 
   const handleFormSubmit = () => {
+    const normalizedReportType = Array.isArray(values.report_type)
+      ? values.report_type.length === 1
+        ? values.report_type[0]
+        : values.report_type
+      : values.report_type;
+
     const newValues = {
       ...values,
+      report_type: normalizedReportType,
       projectFrameworkId: projectFrameworkId,
       reportType: reportType,
     };
@@ -212,8 +220,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
 
         <Stack sx={{ paddingTop: theme.spacing(8) }}>
           <Suspense fallback={<div>Loading...</div>}>
-            <Select
-              id="report-type-input"
+            <MultiSelect
               label="Report Type"
               placeholder="Select report type"
               value={values.report_type}
@@ -226,8 +233,8 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
                 name: type, // display name
               }))}
               sx={selectReportStyle}
-              error={errors.report_type}
-              isRequired
+              error={errors.report_type as string | undefined}
+              required={true}
             />
           </Suspense>
         </Stack>

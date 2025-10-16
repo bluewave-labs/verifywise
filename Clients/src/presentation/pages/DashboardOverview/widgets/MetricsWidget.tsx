@@ -10,8 +10,8 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  TrendingFlat,
-} from '@mui/icons-material';
+  Minus,
+} from 'lucide-react';
 
 interface MetricData {
   label: string;
@@ -43,9 +43,9 @@ export const MetricsWidget: React.FC<MetricsWidgetProps> = ({
   const metrics = data.length > 0 ? data : defaultData;
 
   const getTrendIcon = (change?: number) => {
-    if (!change) return <TrendingFlat fontSize="small" />;
-    if (change > 0) return <TrendingUp fontSize="small" color="success" />;
-    return <TrendingDown fontSize="small" color="error" />;
+    if (!change) return <Minus size={16} />;
+    if (change > 0) return <TrendingUp size={16} color="green" />;
+    return <TrendingDown size={16} color="red" />;
   };
 
   const getTrendColor = (change?: number) => {

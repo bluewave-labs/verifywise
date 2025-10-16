@@ -5,7 +5,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Tab from "@mui/material/Tab";
-import {ReactComponent as VisibilityIcon} from "../../assets/icons/visibility-white.svg"
+import { Eye as VisibilityIcon } from "lucide-react"
 import TrustCenterResources from "./Resources";
 import AITrustCenterSubprocessors from "./Subprocessors";
 import AITrustCenterSettings from "./Settings";
@@ -57,8 +57,8 @@ const AITrustCenter: React.FC = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="AI trust center"
         description="Build transparency and trust through your public-facing governance portal"
-        whatItDoes="Create a **public trust center** showcasing your *AI governance commitments*, **certifications**, and *responsible AI practices*. Share **policies**, *compliance status*, and **transparency reports** with stakeholders and customers."
-        whyItMatters="**Trust centers** demonstrate your commitment to *responsible AI* and help build **confidence** with customers, partners, and regulators. They provide *transparency* into your **AI governance practices** and differentiate you as a *trusted AI provider*."
+        whatItDoes="Create a **public trust center** showcasing your *AI governance commitments*, *certifications*, and *responsible AI practices*. Share *policies*, *compliance status*, and *transparency reports* with stakeholders and customers."
+        whyItMatters="**Trust centers** demonstrate your commitment to *responsible AI* and help build *confidence* with customers, partners, and regulators. They provide *transparency* into your *AI governance practices* and differentiate you as a *trusted AI provider*."
         quickActions={[
           {
             label: "Customize Trust Center",
@@ -71,18 +71,18 @@ const AITrustCenter: React.FC = () => {
           }
         ]}
         useCases={[
-          "**Public-facing portal** for customers to review your *AI ethics* and **governance practices**",
-          "**Compliance demonstration hub** for sharing *certifications* and **audit reports**"
+          "*Public-facing portal* for customers to review your *AI ethics* and *governance practices*",
+          "*Compliance demonstration hub* for sharing *certifications* and *audit reports*"
         ]}
         keyFeatures={[
-          "**Customizable public portal** with your *branding* and **messaging**",
-          "**Automated updates** from your *internal governance systems*",
-          "**Resource library** for sharing *whitepapers* and **compliance documentation**"
+          "**Customizable public portal** with your *branding* and *messaging*",
+          "*Automated updates* from your *internal governance systems*",
+          "*Resource library* for sharing *whitepapers* and *compliance documentation*"
         ]}
         tips={[
-          "Keep your trust center updated with **latest certifications** and *policy changes*",
-          "Include **clear contact information** for *stakeholder questions* and concerns",
-          "**Regularly review analytics** to understand what information *visitors seek most*"
+          "Keep your trust center updated with *latest certifications* and *policy changes*",
+          "Include *clear contact information* for *stakeholder questions* and concerns",
+          "*Regularly review analytics* to understand what information *visitors seek most*"
         ]}
       />
 
@@ -141,7 +141,7 @@ const AITrustCenter: React.FC = () => {
                   opacity: !tenantHash ? 0.5 : 1,
                   cursor: !tenantHash ? "not-allowed" : "pointer",
                 }}
-                icon={<VisibilityIcon />}
+                icon={<VisibilityIcon size={16} />}
                 onClick={handlePreviewMode}
                 isDisabled={!tenantHash}
               />

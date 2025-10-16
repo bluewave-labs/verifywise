@@ -52,12 +52,6 @@ import {
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
 import { generateUserTokens } from "../utils/auth.utils";
-import {
-  validateOrganizationIdParam,
-  validateCompleteOrganizationCreation,
-  validateCompleteOrganizationUpdate
-} from "../utils/validations/organizationValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 /**
  * Retrieves all organizations from the system
@@ -192,26 +186,6 @@ export async function getOrganizationById(
 ): Promise<any> {
   const organizationId = parseInt(req.params.id);
 
-  // Validate organization ID parameter
-  const organizationIdValidation = validateOrganizationIdParam(organizationId);
-  if (!organizationIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid organization ID parameter: ${req.params.id}`,
-      "getOrganizationById",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Invalid organization ID parameter: ${req.params.id}`
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: organizationIdValidation.message || 'Invalid organization ID',
-      code: organizationIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logStructured(
     "processing",
     `fetching organization by ID: ${organizationId}`,
@@ -305,30 +279,6 @@ export async function createOrganization(
   req: Request,
   res: Response
 ): Promise<any> {
-  // Validate organization creation request
-  const validationErrors = validateCompleteOrganizationCreation(req.body);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      `Organization creation validation failed`,
-      "createOrganization",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      "Organization creation validation failed"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Organization creation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const transaction = await sequelize.transaction();
   logStructured(
     "processing",
@@ -453,8 +403,7 @@ export async function createOrganization(
     );
     await logEvent(
       "Error",
-      `Unexpected error during organization creation: ${
-        (error as Error).message
+      `Unexpected error during organization creation: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in createOrganization:", error);
@@ -507,51 +456,6 @@ export async function updateOrganizationById(
   res: Response
 ): Promise<any> {
   const organizationId = parseInt(req.params.id);
-
-  // Validate organization ID parameter
-  const organizationIdValidation = validateOrganizationIdParam(organizationId);
-  if (!organizationIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid organization ID parameter: ${req.params.id}`,
-      "updateOrganizationById",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Invalid organization ID parameter: ${req.params.id}`
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: organizationIdValidation.message || 'Invalid organization ID',
-      code: organizationIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
-  // Validate organization update request
-  const validationErrors = validateCompleteOrganizationUpdate(req.body);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      `Organization update validation failed for ID ${organizationId}`,
-      "updateOrganizationById",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Organization update validation failed for ID ${organizationId}`
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Organization update validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const transaction = await sequelize.transaction();
   logStructured(
     "processing",
@@ -644,8 +548,7 @@ export async function updateOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during update for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during update for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in updateOrganizationById:", error);
@@ -693,27 +596,6 @@ export async function deleteOrganizationById(
   res: Response
 ): Promise<any> {
   const organizationId = parseInt(req.params.id);
-
-  // Validate organization ID parameter
-  const organizationIdValidation = validateOrganizationIdParam(organizationId);
-  if (!organizationIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid organization ID parameter: ${req.params.id}`,
-      "deleteOrganizationById",
-      "organization.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Invalid organization ID parameter: ${req.params.id}`
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: organizationIdValidation.message || 'Invalid organization ID',
-      code: organizationIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   const transaction = await sequelize.transaction();
   logStructured(
     "processing",
@@ -778,8 +660,7 @@ export async function deleteOrganizationById(
     );
     await logEvent(
       "Error",
-      `Unexpected error during delete for organization ID ${organizationId}: ${
-        (error as Error).message
+      `Unexpected error during delete for organization ID ${organizationId}: ${(error as Error).message
       }`
     );
     logger.error("❌ Error in deleteOrganizationById:", error);

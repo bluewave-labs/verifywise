@@ -10,13 +10,12 @@ import { Iso27001GetClauseStructByFrameworkID } from "../../../../../application
 import { ClauseStructISO } from "../../../../../domain/types/ClauseStructISO";
 import { useCallback, useEffect, useState } from "react";
 import { styles } from "./style";
-import { ReactComponent as RightArrowBlack } from "../../../../assets/icons/right-arrow-black.svg";
+import { ArrowRight as RightArrowBlack } from "lucide-react";
 import { ISO27001GetSubClauseByClauseId } from "../../../../../application/repository/subClause_iso.repository";
 import { handleAlert } from "../../../../../application/tools/alertUtils";
 import Alert from "../../../../components/Alert";
 import { AlertProps } from "../../../../../domain/interfaces/iAlert";
 import VWISO27001ClauseDrawerDialog from "../../../../components/Drawer/ISO27001ClauseDrawerDialog";
-import StatsCard from "../../../../components/Cards/StatsCard";
 import { getEntityById } from "../../../../../application/repository/entity.repository";
 import { useSearchParams } from "react-router-dom";
 import StatusDropdown from "../../../../components/StatusDropdown";
@@ -55,7 +54,7 @@ const ISO27001Clause = ({
   const [loadingSubClauses, setLoadingSubClauses] = useState<{
     [key: number]: boolean;
   }>({});
-  const [clauseProgress, setClauseProgress] = useState<{
+  const [, setClauseProgress] = useState<{
     totalSubclauses: number;
     doneSubclauses: number;
   }>();
@@ -289,12 +288,6 @@ const ISO27001Clause = ({
       {alert && (
         <Alert {...alert} isToast={true} onClick={() => setAlert(null)} />
       )}
-      <StatsCard
-        completed={clauseProgress?.doneSubclauses ?? 0}
-        total={clauseProgress?.totalSubclauses ?? 0}
-        title="Clauses"
-        progressbarColor="#13715B"
-      />
       <Typography sx={{ ...styles.title, mt: 4 }}>
         {"Management System Clauses"}
       </Typography>
@@ -308,7 +301,7 @@ const ISO27001Clause = ({
               onChange={handleAccordionChange(clause.id ?? 0)}
             >
               <AccordionSummary sx={styles.accordionSummary}>
-                <RightArrowBlack
+                <RightArrowBlack size={16}
                   style={styles.expandIcon(expanded === clause.id) as React.CSSProperties}
                 />
                 <Typography sx={{ paddingLeft: "2.5px", fontSize: 13 }}>

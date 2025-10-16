@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, lazy, Suspense } from "react";
+import React, { useEffect, useState, useCallback, lazy, Suspense, useMemo } from "react";
 import {
   Box,
   Card,
@@ -15,18 +15,28 @@ import {
   useTheme,
 } from "@mui/material";
 import {
-  DragIndicator as DragIcon,
-  Refresh as ResetIcon,
-  LockOutlined as LockIcon,
-  LockOpenOutlined as LockOpenIcon,
-} from "@mui/icons-material";
+  GripVertical,
+  RefreshCw,
+  Lock,
+  LockOpen,
+  ChevronRight,
+  Lightbulb,
+  FileText,
+  BarChart3,
+  Users,
+  Brain,
+  Building2,
+  ShieldAlert,
+  GraduationCap,
+  ScrollText,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
 import { useDashboard } from "../../../application/hooks/useDashboard";
 import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetrics";
 import { cardStyles } from "../../themes";
 import { useAuth } from "../../../application/hooks/useAuth";
-import { ReactComponent as RightArrow } from "../../assets/icons/right-arrow.svg";
+import { getUserById } from "../../../application/repository/user.repository";
 import StatusDonutChart from "../../components/Charts/StatusDonutChart";
 import { getDefaultStatusDistribution } from "../../utils/statusColors";
 import {
@@ -44,6 +54,381 @@ import { IStatusData } from "../../../domain/interfaces/i.chart";
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
+// Time-based greeting function with special occasions
+const getTimeBasedGreeting = (userName?: string, userToken?: any): { icon: React.ReactNode; text: string; greetingText: string } => {
+  const now = new Date();
+  const hour = now.getHours();
+  const month = now.getMonth() + 1; // getMonth() returns 0-11
+  const day = now.getDate();
+
+  // Get display name - prioritize fresh user data over token
+  let displayName = 'there';
+  if (userName) {
+    displayName = userName;
+  } else if (userToken?.name) {
+    displayName = userToken.name; // Only first name from token
+  } else if (userToken?.email) {
+    displayName = userToken.email.split('@')[0];
+  }
+
+  // Check for international special days
+  const specialDay = getSpecialDayGreeting(month, day, displayName);
+  if (specialDay) {
+    return specialDay;
+  }
+
+  let icon: React.ReactNode;
+  let greetingText: string;
+
+  if (hour >= 5 && hour < 12) {
+    icon = "☀️";
+    greetingText = "Good morning";
+  } else if (hour >= 12 && hour < 17) {
+    icon = "☀️";
+    greetingText = "Good afternoon";
+  } else if (hour >= 17 && hour < 22) {
+    icon = "🌅";
+    greetingText = "Good evening";
+  } else {
+    // Late night fun messages
+    icon = "🌙";
+    const lateNightMessages = [
+      "Burning the midnight oil",
+      "Still up? You're dedicated",
+      "Night owl mode activated",
+      "Coffee might be needed",
+      "Early bird or night owl"
+    ];
+
+    if (hour >= 1 && hour <= 4) {
+      const randomMessage = lateNightMessages[Math.floor(Math.random() * lateNightMessages.length)];
+      greetingText = randomMessage;
+    } else {
+      greetingText = "Good night";
+    }
+  }
+
+  return {
+    icon,
+    text: `${greetingText}, ${displayName}! ${icon}`,
+    greetingText
+  };
+};
+
+// Special day greetings
+const getSpecialDayGreeting = (month: number, day: number, displayName: string): { icon: React.ReactNode; text: string; greetingText: string } | null => {
+  // New Year's Day (universal celebration)
+  if (month === 1 && day === 1) {
+    return {
+      icon: "🎉",
+      text: `Happy New Year, ${displayName}! 🎉`,
+      greetingText: "Happy New Year"
+    };
+  }
+
+
+  // International Day of Education
+  if (month === 1 && day === 24) {
+    return {
+      icon: "🎓",
+      text: `Happy Education Day, ${displayName}! 🎓`,
+      greetingText: "Happy Education Day"
+    };
+  }
+
+  // World Cancer Day
+  if (month === 2 && day === 4) {
+    return {
+      icon: "🎗️",
+      text: `World Cancer Day, ${displayName}! 🎗️`,
+      greetingText: "World Cancer Day"
+    };
+  }
+
+  // International Day of Women and Girls in Science
+  if (month === 2 && day === 11) {
+    return {
+      icon: "👩‍🔬",
+      text: `Women in Science Day, ${displayName}! 👩‍🔬`,
+      greetingText: "Women in Science Day"
+    };
+  }
+
+  // Valentine's Day
+  if (month === 2 && day === 14) {
+    return {
+      icon: "💝",
+      text: `Happy Valentine's Day, ${displayName}! 💝`,
+      greetingText: "Happy Valentine's Day"
+    };
+  }
+
+  // International Mother Language Day
+  if (month === 2 && day === 21) {
+    return {
+      icon: "🗣️",
+      text: `Mother Language Day, ${displayName}! 🗣️`,
+      greetingText: "Mother Language Day"
+    };
+  }
+
+  // International Women's Day
+  if (month === 3 && day === 8) {
+    return {
+      icon: "💪",
+      text: `Happy Women's Day, ${displayName}! 💪`,
+      greetingText: "Happy Women's Day"
+    };
+  }
+
+  // World Water Day
+  if (month === 3 && day === 22) {
+    return {
+      icon: "💧",
+      text: `Happy World Water Day, ${displayName}! 💧`,
+      greetingText: "Happy World Water Day"
+    };
+  }
+
+  // World Health Day
+  if (month === 4 && day === 7) {
+    return {
+      icon: "🏥",
+      text: `Happy World Health Day, ${displayName}! 🏥`,
+      greetingText: "Happy World Health Day"
+    };
+  }
+
+  // Earth Day
+  if (month === 4 && day === 22) {
+    return {
+      icon: "🌍",
+      text: `Happy Earth Day, ${displayName}! 🌍`,
+      greetingText: "Happy Earth Day"
+    };
+  }
+
+  // International Workers' Day / Labor Day (May 1st - celebrated in many countries)
+  if (month === 5 && day === 1) {
+    return {
+      icon: "👷",
+      text: `Happy Labor Day, ${displayName}! 👷`,
+      greetingText: "Happy Labor Day"
+    };
+  }
+
+  // World Password Day (First Thursday of May - approximation)
+  if (month === 5 && day >= 1 && day <= 7) {
+    return {
+      icon: "🔐",
+      text: `Happy World Password Day, ${displayName}! 🔐`,
+      greetingText: "Happy World Password Day"
+    };
+  }
+
+  // World Environment Day
+  if (month === 6 && day === 5) {
+    return {
+      icon: "🌱",
+      text: `Happy Environment Day, ${displayName}! 🌱`,
+      greetingText: "Happy Environment Day"
+    };
+  }
+
+
+  // World Emoji Day
+  if (month === 7 && day === 17) {
+    return {
+      icon: "😄",
+      text: `Happy World Emoji Day, ${displayName}! 😄`,
+      greetingText: "Happy World Emoji Day"
+    };
+  }
+
+  // International Friendship Day
+  if (month === 7 && day === 30) {
+    return {
+      icon: "👫",
+      text: `Happy Friendship Day, ${displayName}! 👫`,
+      greetingText: "Happy Friendship Day"
+    };
+  }
+
+  // International Beer Day (First Friday of August - approximation)
+  if (month === 8 && day >= 1 && day <= 7) {
+    return {
+      icon: "🍺",
+      text: `Happy International Beer Day, ${displayName}! 🍺`,
+      greetingText: "Happy International Beer Day"
+    };
+  }
+
+  // International Youth Day
+  if (month === 8 && day === 12) {
+    return {
+      icon: "🌟",
+      text: `Happy Youth Day, ${displayName}! 🌟`,
+      greetingText: "Happy Youth Day"
+    };
+  }
+
+  // International Dog Day
+  if (month === 8 && day === 26) {
+    return {
+      icon: "🐕",
+      text: `Happy International Dog Day, ${displayName}! 🐕`,
+      greetingText: "Happy International Dog Day"
+    };
+  }
+
+  // International Literacy Day
+  if (month === 9 && day === 8) {
+    return {
+      icon: "📚",
+      text: `Happy Literacy Day, ${displayName}! 📚`,
+      greetingText: "Happy Literacy Day"
+    };
+  }
+
+  // Programmer's Day (September 13th - 256th day of year)
+  if (month === 9 && day === 13) {
+    return {
+      icon: "💻",
+      text: `Happy Programmer's Day, ${displayName}! 💻`,
+      greetingText: "Happy Programmer's Day"
+    };
+  }
+
+  // International Peace Day
+  if (month === 9 && day === 21) {
+    return {
+      icon: "☮️",
+      text: `Happy Peace Day, ${displayName}! ☮️`,
+      greetingText: "Happy Peace Day"
+    };
+  }
+
+  // World Teachers' Day
+  if (month === 10 && day === 5) {
+    return {
+      icon: "👩‍🏫",
+      text: `Happy Teachers' Day, ${displayName}! 👩‍🏫`,
+      greetingText: "Happy Teachers' Day"
+    };
+  }
+
+  // World Mental Health Day
+  if (month === 10 && day === 10) {
+    return {
+      icon: "🧠",
+      text: `Happy Mental Health Day, ${displayName}! 🧠`,
+      greetingText: "Happy Mental Health Day"
+    };
+  }
+
+  // World Food Day
+  if (month === 10 && day === 16) {
+    return {
+      icon: "🍽️",
+      text: `Happy World Food Day, ${displayName}! 🍽️`,
+      greetingText: "Happy World Food Day"
+    };
+  }
+
+  // International Internet Day
+  if (month === 10 && day === 29) {
+    return {
+      icon: "🌐",
+      text: `Happy Internet Day, ${displayName}! 🌐`,
+      greetingText: "Happy Internet Day"
+    };
+  }
+
+  // World Vegan Day
+  if (month === 11 && day === 1) {
+    return {
+      icon: "🥗",
+      text: `Happy World Vegan Day, ${displayName}! 🥗`,
+      greetingText: "Happy World Vegan Day"
+    };
+  }
+
+  // World Science Day
+  if (month === 11 && day === 10) {
+    return {
+      icon: "🔬",
+      text: `Happy World Science Day, ${displayName}! 🔬`,
+      greetingText: "Happy World Science Day"
+    };
+  }
+
+  // World Kindness Day
+  if (month === 11 && day === 13) {
+    return {
+      icon: "💖",
+      text: `Happy World Kindness Day, ${displayName}! 💖`,
+      greetingText: "Happy World Kindness Day"
+    };
+  }
+
+  // International Men's Day
+  if (month === 11 && day === 19) {
+    return {
+      icon: "👨",
+      text: `Happy International Men's Day, ${displayName}! 👨`,
+      greetingText: "Happy International Men's Day"
+    };
+  }
+
+  // World Computer Security Day
+  if (month === 11 && day === 30) {
+    return {
+      icon: "🔒",
+      text: `Happy Computer Security Day, ${displayName}! 🔒`,
+      greetingText: "Happy Computer Security Day"
+    };
+  }
+
+  // World AIDS Day
+  if (month === 12 && day === 1) {
+    return {
+      icon: "🎗️",
+      text: `World AIDS Day, ${displayName}! 🎗️`,
+      greetingText: "World AIDS Day"
+    };
+  }
+
+  // International Volunteer Day
+  if (month === 12 && day === 5) {
+    return {
+      icon: "🤲",
+      text: `Happy Volunteer Day, ${displayName}! 🤲`,
+      greetingText: "Happy Volunteer Day"
+    };
+  }
+
+  // Human Rights Day
+  if (month === 12 && day === 10) {
+    return {
+      icon: "⚖️",
+      text: `Happy Human Rights Day, ${displayName}! ⚖️`,
+      greetingText: "Happy Human Rights Day"
+    };
+  }
+
+  // International Mountain Day
+  if (month === 12 && day === 11) {
+    return {
+      icon: "⛰️",
+      text: `Happy Mountain Day, ${displayName}! ⛰️`,
+      greetingText: "Happy Mountain Day"
+    };
+  }
+
+  return null;
+};
+
+
 // Import MetricCard component from WorkingDashboard
 interface MetricCardProps {
   title: string;
@@ -53,6 +438,7 @@ interface MetricCardProps {
   statusData?: IStatusData[];
   entityType?: "models" | "vendors" | "policies" | "trainings" | "vendorRisks";
   compact?: boolean;
+  backgroundIcon?: React.ComponentType<any>;
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -63,6 +449,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   statusData,
   entityType,
   compact = false,
+  backgroundIcon: BackgroundIcon,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
@@ -94,27 +481,20 @@ const MetricCard: React.FC<MetricCardProps> = ({
   );
 
   // Priority visual cues
-  const getPriorityStyles = (theme: any) => {
+  const getPriorityStyles = () => {
     switch (priorityLevel) {
       case "high":
         return {
-          borderLeft: "4px solid #EF4444 !important",
-          borderTop: `1px solid ${theme.palette.divider} !important`,
-          borderRight: `1px solid ${theme.palette.divider} !important`,
-          borderBottom: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FEF2F2 0%, #FDE8E8 100%)",
+          borderLeft: "4px solid #EF4444",
         };
       case "medium":
         return {
-          borderLeft: "4px solid #F59E0B !important",
-          borderTop: `1px solid ${theme.palette.divider} !important`,
-          borderRight: `1px solid ${theme.palette.divider} !important`,
-          borderBottom: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FFFBEB 0%, #FEF6D3 100%)",
+          borderLeft: "4px solid #F59E0B",
         };
       default:
         return {
-          border: `1px solid ${theme.palette.divider} !important`,
           background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
         };
     }
@@ -128,7 +508,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       sx={(theme) => ({
         ...(cardStyles.base(theme) as any),
-        ...getPriorityStyles(theme),
+        ...getPriorityStyles(),
+        border: "none", // Remove border from MetricCard
+        margin: 0, // Remove any default margin
         height: "100%",
         minHeight: compact ? "90px" : "auto",
         cursor: navigable ? "pointer" : "default",
@@ -137,26 +519,46 @@ const MetricCard: React.FC<MetricCardProps> = ({
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
+        borderRadius: 0, // Remove border radius to fill the wrapper completely
         "&:hover": navigable
           ? {
               background: "linear-gradient(135deg, #F9FAFB 0%, #F1F5F9 100%)",
-              borderColor: "#D1D5DB",
+              borderColor: "transparent",
             }
           : {},
       })}
     >
       <CardContent
         sx={{
-          pt: 0,
-          pb: compact ? 1.5 : 2,
-          px: compact ? 1.5 : 2,
+          p: compact ? 1.5 : 2,
           position: "relative",
-          height: "calc(100% - 1px)",
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           flex: 1,
+          overflow: "hidden",
+          "&:last-child": {
+            paddingBottom: compact ? 1.5 : 2,
+          },
         }}
       >
+        {/* Background Icon */}
+        {BackgroundIcon && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: "-48px",
+              right: "-48px",
+              opacity: isHovered ? 0.04 : 0.015,
+              transform: isHovered ? "translateY(-10px)" : "translateY(0px)",
+              zIndex: 0,
+              pointerEvents: "none",
+              transition: "opacity 0.2s ease, transform 0.3s ease",
+            }}
+          >
+            <BackgroundIcon size={120} />
+          </Box>
+        )}
         {/* Header section with title and arrow icon */}
         <Box
           sx={{
@@ -166,6 +568,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
             justifyContent: "space-between",
             mb: compact ? 1 : 2,
             mt: compact ? 1.5 : 2,
+            zIndex: 1,
           }}
         >
           <Typography
@@ -186,7 +589,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                 transition: "opacity 0.2s ease",
               }}
             >
-              <RightArrow />
+              <ChevronRight size={20} />
             </Box>
           )}
         </Box>
@@ -198,6 +601,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: compact ? "center" : "flex-start",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           {showChart ? (
@@ -353,7 +758,7 @@ const IntegratedDashboard: React.FC = () => {
     usersMetrics,
     policyMetrics,
   } = useDashboardMetrics();
-  const { userToken: _ } = useAuth();
+  const { userToken, userId } = useAuth();
 
   // Edit mode state
   const [editMode, setEditMode] = useState(false);
@@ -363,61 +768,24 @@ const IntegratedDashboard: React.FC = () => {
   const [showPasswordNotification, setShowPasswordNotification] =
     useState(false);
 
+  // User name state
+  const [userName, setUserName] = useState<string>("");
+
+  // Generate time-based greeting
+  const greeting = useMemo(() => {
+    return getTimeBasedGreeting(userName, userToken);
+  }, [userName, userToken]);
+
   // Default layouts for the dashboard sections with 4-column constraint
   // Each widget takes exactly 1/4 of the width and cannot be smaller
   // Heights: Users/Reports/Projects/Evidence are always small (85px), others can be big (170px)
   const defaultLayouts: Layouts = {
     lg: [
-      // First row - 4 widgets (small widgets = h:2, fixed width, not resizable)
-      {
-        i: "projects",
-        x: 0,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "evidences",
-        x: 3,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "reports",
-        x: 6,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "users",
-        x: 9,
-        y: 0,
-        w: 3,
-        h: 2,
-        minW: 3,
-        maxW: 3,
-        minH: 2,
-        maxH: 2,
-      },
-      // Second row - 4 widgets (can be big = h:4)
+      // First row - 4 widgets (can be big = h:4)
       {
         i: "models",
         x: 0,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -428,7 +796,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendors",
         x: 3,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -439,7 +807,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendor-risks",
         x: 6,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -450,7 +818,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "trainings",
         x: 9,
-        y: 2,
+        y: 0,
         w: 3,
         h: 4,
         minW: 3,
@@ -458,11 +826,11 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
-      // Third row - 2 widgets (can be big = h:4)
+      // Second row - 1 widget (can be big = h:4)
       {
         i: "policies",
         x: 0,
-        y: 6,
+        y: 4,
         w: 3,
         h: 4,
         minW: 3,
@@ -743,6 +1111,25 @@ const IntegratedDashboard: React.FC = () => {
     fetchDashboard();
   }, []); // Empty dependency array - only run once on mount
 
+  // Fetch user name
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (!userId) return;
+
+      try {
+        const userData = await getUserById({ userId });
+        const actualUserData = userData?.data || userData;
+        setUserName(actualUserData?.name || "");
+      } catch (error) {
+        console.error("Failed to fetch user name:", error);
+        // Fallback to token data if API fails
+        setUserName(userToken?.name || "");
+      }
+    };
+
+    fetchUserName();
+  }, [userId, userToken?.name]);
+
   useEffect(() => {
     const storedLayouts = localStorage.getItem(
       "verifywise_integrated_dashboard_layouts"
@@ -930,12 +1317,14 @@ const IntegratedDashboard: React.FC = () => {
       id: "projects",
       content: (
         <MetricCard
-          title="Projects"
-          value={dashboard?.projects || 0}
-          navigable={false}
+          title="Use cases"
+          value={dashboard?.projects_list?.filter((p) => !p.is_organizational)?.length || 0}
+          onClick={() => navigate("/overview")}
+          navigable={true}
+          backgroundIcon={Lightbulb}
         />
       ),
-      title: "Projects",
+      title: "Use cases",
     },
     {
       id: "evidences",
@@ -943,7 +1332,9 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Evidence"
           value={evidenceMetrics?.total || 0}
-          navigable={false}
+          onClick={() => navigate("/file-manager")}
+          navigable={true}
+          backgroundIcon={FileText}
         />
       ),
       title: "Evidence",
@@ -954,7 +1345,9 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Reports"
           value={dashboard?.reports || 0}
-          navigable={false}
+          onClick={() => navigate("/reporting")}
+          navigable={true}
+          backgroundIcon={BarChart3}
         />
       ),
       title: "Reports",
@@ -965,7 +1358,9 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Users"
           value={usersMetrics?.total || 0}
-          navigable={false}
+          onClick={() => navigate("/setting")}
+          navigable={true}
+          backgroundIcon={Users}
         />
       ),
       title: "Users",
@@ -983,6 +1378,7 @@ const IntegratedDashboard: React.FC = () => {
             dashboard?.models || 0
           )}
           entityType="models"
+          backgroundIcon={Brain}
         />
       ),
       title: "AI Models",
@@ -1000,6 +1396,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="vendors"
+          backgroundIcon={Building2}
         />
       ),
       title: "Vendors",
@@ -1017,6 +1414,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="vendorRisks"
+          backgroundIcon={ShieldAlert}
         />
       ),
       title: "Vendor Risks",
@@ -1034,6 +1432,7 @@ const IntegratedDashboard: React.FC = () => {
             dashboard?.trainings || 0
           )}
           entityType="trainings"
+          backgroundIcon={GraduationCap}
         />
       ),
       title: "Trainings",
@@ -1051,6 +1450,7 @@ const IntegratedDashboard: React.FC = () => {
             label: item.name,
           }))}
           entityType="policies"
+          backgroundIcon={ScrollText}
         />
       ),
       title: "Policies",
@@ -1084,13 +1484,17 @@ const IntegratedDashboard: React.FC = () => {
         <Box>
           <Typography
             variant="h5"
-            sx={(theme) => ({
+            sx={{
               fontWeight: 400,
-              color: theme.palette.text.primary,
               fontSize: "1.5rem",
-            })}
+            }}
           >
-            Dashboard
+            <Box component="span" sx={{ color: "#13715B" }}>
+              {greeting.greetingText}
+            </Box>
+            <Box component="span" sx={{ color: (theme) => theme.palette.text.primary }}>
+              , {greeting.text.split(', ')[1]}
+            </Box>
           </Typography>
           <Typography
             variant="body2"
@@ -1100,7 +1504,7 @@ const IntegratedDashboard: React.FC = () => {
               fontWeight: 400,
             })}
           >
-            Overview of your AI governance platform
+            Here is an overview of your AI governance platform
           </Typography>
         </Box>
 
@@ -1126,18 +1530,16 @@ const IntegratedDashboard: React.FC = () => {
               size="medium"
             >
               {editMode ? (
-                <LockOpenIcon
-                  sx={{
-                    color: "#344054",
-                    "& path": { strokeWidth: "1.5px" },
-                  }}
+                <LockOpen
+                  size={20}
+                  color="#344054"
+                  strokeWidth={1.5}
                 />
               ) : (
-                <LockIcon
-                  sx={{
-                    color: "#344054",
-                    "& path": { strokeWidth: "1.5px" },
-                  }}
+                <Lock
+                  size={20}
+                  color="#344054"
+                  strokeWidth={1.5}
                 />
               )}
             </IconButton>
@@ -1145,7 +1547,7 @@ const IntegratedDashboard: React.FC = () => {
           {editMode && (
             <Tooltip title="Reset Layout">
               <IconButton onClick={resetLayout} size="small">
-                <ResetIcon />
+                <RefreshCw size={20} />
               </IconButton>
             </Tooltip>
           )}
@@ -1359,8 +1761,12 @@ const IntegratedDashboard: React.FC = () => {
               flexDirection: "column",
               overflow: "hidden",
               boxShadow: "none",
-              border: `1px solid ${theme.palette.divider}`,
-              background: "transparent",
+              border: `1px solid #DCDFE3`,
+              backgroundColor: "inherit",
+              "& .MuiCard-root": {
+                height: "100%",
+                margin: 0,
+              },
             }}
           >
             {editMode && (
@@ -1376,17 +1782,15 @@ const IntegratedDashboard: React.FC = () => {
                   },
                 }}
                 avatar={
-                  <DragIcon
-                    sx={{
-                      color: alpha(theme.palette.text.secondary, 0.6),
-                      fontSize: "1rem",
-                    }}
+                  <GripVertical
+                    size={16}
+                    color={alpha(theme.palette.text.secondary, 0.6)}
                   />
                 }
                 title={widget.title}
               />
             )}
-            <Box sx={{ flexGrow: 1, p: editMode ? 2 : 0 }}>
+            <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
               <WidgetErrorBoundary
                 widgetId={widget.id}
                 widgetTitle={widget.title}

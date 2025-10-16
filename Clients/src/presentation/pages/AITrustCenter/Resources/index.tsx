@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, Suspense } from "react";
 import {
   Box,
@@ -12,10 +13,8 @@ import {
   Tooltip,
 } from "@mui/material";
 import Alert from "../../../components/Alert";
-import {ReactComponent as VisibilityIcon} from "../../../assets/icons/visibility-grey.svg"
-import {ReactComponent as VisibilityOffIcon} from "../../../assets/icons/visibility-off-grey.svg"
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
+import { Eye as VisibilityIcon, EyeOff as VisibilityOffIcon } from "lucide-react";
+import { CirclePlus as AddCircleOutlineIcon, X as CloseGreyIcon } from "lucide-react";
 import Toggle from "../../../components/Inputs/Toggle";
 import { useStyles } from "./styles";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -104,13 +103,13 @@ const ResourceTableRow: React.FC<{
         {resource.visible ? (
           <Tooltip title="Click to make this resource invisible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityIcon/>
+              <VisibilityIcon size={20} />
             </Box>
           </Tooltip>
         ) : (
           <Tooltip title="Click to make this resource visible">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <VisibilityOffIcon/>
+              <VisibilityOffIcon size={20} />
             </Box>
           </Tooltip>
         )}
@@ -345,6 +344,14 @@ const TrustCenterResources: React.FC = () => {
       setAddResourceError("Please fill in all fields and upload a file");
       return;
     }
+  
+    // Check if description is at least 10 characters
+    if (newResource.description.length < 10) {
+      setAddResourceError("Description must be at least 10 characters long");
+      return;
+    }
+    // Proceed with adding the resource
+    setAddResourceError(""); 
 
     try {
       await createResourceMutation.mutateAsync({
@@ -370,11 +377,20 @@ const TrustCenterResources: React.FC = () => {
     if (
       !formData?.info?.resources_visible ||
       !editResource.name ||
-      !editResource.description
+      !editResource.description 
     ) {
-      setEditResourceError("Please fill in all required fields");
+      setEditResourceError("Please fill in all fields and upload a file");
       return;
     }
+  
+    // Check if description is at least 10 characters
+    if (editResource.description.length < 10) {
+      setEditResourceError("Description must be at least 10 characters long");
+      return;
+    }
+  
+    // Proceed with adding the resource
+    setEditResourceError(""); 
 
     try {
       // Pass the old file ID only when a new file is being uploaded
@@ -560,7 +576,7 @@ const TrustCenterResources: React.FC = () => {
             onClick={handleOpenAddModal}
             isDisabled={!formData?.info?.resources_visible}
             text="Add new resource"
-            icon={<AddCircleOutlineIcon />}
+            icon={<AddCircleOutlineIcon size={16} />}
           />
           <Box sx={styles.toggleRow}>
             <Typography sx={styles.toggleLabel}>Enabled and visible</Typography>
@@ -613,7 +629,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Add a new resource
             <IconButton onClick={handleCloseAddModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
+              <CloseGreyIcon size={16} />
             </IconButton>
           </DialogTitle>
 
@@ -703,7 +719,7 @@ const TrustCenterResources: React.FC = () => {
           <DialogTitle sx={styles.modalTitle}>
             Edit resource
             <IconButton onClick={handleCloseEditModal} sx={styles.closeButton}>
-              <CloseGreyIcon />
+              <CloseGreyIcon size={16} />
             </IconButton>
           </DialogTitle>
 

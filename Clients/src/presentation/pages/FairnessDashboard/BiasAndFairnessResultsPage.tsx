@@ -16,10 +16,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { ReactComponent as CopyIcon } from "../../assets/icons/copy.svg";
-import { ReactComponent as DownloadIcon } from "../../assets/icons/download.svg";
-import { ReactComponent as ExpandMoreIcon } from "../../assets/icons/expand-more.svg";
-import { ReactComponent as ExpandLessIcon } from "../../assets/icons/expand-less.svg";
+import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
@@ -1122,7 +1119,7 @@ export default function BiasAndFairnessResultsPage() {
                       }
                     }}
                   >
-                    <ExpandMoreIcon style={{ width: 20, height: 20, marginTop: '3px', marginLeft: '4px' }} />
+                    <ExpandMoreIcon size={20} style={{ marginTop: '3px', marginLeft: '4px' }} />
                   </IconButton>
                 </Box>
               )}
@@ -1141,7 +1138,7 @@ export default function BiasAndFairnessResultsPage() {
                       }
                     }}
                   >
-                    <ExpandLessIcon style={{ width: 20, height: 20, marginRight: '3px', marginTop: '-2px' }} />
+                    <ExpandLessIcon size={20} style={{ marginRight: '3px', marginTop: '-2px' }} />
                   </IconButton>
                 </Box>
               )}

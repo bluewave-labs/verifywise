@@ -16,6 +16,8 @@ export interface IBreadcrumbItem {
   id?: string;
   /** Tooltip text for additional context */
   tooltip?: string;
+  /** Icon to display next to the breadcrumb label */
+  icon?: React.ReactNode;
 }
 
 /**

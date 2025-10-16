@@ -10,7 +10,7 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { X as ClearIcon } from "lucide-react";
 import {
   Suspense,
   useCallback,
@@ -20,7 +20,7 @@ import {
   useEffect,
 } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
+import { PlusCircle as AddCircleOutlineIcon } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
 import {
   createProjectButtonStyle,
@@ -41,7 +41,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import selectValidation from "../../../../application/validations/selectValidation";
 import CustomizableToast from "../../Toast";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { extractUserToken } from "../../../../application/tools/extractToken";
 import { useSelector } from "react-redux";
 import Checkbox from "../../../components/Inputs/Checkbox";
@@ -277,7 +277,7 @@ const ProjectForm = ({
     const newErrors: FormErrors = {};
 
     const projectTitle = checkStringValidation(
-      "Project title",
+      values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title",
       values.project_title,
       1,
       64
@@ -440,22 +440,26 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
+              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
+            }
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
               : defaultFrameworkType
               ? `Creating a ${
                   defaultFrameworkType === FrameworkTypeEnum.OrganizationWide
                     ? "organization-wide"
                     : "project-based"
-                } project`
+                } ${defaultFrameworkType === FrameworkTypeEnum.OrganizationWide ? "framework" : "use case"}`
               : "Please select the type of frameworks you need"}
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -555,8 +559,8 @@ const ProjectForm = ({
           <CustomizableToast
             title={
               projectToEdit
-                ? "Updating project. Please wait..."
-                : "Creating project. Please wait..."
+                ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Updating framework. Please wait..." : "Updating use case. Please wait...")
+                : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Creating framework. Please wait..." : "Creating use case. Please wait...")
             }
           />
         </Stack>
@@ -574,18 +578,22 @@ const ProjectForm = ({
           <Typography
             sx={{ fontSize: 16, color: "#344054", fontWeight: "bold" }}
           >
-            {projectToEdit ? "Edit project" : "Create new project"}
+            {projectToEdit
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Edit framework" : "Edit use case")
+              : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create new framework" : "Create new use case")
+            }
           </Typography>
           <Typography sx={{ fontSize: 13, color: "#344054" }}>
             {projectToEdit
-              ? "Update your project details below"
+              ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update your framework details below" : "Update your use case details below")
               : values.framework_type === FrameworkTypeEnum.ProjectBased
-              ? "Create a new project from scratch by filling in the following."
+              ? "Create a new use case from scratch by filling in the following."
               : "Set up ISO 27001 or 42001 (Organization ISMS)"}
           </Typography>
         </Stack>
         <ClearIcon
-          sx={{ color: "#98A2B3", cursor: "pointer" }}
+          size={20}
+          style={{ color: "#98A2B3", cursor: "pointer" }}
           onClick={onClose}
         />
       </Stack>
@@ -596,7 +604,7 @@ const ProjectForm = ({
         <Stack className="vwproject-form-body-start" sx={{ gap: 8 }}>
           <Field
             id="project-title-input"
-            label="Project title"
+            label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework title" : "Use case title"}
             width="350px"
             value={values.project_title}
             onChange={handleOnTextFieldChange("project_title")}
@@ -624,6 +632,19 @@ const ProjectForm = ({
             error={errors.owner}
             isRequired
           />
+          <Select
+            id="project-status-input"
+            label={values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Framework status" : "Use case status"}
+            placeholder="Select status"
+            value={values.status || ""}
+            onChange={handleOnSelectChange("status")}
+            items={projectStatusItems}
+            sx={{
+              width: "350px",
+              backgroundColor: theme.palette.background.main,
+            }}
+            error={errors.status}
+          />
           {values.framework_type === FrameworkTypeEnum.ProjectBased && (
             <>
               <Select
@@ -639,19 +660,6 @@ const ProjectForm = ({
                 }}
                 error={errors.riskClassification}
                 isRequired
-              />
-              <Select
-                id="project-status-input"
-                label="Project status"
-                placeholder="Select status"
-                value={values.status || ""}
-                onChange={handleOnSelectChange("status")}
-                items={projectStatusItems}
-                sx={{
-                  width: "350px",
-                  backgroundColor: theme.palette.background.main,
-                }}
-                error={errors.status}
               />
               <Select
                 id="type-of-high-risk-role-input"
@@ -740,7 +748,7 @@ const ProjectForm = ({
                   );
                 }}
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<GreyDownArrowIcon size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -782,7 +790,7 @@ const ProjectForm = ({
                       mb: 2,
                     }}
                   >
-                    Monitored regulations and standards *
+                    Applicable regulations *
                   </Typography>
                   <Autocomplete
                     multiple
@@ -836,7 +844,7 @@ const ProjectForm = ({
                       option.name.includes("coming soon")
                     }
                     filterSelectedOptions
-                    popupIcon={<GreyDownArrowIcon />}
+                    popupIcon={<GreyDownArrowIcon size={16} />}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -894,7 +902,7 @@ const ProjectForm = ({
                   mb: 2,
                 }}
               >
-                Monitored regulations and standards *
+                Applicable regulations *
               </Typography>
               <Autocomplete
                 multiple
@@ -948,7 +956,7 @@ const ProjectForm = ({
                   option.name.includes("coming soon")
                 }
                 filterSelectedOptions
-                popupIcon={<GreyDownArrowIcon />}
+                popupIcon={<GreyDownArrowIcon size={16} />}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -1011,9 +1019,12 @@ const ProjectForm = ({
         }}
       >
         <CustomizableButton
-          text={projectToEdit ? "Update project" : "Create project"}
+          text={projectToEdit
+            ? (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Update framework" : "Update use case")
+            : (values.framework_type === FrameworkTypeEnum.OrganizationWide ? "Create framework" : "Create use case")
+          }
           sx={createProjectButtonStyle}
-          icon={<AddCircleOutlineIcon />}
+          icon={<AddCircleOutlineIcon size={20} />}
           onClick={() => handleSubmit()}
         />
       </Stack>

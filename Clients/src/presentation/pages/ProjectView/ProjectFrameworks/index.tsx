@@ -212,7 +212,7 @@ const ProjectFrameworks = ({
           onClick={() => setIsModalOpen(true)}
           disabled={isManagingFrameworksDisabled}
         >
-          Manage frameworks
+          Manage frameworks/regulations
         </Button>
       </Box>
       <TabFilterBar

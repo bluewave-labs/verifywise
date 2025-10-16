@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   postgresdb:
@@ -19,9 +19,16 @@ services:
     expose:
       - "6379"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
   backend:
     depends_on:
       postgresdb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     image: ghcr.io/bluewave-labs/verifywise-backend:latest
     pull_policy: always
@@ -39,11 +46,32 @@ services:
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
       - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
   frontend:
     depends_on:
       - backend
     image: ghcr.io/bluewave-labs/verifywise-frontend:latest
     pull_policy: always
+  worker:
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    image: ghcr.io/bluewave-labs/verifywise-backend:latest
+    pull_policy: always
+    command: ["node", "dist/jobs/worker.js"]
+    environment:
+      - DB_HOST=postgresdb
+      - DB_USER=$DB_USER
+      - DB_PORT=$DB_PORT
+      - DB_PASSWORD=$DB_PASSWORD
+      - DB_NAME=$DB_NAME
+      - JWT_SECRET=$JWT_SECRET
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    restart: unless-stopped
   bias_and_fairness_backend:
     depends_on:
       - backend

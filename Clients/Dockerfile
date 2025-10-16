@@ -13,6 +13,9 @@ RUN npm install
 # Step 5: Copy the rest of the application files
 COPY . .
 
+ARG VITE_SLACK_CLIENT_ID
+ENV VITE_SLACK_CLIENT_ID=$VITE_SLACK_CLIENT_ID
+
 # Step 6: Build the application
 RUN npm run build
 

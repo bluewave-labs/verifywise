@@ -14,6 +14,7 @@ import Organization from "./Organization";
 import allowedRoles from "../../../application/constants/permissions";
 import { useAuth } from "../../../application/hooks/useAuth";
 import Slack from "./Slack";
+import ApiKeys from "./ApiKeys";
 import { useSearchParams } from "react-router-dom";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
@@ -27,6 +28,7 @@ export default function ProfilePage() {
   const isTeamManagementDisabled =
     !allowedRoles.projects.editTeamMembers.includes(userRoleName);
   const isSlackTabDisabled = !allowedRoles.slack.view.includes(userRoleName);
+  const isApiKeysDisabled = !allowedRoles.apiKeys?.view?.includes(userRoleName);
   const [activeTab, setActiveTab] = useState("profile");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSetting = searchParams.get("activeTab") || "";
@@ -38,6 +40,7 @@ export default function ProfilePage() {
     if (isSlackVisible) {
       tabs.push("slack")
     }
+    tabs.push("apikeys");
     return tabs;
   }, [isSlackVisible])
 
@@ -95,8 +98,8 @@ export default function ProfilePage() {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Settings & configuration"
         description="Manage your account, organization, and system preferences"
-        whatItDoes="Configure **user profiles**, *security settings*, **team management**, and *organizational preferences*. Control **access permissions**, *notification preferences*, and **system integrations**."
-        whyItMatters="Proper **configuration** ensures your *AI governance platform* operates **securely** and efficiently. Settings management helps maintain **user access controls**, enforce *security policies*, and customize the platform to your *organization's needs*."
+        whatItDoes="Configure *user profiles*, *security settings*, *team management*, and *organizational preferences*. Control *access permissions*, *notification preferences*, and *system integrations*."
+        whyItMatters="Proper **configuration** ensures your *AI governance platform* operates *securely* and efficiently. Settings management helps maintain *user access controls*, enforce *security policies*, and customize the platform to your *organization's needs*."
         quickActions={[
           {
             label: "Update Profile",
@@ -109,18 +112,18 @@ export default function ProfilePage() {
           },
         ]}
         useCases={[
-          "**User onboarding** with appropriate *role assignments* and **access levels**",
-          "**Security configuration** including *password policies* and **authentication methods**",
+          "*User onboarding* with appropriate *role assignments* and *access levels*",
+          "*Security configuration* including *password policies* and *authentication methods*",
         ]}
         keyFeatures={[
           "**Role-based access control** with *granular permission settings*",
-          "**Team management** with *user invitation* and **deactivation workflows**",
-          "**Organization-wide settings** for *branding* and **compliance preferences**",
+          "*Team management* with *user invitation* and *deactivation workflows*",
+          "*Organization-wide settings* for *branding* and *compliance preferences*",
         ]}
         tips={[
-          "**Regularly review** user access to ensure *appropriate permissions*",
-          "Enable **two-factor authentication** for *enhanced security*",
-          "Document **role definitions** to ensure *consistent permission assignments*",
+          "*Regularly review* user access to ensure *appropriate permissions*",
+          "Enable *two-factor authentication* for *enhanced security*",
+          "Document *role definitions* to ensure *consistent permission assignments*",
         ]}
       />
       <PageHeader
@@ -172,8 +175,15 @@ export default function ProfilePage() {
                 disableRipple
                 sx={settingTabStyle}
                 disabled={isSlackTabDisabled}
-              /> 
+              />
             )}
+            <Tab
+              label="API Keys"
+              value="apikeys"
+              disableRipple
+              sx={settingTabStyle}
+              disabled={isApiKeysDisabled}
+            />
           </TabList>
         </Box>
 
@@ -198,6 +208,10 @@ export default function ProfilePage() {
             <Slack />
           </TabPanel>
         )}
+
+        <TabPanel value="apikeys">
+          <ApiKeys />
+        </TabPanel>
       </TabContext>
     </Stack>
   );

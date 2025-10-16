@@ -23,7 +23,7 @@ import {
 import { SlidersHorizontal } from "lucide-react";
 
 const SliderIcon = () => <SlidersHorizontal size={20} />;
-import { deleteSlackIntegration, sendSlackMessage } from "../../../../application/repository/slack.integration.repository";
+import { deleteSlackIntegration, sendSlackMessage, updateSlackIntegration } from "../../../../application/repository/slack.integration.repository";
 import { Suspense, useCallback, useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import { SlackWebhook } from "../../../../application/hooks/useSlackIntegrations";
@@ -81,7 +81,7 @@ const SlackIntegrations = ({
     { id: "action", label: "ACTION" },
   ];
 
-  const handleSlackTestClick = (id: number) => async () => {
+  const handleSlackTestClick = async (id: number) => {
     if (!id) return;
     try {
       const msg = await sendSlackMessage({
@@ -132,6 +132,27 @@ const SlackIntegrations = ({
       );
     }
   }
+
+  const handleStatusToggle = async (id: number, isActive: boolean ) => {
+    try {
+      await updateSlackIntegration({
+        id: id,
+        body: { is_active: !isActive},
+      });
+      showAlert(
+        "success",
+        "Success",
+        "Slack Integration Status Updated successfully.",
+      );
+      refreshSlackIntegrations();
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Error updating Slack status: ${error}`,
+      );
+    }
+  };
 
   const PopupRender = useCallback(() => {
     return (
@@ -281,8 +302,9 @@ const SlackIntegrations = ({
                       <IconButton
                         id={Number(item.id)}
                         type="integration"
-                        onEdit={() => handleSlackTestClick(item.id)()}
-                        onDownload={() => {}}
+                        onEdit={() => {}}
+                        onSendTest={() => handleSlackTestClick(item.id)}
+                        onToggleEnable={() => handleStatusToggle(item.id, item.isActive ?? true)}
                         onDelete={() => handleDelete(item.id)}
                         warningTitle="Are you sure you want to delete this integration?"
                         warningMessage="This action will delete the slack integration."

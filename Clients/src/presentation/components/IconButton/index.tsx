@@ -144,7 +144,7 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   const handleSendTestNotification = async (e?: React.SyntheticEvent) => {
     if (onSendTest) {
-      onSendTest();
+      await onSendTest();
     }
     if (e) {
       closeDropDownMenu(e);
@@ -153,7 +153,7 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   const handleToggleStatus = async (e?: React.SyntheticEvent) => {
     if (onToggleEnable) {
-      onToggleEnable();
+      await onToggleEnable();
     }
     if (e) {
       closeDropDownMenu(e);
@@ -255,9 +255,9 @@ const IconButton: React.FC<IconButtonProps> = ({
               } else if (item === "make visible") {
                 handleMakeVisible(e);
               } else if (item === "Send Test") {
-                await handleSendTestNotification();
+                await handleSendTestNotification(e);
               } else if (item === "Disable/Enable") {
-                await handleToggleStatus();
+                await handleToggleStatus(e);
               } else if (item === "remove") {
                 if (warningTitle && warningMessage) {
                   setIsOpenRemoveModal(true);

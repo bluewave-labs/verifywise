@@ -521,9 +521,54 @@ export async function deleteSlackWebhookById(
   req: Request,
   res: Response
 ): Promise<any> {
+  const id = req.params.id;
+  const userId = req.userId!;
+  const functionName = "deleteSlackWebhookById";
   const transaction = await sequelize.transaction();
+
+  logStructured(
+    "processing",
+    `deleting slack integration of ID ${id}`,
+    functionName,
+    fileName,
+  );
+  logger.debug(`✏️ Sending message to slack ID ${id}`);
   try {
-    const slackWebhookId = parseInt(req.params.id);
+    const slackWebhookId = parseInt(id);
+
+    const slackWebhook =
+      await SlackWebhookModel.findByIdWithValidation(slackWebhookId);
+
+    if (!slackWebhook) {
+      logStructured(
+        "error",
+        `slackWebhook found: ID ${slackWebhookId}`,
+        functionName,
+        fileName,
+      );
+
+      await logEvent(
+        "Error",
+        `Update failed — slackWebhook not found: ID ${slackWebhookId}`,
+      );
+      await transaction.rollback();
+      return res.status(404).json(STATUS_CODE[404]("SlackWebhook not found"));
+    }
+
+    if (slackWebhook.user_id !== userId) {
+      logStructured(
+        "error",
+        `unauthorized delete attempt by user ID ${userId} for slackWebhook ID ${slackWebhookId}`,
+        functionName,
+        fileName,
+      );
+      await logEvent(
+        "Error",
+        `Unauthorized delete attempt by user ID ${userId} for slackWebhook ID ${slackWebhookId}`,
+      );
+      await transaction.rollback();
+      return res.status(403).json(STATUS_CODE[403]("Unauthorized"));
+    }
 
     const deleted = await deleteSlackWebhookByIdQuery(
       slackWebhookId,
@@ -532,11 +577,24 @@ export async function deleteSlackWebhookById(
 
     if (deleted) {
       await transaction.commit();
-      return res.status(200).json(STATUS_CODE[200](deleted));
-    }
+      logStructured(
+        "successful",
+        `slackWebhook deleted: ID ${slackWebhookId}`,
+        functionName,
+        fileName,
+      );
+      await logEvent("Delete", `slackWebhook deleted: ID ${slackWebhookId}`);
+    } 
 
     return res.status(204).json(STATUS_CODE[204](deleted));
   } catch (error) {
+    logStructured(
+      "error",
+      `failed to delete slackWebhook: ID ${id}`,
+      functionName,
+      fileName,
+    );
+    await logEvent("Error", `slackWebhook deletion failed: ID ${id}`);
     await transaction.rollback();
     return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }

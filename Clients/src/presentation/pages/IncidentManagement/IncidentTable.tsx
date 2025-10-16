@@ -12,6 +12,7 @@ import {
     Typography,
     Tooltip,
     useTheme,
+    Chip,
 } from "@mui/material";
 import TablePaginationActions from "../../components/TablePagination";
 import { ReactComponent as SelectorVertical } from "../../assets/icons/selector-vertical.svg";
@@ -42,12 +43,12 @@ import CustomIconButton from "../../components/IconButton";
 dayjs.extend(utc);
 
 //  badge style generator
-const incidentBadgeStyle = (value: string) => {
+export const getIncidentChipProps = (value: string) => {
     const styles: Record<string, { bg: string; color: string }> = {
         // Severity
-        [Severity.MINOR]: { bg: "#E6F4EA", color: "#2E7D32" }, // softer green
-        [Severity.SERIOUS]: { bg: "#FFF4E5", color: "#EF6C00" }, // warm orange
-        [Severity.VERY_SERIOUS]: { bg: "#FDECEA", color: "#C62828" }, // muted red
+        [Severity.MINOR]: { bg: "#E6F4EA", color: "#2E7D32" },
+        [Severity.SERIOUS]: { bg: "#FFF4E5", color: "#EF6C00" },
+        [Severity.VERY_SERIOUS]: { bg: "#FDECEA", color: "#C62828" },
 
         // Status
         [IncidentManagementStatus.OPEN]: { bg: "#FFF9E6", color: "#F9A825" },
@@ -83,19 +84,24 @@ const incidentBadgeStyle = (value: string) => {
     const style = styles[value] || { bg: "#F5F5F5", color: "#616161" };
 
     return {
-        backgroundColor: style.bg,
-        color: style.color,
-        padding: "4px 10px",
-        borderRadius: 12,
-        fontWeight: 600,
-        fontSize: "11px",
-        textTransform: "uppercase" as const,
-        display: "inline-block" as const,
-        letterSpacing: "0.5px",
-        textAlign: "center" as const,
-        minWidth: "90px",
+        label: value,
+        size: "small" as const,
+        sx: {
+            backgroundColor: style.bg,
+            color: style.color,
+            fontWeight: 500,
+            fontSize: "11px",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            borderRadius: "4px",
+            "& .MuiChip-label": {
+              padding: "4px 8px",
+            },
+          },
     };
 };
+
+const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
 const TABLE_COLUMNS = [
     { id: "incident_id", label: "INCIDENT ID" },
@@ -227,117 +233,51 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                     onEdit?.(incident.id?.toString(), "edit")
                                 }
                             >
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
+                                <TableCell sx={cellStyle}>
                                     {incident.incident_id}{" "}
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
+                                <TableCell sx={cellStyle}>
                                     <TooltipCell value={incident.ai_project} />
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
+                                <TableCell sx={cellStyle}>
                                     <TooltipCell value={incident.type} />
                                 </TableCell>
 
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    <span
-                                        style={incidentBadgeStyle(
+                                <TableCell sx={cellStyle}>
+                                    <Chip
+                                        {...getIncidentChipProps(
                                             incident.severity
                                         )}
-                                    >
-                                        {incident.severity}
-                                    </span>
+                                    />
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    <span
-                                        style={incidentBadgeStyle(
+                                <TableCell sx={cellStyle}>
+                                    <Chip
+                                        {...getIncidentChipProps(
                                             incident.status
                                         )}
-                                    >
-                                        {incident.status}
-                                    </span>
+                                    />
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
+                                <TableCell sx={cellStyle}>
                                     {incident.occurred_date
                                         ? dayjs
                                               .utc(incident.occurred_date)
                                               .format("YYYY-MM-DD")
                                         : "-"}
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
+                                <TableCell sx={cellStyle}>
                                     <TooltipCell value={incident.reporter} />
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    <span
-                                        style={incidentBadgeStyle(
+                                <TableCell sx={cellStyle}>
+                                    <Chip
+                                        {...getIncidentChipProps(
                                             incident.approval_status
                                         )}
-                                    >
-                                        {incident.approval_status}
-                                    </span>
+                                    />
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
+                                <TableCell sx={cellStyle}>
                                     <TooltipCell value={incident.approved_by} />
                                 </TableCell>
-                                <TableCell
-                                    sx={{
-                                        ...singleTheme.tableStyles.primary.body
-                                            .cell,
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
+                                <TableCell sx={cellStyle}>
                                     <Stack direction="row" spacing={1}>
                                         <CustomIconButton
                                             id={incident.id}

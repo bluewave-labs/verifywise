@@ -8,8 +8,7 @@ import {
   CircularProgress,
   Tooltip,
 } from "@mui/material";
-import {ReactComponent as ArrowBackIcon} from "../../assets/icons/left-arrow-long.svg";
-import { ReactComponent as GreyCircleInfoIcon } from "../../assets/icons/info-circle-grey.svg";
+import { ArrowLeft as ArrowBackIcon, Info as GreyCircleInfoIcon } from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import { fairnessService } from "../../../infrastructure/api/fairnessService";
 import singleTheme from "../../themes/v1SingleTheme";
@@ -96,7 +95,7 @@ export default function FairnessResultsPage() {
           onClick={() => navigate("/fairness-dashboard")}
           sx={{ mr: 2 }}
         >
-          <ArrowBackIcon />
+          <ArrowBackIcon size={20} />
         </IconButton>
         <Typography
           sx={{
@@ -137,7 +136,7 @@ export default function FairnessResultsPage() {
                 sx={{ fontSize: 13 }}
               >
                 <IconButton size="small" sx={{ ml: 1 }}>
-                  <GreyCircleInfoIcon fontSize="small" />
+                  <GreyCircleInfoIcon size={16} />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -186,7 +185,7 @@ export default function FairnessResultsPage() {
                 sx={{ fontSize: 13 }}
               >
                 <IconButton size="small" sx={{ ml: 1 }}>
-                  <GreyCircleInfoIcon fontSize="small" />
+                  <GreyCircleInfoIcon size={16} />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -235,7 +234,7 @@ export default function FairnessResultsPage() {
                   sx={{ fontSize: 13 }}
                 >
                   <IconButton size="small" sx={{ ml: 1 }}>
-                    <GreyCircleInfoIcon fontSize="small" />
+                    <GreyCircleInfoIcon size={16} />
                   </IconButton>
                 </Tooltip>
               </Box>

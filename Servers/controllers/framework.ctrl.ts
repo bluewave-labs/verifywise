@@ -16,11 +16,6 @@ import {
 } from "../domain.layer/exceptions/custom.exception";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
-import {
-  validateFrameworkIdParam,
-  validateFrameworkProjectOperation
-} from "../utils/validations/frameworkValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllFrameworks(
   req: Request,
@@ -76,26 +71,6 @@ export async function getFrameworkById(
 ): Promise<any> {
   const frameworkId = parseInt(req.params.id);
 
-  // Validate framework ID parameter
-  const frameworkIdValidation = validateFrameworkIdParam(frameworkId);
-  if (!frameworkIdValidation.isValid) {
-    logStructured(
-      "error",
-      `Invalid framework ID parameter: ${req.params.id}`,
-      "getFrameworkById",
-      "framework.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      `Invalid framework ID parameter: ${req.params.id}`
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: frameworkIdValidation.message || 'Invalid framework ID',
-      code: frameworkIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logStructured(
     "processing",
     `fetching framework by ID: ${frameworkId}`,
@@ -149,31 +124,6 @@ export async function addFrameworkToProject(
 ): Promise<any> {
   const frameworkId = parseInt(req.query.frameworkId as string);
   const projectId = parseInt(req.query.projectId as string);
-
-  // Validate framework and project IDs
-  const validationErrors = validateFrameworkProjectOperation(frameworkId, projectId);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      `Framework-to-project operation validation failed`,
-      "addFrameworkToProject",
-      "framework.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      "Framework-to-project operation validation failed"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Framework-to-project operation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const transaction = await sequelize.transaction();
   try {
     logStructured(
@@ -275,31 +225,6 @@ export async function deleteFrameworkFromProject(
 ): Promise<any> {
   const frameworkId = parseInt(req.query.frameworkId as string);
   const projectId = parseInt(req.query.projectId as string);
-
-  // Validate framework and project IDs
-  const validationErrors = validateFrameworkProjectOperation(frameworkId, projectId);
-  if (validationErrors.length > 0) {
-    logStructured(
-      "error",
-      `Framework-from-project operation validation failed`,
-      "deleteFrameworkFromProject",
-      "framework.ctrl.ts"
-    );
-    await logEvent(
-      "Error",
-      "Framework-from-project operation validation failed"
-    );
-    return res.status(400).json({
-      status: 'error',
-      message: 'Framework-from-project operation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const transaction = await sequelize.transaction();
   try {
     logStructured(

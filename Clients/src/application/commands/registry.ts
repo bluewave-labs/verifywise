@@ -2,19 +2,24 @@ import { Command, CommandGroup, CommandContext, CommandRegistry } from './types'
 import allowedRoles from '../constants/permissions'
 import {
   Home,
-  AlertTriangle,
   Building2,
   GitBranch,
-  GraduationCap,
   Folder,
   Activity,
+  Users,
+  AlertTriangle,
   Building,
+  GraduationCap,
+  FileText,
+  BarChart3,
+  Brain,
+  Shield,
+  Telescope,
   Scale,
   Settings,
-  ClipboardList,
-  FileText,
-  ShieldCheck,
-  Users
+  FolderTree,
+  Layers,
+  Flag
 } from 'lucide-react'
 
 // Define command groups
@@ -39,13 +44,40 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/' }
   },
   {
-    id: 'nav-risk-management',
-    label: 'Risk Management',
-    description: 'Manage and monitor risks',
-    keywords: ['risks', 'threats', 'vulnerabilities'],
+    id: 'nav-tasks',
+    label: 'Tasks',
+    description: 'Task management',
+    keywords: ['tasks', 'todo', 'assignments'],
+    group: COMMAND_GROUPS[0],
+    icon: Flag,
+    action: { type: 'navigate', payload: '/tasks' }
+  },
+  {
+    id: 'nav-project-view',
+    label: 'Project oriented view',
+    description: 'Project-based organizational view',
+    keywords: ['projects', 'overview', 'project view'],
+    group: COMMAND_GROUPS[0],
+    icon: FolderTree,
+    action: { type: 'navigate', payload: '/overview' }
+  },
+  {
+    id: 'nav-tasks',
+    label: 'Tasks',
+    description: 'Task management',
+    keywords: ['tasks', 'todo', 'assignments'],
     group: COMMAND_GROUPS[0],
     icon: AlertTriangle,
     action: { type: 'navigate', payload: '/risk-management' }
+  },
+  {
+    id: 'nav-framework',
+    label: 'Organizational view',
+    description: 'Organizational framework view',
+    keywords: ['compliance', 'frameworks', 'iso', 'eu ai act', 'organizational'],
+    group: COMMAND_GROUPS[0],
+    icon: Layers,
+    action: { type: 'navigate', payload: '/framework' }
   },
   {
     id: 'nav-vendors',
@@ -66,10 +98,10 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/model-inventory' }
   },
   {
-    id: 'nav-training',
-    label: 'Training Registry',
-    description: 'AI training programs',
-    keywords: ['training', 'education', 'courses'],
+    id: 'nav-risk-management',
+    label: 'Risk Management',
+    description: 'Manage and monitor risks',
+    keywords: ['risks', 'threats', 'vulnerabilities'],
     group: COMMAND_GROUPS[0],
     icon: GraduationCap,
     action: { type: 'navigate', payload: '/training' }
@@ -101,6 +133,15 @@ const NAVIGATION_COMMANDS: Command[] = [
     icon: Building,
     action: { type: 'navigate', payload: '/framework' }
   },
+{
+    id: 'nav-risk-management',
+    label: 'Risk Management',
+    description: 'Manage and monitor risks',
+    keywords: ['risks', 'threats', 'vulnerabilities'],
+    group: COMMAND_GROUPS[0],    
+icon: AlertTriangle,
+    action: { type: 'navigate', payload: '/risk-management' }
+  },
   {
     id: 'nav-fairness',
     label: 'Bias & Fairness',
@@ -111,31 +152,31 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/fairness-dashboard' }
   },
   {
-    id: 'nav-settings',
-    label: 'Settings',
-    description: 'System configuration',
-    keywords: ['settings', 'config', 'preferences'],
+    id: 'nav-training',
+    label: 'Training Registry',
+    description: 'AI training programs',
+    keywords: ['training', 'education', 'courses'],
     group: COMMAND_GROUPS[0],
-    icon: Settings,
-    action: { type: 'navigate', payload: '/setting' }
+    icon: GraduationCap,
+    action: { type: 'navigate', payload: '/training' }
   },
   {
-    id: 'nav-tasks',
-    label: 'Tasks',
-    description: 'Task management',
-    keywords: ['tasks', 'todo', 'assignments'],
-    group: COMMAND_GROUPS[0],
-    icon: ClipboardList,
-    action: { type: 'navigate', payload: '/tasks' }
-  },
-  {
-    id: 'nav-policies',
-    label: 'Policy Manager',
-    description: 'Manage organizational policies',
-    keywords: ['policies', 'policy', 'governance'],
+    id: 'nav-file-manager',
+    label: 'Evidence',
+    description: 'Evidence and documents',
+    keywords: ['files', 'documents', 'evidence'],
     group: COMMAND_GROUPS[0],
     icon: FileText,
-    action: { type: 'navigate', payload: '/policies' }
+    action: { type: 'navigate', payload: '/file-manager' }
+  },
+  {
+    id: 'nav-reporting',
+    label: 'Reporting',
+    description: 'Reports and analytics',
+    keywords: ['reports', 'analytics', 'charts'],
+    group: COMMAND_GROUPS[0],
+    icon: BarChart3,
+    action: { type: 'navigate', payload: '/reporting' }
   },
   {
     id: 'nav-ai-trust',
@@ -143,8 +184,35 @@ const NAVIGATION_COMMANDS: Command[] = [
     description: 'AI transparency and trust',
     keywords: ['trust', 'transparency', 'ai'],
     group: COMMAND_GROUPS[0],
-    icon: ShieldCheck,
+    icon: Brain,
     action: { type: 'navigate', payload: '/ai-trust-center' }
+  },
+  {
+    id: 'nav-policies',
+    label: 'Policy Manager',
+    description: 'Manage organizational policies',
+    keywords: ['policies', 'policy', 'governance'],
+    group: COMMAND_GROUPS[0],
+    icon: Shield,
+    action: { type: 'navigate', payload: '/policies' }
+  },
+  {
+    id: 'nav-event-tracker',
+    label: 'Event Tracker',
+    description: 'Event tracking and audit logs',
+    keywords: ['logs', 'events', 'audit', 'monitoring', 'watch', 'tower'],
+    group: COMMAND_GROUPS[0],
+    icon: Telescope,
+    action: { type: 'navigate', payload: '/event-tracker' }
+  },
+  {
+    id: 'nav-settings',
+    label: 'Settings',
+    description: 'System configuration',
+    keywords: ['settings', 'config', 'preferences'],
+    group: COMMAND_GROUPS[0],
+    icon: Settings,
+    action: { type: 'navigate', payload: '/setting' }
   }
 ]
 

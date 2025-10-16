@@ -51,7 +51,7 @@ export async function getVendorReportData(
               const vendorAssignee = await getUserByIdQuery(vendor.assignee);
               return `| ${vendor.vendor_name} | ${vendorAssignee.name} ${
                 vendorAssignee.surname
-              } | ${vendor.review_status} | ${vendor.review_date.toLocaleDateString()} |`;
+              } | ${vendor.review_status || 'Not started'} | ${vendor.review_date ? vendor.review_date.toLocaleDateString() : 'N/A'} |`;
             })
           ).then((rows) => rows.join("\n"))
         : "| - | - | - | - |";

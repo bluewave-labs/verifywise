@@ -18,15 +18,17 @@ import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import IconButton from "../../IconButton";
 import TablePaginationActions from "../../TablePagination";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
 import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+
 const titleOfTableColumns = [
   "risk description",
   "vendor",
-  "project",
+  "use case",
   "action owner",
   "risk severity",
   "likelihood",
@@ -320,6 +322,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
             paddingBottom: theme.spacing(20),
             gap: theme.spacing(10),
             minHeight: 200,
+            backgroundColor: "white",
           }}
         >
           <img src={Placeholder} alt="Placeholder" />

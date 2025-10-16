@@ -1,6 +1,6 @@
 import { TableBody, TableRow, TableCell, Box } from "@mui/material";
 import singleTheme from '../../../../themes/v1SingleTheme';
-import {ReactComponent as DeleteIconGrey} from "../../../../assets/icons/trash-grey.svg"
+import { Trash2 as DeleteIconGrey } from "lucide-react";
 import Button from '../../../../components/Button/index';
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
 
@@ -99,7 +99,7 @@ const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
             onConfirm={() => onRemoveModel.onConfirm(row.id)}
             title={`Delete this fairness check?`}
             message={`Are you sure you want to delete fairness check ID ${row.id}? This action is non-recoverable.`}
-            customIcon={<DeleteIconGrey/>}
+            customIcon={<DeleteIconGrey size={16} />}
           />
           </TableCell>
         </TableRow>

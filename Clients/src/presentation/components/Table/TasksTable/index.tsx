@@ -12,18 +12,21 @@ import {
   Chip,
   Box,
 } from "@mui/material";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import Placeholder from "../../../assets/imgs/empty-state.svg";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
-import { ReactComponent as SelectorVertical } from "../../../assets/icons/selector-vertical.svg";
+import { ChevronsUpDown } from "lucide-react";
 import { ITask } from "../../../../domain/interfaces/i.task";
 import { User } from "../../../../domain/types/User";
 import CustomSelect from "../../CustomSelect";
 import IconButton from "../../IconButton";
 import RiskChip from "../../RiskLevel/RiskChip";
+
 import { TaskStatus } from "../../../../domain/enums/task.enum";
+
+const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
 
 // Status display mapping
 const STATUS_DISPLAY_MAP: Record<string, string> = {
@@ -63,6 +66,8 @@ interface TasksTableProps {
   onRowClick?: (task: ITask) => void;
 }
 
+const TASKS_ROWS_PER_PAGE_KEY = 'verifywise_tasks_rows_per_page';
+
 const TasksTable: React.FC<TasksTableProps> = ({
   tasks,
   users,
@@ -75,7 +80,17 @@ const TasksTable: React.FC<TasksTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Initialize rowsPerPage from localStorage or default to 10
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(TASKS_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : 10;
+  });
+
+  // Save rowsPerPage to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(TASKS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+  }, [rowsPerPage]);
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 

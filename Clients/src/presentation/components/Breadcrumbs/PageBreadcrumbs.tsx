@@ -64,7 +64,7 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
           sx={{
             py: 0.5,
             px: 0,
-            mb: 2,
+            mb: 4,
             "& .MuiBreadcrumbs-separator": {
               color: theme.palette.text.disabled,
               mx: 0.5,

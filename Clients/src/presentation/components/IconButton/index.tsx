@@ -12,7 +12,7 @@ import {
   IconButton as MuiIconButton,
   useTheme,
 } from "@mui/material";
-import { ReactComponent as Setting } from "../../assets/icons/setting.svg";
+import { Settings } from "lucide-react";
 import { useState } from "react";
 import BasicModal from "../Modals/Basic";
 import ModelRiskConfirmation from "../Modals/ModelRiskConfirmation";
@@ -131,9 +131,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
-  const handleDownload = (e?: React.SyntheticEvent) => {
+  const handleDownload = async (e?: React.SyntheticEvent) => {
     if (onDownload) {
-      onDownload();
+      await onDownload();
     }
     if (e) {
       closeDropDownMenu(e);
@@ -210,35 +210,48 @@ const IconButton: React.FC<IconButtonProps> = ({
         },
       }}
     >
-      {listOfButtons.map((item) => (
-        <MenuItem
-          key={item}
-          onClick={(e) => {
-            if (item === "edit") {
-              handleEdit(e);
-            } else if (item === "download") {
-              handleDownload(e);
-            } else if (item === "make visible") {
-              handleMakeVisible(e);
-            } else if (item === "remove") {
-              if (warningTitle && warningMessage) {
-                setIsOpenRemoveModal(true);
-                if (e) closeDropDownMenu(e);
-              } else {
-                if (checkForRisks && onDeleteWithRisks) {
-                  handleDeleteWithRiskCheck(e);
-                } else {
-                  onDelete();
+      {listOfButtons.map((item) => {
+        // For resources, disable edit, download, and remove when not visible
+        const isResourceAction = (type === "Resource" || type === "resource") && item !== "make visible";
+        const isDisabled = isResourceAction && !isVisible;
+
+        return (
+          <MenuItem
+            key={item}
+            onClick={async (e) => {
+              // Prevent actions when disabled
+              if (isDisabled) {
+                e.stopPropagation();
+                return;
+              }
+
+              if (item === "edit") {
+                handleEdit(e);
+              } else if (item === "download") {
+                await handleDownload(e);
+              } else if (item === "make visible") {
+                handleMakeVisible(e);
+              } else if (item === "remove") {
+                if (warningTitle && warningMessage) {
+                  setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);
+                } else {
+                  if (checkForRisks && onDeleteWithRisks) {
+                    handleDeleteWithRiskCheck(e);
+                  } else {
+                    onDelete();
+                    if (e) closeDropDownMenu(e);
+                  }
                 }
               }
-            }
-          }}
-          sx={item === "remove" ? { color: "#d32f2f" } : {}}
-        >
-          {getMenuItemText(item)}
-        </MenuItem>
-      ))}
+            }}
+            disabled={isDisabled}
+            sx={item === "remove" ? { color: "#d32f2f" } : {}}
+          >
+            {getMenuItemText(item)}
+          </MenuItem>
+        );
+      })}
     </Menu>
   );
 
@@ -269,7 +282,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         openMenu(event, id, "someUrl");
       }}
     >
-      <Setting />
+      <Settings size={20} />
     </MuiIconButton>
   );
 

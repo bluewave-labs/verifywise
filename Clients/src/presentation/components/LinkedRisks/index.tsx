@@ -1,5 +1,5 @@
 import { Button, Stack, Typography } from "@mui/material";
-import { ClearIcon } from "@mui/x-date-pickers/icons";
+import { X as ClearIcon } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import Field from "../Inputs/Field";
 import useProjectRisks from "../../../application/hooks/useProjectRisks";
@@ -84,7 +84,7 @@ const LinkedRisksPopup: React.FC<LinkedRisksModalProps> = ({
           <Typography sx={styles.textTitle}>
             Link a risk from risk database
           </Typography>
-          <ClearIcon sx={styles.clearIconStyle} onClick={onClose} />
+          <ClearIcon size={20} style={styles.clearIconStyle} onClick={onClose} />
         </Stack>
         <Stack component="form" sx={styles.searchInputWrapper}>
           <Typography sx={{ fontSize: 13, color: "#344054", mr: 8 }}>

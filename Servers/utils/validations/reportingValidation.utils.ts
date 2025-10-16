@@ -209,20 +209,20 @@ export const validateReportGenerationBusinessRules = (data: any): ValidationErro
     }
   }
 
-  // Validate report name doesn't contain inappropriate terms
-  if (data.reportName) {
-    const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'tmp'];
-    const containsInappropriate = inappropriateTerms.some(term =>
-      data.reportName.toLowerCase().includes(term.toLowerCase())
-    );
-    if (containsInappropriate) {
-      errors.push({
-        field: 'reportName',
-        message: 'Report name should not contain test or placeholder terms',
-        code: 'INAPPROPRIATE_REPORT_NAME'
-      });
-    }
-  }
+  // // Validate report name doesn't contain inappropriate terms
+  // if (data.reportName) {
+  //   const inappropriateTerms = ['test', 'dummy', 'fake', 'sample', 'tmp'];
+  //   const containsInappropriate = inappropriateTerms.some(term =>
+  //     data.reportName.toLowerCase().includes(term.toLowerCase())
+  //   );
+  //   if (containsInappropriate) {
+  //     errors.push({
+  //       field: 'reportName',
+  //       message: 'Report name should not contain test or placeholder terms',
+  //       code: 'INAPPROPRIATE_REPORT_NAME'
+  //     });
+  //   }
+  // }
 
   // Validate project title doesn't contain placeholders
   if (data.projectTitle) {

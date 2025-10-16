@@ -26,9 +26,30 @@ VerifyWise also has additional products for end-to-end AI governance and managem
 - [Join our Discord channel](https://discord.com/invite/d3k3E4uEpR) to ask your questions and get the latest announcemnets.
 - [Need to talk to someone](https://verifywise.ai/contact)? Get with us to see the latest demo, or [click here](https://app.verifywise.ai) to experience the demo yourself.
 
-## Screenshot
+## Screenshots
 
-<img width="1319" height="740" alt="image" src="https://github.com/user-attachments/assets/576cf117-02a2-47e9-950f-e5b50c3b4005" />
+Main dashboard
+<img width="1524" height="869" alt="image" src="https://github.com/user-attachments/assets/6fd97359-81f2-482e-a339-8ab9f4eaa8b1" />
+
+Bias & fairness module 
+<img width="1527" height="874" alt="image" src="https://github.com/user-attachments/assets/dd4e0ffc-198d-450e-a8a8-21a3cf0ea456" />
+
+EU AI Act project view 
+
+<img width="1522" height="865" alt="image" src="https://github.com/user-attachments/assets/09ad8c69-8cc0-4304-b579-be77806505a9" />
+
+Risk management
+
+<img width="1532" height="869" alt="image" src="https://github.com/user-attachments/assets/0b2f0ed4-e82d-44d3-b032-a04451593f28" />
+
+AI trust center
+
+<img width="1528" height="870" alt="image" src="https://github.com/user-attachments/assets/19c633cd-02ae-47ad-b920-ef53979d6f2f" />
+
+Policy manager
+
+<img width="1634" height="901" alt="image" src="https://github.com/user-attachments/assets/d2260c04-9ab9-4d5b-b0f7-e9a68487e9c0" />
+
 
 ## Who is it for?
 
@@ -41,13 +62,6 @@ VerifyWise is designed for:
 - **Risk management teams**: Groups tasked with identifying and mitigating AI-related risks.
 - **Legal and privacy teams**: Professionals addressing the legal and ethical implications of AI use.
 - **AI developers**: Teams working on AI projects who need to ensure compliance and responsible development.
-
-## Why now?
-
-- **Urgent need for regulatory compliance:** Regulations establish clear rules for AI applications, creating a need for organizations to comply with legal requirements.
-- **Complexity of compliance:** Companies will require governance tools to help them navigate a changing regulatory landscape.
-- **Growing concerns for ethical AI:** There is a strong push from governments, businesses, and consumers for more ethical and transparent AI systems.
-- **Good timing with global AI expansion:** Launching an open-source AI governance application now aligns with the AI adoption trend across industries (e.g., healthcare, finance), addressing the need for a deployable governance solution.
 
 ## Features
 
@@ -128,6 +142,11 @@ Run the PostgreSQL container with the following command:
 
 ```
 docker run -d --name mypostgres -p 5432:5432 -e POSTGRES_PASSWORD={env variable password} postgres
+```
+
+Run redis with following command:
+```
+docker run -d --name myredis -p 6379:6379 redis
 ```
 
 Access the PostgreSQL container and create the verifywise database:

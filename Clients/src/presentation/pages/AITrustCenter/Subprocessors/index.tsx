@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, Suspense } from "react";
 import {
   Box,
@@ -14,8 +15,7 @@ import { useStyles } from "./styles";
 import Field from "../../../components/Inputs/Field";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import { Modal, IconButton } from "@mui/material";
-import { ReactComponent as CloseGreyIcon } from "../../../assets/icons/close-grey.svg";
-import { ReactComponent as AddCircleOutlineIcon } from "../../../assets/icons/plus-circle-white.svg";
+import { X as CloseGreyIcon, CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
 import AITrustCenterTable from "../../../components/Table/AITrustCenterTable";
 import Alert from "../../../components/Alert";
@@ -69,7 +69,7 @@ const SubprocessorTableRow: React.FC<{
         <Typography sx={styles.tableDataCell}>{subprocessor.name}</Typography>
       </TableCell>
       <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
-        <Typography sx={styles.tableDataCell}>{subprocessor.url}</Typography>
+        <Typography sx={styles.tableDataCell}>{subprocessor.url.replace(/^https?:\/\//, "")}</Typography>
       </TableCell>
       <TableCell onClick={handleRowClick} sx={{ cursor: "pointer", textTransform: "none !important", }}>
         <Typography sx={styles.tableDataCell}>
@@ -288,12 +288,30 @@ const AITrustCenterSubprocessors: React.FC = () => {
       return;
     }
 
+     // Client-side validation
+      if (newSubprocessor.purpose.length < 10) {
+        setEditSubprocessorError("Subprocessor purpose must be at least 10 characters long");
+        return;
+      }
+
+      // Validate URL (accept without http/https)
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      if (!urlPattern.test(newSubprocessor.url)) {
+        setEditSubprocessorError("Subprocessor URL must be a valid URL");
+        return;
+      }
+
     try {
+       // Prepend http:// if missing
+        let formattedUrl = newSubprocessor.url;
+        if (!/^https?:\/\//i.test(formattedUrl)) {
+          formattedUrl = "http://" + formattedUrl;
+        }
       await createSubprocessorMutation.mutateAsync({
         name: newSubprocessor.name,
         purpose: newSubprocessor.purpose,
         location: newSubprocessor.location,
-        url: newSubprocessor.url,
+        url: formattedUrl,
       });
       handleAlert({
         variant: "success",
@@ -321,13 +339,34 @@ const AITrustCenterSubprocessors: React.FC = () => {
       return;
     }
 
+     // Client-side validation
+      if (form.purpose.length < 10) {
+        setEditSubprocessorError("Subprocessor purpose must be at least 10 characters long");
+        return;
+      }
+
+       // Validate URL (accept without http/https)
+      const urlPattern = /^((https?:\/\/)?[\w-]+(\.[\w-]+)+([\/\w-]*)*(\?.*)?(#.*)?)$/i;
+      if (!urlPattern.test(form.url)) {
+        setEditSubprocessorError("Subprocessor URL must be a valid URL");
+        return;
+      }
+
+
     try {
+
+       // Prepend http:// if missing
+    let formattedUrl = form.url;
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+      formattedUrl = "http://" + formattedUrl;
+    }
+
       await updateSubprocessorMutation.mutateAsync({
         subprocessorId: editId,
         name: form.name,
         purpose: form.purpose,
         location: form.location,
-        url: form.url,
+        url: formattedUrl,
       });
       handleAlert({
         variant: "success",
@@ -433,7 +472,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
               onClick={handleOpenAddModal}
               isDisabled={!formData?.info?.subprocessor_visible}
               text="Add new subprocessor"
-              icon={<AddCircleOutlineIcon />}
+              icon={<AddCircleOutlineIcon size={16} />}
             />
             <Box sx={styles.toggleRow}>
               <Typography sx={styles.toggleLabel}>
@@ -482,7 +521,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
             <Box sx={styles.modalHeader}>
               <Typography sx={styles.modalTitle}>Edit subprocessor</Typography>
               <IconButton onClick={handleCloseEditModal} sx={{ p: 0 }}>
-                <CloseGreyIcon />
+                <CloseGreyIcon size={16} />
               </IconButton>
             </Box>
             <Stack spacing={3}>
@@ -550,7 +589,7 @@ const AITrustCenterSubprocessors: React.FC = () => {
                 Add new subprocessor
               </Typography>
               <IconButton onClick={handleCloseAddModal} sx={{ p: 0 }}>
-                <CloseGreyIcon />
+                <CloseGreyIcon size={16} />
               </IconButton>
             </Box>
             <Stack spacing={3}>

@@ -103,32 +103,32 @@ const FileManager: React.FC = (): JSX.Element => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Evidences & documents"
         description="Centralize compliance documentation and audit evidence management"
-        whatItDoes="Store and organize all **governance documentation**, *audit evidence*, and **compliance artifacts**. Track *document versions*, maintain **chain of custody**, and ensure easy retrieval during audits."
-        whyItMatters="Proper **evidence management** is critical for demonstrating *compliance* during **audits** and *regulatory reviews*. It provides a **single source of truth** for documentation and ensures *evidence integrity* throughout its lifecycle."
+        whatItDoes="Store and organize all *governance documentation*, *audit evidence*, and *compliance artifacts*. View file details, filter by project, and download individual files."
+        whyItMatters="**Evidence management** is critical for demonstrating *compliance* during *audits* and *regulatory reviews*. It provides a centralized view of all uploaded documents and their sources."
         quickActions={[
           {
-            label: "Upload Evidence",
-            description: "Add new compliance documents or audit evidence to the repository",
+            label: "Filter by Project",
+            description: "Use the project dropdown to view files from specific use cases",
             primary: true
           },
           {
-            label: "Download Reports",
-            description: "Export evidence packages for auditors and stakeholders"
+            label: "Download Files",
+            description: "Download individual files directly from the table"
           }
         ]}
         useCases={[
-          "**Audit evidence collection** including *policies*, *procedures*, and **control test results**",
-          "**Compliance certificates** and *third-party assessment reports* from vendors"
+          "View all files uploaded through *framework evidence uploads* and *compliance activities*",
+          "Track which files belong to specific *projects and frameworks*"
         ]}
         keyFeatures={[
-          "**Secure document storage** with *version control* and **access tracking**",
-          "**Metadata tagging** for easy *search and retrieval* during audits",
-          "**Integration** with project management for *context-aware evidence organization*"
+          "**Centralized file listing** showing all uploaded evidence and documents",
+          "*Project filtering* to view files from specific use cases",
+          "*Source navigation* to jump directly to the framework section where files were uploaded"
         ]}
         tips={[
-          "Maintain **consistent naming conventions** to simplify *evidence retrieval*",
-          "Tag documents with *relevant frameworks* and **controls** for better organization",
-          "**Regular archival** of outdated documents helps maintain a *clean repository*"
+          "Use the *project filter* to focus on files from specific use cases",
+          "Click on the *source* to navigate to where the file was originally uploaded",
+          "Files shown here are uploaded through various *framework and compliance sections*"
         ]}
       />
       <FileManagerHeader
@@ -150,7 +150,7 @@ const FileManager: React.FC = (): JSX.Element => {
               id="project-filter"
               value={selectedProject || "all"}
               items={[
-                { _id: "all", name: "All projects" },
+                { _id: "all", name: "All use cases" },
                 ...projects.map((project: Project) => ({
                   _id: project.id.toString(),
                   name: project.project_title,

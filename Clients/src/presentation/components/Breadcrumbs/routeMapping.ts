@@ -7,6 +7,25 @@
  * @version 2.0.0
  */
 
+import React from "react";
+import {
+  Home,
+  Flag,
+  BarChart3,
+  AlertTriangle,
+  Building,
+  Settings,
+  FileText,
+  Scale,
+  Brain,
+  Shield,
+  GraduationCap,
+  Telescope,
+  List as ListIcon,
+  FolderTree,
+  Layers,
+} from "lucide-react";
+
 /**
  * Static route mappings for exact path matches
  * @type {Record<string, string>}
@@ -15,10 +34,12 @@ export const routeMapping: Record<string, string> = {
   // Main pages
   "/": "Dashboard",
   "/test": "Dashboard",
+  "/overview": "Use cases",
 
   // Project related
-  "/project-view": "Project Overview",
-  
+  "/project-view": "Project overview",
+  "/test/project-view": "Project overview",
+
   // Vendor management
   "/vendors": "Vendor Management",
 
@@ -67,13 +88,70 @@ export const routeMapping: Record<string, string> = {
 };
 
 /**
+ * Icon mapping functions for breadcrumb items based on paths
+ * @type {Record<string, () => React.ReactNode>}
+ */
+export const routeIconMapping: Record<string, () => React.ReactNode> = {
+  // Main pages
+  "/": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
+  "/test": () => React.createElement(Home, { size: 14, strokeWidth: 1.5 }),
+
+  // Project related
+  "/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
+  "/test/project-view": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
+  "/overview": () => React.createElement(FolderTree, { size: 14, strokeWidth: 1.5 }),
+
+  // Tasks
+  "/tasks": () => React.createElement(Flag, { size: 14, strokeWidth: 1.5 }),
+
+  // Framework/Organizational
+  "/framework": () => React.createElement(Layers, { size: 14, strokeWidth: 1.5 }),
+
+  // Vendor management
+  "/vendors": () => React.createElement(Building, { size: 14, strokeWidth: 1.5 }),
+
+  // Model inventory
+  "/model-inventory": () => React.createElement(ListIcon, { size: 14, strokeWidth: 1.5 }),
+
+  // Risk management
+  "/risk-management": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
+
+  // Settings
+  "/setting": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+  "/organization": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+
+  // File management
+  "/file-manager": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
+
+  // Reporting
+  "/reporting": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),
+
+  // AI Trust Center
+  "/ai-trust-center": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
+  "/public": () => React.createElement(Brain, { size: 14, strokeWidth: 1.5 }),
+
+  // Fairness and Bias
+  "/fairness-dashboard": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
+  "/fairness-results": () => React.createElement(Scale, { size: 14, strokeWidth: 1.5 }),
+
+  // Training
+  "/training": () => React.createElement(GraduationCap, { size: 14, strokeWidth: 1.5 }),
+
+  // Event tracking
+  "/event-tracker": () => React.createElement(Telescope, { size: 14, strokeWidth: 1.5 }),
+
+  // Policy Manager
+  "/policies": () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),
+};
+
+/**
  * Route pattern configuration for dynamic route matching
  * @type {Array<{pattern: RegExp, label: string, description?: string}>}
  */
 export const dynamicRoutePatterns = [
   {
     pattern: /\/project-view.*projectId=/,
-    label: "Project Details",
+    label: "Project details",
     description: "Project view with specific project ID",
   },
   {
@@ -153,6 +231,23 @@ export const getRouteMapping = (path: string): string => {
 
   // Fallback to path conversion
   return pathToLabel(path);
+};
+
+/**
+ * Get the appropriate icon for a given path
+ *
+ * @param {string} path - The path to get icon for
+ * @returns {React.ReactNode | null} The appropriate icon or null if no match
+ */
+export const getRouteIcon = (path: string): React.ReactNode | null => {
+  const iconFunction = routeIconMapping[path];
+
+  // Debug logging to help troubleshoot icon matching
+  if (process.env.NODE_ENV === 'development') {
+    console.log('getRouteIcon - path:', path, 'has icon:', !!iconFunction);
+  }
+
+  return iconFunction ? iconFunction() : null;
 };
 
 /**

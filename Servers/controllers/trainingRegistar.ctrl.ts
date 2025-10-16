@@ -18,12 +18,6 @@ import {
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
-import {
-  validateTrainingRegistrarIdParam,
-  validateCompleteTrainingRegistrarCreation,
-  validateCompleteTrainingRegistrarUpdate
-} from "../utils/validations/trainingValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 // get ALL training registry api
 export async function getAllTrainingRegistar(
@@ -75,23 +69,6 @@ export async function getTrainingRegistarById(
 ): Promise<any> {
   const trainingRegistarId = parseInt(req.params.id);
 
-  // Validate training registrar ID parameter
-  const trainingRegistrarIdValidation = validateTrainingRegistrarIdParam(trainingRegistarId);
-  if (!trainingRegistrarIdValidation.isValid) {
-    await logFailure({
-      eventType: "Read",
-      description: `Invalid training registrar ID parameter: ${req.params.id}`,
-      functionName: "getTrainingRegistarById",
-      fileName: "trainingRegistar.ctrl.ts",
-      error: new Error(trainingRegistrarIdValidation.message || 'Invalid training registrar ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: trainingRegistrarIdValidation.message || 'Invalid training registrar ID',
-      code: trainingRegistrarIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logProcessing({
     description: `starting getTrainingRegistarById for training registrar ID ${trainingRegistarId}`,
     functionName: "getTrainingRegistarById",
@@ -139,27 +116,6 @@ export async function createNewTrainingRegistar(
   req: Request,
   res: Response
 ): Promise<any> {
-  // Validate training registrar creation request
-  const validationErrors = validateCompleteTrainingRegistrarCreation(req.body);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Create",
-      description: "Training registrar creation validation failed",
-      functionName: "createNewTrainingRegistar",
-      fileName: "trainingRegistar.ctrl.ts",
-      error: new Error('Training registrar creation validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Training registrar creation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const transaction = await sequelize.transaction();
 
   logProcessing({
@@ -218,23 +174,6 @@ export async function updateTrainingRegistarById(
 ): Promise<any> {
   const trainingRegistarId = parseInt(req.params.id);
 
-  // Validate training registrar ID parameter
-  const trainingRegistrarIdValidation = validateTrainingRegistrarIdParam(trainingRegistarId);
-  if (!trainingRegistrarIdValidation.isValid) {
-    await logFailure({
-      eventType: "Update",
-      description: `Invalid training registrar ID parameter: ${req.params.id}`,
-      functionName: "updateTrainingRegistarById",
-      fileName: "trainingRegistar.ctrl.ts",
-      error: new Error(trainingRegistrarIdValidation.message || 'Invalid training registrar ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: trainingRegistrarIdValidation.message || 'Invalid training registrar ID',
-      code: trainingRegistrarIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   // Get existing training registrar for business rule validation
   let existingTrainingRegistrar = null;
   try {
@@ -242,28 +181,6 @@ export async function updateTrainingRegistarById(
   } catch (error) {
     // Continue without existing data if query fails
   }
-
-  // Validate training registrar update request
-  const validationErrors = validateCompleteTrainingRegistrarUpdate(req.body, existingTrainingRegistrar);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Update",
-      description: `Training registrar update validation failed for ID ${trainingRegistarId}`,
-      functionName: "updateTrainingRegistarById",
-      fileName: "trainingRegistar.ctrl.ts",
-      error: new Error('Training registrar update validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Training registrar update validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   const transaction = await sequelize.transaction();
 
   logProcessing({
@@ -326,24 +243,6 @@ export async function deleteTrainingRegistarById(
   res: Response
 ): Promise<any> {
   const trainingRegistarId = parseInt(req.params.id);
-
-  // Validate training registrar ID parameter
-  const trainingRegistrarIdValidation = validateTrainingRegistrarIdParam(trainingRegistarId);
-  if (!trainingRegistrarIdValidation.isValid) {
-    await logFailure({
-      eventType: "Delete",
-      description: `Invalid training registrar ID parameter: ${req.params.id}`,
-      functionName: "deleteTrainingRegistarById",
-      fileName: "trainingRegistar.ctrl.ts",
-      error: new Error(trainingRegistrarIdValidation.message || 'Invalid training registrar ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: trainingRegistrarIdValidation.message || 'Invalid training registrar ID',
-      code: trainingRegistrarIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   const transaction = await sequelize.transaction();
 
   logProcessing({

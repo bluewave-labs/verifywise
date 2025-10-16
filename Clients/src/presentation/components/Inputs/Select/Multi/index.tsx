@@ -13,7 +13,7 @@ import {
   Box,
 } from "@mui/material";
 import "./index.css";
-import { ReactComponent as GreyDownArrowIcon  } from "../../../assets/icons/chevron-down-grey.svg";
+import { ChevronDown } from "lucide-react";
 
 
 interface CustomizableMultiSelectProps {
@@ -59,24 +59,55 @@ const CustomizableMultiSelect = ({
     margin: theme.spacing(2),
   };
 
+  const handleChipDelete = (id: string | number) => {
+    const idStr = String(id);
+    const current = (Array.isArray(value) ? value : [value]).filter(
+      (v) => String(v) !== idStr
+    ) as (string | number)[];
+    const syntheticEvent = {
+      target: { value: current, name: "vw-multi-select" },
+    } as unknown as SelectChangeEvent<(string | number)[]>;
+    onChange(syntheticEvent, null);
+  };
+
   const renderValue = (value: unknown) => {
     const selected = value as (string | number)[];
     const selectedItems = items.filter((item) =>
       selected.includes(getOptionValue ? getOptionValue(item) : item._id)
     );
     return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-        {selectedItems.map((item) => (
-          <Chip
-            key={getOptionValue ? getOptionValue(item) : item._id}
-            label={item.name + (item.surname ? " " + item.surname : "")}
-            sx={{
-              borderRadius: theme.shape.borderRadius,
-              height: 24,
-              fontSize: 12,
-            }}
-          />
-        ))}
+      <Box sx={{
+        display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflowX: 'auto', '::-webkit-scrollbar': {
+          display: 'none',
+        },
+        '-ms-overflow-style': 'none', // IE and Edge
+        'scrollbar-width': 'none',
+      }}>
+        {selectedItems.map((item) => {
+          const idVal = getOptionValue ? getOptionValue(item) : item._id;
+          return (
+            <Chip
+              key={idVal}
+              label={item.name + (item.surname ? " " + item.surname : "")}
+              onDelete={() => handleChipDelete(idVal)}
+              onMouseDown={(e) => {
+                // prevent Select from toggling when interacting with chips
+                e.stopPropagation();
+              }}
+              sx={{
+                borderRadius: 4,
+                height: 24,
+                fontSize: 12,
+                backgroundColor: theme.palette.background.accent,
+                color: theme.palette.text.primary,
+                '& .MuiChip-deleteIcon': {
+                  color: theme.palette.action.focus,
+                  fontSize: 20,
+                },
+              }}
+            />
+          );
+        })}
       </Box>
     );
   };
@@ -127,7 +158,7 @@ const CustomizableMultiSelect = ({
         multiple
         displayEmpty
         renderValue={renderValue}
-        IconComponent={GreyDownArrowIcon}
+        IconComponent={() => <ChevronDown size={16} />}
         error={!!error}
         MenuProps={{
           disableScrollLock: true,

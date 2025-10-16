@@ -268,8 +268,18 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
         if (!values.date_detected)
             newErrors.date_detected = "Detected date is required.";
         if (!values.reporter) newErrors.reporter = "Reporter is required.";
-        if (!values.description)
+        // ----- Description with min/max length -----
+        if (!values.description) {
             newErrors.description = "Description is required.";
+        }
+        // ----- Impact Assessment: Categories of Harm -----
+        if (
+            !values.categories_of_harm ||
+            values.categories_of_harm.length < 1
+        ) {
+            newErrors.categories_of_harm =
+                "Please select at least one Category of Harm.";
+        }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };

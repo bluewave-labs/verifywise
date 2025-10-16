@@ -786,6 +786,44 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       expires_at TIMESTAMPTZ,
       created_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL
     );`, { transaction });
+
+
+     // Create ai-incident-management table
+     await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}"."ai_incident_management" (
+        id SERIAL PRIMARY KEY,
+        incident_id VARCHAR(255) NOT NULL UNIQUE,
+        ai_project VARCHAR(255) NOT NULL,
+        type VARCHAR(255) NOT NULL,
+        severity VARCHAR(20) NOT NULL,
+        occurred_date TIMESTAMP NOT NULL,
+        date_detected TIMESTAMP NOT NULL,
+        reporter VARCHAR(255) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'Open',
+        categories_of_harm JSON NOT NULL,
+        affected_persons_groups TEXT,
+        description TEXT NOT NULL,
+        relationship_causality TEXT,
+        immediate_mitigations TEXT,
+        planned_corrective_actions TEXT,
+        model_system_version VARCHAR(255),
+        interim_report BOOLEAN NOT NULL DEFAULT FALSE,
+        approval_status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        approval_notes TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // Add indexes
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_severity_idx" ON "${tenantHash}"."ai_incident_management" (severity);
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_status_idx" ON "${tenantHash}"."ai_incident_management" (status);
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_approval_status_idx" ON "${tenantHash}"."ai_incident_management" (approval_status);
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_created_at_idx" ON "${tenantHash}"."ai_incident_management" (created_at);
+    `, { transaction });
   }
   catch (error) {
     throw error;

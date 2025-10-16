@@ -418,7 +418,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
   );
 
   const risksPanel = (
-    <TabPanel value="2" sx={{ paddingTop: theme.spacing(15), paddingX: 0 }}>
+    <TabPanel value="2" sx={{ paddingTop: "16px", paddingX: 8 }}>
       <Stack direction="row" spacing={12}>
         <Stack flex={1} spacing={12}>
           <Stack direction="row" spacing={6}>
@@ -568,7 +568,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,
             boxShadow: 24,
-            p: theme.spacing(15),
+            p: theme.spacing(8),
             "&:focus": {
               outline: "none",
             },
@@ -581,6 +581,7 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             flexDirection={"row"}
             justifyContent={"space-between"}
             alignItems={"center"}
+            sx={{ paddingX: theme.spacing(8) }}
           >
             <Typography
               fontSize={16}
@@ -591,21 +592,27 @@ const AddNewRisk: React.FC<AddNewRiskProps> = ({
             </Typography>
             <Close size={20} style={{ cursor: "pointer" }} onClick={setIsOpen} />
           </Stack>
-          {!existingRisk && (
-            <Typography
-              fontSize={13}
-              color={theme.palette.text.secondary}
-              marginBottom={theme.spacing(2)}
-              sx={{ lineHeight: 1.4 }}
-            >
-              Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan.
-            </Typography>
-          )}
+          <Typography
+            fontSize={13}
+            color={theme.palette.text.secondary}
+            marginBottom={theme.spacing(1)}
+            sx={{
+              lineHeight: 1.4,
+              paddingX: theme.spacing(8)
+            }}
+          >
+            {existingRisk
+              ? "Update risk details including description, impact assessment, and mitigation plan."
+              : "Document and assess a potential risk associated with your vendor. Provide details of the risk, its impact, and your mitigation plan."
+            }
+          </Typography>
           <TabContext value={value}>
             {risksPanel}
             <Stack
               sx={{
                 alignItems: "flex-end",
+                paddingX: theme.spacing(8),
+                marginTop: theme.spacing(2),
               }}
             >
               <CustomizableButton

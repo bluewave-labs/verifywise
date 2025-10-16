@@ -258,7 +258,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
         }}
       >
         <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1A1919" }}>
-          Project risks
+          Use case risks
         </Typography>
 
         {showCustomizableSkeleton ? (

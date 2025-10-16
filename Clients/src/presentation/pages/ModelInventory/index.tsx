@@ -627,8 +627,8 @@ const ModelInventory: React.FC = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Model inventory & risk management"
         description="Track and assess AI models and their associated risks throughout their lifecycle"
-        whatItDoes="Maintain a **comprehensive inventory** of AI models including their *metadata*, *performance metrics*, and **deployment status**. Track *model versions*, dependencies, and **associated risks**."
-        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and **risk mitigation**. It provides **visibility into your AI assets** and helps identify potential issues before they impact production systems."
+        whatItDoes="Maintain a *comprehensive inventory* of AI models including their *metadata*, *approval status*, and *associated risks*. Track basic model information and assess potential risks."
+        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It provides *visibility into your AI assets* and helps assess model-related risks."
         quickActions={[
           {
             label: "Add New Model",
@@ -643,18 +643,18 @@ const ModelInventory: React.FC = () => {
           },
         ]}
         useCases={[
-          "**Machine learning models** in production environments requiring *monitoring and governance*",
-          "**Pre-trained models** from external vendors that need *risk assessment* and **compliance tracking**",
+          "*Machine learning models* in production environments requiring *monitoring and governance*",
+          "*Pre-trained models* from external vendors that need *risk assessment* and *compliance tracking*",
         ]}
         keyFeatures={[
-          "**Complete model lifecycle tracking** from *development* to retirement",
-          "**Automated risk scoring** based on *model characteristics* and deployment context",
-          "**Integration** with model deployment pipelines and *monitoring systems*",
+          "**Model inventory management** with status tracking (Approved, Restricted, Pending, Blocked)",
+          "*Risk assessment framework* with categories like Performance, Security, and Bias & Fairness",
+          "*Advanced filtering* by status, risk category, risk level, and search functionality",
         ]}
         tips={[
-          "Start with your **production models** first - these carry the *highest operational risk*",
-          "**Regular model performance reviews** help catch *drift and degradation* early",
-          "Document **model lineage** and dependencies for better *impact assessment*",
+          "Use *status filters* to focus on models that need approval or attention",
+          "Categorize *model risks* to better understand different types of potential issues",
+          "Set *target dates* for risk mitigation to track resolution progress",
         ]}
       />
       {alert && (

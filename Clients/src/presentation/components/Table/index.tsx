@@ -17,7 +17,8 @@ import singleTheme from "../../themes/v1SingleTheme";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import { getAllVendors } from "../../../application/repository/vendor.repository";
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
+const RISKS_ROWS_PER_PAGE_KEY = 'verifywise_risks_rows_per_page';
 
 interface TableProps {
   data: {
@@ -50,11 +51,20 @@ const CustomizableBasicTable = ({
 }: TableProps) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  // Initialize rowsPerPage from localStorage or default to 10
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem(RISKS_ROWS_PER_PAGE_KEY);
+    return saved ? parseInt(saved, 10) : DEFAULT_ROWS_PER_PAGE;
+  });
   const { setInputValues, dashboardValues, setDashboardValues } =
     useContext(VerifyWiseContext);
 
   useEffect(() => setPage(0), [data]);
+
+  // Save rowsPerPage to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(RISKS_ROWS_PER_PAGE_KEY, rowsPerPage.toString());
+  }, [rowsPerPage]);
 
   const handleChangePage = useCallback(
     (_: unknown, newPage: number) => setPage(newPage),

@@ -178,8 +178,7 @@ const AddFrameworkModal: React.FC<AddFrameworkModalProps> = ({
         {/* Description */}
         <Box sx={{ p: 2, pt: 0 }}>
           <Typography sx={modalDescriptionStyle}>
-            Add or remove AI frameworks to your platform. Selected frameworks
-            will be integrated into your compliance workflow.
+            Add or remove AI frameworks or regulations to your platform. Those selected will be integrated into your use case.
           </Typography>
           <Stack spacing={6}>
             {frameworks.map((fw) => {

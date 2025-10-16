@@ -28,7 +28,7 @@ const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />
 const titleOfTableColumns = [
   "risk description",
   "vendor",
-  "project",
+  "use case",
   "action owner",
   "risk severity",
   "likelihood",
@@ -322,6 +322,7 @@ const RiskTable: React.FC<RiskTableProps> = ({
             paddingBottom: theme.spacing(20),
             gap: theme.spacing(10),
             minHeight: 200,
+            backgroundColor: "white",
           }}
         >
           <img src={Placeholder} alt="Placeholder" />

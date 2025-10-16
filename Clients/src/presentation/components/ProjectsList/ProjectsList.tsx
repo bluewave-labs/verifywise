@@ -19,9 +19,10 @@ import {
 
 interface ProjectListProps {
   projects: Project[];
+  newProjectButton?: React.ReactNode;
 }
 
-const ProjectList = ({ projects }: ProjectListProps) => {
+const ProjectList = ({ projects, newProjectButton }: ProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [viewMode, setViewMode] = usePersistedViewMode(
@@ -42,7 +43,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
       return viewMode === "table" ? (
         <ProjectTableView projects={[]} />
       ) : (
-        <NoProject message="A project is a use-case, AI product or an algorithm. Currently you don't have any projects in this workspace. You can either create a demo project, or click on the 'New project' button to start with one." />
+        <NoProject message="A use case is a real-world scenario describing how an AI system is applied within an organization. Currently you don't have any use cases in this workspace. You can either create a demo use case, or click on the 'New use case' button to start with one." />
       );
     }
 
@@ -51,7 +52,7 @@ const ProjectList = ({ projects }: ProjectListProps) => {
         <ProjectTableView projects={[]} />
       ) : (
         <Typography variant="body1" sx={noProjectsTextStyle}>
-          No projects found. Try another search term or create a new project.
+          No use cases found. Try another search term or create a new use case.
         </Typography>
       );
     }
@@ -92,13 +93,13 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           mb: "16px",
         }}
       >
-        {/* Search Box */}
+        {/* Left Side: Search Box */}
         <Box sx={searchBoxStyle(isSearchBarVisible)}>
           <IconButton
             disableRipple
             disableFocusRipple
             sx={{ "&:hover": { backgroundColor: "transparent" } }}
-            aria-label="Toggle project search"
+            aria-label="Toggle use case search"
             aria-expanded={isSearchBarVisible}
             onClick={() => setIsSearchBarVisible((prev) => !prev)}
           >
@@ -108,8 +109,8 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           {isSearchBarVisible && (
             <InputBase
               autoFocus
-              placeholder="Search projects..."
-              inputProps={{ "aria-label": "Search projects" }}
+              placeholder="Search use cases..."
+              inputProps={{ "aria-label": "Search use cases" }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={inputStyle(isSearchBarVisible)}
@@ -117,10 +118,19 @@ const ProjectList = ({ projects }: ProjectListProps) => {
           )}
         </Box>
 
-        {/* View Toggle */}
-        {projects && projects.length > 0 && (
-          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-        )}
+        {/* Right Side: New Project Button + View Toggle */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          {newProjectButton}
+          {projects && projects.length > 0 && (
+            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+          )}
+        </Box>
       </Box>
 
       {/* Projects List */}

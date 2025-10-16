@@ -135,13 +135,14 @@ export const getUserByEmailQuery = async (
  *   });
  * ```
  */
-export const getUserByIdQuery = async (id: number): Promise<UserModel> => {
+export const getUserByIdQuery = async (id: number, transaction: Transaction | null = null): Promise<UserModel> => {
     const users = await sequelize.query<UserModel>(
         "SELECT * FROM public.users WHERE id = :id",
         {
             replacements: { id },
             model: UserModel,
             mapToModel: true, // converts results into UserModel instances
+            ...(transaction ? { transaction } : {}) // include transaction if provided
         }
     );
 
@@ -371,7 +372,6 @@ export const deleteUserByIdQuery = async (
   for (let entry of usersFK) {
     await Promise.all(
       entry.fields.map(async (f) => {
-        console.log(entry.table);
         await sequelize.query(
           `UPDATE "${tenant}".${entry.table} SET ${f} = :x WHERE ${f} = :id`,
           {

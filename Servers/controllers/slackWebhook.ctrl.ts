@@ -14,6 +14,7 @@ import {
   createNewSlackWebhookQuery,
   updateSlackWebhookByIdQuery,
   getSlackWebhookByIdAndChannelQuery,
+  deleteSlackWebhookByIdQuery,
 } from "../utils/slackWebhook.utils";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
 import { inviteBotToChannel, sendImmediateMessage } from "../services/slack/slackNotificationService";
@@ -512,5 +513,31 @@ export async function disableSlackActivity(
   } else {
     await transaction.rollback();
     return;
+  }
+}
+
+
+export async function deleteSlackWebhookById(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const transaction = await sequelize.transaction();
+  try {
+    const slackWebhookId = parseInt(req.params.id);
+
+    const deleted = await deleteSlackWebhookByIdQuery(
+      slackWebhookId,
+      transaction
+    );
+
+    if (deleted) {
+      await transaction.commit();
+      return res.status(200).json(STATUS_CODE[200](deleted));
+    }
+
+    return res.status(204).json(STATUS_CODE[204](deleted));
+  } catch (error) {
+    await transaction.rollback();
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
   }
 }

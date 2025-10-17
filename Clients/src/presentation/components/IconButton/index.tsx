@@ -173,7 +173,7 @@ const IconButton: React.FC<IconButtonProps> = ({
    * - For type "evidence", the menu item will be "download".
    * - For type "report", the menu item will be "download", "remove".
    * - For type "Resource", the menu item will be "edit", "make visible", "download", "remove".
-   * - For type "integration" (e.g., Slack), the menu item will be "Send Test", "Disable/Enable" "remove".
+   * - For type "integration" (e.g., Slack), the menu item will be "Send Test", "Activate/Deactivate" "remove".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
   const getListOfButtons = () => {
@@ -186,7 +186,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     } else if (type === "Vendor") {
       return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
     } else if (type === "integration") { // slack integration
-      return ["Send Test", "Disable/Enable", "remove"]
+      return ["Send Test", "Activate/Deactivate", "remove"]
     } else {
       return ["edit", "remove"];
     }
@@ -256,7 +256,7 @@ const IconButton: React.FC<IconButtonProps> = ({
                 handleMakeVisible(e);
               } else if (item === "Send Test") {
                 await handleSendTestNotification(e);
-              } else if (item === "Disable/Enable") {
+              } else if (item === "Activate/Deactivate") {
                 await handleToggleStatus(e);
               } else if (item === "remove") {
                 if (warningTitle && warningMessage) {

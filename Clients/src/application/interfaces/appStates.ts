@@ -1,10 +1,41 @@
 interface DashboardState {
   dashboard: Record<string, unknown>;
-  projects: Record<string, unknown>;
+  projects: Project[];
   compliance: Record<string, unknown>;
   assessments: Record<string, unknown>;
-  vendors: unknown[];
-  users?: unknown[];
+  vendors: Vendor[];
+  users?: User[];
+}
+
+// Define Project interface for better type safety
+interface Project {
+  id: string | number;
+  project_title?: string;
+  is_organizational?: boolean;
+  framework?: FrameworkValues[];
+  [key: string]: unknown;
+}
+
+interface FrameworkValues {
+  project_framework_id: number;
+  framework_id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+// Supporting interfaces for better type safety
+interface Vendor {
+  id: number;
+  vendor_name: string;
+  [key: string]: unknown;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  surname?: string;
+  [key: string]: unknown;
 }
 
 interface AppState {
@@ -49,13 +80,13 @@ interface AuthValues {
 }
 
 // Input state values for forms and dynamic data entry
-interface InputValues extends Record<string, unknown> {
+interface InputValues {
   id?: string | number;
   risk_name?: string;
   risk_owner?: number;
   risk_description?: string;
   ai_lifecycle_phase?: string;
-  risk_category?: string[] | unknown;
+  risk_category?: string[];
   impact?: string;
   assessment_mapping?: number;
   controlsMapping?: number;
@@ -63,24 +94,25 @@ interface InputValues extends Record<string, unknown> {
   severity?: string;
   riskLevel?: number | string;
   review_notes?: string;
-  projects?: number[] | unknown;
-  frameworks?: number[] | unknown;
+  projects?: number[];
+  frameworks?: number[];
   mitigation_status?: string;
   mitigation_plan?: string;
   current_risk_level?: string;
   implementation_strategy?: string;
-  deadline?: string | Date | unknown;
+  deadline?: string | Date;
   mitigation_evidence_document?: string;
   likelihood_mitigation?: string;
   risk_severity?: string;
   risk_approval?: number;
   approval_status?: string;
-  date_of_assessment?: string | Date | unknown;
+  date_of_assessment?: string | Date;
   // Vendor risk form fields
   vendor_name?: number;
   owner?: number;
-  review_date?: string | Date | unknown;
-  [key: string]: unknown;
+  review_date?: string | Date;
+  // Generic field for dynamic form data
+  [key: string]: string | number | boolean | string[] | Date | undefined | null;
 }
 
-export type { DashboardState, AppState, AlertState, UIValues, AuthValues, InputValues };
+export type { DashboardState, AppState, AlertState, UIValues, AuthValues, InputValues, Vendor, User, Project, FrameworkValues };

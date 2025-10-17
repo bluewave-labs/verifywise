@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../TablePagination";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { DashboardState } from "../../../application/interfaces/appStates";
+import { DashboardState, User } from "../../../application/interfaces/appStates";
 import singleTheme from "../../themes/v1SingleTheme";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import { getAllVendors } from "../../../application/repository/vendor.repository";
@@ -21,18 +21,36 @@ import { getAllVendors } from "../../../application/repository/vendor.repository
 const DEFAULT_ROWS_PER_PAGE = 10;
 const RISKS_ROWS_PER_PAGE_KEY = 'verifywise_risks_rows_per_page';
 
+// Define proper interfaces for type safety
+interface TableColumn {
+  id: string;
+  name: string;
+}
+
+interface TableRow {
+  id: string | number;
+  risk_name?: string;
+  impact?: string;
+  risk_owner?: string | number;
+  risk_level_autocalculated?: string;
+  likelihood?: string;
+  mitigation_status?: string;
+  final_risk_level?: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
 interface TableProps {
   data: {
-    rows: any[];
-    cols: { id: string; name: string }[];
+    rows: TableRow[];
+    cols: TableColumn[];
   };
-  bodyData: any[];
+  bodyData: TableRow[];
   paginated?: boolean;
   reversed?: boolean;
   table: string;
-  onRowClick?: (id: string) => void;
+  onRowClick?: (id: string | number) => void;
   label?: string;
-  setSelectedRow: (row: any) => void;
+  setSelectedRow: (row: TableRow) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
 }
 
@@ -93,7 +111,7 @@ const CustomizableBasicTable = ({
 
   const onRowClickHandler = (
     event: React.MouseEvent<HTMLTableRowElement>,
-    rowData: any
+    rowData: TableRow
   ) => {
     setSelectedRow(rowData);
     setInputValues(rowData);
@@ -156,7 +174,7 @@ const CustomizableBasicTable = ({
                 </TableCell>
                 <TableCell>
                   {dashboardValues.users?.find(
-                    (user: any) => user.id === parseInt(row.risk_owner)
+                    (user: User) => user.id === parseInt(String(row.risk_owner))
                   )?.name || (typeof row.risk_owner === 'string' ? row.risk_owner : String(row.risk_owner))}
                 </TableCell>
                 <TableCell>
@@ -194,9 +212,7 @@ const CustomizableBasicTable = ({
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[5, 10, 15, 25]}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={
-              TablePaginationActions as React.ComponentType<any>
-            }
+            ActionsComponent={TablePaginationActions}
             labelRowsPerPage="Rows per page"
             sx={{ mt: theme.spacing(6) }}
           />

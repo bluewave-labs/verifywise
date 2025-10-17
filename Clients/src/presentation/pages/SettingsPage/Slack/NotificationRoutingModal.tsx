@@ -305,14 +305,14 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
                 size="medium"
                 text="Send Test"
                 sx={{
-                  backgroundColor: "#fff",
-                  color: "#13715B",
+                  backgroundColor: theme.palette.background.main,
+                  color: theme.palette.primary.main,
                   fontSize: 13,
                   fontWeight: 600,
                   px: 3,
                   mt: 1,
                   height: 34,
-                  border: "1px solid #13715B",
+                  border: `1px solid ${theme.palette.primary.main}`,
                   "&:disabled": {
                     cursor: "not-allowed",
                   },

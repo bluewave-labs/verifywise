@@ -323,11 +323,11 @@ const RisksView: FC<RisksViewProps> = memo(
         {/* map the data */}
         <BasicTable
           data={tableData}
-          bodyData={riskData1}
+          bodyData={risksTableRows}
           table="risksTable"
           paginated
           label={`${title} risk`}
-          setSelectedRow={(row) => setSelectedRow(row as ProjectRisk | VendorRisk)}
+          setSelectedRow={(row) => setSelectedRow(riskData1.find(r => r.id === row.id) as ProjectRisk | VendorRisk)}
           setAnchorEl={setAnchorEl}
         />
       </Stack>

@@ -151,7 +151,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
     };
 
     if (reportType === 'organization' && organizationalProjects.length > 0) {
-      finalValues.project = organizationalProjects[0].id;
+      finalValues.project = typeof organizationalProjects[0].id === 'number' ? organizationalProjects[0].id : parseInt(String(organizationalProjects[0].id));
     }
 
     onGenerate(finalValues);

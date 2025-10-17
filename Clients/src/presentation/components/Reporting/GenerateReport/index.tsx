@@ -17,7 +17,7 @@ interface GenerateReportProps {
 }
 
 interface InputProps {
-  report_type: string;
+  report_type: string | string[];
   report_name: string;
   project: number;
   framework: number;

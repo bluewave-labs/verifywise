@@ -175,7 +175,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
         riskName: inputValues.risk_name ?? "",
-        actionOwner: inputValues.risk_owner ?? 0,
+        actionOwner: typeof inputValues.risk_owner === 'number' ? inputValues.risk_owner : parseInt(String(inputValues.risk_owner)) || 0,
         riskDescription: inputValues.risk_description ?? "",
         aiLifecyclePhase:
           aiLifecyclePhase.find(

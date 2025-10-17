@@ -157,7 +157,7 @@ const CustomizableBasicTable = ({
                 <TableCell>
                   {dashboardValues.users?.find(
                     (user: any) => user.id === parseInt(row.risk_owner)
-                  )?.name || row.risk_owner}
+                  )?.name || (typeof row.risk_owner === 'string' ? row.risk_owner : String(row.risk_owner))}
                 </TableCell>
                 <TableCell>
                   {riskLevelChecker(row.risk_level_autocalculated)}

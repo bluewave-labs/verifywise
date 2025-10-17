@@ -7,6 +7,8 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   countAnnexCategoriesISOByProjectId,
   countSubClausesISOByProjectId,
+  countSubClauseAssignmentsISOByProjectId,
+  countAnnexCategoryAssignmentsISOByProjectId,
   deleteAnnexCategoriesISOByProjectIdQuery,
   deleteSubClausesISOByProjectIdQuery,
   getAllAnnexesQuery,
@@ -36,15 +38,6 @@ import {
 } from "../utils/logger/logHelper";
 import logger, { logStructured } from "../utils/logger/fileLogger";
 import { logEvent } from "../utils/logger/dbLogger";
-import {
-  validateSubClauseIdParam,
-  validateAnnexCategoryIdParam,
-  validateProjectFrameworkIdParam,
-  validateCompleteSubClauseUpdate,
-  validateCompleteAnnexCategoryUpdate,
-  sanitizeAnnexCategoryData
-} from "../utils/validations/iso42001Validation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function getAllClauses(req: Request, res: Response): Promise<any> {
   logProcessing({
@@ -547,45 +540,6 @@ export async function saveClauses(
   logger.debug(`💾 Saving clauses for sub-clause ID ${subClauseId}`);
 
   try {
-    // Validate subclause ID parameter
-    const subClauseIdValidation = validateSubClauseIdParam(subClauseId);
-    if (!subClauseIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Invalid subclause ID parameter: ${req.params.id}`,
-        functionName: "saveClauses",
-        fileName: "iso42001.ctrl.ts",
-        error: new Error("Invalid subclause ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: subClauseIdValidation.message || 'Invalid subclause ID',
-        code: subClauseIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
-
-    // Validate request body and files
-    const validationErrors = validateCompleteSubClauseUpdate(req.body, req.files as any[]);
-    if (validationErrors.length > 0) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Subclause update validation failed for subclause ID ${subClauseId}`,
-        functionName: "saveClauses",
-        fileName: "iso42001.ctrl.ts",
-        error: new Error("Subclause update validation failed"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Subclause update validation failed',
-        errors: validationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
-    }
 
     const subClause = req.body as SubClauseISO & {
       user_id: string;
@@ -676,50 +630,8 @@ export async function saveAnnexes(
   logger.debug(`💾 Saving annexes for annex category ID ${annexCategoryId}`);
 
   try {
-    // Validate annex category ID parameter
-    const annexCategoryIdValidation = validateAnnexCategoryIdParam(annexCategoryId);
-    if (!annexCategoryIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Invalid annex category ID parameter: ${req.params.id}`,
-        functionName: "saveAnnexes",
-        fileName: "iso42001.ctrl.ts",
-        error: new Error("Invalid annex category ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: annexCategoryIdValidation.message || 'Invalid annex category ID',
-        code: annexCategoryIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
 
-    // Validate request body and files
-    const validationErrors = validateCompleteAnnexCategoryUpdate(req.body, req.files as any[]);
-    if (validationErrors.length > 0) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Update",
-        description: `Annex category update validation failed for annex category ID ${annexCategoryId}`,
-        functionName: "saveAnnexes",
-        fileName: "iso42001.ctrl.ts",
-        error: new Error("Annex category update validation failed"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: 'Annex category update validation failed',
-        errors: validationErrors.map((err: ValidationError) => ({
-          field: err.field,
-          message: err.message,
-          code: err.code
-        }))
-      });
-    }
-
-    // Sanitize annex category data based on is_applicable value
-    const sanitizedBody = sanitizeAnnexCategoryData(req.body);
-
-    const annexCategory = sanitizedBody as AnnexCategoryISO & {
+    const annexCategory = req.body as AnnexCategoryISO & {
       user_id: string;
       project_id: string;
       delete: string;
@@ -795,23 +707,6 @@ export async function deleteManagementSystemClauses(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "deleteManagementSystemClauses",
-        fileName: "iso42001.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
 
     const result = await deleteSubClausesISOByProjectIdQuery(
       projectFrameworkId,
@@ -869,23 +764,6 @@ export async function deleteReferenceControls(
   );
 
   try {
-    // Validate project framework ID parameter
-    const projectFrameworkIdValidation = validateProjectFrameworkIdParam(projectFrameworkId);
-    if (!projectFrameworkIdValidation.isValid) {
-      await transaction.rollback();
-      await logFailure({
-        eventType: "Delete",
-        description: `Invalid project framework ID parameter: ${req.params.id}`,
-        functionName: "deleteReferenceControls",
-        fileName: "iso42001.ctrl.ts",
-        error: new Error("Invalid project framework ID parameter"),
-      });
-      return res.status(400).json({
-        status: 'error',
-        message: projectFrameworkIdValidation.message || 'Invalid project framework ID',
-        code: projectFrameworkIdValidation.code || 'INVALID_PARAMETER'
-      });
-    }
 
     const result = await deleteAnnexCategoriesISOByProjectIdQuery(
       projectFrameworkId,
@@ -1172,6 +1050,115 @@ export async function getAllProjectsAnnxesProgress(
       eventType: "Read",
       description: "Failed to get annexes progress across all projects",
       functionName: "getAllProjectsAnnxesProgress",
+      fileName: "iso42001.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Retrieves assignment statistics for ISO 42001 subclauses within a project framework.
+ * Returns total count and number of subclauses that have been assigned to owners.
+ *
+ * @route GET /api/iso-42001/clauses/assignments/:id
+ * @param req - Express request object with project framework ID in params
+ * @param res - Express response object
+ * @returns JSON response with totalSubclauses and assignedSubclauses counts
+ */
+export async function getProjectClausesAssignments(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectClausesAssignments for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectClausesAssignments",
+    fileName: "iso42001.ctrl.ts",
+  });
+  logger.debug(
+    `📊 Calculating clauses assignments for project framework ID ${projectFrameworkId}`
+  );
+
+  try {
+    const { totalSubclauses, assignedSubclauses } =
+      await countSubClauseAssignmentsISOByProjectId(projectFrameworkId, req.tenantId!);
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved clauses assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectClausesAssignments",
+      fileName: "iso42001.ctrl.ts",
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        totalSubclauses: parseInt(totalSubclauses),
+        assignedSubclauses: parseInt(assignedSubclauses),
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get clauses assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectClausesAssignments",
+      fileName: "iso42001.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+  }
+}
+
+/**
+ * Retrieves assignment statistics for ISO 42001 annex categories within a project framework.
+ * Returns total count and number of annex categories that have been assigned to owners.
+ *
+ * @route GET /api/iso-42001/annexes/assignments/:id
+ * @param req - Express request object with project framework ID in params
+ * @param res - Express response object
+ * @returns JSON response with totalAnnexcategories and assignedAnnexcategories counts
+ */
+export async function getProjectAnnexesAssignments(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const projectFrameworkId = parseInt(req.params.id);
+
+  logProcessing({
+    description: `starting getProjectAnnexesAssignments for project framework ID ${projectFrameworkId}`,
+    functionName: "getProjectAnnexesAssignments",
+    fileName: "iso42001.ctrl.ts",
+  });
+  logger.debug(
+    `📊 Calculating annexes assignments for project framework ID ${projectFrameworkId}`
+  );
+
+  try {
+    const { totalAnnexcategories, assignedAnnexcategories } =
+      await countAnnexCategoryAssignmentsISOByProjectId(
+        projectFrameworkId,
+        req.tenantId!
+      );
+
+    await logSuccess({
+      eventType: "Read",
+      description: `Retrieved annexes assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAnnexesAssignments",
+      fileName: "iso42001.ctrl.ts",
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        totalAnnexcategories: parseInt(totalAnnexcategories),
+        assignedAnnexcategories: parseInt(assignedAnnexcategories),
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Read",
+      description: `Failed to get annexes assignments for project framework ID ${projectFrameworkId}`,
+      functionName: "getProjectAnnexesAssignments",
       fileName: "iso42001.ctrl.ts",
       error: error as Error,
     });

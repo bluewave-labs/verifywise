@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Stack,
-  Checkbox,
   FormControlLabel,
   useTheme,
   CircularProgress,
@@ -13,13 +12,14 @@ import {
 import Alert from "../../../components/Alert";
 import Toggle from "../../../components/Inputs/Toggle";
 import ToggleCard from "../../../components/Inputs/ToggleCard";
+import Checkbox from "../../../components/Inputs/Checkbox";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import {
   useAITrustCentreOverviewQuery,
   useAITrustCentreOverviewMutation,
 } from "../../../../application/hooks/useAITrustCentreOverviewQuery";
 import { handleAlert } from "../../../../application/tools/alertUtils";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
+import { Save as SaveIcon } from "lucide-react";
 import Field from "../../../components/Inputs/Field";
 
 import {
@@ -73,16 +73,14 @@ const ComplianceBadge: React.FC<{
   onChange: (checked: boolean) => void;
   disabled: boolean;
 }> = ({ badge, checked, onChange, disabled }) => (
-  <FormControlLabel
-    control={
-      <Checkbox
-        checked={checked}
-        onChange={(_, checked) => onChange(checked)}
-        disabled={disabled}
-      />
-    }
+  <Checkbox
+    id={`compliance-badge-${badge.key}`}
     label={badge.label}
-    sx={{ ...styles.badge, ...styles.checkbox }}
+    size="small"
+    isChecked={checked}
+    value={checked.toString()}
+    onChange={(event) => onChange(event.target.checked)}
+    isDisabled={disabled}
   />
 );
 
@@ -297,6 +295,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -339,6 +344,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -381,6 +393,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -401,16 +420,22 @@ const AITrustCenterOverview: React.FC = () => {
             handleFieldChange("info", "compliance_badges_visible", checked)
           }
         />
-        <Typography sx={styles.sectionDescription}>
+        <Typography sx={{ ...styles.sectionDescription, mb: 8 }}>
           Compliance badges for certifications and standards (e.g., EU AI Act,
           NIST, SOC2, ISO 27001, GDPR).
         </Typography>
         <Box
           display="flex"
           flexWrap="wrap"
-          rowGap={0.5}
-          mt={1}
-          sx={styles.badgesContainer}
+          gap={12}
+          mt={3}
+          sx={{
+            maxWidth: '100%',
+            '& > *': {
+              flex: '0 0 auto',
+              minWidth: 'fit-content',
+            }
+          }}
         >
           {COMPLIANCE_BADGES.map((badge) => (
             <ComplianceBadge
@@ -488,6 +513,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -542,6 +574,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -596,6 +635,13 @@ const AITrustCenterOverview: React.FC = () => {
                 },
                 '& .MuiInputBase-input': {
                   fontSize: '13px',
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:focus': {
+                  outline: 'none',
+                },
+                '& .MuiInputBase-input:disabled': {
+                  outline: 'none',
                 },
               }}
             />
@@ -622,37 +668,33 @@ const AITrustCenterOverview: React.FC = () => {
           questions and incidents.
         </Typography>
         <PrivacyFields>
-          <Stack direction="column" spacing={2} sx={{ width: "100%" }}>
+          <Stack direction="column" spacing={3} sx={{ width: "100%", mt: 3 }}>
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1}
+              spacing={2}
               sx={{ width: "100%" }}
             >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      localFormData.terms_and_contact?.terms_visible || false
-                    }
-                    onChange={(_, checked) =>
-                      handleFieldChange(
-                        "terms_and_contact",
-                        "terms_visible",
-                        checked
-                      )
-                    }
-                    disabled={!localFormData.info?.terms_and_contact_visible}
-                  />
-                }
-                label="Terms of service"
-                sx={{
-                  mr: 2,
-                  minWidth: 160,
-                  "& .MuiFormControlLabel-label": { fontSize: 13 },
-                  ...styles.checkbox,
-                }}
-              />
+              <Box sx={{ minWidth: "160px" }}>
+                <Checkbox
+                  id="terms-visible"
+                  label="Terms of service"
+                  isChecked={
+                    localFormData.terms_and_contact?.terms_visible || false
+                  }
+                  value={
+                    localFormData.terms_and_contact?.terms_visible ? "true" : "false"
+                  }
+                  onChange={(event) =>
+                    handleFieldChange(
+                      "terms_and_contact",
+                      "terms_visible",
+                      event.target.checked
+                    )
+                  }
+                  isDisabled={!localFormData.info?.terms_and_contact_visible}
+                />
+              </Box>
               <Field
                 id="terms-of-service-input"
                 placeholder="Enter terms of service URL..."
@@ -678,33 +720,29 @@ const AITrustCenterOverview: React.FC = () => {
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1}
+              spacing={2}
               sx={{ width: "100%" }}
             >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      localFormData.terms_and_contact?.privacy_visible || false
-                    }
-                    onChange={(_, checked) =>
-                      handleFieldChange(
-                        "terms_and_contact",
-                        "privacy_visible",
-                        checked
-                      )
-                    }
-                    disabled={!localFormData.info?.terms_and_contact_visible}
-                  />
-                }
-                label="Privacy policy"
-                sx={{
-                  mr: 2,
-                  minWidth: 160,
-                  "& .MuiFormControlLabel-label": { fontSize: 13 },
-                  ...styles.checkbox,
-                }}
-              />
+              <Box sx={{ minWidth: "160px" }}>
+                <Checkbox
+                  id="privacy-visible"
+                  label="Privacy policy"
+                  isChecked={
+                    localFormData.terms_and_contact?.privacy_visible || false
+                  }
+                  value={
+                    localFormData.terms_and_contact?.privacy_visible ? "true" : "false"
+                  }
+                  onChange={(event) =>
+                    handleFieldChange(
+                      "terms_and_contact",
+                      "privacy_visible",
+                      event.target.checked
+                    )
+                  }
+                  isDisabled={!localFormData.info?.terms_and_contact_visible}
+                />
+              </Box>
               <Field
                 id="privacy-policy-input"
                 placeholder="Enter privacy policy URL..."
@@ -730,33 +768,29 @@ const AITrustCenterOverview: React.FC = () => {
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1}
+              spacing={2}
               sx={{ width: "100%" }}
             >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      localFormData.terms_and_contact?.email_visible || false
-                    }
-                    onChange={(_, checked) =>
-                      handleFieldChange(
-                        "terms_and_contact",
-                        "email_visible",
-                        checked
-                      )
-                    }
-                    disabled={!localFormData.info?.terms_and_contact_visible}
-                  />
-                }
-                label="Company email"
-                sx={{
-                  mr: 2,
-                  minWidth: 160,
-                  "& .MuiFormControlLabel-label": { fontSize: 13 },
-                  ...styles.checkbox,
-                }}
-              />
+              <Box sx={{ minWidth: "160px" }}>
+                <Checkbox
+                  id="email-visible"
+                  label="Company email"
+                  isChecked={
+                    localFormData.terms_and_contact?.email_visible || false
+                  }
+                  value={
+                    localFormData.terms_and_contact?.email_visible ? "true" : "false"
+                  }
+                  onChange={(event) =>
+                    handleFieldChange(
+                      "terms_and_contact",
+                      "email_visible",
+                      event.target.checked
+                    )
+                  }
+                  isDisabled={!localFormData.info?.terms_and_contact_visible}
+                />
+              </Box>
               <Field
                 id="company-email-input"
                 placeholder="Enter company email..."
@@ -791,7 +825,7 @@ const AITrustCenterOverview: React.FC = () => {
             backgroundColor: hasUnsavedChanges ? "#13715B" : "#ccc",
             border: `1px solid ${hasUnsavedChanges ? "#13715B" : "#ccc"}`,
           }}
-          icon={<SaveIconSVGWhite />} // you might need a dark icon when active
+          icon={<SaveIcon size={16} />}
           variant="contained"
           onClick={handleSave}
           isDisabled={!hasUnsavedChanges}

@@ -64,10 +64,10 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         assignee integer,
         website character varying(255) NOT NULL,
         vendor_contact_person character varying(255) NOT NULL,
-        review_result character varying(255) NOT NULL,
-        review_status enum_vendors_review_status NOT NULL,
+        review_result character varying(255),
+        review_status enum_vendors_review_status,
         reviewer integer,
-        review_date timestamp with time zone NOT NULL,
+        review_date timestamp with time zone,
         is_demo boolean NOT NULL DEFAULT false,
         created_at timestamp without time zone NOT NULL DEFAULT now(),
         CONSTRAINT vendors_pkey PRIMARY KEY (id),
@@ -784,6 +784,16 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_task_id_idx" ON "${tenantHash}".task_assignees (task_id);`,
       `CREATE INDEX IF NOT EXISTS "${tenantHash}_task_assignees_user_id_idx" ON "${tenantHash}".task_assignees (user_id);`
     ].map(query => sequelize.query(query, { transaction })));
+
+    await sequelize.query(`CREATE TABLE IF NOT EXISTS "${tenantHash}".api_tokens
+    (
+      id SERIAL PRIMARY KEY,
+      token TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ,
+      created_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL
+    );`, { transaction });
   }
   catch (error) {
     throw error;

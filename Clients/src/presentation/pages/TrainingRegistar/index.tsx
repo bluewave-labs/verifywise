@@ -9,7 +9,7 @@ import {
   InputBase,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import { logEngine } from "../../../application/tools/log.engine"; // Assuming this path is correct
 import {
@@ -27,7 +27,7 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { useAuth } from "../../../application/hooks/useAuth";
 import PageHeader from "../../components/Layout/PageHeader";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import Select from "../../components/Inputs/Select";
 import { searchBoxStyle, inputStyle } from "./style";
 
@@ -230,8 +230,8 @@ const Training: React.FC = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="AI training registry"
         description="Manage and track AI-related training programs and educational resources"
-        whatItDoes="Centralize all **AI training programs**, *courses*, and *educational materials* for your organization. Track **completion status**, *certifications*, and **learning progress** across teams."
-        whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for **responsible AI development** and deployment. Training records support *compliance* and **competency requirements**."
+        whatItDoes="Centralize all *AI training programs*, *courses*, and *educational materials* for your organization. Track *completion status*, *certifications*, and *learning progress* across teams."
+        whyItMatters="Proper **AI training** ensures your team stays current with *evolving technologies* and maintains necessary skills for *responsible AI development* and deployment. Training records support *compliance* and *competency requirements*."
         quickActions={[
           {
             label: "Add Training Program",
@@ -244,18 +244,18 @@ const Training: React.FC = () => {
           }
         ]}
         useCases={[
-          "**Internal AI ethics** and *governance training programs* for development teams",
-          "**External certification courses** for *machine learning* and **data science skills**"
+          "*Internal AI ethics* and *governance training programs* for development teams",
+          "*External certification courses* for *machine learning* and *data science skills*"
         ]}
         keyFeatures={[
           "**Comprehensive training catalog** with *metadata* and prerequisites",
-          "**Progress tracking** and *certification management* for individuals and teams",
-          "**Integration** with learning management systems and *HR platforms*"
+          "*Progress tracking* and *certification management* for individuals and teams",
+          "*Integration* with learning management systems and *HR platforms*"
         ]}
         tips={[
-          "Prioritize **ethics and governance training** for all *AI team members*",
-          "Set up *automatic reminders* for **certification renewals** and mandatory training",
-          "Track **training effectiveness** through *assessments* and real-world application"
+          "Prioritize *ethics and governance training* for all *AI team members*",
+          "Set up *automatic reminders* for *certification renewals* and mandatory training",
+          "Track *training effectiveness* through *assessments* and real-world application"
         ]}
       />
       {alert && (
@@ -334,13 +334,13 @@ const Training: React.FC = () => {
                   aria-expanded={isSearchBarVisible}
                   onClick={() => setIsSearchBarVisible((prev) => !prev)}
                 >
-                  <SearchIcon />
+                  <SearchIcon size={16} />
                 </IconButton>
 
                 {isSearchBarVisible && (
                   <InputBase
                     autoFocus
-                    placeholder="Search trainings..."
+                    placeholder="Search trainings"
                     inputProps={{ "aria-label": "Search trainings" }}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -359,7 +359,7 @@ const Training: React.FC = () => {
                         gap: 2,
                       }}
                       text="New training"
-                      icon={<AddCircleOutlineIcon />}
+                      icon={<AddCircleOutlineIcon size={16} />}
                       onClick={handleNewTrainingClick}
                       isDisabled={isCreatingDisabled}
                     />

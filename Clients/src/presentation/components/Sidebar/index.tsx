@@ -6,18 +6,17 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Menu,
-  MenuItem,
   Stack,
   Tooltip,
   Typography,
-  Badge,
+  Chip,
+  Drawer,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { useTheme } from "@mui/material";
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 
 // Lucide Icons
@@ -64,6 +63,7 @@ interface MenuItem {
   icon: React.ReactNode;
   path: string;
   highlightPaths?: string[];
+  taskCount?: number;
 }
 
 interface MenuGroup {
@@ -76,9 +76,10 @@ const getMenuGroups = (): MenuGroup[] => [
     name: "DISCOVERY",
     items: [
       {
-        name: "Project oriented view",
+        name: "Use cases",
         icon: <FolderTree size={16} strokeWidth={1.5} />,
         path: "/overview",
+        highlightPaths: ["/project-view"],
       },
       {
         name: "Organizational view",
@@ -157,24 +158,9 @@ const topItems = (openTasksCount: number): MenuItem[] => [
   },
   {
     name: "Tasks",
-    icon: (
-      <Badge
-        badgeContent={openTasksCount > 0 ? openTasksCount : null}
-        color="error"
-        sx={{
-          "& .MuiBadge-badge": {
-            fontSize: "10px",
-            minWidth: "18px",
-            height: "18px",
-            backgroundColor: "#ef4444",
-            color: "white",
-          },
-        }}
-      >
-        <Flag size={16} strokeWidth={1.5} />
-      </Badge>
-    ),
+    icon: <Flag size={16} strokeWidth={1.5} />,
     path: "/tasks",
+    taskCount: openTasksCount,
   },
 ];
 
@@ -206,8 +192,8 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [popup, setPopup] = useState();
+  const [slideoverOpen, setSlideoverOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
 
   const { userId, changeComponentVisibility, users } =
@@ -235,13 +221,12 @@ const Sidebar = () => {
 
   const menuGroups = getMenuGroups();
 
-  const openPopup = (event: any, id: any) => {
-    setAnchorEl(event.currentTarget);
-    setPopup(id);
+  const openPopup = () => {
+    setSlideoverOpen(true);
   };
 
   const closePopup = () => {
-    setAnchorEl(null);
+    setSlideoverOpen(false);
   };
 
   const customMenuHandler = () => {
@@ -278,6 +263,23 @@ const Sidebar = () => {
     const interval = setInterval(fetchOpenTasksCount, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Click outside to close drawer
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (slideoverOpen && drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+        closePopup();
+      }
+    };
+
+    if (slideoverOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [slideoverOpen]);
 
   return (
     <Stack
@@ -457,6 +459,13 @@ const Sidebar = () => {
                       ? "#E8E8E8" // keep same color if already selected
                       : "#F9F9F9", // hover color only if not selected
                 },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
               }}
             >
               <ListItemIcon
@@ -467,6 +476,39 @@ const Sidebar = () => {
                   justifyContent: "flex-start",
                   width: "16px",
                   mr: 0,
+                  "& svg": {
+                    color: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    stroke: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
                 }}
               >
                 {item.icon}
@@ -480,6 +522,39 @@ const Sidebar = () => {
               >
                 {item.name}
               </ListItemText>
+              {item.taskCount && item.taskCount > 0 && (
+                <Chip
+                  label={item.taskCount > 99 ? "99+" : item.taskCount}
+                  size="small"
+                  sx={{
+                    height: collapsed ? "14px" : "18px",
+                    fontSize: collapsed ? "8px" : "10px",
+                    fontWeight: 500,
+                    backgroundColor: (
+                      location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                    ) ? "#f8fafc" : "#e2e8f0", // lighter when active, blueish-grayish when inactive
+                    color: "#475569", // darker text for contrast
+                    borderRadius: collapsed ? "7px" : "9px",
+                    minWidth: collapsed ? "14px" : "18px", // ensure minimum width
+                    maxWidth: collapsed ? "28px" : "36px", // cap maximum width
+                    "& .MuiChip-label": {
+                      px: collapsed ? "4px" : "6px",
+                      py: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    },
+                    ml: "auto",
+                    position: collapsed ? "absolute" : "static",
+                    top: collapsed ? "6px" : "auto",
+                    right: collapsed ? "4px" : "auto",
+                  }}
+                />
+              )}
             </ListItemButton>
           </Tooltip>
         ))}
@@ -567,6 +642,13 @@ const Sidebar = () => {
                           ? "#E8E8E8" // keep same color if already selected
                           : "#F9F9F9", // hover color only if not selected
                     },
+                    "&:hover svg": {
+                      color: "#13715B !important",
+                      stroke: "#13715B !important",
+                    },
+                    "&:hover svg path": {
+                      stroke: "#13715B !important",
+                    },
                   }}
                 >
                   <ListItemIcon
@@ -577,6 +659,39 @@ const Sidebar = () => {
                       justifyContent: "flex-start",
                       width: "16px",
                       mr: 0,
+                      "& svg": {
+                        color: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                        stroke: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                        transition: "color 0.2s ease, stroke 0.2s ease",
+                      },
+                      "& svg path": {
+                        stroke: location.pathname === item.path ||
+                          item.highlightPaths?.some((p: string) =>
+                            location.pathname.startsWith(p)
+                          ) ||
+                          customMenuHandler() === item.path
+                            ? "#13715B !important"
+                            : `${theme.palette.text.tertiary} !important`,
+                      },
+                      "&:hover svg": {
+                        color: "#13715B !important",
+                        stroke: "#13715B !important",
+                      },
+                      "&:hover svg path": {
+                        stroke: "#13715B !important",
+                      },
                     }}
                   >
                     {item.icon}
@@ -654,6 +769,13 @@ const Sidebar = () => {
                       ? "#E8E8E8" // keep same color if already selected
                       : "#F9F9F9", // hover color only if not selected
                 },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
               }}
             >
               <ListItemIcon
@@ -664,6 +786,27 @@ const Sidebar = () => {
                   justifyContent: "flex-start",
                   width: "16px",
                   mr: 0,
+                  "& svg": {
+                    color: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    transition: "color 0.2s ease, stroke 0.2s ease",
+                  },
+                  "& svg path": {
+                    stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
                 }}
               >
                 {item.icon}
@@ -725,7 +868,7 @@ const Sidebar = () => {
               disableInteractive
             >
               <IconButton
-                onClick={(event) => openPopup(event, "logout")}
+                onClick={openPopup}
                 sx={{
                   p: 0,
                   "&:focus": { outline: "none" },
@@ -753,161 +896,182 @@ const Sidebar = () => {
                 {ROLES[user.roleId as keyof typeof ROLES]}
               </Typography>
             </Box>
-            <Tooltip title="Controls" disableInteractive sx={{ fontSize: 13 }}>
-              <IconButton
-                disableRipple={
-                  theme.components?.MuiIconButton?.defaultProps?.disableRipple
-                }
-                sx={{
-                  ml: "auto",
-                  mr: "-8px",
-                  "&:focus": { outline: "none" },
-                  "& svg": {
-                    width: "20px",
-                    height: "20px",
-                  },
-                  "& svg path": {
-                    stroke: theme.palette.other.icon,
-                  },
-                }}
-                onClick={(event) => openPopup(event, "logout")}
-              >
-                <MoreVertical size={16} strokeWidth={1.5} />
-              </IconButton>
-            </Tooltip>
+            <IconButton
+              disableRipple={
+                theme.components?.MuiIconButton?.defaultProps?.disableRipple
+              }
+              sx={{
+                ml: "auto",
+                mr: "-8px",
+                "&:focus": { outline: "none" },
+                "& svg": {
+                  width: "20px",
+                  height: "20px",
+                },
+                "& svg path": {
+                  stroke: theme.palette.other.icon,
+                },
+              }}
+              onClick={openPopup}
+            >
+              <MoreVertical size={16} strokeWidth={1.5} />
+            </IconButton>
           </>
         )}
-        <Menu
-          className="sidebar-popup"
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl) && popup === "logout"}
+        <Drawer
+          anchor="bottom"
+          open={slideoverOpen}
           onClose={closePopup}
-          disableScrollLock
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          slotProps={{
-            paper: {
-              sx: {
-                marginTop: theme.spacing(-4),
-                marginLeft: collapsed ? theme.spacing(2) : 0,
-                fontSize: 13,
-              },
-            },
-          }}
-          MenuListProps={{
+          hideBackdrop={true}
+          transitionDuration={0}
+          PaperProps={{
             sx: {
-              p: 2,
-              "& li": { m: 0 },
-              "& li:has(.MuiBox-root):hover": {
-                backgroundColor: "transparent",
-                fontSize: 13,
-              },
+              width: collapsed ? "180px" : "220px", // Slightly smaller than sidebar to fit within
+              height: "auto", // Let height adjust to content
+              maxHeight: "fit-content",
+              position: "absolute",
+              bottom: "80px", // Position closer to the 3-dot button
+              left: collapsed ? "30px" : "30px", // Center within sidebar with some margin
+              borderRadius: "4px",
+              boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
+              border: `1px solid ${theme.palette.divider}`,
+              backgroundColor: "transparent",
+              transition: "none",
             },
-          }}
-          sx={{
-            ml: theme.spacing(12),
           }}
         >
-          {collapsed && (
-            <MenuItem sx={{ cursor: "default", minWidth: "150px" }}>
-              <Box mb={theme.spacing(2)}>
+          <Box
+            ref={drawerRef}
+            sx={{
+              backgroundColor: theme.palette.background.main,
+              borderRadius: "4px",
+              border: `1px solid ${theme.palette.divider}`,
+              p: 1.5,
+              animation: slideoverOpen ? "fadeIn 0.2s ease-in-out" : "none",
+              "@keyframes fadeIn": {
+                "0%": {
+                  opacity: 0,
+                },
+                "100%": {
+                  opacity: 1,
+                },
+              },
+            }}
+          >
+            {collapsed && (
+              <Box sx={{ mb: 1.5, pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
                 <Typography component="span" fontWeight={500} fontSize="13px">
                   {user.name} {user.surname}
                 </Typography>
                 <Typography
-                  sx={{ textTransform: "capitalize", fontSize: "13px" }}
+                  sx={{ textTransform: "capitalize", fontSize: "13px", color: theme.palette.text.secondary }}
                 >
                   {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
               </Box>
-            </MenuItem>
-          )}
-          <MenuItem
-            onClick={() => {
-              window.open(
-                "https://verifywise.ai/contact",
-                "_blank",
-                "noreferrer"
-              );
-              closePopup();
-            }}
-            sx={{
-              gap: theme.spacing(4),
-              borderRadius: theme.shape.borderRadius,
-              pl: theme.spacing(4),
-              "& svg": {
-                width: "fit-content",
-                height: "fit-content",
-              },
-              "& svg path": {
-                stroke: theme.palette.other.icon,
-              },
-              fontSize: "13px",
+            )}
 
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            <MessageCircle size={16} strokeWidth={1.5} />
-            Feedback
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              window.open(
-                "https://discord.gg/d3k3E4uEpR",
-                "_blank",
-                "noreferrer"
-              );
-              closePopup();
-            }}
-            sx={{
-              gap: theme.spacing(4),
-              borderRadius: theme.shape.borderRadius,
-              pl: theme.spacing(4),
-              "& svg": {
-                width: "fit-content",
-                height: "fit-content",
-              },
-              "& svg path": {
-                stroke: theme.palette.other.icon,
-              },
-              fontSize: "13px",
+            <Stack spacing={0.5}>
+              <ListItemButton
+                onClick={() => {
+                  window.open(
+                    "https://verifywise.ai/contact",
+                    "_blank",
+                    "noreferrer"
+                  );
+                  closePopup();
+                }}
+                sx={{
+                  gap: theme.spacing(3),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(2),
+                  py: theme.spacing(1.5),
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
+                  "& svg path": {
+                    stroke: theme.palette.other.icon,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                  fontSize: "13px",
+                }}
+              >
+                <MessageCircle size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Feedback</Typography>
+              </ListItemButton>
 
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            <MessageSquare size={16} strokeWidth={1.5} />
-            Ask on Discord
-          </MenuItem>
-          <MenuItem
-            onClick={logout}
-            sx={{
-              gap: theme.spacing(4),
-              borderRadius: theme.shape.borderRadius,
-              pl: theme.spacing(4),
-              "& svg": {
-                width: "fit-content",
-                height: "fit-content",
-              },
-              "& svg path": {
-                stroke: theme.palette.other.icon,
-              },
-              fontSize: "13px",
+              <ListItemButton
+                onClick={() => {
+                  window.open(
+                    "https://discord.gg/d3k3E4uEpR",
+                    "_blank",
+                    "noreferrer"
+                  );
+                  closePopup();
+                }}
+                sx={{
+                  gap: theme.spacing(3),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(2),
+                  py: theme.spacing(1.5),
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
+                  "& svg path": {
+                    stroke: theme.palette.other.icon,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                  fontSize: "13px",
+                }}
+              >
+                <MessageSquare size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Ask on Discord</Typography>
+              </ListItemButton>
 
-              "& .MuiTouchRipple-root": {
-                display: "none",
-              },
-            }}
-          >
-            <LogOut size={16} strokeWidth={1.5} />
-            Log out
-          </MenuItem>
-        </Menu>
+              <ListItemButton
+                onClick={logout}
+                sx={{
+                  gap: theme.spacing(3),
+                  borderRadius: theme.shape.borderRadius,
+                  px: theme.spacing(2),
+                  py: theme.spacing(1.5),
+                  "& svg": {
+                    width: "16px",
+                    height: "16px",
+                  },
+                  "& svg path": {
+                    stroke: theme.palette.other.icon,
+                  },
+                  "&:hover svg": {
+                    color: "#13715B !important",
+                    stroke: "#13715B !important",
+                  },
+                  "&:hover svg path": {
+                    stroke: "#13715B !important",
+                  },
+                  fontSize: "13px",
+                }}
+              >
+                <LogOut size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px" }}>Log out</Typography>
+              </ListItemButton>
+            </Stack>
+          </Box>
+        </Drawer>
       </Stack>
     </Stack>
   );

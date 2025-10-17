@@ -211,7 +211,35 @@ export const validateEnum = <T extends string>(
     return { isValid: true };
   }
 
-  // Check if value is in allowed values
+  // Handle array values
+  if (Array.isArray(value) && value.length > 1) {
+    // Check if array is empty and required
+    if (value.length === 0) {
+      if (required) {
+        return {
+          isValid: false,
+          message: `${fieldName} is required`,
+          code: 'REQUIRED_FIELD'
+        };
+      }
+      return { isValid: true };
+    }
+
+    // Validate each element in the array
+    for (let i = 0; i < value.length; i++) {
+      const element = value[i];
+      if ((allowedValues as readonly string[]).indexOf(element as string) === -1) {
+        return {
+          isValid: false,
+          message: `${fieldName}[${i}] must be one of: ${allowedValues.join(', ')}`,
+          code: 'INVALID_ENUM'
+        };
+      }
+    }
+    return { isValid: true };
+  }
+
+  // Check if single value is in allowed values
   if ((allowedValues as readonly string[]).indexOf(value as string) === -1) {
     return {
       isValid: false,
@@ -343,10 +371,12 @@ export const validateForeignKey = (
   }
 
   // Check if it's a positive integer
-  if (!Number.isInteger(numValue) || numValue <= 0) {
+  // For non-required fields, allow 0 as a valid "unassigned" value
+  const minValue = required ? 1 : 0;
+  if (!Number.isInteger(numValue) || numValue < minValue) {
     return {
       isValid: false,
-      message: `${fieldName} must be a positive integer`,
+      message: `${fieldName} must be a ${required ? 'positive ' : ''}valid integer${required ? '' : ' (0 or greater)'}`,
       code: 'INVALID_ID'
     };
   }

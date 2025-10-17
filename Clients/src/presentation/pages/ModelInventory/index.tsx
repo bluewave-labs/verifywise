@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
-import { ReactComponent as AddCircleOutlineIcon } from "../../assets/icons/plus-circle-white.svg";
+import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
@@ -49,7 +49,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import Tab from "@mui/material/Tab";
 import { IconButton, InputBase } from "@mui/material";
-import { ReactComponent as SearchIcon } from "../../assets/icons/search.svg";
+import { Search as SearchIcon } from "lucide-react";
 import { searchBoxStyle, inputStyle } from "./style";
 import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum";
 
@@ -334,35 +334,69 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleModelInventorySuccess = async (formData: any) => {
-    try {
-      if (selectedModelInventory) {
-        // Update existing model inventory
-        await updateEntityById({
-          routeUrl: `/modelInventory/${selectedModelInventory.id}`,
-          body: formData,
-        });
-        setAlert({
-          variant: "success",
-          body: "Model inventory updated successfully!",
-        });
-      } else {
-        // Create new model inventory
-        await createModelInventory("/modelInventory", formData);
-        setAlert({
-          variant: "success",
-          body: "New model inventory added successfully!",
-        });
-      }
-      await fetchModelInventoryData();
-      handleCloseModal();
-    } catch (error) {
+    if (selectedModelInventory) {
+      // Update existing model inventory
+      await updateEntityById({
+        routeUrl: `/modelInventory/${selectedModelInventory.id}`,
+        body: formData,
+      });
       setAlert({
-        variant: "error",
-        body: selectedModelInventory
-          ? "Failed to update model inventory. Please try again."
-          : "Failed to add model inventory. Please try again.",
+        variant: "success",
+        body: "Model inventory updated successfully!",
+      });
+    } else {
+      // Create new model inventory
+      await createModelInventory("/modelInventory", formData);
+      setAlert({
+        variant: "success",
+        body: "New model inventory added successfully!",
       });
     }
+    await fetchModelInventoryData();
+  };
+
+  const handleModelInventoryError = (error: any) => {
+    console.error("Model inventory operation error:", error);
+    
+    let errorMessage = selectedModelInventory
+      ? "Failed to update model inventory. Please try again."
+      : "Failed to add model inventory. Please try again.";
+
+    // Check different error structures
+    let errorData = null;
+    
+    // Check if it's an axios error with response.data first
+    if (error?.response?.data) {
+      errorData = error.response.data;
+    }
+    // Check if it's a CustomException with response property
+    else if (error?.response) {
+      errorData = error.response;
+    }
+    // Check if the error itself has the data structure
+    else if (error?.status && error?.errors) {
+      errorData = error;
+    }
+
+    if (errorData) {
+      // Handle validation errors with specific field messages
+      if (errorData.status === "error" && errorData.errors && Array.isArray(errorData.errors)) {
+        const validationMessages = errorData.errors.map((err: any) => {
+          return err.message || "Validation error";
+        }).join(", ");
+        
+        errorMessage = validationMessages;
+      } 
+      // Handle general error message
+      else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    }
+    
+    setAlert({
+      variant: "error",
+      body: errorMessage,
+    });
   };
 
   const handleDeleteModelInventory = async (
@@ -593,8 +627,8 @@ const ModelInventory: React.FC = () => {
         onClose={() => setIsHelperDrawerOpen(false)}
         title="Model inventory & risk management"
         description="Track and assess AI models and their associated risks throughout their lifecycle"
-        whatItDoes="Maintain a **comprehensive inventory** of AI models including their *metadata*, *performance metrics*, and **deployment status**. Track *model versions*, dependencies, and **associated risks**."
-        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and **risk mitigation**. It provides **visibility into your AI assets** and helps identify potential issues before they impact production systems."
+        whatItDoes="Maintain a *comprehensive inventory* of AI models including their *metadata*, *approval status*, and *associated risks*. Track basic model information and assess potential risks."
+        whyItMatters="Proper **model governance** ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It provides *visibility into your AI assets* and helps assess model-related risks."
         quickActions={[
           {
             label: "Add New Model",
@@ -609,18 +643,18 @@ const ModelInventory: React.FC = () => {
           },
         ]}
         useCases={[
-          "**Machine learning models** in production environments requiring *monitoring and governance*",
-          "**Pre-trained models** from external vendors that need *risk assessment* and **compliance tracking**",
+          "*Machine learning models* in production environments requiring *monitoring and governance*",
+          "*Pre-trained models* from external vendors that need *risk assessment* and *compliance tracking*",
         ]}
         keyFeatures={[
-          "**Complete model lifecycle tracking** from *development* to retirement",
-          "**Automated risk scoring** based on *model characteristics* and deployment context",
-          "**Integration** with model deployment pipelines and *monitoring systems*",
+          "**Model inventory management** with status tracking (Approved, Restricted, Pending, Blocked)",
+          "*Risk assessment framework* with categories like Performance, Security, and Bias & Fairness",
+          "*Advanced filtering* by status, risk category, risk level, and search functionality",
         ]}
         tips={[
-          "Start with your **production models** first - these carry the *highest operational risk*",
-          "**Regular model performance reviews** help catch *drift and degradation* early",
-          "Document **model lineage** and dependencies for better *impact assessment*",
+          "Use *status filters* to focus on models that need approval or attention",
+          "Categorize *model risks* to better understand different types of potential issues",
+          "Set *target dates* for risk mitigation to track resolution progress",
         ]}
       />
       {alert && (
@@ -720,7 +754,7 @@ const ModelInventory: React.FC = () => {
                     aria-expanded={isSearchBarVisible}
                     onClick={() => setIsSearchBarVisible((prev) => !prev)}
                   >
-                    <SearchIcon />
+                    <SearchIcon size={16} />
                   </IconButton>
 
                   {isSearchBarVisible && (
@@ -741,7 +775,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add new model"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={16} />}
                 onClick={handleNewModelInventoryClick}
                 isDisabled={isCreatingDisabled}
               />
@@ -813,7 +847,7 @@ const ModelInventory: React.FC = () => {
                 variant="contained"
                 sx={addNewModelButtonStyle}
                 text="Add model risk"
-                icon={<AddCircleOutlineIcon />}
+                icon={<AddCircleOutlineIcon size={16} />}
                 onClick={handleNewModelRiskClick}
                 isDisabled={isCreatingDisabled}
               />
@@ -835,6 +869,7 @@ const ModelInventory: React.FC = () => {
         isOpen={isNewModelInventoryModalOpen}
         setIsOpen={handleCloseModal}
         onSuccess={handleModelInventorySuccess}
+        onError={handleModelInventoryError}
         initialData={
           selectedModelInventory
             ? {

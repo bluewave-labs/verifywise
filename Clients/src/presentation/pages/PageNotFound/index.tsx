@@ -1,5 +1,5 @@
 import { ReactComponent as Background } from "../../assets/imgs/background-grid.svg";
-import { ReactComponent as LeftArrowLong } from "../../assets/icons/left-arrow-long.svg";
+import { ArrowLeft as LeftArrowLong } from "lucide-react";
 import { Typography, Stack, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -46,7 +46,7 @@ function PageNotFound() {
             navigate("/");
           }}
         >
-          <LeftArrowLong />
+          <LeftArrowLong size={16} />
           <Typography sx={{ height: 22, fontSize: 13, fontWeight: 500 }}>
             Back to home
           </Typography>

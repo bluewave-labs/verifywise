@@ -85,6 +85,72 @@ export const countAnnexCategoriesISOByProjectId = async (
   return result[0][0];
 };
 
+/**
+ * Counts the total and assigned subclauses for an ISO 42001 project framework.
+ * A subclause is considered "assigned" if it has an owner (owner IS NOT NULL).
+ *
+ * @param projectFrameworkId - The ID of the project framework to count assignments for
+ * @param tenant - The tenant schema identifier for multi-tenant database access
+ * @returns Promise resolving to an object with total and assigned subclause counts as strings
+ *
+ * @example
+ * const counts = await countSubClauseAssignmentsISOByProjectId(3, 'tenant_123');
+ * // Returns: { totalSubclauses: "24", assignedSubclauses: "4" }
+ */
+export const countSubClauseAssignmentsISOByProjectId = async (
+  projectFrameworkId: number,
+  tenant: string
+): Promise<{
+  totalSubclauses: string;
+  assignedSubclauses: string;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+       COUNT(*) AS "totalSubclauses",
+       SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedSubclauses"
+     FROM "${tenant}".subclauses_iso
+     WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  )) as [{ totalSubclauses: string; assignedSubclauses: string }[], number];
+
+  return result[0][0];
+};
+
+/**
+ * Counts the total and assigned annex categories for an ISO 42001 project framework.
+ * An annex category is considered "assigned" if it has an owner (owner IS NOT NULL).
+ *
+ * @param projectFrameworkId - The ID of the project framework to count assignments for
+ * @param tenant - The tenant schema identifier for multi-tenant database access
+ * @returns Promise resolving to an object with total and assigned annex category counts as strings
+ *
+ * @example
+ * const counts = await countAnnexCategoryAssignmentsISOByProjectId(3, 'tenant_123');
+ * // Returns: { totalAnnexcategories: "37", assignedAnnexcategories: "2" }
+ */
+export const countAnnexCategoryAssignmentsISOByProjectId = async (
+  projectFrameworkId: number,
+  tenant: string
+): Promise<{
+  totalAnnexcategories: string;
+  assignedAnnexcategories: string;
+}> => {
+  const result = (await sequelize.query(
+    `SELECT
+       COUNT(*) AS "totalAnnexcategories",
+       SUM(CASE WHEN owner IS NOT NULL THEN 1 ELSE 0 END) AS "assignedAnnexcategories"
+     FROM "${tenant}".annexcategories_iso
+     WHERE projects_frameworks_id = :projects_frameworks_id;`,
+    {
+      replacements: { projects_frameworks_id: projectFrameworkId },
+    }
+  )) as [{ totalAnnexcategories: string; assignedAnnexcategories: string }[], number];
+
+  return result[0][0];
+};
+
 export const getAllClausesQuery = async (
   tenant: string,
   transaction: Transaction | null = null
@@ -115,7 +181,7 @@ export const getAllClausesWithSubClauseQuery = async (
 
   for (let clause of clauses[0]) {
     const subClauses = (await sequelize.query(
-      `SELECT scs.id, scs.title, scs.order_no, sc.status FROM public.subclauses_struct_iso scs JOIN "${tenant}".subclauses_iso sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT scs.id, scs.title, scs.order_no, sc.status, sc.owner FROM public.subclauses_struct_iso scs JOIN "${tenant}".subclauses_iso sc ON scs.id = sc.subclause_meta_id WHERE scs.clause_id = :id AND sc.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: clause.id,
@@ -168,6 +234,8 @@ export const getAllAnnexesWithSubAnnexQuery = async (
         ...(transaction ? { transaction } : {}),
       }
     )) as [any[], number];
+
+    console.log(`🔍 ISO 42001 Debug - Annex ${annex.id} categories raw from DB:`, JSON.stringify(annexCategories[0].slice(0, 3), null, 2));
 
     (annex as any).annexcategories = annexCategories[0];
   }
@@ -344,7 +412,7 @@ export const getAllAnnexesWithCategoriesQuery = async (
 
   for (let annex of annexes[0]) {
     const annexCategories = (await sequelize.query(
-      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.is_applicable FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
+      `SELECT acs.id, acs.title, acs.description, acs.order_no, ac.status, ac.owner, ac.is_applicable FROM public.annexcategories_struct_iso acs JOIN "${tenant}".annexcategories_iso ac ON acs.id = ac.annexcategory_meta_id WHERE acs.annex_id = :id AND ac.projects_frameworks_id = :projects_frameworks_id ORDER BY id;`,
       {
         replacements: {
           id: annex.id,
@@ -357,6 +425,8 @@ export const getAllAnnexesWithCategoriesQuery = async (
         Partial<AnnexCategoryStructISOModel & AnnexCategoryISOModel>[],
         number,
       ];
+
+    console.log(`🔍 ISO 42001 Debug getAllAnnexesWithCategoriesQuery - Annex ${annex.id} categories:`, JSON.stringify(annexCategories[0].slice(0, 3), null, 2));
     (
       annex as AnnexStructISOModel & {
         annexCategories: Partial<

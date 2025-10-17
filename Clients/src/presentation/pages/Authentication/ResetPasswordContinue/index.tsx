@@ -4,7 +4,7 @@
 
 import { Button, Stack, Typography, useTheme } from "@mui/material";
 import { ReactComponent as Background } from "../../../assets/imgs/background-grid.svg";
-import { ReactComponent as Success } from "../../../assets/icons/check-outlined.svg";
+import { CheckCircle as Success } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { useNavigate } from "react-router-dom";
 
@@ -53,7 +53,7 @@ const ResetPasswordContinue = () => {
             gap: theme.spacing(12),
           }}
         >
-          <Success />
+          <Success size={24} style={{ color: "#10B981" }} />
         </Stack>
         <Stack sx={{ gap: theme.spacing(6), textAlign: "center" }}>
           <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>

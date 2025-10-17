@@ -12,13 +12,6 @@ import {
 } from "../utils/vendorRisk.utils";
 import { VendorRiskModel } from "../domain.layer/models/vendorRisk/vendorRisk.model";
 import { logProcessing, logSuccess, logFailure } from '../utils/logger/logHelper';
-import {
-  validateCompleteVendorRisk,
-  validateUpdateVendorRisk,
-  validateVendorRiskIdParam,
-  validateProjectIdParam,
-  validateVendorIdParam
-} from '../utils/validations/vendorRiskValidation.utils';
 
 export async function getAllVendorRisksAllProjects(
   req: Request,
@@ -59,23 +52,6 @@ export async function getAllVendorRisks(
 ): Promise<any> {
   const projectId = parseInt(req.params.id);
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
-
-  // Validate project ID parameter
-  const projectIdValidation = validateProjectIdParam(projectId);
-  if (!projectIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Read',
-      description: `Invalid project ID parameter: ${req.params.id}`,
-      functionName: 'getAllVendorRisks',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(projectIdValidation.message || 'Invalid project ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: projectIdValidation.message || 'Invalid project ID',
-      code: projectIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting getAllVendorRisks for project ID ${projectId} with filter: ${filter}`,
@@ -122,23 +98,6 @@ export async function getAllVendorRisksByVendorId(
   const vendorId = parseInt(req.params.id);
   const filter = (req.query.filter as 'active' | 'deleted' | 'all') || 'active';
 
-  // Validate vendor ID parameter
-  const vendorIdValidation = validateVendorIdParam(vendorId);
-  if (!vendorIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Read',
-      description: `Invalid vendor ID parameter: ${req.params.id}`,
-      functionName: 'getAllVendorRisksByVendorId',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorIdValidation.message || 'Invalid vendor ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorIdValidation.message || 'Invalid vendor ID',
-      code: vendorIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logProcessing({
     description: `starting getAllVendorRisksByVendorId for vendor ID ${vendorId} with filter: ${filter}`,
     functionName: 'getAllVendorRisksByVendorId',
@@ -183,23 +142,6 @@ export async function getVendorRiskById(
 ): Promise<any> {
   const vendorRiskId = parseInt(req.params.id);
 
-  // Validate vendor risk ID parameter
-  const vendorRiskIdValidation = validateVendorRiskIdParam(vendorRiskId);
-  if (!vendorRiskIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Read',
-      description: `Invalid vendor risk ID parameter: ${req.params.id}`,
-      functionName: 'getVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorRiskIdValidation.message || 'Invalid vendor risk ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorRiskIdValidation.message || 'Invalid vendor risk ID',
-      code: vendorRiskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logProcessing({
     description: `starting getVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'getVendorRiskById',
@@ -243,27 +185,6 @@ export async function createVendorRisk(
   res: Response
 ): Promise<any> {
   const transaction = await sequelize.transaction();
-
-  // Validate request body
-  const validationErrors = validateCompleteVendorRisk(req.body);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: 'Create',
-      description: `Validation failed for createVendorRisk: ${validationErrors.map(e => e.message).join(', ')}`,
-      functionName: 'createVendorRisk',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error('Validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
 
   logProcessing({
     description: 'starting createVendorRisk',
@@ -320,44 +241,6 @@ export async function updateVendorRiskById(
   const vendorRiskId = parseInt(req.params.id);
   const updatedVendorRisk = req.body;
 
-  // Validate vendor risk ID parameter
-  const vendorRiskIdValidation = validateVendorRiskIdParam(vendorRiskId);
-  if (!vendorRiskIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Update',
-      description: `Invalid vendor risk ID parameter: ${req.params.id}`,
-      functionName: 'updateVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorRiskIdValidation.message || 'Invalid vendor risk ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorRiskIdValidation.message || 'Invalid vendor risk ID',
-      code: vendorRiskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
-  // Validate request body
-  const validationErrors = validateUpdateVendorRisk(updatedVendorRisk);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: 'Update',
-      description: `Validation failed for updateVendorRiskById: ${validationErrors.map(e => e.message).join(', ')}`,
-      functionName: 'updateVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error('Validation failed')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Validation failed',
-      errors: validationErrors.map(err => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   logProcessing({
     description: `starting updateVendorRiskById for ID ${vendorRiskId}`,
     functionName: 'updateVendorRiskById',
@@ -412,23 +295,6 @@ export async function deleteVendorRiskById(
 ): Promise<any> {
   const transaction = await sequelize.transaction();
   const vendorRiskId = parseInt(req.params.id);
-
-  // Validate vendor risk ID parameter
-  const vendorRiskIdValidation = validateVendorRiskIdParam(vendorRiskId);
-  if (!vendorRiskIdValidation.isValid) {
-    await logFailure({
-      eventType: 'Delete',
-      description: `Invalid vendor risk ID parameter: ${req.params.id}`,
-      functionName: 'deleteVendorRiskById',
-      fileName: 'vendorRisk.ctrl.ts',
-      error: new Error(vendorRiskIdValidation.message || 'Invalid vendor risk ID')
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: vendorRiskIdValidation.message || 'Invalid vendor risk ID',
-      code: vendorRiskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting deleteVendorRiskById for ID ${vendorRiskId}`,

@@ -27,7 +27,7 @@ import {
 import Field from "../../Inputs/Field";
 import Select from "../../Inputs/Select";
 import DatePicker from "../../Inputs/Datepicker";
-import { ReactComponent as Close } from "../../../assets/icons/close.svg";
+import { X as Close, ChevronDown } from "lucide-react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Alert from "../../Alert";
@@ -38,8 +38,7 @@ import useUsers from "../../../../application/hooks/useUsers";
 import CustomizableToast from "../../Toast";
 import { logEngine } from "../../../../application/tools/log.engine";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ReactComponent as SaveIconSVGWhite } from "../../../assets/icons/save-white.svg";
-import { ReactComponent as GreyDownArrowIcon } from "../../../assets/icons/chevron-down-grey.svg";
+import { Save as SaveIcon } from "lucide-react";
 import allowedRoles from "../../../../application/constants/permissions";
 import {
   useCreateVendor,
@@ -281,7 +280,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
       !values.vendorDetails.projectIds ||
       Number(values.vendorDetails.projectIds.length) === 0
     ) {
-      newErrors.projectIds = "Please select a project from the dropdown";
+      newErrors.projectIds = "Please select a use case from the dropdown";
     }
     const vendorProvides = checkStringValidation(
       "Vendor Provides",
@@ -479,7 +478,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
   };
 
   const vendorDetailsPanel = (
-    <TabPanel value="1" sx={{ paddingTop: theme.spacing(15), paddingX: 8 }}>
+    <TabPanel value="1" sx={{ paddingTop: 0, paddingBottom: 0, paddingX: 8 }}>
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
@@ -517,7 +516,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 mb: 2,
               }}
             >
-              Projects*
+              Use cases*
             </Typography>
             <Autocomplete
               multiple
@@ -533,7 +532,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
               noOptionsText={
                 values?.vendorDetails?.projectIds?.length ===
                 projectOptions?.length
-                  ? "All projects are selected"
+                  ? "All use cases are selected"
                   : "No options"
               }
               onChange={(_event, newValue: { _id: number; name: string }[]) => {
@@ -556,11 +555,11 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 );
               }}
               filterSelectedOptions
-              popupIcon={<GreyDownArrowIcon />}
+              popupIcon={<ChevronDown size={16} />}
               renderInput={(params: AutocompleteRenderInputParams) => (
                 <TextField
                   {...params}
-                  placeholder="Select projects"
+                  placeholder="Select use cases"
                   required
                   sx={{
                     "& .MuiOutlinedInput-root": {
@@ -817,7 +816,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             borderColor: theme.palette.border,
             borderRadius: theme.shape.borderRadius,
             boxShadow: 24,
-            p: theme.spacing(15),
+            p: theme.spacing(8),
             "&:focus": {
               outline: "none",
             },
@@ -828,6 +827,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             flexDirection={"row"}
             justifyContent={"space-between"}
             alignItems={"center"}
+            sx={{ paddingX: theme.spacing(8) }}
           >
             <Typography
               fontSize={16}
@@ -836,20 +836,24 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             >
               {existingVendor ? "Edit vendor" : "Add new vendor"}
             </Typography>
-            <Close style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
+            <Close size={20} style={{ cursor: "pointer" }} onClick={() => setIsOpen(false)} />
           </Stack>
-          {!existingVendor && (
-            <Typography
-              fontSize={13}
-              color={theme.palette.text.secondary}
-              marginBottom={theme.spacing(4)}
-              sx={{ lineHeight: 1.4 }}
-            >
-              Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements.
-            </Typography>
-          )}
+          <Typography
+            fontSize={13}
+            color={theme.palette.text.secondary}
+            marginBottom="16px"
+            sx={{
+              lineHeight: 1.4,
+              paddingX: theme.spacing(8)
+            }}
+          >
+            {existingVendor
+              ? "Update vendor details including products/services provided, contact information, and review status."
+              : "Use this form to register a new vendor. Include details about what they provide, who is responsible, and the outcome of your review. Provide enough details so your team can assess risks, responsibilities, and compliance requirements."
+            }
+          </Typography>
           <Box
-            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(4) }}
+            sx={{ flex: 1, overflow: "auto", marginBottom: theme.spacing(2) }}
           >
             <TabContext value={value}>{vendorDetailsPanel}</TabContext>
           </Box>
@@ -857,6 +861,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
             sx={{
               alignItems: "flex-end",
               marginTop: "auto",
+              paddingX: theme.spacing(8),
             }}
           >
             <CustomizableButton
@@ -868,7 +873,7 @@ const AddNewVendor: React.FC<AddNewVendorProps> = ({
                 gap: 2,
               }}
               onClick={handleSave}
-              icon={<SaveIconSVGWhite />}
+              icon={<SaveIcon size={16} />}
               isDisabled={isEditingDisabled}
             />
           </Stack>

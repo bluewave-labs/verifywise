@@ -14,40 +14,8 @@ import { TaskStatus } from "../domain.layer/enums/task-status.enum";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import { ValidationException, BusinessLogicException } from "../domain.layer/exceptions/custom.exception";
-import {
-  validateCompleteTaskCreation,
-  validateTaskIdParam,
-  validateCompleteTaskUpdate,
-  validateTaskQueryParams
-} from "../utils/validations/tasksValidation.utils";
-import { ValidationError } from "../utils/validations/validation.utils";
 
 export async function createTask(req: Request, res: Response): Promise<any> {
-  // Validate task creation request
-  const validationErrors = validateCompleteTaskCreation({
-    ...req.body,
-    creator_id: req.userId,
-    organization_id: req.organizationId
-  });
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Create",
-      description: "Task creation validation failed",
-      functionName: "createTask",
-      fileName: "task.ctrl.ts",
-      error: new Error("Validation failed")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Task creation validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   logProcessing({
     description: "starting createTask",
     functionName: "createTask",
@@ -131,27 +99,6 @@ export async function createTask(req: Request, res: Response): Promise<any> {
 }
 
 export async function getAllTasks(req: Request, res: Response): Promise<any> {
-  // Validate query parameters
-  const queryValidationErrors = validateTaskQueryParams(req.query);
-  if (queryValidationErrors.length > 0) {
-    await logFailure({
-      eventType: "Read",
-      description: "Task query validation failed",
-      functionName: "getAllTasks",
-      fileName: "task.ctrl.ts",
-      error: new Error("Query validation failed")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Task query validation failed',
-      errors: queryValidationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
-  }
-
   logProcessing({
     description: "starting getAllTasks",
     functionName: "getAllTasks",
@@ -256,23 +203,6 @@ export async function getAllTasks(req: Request, res: Response): Promise<any> {
 export async function getTaskById(req: Request, res: Response): Promise<any> {
   const taskId = parseInt(req.params.id);
 
-  // Validate task ID parameter
-  const taskIdValidation = validateTaskIdParam(taskId);
-  if (!taskIdValidation.isValid) {
-    await logFailure({
-      eventType: "Read",
-      description: `Invalid task ID parameter: ${req.params.id}`,
-      functionName: "getTaskById",
-      fileName: "task.ctrl.ts",
-      error: new Error("Invalid task ID")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: taskIdValidation.message || 'Invalid task ID',
-      code: taskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   logProcessing({
     description: `starting getTaskById for ID ${taskId}`,
     functionName: "getTaskById",
@@ -327,51 +257,12 @@ export async function getTaskById(req: Request, res: Response): Promise<any> {
 
 export async function updateTask(req: Request, res: Response): Promise<any> {
   const taskId = parseInt(req.params.id);
-
-  // Validate task ID parameter
-  const taskIdValidation = validateTaskIdParam(taskId);
-  if (!taskIdValidation.isValid) {
-    await logFailure({
-      eventType: "Update",
-      description: `Invalid task ID parameter: ${req.params.id}`,
-      functionName: "updateTask",
-      fileName: "task.ctrl.ts",
-      error: new Error("Invalid task ID")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: taskIdValidation.message || 'Invalid task ID',
-      code: taskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
-
   // Get existing task for business rule validation
   let existingTask = null;
   try {
     existingTask = await getTaskByIdQuery(taskId, { userId: req.userId!, role: req.role! }, req.tenantId!, req.organizationId!);
   } catch (error) {
     // Continue without existing data if query fails
-  }
-
-  // Validate task update request
-  const validationErrors = validateCompleteTaskUpdate(req.body, existingTask);
-  if (validationErrors.length > 0) {
-    await logFailure({
-      eventType: "Update",
-      description: `Task update validation failed for ID ${taskId}`,
-      functionName: "updateTask",
-      fileName: "task.ctrl.ts",
-      error: new Error("Update validation failed")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: 'Task update validation failed',
-      errors: validationErrors.map((err: ValidationError) => ({
-        field: err.field,
-        message: err.message,
-        code: err.code
-      }))
-    });
   }
 
   logProcessing({
@@ -469,23 +360,6 @@ export async function updateTask(req: Request, res: Response): Promise<any> {
 
 export async function deleteTask(req: Request, res: Response): Promise<any> {
   const taskId = parseInt(req.params.id);
-
-  // Validate task ID parameter
-  const taskIdValidation = validateTaskIdParam(taskId);
-  if (!taskIdValidation.isValid) {
-    await logFailure({
-      eventType: "Delete",
-      description: `Invalid task ID parameter: ${req.params.id}`,
-      functionName: "deleteTask",
-      fileName: "task.ctrl.ts",
-      error: new Error("Invalid task ID")
-    });
-    return res.status(400).json({
-      status: 'error',
-      message: taskIdValidation.message || 'Invalid task ID',
-      code: taskIdValidation.code || 'INVALID_PARAMETER'
-    });
-  }
 
   logProcessing({
     description: `starting deleteTask for ID ${taskId}`,

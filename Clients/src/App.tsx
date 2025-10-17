@@ -79,6 +79,7 @@ function App() {
     compliance: {},
     assessments: {},
     vendors: [],
+    users: [],
   });
   const [inputValues, setInputValues] = useState<InputValues>({});
   const [projects, setProjects] = useState<Project[]>([]);

@@ -44,7 +44,8 @@ const VerifyWiseContext = createContext<VerifyWiseContextProps>({
     projects: {},
     compliance: {},
     assessments: {},
-    vendors: []
+    vendors: [],
+    users: []
   },
   setDashboardValues: () => {},
   inputValues: {},

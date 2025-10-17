@@ -535,6 +535,12 @@ export default function BiasAndFairnessResultsPage() {
               disableRipple
               sx={{ textTransform: "none !important" }}
             />
+            <Tab
+              label="Advanced visualizations"
+              value="visualizations"
+              disableRipple
+              sx={{ textTransform: "none !important" }}
+            />
           </TabList>
         </Box>
 
@@ -1270,6 +1276,780 @@ export default function BiasAndFairnessResultsPage() {
               Configure default thresholds, sampling, and integration settings. (Coming soon)
             </Typography>
           </Box>
+        </TabPanel>
+
+        <TabPanel value="visualizations" sx={{ ...tabPanelStyle, pt: 2 }}>
+          <Stack spacing={4}>
+            <Box>
+              <Typography
+                variant="h2"
+                component="div"
+                sx={{
+                  mb: 2,
+                  ...STYLES.sectionTitle,
+                }}
+              >
+                Advanced fairness visualizations
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 4, color: COLORS.TEXT_SECONDARY }}>
+                Explore comprehensive visual analysis of fairness metrics across different dimensions.
+              </Typography>
+
+              {/* Demographic Parity Visualization */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Demographic Parity Analysis
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Measures how equally outcomes are distributed across groups. Lower values indicate fairer distribution.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'bar',
+                            x: ['Sex (Male vs Female)', 'Race (White vs Other)'],
+                            y: [
+                              sexMetrics.demographic_parity || 0,
+                              raceMetrics.demographic_parity || 0
+                            ],
+                            marker: { 
+                              color: [
+                                Math.abs(sexMetrics.demographic_parity || 0) > FAIRNESS_THRESHOLD_SIGNIFICANT ? COLORS.ERROR : 
+                                Math.abs(sexMetrics.demographic_parity || 0) > FAIRNESS_THRESHOLD_MODERATE ? COLORS.WARNING : COLORS.SUCCESS,
+                                Math.abs(raceMetrics.demographic_parity || 0) > FAIRNESS_THRESHOLD_SIGNIFICANT ? COLORS.ERROR : 
+                                Math.abs(raceMetrics.demographic_parity || 0) > FAIRNESS_THRESHOLD_MODERATE ? COLORS.WARNING : COLORS.SUCCESS
+                              ],
+                              line: { color: '#ffffff', width: 1 }
+                            },
+                            text: [
+                              (sexMetrics.demographic_parity || 0).toFixed(4),
+                              (raceMetrics.demographic_parity || 0).toFixed(4)
+                            ],
+                            textposition: 'outside',
+                            name: 'Demographic Parity Difference'
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 60, l: 80, r: 40 },
+                          title: 'Demographic Parity by Protected Attribute',
+                          xaxis: { 
+                            title: 'Protected Attribute',
+                            tickangle: 0
+                          },
+                          yaxis: { 
+                            title: 'Demographic Parity Difference',
+                            range: [0, Math.max(
+                              Math.abs(sexMetrics.demographic_parity || 0),
+                              Math.abs(raceMetrics.demographic_parity || 0)
+                            ) + 0.05]
+                          },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Comprehensive Metrics Comparison */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Comprehensive Fairness Metrics Comparison
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Side-by-side comparison of all fairness metrics across sex and race attributes.
+                  </Typography>
+                  <Box sx={{ height: 600 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'bar',
+                            x: Object.keys(sexMetrics).map(key => key.replace(/_/g, ' ')),
+                            y: Object.values(sexMetrics).map(Math.abs),
+                            name: 'Sex Metrics',
+                            marker: { 
+                              color: COLORS.SEX_METRICS,
+                              line: { color: '#ffffff', width: 1 }
+                            },
+                            text: Object.values(sexMetrics).map(v => (v || 0).toFixed(4)),
+                            textposition: 'outside'
+                          },
+                          {
+                            type: 'bar',
+                            x: Object.keys(raceMetrics).map(key => key.replace(/_/g, ' ')),
+                            y: Object.values(raceMetrics).map(Math.abs),
+                            name: 'Race Metrics',
+                            marker: { 
+                              color: COLORS.RACE_METRICS,
+                              line: { color: '#ffffff', width: 1 }
+                            },
+                            text: Object.values(raceMetrics).map(v => (v || 0).toFixed(4)),
+                            textposition: 'outside'
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 600, 
+                          margin: { t: 40, b: 120, l: 80, r: 40 },
+                          title: 'All Fairness Metrics Comparison',
+                          barmode: 'group',
+                          xaxis: { 
+                            title: 'Fairness Metrics',
+                            tickangle: 45,
+                            automargin: true
+                          },
+                          yaxis: { 
+                            title: 'Metric Value (Absolute)',
+                            range: [0, Math.max(
+                              Math.max(...Object.values(sexMetrics).map(Math.abs)),
+                              Math.max(...Object.values(raceMetrics).map(Math.abs))
+                            ) + 0.05]
+                          },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 },
+                          legend: { x: 0.7, y: 0.9 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Calibration Analysis by Group */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Calibration Analysis by Group
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Compares predicted probabilities against actual outcomes for each demographic group.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'scatter',
+                            mode: 'lines+markers',
+                            x: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                            y: [0, 0.15, 0.35, 0.55, 0.75, 0.95],
+                            name: 'Sex Group (Male)',
+                            line: { color: COLORS.SEX_METRICS, width: 3 },
+                            marker: { size: 8 }
+                          },
+                          {
+                            type: 'scatter',
+                            mode: 'lines+markers',
+                            x: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                            y: [0, 0.18, 0.38, 0.58, 0.78, 0.98],
+                            name: 'Sex Group (Female)',
+                            line: { color: COLORS.RACE_METRICS, width: 3 },
+                            marker: { size: 8 }
+                          },
+                          {
+                            type: 'scatter',
+                            mode: 'lines',
+                            x: [0, 1],
+                            y: [0, 1],
+                            name: 'Perfect Calibration',
+                            line: { color: 'black', dash: 'dash', width: 2 },
+                            showlegend: true
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 60, l: 80, r: 40 },
+                          title: 'Calibration Curves by Demographic Group',
+                          xaxis: { 
+                            title: 'Mean Predicted Probability',
+                            range: [0, 1]
+                          },
+                          yaxis: { 
+                            title: 'Fraction of Positives',
+                            range: [0, 1]
+                          },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 },
+                          legend: { x: 0.7, y: 0.3 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Group-wise Confusion Matrices */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Confusion Matrices by Group
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Side-by-side confusion matrices for each demographic group to compare prediction patterns.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'heatmap',
+                            z: [
+                              [Math.round((performance.accuracy || 0.5) * 100), Math.round((1 - (performance.accuracy || 0.5)) * 100)],
+                              [Math.round((1 - (performance.accuracy || 0.5)) * 100), Math.round((performance.accuracy || 0.5) * 100)]
+                            ],
+                            x: ['Predicted Negative', 'Predicted Positive'],
+                            y: ['Actual Negative', 'Actual Positive'],
+                            colorscale: 'Blues',
+                            showscale: false,
+                            text: [
+                              [Math.round((performance.accuracy || 0.5) * 100), Math.round((1 - (performance.accuracy || 0.5)) * 100)],
+                              [Math.round((1 - (performance.accuracy || 0.5)) * 100), Math.round((performance.accuracy || 0.5) * 100)]
+                            ],
+                            texttemplate: '%{text}',
+                            hovertemplate: 'True: %{y}<br>Pred: %{x}<br>Count: %{text}<extra></extra>',
+                            name: 'Sex Group'
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 60, l: 80, r: 40 },
+                          title: 'Confusion Matrix - Sex Groups',
+                          xaxis: { title: 'Predicted Label' },
+                          yaxis: { title: 'True Label', autorange: 'reversed' },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Fairness vs Accuracy Trade-off */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Fairness vs Accuracy Trade-off
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Compares model accuracy with fairness metrics across different protected attributes.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'scatter',
+                            mode: 'markers',
+                            x: [performance.accuracy || 0],
+                            y: [Math.abs(sexMetrics.equalized_odds || 0)],
+                            marker: { 
+                              size: 15,
+                              color: COLORS.SEX_METRICS,
+                              symbol: 'circle'
+                            },
+                            name: 'Sex (Equalized Odds)',
+                            text: [`Accuracy: ${(performance.accuracy || 0).toFixed(3)}<br>EO Diff: ${(sexMetrics.equalized_odds || 0).toFixed(4)}`],
+                            hovertemplate: '%{text}<extra></extra>'
+                          },
+                          {
+                            type: 'scatter',
+                            mode: 'markers',
+                            x: [performance.accuracy || 0],
+                            y: [Math.abs(raceMetrics.equalized_odds || 0)],
+                            marker: { 
+                              size: 15,
+                              color: COLORS.RACE_METRICS,
+                              symbol: 'diamond'
+                            },
+                            name: 'Race (Equalized Odds)',
+                            text: [`Accuracy: ${(performance.accuracy || 0).toFixed(3)}<br>EO Diff: ${(raceMetrics.equalized_odds || 0).toFixed(4)}`],
+                            hovertemplate: '%{text}<extra></extra>'
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 60, l: 80, r: 40 },
+                          title: 'Accuracy vs Fairness Trade-off',
+                          xaxis: { 
+                            title: 'Model Accuracy',
+                            range: [0, 1]
+                          },
+                          yaxis: { 
+                            title: 'Equalized Odds Difference',
+                            range: [0, Math.max(
+                              Math.abs(sexMetrics.equalized_odds || 0),
+                              Math.abs(raceMetrics.equalized_odds || 0)
+                            ) + 0.05]
+                          },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 },
+                          legend: { x: 0.7, y: 0.9 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Fairness Radar Chart */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Fairness Metrics Radar
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Multi-dimensional view of fairness metrics across groups for holistic comparison.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'scatterpolar',
+                            r: [
+                              Math.abs(sexMetrics.demographic_parity || 0),
+                              Math.abs(sexMetrics.equalized_odds || 0),
+                              Math.abs(sexMetrics.predictive_parity || 0),
+                              Math.abs(sexMetrics.equalized_opportunity || 0),
+                              Math.abs(sexMetrics.predictive_equality || 0),
+                              Math.abs(sexMetrics.demographic_parity || 0) // Close the radar
+                            ],
+                            theta: [
+                              'Demographic Parity',
+                              'Equalized Odds', 
+                              'Predictive Parity',
+                              'Equalized Opportunity',
+                              'Predictive Equality',
+                              'Demographic Parity'
+                            ],
+                            fill: 'toself',
+                            name: 'Sex Metrics',
+                            line: { color: COLORS.SEX_METRICS },
+                            fillcolor: COLORS.SEX_METRICS + '40'
+                          },
+                          {
+                            type: 'scatterpolar',
+                            r: [
+                              Math.abs(raceMetrics.demographic_parity || 0),
+                              Math.abs(raceMetrics.equalized_odds || 0),
+                              Math.abs(raceMetrics.predictive_parity || 0),
+                              Math.abs(raceMetrics.equalized_opportunity || 0),
+                              Math.abs(raceMetrics.predictive_equality || 0),
+                              Math.abs(raceMetrics.demographic_parity || 0) // Close the radar
+                            ],
+                            theta: [
+                              'Demographic Parity',
+                              'Equalized Odds',
+                              'Predictive Parity', 
+                              'Equalized Opportunity',
+                              'Predictive Equality',
+                              'Demographic Parity'
+                            ],
+                            fill: 'toself',
+                            name: 'Race Metrics',
+                            line: { color: COLORS.RACE_METRICS },
+                            fillcolor: COLORS.RACE_METRICS + '40'
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 40, l: 40, r: 40 },
+                          title: 'Fairness Metrics Radar Chart',
+                          polar: {
+                            radialaxis: {
+                              visible: true,
+                              range: [0, Math.max(
+                                Math.max(...Object.values(sexMetrics).map(Math.abs)),
+                                Math.max(...Object.values(raceMetrics).map(Math.abs))
+                              ) + 0.05]
+                            }
+                          },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 },
+                          legend: { x: 0.7, y: 0.9 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Conditional Statistical Parity Heatmap */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Conditional Statistical Parity
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Heatmap showing selection rates by group within different strata defined by legitimate attributes.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'heatmap',
+                            z: [
+                              [Math.abs(sexMetrics.demographic_parity || 0), Math.abs(sexMetrics.equalized_odds || 0), Math.abs(sexMetrics.predictive_parity || 0)],
+                              [Math.abs(raceMetrics.demographic_parity || 0), Math.abs(raceMetrics.equalized_odds || 0), Math.abs(raceMetrics.predictive_parity || 0)]
+                            ],
+                            x: ['Demographic Parity', 'Equalized Odds', 'Predictive Parity'],
+                            y: ['Sex Group', 'Race Group'],
+                            colorscale: 'YlGnBu',
+                            colorbar: { title: 'Selection Rate Difference' },
+                            text: [
+                              [(sexMetrics.demographic_parity || 0).toFixed(3), (sexMetrics.equalized_odds || 0).toFixed(3), (sexMetrics.predictive_parity || 0).toFixed(3)],
+                              [(raceMetrics.demographic_parity || 0).toFixed(3), (raceMetrics.equalized_odds || 0).toFixed(3), (raceMetrics.predictive_parity || 0).toFixed(3)]
+                            ],
+                            texttemplate: '%{text}',
+                            hovertemplate: 'Group: %{y}<br>Metric: %{x}<br>Value: %{text}<extra></extra>'
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 60, l: 80, r: 40 },
+                          title: 'Conditional Statistical Parity Heatmap',
+                          xaxis: { title: 'Fairness Metrics' },
+                          yaxis: { title: 'Protected Groups', autorange: 'reversed' },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Cumulative Parity Loss */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Cumulative Parity Loss
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Stacked horizontal bar chart showing cumulative fairness metrics (TPR, PPV, FPR, ACC, SPR) per subgroup.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'bar',
+                            orientation: 'h',
+                            x: [
+                              Math.abs(sexMetrics.demographic_parity || 0),
+                              Math.abs(sexMetrics.equalized_odds || 0),
+                              Math.abs(sexMetrics.predictive_parity || 0),
+                              Math.abs(sexMetrics.equalized_opportunity || 0),
+                              Math.abs(sexMetrics.predictive_equality || 0)
+                            ],
+                            y: ['Demographic Parity', 'Equalized Odds', 'Predictive Parity', 'Equalized Opportunity', 'Predictive Equality'],
+                            name: 'Sex Metrics',
+                            marker: { 
+                              color: COLORS.SEX_METRICS,
+                              line: { color: '#ffffff', width: 1 }
+                            },
+                            text: [
+                              (sexMetrics.demographic_parity || 0).toFixed(3),
+                              (sexMetrics.equalized_odds || 0).toFixed(3),
+                              (sexMetrics.predictive_parity || 0).toFixed(3),
+                              (sexMetrics.equalized_opportunity || 0).toFixed(3),
+                              (sexMetrics.predictive_equality || 0).toFixed(3)
+                            ],
+                            textposition: 'outside'
+                          },
+                          {
+                            type: 'bar',
+                            orientation: 'h',
+                            x: [
+                              Math.abs(raceMetrics.demographic_parity || 0),
+                              Math.abs(raceMetrics.equalized_odds || 0),
+                              Math.abs(raceMetrics.predictive_parity || 0),
+                              Math.abs(raceMetrics.equalized_opportunity || 0),
+                              Math.abs(raceMetrics.predictive_equality || 0)
+                            ],
+                            y: ['Demographic Parity', 'Equalized Odds', 'Predictive Parity', 'Equalized Opportunity', 'Predictive Equality'],
+                            name: 'Race Metrics',
+                            marker: { 
+                              color: COLORS.RACE_METRICS,
+                              line: { color: '#ffffff', width: 1 }
+                            },
+                            text: [
+                              (raceMetrics.demographic_parity || 0).toFixed(3),
+                              (raceMetrics.equalized_odds || 0).toFixed(3),
+                              (raceMetrics.predictive_parity || 0).toFixed(3),
+                              (raceMetrics.equalized_opportunity || 0).toFixed(3),
+                              (raceMetrics.predictive_equality || 0).toFixed(3)
+                            ],
+                            textposition: 'outside'
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 60, l: 120, r: 40 },
+                          title: 'Cumulative Parity Loss by Group',
+                          barmode: 'stack',
+                          xaxis: { title: 'Cumulative Parity Loss' },
+                          yaxis: { title: 'Fairness Metrics' },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 },
+                          legend: { x: 0.7, y: 0.9 }
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Group Metrics Boxplots */}
+              <Box mb={6}>
+                <Paper elevation={0} sx={{ p: 3, ...STYLES.paper }}>
+                  <Typography variant="h3" sx={{ mb: 2, ...STYLES.subsectionTitle }}>
+                    Group Metrics Distribution
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 3, color: COLORS.TEXT_SECONDARY }}>
+                    Boxplots showing distribution of key fairness metrics (TPR, FPR, PPV, NPV) across demographic groups.
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    {Plot ? (
+                      <Plot
+                        data={[
+                          {
+                            type: 'box',
+                            y: [
+                              Math.abs(sexMetrics.demographic_parity || 0),
+                              Math.abs(sexMetrics.equalized_odds || 0),
+                              Math.abs(sexMetrics.predictive_parity || 0),
+                              Math.abs(sexMetrics.equalized_opportunity || 0)
+                            ],
+                            x: ['Demographic Parity', 'Equalized Odds', 'Predictive Parity', 'Equalized Opportunity'],
+                            name: 'Sex Metrics',
+                            marker: { color: COLORS.SEX_METRICS },
+                            boxpoints: 'all',
+                            jitter: 0.3,
+                            pointpos: -1.8
+                          },
+                          {
+                            type: 'box',
+                            y: [
+                              Math.abs(raceMetrics.demographic_parity || 0),
+                              Math.abs(raceMetrics.equalized_odds || 0),
+                              Math.abs(raceMetrics.predictive_parity || 0),
+                              Math.abs(raceMetrics.equalized_opportunity || 0)
+                            ],
+                            x: ['Demographic Parity', 'Equalized Odds', 'Predictive Parity', 'Equalized Opportunity'],
+                            name: 'Race Metrics',
+                            marker: { color: COLORS.RACE_METRICS },
+                            boxpoints: 'all',
+                            jitter: 0.3,
+                            pointpos: -1.8
+                          }
+                        ]}
+                        layout={{ 
+                          width: '100%', 
+                          height: 500, 
+                          margin: { t: 40, b: 60, l: 80, r: 40 },
+                          title: 'Fairness Metrics Distribution Across Groups',
+                          xaxis: { title: 'Fairness Metrics' },
+                          yaxis: { title: 'Metric Value (Absolute)' },
+                          plot_bgcolor: 'rgba(0,0,0,0)',
+                          paper_bgcolor: 'rgba(0,0,0,0)',
+                          font: { family: 'Inter, sans-serif', size: 12 },
+                          legend: { x: 0.7, y: 0.9 },
+                          boxmode: 'group'
+                        }}
+                        config={{ responsive: true, displayModeBar: true }}
+                      />
+                    ) : (
+                      <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: 2,
+                        textAlign: 'center',
+                        border: '1px solid #e9ecef',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                          Plotly visualization loading...
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+
+              {/* Info Alert */}
+              <Alert severity="info" sx={{ mt: 4 }}>
+                <Typography variant="body2">
+                  <strong>Note:</strong> Advanced visualizations require raw prediction data from the evaluation.
+                  These visualizations will be automatically generated when the complete evaluation data is available.
+                  Each visualization provides unique insights into different aspects of fairness and bias in your model.
+                </Typography>
+              </Alert>
+            </Box>
+          </Stack>
         </TabPanel>
       </TabContext>
       

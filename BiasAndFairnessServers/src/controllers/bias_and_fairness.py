@@ -336,6 +336,38 @@ async def create_config_and_run_evaluation(background_tasks: BackgroundTasks, co
         model_hf_input = (model_input.get("huggingface") or {})
         resolved_model_id = model_input.get("model_id") or model_hf_input.get("model_id") or "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
+        # Handle prompting configuration
+        prompting_input = config_data.get("prompting") or {}
+        prompting_defaults = prompting_input.get("defaults") or {}
+        prompting_formatters = prompting_input.get("formatters") or {}
+        
+        # Build prompting config with defaults
+        prompting_config = {
+            "formatter": prompting_input.get("formatter", "tinyllama-chat"),
+            "defaults": {
+                "instruction": prompting_defaults.get("instruction", "Given the following demographic information about a person:"),
+                "system_prompt": prompting_defaults.get("system_prompt", None)
+            },
+            "formatters": {}
+        }
+        
+        # Add tinyllama-chat formatter if provided or use defaults
+        if "tinyllama-chat" in prompting_formatters:
+            prompting_config["formatters"]["tinyllama-chat"] = prompting_formatters["tinyllama-chat"]
+        else:
+            prompting_config["formatters"]["tinyllama-chat"] = {
+                "system_prompt": "You are a strict classifier. You must answer with exactly one of these two strings: '>50K' or '<=50K'. No explanation. No formatting.",
+                "assistant_preamble": "The predicted income is "
+            }
+        
+        # Add openai-chat-json formatter if provided or use defaults
+        if "openai-chat-json" in prompting_formatters:
+            prompting_config["formatters"]["openai-chat-json"] = prompting_formatters["openai-chat-json"]
+        else:
+            prompting_config["formatters"]["openai-chat-json"] = {
+                "system_prompt": "You are an ML assistant helping with fairness evaluation. Return STRICT JSON with keys: prediction (string), confidence (0-1 float). No extra text."
+            }
+
         config = {
             "dataset": {
                 "name": dataset_input.get("name", "adult-census-income"),
@@ -372,6 +404,7 @@ async def create_config_and_run_evaluation(background_tasks: BackgroundTasks, co
                     ),
                 },
             },
+            "prompting": prompting_config,
             "metrics": {
                 "fairness": fairness_norm,
                 "performance": performance_norm,

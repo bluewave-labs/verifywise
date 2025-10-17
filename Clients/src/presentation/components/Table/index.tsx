@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../TablePagination";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
-import { DashboardState, User } from "../../../application/interfaces/appStates";
+import { DashboardState, User, InputValues } from "../../../application/interfaces/appStates";
 import singleTheme from "../../themes/v1SingleTheme";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import { getAllVendors } from "../../../application/repository/vendor.repository";
@@ -114,12 +114,13 @@ const CustomizableBasicTable = ({
     rowData: TableRow
   ) => {
     setSelectedRow(rowData);
-    setInputValues(rowData);
+    setInputValues(rowData as InputValues);
     setAnchorEl(event.currentTarget);
     onRowClick?.(rowData.id);
   };
 
-  const riskLevelChecker = (score: string) => {
+  const riskLevelChecker = (score: string | undefined) => {
+    if (!score) return '';
     const parsedScore = parseInt(score, 10);
     if (!isNaN(parsedScore)) {
       if (parsedScore <= 3) return RISK_LABELS.low.text;
@@ -163,14 +164,14 @@ const CustomizableBasicTable = ({
                 onClick={(event) => onRowClickHandler(event, row)}
               >
                 <TableCell>
-                  {row.risk_name?.length > 30
+                  {row.risk_name && row.risk_name.length > 30
                     ? `${row.risk_name.slice(0, 30)}...`
-                    : row.risk_name}
+                    : row.risk_name || ''}
                 </TableCell>
                 <TableCell>
-                  {row.impact?.length > 30
+                  {row.impact && row.impact.length > 30
                     ? `${row.impact.slice(0, 30)}...`
-                    : row.impact}
+                    : row.impact || ''}
                 </TableCell>
                 <TableCell>
                   {(dashboardValues.users as User[])?.find(
@@ -212,7 +213,7 @@ const CustomizableBasicTable = ({
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[5, 10, 15, 25]}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            ActionsComponent={TablePaginationActions}
+            ActionsComponent={TablePaginationActions as any}
             labelRowsPerPage="Rows per page"
             sx={{ mt: theme.spacing(6) }}
           />

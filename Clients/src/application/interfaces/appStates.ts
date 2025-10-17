@@ -1,6 +1,6 @@
 interface DashboardState {
   dashboard: Record<string, unknown>;
-  projects: Project[];
+  projects: Record<string, unknown> | Project[];
   compliance: Record<string, unknown>;
   assessments: Record<string, unknown>;
   vendors: Vendor[];
@@ -83,10 +83,10 @@ interface AuthValues {
 interface InputValues {
   id?: string | number;
   risk_name?: string;
-  risk_owner?: number;
+  risk_owner?: number | string;
   risk_description?: string;
   ai_lifecycle_phase?: string;
-  risk_category?: string[];
+  risk_category?: string[] | unknown;
   impact?: string;
   assessment_mapping?: number;
   controlsMapping?: number;
@@ -94,8 +94,8 @@ interface InputValues {
   severity?: string;
   riskLevel?: number | string;
   review_notes?: string;
-  projects?: number[];
-  frameworks?: number[];
+  projects?: number[] | unknown;
+  frameworks?: number[] | unknown;
   mitigation_status?: string;
   mitigation_plan?: string;
   current_risk_level?: string;
@@ -112,7 +112,7 @@ interface InputValues {
   owner?: number;
   review_date?: string | Date;
   // Generic field for dynamic form data
-  [key: string]: string | number | boolean | string[] | Date | undefined | null;
+  [key: string]: unknown;
 }
 
 export type { DashboardState, AppState, AlertState, UIValues, AuthValues, InputValues, Vendor, User, Project, FrameworkValues };

@@ -20,7 +20,7 @@ import { Project, FrameworkValues } from "../../../../../application/interfaces/
  * Set form values
  */
 interface FormValues {
-  report_type: string[];
+  report_type: string[] | string;
   report_name: string;
   project: number | null;
   framework: number;
@@ -143,18 +143,18 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
         : values.report_type
       : values.report_type;
 
-    
-    if (reportType === 'organization') {
-      values.project = organizationalProjects[0].id;
-    }
-
-    const newValues = {
+    const finalValues = {
       ...values,
       report_type: normalizedReportType,
       projectFrameworkId: projectFrameworkId,
       reportType: reportType,
     };
-    onGenerate(newValues);
+
+    if (reportType === 'organization' && organizationalProjects.length > 0) {
+      finalValues.project = organizationalProjects[0].id;
+    }
+
+    onGenerate(finalValues);
   };
 
   const euActProjects = Array.isArray(dashboardValues.projects) ? dashboardValues.projects?.filter(
@@ -180,7 +180,7 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
                 id="project-input"
                 label="Project"
                 placeholder="Select project"
-                value={values.project ?? ""}
+                value={values.project?.toString() ?? ""}
                 onChange={handleOnSelectChange("project")}
                 items={
                   euActProjects?.map(

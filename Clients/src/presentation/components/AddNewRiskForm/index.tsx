@@ -162,9 +162,7 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
   const usersLoading = usersLoadingProp !== undefined ? usersLoadingProp : hookData.loading;
 
   // Get inputValues from context
-  const { inputValues } = useContext(VerifyWiseContext) as {
-    inputValues: any;
-  };
+  const { inputValues } = useContext(VerifyWiseContext);
 
   const isEditingDisabled =
     !allowedRoles.projectRisks.edit.includes(userRoleName);

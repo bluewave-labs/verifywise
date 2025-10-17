@@ -15,8 +15,7 @@ import { useAuth } from "./application/hooks/useAuth";
 import { Project } from "./domain/types/Project";
 import { CookiesProvider } from "react-cookie";
 import { createRoutes } from "./application/config/routes";
-import { DashboardState } from "./application/interfaces/appStates";
-import { AppState } from "./application/interfaces/appStates";
+import { DashboardState, UIValues, AuthValues, InputValues, AppState } from "./application/interfaces/appStates";
 import { ComponentVisible } from "./application/interfaces/ComponentVisible";
 import { AlertProps } from "./domain/interfaces/iAlert";
 import { setShowAlertCallback } from "./infrastructure/api/customAxios";
@@ -72,8 +71,8 @@ function App() {
     return () => setShowAlertCallback(() => {});
   }, []);
 
-  const [uiValues, setUiValues] = useState<unknown | undefined>({});
-  const [authValues, setAuthValues] = useState<unknown | undefined>({});
+  const [uiValues, setUiValues] = useState<UIValues>({});
+  const [authValues, setAuthValues] = useState<AuthValues>({});
   const [dashboardValues, setDashboardValues] = useState<DashboardState>({
     dashboard: {},
     projects: {},
@@ -81,7 +80,7 @@ function App() {
     assessments: {},
     vendors: [],
   });
-  const [inputValues, setInputValues] = useState<unknown | undefined>({});
+  const [inputValues, setInputValues] = useState<InputValues>({});
   const [projects, setProjects] = useState<Project[]>([]);
   const [triggerSidebar, setTriggerSidebar] = useState(false);
 

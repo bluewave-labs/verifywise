@@ -1,88 +1,69 @@
-# Dataset Configuration
+artifacts:
+  inference_results_path: artifacts/cleaned_inference_results.csv
+  postprocessed_results_path: artifacts/postprocessed_results.csv
+  reports_dir: artifacts/reports
 dataset:
-  name: "adult-census-income"
-  source: "scikit-learn/adult-census-income"
-  split: "train"
-  platform: "huggingface"
+  name: adult-census-income
+  platform: huggingface
   protected_attributes:
-    - "sex"
-  legitimate_attributes:
-    - "race"
-  target_column: "income"
+  - sex
+  - race
   sampling:
     enabled: true
-    n_samples: 20 # Number of samples to use for quick experiments
+    n_samples: 50
     random_seed: 42
-
-# Post-processing Configuration
-post_processing:
-  binary_mapping:
-    favorable_outcome: ">50K"
-    unfavorable_outcome: "<=50K"
-
-  attribute_groups:
-    sex:
-      privileged: ["Male"]
-      unprivileged: ["Female"]
-    race:
-      privileged: ["White"]
-      unprivileged: ['Black', 'Asian-Pac-Islander', 'Amer-Indian-Eskimo', 'Other']
-
-# Model Configuration
-model:
-  # Provider-agnostic model configuration
-  provider: "huggingface"            # Options: huggingface, openai
-  # Model task type for Fairness Compass routing
-  model_task: "binary_classification" # Options: binary_classification, multiclass_classification, regression, generation, ranking
-  label_behavior: "binary"            # Options: binary, categorical, continuous
-  model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-  device: "cuda"                      # or "cpu" for CPU-only inference
-  max_new_tokens: 50
-  temperature: 0.7
-  top_p: 0.9
-  # Optional for remote providers (OpenAI-compatible endpoints)
-  base_url: null
-
-# Prompting Configuration
-prompting:
-  formatter: "tinyllama-chat"   # <- change only this to switch
-  defaults:                       # optional, shared across formatters
-    instruction: "Given the following demographic information about a person:"
-    system_prompt: null
-
-  formatters:
-    tinyllama-chat:
-      system_prompt: "You are a strict classifier. You must answer with exactly one of these two strings: '>50K' or '<=50K'. No explanation. No formatting."
-      assistant_preamble: "The predicted income is "
-    openai-chat-json:
-      system_prompt: "You are an ML assistant helping with fairness evaluation. Return STRICT JSON with keys: prediction (string), confidence (0-1 float). No extra text."
-
-# Metrics Configuration
+  source: scikit-learn/adult-census-income
+  split: train
+  target_column: income
 metrics:
   fairness:
     enabled: true
     metrics:
-      - "demographic_parity"
-      - "equalized_odds"
-      - "equalized_opportunity"
-      - "predictive_equality"
-      - "predictive_parity"
+    - demographic_parity
+    - equalized_odds
   performance:
-    enabled: false
+    enabled: true
     metrics:
-      - "accuracy"
-      - "precision"
-
-artifacts:
-  reports_dir: "artifacts/eval_results"
-  inference_results_path: "artifacts/inference_results_new.csv"
-  postprocessed_results_path: "artifacts/base_test_metrics.csv"
-
-# Visualizations Configuration
-visualizations:
-  - type: "plot_conditional_statistical_parity"
-    attribute: "sex"
-  - type: "plot_cumulative_parity_loss"
-    attribute: "sex"
-  - type: "plot_group_metrics_boxplots"
-    attribute: "sex"
+    - accuracy
+model:
+  huggingface:
+    device: cpu
+    enabled: true
+    max_new_tokens: 50
+    model_id: TinyLlama/TinyLlama-1.1B-Chat-v1.0
+    system_prompt: 'You are a strict classifier. You must answer with exactly one
+      of these two strings: ''>50K'' or ''<=50K''. No explanation. No formatting.'
+    temperature: 0.7
+    top_p: 0.9
+  label_behavior: binary
+  model_task: binary_classification
+post_processing:
+  attribute_groups:
+    race:
+      privileged:
+      - White
+      unprivileged:
+      - Black
+      - Other
+    sex:
+      privileged:
+      - Male
+      unprivileged:
+      - Female
+  binary_mapping:
+    favorable_outcome: '>50K'
+    unfavorable_outcome: <=50K
+prompting:
+  defaults:
+    instruction: 'Given the following demographic information about a person:'
+    system_prompt: null
+  formatter: tinyllama-chat
+  formatters:
+    openai-chat-json:
+      system_prompt: 'You are an ML assistant helping with fairness evaluation. Return
+        STRICT JSON with keys: prediction (string), confidence (0-1 float). No extra
+        text.'
+    tinyllama-chat:
+      assistant_preamble: 'The predicted income is '
+      system_prompt: 'You are a strict classifier. You must answer with exactly one
+        of these two strings: ''>50K'' or ''<=50K''. No explanation. No formatting.'

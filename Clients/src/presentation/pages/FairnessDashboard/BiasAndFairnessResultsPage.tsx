@@ -1179,10 +1179,14 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      height: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start"
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Dataset</Typography>
-                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {metrics?.dataset_name || metrics?.results?.metadata?.dataset || "N/A"}
                       </Typography>
                     </Box>
@@ -1192,10 +1196,14 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      height: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start"
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Model</Typography>
-                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {metrics?.model_name || metrics?.results?.metadata?.model || "N/A"}
                       </Typography>
                     </Box>
@@ -1205,10 +1213,14 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      height: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start"
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Task Type</Typography>
-                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {(metrics?.model_task || metrics?.results?.metadata?.model_task || "N/A").toString().replace('_', ' ')}
                       </Typography>
                     </Box>
@@ -1222,10 +1234,14 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      height: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start"
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Evaluation ID</Typography>
-                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {metrics?.eval_id || "N/A"}
                       </Typography>
                     </Box>
@@ -1235,10 +1251,14 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      height: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start"
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Status</Typography>
-                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", height: '24px', display: 'flex', alignItems: 'center' }}>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {metrics?.status || "N/A"}
                       </Typography>
                     </Box>
@@ -1248,10 +1268,14 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      height: "60px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start"
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Created</Typography>
-                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
+                      <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {metrics?.created_at ? new Date(metrics.created_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',

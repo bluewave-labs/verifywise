@@ -412,6 +412,7 @@ async def create_config_and_run_evaluation(background_tasks: BackgroundTasks, co
             "artifacts": {
                 "inference_results_path": (config_data.get("artifacts") or {}).get("inference_results_path", "artifacts/cleaned_inference_results.csv"),
                 "postprocessed_results_path": (config_data.get("artifacts") or {}).get("postprocessed_results_path", "artifacts/postprocessed_results.csv"),
+                "reports_dir": (config_data.get("artifacts") or {}).get("reports_dir", "artifacts/reports"),
             },
         }
 

@@ -173,7 +173,7 @@ const CustomizableBasicTable = ({
                     : row.impact}
                 </TableCell>
                 <TableCell>
-                  {dashboardValues.users?.find(
+                  {(dashboardValues.users as User[])?.find(
                     (user: User) => user.id === parseInt(String(row.risk_owner))
                   )?.name || (typeof row.risk_owner === 'string' ? row.risk_owner : String(row.risk_owner))}
                 </TableCell>

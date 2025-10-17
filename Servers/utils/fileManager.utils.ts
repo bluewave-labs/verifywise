@@ -227,10 +227,10 @@ export const deleteFile = async (fileId: number, tenant: string): Promise<boolea
 
   const result = await sequelize.query(query, {
     replacements: { fileId },
-    type: QueryTypes.DELETE,
+    type: QueryTypes.SELECT,
   });
 
-  return result.length > 0;
+  return Array.isArray(result) && result.length > 0;
 };
 
 /**

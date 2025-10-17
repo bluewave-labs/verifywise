@@ -225,7 +225,6 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
         error: new Error("Access denied"),
-        userId,
       });
       return res.status(403).json(STATUS_CODE[403]("Access denied"));
     }

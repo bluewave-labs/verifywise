@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import TablePaginationActions from "../TablePagination";
 import { VerifyWiseContext } from "../../../application/contexts/VerifyWise.context";
+import { DashboardState } from "../../../application/interfaces/appStates";
 import singleTheme from "../../themes/v1SingleTheme";
 import { RISK_LABELS } from "../../components/RiskLevel/constants";
 import { getAllVendors } from "../../../application/repository/vendor.repository";
@@ -35,10 +36,6 @@ interface TableProps {
   setAnchorEl: (element: HTMLElement | null) => void;
 }
 
-interface DashboardValues {
-  vendors: any[];
-  users: any[];
-}
 
 const CustomizableBasicTable = ({
   data,
@@ -81,7 +78,7 @@ const CustomizableBasicTable = ({
   const fetchVendors = useCallback(async () => {
     try {
       const response = await getAllVendors();
-      setDashboardValues((prev: DashboardValues) => ({
+      setDashboardValues((prev: DashboardState) => ({
         ...prev,
         vendors: response.data,
       }));
@@ -158,7 +155,7 @@ const CustomizableBasicTable = ({
                     : row.impact}
                 </TableCell>
                 <TableCell>
-                  {dashboardValues.users.find(
+                  {dashboardValues.users?.find(
                     (user: any) => user.id === parseInt(row.risk_owner)
                   )?.name || row.risk_owner}
                 </TableCell>

@@ -76,6 +76,10 @@ interface InputValues extends Record<string, unknown> {
   risk_approval?: number;
   approval_status?: string;
   date_of_assessment?: string | Date | unknown;
+  // Vendor risk form fields
+  vendor_name?: number;
+  owner?: number;
+  review_date?: string | Date | unknown;
   [key: string]: unknown;
 }
 

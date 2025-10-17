@@ -175,29 +175,31 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
       const currentRiskData: RiskFormValues = {
         ...riskInitialState,
         riskName: inputValues.risk_name ?? "",
-        actionOwner: inputValues.risk_owner,
+        actionOwner: inputValues.risk_owner ?? 0,
         riskDescription: inputValues.risk_description ?? "",
         aiLifecyclePhase:
           aiLifecyclePhase.find(
             (item) => item.name === inputValues.ai_lifecycle_phase
           )?._id ?? 1,
-        riskCategory: inputValues.risk_category.map(
-          (category: string) =>
-            riskCategoryItems.find((item) => item.name === category)?._id ?? 1
-        ),
+        riskCategory: Array.isArray(inputValues.risk_category)
+          ? inputValues.risk_category.map(
+              (category: string) =>
+                riskCategoryItems.find((item) => item.name === category)?._id ?? 1
+            )
+          : [1],
         potentialImpact: inputValues.impact ?? "",
-        assessmentMapping: inputValues.assessment_mapping,
-        controlsMapping: inputValues.controlsMapping,
+        assessmentMapping: inputValues.assessment_mapping ?? 0,
+        controlsMapping: inputValues.controlsMapping ?? 0,
         likelihood:
           likelihoodItems.find((item) => item.name === inputValues.likelihood)
             ?._id ?? 1,
         riskSeverity:
           riskSeverityItems.find((item) => item.name === inputValues.severity)
             ?._id ?? 1,
-        riskLevel: inputValues.riskLevel,
+        riskLevel: typeof inputValues.riskLevel === 'number' ? inputValues.riskLevel : 0,
         reviewNotes: inputValues.review_notes ?? "",
-        applicableProjects: inputValues.projects || [],
-        applicableFrameworks: inputValues.frameworks || [],
+        applicableProjects: Array.isArray(inputValues.projects) ? inputValues.projects : [],
+        applicableFrameworks: Array.isArray(inputValues.frameworks) ? inputValues.frameworks : [],
       };
 
       const currentMitigationData: MitigationFormValues = {
@@ -206,16 +208,16 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           mitigationStatusItems.find(
             (item) => item.name === inputValues.mitigation_status
           )?._id ?? 1,
-        mitigationPlan: inputValues.mitigation_plan,
+        mitigationPlan: inputValues.mitigation_plan ?? "",
         currentRiskLevel:
           riskLevelItems.find(
             (item) => item.name === inputValues.current_risk_level
           )?._id ?? 1,
-        implementationStrategy: inputValues.implementation_strategy,
-        deadline: inputValues.deadline
+        implementationStrategy: inputValues.implementation_strategy ?? "",
+        deadline: inputValues.deadline && (typeof inputValues.deadline === 'string' || inputValues.deadline instanceof Date)
           ? dayjs(inputValues.deadline).toISOString()
           : "",
-        doc: inputValues.mitigation_evidence_document,
+        doc: inputValues.mitigation_evidence_document ?? "",
         likelihood:
           likelihoodItems.find(
             (item) => item.name === inputValues.likelihood_mitigation
@@ -224,12 +226,12 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           riskSeverityItems.find(
             (item) => item.name === inputValues.risk_severity
           )?._id ?? 1,
-        approver: inputValues.risk_approval,
+        approver: inputValues.risk_approval ?? 0,
         approvalStatus:
           approvalStatusItems.find(
             (item) => item.name === inputValues.approval_status
           )?._id ?? 1,
-        dateOfAssessment: inputValues.date_of_assessment
+        dateOfAssessment: inputValues.date_of_assessment && (typeof inputValues.date_of_assessment === 'string' || inputValues.date_of_assessment instanceof Date)
           ? dayjs(inputValues.date_of_assessment).toISOString()
           : "",
       };

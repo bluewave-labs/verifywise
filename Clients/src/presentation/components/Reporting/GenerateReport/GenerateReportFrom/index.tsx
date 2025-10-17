@@ -106,7 +106,8 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   );
 
   const projectFrameworks = useMemo<FrameworkValues[]>(() => {
-    const selectedProject = dashboardValues.projects.find(
+    const projects = Array.isArray(dashboardValues.projects) ? dashboardValues.projects : [];
+    const selectedProject = projects.find(
       (project: { id: string | number }) => project.id === values.project
     );
 
@@ -118,11 +119,13 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
   }, [dashboardValues.projects, values.project]);
 
   const organizationalProjects = useMemo(() => {
-    return (dashboardValues.projects || []).filter((p: any) => p.is_organizational === true);
+    const projects = Array.isArray(dashboardValues.projects) ? dashboardValues.projects : [];
+    return projects.filter((p: any) => p.is_organizational === true);
   }, [dashboardValues.projects]);
 
   const organizationFrameworks = useMemo<FrameworkValues[]>(() => {
-    const allFrameworks: FrameworkValues[] = (dashboardValues.projects || [])
+    const projects = Array.isArray(dashboardValues.projects) ? dashboardValues.projects : [];
+    const allFrameworks: FrameworkValues[] = projects
       .flatMap((p: any) => Array.isArray(p.framework) ? p.framework : [])
       .filter((f: any): f is FrameworkValues => typeof f?.framework_id === "number" && !!f?.name && f.framework_id !== 1);
 
@@ -162,9 +165,9 @@ const GenerateReportFrom: React.FC<ReportProps> = ({ onGenerate, reportType }) =
     onGenerate(newValues);
   };
 
-  const euActProjects = dashboardValues.projects?.filter(
+  const euActProjects = Array.isArray(dashboardValues.projects) ? dashboardValues.projects?.filter(
     (project: { framework: [{ framework_id: number }] }) => project.framework.some(f => f.framework_id === 1)
-  );
+  ) : [];
 
   return (
     <Stack sx={{ display: "flex", flexDirection: "column", height: "100%" }}>

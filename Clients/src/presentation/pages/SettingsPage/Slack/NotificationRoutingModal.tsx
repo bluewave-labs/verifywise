@@ -312,14 +312,10 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
                   px: 3,
                   mt: 1,
                   height: 34,
-                  "&:not(:disabled):hover": {
-                    backgroundColor: "#0e5c47",
-                    color: "#fff",
-                  },
+                  border: "1px solid #13715B",
                   "&:disabled": {
                     cursor: "not-allowed",
                   },
-                  border: "1px solid #13715B",
                 }}
                 isDisabled={(routingData.find((data) => data.routingType === type.name)?.id.length ?? 0) === 0}
               />

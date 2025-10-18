@@ -103,7 +103,7 @@ const RisksView: FC<RisksViewProps> = memo(
     const risksTableRows = useMemo(() => {
       return risksData.reduce((acc: any[], item, i) => {
         const row: any = {
-          id: (item as any).id || `${(item as ProjectRisk | VendorRisk).risk_description}_${i}`,
+          id: (item as any).id || (item as any).risk_id || `${(item as ProjectRisk | VendorRisk).risk_description}_${i}`,
         };
 
         // Map all column values to the row
@@ -327,7 +327,7 @@ const RisksView: FC<RisksViewProps> = memo(
           table="risksTable"
           paginated
           label={`${title} risk`}
-          setSelectedRow={(row) => setSelectedRow(riskData1.find(r => r.id === row.id) as ProjectRisk | VendorRisk)}
+          setSelectedRow={(row) => setSelectedRow(riskData1.find(r => (r as any).id === row.id || (r as any).risk_id === row.id) as ProjectRisk | VendorRisk)}
           setAnchorEl={setAnchorEl}
         />
       </Stack>

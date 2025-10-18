@@ -19,7 +19,7 @@ interface GenerateReportProps {
 interface InputProps {
   report_type: string | string[];
   report_name: string;
-  project: number;
+  project: number | null;
   framework: number;
   projectFrameworkId: number;
   reportType?: 'project' | 'organization' | null;
@@ -89,7 +89,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       projectId: input.project,
       projectTitle: currentProject.project_title,
       projectOwner: currentProjectOwner,
-      reportType: reportTypeLabel,
+      reportType: Array.isArray(reportTypeLabel) ? reportTypeLabel.join(', ') : reportTypeLabel,
       reportName: input.report_name,
       frameworkId: input.framework,
       projectFrameworkId: input.projectFrameworkId,

@@ -196,24 +196,17 @@ const CreateTask: FC<CreateTaskProps> = ({
 
   const handleAssigneesChange = useCallback(
     (_event: React.SyntheticEvent, newValue: any[]) => {
-      // Check for duplicates in real-time
-      const assigneeIds = newValue.map(assignee => assignee.id);
+      // Use stable duplicate check with string-based IDs
+      const assigneeIds = newValue.map(a => String(a.id));
       const uniqueAssigneeIds = [...new Set(assigneeIds)];
       
-      if (uniqueAssigneeIds.length !== assigneeIds.length) {
-        // If duplicates detected, don't update the value and show error
-        setErrors((prev) => ({ 
-          ...prev, 
-          assignees: "Assignees cannot contain duplicates." 
-        }));
-        return;
-      }
+      // If duplicates were found, remove them automatically
+      const uniqueAssignees = uniqueAssigneeIds.map(id => 
+        newValue.find(assignee => String(assignee.id) === id)
+      ).filter(Boolean);
 
-      setValues((prevValues) => ({
-        ...prevValues,
-        assignees: newValue,
-      }));
-      setErrors((prev) => ({ ...prev, assignees: "" }));
+      setValues(prev => ({ ...prev, assignees: uniqueAssignees }));
+      setErrors(prev => { const next = { ...prev }; delete next.assignees; return next; });
     },
     []
   );
@@ -258,9 +251,9 @@ const CreateTask: FC<CreateTaskProps> = ({
       newErrors.due_date = "Due date is required.";
     }
 
-    // Validate assignees for duplicates
+    // Validate assignees for duplicates using stable duplicate check
     if (values.assignees && values.assignees.length > 0) {
-      const assigneeIds = values.assignees.map(assignee => assignee.id);
+      const assigneeIds = values.assignees.map(a => String(a.id));
       const uniqueAssigneeIds = [...new Set(assigneeIds)];
       if (uniqueAssigneeIds.length !== assigneeIds.length) {
         newErrors.assignees = "Assignees cannot contain duplicates.";
@@ -303,6 +296,13 @@ const CreateTask: FC<CreateTaskProps> = ({
     isOpen,
     onClose: handleClose,
   });
+
+  // Memoize options computation to avoid remapping on every render
+  const assigneeOptions = useMemo(() => {
+    return (users ?? [])
+      .map(user => ({ id: user.id, name: user.name, surname: user.surname ?? "", email: user.email }))
+      .filter(u => !values.assignees?.some(a => a.id === u.id));
+  }, [users, values.assignees]);
 
   // Create consistent field style
   const fieldStyle = useMemo(
@@ -457,21 +457,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                     id="assignees-input"
                     size="small"
                     value={values.assignees}
-                    options={
-                      users
-                        ?.map((user) => ({
-                          id: user.id,
-                          name: user.name,
-                          surname: user.surname || "",
-                          email: user.email,
-                        }))
-                        .filter(
-                          (user) =>
-                            !values.assignees.some(
-                              (assignee) => assignee.id === user.id
-                            )
-                        ) || []
-                    }
+                    options={assigneeOptions}
                     onChange={handleAssigneesChange}
                     getOptionLabel={(user) =>
                       `${user.name} ${user.surname}`.trim()
@@ -501,7 +487,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                       );
                     }}
                     noOptionsText={
-                      values.assignees.length === users?.length
+                      values.assignees.length === (users?.length ?? 0)
                         ? "All members selected"
                         : "No options"
                     }
@@ -511,6 +497,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                         {...params}
                         placeholder="Select assignees"
                         error={!!errors.assignees}
+                        aria-describedby={errors.assignees ? "assignees-error" : undefined}
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             paddingTop: "3.8px !important",
@@ -564,6 +551,7 @@ const CreateTask: FC<CreateTaskProps> = ({
                   />
                   {errors.assignees && (
                     <Typography
+                      id="assignees-error"
                       color="error"
                       variant="caption"
                       sx={{ 

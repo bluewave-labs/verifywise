@@ -27,7 +27,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
       sx={{
         position: 'absolute',
         top: 24,
-        right: 24,
+        right: 16,
         zIndex: 10,
       }}
     >

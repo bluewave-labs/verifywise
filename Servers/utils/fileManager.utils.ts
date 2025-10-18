@@ -17,6 +17,8 @@ import { FileAccessLogModel } from "../domain.layer/models/fileManager/fileAcces
 import * as path from "path";
 import * as fs from "fs";
 import { promisify } from "util";
+import { randomBytes } from "crypto";
+import { sanitizeFilename } from "./validations/fileManagerValidation.utils";
 
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
@@ -43,10 +45,11 @@ export const uploadFileToManager = async (
   const uploadsDir = path.join(process.cwd(), "uploads", "file-manager", tenant);
   await mkdir(uploadsDir, { recursive: true });
 
-  // Generate unique filename
+  // Generate unique filename with timestamp, random bytes, and sanitized original name
   const timestamp = Date.now();
-  const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9-_.]/g, "_");
-  const uniqueFilename = `${timestamp}_${sanitizedFilename}`;
+  const rand = randomBytes(4).toString("hex");
+  const sanitized = sanitizeFilename(file.originalname);
+  const uniqueFilename = `${timestamp}_${rand}_${sanitized}`;
   const permanentFilePath = path.join(uploadsDir, uniqueFilename);
 
   // Move file from temp directory to permanent location
@@ -84,7 +87,7 @@ export const uploadFileToManager = async (
 
   const result = await sequelize.query(query, {
     replacements: {
-      filename: sanitizedFilename,
+      filename: sanitized,
       size: file.size,
       mimetype: file.mimetype,
       file_path: relativeFilePath,

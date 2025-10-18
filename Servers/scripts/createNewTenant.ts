@@ -158,6 +158,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       date_of_assessment timestamp with time zone NOT NULL,
       is_demo boolean NOT NULL DEFAULT false,
       created_at timestamp without time zone NOT NULL DEFAULT now(),
+      updated_at timestamp without time zone NOT NULL DEFAULT now(),
+      is_deleted boolean NOT NULL DEFAULT false,
+      deleted_at timestamp without time zone,
       CONSTRAINT projectrisks_pkey PRIMARY KEY (id),
       CONSTRAINT projectrisks_risk_owner_fkey FOREIGN KEY (risk_owner)
         REFERENCES public.users (id) MATCH SIMPLE
@@ -269,6 +272,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       risk_level character varying(255) NOT NULL,
       is_demo boolean NOT NULL DEFAULT false,
       created_at timestamp without time zone NOT NULL DEFAULT now(),
+      updated_at timestamp without time zone NOT NULL DEFAULT now(),
+      is_deleted boolean NOT NULL DEFAULT false,
+      deleted_at timestamp without time zone,
       CONSTRAINT vendorrisks_pkey PRIMARY KEY (id),
       CONSTRAINT vendorrisks_vendor_id_fkey FOREIGN KEY (vendor_id)
         REFERENCES "${tenantHash}".vendors (id) MATCH SIMPLE
@@ -697,7 +703,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         threshold VARCHAR(255),
         model_id INTEGER REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN NOT NULL DEFAULT false,
+        deleted_at TIMESTAMP
       );`, { transaction });
 
     // Create task ENUM types if they don't exist

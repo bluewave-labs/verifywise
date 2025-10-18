@@ -7,10 +7,24 @@ import { QueryTypes, Transaction } from "sequelize";
 
 export const getVendorRisksByProjectIdQuery = async (
   projectId: number,
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IVendorRisk[]> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'AND is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'AND is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const vendorRisks = await sequelize.query(
-    `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM "${tenant}".vendors_projects WHERE project_id = :project_id) ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id IN (SELECT vendor_id FROM "${tenant}".vendors_projects WHERE project_id = :project_id) ${whereClause} ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { project_id: projectId },
       mapToModel: true,
@@ -22,10 +36,24 @@ export const getVendorRisksByProjectIdQuery = async (
 
 export const getVendorRisksByVendorIdQuery = async (
   vendorId: number,
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ): Promise<IVendorRisk[]> => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'AND is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'AND is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const vendorRisks = await sequelize.query(
-    `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id = :vendor_id ORDER BY created_at DESC, id ASC;`,
+    `SELECT * FROM "${tenant}".vendorRisks WHERE vendor_id = :vendor_id ${whereClause} ORDER BY created_at DESC, id ASC;`,
     {
       replacements: { vendor_id: vendorId },
       mapToModel: true,
@@ -37,10 +65,12 @@ export const getVendorRisksByVendorIdQuery = async (
 
 export const getVendorRiskByIdQuery = async (
   id: number,
-  tenant: string
+  tenant: string,
+  includeDeleted: boolean = false
 ): Promise<IVendorRisk | null> => {
+  const whereClause = includeDeleted ? 'WHERE id = :id' : 'WHERE id = :id AND is_deleted = false';
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".vendorRisks WHERE id = :id ORDER BY created_at DESC, id ASC`,
+    `SELECT * FROM "${tenant}".vendorRisks ${whereClause} ORDER BY created_at DESC, id ASC`,
     {
       replacements: { id },
       mapToModel: true,
@@ -135,12 +165,12 @@ export const deleteVendorRiskByIdQuery = async (
   transaction: Transaction
 ): Promise<Boolean> => {
   const result = await sequelize.query(
-    `DELETE FROM "${tenant}".vendorRisks WHERE id = :id RETURNING id`,
+    `UPDATE "${tenant}".vendorrisks SET is_deleted = true, deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND is_deleted = false RETURNING *`,
     {
       replacements: { id },
       mapToModel: true,
       model: VendorRiskModel,
-      type: QueryTypes.DELETE,
+      type: QueryTypes.UPDATE,
       transaction,
     }
   );
@@ -166,8 +196,22 @@ export const deleteVendorRisksForVendorQuery = async (
 };
 
 export const getAllVendorRisksAllProjectsQuery = async (
-  tenant: string
+  tenant: string,
+  filter: 'active' | 'deleted' | 'all' = 'active'
 ) => {
+  let whereClause = '';
+  switch (filter) {
+    case 'active':
+      whereClause = 'WHERE vr.is_deleted = false';
+      break;
+    case 'deleted':
+      whereClause = 'WHERE vr.is_deleted = true';
+      break;
+    case 'all':
+      whereClause = '';
+      break;
+  }
+  
   const risks = await sequelize.query(
     `SELECT 
       vr.id AS risk_id,
@@ -179,6 +223,7 @@ export const getAllVendorRisksAllProjectsQuery = async (
     JOIN "${tenant}".vendors AS v ON vr.vendor_id = v.id
     LEFT JOIN "${tenant}".vendors_projects AS vp ON v.id = vp.vendor_id
     LEFT JOIN "${tenant}".projects AS p ON vp.project_id = p.id
+    ${whereClause}
     ORDER BY vp.project_id, v.id, vr.id`,
     {
       mapToModel: true,

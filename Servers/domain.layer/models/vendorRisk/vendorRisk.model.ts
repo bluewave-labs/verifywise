@@ -104,6 +104,23 @@ export class VendorRiskModel
   })
   created_at?: Date;
 
+  @Column({
+    type: DataType.DATE,
+  })
+  updated_at?: Date;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  is_deleted?: boolean;
+
+  @Column({
+    type: DataType.DATE,
+  })
+  deleted_at?: Date;
+
   static async createNewVendorRisk(
     vendorRisk: IVendorRisk
   ): Promise<VendorRiskModel> {

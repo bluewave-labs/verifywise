@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stack, Button, useTheme } from '@mui/material';
+import { Stack, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Puzzle, Zap } from 'lucide-react';
 
@@ -10,7 +10,6 @@ interface DashboardActionButtonsProps {
 const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
   hideOnMainDashboard = true
 }) => {
-  const theme = useTheme();
   const navigate = useNavigate();
 
   // Check if we're on the main dashboard

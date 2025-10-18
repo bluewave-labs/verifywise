@@ -8,7 +8,6 @@ import {
 } from "@mui/material";
 import React, { useEffect, useMemo, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/style";
 import { ChevronDown as ExpandMoreIcon } from "lucide-react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import {
@@ -305,7 +304,19 @@ const NotificationRoutingModal: React.FC<NotificationRoutingModalProps> = ({
                 onClick={() => handleSendTestNotification(type.name)}
                 size="medium"
                 text="Send Test"
-                sx={viewProjectButtonStyle}
+                sx={{
+                  backgroundColor: theme.palette.background.main,
+                  color: theme.palette.primary.main,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  px: 3,
+                  mt: 1,
+                  height: 34,
+                  border: `1px solid ${theme.palette.primary.main}`,
+                  "&:disabled": {
+                    cursor: "not-allowed",
+                  },
+                }}
                 isDisabled={(routingData.find((data) => data.routingType === type.name)?.id.length ?? 0) === 0}
               />
             </Box>

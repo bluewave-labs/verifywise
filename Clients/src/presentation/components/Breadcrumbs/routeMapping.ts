@@ -24,6 +24,7 @@ import {
   List as ListIcon,
   FolderTree,
   Layers,
+  Puzzle,
 } from "lucide-react";
 
 /**
@@ -49,6 +50,9 @@ export const routeMapping: Record<string, string> = {
 
   // File management
   "/file-manager": "Evidence",
+
+  // Integrations
+  "/integrations": "Integrations",
 
   // Reporting
   "/reporting": "Reporting Dashboard",
@@ -119,6 +123,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // File management
   "/file-manager": () => React.createElement(FileText, { size: 14, strokeWidth: 1.5 }),
+
+  // Integrations
+  "/integrations": () => React.createElement(Puzzle, { size: 14, strokeWidth: 1.5 }),
 
   // Reporting
   "/reporting": () => React.createElement(BarChart3, { size: 14, strokeWidth: 1.5 }),

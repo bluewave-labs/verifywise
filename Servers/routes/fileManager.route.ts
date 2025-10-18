@@ -92,8 +92,8 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
 
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json(
-        STATUS_CODE[400]('File size exceeds maximum allowed size of 30MB')
+      return res.status(413).json(
+        STATUS_CODE[413]('File size exceeds maximum allowed size of 30MB')
       );
     }
     // Other multer errors

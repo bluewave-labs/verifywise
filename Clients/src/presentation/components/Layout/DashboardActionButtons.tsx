@@ -26,7 +26,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
       spacing={2}
       sx={{
         position: 'absolute',
-        top: -8,
+        top: 12,
         right: 24,
         zIndex: 10,
       }}
@@ -36,16 +36,16 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
         startIcon={<Puzzle size={16} />}
         onClick={() => navigate('/integrations')}
         sx={{
-          backgroundColor: '#8B5CF6',
+          background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
           color: 'white',
           fontWeight: 500,
           fontSize: '14px',
           padding: '8px 16px',
-          borderRadius: '8px',
+          borderRadius: '4px',
           textTransform: 'none',
           boxShadow: '0 2px 4px rgba(139, 92, 246, 0.2)',
           '&:hover': {
-            backgroundColor: '#7C3AED',
+            background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
             boxShadow: '0 4px 8px rgba(139, 92, 246, 0.3)',
           },
           transition: 'all 0.2s ease',
@@ -58,16 +58,16 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
         startIcon={<Zap size={16} />}
         onClick={() => navigate('/automations')}
         sx={{
-          backgroundColor: '#10B981',
+          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
           color: 'white',
           fontWeight: 500,
           fontSize: '14px',
           padding: '8px 16px',
-          borderRadius: '8px',
+          borderRadius: '4px',
           textTransform: 'none',
           boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
           '&:hover': {
-            backgroundColor: '#059669',
+            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
             boxShadow: '0 4px 8px rgba(16, 185, 129, 0.3)',
           },
           transition: 'all 0.2s ease',

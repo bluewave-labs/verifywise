@@ -356,6 +356,7 @@ const Vendors = () => {
 
   return (
     <Stack className="vwhome" gap={0}>
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}

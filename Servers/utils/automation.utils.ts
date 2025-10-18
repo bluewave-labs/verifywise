@@ -149,7 +149,7 @@ export const updateAutomationByIdQuery = async (
   } else {
     updatedAutomation.id = id;
     const query = `UPDATE "${tenant}".automations SET ${setClause} WHERE id = :id RETURNING *;`;
-    const result = await sequelize.query(query, { transaction }) as [ITenantAutomationAction[], number];
+    const result = await sequelize.query(query, { replacements: updatedAutomation, transaction }) as [ITenantAutomationAction[], number];
     automation = result[0][0] as unknown as (ITenantAutomationAction & { actions: ITenantAutomationAction[] });
   }
 

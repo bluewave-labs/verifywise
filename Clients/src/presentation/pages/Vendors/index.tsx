@@ -7,6 +7,7 @@ import {
   useTheme,
 } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageLayoutWithActions from "../../components/Layout/PageLayoutWithActions";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
 import { Suspense, useEffect, useState, useMemo } from "react";
@@ -355,8 +356,8 @@ const Vendors = () => {
   }, [selectedProjectId, vendorOptions, selectedVendorId]);
 
   return (
-    <Stack className="vwhome" gap={0}>
-     <PageBreadcrumbs />
+    <PageLayoutWithActions showBreadcrumbs={true}>
+      <Stack className="vwhome" gap={0}>
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -648,7 +649,8 @@ const Vendors = () => {
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-    </Stack>
+      </Stack>
+    </PageLayoutWithActions>
   );
 };
 

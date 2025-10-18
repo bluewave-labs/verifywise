@@ -19,7 +19,6 @@ import ProjectFrameworks from "../ProjectFrameworks";
 import CustomizableToast from "../../../components/Toast";
 import allowedRoles from "../../../../application/constants/permissions";
 import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
-import PageLayoutWithActions from "../../../components/Layout/PageLayoutWithActions";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { IBreadcrumbItem } from "../../../../domain/interfaces/i.breadcrumbs";
 import { getRouteIcon } from "../../../components/Breadcrumbs/routeMapping";
@@ -98,21 +97,33 @@ const VWProjectView = () => {
   };
 
   return (
-    <PageLayoutWithActions
-      breadcrumbItems={breadcrumbItems}
-      autoGenerateBreadcrumbs={false}
-      showCurrentPage={true}
-      title={project ? "Use-case general view" : undefined}
-      description={project ? (
-        <>
-          This use case includes all the governance process status of{" "}
-          <Typography component="span" sx={{ color: "#13715B", fontSize: "inherit" }}>
-            {project.project_title}
-          </Typography>
-        </>
-      ) : undefined}
-    >
+    <Stack className="vw-project-view" overflow={"hidden"}>
+      <PageBreadcrumbs
+        items={breadcrumbItems}
+        autoGenerate={false}
+        showCurrentPage={true}
+      />
       {toast.visible && <CustomizableToast title={toast.message} />}
+      <Stack className="vw-project-view-header" sx={{ mb: 10 }}>
+        {project ? (
+          <>
+            <Typography sx={projectViewHeaderTitle}>
+              Use-case general view
+            </Typography>
+            <Typography sx={projectViewHeaderDesc}>
+              This use case includes all the governance process status of{" "}
+              <Typography component="span" sx={{ color: "#13715B", fontSize: "inherit" }}>
+                {project.project_title}
+              </Typography>
+            </Typography>
+          </>
+        ) : (
+          <>
+            <CustomizableSkeleton variant="text" width="60%" height={32} />
+            <CustomizableSkeleton variant="text" width="80%" height={24} />
+          </>
+        )}
+      </Stack>
       <Stack className="vw-project-view-body">
         <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -210,7 +221,8 @@ const VWProjectView = () => {
             )}
           </TabPanel>
         </TabContext>
-    </PageLayoutWithActions>
+      </Stack>
+    </Stack>
   );
 };
 

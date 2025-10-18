@@ -32,7 +32,6 @@ export const ALLOWED_MIME_TYPES = {
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
   "text/csv": [".csv"],
   "text/markdown": [".md"],
-  "text/plain": [".txt", ".md"],
 
   // Images
   "image/jpeg": [".jpg", ".jpeg"],
@@ -61,24 +60,10 @@ export const ALLOWED_MIME_TYPES = {
  * @returns {boolean} True if file type is allowed
  */
 export const validateFileType = (mimetype: string, filename: string): boolean => {
-  // Check if MIME type is in allowed list
-  if (ALLOWED_MIME_TYPES[mimetype as keyof typeof ALLOWED_MIME_TYPES]) {
-    return true;
-  }
-
-  // Fallback: Check file extension for common types
-  const extension = filename.toLowerCase().substring(filename.lastIndexOf("."));
-
-  // Check if extension matches any allowed extension
-  for (const mimeType in ALLOWED_MIME_TYPES) {
-    const extensions = ALLOWED_MIME_TYPES[mimeType as keyof typeof ALLOWED_MIME_TYPES];
-    if (extensions.includes(extension)) {
-      return true;
-    }
-  }
-
-  return false;
-};
+    const ext = filename.toLowerCase().slice(filename.lastIndexOf("."));
+    const allowedExts = ALLOWED_MIME_TYPES[mimetype as keyof typeof ALLOWED_MIME_TYPES];
+    return Array.isArray(allowedExts) && allowedExts.includes(ext);
+    };
 
 /**
  * Validates file size against maximum allowed size

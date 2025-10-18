@@ -7,7 +7,7 @@
  * - Download files (GET /file-manager/:id)
  *
  * Access Control:
- * - Upload: All roles except Auditor
+ * - Upload: Admin, Reviewer, Editor only (enforced by route middleware)
  * - List/Download: All authenticated users
  *
  * @module controllers/fileManager
@@ -65,17 +65,21 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     // Store temp file path for cleanup
     tempFilePath = file.path;
 
-    const userRole = req.role || "";
     const userId = Number(req.userId);
     const orgId = Number(req.organizationId);
     const tenant = req.tenantId || "";
 
     if (!/^[a-zA-Z0-9_]+$/.test(tenant)) {
-         return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
-       }
+      // Clean up temp file before returning error
+      if (tempFilePath && fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+      return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
+    }
 
-    // Validate file upload
-    const validation = validateFileUpload(file, userRole);
+    // Validate file type and size
+    // Note: Role authorization is already handled by route middleware
+    const validation = validateFileUpload(file);
     if (!validation.valid) {
       await logFailure({
         eventType: "Create",

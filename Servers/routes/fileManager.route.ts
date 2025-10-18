@@ -4,13 +4,13 @@
  * Defines HTTP routes for file manager operations.
  *
  * Routes:
- * - POST   /file-manager       - Upload file (All roles except Auditor)
+ * - POST   /file-manager       - Upload file (Admin, Reviewer, Editor only)
  * - GET    /file-manager       - List all files (All authenticated users)
  * - GET    /file-manager/:id   - Download file (All authenticated users)
  *
  * Access Control:
  * - All routes require JWT authentication
- * - Upload restricted to Admin, Reviewer, Editor
+ * - Upload restricted to Admin, Reviewer, Editor (enforced by authorize middleware)
  * - List and Download available to all authenticated users
  *
  * @module routes/fileManager
@@ -114,11 +114,13 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
 /**
  * @route   POST /file-manager
  * @desc    Upload a file to file manager
- * @access  Admin, Reviewer, Editor (not Auditor)
+ * @access  Admin, Reviewer, Editor only
  * @body    file (multipart/form-data)
  * @returns {201} File uploaded successfully with metadata
- * @returns {400} Invalid file or validation error (including file too large)
- * @returns {403} Access denied (Auditor role)
+ * @returns {400} Invalid file or validation error
+ * @returns {403} Access denied (unauthorized role)
+ * @returns {413} File size exceeds maximum allowed size
+ * @returns {415} Unsupported file type
  * @returns {500} Server error
  */
 router.post(

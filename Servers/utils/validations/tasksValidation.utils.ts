@@ -478,6 +478,18 @@ export const validateTaskUpdateBusinessRules = (data: any, existingData?: any): 
     }
   }
 
+  // Validate assignees don't contain duplicates (same as creation rules)
+  if (data.assignees && Array.isArray(data.assignees)) {
+    const uniqueAssignees = [...new Set(data.assignees)];
+    if (uniqueAssignees.length !== data.assignees.length) {
+      errors.push({
+        field: 'assignees',
+        message: 'Assignees cannot contain duplicates',
+        code: 'DUPLICATE_ASSIGNEES'
+      });
+    }
+  }
+
   return errors;
 };
 

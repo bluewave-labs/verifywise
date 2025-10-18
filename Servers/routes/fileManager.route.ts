@@ -16,11 +16,12 @@
  * @module routes/fileManager
  */
 
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { uploadFile, listFiles, downloadFile } from "../controllers/fileManager.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
 import multer from "multer";
+import { STATUS_CODE } from "../utils/statusCode.utils";
 
 const router = express.Router();
 
@@ -33,12 +34,30 @@ const upload = multer({
 });
 
 /**
+ * Multer error handling middleware
+ * Catches file size limit errors and returns appropriate 400 response
+ */
+const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json(
+        STATUS_CODE[400]('File size exceeds maximum allowed size of 30MB')
+      );
+    }
+    // Other multer errors
+    return res.status(400).json(STATUS_CODE[400](err.message));
+  }
+  // Pass to next error handler if not a multer error
+  next(err);
+};
+
+/**
  * @route   POST /file-manager
  * @desc    Upload a file to file manager
  * @access  Admin, Reviewer, Editor (not Auditor)
  * @body    file (multipart/form-data)
  * @returns {201} File uploaded successfully with metadata
- * @returns {400} Invalid file or validation error
+ * @returns {400} Invalid file or validation error (including file too large)
  * @returns {403} Access denied (Auditor role)
  * @returns {500} Server error
  */
@@ -47,6 +66,7 @@ router.post(
   authenticateJWT,
   authorize(["Admin", "Reviewer", "Editor"]),
   upload.single("file"),
+  handleMulterError,
   uploadFile
 );
 

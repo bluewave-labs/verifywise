@@ -23,10 +23,10 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
   return (
     <Stack
       direction="row"
-      spacing={1}
+      spacing={'8px'}
       sx={{
         position: 'absolute',
-        top: 16,
+        top: 8,
         right: 24,
         zIndex: 10,
       }}

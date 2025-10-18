@@ -37,6 +37,8 @@ export const uploadFileToManager = async (
   orgId: number,
   tenant: string
 ): Promise<any> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+
   // Create uploads directory if it doesn't exist
   const uploadsDir = path.join(process.cwd(), "uploads", "file-manager", tenant);
   await mkdir(uploadsDir, { recursive: true });
@@ -85,6 +87,9 @@ export const uploadFileToManager = async (
  * @returns {Promise<any>} File metadata
  */
 export const getFileById = async (fileId: number, tenant: string): Promise<any> => {
+
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+
   const query = `
     SELECT * FROM "${tenant}".file_manager
     WHERE id = :fileId
@@ -111,6 +116,8 @@ export const getFilesByOrganization = async (
   tenant: string,
   options: { limit?: number; offset?: number } = {}
 ): Promise<{ files: FileManagerMetadata[]; total: number }> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+
   const { limit, offset } = options;
 
   // Get total count
@@ -176,6 +183,8 @@ export const logFileAccess = async (
   action: "download" | "view",
   tenant: string
 ): Promise<void> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+
   const query = `
     INSERT INTO "${tenant}".file_access_logs
       (file_id, accessed_by, access_date, action, org_id)
@@ -202,6 +211,8 @@ export const logFileAccess = async (
  * @returns {Promise<boolean>} True if file was deleted
  */
 export const deleteFile = async (fileId: number, tenant: string): Promise<boolean> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+
   // Get file info first
   const file = await getFileById(fileId, tenant);
 
@@ -246,6 +257,8 @@ export const getFileAccessLogs = async (
   tenant: string,
   options: { limit?: number; offset?: number } = {}
 ): Promise<any[]> => {
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
+
   const { limit, offset } = options;
 
   let query = `

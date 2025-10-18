@@ -66,6 +66,10 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     const orgId = Number(req.organizationId);
     const tenant = req.tenantId || "";
 
+    if (!/^[a-zA-Z0-9_]+$/.test(tenant)) {
+         return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
+       }
+
     // Validate file upload
     const validation = validateFileUpload(file, userRole);
     if (!validation.valid) {
@@ -126,7 +130,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
     });
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 };
 

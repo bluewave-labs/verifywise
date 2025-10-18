@@ -25,6 +25,10 @@ import { validateFileUpload, formatFileSize } from "../utils/validations/fileMan
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
 import * as path from "path";
 import * as fs from "fs";
+import { pipeline } from "stream";
+import { promisify } from "util";
+
+const pipelineAsync = promisify(pipeline);
 
 /**
  * Upload file to file manager
@@ -262,34 +266,40 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     // Read file from disk
     const filePath = path.join(process.cwd(), file.file_path);
 
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      await logFailure({
+    // Stream file safely with proper error handling
+    try {
+      // Set headers for file download
+      res.setHeader("Content-Type", file.mimetype);
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
+      res.setHeader("Content-Length", file.size);
+
+      // Stream file to response with error handling
+      await pipelineAsync(fs.createReadStream(filePath), res);
+
+      await logSuccess({
         eventType: "Read",
-        description: `Physical file not found: ${filePath}`,
+        description: `File downloaded successfully: ${file.filename}`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
-        error: new Error("File not found on disk"),
+        userId,
       });
-      return res.status(404).json(STATUS_CODE[404]("File not found on server"));
+    } catch (streamError) {
+      await logFailure({
+        eventType: "Read",
+        description: `Error streaming file: ${filePath}`,
+        functionName: "downloadFile",
+        fileName: "fileManager.ctrl.ts",
+        error: streamError as Error,
+      });
+
+      // Only send error response if headers haven't been sent yet
+      if (!res.headersSent) {
+        return res.status(500).json(STATUS_CODE[500]("Failed to download file"));
+      }
+      // If headers were already sent, the connection will be closed
+      return;
     }
-
-    await logSuccess({
-      eventType: "Read",
-      description: `File downloaded successfully: ${file.filename}`,
-      functionName: "downloadFile",
-      fileName: "fileManager.ctrl.ts",
-      userId,
-    });
-
-    // Set headers for file download
-    res.setHeader("Content-Type", file.mimetype);
-    res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
-    res.setHeader("Content-Length", file.size);
-
-    // Stream file to response
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
   } catch (error) {
     await logFailure({
       eventType: "Read",

@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getAllEntities, 
   getEntityById, 
   createNewUser, 
   updateEntityById, 
-  deleteEntityById 
+  deleteEntityById, 
+  archiveIncidentById
 } from '../repository/entity.repository';
 import { invalidateQueries } from '../config/queryClient';
 
@@ -83,6 +85,28 @@ export const useDeleteEntity = (routeUrl: string, invalidateKeys?: string[][]) =
         invalidateQueries(invalidateKeys);
       }
       // Remove from cache and invalidate list
+      queryClient.removeQueries({ queryKey: ['entity', routeUrl, id] });
+      queryClient.invalidateQueries({ queryKey: ['entities', routeUrl] });
+    },
+  });
+};
+
+// Base hook for archiving entities
+export const useArchivedEntity = (routeUrl: string, invalidateKeys?: string[][]) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string | number) =>
+      archiveIncidentById({
+        routeUrl: `${routeUrl}/${id}`,
+        body: { archived: true },
+      }),
+    onSuccess: (_, id) => {
+      // Invalidate related queries
+      if (invalidateKeys) {
+        invalidateQueries(invalidateKeys);
+      }
+      // Refresh cache
       queryClient.removeQueries({ queryKey: ['entity', routeUrl, id] });
       queryClient.invalidateQueries({ queryKey: ['entities', routeUrl] });
     },

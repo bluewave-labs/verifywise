@@ -22,22 +22,74 @@ import authenticateJWT from "../middleware/auth.middleware";
 import authorize from "../middleware/accessControl.middleware";
 import multer from "multer";
 import { STATUS_CODE } from "../utils/statusCode.utils";
+import * as path from "path";
+import * as fs from "fs";
+import { ALLOWED_MIME_TYPES } from "../utils/validations/fileManagerValidation.utils";
 
 const router = express.Router();
 
-// Configure multer for file uploads (max 30MB)
+// Ensure temp directory exists at startup
+const tempDir = path.join(process.cwd(), "uploads", "temp");
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+
+// Configure multer for file uploads with disk storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, tempDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename: timestamp + random string + original extension
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 15);
+    const ext = path.extname(file.originalname);
+    const uniqueFilename = `${timestamp}_${randomStr}${ext}`;
+    cb(null, uniqueFilename);
+  },
+});
+
+// File filter to validate file types
+const fileFilter = (
+  req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
+  const mimetype = file.mimetype;
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  // Check if MIME type is allowed
+  const allowedExts = ALLOWED_MIME_TYPES[mimetype as keyof typeof ALLOWED_MIME_TYPES];
+
+  if (allowedExts && Array.isArray(allowedExts) && allowedExts.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error("UNSUPPORTED_FILE_TYPE"));
+  }
+};
+
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: storage,
   limits: {
     fileSize: 30 * 1024 * 1024, // 30MB
   },
+  fileFilter: fileFilter,
 });
 
 /**
  * Multer error handling middleware
- * Catches file size limit errors and returns appropriate 400 response
+ * Catches file size limit errors and file type rejection errors
  */
 const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
+  // Clean up temporary file if it exists
+  if (req.file?.path) {
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (cleanupError) {
+      console.error("Failed to clean up temporary file:", cleanupError);
+    }
+  }
+
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json(
@@ -47,7 +99,15 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
     // Other multer errors
     return res.status(400).json(STATUS_CODE[400](err.message));
   }
-  // Pass to next error handler if not a multer error
+
+  // Handle unsupported file type error
+  if (err && err.message === "UNSUPPORTED_FILE_TYPE") {
+    return res.status(415).json(
+      STATUS_CODE[415]('Unsupported file type. Allowed types: Documents (PDF, DOC, DOCX, XLS, XLSX, CSV, MD), Images (JPEG, PNG, GIF, WEBP, SVG, BMP, TIFF), Videos (MP4, MPEG, MOV, AVI, WMV, WEBM, MKV)')
+    );
+  }
+
+  // Pass to next error handler if not a recognized error
   next(err);
 };
 

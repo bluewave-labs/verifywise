@@ -25,7 +25,7 @@ const unlink = promisify(fs.unlink);
 /**
  * Uploads a file to the file manager system
  *
- * @param {Express.Multer.File} file - Uploaded file object
+ * @param {Express.Multer.File} file - Uploaded file object (from disk storage)
  * @param {number} userId - User ID uploading the file
  * @param {number} orgId - Organization ID
  * @param {string} tenant - Tenant hash
@@ -39,7 +39,7 @@ export const uploadFileToManager = async (
 ): Promise<any> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
 
-  // Create uploads directory if it doesn't exist
+  // Create permanent uploads directory if it doesn't exist
   const uploadsDir = path.join(process.cwd(), "uploads", "file-manager", tenant);
   await mkdir(uploadsDir, { recursive: true });
 
@@ -47,10 +47,28 @@ export const uploadFileToManager = async (
   const timestamp = Date.now();
   const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9-_.]/g, "_");
   const uniqueFilename = `${timestamp}_${sanitizedFilename}`;
-  const filePath = path.join(uploadsDir, uniqueFilename);
+  const permanentFilePath = path.join(uploadsDir, uniqueFilename);
 
-  // Save file to disk
-  await writeFile(filePath, file.buffer);
+  // Move file from temp directory to permanent location
+  // file.path contains the temp file path from multer.diskStorage
+  if (file.path) {
+    const readStream = fs.createReadStream(file.path);
+    const writeStream = fs.createWriteStream(permanentFilePath);
+
+    await new Promise<void>((resolve, reject) => {
+      readStream.pipe(writeStream);
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+      readStream.on('error', reject);
+    });
+  } else {
+    // Fallback for memory storage (if buffer exists)
+    if (file.buffer) {
+      await writeFile(permanentFilePath, file.buffer);
+    } else {
+      throw new Error("No file data available (neither path nor buffer)");
+    }
+  }
 
   // Store relative path for portability
   const relativeFilePath = path.join("uploads", "file-manager", tenant, uniqueFilename);

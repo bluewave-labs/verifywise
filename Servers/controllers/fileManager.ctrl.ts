@@ -42,6 +42,8 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     fileName: "fileManager.ctrl.ts",
   });
 
+  let tempFilePath: string | undefined;
+
   try {
     const file = req.file as Express.Multer.File;
 
@@ -55,6 +57,9 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       });
       return res.status(400).json(STATUS_CODE[400]("No file provided"));
     }
+
+    // Store temp file path for cleanup
+    tempFilePath = file.path;
 
     const userRole = req.role || "";
     const userId = Number(req.userId);
@@ -71,11 +76,20 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
         fileName: "fileManager.ctrl.ts",
         error: new Error(validation.error),
       });
+      // Clean up temp file before returning error
+      if (tempFilePath && fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
       return res.status(400).json(STATUS_CODE[400](validation.error));
     }
 
-    // Upload file
+    // Upload file (this will move it from temp to permanent location)
     const uploadedFile = await uploadFileToManager(file, userId, orgId, tenant);
+
+    // Clean up temp file after successful processing
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+    }
 
     await logSuccess({
       eventType: "Create",
@@ -96,6 +110,15 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
       })
     );
   } catch (error) {
+    // Clean up temp file on error
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+      } catch (cleanupError) {
+        console.error("Failed to clean up temporary file:", cleanupError);
+      }
+    }
+
     await logFailure({
       eventType: "Create",
       description: "Failed to upload file",

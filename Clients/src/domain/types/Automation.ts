@@ -36,24 +36,12 @@ export interface TriggerCondition {
 }
 
 export type TriggerType =
-  | 'vendor_risk_high'
-  | 'project_risk_high'
-  | 'control_due_soon'
-  | 'project_member_added'
-  | 'vendor_assigned'
-  | 'assessment_completed'
-  | 'file_uploaded'
-  | 'user_role_changed'
-  | 'control_status_changed'
-  | 'subcontrol_evidence_required';
+  | 'vendor_added'
+  | 'model_added'
+  | 'vendor_review_date_approaching';
 
 export type ActionType =
-  | 'send_email'
-  | 'create_project_risk'
-  | 'send_notification'
-  | 'update_status'
-  | 'assign_user'
-  | 'schedule_reminder';
+  | 'send_email';
 
 export interface TriggerTemplate {
   type: TriggerType;

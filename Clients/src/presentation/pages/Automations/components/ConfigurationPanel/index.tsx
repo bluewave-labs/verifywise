@@ -17,25 +17,36 @@ import { Settings, HelpCircle } from 'lucide-react';
 import Select from '../../../../components/Inputs/Select';
 import Toggle from '../../../../components/Inputs/Toggle';
 import Field from '../../../../components/Inputs/Field';
+import TemplateField from '../../../../components/Inputs/TemplateField';
 import { Trigger, Action, TriggerTemplate, ActionTemplate, ConfigurationField } from '../../../../../domain/types/Automation';
 
 interface ConfigurationPanelProps {
   selectedItem: Trigger | Action | null;
   selectedItemType: 'trigger' | 'action' | null;
+  trigger: Trigger | null;
   triggerTemplates: TriggerTemplate[];
   actionTemplates: ActionTemplate[];
   onConfigurationChange: (configuration: Record<string, any>) => void;
+  automationName?: string;
+  onAutomationNameChange?: (newName: string) => void;
 }
 
 const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   selectedItem,
   selectedItemType,
+  trigger,
   triggerTemplates,
   actionTemplates,
   onConfigurationChange,
+  automationName,
+  onAutomationNameChange,
 }) => {
   const theme = useTheme();
   const [configuration, setConfiguration] = useState<Record<string, any>>({});
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const bodyFieldRef = React.useRef<HTMLTextAreaElement>(null);
+  const subjectFieldRef = React.useRef<HTMLInputElement>(null);
+  const toFieldRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Get the template for the selected item
   const template = React.useMemo(() => {
@@ -62,6 +73,46 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
     onConfigurationChange(newConfiguration);
   };
 
+  // Handle variable insertion
+  const handleVariableInsert = (variable: string) => {
+    // Default to body field if no field is active
+    const targetField = activeField || 'body';
+    const currentValue = configuration[targetField] || '';
+
+    // Get the ref for the active field
+    let fieldRef: HTMLInputElement | HTMLTextAreaElement | null = null;
+    if (targetField === 'body') {
+      fieldRef = bodyFieldRef.current;
+    } else if (targetField === 'subject') {
+      fieldRef = subjectFieldRef.current;
+    } else if (targetField === 'to') {
+      fieldRef = toFieldRef.current;
+    }
+
+    if (fieldRef) {
+      // Get cursor position
+      const cursorPosition = fieldRef.selectionStart || currentValue.length;
+
+      // Insert variable at cursor position
+      const newValue =
+        currentValue.slice(0, cursorPosition) +
+        variable +
+        currentValue.slice(cursorPosition);
+
+      handleFieldChange(targetField, newValue);
+
+      // Set focus back to field and position cursor after inserted variable
+      setTimeout(() => {
+        fieldRef!.focus();
+        const newCursorPosition = cursorPosition + variable.length;
+        fieldRef!.setSelectionRange(newCursorPosition, newCursorPosition);
+      }, 0);
+    } else {
+      // Fallback: append to the end
+      handleFieldChange(targetField, currentValue + (currentValue ? ' ' : '') + variable);
+    }
+  };
+
   // Render different field types
   const renderField = (field: ConfigurationField) => {
     const value = configuration[field.key] ?? '';
@@ -81,6 +132,36 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                               field.label.toLowerCase().includes('body') ||
                               field.label.toLowerCase().includes('content');
 
+        // Check if this is a template field (subject or body for email)
+        const isTemplateField = field.key === 'subject' || field.key === 'body';
+
+        // Determine which ref to use
+        const inputRef = field.key === 'body' ? bodyFieldRef :
+                         field.key === 'subject' ? subjectFieldRef :
+                         field.key === 'to' ? toFieldRef :
+                         undefined;
+
+        // Use TemplateField for subject and body with variable autocomplete
+        if (isTemplateField && selectedItemType === 'action') {
+          return (
+            <TemplateField
+              key={field.key}
+              id={field.key}
+              label={field.label}
+              type={isMessageField ? "description" : "text"}
+              value={value}
+              onChange={(e) => handleFieldChange(field.key, e.target.value)}
+              onFocus={() => setActiveField(field.key)}
+              placeholder={field.placeholder}
+              rows={isMessageField ? 4 : undefined}
+              isRequired={field.required}
+              variables={templateVariables}
+              ref={inputRef}
+            />
+          );
+        }
+
+        // Use regular Field for other fields
         return (
           <Field
             key={field.key}
@@ -89,9 +170,11 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             type={isMessageField ? "description" : "text"}
             value={value}
             onChange={(e) => handleFieldChange(field.key, e.target.value)}
+            onFocus={() => setActiveField(field.key)}
             placeholder={field.placeholder}
             rows={isMessageField ? 4 : undefined}
             isRequired={field.required}
+            ref={inputRef}
           />
         );
 
@@ -186,16 +269,63 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
     }
   };
 
-  // Template variables helper
-  const templateVariables = [
-    '{{project_name}}',
-    '{{project_owner}}',
-    '{{trigger_name}}',
-    '{{trigger_details}}',
-    '{{user_name}}',
-    '{{date}}',
-    '{{time}}',
-  ];
+  // Get trigger-specific template variables
+  const getTemplateVariables = () => {
+    if (!trigger) return [];
+
+    const commonVariables = [
+      { var: '{{date_and_time}}', desc: 'Date and time of the event' },
+    ];
+
+    switch (trigger.type) {
+      case 'vendor_added':
+        return [
+          { var: '{{vendor.name}}', desc: 'Name of the vendor' },
+          { var: '{{vendor.id}}', desc: 'Vendor ID' },
+          { var: '{{vendor.provides}}', desc: 'Services/products the vendor provides' },
+          { var: '{{vendor.website}}', desc: 'Vendor website URL' },
+          { var: '{{vendor.contact}}', desc: 'Vendor contact person name' },
+          ...commonVariables,
+        ];
+
+      case 'model_added':
+        return [
+          { var: '{{model.id}}', desc: 'Model ID' },
+          { var: '{{model.provider}}', desc: 'Model provider (e.g., OpenAI, Anthropic)' },
+          { var: '{{model.name}}', desc: 'Model name' },
+          { var: '{{model.version}}', desc: 'Model version' },
+          { var: '{{model.provider_model}}', desc: 'Full provider model string' },
+          { var: '{{model.approver}}', desc: 'Person who approved the model' },
+          { var: '{{model.capabilities}}', desc: 'Model capabilities' },
+          { var: '{{model.security_assessment}}', desc: 'Security assessment status (Yes/No)' },
+          { var: '{{model.status}}', desc: 'Model status (Pending/Approved/Restricted)' },
+          { var: '{{model.status_date}}', desc: 'Status date' },
+          { var: '{{model.reference_link}}', desc: 'Reference link' },
+          { var: '{{model.biases}}', desc: 'Known biases' },
+          { var: '{{model.limitations}}', desc: 'Model limitations' },
+          { var: '{{model.hosting_provider}}', desc: 'Hosting provider' },
+          { var: '{{model.used_in_projects}}', desc: 'Projects using this model' },
+          { var: '{{model.created_at}}', desc: 'Model creation date' },
+          ...commonVariables,
+        ];
+
+      case 'vendor_review_date_approaching':
+        return [
+          { var: '{{vendor_name}}', desc: 'Name of the vendor' },
+          { var: '{{vendor_id}}', desc: 'Vendor ID' },
+          { var: '{{review_date}}', desc: 'Scheduled review date' },
+          { var: '{{days_until_review}}', desc: 'Days remaining until review' },
+          { var: '{{last_review_date}}', desc: 'Date of last review' },
+          { var: '{{reviewer}}', desc: 'Assigned reviewer' },
+          ...commonVariables,
+        ];
+
+      default:
+        return commonVariables;
+    }
+  };
+
+  const templateVariables = getTemplateVariables();
 
   if (!selectedItem || !template) {
     return (
@@ -203,19 +333,40 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         sx={{
           height: '100%',
           backgroundColor: 'transparent',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 4,
-          textAlign: 'center',
         }}
       >
-        <Settings size={48} strokeWidth={1} color={theme.palette.primary.main} />
-        <Typography variant="h6" color="textSecondary" sx={{ mt: 2, fontSize: '13px' }}>
-          Configure automation
-        </Typography>
-        <Typography variant="body2" sx={{ color: theme.palette.text.disabled }}>
-          Select a trigger or action to configure its settings
-        </Typography>
+        {/* Automation Name Field - Always show at top when automation exists */}
+        {automationName !== undefined && onAutomationNameChange && (
+          <Box sx={{ p: 4, pb: 2 }}>
+            <Field
+              id="automation-name"
+              label="Automation name"
+              type="text"
+              value={automationName}
+              onChange={(e) => onAutomationNameChange(e.target.value)}
+              placeholder="Enter automation name"
+              isRequired
+            />
+          </Box>
+        )}
+
+        <Stack
+          sx={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 4,
+            textAlign: 'center',
+          }}
+        >
+          <Settings size={48} strokeWidth={1} color={theme.palette.primary.main} />
+          <Typography variant="h6" color="textSecondary" sx={{ mt: 2, fontSize: '13px' }}>
+            Configure automation
+          </Typography>
+          <Typography variant="body2" sx={{ color: theme.palette.text.disabled }}>
+            Select a trigger or action to configure its settings
+          </Typography>
+        </Stack>
       </Stack>
     );
   }
@@ -227,9 +378,23 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         backgroundColor: 'transparent',
       }}
     >
+      {/* Automation Name Field - Always show at top */}
+      {automationName !== undefined && onAutomationNameChange && (
+        <Box sx={{ px: 4, pt: 4, pb: 2 }}>
+          <Field
+            id="automation-name"
+            label="Automation name"
+            type="text"
+            value={automationName}
+            onChange={(e) => onAutomationNameChange(e.target.value)}
+            placeholder="Enter automation name"
+            isRequired
+          />
+        </Box>
+      )}
 
       {/* Content */}
-      <Stack sx={{ flex: 1, overflow: 'auto', pt: 4 }}>
+      <Stack sx={{ flex: 1, overflow: 'auto', pt: automationName !== undefined ? 2 : 4 }}>
         {/* Configuration Fields */}
         <Box sx={{ mx: 2, my: 2 }}>
           <Box sx={{ px: 2, py: 2, borderLeft: '16px solid transparent', borderRight: '16px solid transparent' }}>
@@ -259,7 +424,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         </Box>
 
         {/* Template Variables Helper */}
-        {selectedItemType === 'action' && (
+        {selectedItemType === 'action' && templateVariables.length > 0 && (
           <>
             <Box sx={{ my: 2 }}>
               <Divider />
@@ -272,31 +437,51 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                   </Typography>
 
                 <Typography variant="body2" color="textSecondary" sx={{ fontSize: 12 }}>
-                  Use these variables in your text fields to insert dynamic content:
+                  Use these variables in your email subject and body to insert dynamic content:
                 </Typography>
 
-                <Stack direction="row" flexWrap="wrap" gap={1}>
-                  {templateVariables.map((variable) => (
-                    <Chip
-                      key={variable}
-                      label={variable}
-                      size="small"
+                <Stack spacing={1.5}>
+                  {templateVariables.map((item) => (
+                    <Card
+                      key={item.var}
                       variant="outlined"
                       sx={{
-                        fontSize: 10,
-                        fontFamily: 'monospace',
                         cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                          borderColor: theme.palette.primary.main,
+                        },
+                        transition: 'all 0.2s ease-in-out',
                       }}
-                      onClick={() => {
-                        // Copy to clipboard
-                        navigator.clipboard.writeText(variable);
-                      }}
-                    />
+                      onClick={() => handleVariableInsert(item.var)}
+                    >
+                      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                        <Stack spacing={0.5}>
+                          <Typography
+                            sx={{
+                              fontSize: 11,
+                              fontFamily: 'monospace',
+                              fontWeight: 600,
+                              color: theme.palette.primary.main,
+                            }}
+                          >
+                            {item.var}
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary" sx={{ fontSize: 10 }}>
+                            {item.desc}
+                          </Typography>
+                        </Stack>
+                      </CardContent>
+                    </Card>
                   ))}
                 </Stack>
 
-                <Typography variant="caption" color="textSecondary">
-                  Click any variable to copy it to your clipboard
+                <Typography variant="caption" color="textSecondary" sx={{ fontSize: 10, fontStyle: 'italic' }}>
+                  Click any variable to insert it into {
+                    activeField === 'subject' ? 'the subject field' :
+                    activeField === 'to' ? 'the recipients field' :
+                    'the email body'
+                  } (currently {activeField || 'body'})
                 </Typography>
                 </Stack>
               </Box>

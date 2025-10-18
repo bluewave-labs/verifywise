@@ -44,6 +44,8 @@ interface AutomationBuilderProps {
   onDeleteAction: (actionId: string) => void;
   onUpdateAutomationName: (newName: string) => void;
   onUpdateAutomationDescription: (newDescription: string) => void;
+  onSave: () => void;
+  isSaving: boolean;
 }
 
 const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
@@ -59,6 +61,8 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
   onDeleteAction,
   onUpdateAutomationName,
   onUpdateAutomationDescription,
+  onSave,
+  isSaving,
 }) => {
   const theme = useTheme();
   const [showAllTriggers, setShowAllTriggers] = React.useState(false);
@@ -498,10 +502,11 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
       sx={{
         height: '100%',
         backgroundColor: '#F9FAF9',
+        position: 'relative',
       }}
     >
       {/* Content */}
-      <Stack sx={{ flex: 1, overflow: 'auto', p: 2, alignItems: 'center', pt: '64px' }} spacing={3}>
+      <Stack sx={{ flex: 1, overflow: 'auto', p: 2, alignItems: 'center', pt: '64px', pb: '64px' }} spacing={3}>
         {/* Trigger Section */}
         <Stack spacing={2} sx={{ alignItems: 'center' }}>
           {/* Trigger Button - shows "Add trigger" or trigger name */}
@@ -660,30 +665,49 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
               {/* Spacer above Add Action Button */}
               <Box sx={{ height: '16px' }} />
 
-              {/* Add Action Button */}
-              <Button
-                variant="outlined"
-                startIcon={<Plus size={16} strokeWidth={1.5} />}
-                onClick={handleActionMenuOpen}
-                sx={{
-                  width: 320,
-                  height: 60,
-                  border: `1px dashed ${theme.palette.border.dark}`,
-                  borderRadius: 2,
-                  color: theme.palette.text.secondary,
-                  backgroundColor: theme.palette.background.paper,
-                  '&:hover': {
-                    borderColor: theme.palette.primary.main,
-                    backgroundColor: theme.palette.action.hover,
-                    border: `1px dashed ${theme.palette.primary.main}`,
-                  },
-                  transition: 'all 0.2s ease-in-out',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                }}
-              >
-                Add action
-              </Button>
+              {/* Add Action Button - Only show if there are actions that haven't been added yet */}
+              {(() => {
+                // Get the types of actions already added
+                const addedActionTypes = automation.actions.map(action => action.type);
+
+                // Filter available action templates to only compatible ones with the current trigger
+                const compatibleActions = actionTemplates.filter(template =>
+                  !template.compatibleTriggers ||
+                  template.compatibleTriggers.includes(automation.trigger!.type)
+                );
+
+                // Check if there are any actions left to add
+                const remainingActions = compatibleActions.filter(
+                  template => !addedActionTypes.includes(template.type)
+                );
+
+                // Only render the button if there are actions remaining
+                return remainingActions.length > 0 ? (
+                  <Button
+                    variant="outlined"
+                    startIcon={<Plus size={16} strokeWidth={1.5} />}
+                    onClick={handleActionMenuOpen}
+                    sx={{
+                      width: 320,
+                      height: 60,
+                      border: `1px dashed ${theme.palette.border.dark}`,
+                      borderRadius: 2,
+                      color: theme.palette.text.secondary,
+                      backgroundColor: theme.palette.background.paper,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                        backgroundColor: theme.palette.action.hover,
+                        border: `1px dashed ${theme.palette.primary.main}`,
+                      },
+                      transition: 'all 0.2s ease-in-out',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Add action
+                  </Button>
+                ) : null;
+              })()}
 
               {/* Action Selection Menu */}
               <Menu
@@ -712,33 +736,44 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                   mt: 1,
                 }}
               >
-                {actionTemplates.map((template) => (
-                  <MenuItem
-                    key={template.type}
-                    onClick={() => handleActionSelect(template)}
-                    sx={{
-                      py: 1.5,
-                      px: 3,
-                      mx: 1,
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.action.hover,
-                      },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 12 }}>
-                      <Zap size={20} strokeWidth={1.5} color={theme.palette.grey[400]} />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={template.name}
-                      primaryTypographyProps={{
-                        fontSize: '13px',
-                        fontWeight: 400,
-                        color: theme.palette.text.primary,
+                {(() => {
+                  // Get the types of actions already added
+                  const addedActionTypes = automation.actions.map(action => action.type);
+
+                  // Filter to show only actions that haven't been added yet and are compatible
+                  const availableActions = actionTemplates.filter(template =>
+                    !addedActionTypes.includes(template.type) &&
+                    (!template.compatibleTriggers || template.compatibleTriggers.includes(automation.trigger!.type))
+                  );
+
+                  return availableActions.map((template) => (
+                    <MenuItem
+                      key={template.type}
+                      onClick={() => handleActionSelect(template)}
+                      sx={{
+                        py: 1.5,
+                        px: 3,
+                        mx: 1,
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                        },
                       }}
-                    />
-                  </MenuItem>
-                ))}
+                    >
+                      <ListItemIcon sx={{ minWidth: 12 }}>
+                        <Zap size={20} strokeWidth={1.5} color={theme.palette.grey[400]} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={template.name}
+                        primaryTypographyProps={{
+                          fontSize: '13px',
+                          fontWeight: 400,
+                          color: theme.palette.text.primary,
+                        }}
+                      />
+                    </MenuItem>
+                  ));
+                })()}
               </Menu>
             </Stack>
           </>
@@ -786,6 +821,32 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                 ))}
               </Box>
             </Stack>
+
+            {/* Save Button */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                pt: 2,
+              }}
+            >
+              <Button
+                variant="contained"
+                onClick={onSave}
+                disabled={isSaving}
+                sx={{
+                  width: 'auto',
+                  minWidth: 120,
+                  height: 36,
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: 3,
+                }}
+              >
+                {isSaving ? 'Saving...' : 'Save Automation'}
+              </Button>
+            </Box>
           </>
         )}
       </Stack>

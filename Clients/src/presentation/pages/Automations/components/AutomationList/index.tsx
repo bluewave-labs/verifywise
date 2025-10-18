@@ -6,33 +6,17 @@ import {
   ListItemButton,
   ListItemText,
   IconButton,
-  Menu,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   useTheme,
   Box,
-  Chip,
   Tooltip,
 } from '@mui/material';
 import {
   Plus,
-  Search,
-  MoreVertical,
-  Edit2,
-  Copy,
   Trash2,
-  Zap,
-  ZapOff,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
-import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import { SearchBox } from '../../../../components/Search';
 import Toggle from '../../../../components/Inputs/Toggle';
-import Field from '../../../../components/Inputs/Field';
 import { Automation } from '../../../../../domain/types/Automation';
 
 interface AutomationListProps {
@@ -63,80 +47,10 @@ const AutomationList: React.FC<AutomationListProps> = ({
   onSearchChange,
 }) => {
   const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedMenuAutomation, setSelectedMenuAutomation] = useState<string | null>(null);
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [newName, setNewName] = useState('');
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, automationId: string) => {
+  const handleDelete = (event: React.MouseEvent<HTMLElement>, automationId: string) => {
     event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-    setSelectedMenuAutomation(automationId);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedMenuAutomation(null);
-  };
-
-  const handleRename = () => {
-    const automation = automations.find(a => a.id === selectedMenuAutomation);
-    if (automation) {
-      setNewName(automation.name);
-      setRenameDialogOpen(true);
-    }
-    handleMenuClose();
-  };
-
-  const handleRenameSubmit = () => {
-    if (selectedMenuAutomation && newName.trim()) {
-      onRenameAutomation(selectedMenuAutomation, newName.trim());
-    }
-    setRenameDialogOpen(false);
-    setNewName('');
-    setSelectedMenuAutomation(null);
-  };
-
-  const handleDuplicate = () => {
-    if (selectedMenuAutomation) {
-      onDuplicateAutomation(selectedMenuAutomation);
-    }
-    handleMenuClose();
-  };
-
-  const handleDelete = () => {
-    if (selectedMenuAutomation) {
-      onDeleteAutomation(selectedMenuAutomation);
-    }
-    handleMenuClose();
-  };
-
-  const getStatusIcon = (automation: Automation) => {
-    if (!automation.isActive) {
-      return <ZapOff size={14} color={theme.palette.text.disabled} />;
-    }
-
-    switch (automation.status) {
-      case 'active':
-        return <Zap size={14} color={theme.palette.success.main} />;
-      case 'error':
-        return <Zap size={14} color={theme.palette.error.main} />;
-      default:
-        return <ZapOff size={14} color={theme.palette.text.disabled} />;
-    }
-  };
-
-  const getStatusText = (automation: Automation) => {
-    if (!automation.isActive) return 'Inactive';
-
-    switch (automation.status) {
-      case 'active':
-        return 'Active';
-      case 'error':
-        return 'Error';
-      default:
-        return 'Inactive';
-    }
+    onDeleteAutomation(automationId);
   };
 
   return (
@@ -274,71 +188,20 @@ const AutomationList: React.FC<AutomationListProps> = ({
                     </Stack>
                   }
                 />
-                <IconButton
-                  size="small"
-                  onClick={(e) => handleMenuOpen(e, automation.id)}
-                  sx={{ ml: 1 }}
-                >
-                  <MoreVertical size={16} />
-                </IconButton>
+                <Tooltip title="Delete automation">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => handleDelete(e, automation.id)}
+                    sx={{ ml: 1, color: theme.palette.error.main }}
+                  >
+                    <Trash2 size={16} />
+                  </IconButton>
+                </Tooltip>
               </ListItemButton>
             ))}
           </List>
         )}
       </Stack>
-
-      {/* Context Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            boxShadow: theme.shadows[3],
-            borderRadius: 1,
-            minWidth: 160,
-          },
-        }}
-      >
-        <MenuItem onClick={handleRename}>
-          <Edit2 size={16} style={{ marginRight: 8 }} />
-          Rename
-        </MenuItem>
-        <MenuItem onClick={handleDuplicate}>
-          <Copy size={16} style={{ marginRight: 8 }} />
-          Duplicate
-        </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: theme.palette.error.main }}>
-          <Trash2 size={16} style={{ marginRight: 8 }} />
-          Delete
-        </MenuItem>
-      </Menu>
-
-      {/* Rename Dialog */}
-      <Dialog open={renameDialogOpen} onClose={() => setRenameDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Rename Automation</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Field
-            label="Automation Name"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Enter automation name"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleRenameSubmit();
-              }
-            }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 2 }}>
-          <CustomizableButton onClick={() => setRenameDialogOpen(false)} variant="outlined">
-            Cancel
-          </CustomizableButton>
-          <CustomizableButton onClick={handleRenameSubmit} variant="contained" disabled={!newName.trim()}>
-            Rename
-          </CustomizableButton>
-        </DialogActions>
-      </Dialog>
     </Stack>
   );
 };

@@ -1458,7 +1458,7 @@ const IntegratedDashboard: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, minHeight: "100vh" }}>
+    <Box sx={{ p: 3 }}>
       {/* Password notification */}
       {showPasswordNotification && (
         <Suspense fallback={<div>Loading...</div>}>

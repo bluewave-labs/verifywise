@@ -18,6 +18,8 @@
  * @module utils/validations/fileManagerValidation
  */
 
+import * as path from "path";
+
 export const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB in bytes
 
 /**
@@ -60,10 +62,25 @@ export const ALLOWED_MIME_TYPES = {
  * @returns {boolean} True if file type is allowed
  */
 export const validateFileType = (mimetype: string, filename: string): boolean => {
-    const ext = filename.toLowerCase().slice(filename.lastIndexOf("."));
-    const allowedExts = ALLOWED_MIME_TYPES[mimetype as keyof typeof ALLOWED_MIME_TYPES];
-    return Array.isArray(allowedExts) && allowedExts.includes(ext);
-    };
+  // Extract and normalize file extension
+  const ext = path.extname(filename).toLowerCase();
+
+  // Early return if no extension
+  if (!ext) {
+    return false;
+  }
+
+  // Get allowed extensions for this MIME type
+  const allowedExts = ALLOWED_MIME_TYPES[mimetype as keyof typeof ALLOWED_MIME_TYPES];
+
+  // Early return if MIME type is not in allowed list
+  if (!allowedExts) {
+    return false;
+  }
+
+  // Ensure allowedExts is an array before calling includes
+  return Array.isArray(allowedExts) && allowedExts.includes(ext);
+};
 
 /**
  * Validates file size against maximum allowed size
@@ -113,15 +130,18 @@ export const canUploadFiles = (role: string): boolean => {
  * Validates complete file upload request
  *
  * @param {Express.Multer.File} file - Uploaded file object
- * @param {string} userRole - User's role name
+ * @param {string} [userRole] - User's role name (optional, for backward compatibility)
  * @returns {{ valid: boolean; error?: string }} Validation result
+ *
+ * Note: Role-based authorization should be handled at the route level via middleware.
+ * This function now focuses on file-specific validations (type, size).
  */
 export const validateFileUpload = (
   file: Express.Multer.File,
-  userRole: string
+  userRole?: string
 ): { valid: boolean; error?: string } => {
-  // Check user permissions
-  if (!canUploadFiles(userRole)) {
+  // Check user permissions (only if userRole is provided - for backward compatibility)
+  if (userRole !== undefined && !canUploadFiles(userRole)) {
     return {
       valid: false,
       error: "Auditors are not allowed to upload files",

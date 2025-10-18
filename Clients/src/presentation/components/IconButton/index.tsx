@@ -36,7 +36,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   canDelete,
   checkForRisks,
   onDeleteWithRisks,
-  onView
+  onView,
   onSendTest,
   onToggleEnable,
 }) => {

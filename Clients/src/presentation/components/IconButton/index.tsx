@@ -37,6 +37,8 @@ const IconButton: React.FC<IconButtonProps> = ({
   checkForRisks,
   onDeleteWithRisks,
   onView
+  onSendTest,
+  onToggleEnable,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -152,6 +154,24 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
+  const handleSendTestNotification = async (e?: React.SyntheticEvent) => {
+    if (onSendTest) {
+      await onSendTest();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
+  const handleToggleStatus = async (e?: React.SyntheticEvent) => {
+    if (onToggleEnable) {
+      await onToggleEnable();
+    }
+    if (e) {
+      closeDropDownMenu(e);
+    }
+  };
+
   function handleCancle(e?: React.SyntheticEvent) {
     setIsOpenRemoveModal(false);
     if (e) {
@@ -165,6 +185,7 @@ const IconButton: React.FC<IconButtonProps> = ({
    * - For type "evidence", the menu item will be "download".
    * - For type "report", the menu item will be "download", "remove".
    * - For type "Resource", the menu item will be "edit", "make visible", "download", "remove".
+   * - For type "integration" (e.g., Slack), the menu item will be "Send Test", "Activate/Deactivate" "remove".
    * - For other types (e.g. "Vendor"), the menu item will be "edit", "remove".
    */
   const getListOfButtons = () => {
@@ -178,6 +199,8 @@ const IconButton: React.FC<IconButtonProps> = ({
       return canDelete ? ["edit", "remove"] : ["edit"]; //  conditional delete
     } else if(type === "Incident") {
       return ["edit", "view", "archive"];
+    } else if (type === "integration") { // slack integration
+      return ["Send Test", "Activate/Deactivate", "remove"]
     } else {
       return ["edit", "remove"];
     }
@@ -247,7 +270,11 @@ const IconButton: React.FC<IconButtonProps> = ({
                 handleMakeVisible(e);
               } else if(item === "view"){
                 handleView(e);
-              } else if (item === "remove" || item === "archive") {
+              } else if (item === "Send Test") {
+                await handleSendTestNotification(e);
+              } else if (item === "Activate/Deactivate") {
+                await handleToggleStatus(e);
+              } else if (item === "remove"  || item === "archive") {
                 if (warningTitle && warningMessage) {
                   setIsOpenRemoveModal(true);
                   if (e) closeDropDownMenu(e);

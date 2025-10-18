@@ -30,6 +30,8 @@ export interface IconButtonProps {
   checkForRisks?: () => Promise<boolean>;
   onDeleteWithRisks?: (deleteRisks: boolean) => void;
   onView?: () => void;
+  onSendTest?: () => void;
+  onToggleEnable?: () => void;
 }
 
 export interface AutoCompleteOption {

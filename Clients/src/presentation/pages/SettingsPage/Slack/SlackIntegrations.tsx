@@ -2,9 +2,10 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import { singleTheme } from "../../../themes";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => (
+const SelectorVertical = (props: {className: string}) => (
   <ChevronsUpDown size={16} {...props} />
 );
+
 import {
   Box,
   Stack,
@@ -22,15 +23,15 @@ import {
 import { SlidersHorizontal } from "lucide-react";
 
 const SliderIcon = () => <SlidersHorizontal size={20} />;
-import { sendSlackMessage } from "../../../../application/repository/slack.integration.repository";
+import { deleteSlackIntegration, sendSlackMessage, updateSlackIntegration } from "../../../../application/repository/slack.integration.repository";
 import { Suspense, useCallback, useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import { SlackWebhook } from "../../../../application/hooks/useSlackIntegrations";
 import { vwhomeHeading } from "../../Home/1.0Home/style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
-import { viewProjectButtonStyle } from "../../../components/Cards/ProjectCard/style";
 import NotificationRoutingModal from "./NotificationRoutingModal";
 import Popup from "../../../components/Popup";
+import IconButton from "../../../components/IconButton";
 
 interface SlackIntegrationsProps {
   integrationData: SlackWebhook[];
@@ -80,7 +81,7 @@ const SlackIntegrations = ({
     { id: "action", label: "ACTION" },
   ];
 
-  const handleSlackTestClick = (id?: number) => async () => {
+  const handleSlackTestClick = async (id: number) => {
     if (!id) return;
     try {
       const msg = await sendSlackMessage({
@@ -111,6 +112,45 @@ const SlackIntegrations = ({
           `Error sending test message to the Slack channel.`,
         );
       }
+    }
+  };
+
+  const handleDelete = async(id: number) => {
+    try {
+      await deleteSlackIntegration({id: Number(id)});
+      showAlert(
+        "success",
+        "Success",
+        "Slack Integration has been successfully deleted.",
+      );
+      refreshSlackIntegrations();
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Error deleting the slack integration.`,
+      );
+    }
+  }
+
+  const handleStatusToggle = async (id: number, isActive: boolean ) => {
+    try {
+      await updateSlackIntegration({
+        id: id,
+        body: { is_active: !isActive},
+      });
+      showAlert(
+        "success",
+        "Success",
+        "Slack Integration Status Updated successfully.",
+      );
+      refreshSlackIntegrations();
+    } catch (error) {
+      showAlert(
+        "error",
+        "Error",
+        `Error updating Slack status: ${error}`,
+      );
     }
   };
 
@@ -259,12 +299,16 @@ const SlackIntegrations = ({
                         right: 0,
                       }}
                     >
-                      <CustomizableButton
-                        variant="outlined"
-                        onClick={handleSlackTestClick(item.id)}
-                        size="small"
-                        text="Send Test"
-                        sx={viewProjectButtonStyle}
+                      <IconButton
+                        id={Number(item.id)}
+                        type="integration"
+                        onEdit={() => {}}
+                        onSendTest={() => handleSlackTestClick(item.id)}
+                        onToggleEnable={() => handleStatusToggle(item.id, item.isActive ?? true)}
+                        onDelete={() => handleDelete(item.id)}
+                        warningTitle="Are you sure you want to delete this integration?"
+                        warningMessage="This action will delete the slack integration."
+                        onMouseEvent={() => {}}
                       />
                     </TableCell>
                   </TableRow>

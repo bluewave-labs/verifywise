@@ -61,7 +61,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
         startIcon={<Zap size={16} />}
         onClick={() => navigate('/automations')}
         sx={{
-          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+          background: 'linear-gradient(135deg, #FB923C 0%, #F97316 100%)',
           color: 'white',
           fontWeight: 500,
           fontSize: '14px',
@@ -71,10 +71,10 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
           padding: '0 16px',
           borderRadius: '4px',
           textTransform: 'none',
-          boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+          boxShadow: '0 2px 4px rgba(251, 146, 60, 0.2)',
           '&:hover': {
-            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-            boxShadow: '0 4px 8px rgba(16, 185, 129, 0.3)',
+            background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+            boxShadow: '0 4px 8px rgba(251, 146, 60, 0.3)',
           },
           transition: 'all 0.2s ease',
         }}

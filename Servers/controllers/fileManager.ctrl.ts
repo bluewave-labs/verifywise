@@ -267,8 +267,26 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     // Log file access
     await logFileAccess(fileId, userId, orgId, "download", tenant);
 
-    // Read file from disk
-    const filePath = path.join(process.cwd(), file.file_path);
+    // Read file from disk with path containment validation
+    const baseDir = path.resolve(process.cwd(), "uploads", "file-manager", tenant);
+    const filePath = path.resolve(process.cwd(), file.file_path);
+
+    // Verify path containment to prevent directory traversal
+    const relativePath = path.relative(baseDir, filePath);
+    const isContained = !relativePath.startsWith("..") &&
+                        !path.isAbsolute(relativePath) &&
+                        filePath.startsWith(baseDir + path.sep);
+
+    if (!isContained) {
+      await logFailure({
+        eventType: "Read",
+        description: `Blocked path traversal attempt. Target: ${filePath}, Base: ${baseDir}`,
+        functionName: "downloadFile",
+        fileName: "fileManager.ctrl.ts",
+        error: new Error("Invalid file path"),
+      });
+      return res.status(400).json(STATUS_CODE[400]("Invalid file path"));
+    }
 
     // Stream file safely with proper error handling
     try {
@@ -312,6 +330,6 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
     });
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 };

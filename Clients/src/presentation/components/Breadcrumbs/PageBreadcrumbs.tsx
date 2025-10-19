@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import { Stack, useTheme, Divider } from "@mui/material";
 import Breadcrumbs from "./index";
 import { IPageBreadcrumbsProps } from "../../../domain/interfaces/i.breadcrumbs";
+import DashboardActionButtons from "../Layout/DashboardActionButtons";
 
 /**
  * A standardized PageBreadcrumbs component that follows the application's design patterns.
@@ -52,6 +53,7 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
           ...sx,
         }}
       >
+        <DashboardActionButtons />
         <Breadcrumbs
           items={items}
           autoGenerate={autoGenerate}

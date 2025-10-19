@@ -227,7 +227,13 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
  * @returns {Promise<Response>} File content with appropriate headers
  */
 export const downloadFile = async (req: Request, res: Response): Promise<any> => {
-  const fileId = parseInt(req.params.id);
+  const fileId = parseInt(req.params.id, 10);
+
+  // Validate file ID is a valid integer
+  if (!Number.isFinite(fileId) || fileId !== parseInt(req.params.id, 10)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
   const userId = Number(req.userId);
   const orgId = Number(req.organizationId);
   const tenant = req.tenantId || "";

@@ -153,28 +153,30 @@ export const updateAutomationByIdQuery = async (
     automation = result[0][0] as unknown as (ITenantAutomationAction & { actions: ITenantAutomationAction[] });
   }
 
-  await sequelize.query(
-    `DELETE FROM "${tenant}".automation_actions WHERE automation_id = :id;`,
-    {
-      replacements: { id }, transaction
-    }
-  );
+  if (actions && actions.length > 0) {
+    await sequelize.query(
+      `DELETE FROM "${tenant}".automation_actions WHERE automation_id = :id;`,
+      {
+        replacements: { id }, transaction
+      }
+    );
 
-  await Promise.all((actions || []).map((action, index) => {
-    return sequelize.query(
-      `INSERT INTO "${tenant}".automation_actions(
+    await Promise.all((actions || []).map((action, index) => {
+      return sequelize.query(
+        `INSERT INTO "${tenant}".automation_actions(
         automation_id, action_type_id, params, "order") VALUES (
         :automationId, :actionTypeId, :params, :order);`,
-      {
-        replacements: {
-          automationId: id,
-          actionTypeId: action.action_type_id,
-          params: action.params ? JSON.stringify(action.params) : null,
-          order: index + 1
-        }, transaction
-      }
-    )
-  }))
+        {
+          replacements: {
+            automationId: id,
+            actionTypeId: action.action_type_id,
+            params: action.params ? JSON.stringify(action.params) : null,
+            order: index + 1
+          }, transaction
+        }
+      )
+    }))
+  }
 
   const _actions = await sequelize.query(
     `SELECT * FROM "${tenant}".automation_actions WHERE automation_id = :id ORDER BY "order";`,

@@ -118,7 +118,7 @@ export const updateAutomation = async (
 
     const automation = await updateAutomationByIdQuery(
       id,
-      { name: req.body.name, is_active: req.body.is_active, trigger_id: req.body.trigger_id },
+      { name: req.body.name, is_active: req.body.is_active, trigger_id: req.body.triggerId },
       actions,
       req.tenantId!,
       transaction

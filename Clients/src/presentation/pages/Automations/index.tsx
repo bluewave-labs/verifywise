@@ -179,6 +179,18 @@ const AutomationsPage: React.FC = () => {
     }
   };
 
+  const handleDiscardAutomation = (automationId: string) => {
+    // Simply remove from local state without backend call
+    setAutomations(prev => prev.filter(a => a.id !== automationId));
+
+    // Clear selection if the discarded automation was selected
+    if (selectedAutomationId === automationId) {
+      setSelectedAutomationId(null);
+      setSelectedItemId(null);
+      setSelectedItemType(null);
+    }
+  };
+
   const handleDuplicateAutomation = (automationId: string) => {
     const originalAutomation = automations.find(a => a.id === automationId);
     if (!originalAutomation) return;
@@ -445,6 +457,7 @@ const AutomationsPage: React.FC = () => {
       if (isExistingAutomation) {
         // Update existing automation with PUT
         const updateData = {
+          triggerId: triggerData.id,
           name: selectedAutomation.name,
           actions: processedActions,
         };
@@ -515,6 +528,7 @@ const AutomationsPage: React.FC = () => {
               onSelectAutomation={handleSelectAutomation}
               onCreateAutomation={handleCreateAutomation}
               onDeleteAutomation={handleDeleteAutomation}
+              onDiscardAutomation={handleDiscardAutomation}
               onDuplicateAutomation={handleDuplicateAutomation}
               onToggleAutomation={handleToggleAutomation}
               onRenameAutomation={handleRenameAutomation}

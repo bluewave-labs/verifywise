@@ -13,6 +13,7 @@ import {
 import {
   Plus,
   Trash2,
+  X,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
 import { SearchBox } from '../../../../components/Search';
@@ -27,6 +28,7 @@ interface AutomationListProps {
   onSelectAutomation: (id: string) => void;
   onCreateAutomation: () => void;
   onDeleteAutomation: (id: string) => void;
+  onDiscardAutomation: (id: string) => void;
   onDuplicateAutomation: (id: string) => void;
   onToggleAutomation: (id: string) => void;
   onRenameAutomation: (id: string, newName: string) => void;
@@ -41,6 +43,7 @@ const AutomationList: React.FC<AutomationListProps> = ({
   onSelectAutomation,
   onCreateAutomation,
   onDeleteAutomation,
+  onDiscardAutomation,
   onDuplicateAutomation,
   onToggleAutomation,
   onRenameAutomation,
@@ -51,6 +54,11 @@ const AutomationList: React.FC<AutomationListProps> = ({
   const handleDelete = (event: React.MouseEvent<HTMLElement>, automationId: string) => {
     event.stopPropagation();
     onDeleteAutomation(automationId);
+  };
+
+  const handleDiscard = (event: React.MouseEvent<HTMLElement>, automationId: string) => {
+    event.stopPropagation();
+    onDiscardAutomation(automationId);
   };
 
   return (
@@ -188,15 +196,27 @@ const AutomationList: React.FC<AutomationListProps> = ({
                     </Stack>
                   }
                 />
-                <Tooltip title="Delete automation">
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleDelete(e, automation.id)}
-                    sx={{ ml: 1, color: theme.palette.error.main }}
-                  >
-                    <Trash2 size={16} />
-                  </IconButton>
-                </Tooltip>
+                {isNaN(Number(automation.id)) ? (
+                  <Tooltip title="Discard unsaved automation">
+                    <IconButton
+                      size="small"
+                      onClick={(e) => handleDiscard(e, automation.id)}
+                      sx={{ ml: 1, color: theme.palette.text.secondary }}
+                    >
+                      <X size={16} />
+                    </IconButton>
+                  </Tooltip>
+                ) : (
+                  <Tooltip title="Delete automation">
+                    <IconButton
+                      size="small"
+                      onClick={(e) => handleDelete(e, automation.id)}
+                      sx={{ ml: 1, color: theme.palette.error.main }}
+                    >
+                      <Trash2 size={16} />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </ListItemButton>
             ))}
           </List>

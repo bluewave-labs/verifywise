@@ -71,8 +71,14 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
 
     if (!/^[a-zA-Z0-9_]+$/.test(tenant)) {
       // Clean up temp file before returning error
-      if (tempFilePath && fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
+      if (tempFilePath) {
+        try {
+          await fs.promises.unlink(tempFilePath);
+        } catch (unlinkError: any) {
+          if (unlinkError.code !== 'ENOENT') {
+            console.error("Failed to clean up temporary file:", unlinkError);
+          }
+        }
       }
       return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
     }
@@ -89,8 +95,14 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
         error: new Error(validation.error),
       });
       // Clean up temp file before returning error
-      if (tempFilePath && fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
+      if (tempFilePath) {
+        try {
+          await fs.promises.unlink(tempFilePath);
+        } catch (unlinkError: any) {
+          if (unlinkError.code !== 'ENOENT') {
+            console.error("Failed to clean up temporary file:", unlinkError);
+          }
+        }
       }
       return res.status(400).json(STATUS_CODE[400](validation.error));
     }
@@ -99,8 +111,14 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     const uploadedFile = await uploadFileToManager(file, userId, orgId, tenant);
 
     // Clean up temp file after successful processing
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
-      fs.unlinkSync(tempFilePath);
+    if (tempFilePath) {
+      try {
+        await fs.promises.unlink(tempFilePath);
+      } catch (unlinkError: any) {
+        if (unlinkError.code !== 'ENOENT') {
+          console.error("Failed to clean up temporary file:", unlinkError);
+        }
+      }
     }
 
     await logSuccess({
@@ -123,11 +141,13 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     );
   } catch (error) {
     // Clean up temp file on error
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
+    if (tempFilePath) {
       try {
-        fs.unlinkSync(tempFilePath);
-      } catch (cleanupError) {
-        console.error("Failed to clean up temporary file:", cleanupError);
+        await fs.promises.unlink(tempFilePath);
+      } catch (unlinkError: any) {
+        if (unlinkError.code !== 'ENOENT') {
+          console.error("Failed to clean up temporary file:", unlinkError);
+        }
       }
     }
 

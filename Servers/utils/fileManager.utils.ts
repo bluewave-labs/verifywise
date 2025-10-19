@@ -85,19 +85,33 @@ export const uploadFileToManager = async (
     RETURNING *
   `;
 
-  const result = await sequelize.query(query, {
-    replacements: {
-      filename: sanitized,
-      size: file.size,
-      mimetype: file.mimetype,
-      file_path: relativeFilePath,
-      uploaded_by: userId,
-      org_id: orgId,
-    },
-    type: QueryTypes.SELECT,
-  });
+  try {
+    const result = await sequelize.query(query, {
+      replacements: {
+        filename: sanitized,
+        size: file.size,
+        mimetype: file.mimetype,
+        file_path: relativeFilePath,
+        uploaded_by: userId,
+        org_id: orgId,
+      },
+      type: QueryTypes.SELECT,
+    });
 
-  return result[0];
+    return result[0];
+  } catch (dbError) {
+    // Database insertion failed - cleanup orphaned file
+    try {
+      await fs.promises.unlink(permanentFilePath);
+    } catch (unlinkError: any) {
+      // Ignore ENOENT (file already deleted), but log other errors
+      if (unlinkError.code !== 'ENOENT') {
+        console.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePath}`, unlinkError);
+      }
+    }
+    // Rethrow original database error
+    throw dbError;
+  }
 };
 
 /**

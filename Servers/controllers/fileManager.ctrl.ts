@@ -213,7 +213,7 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
     });
-    return res.status(500).json(STATUS_CODE[500]((error as Error).message));
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
   }
 };
 

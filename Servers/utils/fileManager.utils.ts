@@ -241,12 +241,26 @@ export const deleteFile = async (fileId: number, tenant: string): Promise<boolea
     return false;
   }
 
-  // Delete physical file
-  const fullPath = path.join(process.cwd(), file.file_path);
+  // Delete physical file with path containment validation
+  const baseDir = path.resolve(process.cwd(), "uploads", "file-manager", tenant);
+  const targetPath = path.resolve(process.cwd(), file.file_path);
+
+  // Verify path containment to prevent directory traversal
+  const relativePath = path.relative(baseDir, targetPath);
+  const isContained = !relativePath.startsWith("..") &&
+                      !path.isAbsolute(relativePath) &&
+                      targetPath.startsWith(baseDir + path.sep);
+
+  if (!isContained) {
+    const error = `Security violation: Attempted to delete file outside tenant directory. Target: ${targetPath}, Base: ${baseDir}`;
+    console.error(error);
+    throw new Error(error);
+  }
+
   try {
-    await unlink(fullPath);
+    await unlink(targetPath);
   } catch (error) {
-    console.error(`Failed to delete physical file: ${fullPath}`, error);
+    console.error(`Failed to delete physical file: ${targetPath}`, error);
     // Continue with database deletion even if file doesn't exist
   }
 

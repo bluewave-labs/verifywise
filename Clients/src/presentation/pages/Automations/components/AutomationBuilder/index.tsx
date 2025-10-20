@@ -26,8 +26,10 @@ import {
   Clock,
   AlertTriangle,
   CornerDownRight,
+  Check,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
+import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import InfoCard from '../../../../components/Cards/InfoCard';
 import { Automation, Trigger, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
 
@@ -354,7 +356,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
       <Stack
         sx={{
           height: '100%',
-          backgroundColor: '#F9FAF9',
+          backgroundColor: 'transparent',
           alignItems: 'center',
           justifyContent: 'center',
           p: 3,
@@ -501,12 +503,36 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
     <Stack
       sx={{
         height: '100%',
-        backgroundColor: '#F9FAF9',
+        backgroundColor: 'transparent',
         position: 'relative',
       }}
     >
       {/* Content */}
-      <Stack sx={{ flex: 1, overflow: 'auto', p: 2, alignItems: 'center', pt: '64px', pb: '64px' }} spacing={3}>
+      <Stack sx={{
+        flex: 1,
+        overflow: 'auto',
+        p: 2,
+        alignItems: 'center',
+        pt: '64px',
+        pb: '64px',
+        '&::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'transparent',
+          borderRadius: '4px',
+          backgroundClip: 'padding-box',
+        },
+        '&:hover::-webkit-scrollbar-thumb': {
+          background: 'rgba(0, 0, 0, 0.3)',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: 'rgba(0, 0, 0, 0.4)',
+        },
+      }} spacing={3}>
         {/* Trigger Section */}
         <Stack spacing={2} sx={{ alignItems: 'center' }}>
           {/* Trigger Button - shows "Add trigger" or trigger name */}
@@ -830,22 +856,15 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                 pt: 2,
               }}
             >
-              <Button
+              <CustomizableButton
                 variant="contained"
+                startIcon={isSaving ? undefined : <Check size={16} />}
                 onClick={onSave}
-                disabled={isSaving}
-                sx={{
-                  width: 'auto',
-                  minWidth: 120,
-                  height: 36,
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  px: 3,
-                }}
+                isDisabled={isSaving}
+                loading={isSaving}
               >
-                {isSaving ? 'Saving...' : 'Save Automation'}
-              </Button>
+                {isSaving ? 'Saving...' : 'Save this automation'}
+              </CustomizableButton>
             </Box>
           </>
         )}

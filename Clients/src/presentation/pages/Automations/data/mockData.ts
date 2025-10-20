@@ -3,7 +3,7 @@ import { TriggerTemplate, ActionTemplate } from '../../../../domain/types/Automa
 export const mockTriggerTemplates: TriggerTemplate[] = [
   {
     type: 'vendor_added',
-    name: 'Vendor Added',
+    name: 'When a vendor is added',
     description: 'Triggered when a new vendor is added',
     category: 'vendor',
     icon: 'Building',
@@ -12,7 +12,7 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
   },
   {
     type: 'model_added',
-    name: 'Model Added',
+    name: 'When a model is added',
     description: 'Triggered when a new model is added',
     category: 'project',
     icon: 'Box',
@@ -21,7 +21,7 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
   },
   {
     type: 'vendor_review_date_approaching',
-    name: 'Vendor Review Date Approaching',
+    name: 'When a vendor review date is approaching',
     description: 'Triggered when a vendor review date is approaching',
     category: 'vendor',
     icon: 'Calendar',

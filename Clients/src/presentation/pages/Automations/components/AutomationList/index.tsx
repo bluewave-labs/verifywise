@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
+import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import { SearchBox } from '../../../../components/Search';
 import Toggle from '../../../../components/Inputs/Toggle';
 import { Automation } from '../../../../../domain/types/Automation';
@@ -74,14 +75,14 @@ const AutomationList: React.FC<AutomationListProps> = ({
           Automations
         </Typography>
 
-        <Button
+        <CustomizableButton
           variant="contained"
           startIcon={<Plus size={16} />}
           onClick={onCreateAutomation}
-          sx={{ width: '100%', pb: 1 }}
+          sx={{ width: '100%' }}
         >
           Create new automation
-        </Button>
+        </CustomizableButton>
 
         <SearchBox
           placeholder="Find automations..."
@@ -123,12 +124,33 @@ const AutomationList: React.FC<AutomationListProps> = ({
             </Typography>
             {!searchQuery && (
               <Typography color="textSecondary" variant="body2" sx={{ fontSize: 12, fontWeight: 300 }}>
-                Create your first automation to get started
+                Create your first automation to get started. Click on the "Create new automation" button above
               </Typography>
             )}
           </Stack>
         ) : (
-          <List sx={{ p: '16px', overflow: 'auto', flex: 1 }}>
+          <List sx={{
+            p: '16px',
+            overflow: 'auto',
+            flex: 1,
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: 'transparent',
+              borderRadius: '4px',
+              backgroundClip: 'padding-box',
+            },
+            '&:hover::-webkit-scrollbar-thumb': {
+              background: 'rgba(0, 0, 0, 0.3)',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: 'rgba(0, 0, 0, 0.4)',
+            },
+          }}>
             {automations.map((automation) => (
               <ListItemButton
                 key={automation.id}
@@ -137,16 +159,16 @@ const AutomationList: React.FC<AutomationListProps> = ({
                 sx={{
                   borderRadius: 1,
                   mb: '8px',
-                  backgroundColor: '#caadad14',
-                  border: `1px solid #d9d9d9`,
+                  border: `1px solid rgba(0, 0, 0, 0.06)`,
+                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 100%)',
                   '&:hover': {
-                    backgroundColor: theme.palette.action.hover,
+                    background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.02) 100%)',
                   },
                   '&.Mui-selected': {
-                    backgroundColor: theme.palette.action.selected,
-                    borderColor: theme.palette.primary.main,
+                    border: `1px solid rgba(25, 118, 210, 0.2)`,
+                    background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.06) 0%, rgba(25, 118, 210, 0.03) 100%)',
                     '&:hover': {
-                      backgroundColor: theme.palette.action.selected,
+                      background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(25, 118, 210, 0.04) 100%)',
                     },
                   },
                 }}
@@ -155,32 +177,36 @@ const AutomationList: React.FC<AutomationListProps> = ({
                   primary={
                     <Typography
                       variant="body2"
+                      component="span"
                       sx={{
                         fontWeight: 500,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
+                        display: 'block',
                       }}
                     >
                       {automation.name}
                     </Typography>
                   }
                   secondary={
-                    <Stack spacing={1} sx={{ mt: 1 }}>
+                    <Box component="span" sx={{ display: 'block' }}>
                       <Typography
                         variant="body2"
                         color="textSecondary"
+                        component="span"
                         sx={{
                           fontSize: 11,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                           mb: 1,
+                          display: 'block',
                         }}
                       >
                         {automation.description}
                       </Typography>
-                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
+                      <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 1 }}>
                         <Toggle
                           checked={automation.isActive}
                           onChange={(e) => {
@@ -189,11 +215,11 @@ const AutomationList: React.FC<AutomationListProps> = ({
                           }}
                           size="small"
                         />
-                        <Typography variant="caption" color="textSecondary" sx={{ fontSize: 10 }}>
+                        <Typography variant="caption" color="textSecondary" component="span" sx={{ fontSize: 10 }}>
                           {automation.isActive ? 'ON' : 'OFF'}
                         </Typography>
-                      </Stack>
-                    </Stack>
+                      </Box>
+                    </Box>
                   }
                 />
                 {isNaN(Number(automation.id)) ? (

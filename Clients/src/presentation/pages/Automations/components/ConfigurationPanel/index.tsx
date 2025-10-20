@@ -18,7 +18,9 @@ import Select from '../../../../components/Inputs/Select';
 import Toggle from '../../../../components/Inputs/Toggle';
 import Field from '../../../../components/Inputs/Field';
 import TemplateField from '../../../../components/Inputs/TemplateField';
+import CustomizableMultiSelect from '../../../../components/Inputs/Select/Multi';
 import { Trigger, Action, TriggerTemplate, ActionTemplate, ConfigurationField } from '../../../../../domain/types/Automation';
+import useUsers from '../../../../../application/hooks/useUsers';
 
 interface ConfigurationPanelProps {
   selectedItem: Trigger | Action | null;
@@ -44,9 +46,9 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   const theme = useTheme();
   const [configuration, setConfiguration] = useState<Record<string, any>>({});
   const [activeField, setActiveField] = useState<string | null>(null);
+  const { users, loading: usersLoading } = useUsers();
   const bodyFieldRef = React.useRef<HTMLTextAreaElement>(null);
   const subjectFieldRef = React.useRef<HTMLInputElement>(null);
-  const toFieldRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Get the template for the selected item
   const template = React.useMemo(() => {
@@ -85,8 +87,6 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
       fieldRef = bodyFieldRef.current;
     } else if (targetField === 'subject') {
       fieldRef = subjectFieldRef.current;
-    } else if (targetField === 'to') {
-      fieldRef = toFieldRef.current;
     }
 
     if (fieldRef) {
@@ -135,10 +135,37 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         // Check if this is a template field (subject or body for email)
         const isTemplateField = field.key === 'subject' || field.key === 'body';
 
+        // Use CustomizableMultiSelect for the "to" field (email recipients)
+        if (field.key === 'to' && selectedItemType === 'action') {
+          // Convert value to array format expected by CustomizableMultiSelect
+          const selectValue = Array.isArray(value) ? value :
+            (value && value !== '' ? value.split(',').map((v: string) => v.trim()).filter(v => v) : []);
+
+          // Transform users to have _id field expected by CustomizableMultiSelect
+          const usersWithId = users.map(user => ({
+            ...user,
+            _id: user.id // Map id to _id for the component
+          }));
+
+          return (
+            <CustomizableMultiSelect
+              key={field.key}
+              label={field.label}
+              required={field.required}
+              error={!field.required || (selectValue.length > 0) ? undefined : "At least one recipient is required"}
+              value={selectValue}
+              onChange={(e) => handleFieldChange(field.key, e.target.value)}
+              items={usersWithId}
+              placeholder={usersLoading ? "Loading users..." : "Search and select users..."}
+              sx={{ width: '100%' }}
+              isHidden={false}
+            />
+          );
+        }
+
         // Determine which ref to use
-        const inputRef = field.key === 'body' ? bodyFieldRef :
+        const inputRef = field.key === 'body' ? bodyFieldRef as any :
                          field.key === 'subject' ? subjectFieldRef :
-                         field.key === 'to' ? toFieldRef :
                          undefined;
 
         // Use TemplateField for subject and body with variable autocomplete
@@ -240,7 +267,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             value={value}
             onChange={(e) => handleFieldChange(field.key, Number(e.target.value))}
             placeholder={field.placeholder}
-            required={field.required}
+            isRequired={field.required}
           />
         );
 
@@ -338,15 +365,25 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         {/* Automation Name Field - Always show at top when automation exists */}
         {automationName !== undefined && onAutomationNameChange && (
           <Box sx={{ p: 4, pb: 2 }}>
-            <Field
-              id="automation-name"
-              label="Automation name"
-              type="text"
-              value={automationName}
-              onChange={(e) => onAutomationNameChange(e.target.value)}
-              placeholder="Enter automation name"
-              isRequired
-            />
+            <Stack spacing={2}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
+                Automation name
+                <Typography
+                  component="span"
+                  ml={1}
+                  color={theme.palette.error.text}
+                >
+                  *
+                </Typography>
+              </Typography>
+              <Field
+                id="automation-name"
+                type="text"
+                value={automationName}
+                onChange={(e) => onAutomationNameChange(e.target.value)}
+                placeholder="Enter automation name"
+              />
+            </Stack>
           </Box>
         )}
 
@@ -380,23 +417,55 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
     >
       {/* Automation Name Field - Always show at top */}
       {automationName !== undefined && onAutomationNameChange && (
-        <Box sx={{ px: 4, pt: 4, pb: 2 }}>
-          <Field
-            id="automation-name"
-            label="Automation name"
-            type="text"
-            value={automationName}
-            onChange={(e) => onAutomationNameChange(e.target.value)}
-            placeholder="Enter automation name"
-            isRequired
-          />
+        <Box sx={{ px: 2, py: 2, borderLeft: '16px solid transparent', borderRight: '16px solid transparent' }}>
+          <Stack spacing={2}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
+              Automation name
+              <Typography
+                component="span"
+                ml={1}
+                color={theme.palette.error.text}
+              >
+                *
+              </Typography>
+            </Typography>
+            <Field
+              id="automation-name"
+              type="text"
+              value={automationName}
+              onChange={(e) => onAutomationNameChange(e.target.value)}
+              placeholder="Enter automation name"
+            />
+          </Stack>
         </Box>
       )}
 
       {/* Content */}
-      <Stack sx={{ flex: 1, overflow: 'auto', pt: automationName !== undefined ? 2 : 4 }}>
+      <Stack sx={{
+        flex: 1,
+        overflow: 'auto',
+        pt: automationName !== undefined ? 2 : 4,
+        '&::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'transparent',
+          borderRadius: '4px',
+          backgroundClip: 'padding-box',
+        },
+        '&:hover::-webkit-scrollbar-thumb': {
+          background: 'rgba(0, 0, 0, 0.3)',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: 'rgba(0, 0, 0, 0.4)',
+        },
+      }}>
         {/* Configuration Fields */}
-        <Box sx={{ mx: 2, my: 2 }}>
+        <Box sx={{ mx: 0, my: 2 }}>
+          {template.configurationSchema.length > 0 && <Divider />}
           <Box sx={{ px: 2, py: 2, borderLeft: '16px solid transparent', borderRight: '16px solid transparent' }}>
             {template.configurationSchema.length > 0 ? (
             <Stack spacing={3}>
@@ -436,53 +505,48 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                     Available Variables
                   </Typography>
 
-                <Typography variant="body2" color="textSecondary" sx={{ fontSize: 12 }}>
-                  Use these variables in your email subject and body to insert dynamic content:
-                </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ fontSize: 12 }}>
+                    Use these variables in your email subject and body to insert dynamic content: Click any variable to insert it into {
+                      activeField === 'subject' ? 'the subject field' :
+                      'the email body'
+                    } (currently {activeField || 'body'})
+                  </Typography>
 
-                <Stack spacing={1.5}>
-                  {templateVariables.map((item) => (
-                    <Card
-                      key={item.var}
-                      variant="outlined"
-                      sx={{
-                        cursor: 'pointer',
-                        '&:hover': {
-                          backgroundColor: theme.palette.action.hover,
-                          borderColor: theme.palette.primary.main,
-                        },
-                        transition: 'all 0.2s ease-in-out',
-                      }}
-                      onClick={() => handleVariableInsert(item.var)}
-                    >
-                      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                        <Stack spacing={0.5}>
-                          <Typography
-                            sx={{
-                              fontSize: 11,
-                              fontFamily: 'monospace',
-                              fontWeight: 600,
-                              color: theme.palette.primary.main,
-                            }}
-                          >
-                            {item.var}
-                          </Typography>
-                          <Typography variant="caption" color="textSecondary" sx={{ fontSize: 10 }}>
-                            {item.desc}
-                          </Typography>
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Stack>
-
-                <Typography variant="caption" color="textSecondary" sx={{ fontSize: 10, fontStyle: 'italic' }}>
-                  Click any variable to insert it into {
-                    activeField === 'subject' ? 'the subject field' :
-                    activeField === 'to' ? 'the recipients field' :
-                    'the email body'
-                  } (currently {activeField || 'body'})
-                </Typography>
+                  <Stack spacing={1.5}>
+                    {templateVariables.map((item) => (
+                      <Card
+                        key={item.var}
+                        variant="outlined"
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': {
+                            backgroundColor: theme.palette.action.hover,
+                            borderColor: theme.palette.primary.main,
+                          },
+                          transition: 'all 0.2s ease-in-out',
+                        }}
+                        onClick={() => handleVariableInsert(item.var)}
+                      >
+                        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Stack spacing={0.5}>
+                            <Typography
+                              sx={{
+                                fontSize: 11,
+                                fontFamily: 'monospace',
+                                fontWeight: 600,
+                                color: theme.palette.primary.main,
+                              }}
+                            >
+                              {item.var}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary" sx={{ fontSize: 10 }}>
+                              {item.desc}
+                            </Typography>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
                 </Stack>
               </Box>
             </Box>

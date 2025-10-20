@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Grid, Container, Box, useTheme } from '@mui/material';
+import { Settings } from 'lucide-react';
 import AutomationList from './components/AutomationList';
 import AutomationBuilder from './components/AutomationBuilder';
 import ConfigurationPanel from './components/ConfigurationPanel';
@@ -7,6 +8,7 @@ import { Automation, Trigger, Action, TriggerTemplate, ActionTemplate } from '..
 import { mockTriggerTemplates, mockActionTemplates } from './data/mockData';
 import { generateId } from '../../../application/utils/generateId';
 import CustomAxios from '../../../infrastructure/api/customAxios';
+import Alert from '../../components/Alert';
 
 const AutomationsPage: React.FC = () => {
   const theme = useTheme();
@@ -17,6 +19,11 @@ const AutomationsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    body: string;
+    visible: boolean;
+  } | null>(null);
 
   // Get selected automation
   const selectedAutomation = selectedAutomationId
@@ -41,8 +48,8 @@ const AutomationsPage: React.FC = () => {
   );
 
   // Fetch existing automations
-  const fetchAutomations = useCallback(async () => {
-    setIsLoading(true);
+  const fetchAutomations = useCallback(async (preserveSelection?: string, showLoading: boolean = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       // Fetch all automations
       const response = await CustomAxios.get('/automations');
@@ -118,12 +125,17 @@ const AutomationsPage: React.FC = () => {
       );
 
       setAutomations(mappedAutomations);
+
+      // If we have a selection to preserve, make sure it's still selected
+      if (preserveSelection) {
+        setSelectedAutomationId(preserveSelection);
+      }
     } catch (error) {
       console.error('Error fetching automations:', error);
       // If there's an error, start with empty state
       setAutomations([]);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, []);
 
@@ -131,6 +143,21 @@ const AutomationsPage: React.FC = () => {
   useEffect(() => {
     fetchAutomations();
   }, [fetchAutomations]);
+
+  // Handle toast auto-hide
+  useEffect(() => {
+    if (toast && toast.visible) {
+      const timer = setTimeout(() => {
+        setToast(prev => prev ? { ...prev, visible: false } : null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // Close toast handler
+  const handleCloseToast = () => {
+    setToast(prev => prev ? { ...prev, visible: false } : null);
+  };
 
   const handleCreateAutomation = () => {
     const newAutomation: Automation = {
@@ -215,22 +242,29 @@ const AutomationsPage: React.FC = () => {
     // Check if this is an existing automation (has numeric ID from backend)
     const isExistingAutomation = !isNaN(Number(automationId));
 
+    const newIsActive = !automation.isActive;
+
     if (!isExistingAutomation) {
       // For new automations that haven't been saved yet, just update local state
       setAutomations(prev => prev.map(auto =>
         auto.id === automationId
           ? {
               ...auto,
-              isActive: !auto.isActive,
-              status: !auto.isActive ? 'active' : 'inactive',
+              isActive: newIsActive,
+              status: newIsActive ? 'active' : 'inactive',
               updatedAt: new Date()
             }
           : auto
       ));
+
+      // Show toast for new automation
+      setToast({
+        variant: "info",
+        body: newIsActive ? "This automation is enabled" : "This automation is disabled",
+        visible: true
+      });
       return;
     }
-
-    const newIsActive = !automation.isActive;
 
     // Optimistically update the UI
     setAutomations(prev => prev.map(auto =>
@@ -251,6 +285,13 @@ const AutomationsPage: React.FC = () => {
       });
 
       console.log('Automation toggle status updated successfully');
+
+      // Show success toast
+      setToast({
+        variant: "success",
+        body: newIsActive ? "This automation is enabled" : "This automation is disabled",
+        visible: true
+      });
     } catch (error: any) {
       console.error('Error toggling automation:', error);
 
@@ -266,7 +307,12 @@ const AutomationsPage: React.FC = () => {
           : auto
       ));
 
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to toggle automation';
+      // Show error toast
+      setToast({
+        variant: "error",
+        body: "Failed to toggle automation status",
+        visible: true
+      });
     }
   };
 
@@ -297,11 +343,35 @@ const AutomationsPage: React.FC = () => {
       configuration: { ...triggerTemplate.defaultConfiguration },
     };
 
-    setAutomations(prev => prev.map(automation =>
-      automation.id === selectedAutomationId
-        ? { ...automation, trigger: newTrigger, updatedAt: new Date() }
-        : automation
-    ));
+    // Generate automation name based on trigger type
+    const getAutomationNameFromTrigger = (triggerType: string): string => {
+      switch (triggerType) {
+        case 'vendor_added':
+          return 'Vendor add automation';
+        case 'model_added':
+          return 'Model add automation';
+        case 'vendor_review_date_approaching':
+          return 'Vendor review automation';
+        default:
+          return 'New automation';
+      }
+    };
+
+    setAutomations(prev => prev.map(automation => {
+      if (automation.id !== selectedAutomationId) return automation;
+
+      // Check if the current name is a default name (starts with "New Automation")
+      // If so, update it to a trigger-specific name
+      const isDefaultName = automation.name.startsWith('New Automation');
+      const newName = isDefaultName ? getAutomationNameFromTrigger(triggerTemplate.type) : automation.name;
+
+      return {
+        ...automation,
+        trigger: newTrigger,
+        name: newName,
+        updatedAt: new Date()
+      };
+    }));
 
     // Auto-select the new trigger for configuration
     setSelectedItemId(newTrigger.id);
@@ -311,12 +381,64 @@ const AutomationsPage: React.FC = () => {
   const handleAddAction = (actionTemplate: ActionTemplate) => {
     if (!selectedAutomationId) return;
 
+    // Create a copy of the default configuration
+    const configuration = { ...actionTemplate.defaultConfiguration };
+
+    // Set dynamic default subject and body based on trigger type for email actions
+    if (actionTemplate.type === 'send_email' && selectedAutomation?.trigger) {
+      switch (selectedAutomation.trigger.type) {
+        case 'vendor_added':
+          configuration.subject = '{{vendor.name}} has been added as a new vendor';
+          configuration.body = `A new vendor has been added to the system.
+
+Vendor Details:
+• Vendor Name: {{vendor.name}}
+• Vendor ID: {{vendor.id}}
+• Services/Products: {{vendor.provides}}
+• Website: {{vendor.website}}
+• Contact Person: {{vendor.contact}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'model_added':
+          configuration.subject = '{{model.name}} ({{model.provider}}) has been added';
+          configuration.body = `A new model has been added to the system.
+
+Model Details:
+• Model Name: {{model.name}}
+• Provider: {{model.provider}}
+• Version: {{model.version}}
+• Status: {{model.status}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'vendor_review_date_approaching':
+          configuration.subject = 'Review for {{vendor_name}} due on {{review_date}}';
+          configuration.body = `This is a reminder that a vendor review is approaching.
+
+Review Details:
+• Vendor: {{vendor_name}}
+• Vendor ID: {{vendor_id}}
+• Scheduled Review Date: {{review_date}}
+• Days Until Review: {{days_until_review}}
+• Assigned Reviewer: {{reviewer}}
+
+Please complete the review by the scheduled date.
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        default:
+          configuration.subject = 'Notification';
+          configuration.body = 'This is an automated notification.';
+      }
+    }
+
     const newAction: Action = {
       id: generateId(),
       type: actionTemplate.type,
       name: actionTemplate.name,
       description: actionTemplate.description,
-      configuration: { ...actionTemplate.defaultConfiguration },
+      configuration,
       order: selectedAutomation?.actions.length || 0,
     };
 
@@ -468,8 +590,15 @@ const AutomationsPage: React.FC = () => {
           // Show success notification
           console.log('Automation updated successfully!', response.data);
 
-          // Refresh the automations list
-          await fetchAutomations();
+          // Refresh the automations list, preserving the current selection
+          await fetchAutomations(selectedAutomationId, false);
+
+          // Show success toast
+          setToast({
+            variant: "success",
+            body: "Automation updated successfully!",
+            visible: true
+          });
         }
       } else {
         // Create new automation with POST
@@ -485,19 +614,33 @@ const AutomationsPage: React.FC = () => {
           // Show success notification
           console.log('Automation created successfully!', response.data);
 
-          // Refresh the automations list to get the saved automation with its backend ID
-          await fetchAutomations();
+          // Get the newly created automation's ID from the response
+          const newAutomationId = response.data.data?.id;
 
-          // Clear selection since we'll need to re-select using the new ID
-          setSelectedAutomationId(null);
+          // Refresh the automations list to get the saved automation with its backend ID
+          // Preserve the selection to the newly created automation
+          await fetchAutomations(String(newAutomationId), false);
           setSelectedItemId(null);
           setSelectedItemType(null);
+
+          // Show success toast
+          setToast({
+            variant: "success",
+            body: "Automation created successfully!",
+            visible: true
+          });
         }
       }
     } catch (error: any) {
       console.error('Error saving automation:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to save automation';
-      // TODO: Show error notification to user
+
+      // Show error toast
+      setToast({
+        variant: "error",
+        body: errorMessage,
+        visible: true
+      });
     } finally {
       setIsSaving(false);
     }
@@ -507,73 +650,136 @@ const AutomationsPage: React.FC = () => {
   const showConfigurationPanel = automations.length > 0 && (selectedItem || selectedAutomation);
 
   return (
-    <Container maxWidth={false} sx={{ height: 'calc(100vh - 64px)', p: '32px' }}>
-      <Box
-        sx={{
-          height: '100%',
-          backgroundColor: theme.palette.background.main,
-          borderRadius: theme.shape.borderRadius,
-          border: `1px solid ${theme.palette.border.light}`,
-          display: 'flex',
-        }}
-      >
-        <Grid container spacing={0} sx={{ height: '100%' }}>
-          {/* Left Sidebar - Automation List */}
-          <Grid item xs={12} md={showConfigurationPanel ? 3 : 4} sx={{ borderRight: `1px solid ${theme.palette.border.light}` }}>
-            <AutomationList
-              automations={filteredAutomations}
-              selectedAutomationId={selectedAutomationId}
-              searchQuery={searchQuery}
-              isLoading={isLoading}
-              onSelectAutomation={handleSelectAutomation}
-              onCreateAutomation={handleCreateAutomation}
-              onDeleteAutomation={handleDeleteAutomation}
-              onDiscardAutomation={handleDiscardAutomation}
-              onDuplicateAutomation={handleDuplicateAutomation}
-              onToggleAutomation={handleToggleAutomation}
-              onRenameAutomation={handleRenameAutomation}
-              onSearchChange={setSearchQuery}
-            />
-          </Grid>
-
-          {/* Center Panel - Automation Builder */}
-          <Grid item xs={12} md={showConfigurationPanel ? 6 : 8} sx={showConfigurationPanel ? { borderRight: `1px solid ${theme.palette.border.light}` } : {}}>
-            <AutomationBuilder
-              automation={selectedAutomation ?? null}
-              triggerTemplates={mockTriggerTemplates}
-              actionTemplates={mockActionTemplates}
-              selectedItemId={selectedItemId}
-              selectedItemType={selectedItemType}
-              onAddTrigger={handleAddTrigger}
-              onAddAction={handleAddAction}
-              onSelectItem={handleSelectItem}
-              onDeleteTrigger={handleDeleteTrigger}
-              onDeleteAction={handleDeleteAction}
-              onUpdateAutomationName={(newName) => selectedAutomation && handleRenameAutomation(selectedAutomation.id, newName)}
-              onUpdateAutomationDescription={(newDescription) => selectedAutomation && handleUpdateAutomationDescription(selectedAutomation.id, newDescription)}
-              onSave={handleSaveAutomation}
-              isSaving={isSaving}
-            />
-          </Grid>
-
-          {/* Right Panel - Configuration (conditional) */}
-          {showConfigurationPanel && (
-            <Grid item xs={12} md={3}>
-              <ConfigurationPanel
-                selectedItem={selectedItem}
-                selectedItemType={selectedItemType}
-                trigger={selectedAutomation?.trigger ?? null}
-                triggerTemplates={mockTriggerTemplates}
-                actionTemplates={mockActionTemplates}
-                onConfigurationChange={handleUpdateConfiguration}
-                automationName={selectedAutomation?.name}
-                onAutomationNameChange={(newName) => selectedAutomation && handleRenameAutomation(selectedAutomation.id, newName)}
+    <>
+      <Container maxWidth={false} sx={{ height: 'calc(100vh - 64px)', p: '32px' }}>
+        <Box
+          sx={{
+            height: '100%',
+            backgroundColor: theme.palette.background.main,
+            borderRadius: theme.shape.borderRadius,
+            border: `1px solid ${theme.palette.border.light}`,
+            display: 'flex',
+          }}
+        >
+          <Grid container spacing={0} sx={{ height: '100%' }}>
+            {/* Left Sidebar - Automation List */}
+            <Grid
+              item
+              xs={12}
+              md={showConfigurationPanel ? 3 : 4}
+              sx={{
+                height: '100%',
+                borderRight: `1px solid ${theme.palette.border.light}`,
+                background: 'linear-gradient(135deg, rgba(200,200,200,0.1) 0%, rgba(255,255,255,0) 100%) !important',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <AutomationList
+                automations={filteredAutomations}
+                selectedAutomationId={selectedAutomationId}
+                searchQuery={searchQuery}
+                isLoading={isLoading}
+                onSelectAutomation={handleSelectAutomation}
+                onCreateAutomation={handleCreateAutomation}
+                onDeleteAutomation={handleDeleteAutomation}
+                onDiscardAutomation={handleDiscardAutomation}
+                onDuplicateAutomation={handleDuplicateAutomation}
+                onToggleAutomation={handleToggleAutomation}
+                onRenameAutomation={handleRenameAutomation}
+                onSearchChange={setSearchQuery}
               />
             </Grid>
-          )}
-        </Grid>
-      </Box>
-    </Container>
+
+            {/* Center Panel - Automation Builder */}
+            <Grid
+              item
+              xs={12}
+              md={showConfigurationPanel ? 6 : 8}
+              sx={{
+                height: '100%',
+                ...(showConfigurationPanel ? { borderRight: `1px solid ${theme.palette.border.light}` } : {}),
+                background: 'linear-gradient(135deg, rgba(100,150,255,0.08) 0%, rgba(255,255,255,0) 100%), #F9FAF9 !important',
+                position: 'relative',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <AutomationBuilder
+                automation={selectedAutomation ?? null}
+                triggerTemplates={mockTriggerTemplates}
+                actionTemplates={mockActionTemplates}
+                selectedItemId={selectedItemId}
+                selectedItemType={selectedItemType}
+                onAddTrigger={handleAddTrigger}
+                onAddAction={handleAddAction}
+                onSelectItem={handleSelectItem}
+                onDeleteTrigger={handleDeleteTrigger}
+                onDeleteAction={handleDeleteAction}
+                onUpdateAutomationName={(newName) => selectedAutomation && handleRenameAutomation(selectedAutomation.id, newName)}
+                onUpdateAutomationDescription={(newDescription) => selectedAutomation && handleUpdateAutomationDescription(selectedAutomation.id, newDescription)}
+                onSave={handleSaveAutomation}
+                isSaving={isSaving}
+              />
+
+              {/* Large gear icon decoration */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: '-10%',
+                  right: '-10%',
+                  transform: 'rotate(-15deg)',
+                  opacity: 0.025,
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              >
+                <Settings size={350} strokeWidth={1} />
+              </Box>
+            </Grid>
+
+            {/* Right Panel - Configuration (conditional) */}
+            {showConfigurationPanel && (
+              <Grid
+                item
+                xs={12}
+                md={3}
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(135deg, rgba(200,200,200,0.08) 0%, rgba(255,255,255,0) 100%) !important',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <ConfigurationPanel
+                  selectedItem={selectedItem}
+                  selectedItemType={selectedItemType}
+                  trigger={selectedAutomation?.trigger ?? null}
+                  triggerTemplates={mockTriggerTemplates}
+                  actionTemplates={mockActionTemplates}
+                  onConfigurationChange={handleUpdateConfiguration}
+                  automationName={selectedAutomation?.name}
+                  onAutomationNameChange={(newName) => selectedAutomation && handleRenameAutomation(selectedAutomation.id, newName)}
+                />
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+      </Container>
+
+      {/* Toast Notification */}
+      {toast && toast.visible && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={toast.variant}
+            body={toast.body}
+            isToast={true}
+            onClick={handleCloseToast}
+          />
+        </Suspense>
+      )}
+    </>
   );
 };
 

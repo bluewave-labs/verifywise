@@ -36,7 +36,7 @@ export const getAllAutomationActionsByTriggerIdQuery = async (triggerId: number)
 
 export const getAllAutomationsQuery = async (tenant: string) => {
   const result = await sequelize.query(
-    `SELECT * FROM "${tenant}".automations;`,
+    `SELECT * FROM "${tenant}".automations ORDER BY created_at DESC, id DESC;`,
     {
       mapToModel: true,
       model: AutomationModel

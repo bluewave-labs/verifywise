@@ -26,7 +26,9 @@ import RiskChip from "../../RiskLevel/RiskChip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 // Status display mapping
 const STATUS_DISPLAY_MAP: Record<string, string> = {
@@ -66,7 +68,7 @@ interface TasksTableProps {
   onRowClick?: (task: ITask) => void;
 }
 
-const TASKS_ROWS_PER_PAGE_KEY = 'verifywise_tasks_rows_per_page';
+const TASKS_ROWS_PER_PAGE_KEY = "verifywise_tasks_rows_per_page";
 
 const TasksTable: React.FC<TasksTableProps> = ({
   tasks,

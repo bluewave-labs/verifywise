@@ -1,6 +1,6 @@
-import { Stack, Typography, Tooltip } from "@mui/material";
-import Button from "../../Button";
-import { ArrowUpRight as WhiteUpRightArrowIcon, Eye as EyeIcon } from "lucide-react";
+import { Stack, Typography, Tooltip, Link } from "@mui/material";
+import CustomizableButton from "../../Button/CustomizableButton";
+import { ArrowUpRight as WhiteUpRightArrowIcon, Eye as EyeIcon, ExternalLink } from "lucide-react";
 import ProgressBar from "../../ProjectCard/ProgressBar";
 import {
   progressStyle,
@@ -131,7 +131,7 @@ const FrameworkButton = ({
 
   return (
     <Tooltip title={tooltipText} arrow placement="top">
-      <Button
+      <CustomizableButton
         variant="contained"
         onClick={onClick}
         sx={{
@@ -145,7 +145,7 @@ const FrameworkButton = ({
         endIcon={<WhiteUpRightArrowIcon size={16} />}
       >
         {label}
-      </Button>
+      </CustomizableButton>
     </Tooltip>
   );
 };
@@ -208,13 +208,32 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
       >
         {/* Header */}
         <Stack className="project-card-header" sx={{ gap: 2 }}>
-          <Typography className="project-card-title" sx={projectCardTitleStyle}>
-            {project.project_title}
-          </Typography>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+            <Typography className="project-card-title" sx={projectCardTitleStyle}>
+              {project.project_title}
+            </Typography>
+            <Stack direction="row" spacing={8} sx={{ ml: 2 }}>
+              <Stack className="project-card-spec-tile" alignItems="flex-end">
+                <Typography sx={projectCardSpecKeyStyle}>Project owner</Typography>
+                <Typography sx={projectCardSpecValueyStyle}>
+                  {ownerUser
+                    ? `${ownerUser.name} ${ownerUser.surname}`
+                    : "Unknown User"}
+                </Typography>
+              </Stack>
+              <Stack className="project-card-spec-tile" alignItems="flex-end">
+                <Typography sx={projectCardSpecKeyStyle}>Last updated</Typography>
+                <Typography sx={projectCardSpecValueyStyle}>
+                  {formatDate(project.last_updated.toString())}
+                </Typography>
+              </Stack>
+            </Stack>
+          </Stack>
           <Stack
             direction="row"
             spacing={5}
             className="project-card-frameworks"
+            sx={{ mb: "16px" }}
           >
             {projectFrameworkId && (
               <FrameworkButton
@@ -237,7 +256,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             direction="row"
             spacing={10}
             className="project-card-stats"
-            sx={{}}
+            sx={{ mb: 2 }}
           >
             <Stack sx={{ flex: 1, gap: 1 }}>
               <Stack className="project-progress" sx={{ gap: 1 }}>
@@ -246,11 +265,37 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
                     complianceProgressData?.allDonesubControls ?? 0
                   }/${complianceProgressData?.allsubControls ?? 0}`}
                 />
-                <Typography sx={progressStyle}>
-                  {`Subcontrols: ${
-                    complianceProgressData?.allDonesubControls ?? 0
-                  } out of ${complianceProgressData?.allsubControls ?? 0}`}
-                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography sx={progressStyle}>
+                    {`Subcontrols: ${
+                      complianceProgressData?.allDonesubControls ?? 0
+                    } out of ${complianceProgressData?.allsubControls ?? 0}`}
+                  </Typography>
+                  <Link
+                    component="button"
+                    onClick={() => navigate("/project-view", {
+                      projectId: project.id.toString(),
+                      tab: "frameworks",
+                      framework: "1",
+                      subtab: "compliance"
+                    })}
+                    sx={{
+                      color: "#014576",
+                      textDecoration: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      minWidth: "auto",
+                      padding: 0,
+                      ml: 1,
+                      "&:hover": {
+                        opacity: 0.7
+                      }
+                    }}
+                  >
+                    <ExternalLink size={12} />
+                  </Link>
+                </Stack>
               </Stack>
               <Stack className="project-progress" sx={{ gap: 1 }}>
                 <ProgressBar
@@ -258,11 +303,37 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
                     assessmentProgressData?.answeredQuestions ?? 0
                   }/${assessmentProgressData?.totalQuestions ?? 0}`}
                 />
-                <Typography sx={progressStyle}>
-                  {`Assessments: ${
-                    assessmentProgressData?.answeredQuestions ?? 0
-                  } out of ${assessmentProgressData?.totalQuestions ?? 0}`}
-                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography sx={progressStyle}>
+                    {`Assessments: ${
+                      assessmentProgressData?.answeredQuestions ?? 0
+                    } out of ${assessmentProgressData?.totalQuestions ?? 0}`}
+                  </Typography>
+                  <Link
+                    component="button"
+                    onClick={() => navigate("/project-view", {
+                      projectId: project.id.toString(),
+                      tab: "frameworks",
+                      framework: "1",
+                      subtab: "assessment"
+                    })}
+                    sx={{
+                      color: "#014576",
+                      textDecoration: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      minWidth: "auto",
+                      padding: 0,
+                      ml: 1,
+                      "&:hover": {
+                        opacity: 0.7
+                      }
+                    }}
+                  >
+                    <ExternalLink size={12} />
+                  </Link>
+                </Stack>
               </Stack>
             </Stack>
             <Stack sx={{ flex: 1, gap: 1 }}>
@@ -293,7 +364,7 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             </Stack>
           </Stack>
         ) : (
-          <Stack className="project-card-stats" sx={{ gap: 2 }}>
+          <Stack className="project-card-stats" sx={{ gap: 2, mb: 2 }}>
             {projectFrameworkId && (
               <>
                 <Stack className="project-progress" sx={{ gap: 1 }}>
@@ -302,11 +373,37 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
                       complianceProgressData?.allDonesubControls ?? 0
                     }/${complianceProgressData?.allsubControls ?? 0}`}
                   />
-                  <Typography sx={progressStyle}>
-                    {`Subcontrols: ${
-                      complianceProgressData?.allDonesubControls ?? 0
-                    } out of ${complianceProgressData?.allsubControls ?? 0}`}
-                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Typography sx={progressStyle}>
+                      {`Subcontrols: ${
+                        complianceProgressData?.allDonesubControls ?? 0
+                      } out of ${complianceProgressData?.allsubControls ?? 0}`}
+                    </Typography>
+                    <Link
+                      component="button"
+                      onClick={() => navigate("/project-view", {
+                        projectId: project.id.toString(),
+                        tab: "frameworks",
+                        framework: "1",
+                        subtab: "compliance"
+                      })}
+                      sx={{
+                        color: "#014576",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        minWidth: "auto",
+                        padding: 0,
+                        ml: 1,
+                        "&:hover": {
+                          opacity: 0.7
+                        }
+                      }}
+                    >
+                      <ExternalLink size={12} />
+                    </Link>
+                  </Stack>
                 </Stack>
                 <Stack className="project-progress" sx={{ gap: 1 }}>
                   <ProgressBar
@@ -314,11 +411,37 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
                       assessmentProgressData?.answeredQuestions ?? 0
                     }/${assessmentProgressData?.totalQuestions ?? 0}`}
                   />
-                  <Typography sx={progressStyle}>
-                    {`Assessments: ${
-                      assessmentProgressData?.answeredQuestions ?? 0
-                    } out of ${assessmentProgressData?.totalQuestions ?? 0}`}
-                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Typography sx={progressStyle}>
+                      {`Assessments: ${
+                        assessmentProgressData?.answeredQuestions ?? 0
+                      } out of ${assessmentProgressData?.totalQuestions ?? 0}`}
+                    </Typography>
+                    <Link
+                      component="button"
+                      onClick={() => navigate("/project-view", {
+                        projectId: project.id.toString(),
+                        tab: "frameworks",
+                        framework: "1",
+                        subtab: "assessment"
+                      })}
+                      sx={{
+                        color: "#014576",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        minWidth: "auto",
+                        padding: 0,
+                        ml: 1,
+                        "&:hover": {
+                          opacity: 0.7
+                        }
+                      }}
+                    >
+                      <ExternalLink size={12} />
+                    </Link>
+                  </Stack>
                 </Stack>
               </>
             )}
@@ -352,38 +475,26 @@ const ProjectCard: FC<ProjectCardProps> = React.memo(
             )}
           </Stack>
         )}
-        {/* Project Specs */}
-        <Stack className="project-card-spec" sx={projectCardSpecsStyle}>
-          <Stack className="project-card-spec-tile">
-            <Typography sx={projectCardSpecKeyStyle}>Project owner</Typography>
-            <Typography sx={projectCardSpecValueyStyle}>
-              {ownerUser
-                ? `${ownerUser.name} ${ownerUser.surname}`
-                : "Unknown User"}
-            </Typography>
-          </Stack>
-          <Stack className="project-card-spec-tile">
-            <Typography sx={projectCardSpecKeyStyle}>Last updated</Typography>
-            <Typography sx={projectCardSpecValueyStyle}>
-              {formatDate(project.last_updated.toString())}
-            </Typography>
-          </Stack>
-        </Stack>
         {/* View Project Details Button */}
-        <Stack sx={{ mt: "auto", alignItems: "flex-end" }}>
+        <Stack sx={{ mt: 0, mb: 0, alignItems: "flex-end" }}>
           <Tooltip title="View project details" sx={{ fontSize: 13 }}>
-            <Button
+            <CustomizableButton
               variant="contained"
               onClick={() =>
                 navigate("/project-view", {
                   projectId: project.id.toString(),
                 })
               }
-              sx={viewProjectButtonStyle}
-              startIcon={<EyeIcon size={14} />}
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                mb: 0,
+                mt: 0,
+              }}
+              startIcon={<EyeIcon size={16} />}
             >
               View project details
-            </Button>
+            </CustomizableButton>
           </Tooltip>
         </Stack>
       </Stack>

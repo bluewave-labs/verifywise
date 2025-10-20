@@ -99,9 +99,7 @@ const PolicyTable: React.FC<Props> = ({
   return (
     <>
       <CustomizablePolicyTable
-        table="policy-table"
         data={{ rows, cols: tableHeaders }}
-        bodyData={[...data]}
         paginated
         setSelectedRow={() => {}}
         setAnchorEl={() => {}}

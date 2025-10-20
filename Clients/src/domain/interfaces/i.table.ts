@@ -121,7 +121,7 @@ export interface IFileTableProps {
   files: FileData[];
 }
 
-export interface ITableProps {
+export interface IProjectRiskTableBodyProps {
   rows: ProjectRisk[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
@@ -147,15 +147,15 @@ export interface ITableProps {
     rows: any[];
     cols: { id: string; name: string }[];
   };
-  bodyData: any[];
+  bodyData?: any[];
   paginated?: boolean;
   reversed?: boolean;
-  table: string;
+  table?: string;
   onRowClick?: (id: string) => void;
   label?: string;
   setSelectedRow: (row: any) => void;
   setAnchorEl: (element: HTMLElement | null) => void;
-  renderRow?: (row: any) => React.ReactNode; // ✅ NEW
+  renderRow?: (row: any) => React.ReactNode;
 }
 
 export interface IReportTableProps {

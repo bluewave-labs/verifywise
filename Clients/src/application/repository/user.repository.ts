@@ -118,15 +118,10 @@ export async function uploadUserProfilePhoto(
 }
 
 export async function getUserProfilePhoto(userId: number): Promise<any> {
-  try {
-    const response = await apiServices.get(`/users/${userId}/profile-photo`, {
-      responseType: "json",
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching profile photo:", error);
-    throw error;
-  }
+  const response = await apiServices.get(`/users/${userId}/profile-photo`, {
+    responseType: "json",
+  });
+  return response.data;
 }
 
 /**

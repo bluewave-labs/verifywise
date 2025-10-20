@@ -74,3 +74,13 @@ export interface IEventsTableProps {
   isLoading?: boolean;
   paginated?: boolean;
 }
+
+export interface IFairnessTableBodyProps {
+  rows: any[];
+  page: number;
+  rowsPerPage: number;
+  onShowDetails: (model: any) => void;
+  onRemoveModel: {
+    onConfirm: (id: number) => void;
+  };
+}

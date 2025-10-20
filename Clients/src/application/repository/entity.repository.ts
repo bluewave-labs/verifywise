@@ -114,9 +114,10 @@ export async function deleteEntityById({
  */
 export async function getAllEntities({
   routeUrl,
-}: RequestParams): Promise<any> {
+  params,
+}: RequestParams & { params?: Record<string, any> }): Promise<any> {
   try {
-    const response = await apiServices.get(routeUrl);
+    const response = await apiServices.get(routeUrl, { params });
     return response.data;
   } catch (error) {
     console.error("Error getting all users:", error);

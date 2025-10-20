@@ -3,5 +3,5 @@ export const styles = {
     position: "sticky",
     right: 0,
     minWidth: "50px",
-  }
-}
+  },
+};

@@ -25,9 +25,9 @@ import {
   paginationSelect,
 } from "../../styles";
 import TablePaginationActions from "../../../TablePagination";
-import { ITableProps } from "../../../../../domain/interfaces/i.table";
+import { IProjectRiskTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
-const LinkedRisksTableBody: React.FC<ITableProps> = ({
+const LinkedRisksTableBody: React.FC<IProjectRiskTableBodyProps> = ({
   rows,
   page,
   setCurrentPagingation,

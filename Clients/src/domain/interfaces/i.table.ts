@@ -1,6 +1,9 @@
+import { VendorDetails } from "../../application/hooks/useVendors";
 import { FileData } from "../types/File";
 import { ProjectRisk } from "../types/ProjectRisk";
+import { User } from "../types/User";
 import { IEvent } from "./i.event";
+import { ITask } from "./i.task";
 import { IUser } from "./iUser";
 
 export interface IAITrustCenterTableColumn {
@@ -118,7 +121,7 @@ export interface IFileTableProps {
   files: FileData[];
 }
 
-export interface ITableProps {
+export interface IProjectRiskTableBodyProps {
   rows: ProjectRisk[];
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
@@ -127,4 +130,72 @@ export interface ITableProps {
   setCheckedRows: (checkedRows: number[]) => void;
   deletedRisks: number[];
   setDeletedRisks: (deletedRisks: number[]) => void;
+}
+
+export interface ILinkedRisksTableProps {
+  projectRisksGroup: ProjectRisk[];
+  filteredRisksGroup: ProjectRisk[];
+  currentRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+  deletedRisks: number[];
+  setDeletedRisks: (deletedRisks: number[]) => void;
+}
+
+export interface ITableProps {
+  data: {
+    rows: any[];
+    cols: { id: string; name: string }[];
+  };
+  bodyData?: any[];
+  paginated?: boolean;
+  reversed?: boolean;
+  table?: string;
+  onRowClick?: (id: string) => void;
+  label?: string;
+  setSelectedRow: (row: any) => void;
+  setAnchorEl: (element: HTMLElement | null) => void;
+  renderRow?: (row: any) => React.ReactNode;
+}
+
+export interface IReportTableProps {
+  rows: any[];
+  onRemoveReport: (id: number) => void;
+  page: number;
+  rowsPerPage: number;
+}
+
+export interface IReportTablePropsExtended {
+  columns: any[];
+  rows: any[];
+  removeReport: (id: number) => void;
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+}
+
+export interface IRiskTableProps {
+  users: any;
+  vendors: VendorDetails[];
+  vendorRisks: any;
+  onDelete: (riskId: number) => void;
+  onEdit: (riskId: number) => void;
+  isDeletingAllowed?: boolean;
+}
+
+export interface ITasksTableProps {
+  tasks: ITask[];
+  users: User[];
+  onArchive: (taskId: number) => void;
+  onEdit: (task: ITask) => void;
+  onStatusChange: (taskId: number) => (newStatus: string) => Promise<boolean>;
+  statusOptions: string[];
+  isUpdateDisabled?: boolean;
+  onRowClick?: (task: ITask) => void;
+}
+
+export interface ITableWithPlaceholderProps {
+  vendors: VendorDetails[];
+  users: User[];
+  onDelete: (vendorId: number) => void;
+  onEdit: (vendorId: number) => void;
 }

@@ -24,11 +24,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
       direction="row"
       spacing={'8px'}
       sx={{
-        position: 'absolute',
-        top: 24,
-        right: 0,
-        zIndex: 10,
-        marginRight: '32px',
+        alignSelf: 'flex-end',
       }}
     >
       <Button
@@ -39,7 +35,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
           background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
           color: 'white',
           fontWeight: 500,
-          fontSize: '14px',
+          fontSize: '13px',
           height: '34px',
           minHeight: '34px',
           maxHeight: '34px',
@@ -64,7 +60,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
           background: 'linear-gradient(135deg, #FB923C 0%, #F97316 100%)',
           color: 'white',
           fontWeight: 500,
-          fontSize: '14px',
+          fontSize: '13px',
           height: '34px',
           minHeight: '34px',
           maxHeight: '34px',

@@ -1,6 +1,7 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { lazy, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Slack as SlackIcon, Plug } from "lucide-react";
 import { useAuth } from "../../../../application/hooks/useAuth";
 import { createSlackIntegration } from "../../../../application/repository/slack.integration.repository";
 import useSlackIntegrations, {
@@ -8,13 +9,23 @@ import useSlackIntegrations, {
 } from "../../../../application/hooks/useSlackIntegrations";
 import { ENV_VARs } from "../../../../../env.vars";
 import Alert from "../../../components/Alert";
-import { vwhomeHeading } from "../../Home/1.0Home/style";
+import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import allowedRoles from "../../../../application/constants/permissions";
-import singleTheme from "../../../themes/v1SingleTheme";
 
-const SlackIntegrations = lazy(() => import("./SlackIntegrations"));
+const SlackIntegrationsTable = lazy(() => import("./SlackIntegrationsTable"));
 
-const Slack = () => {
+/**
+ * Helper function to format error messages consistently
+ */
+const formatErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+};
+
+const SlackManagement = () => {
+  const navigate = useNavigate();
   const { userId, userRoleName } = useAuth();
   const {
     loading: loadingData,
@@ -25,6 +36,7 @@ const Slack = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [integrationData, setIntegrationData] = useState<SlackWebhook[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [redirectTimeout, setRedirectTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const [alert, setAlert] = useState<{
     variant: "success" | "info" | "warning" | "error";
@@ -44,7 +56,7 @@ const Slack = () => {
     if (slackIntegrations) {
       setIntegrationData(slackIntegrations);
     }
-  }, [slackIntegrations, refreshSlackIntegrations]);
+  }, [slackIntegrations]);
 
   const scopes = [
     "channels:read",
@@ -69,7 +81,8 @@ const Slack = () => {
     "mpim:read",
   ].join(",");
 
-  const url = `${ENV_VARs.SLACK_URL}?client_id=${ENV_VARs.CLIENT_ID}&scope=${scopes}&user_scope=${userScopes}&redirect_uri=${window.location.origin}/setting/?activeTab=slack`;
+  // Updated redirect URI to point to /integrations/slack
+  const url = `${ENV_VARs.SLACK_URL}?client_id=${ENV_VARs.CLIENT_ID}&scope=${scopes}&user_scope=${userScopes}&redirect_uri=${window.location.origin}/integrations/slack`;
 
   // Handle the callback when user returns from Slack
   useEffect(() => {
@@ -77,7 +90,7 @@ const Slack = () => {
     const error = searchParams.get("error");
 
     if (error) {
-      showAlert("error", "Error", `Slack authorization failed: ${error}`);
+      showAlert("error", "Error", `Slack authorization failed: ${formatErrorMessage(error)}`);
       removeUnusedParams();
       return;
     }
@@ -89,9 +102,9 @@ const Slack = () => {
 
   useEffect(() => {
     if (slackError) {
-      showAlert("error", "Error", `${slackError}`);
+      showAlert("error", "Error", formatErrorMessage(slackError));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- showAlert is a stable callback
   }, [slackError]);
 
   const exchangeCodeForTokens = async (code: string) => {
@@ -102,11 +115,18 @@ const Slack = () => {
       const body = { code, userId };
       await createSlackIntegration({ body });
       refreshSlackIntegrations();
+      showAlert("success", "Success", "Slack integration added successfully!");
+
+      // Redirect back to integrations page after 2 seconds to show the success message
+      const timeoutId = setTimeout(() => {
+        navigate('/integrations');
+      }, 2000);
+      setRedirectTimeout(timeoutId);
     } catch (error) {
       showAlert(
         "error",
         "Error",
-        `Failed to complete Slack integration: ${error}`,
+        `Failed to complete Slack integration: ${formatErrorMessage(error)}`,
       );
     } finally {
       // Clear URL parameters
@@ -114,6 +134,15 @@ const Slack = () => {
       setIsLoading(false);
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimeout) {
+        clearTimeout(redirectTimeout);
+      }
+    };
+  }, [redirectTimeout]);
 
   const removeUnusedParams = () => {
     searchParams.delete("code");
@@ -148,34 +177,54 @@ const Slack = () => {
 
   const isPermissionDenied = !allowedRoles.slack.view.includes(userRoleName);
 
+  const breadcrumbItems = [
+    {
+      label: "Integrations",
+      path: "/integrations",
+      icon: <Plug size={16} />,
+    },
+    {
+      label: "Slack",
+      icon: <SlackIcon size={16} />,
+    }
+  ];
+
   if (isPermissionDenied) {
     return (
-      <Typography sx={{ mt: 20 }} variant="h6" color="error">
-        You are not authorized to view this section.
-      </Typography>
+      <Box sx={{ p: 3 }}>
+        <PageBreadcrumbs items={breadcrumbItems} autoGenerate={false} />
+        <Typography sx={{ mt: 4 }} variant="h6" color="error">
+          You are not authorized to view this section.
+        </Typography>
+      </Box>
     );
   }
 
   if (isLoading || loadingData) {
     return (
-      <Box sx={{ mt: 20, display: "flex", alignItems: "center", gap: 2 }}>
-        <CircularProgress size={24} />
-        <Typography>Connecting to Slack...</Typography>
+      <Box sx={{ p: 3 }}>
+        <PageBreadcrumbs items={breadcrumbItems} autoGenerate={false} />
+        <Box sx={{ mt: 4, display: "flex", alignItems: "center", gap: 2 }}>
+          <CircularProgress size={24} />
+          <Typography>Connecting to Slack...</Typography>
+        </Box>
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        mt: 20,
-      }}
-    >
-      <Typography sx={vwhomeHeading}>Slack Integration</Typography>
-      <Typography sx={singleTheme.textStyles.pageDescription}>
-        Connect your Slack workspace and route VerifyWise notifications to
-        specific channels.
-      </Typography>
+    <Box sx={{ p: 3 }}>
+      <PageBreadcrumbs items={breadcrumbItems} autoGenerate={false} />
+
+      {/* Header */}
+      <Box sx={{ mb: 3, mt: 2 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600, mb: 1, fontSize: '15px' }}>
+          Slack Integration
+        </Typography>
+        <Typography variant="body1" sx={{ fontSize: '13px' }} color="text.secondary">
+          Connect your Slack workspace and route VerifyWise notifications to specific channels.
+        </Typography>
+      </Box>
 
       {alert.visible && (
         <Alert
@@ -187,7 +236,7 @@ const Slack = () => {
         />
       )}
 
-      <SlackIntegrations
+      <SlackIntegrationsTable
         integrationData={integrationData}
         showAlert={showAlert}
         refreshSlackIntegrations={refreshSlackIntegrations}
@@ -197,4 +246,4 @@ const Slack = () => {
   );
 };
 
-export default Slack;
+export default SlackManagement;

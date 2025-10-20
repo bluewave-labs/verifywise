@@ -168,7 +168,7 @@ const other: MenuItem[] = [
   {
     name: "Settings",
     icon: <Settings size={16} strokeWidth={1.5} />,
-    path: "/setting",
+    path: "/settings",
   },
 ];
 

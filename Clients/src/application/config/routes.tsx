@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import Dashboard from "../../presentation/containers/Dashboard";
 import Home from "../../presentation/pages/Home";
 import Vendors from "../../presentation/pages/Vendors";
@@ -53,7 +53,8 @@ export const createRoutes = (
     />
     <Route path="/vendors" element={<Vendors />} />
     <Route path="/integrations" element={<Integrations />} />
-    <Route path="/setting" element={<Setting />} />
+    <Route path="/settings" element={<Setting />} />
+    <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
     <Route path="/test/project-view" element={<ProjectView />} />
     <Route path="/file-manager" element={<FileManager />} />

@@ -1359,7 +1359,7 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Users"
           value={usersMetrics?.total || 0}
-          onClick={() => navigate("/setting")}
+          onClick={() => navigate("/settings")}
           navigable={true}
           backgroundIcon={Users}
         />

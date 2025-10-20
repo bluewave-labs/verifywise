@@ -101,7 +101,7 @@ const FileManager: React.FC = (): JSX.Element => {
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
-        title="Evidences & documents"
+        title="Evidence & documents"
         description="Centralize compliance documentation and audit evidence management"
         whatItDoes="Store and organize all *governance documentation*, *audit evidence*, and *compliance artifacts*. View file details, filter by project, and download individual files."
         whyItMatters="**Evidence management** is critical for demonstrating *compliance* during *audits* and *regulatory reviews*. It provides a centralized view of all uploaded documents and their sources."
@@ -186,7 +186,7 @@ const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
   onHelperClick,
 }) => (
   <PageHeader
-    title="Evidences & documents"
+    title="Evidence & documents"
     description="This table lists all the files uploaded to the system."
     rightContent={
       onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />

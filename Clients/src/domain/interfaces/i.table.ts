@@ -138,3 +138,19 @@ export interface ILinkedRisksTableProps {
   deletedRisks: number[];
   setDeletedRisks: (deletedRisks: number[]) => void;
 }
+
+export interface ITableProps {
+  data: {
+    rows: any[];
+    cols: { id: string; name: string }[];
+  };
+  bodyData: any[];
+  paginated?: boolean;
+  reversed?: boolean;
+  table: string;
+  onRowClick?: (id: string) => void;
+  label?: string;
+  setSelectedRow: (row: any) => void;
+  setAnchorEl: (element: HTMLElement | null) => void;
+  renderRow?: (row: any) => React.ReactNode; // ✅ NEW
+}

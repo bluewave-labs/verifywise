@@ -44,6 +44,17 @@ const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
           <>
             {filteredRisksGroup.length > 0 ? (
               <LinkedRisksTableBody
+                data={{
+                  rows: filteredRisksGroup,
+                  cols: TITLE_OF_COLUMNS.map((column) => ({
+                    id: column,
+                    name: column,
+                  })),
+                }}
+                bodyData={filteredRisksGroup}
+                table="linked-risks-table"
+                setSelectedRow={() => {}}
+                setAnchorEl={() => {}}
                 rows={filteredRisksGroup}
                 setCurrentPagingation={setCurrentPagingation}
                 page={currentPage}

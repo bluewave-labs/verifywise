@@ -128,3 +128,13 @@ export interface ITableProps {
   deletedRisks: number[];
   setDeletedRisks: (deletedRisks: number[]) => void;
 }
+
+export interface ILinkedRisksTableProps {
+  projectRisksGroup: ProjectRisk[];
+  filteredRisksGroup: ProjectRisk[];
+  currentRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+  deletedRisks: number[];
+  setDeletedRisks: (deletedRisks: number[]) => void;
+}

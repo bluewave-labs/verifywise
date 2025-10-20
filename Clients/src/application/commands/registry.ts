@@ -164,7 +164,7 @@ const NAVIGATION_COMMANDS: Command[] = [
     keywords: ['settings', 'config', 'preferences'],
     group: COMMAND_GROUPS[0],
     icon: Settings,
-    action: { type: 'navigate', payload: '/setting' }
+    action: { type: 'navigate', payload: '/settings' }
   }
 ]
 

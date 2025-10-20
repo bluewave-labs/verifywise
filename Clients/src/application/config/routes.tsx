@@ -54,6 +54,7 @@ export const createRoutes = (
     />
     <Route path="/vendors" element={<Vendors />} />
     <Route path="/integrations" element={<Integrations />} />
+    <Route path="/settings" element={<Setting />} />
     <Route path="/integrations/slack" element={<SlackManagement />} />
     <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />

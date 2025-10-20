@@ -21,29 +21,15 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
+import { IFileBasicTableProps } from "../../../../domain/interfaces/i.table";
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-interface Column {
-  id: number;
-  name: keyof FileData | string;
-  sx?: object;
-}
-
-interface FileBasicTableProps {
-  data: {
-    rows: any[];
-    cols: Column[];
-  };
-  bodyData: FileData[];
-  paginated?: boolean;
-  table: string;
-}
 const navigteToNewTab = (url: string) => {
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
-const FileBasicTable: React.FC<FileBasicTableProps> = ({
+const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   data,
   bodyData,
   paginated = false,

@@ -7,22 +7,11 @@ import {
 } from "lucide-react";
 import EmptyState from "../../EmptyState";
 import { FileData } from "../../../../domain/types/File";
+import { IFileTableProps } from "../../../../domain/interfaces/i.table";
 
 type SortDirection = "asc" | "desc" | null;
 
-/**
- * Represents the props of the FileTable component.
- * @typedef {Object} FileTableProps
- * @property {Array} cols - The columns of the table.
- * @property {Array<FileData>} files - The list of files.
- * @property {Function} onRowClick - Callback to handle row selection.
- */
-interface FileTableProps {
-  cols: any[];
-  files: FileData[];
-}
-
-const FileTable: React.FC<FileTableProps> = ({ cols, files }) => {
+const FileTable: React.FC<IFileTableProps> = ({ cols, files }) => {
   const [sortField, setSortField] = useState<keyof FileData | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 

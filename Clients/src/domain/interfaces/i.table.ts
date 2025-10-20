@@ -101,3 +101,13 @@ export interface IColumn {
   name: keyof FileData | string;
   sx?: object;
 }
+
+export interface IFileBasicTableProps {
+  data: {
+    rows: any[];
+    cols: IColumn[];
+  };
+  bodyData: FileData[];
+  paginated?: boolean;
+  table: string;
+}

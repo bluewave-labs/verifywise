@@ -192,3 +192,10 @@ export interface ITasksTableProps {
   isUpdateDisabled?: boolean;
   onRowClick?: (task: ITask) => void;
 }
+
+export interface ITableWithPlaceholderProps {
+  vendors: VendorDetails[];
+  users: User[];
+  onDelete: (vendorId: number) => void;
+  onEdit: (vendorId: number) => void;
+}

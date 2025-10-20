@@ -1,4 +1,4 @@
-import {useState, useMemo, useCallback, lazy, Suspense} from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from "react";
 import {
   Table,
   TableBody,
@@ -8,37 +8,50 @@ import {
   TableRow,
   Typography,
   useTheme,
-  TableFooter
+  TableFooter,
 } from "@mui/material";
-import singleTheme from '../../../themes/v1SingleTheme';
+import singleTheme from "../../../themes/v1SingleTheme";
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import { ChevronsUpDown } from "lucide-react";
-import TablePaginationActions from '../../TablePagination';
-import TableHeader from '../TableHead';
-const ReportTableBody = lazy(() => import("./TableBody"))
-import {styles, tableWrapper, emptyData, pagniationStatus, paginationStyle, paginationDropdown, paginationSelect} from './styles'
-import { getPaginationRowCount, setPaginationRowCount } from '../../../../application/utils/paginationStorage';
+import TablePaginationActions from "../../TablePagination";
+import TableHeader from "../TableHead";
+const ReportTableBody = lazy(() => import("./TableBody"));
+import {
+  styles,
+  tableWrapper,
+  emptyData,
+  pagniationStatus,
+  paginationStyle,
+  paginationDropdown,
+  paginationSelect,
+} from "./styles";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../../application/utils/paginationStorage";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 interface ReportTableProps {
   columns: any[];
   rows: any[];
   removeReport: (id: number) => void;
-  page: number,
+  page: number;
   setCurrentPagingation: (pageNo: number) => void;
 }
 
 const ReportTable: React.FC<ReportTableProps> = ({
-    columns,
-    rows,
-    removeReport,
-    page,
-    setCurrentPagingation
-  }) => {
+  columns,
+  rows,
+  removeReport,
+  page,
+  setCurrentPagingation,
+}) => {
   const theme = useTheme();
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('reporting', 10)
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("reporting", 10)
   );
 
   const getRange = useMemo(() => {
@@ -47,15 +60,18 @@ const ReportTable: React.FC<ReportTableProps> = ({
     return `${start} - ${end}`;
   }, [page, rowsPerPage, rows?.length ?? 0]);
 
-  const handleChangePage = useCallback((_: unknown, newPage: number) => {
-    setCurrentPagingation(newPage);
-  }, [setCurrentPagingation]);
+  const handleChangePage = useCallback(
+    (_: unknown, newPage: number) => {
+      setCurrentPagingation(newPage);
+    },
+    [setCurrentPagingation]
+  );
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('reporting', newRowsPerPage);
+      setPaginationRowCount("reporting", newRowsPerPage);
       setCurrentPagingation(0);
     },
     [setRowsPerPage, setCurrentPagingation]
@@ -68,24 +84,27 @@ const ReportTable: React.FC<ReportTableProps> = ({
           <Table
             sx={{
               ...singleTheme.tableStyles.primary.frame,
-              ...tableWrapper
+              ...tableWrapper,
             }}
           >
             <TableHeader columns={columns} />
-            {rows.length !== 0 ? 
+            {rows.length !== 0 ? (
               <>
-                <ReportTableBody 
-                  rows={rows} 
+                <ReportTableBody
+                  rows={rows}
                   onRemoveReport={removeReport}
                   page={page}
-                  rowsPerPage={rowsPerPage} 
-                /> 
+                  rowsPerPage={rowsPerPage}
+                />
                 <TableFooter>
-                  <TableRow sx={{
-                    '& .MuiTableCell-root.MuiTableCell-footer': {
-                      paddingX: theme.spacing(8),
-                      paddingY: theme.spacing(4),
-                    }}}>
+                  <TableRow
+                    sx={{
+                      "& .MuiTableCell-root.MuiTableCell-footer": {
+                        paddingX: theme.spacing(8),
+                        paddingY: theme.spacing(4),
+                      },
+                    }}
+                  >
                     <TableCell sx={pagniationStatus}>
                       Showing {getRange} of {rows?.length} project report(s)
                     </TableCell>
@@ -96,10 +115,15 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       rowsPerPage={rowsPerPage}
                       rowsPerPageOptions={[5, 10, 15, 20, 25]}
                       onRowsPerPageChange={handleChangeRowsPerPage}
-                      ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                      ActionsComponent={(props) => (
+                        <TablePaginationActions {...props} />
+                      )}
                       labelRowsPerPage="Reports per page"
                       labelDisplayedRows={({ page, count }) =>
-                        `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+                        `Page ${page + 1} of ${Math.max(
+                          0,
+                          Math.ceil(count / rowsPerPage)
+                        )}`
                       }
                       sx={paginationStyle}
                       slotProps={{
@@ -110,8 +134,14 @@ const ReportTable: React.FC<ReportTableProps> = ({
                               className: "pagination-dropdown",
                               sx: paginationDropdown,
                             },
-                            transformOrigin: { vertical: "bottom", horizontal: "left" },
-                            anchorOrigin: { vertical: "top", horizontal: "left" },
+                            transformOrigin: {
+                              vertical: "bottom",
+                              horizontal: "left",
+                            },
+                            anchorOrigin: {
+                              vertical: "top",
+                              horizontal: "left",
+                            },
                             sx: { mt: theme.spacing(-2) },
                           },
                           inputProps: { id: "pagination-dropdown" },
@@ -123,7 +153,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   </TableRow>
                 </TableFooter>
               </>
-            : (
+            ) : (
               <>
                 <TableBody>
                   <TableRow>
@@ -145,7 +175,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
         </Suspense>
       </TableContainer>
     </>
-  )
-}
+  );
+};
 
-export default ReportTable
+export default ReportTable;

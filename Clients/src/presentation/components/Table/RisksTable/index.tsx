@@ -23,7 +23,9 @@ import RiskChip from "../../RiskLevel/RiskChip";
 import { VendorDetails } from "../../../pages/Vendors";
 import { VendorRisk } from "../../../../domain/types/VendorRisk";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 const titleOfTableColumns = [
   "risk description",
@@ -185,21 +187,29 @@ const RiskTable: React.FC<RiskTableProps> = ({
                   {(() => {
                     // Check if project_titles is empty or contains only empty strings
                     const projectTitles = row.project_titles as string;
-                    if (!projectTitles || projectTitles.trim() === '' || projectTitles === 'null') {
+                    if (
+                      !projectTitles ||
+                      projectTitles.trim() === "" ||
+                      projectTitles === "null"
+                    ) {
                       return (
-                        <span style={{ color: "#888", fontStyle: "normal" }}>-</span>
+                        <span style={{ color: "#888", fontStyle: "normal" }}>
+                          -
+                        </span>
                       );
                     }
 
                     const projects = projectTitles
                       .split(",")
                       .map((p) => p.trim())
-                      .filter((p) => p !== '' && p !== 'null'); // Filter out empty strings and 'null'
+                      .filter((p) => p !== "" && p !== "null"); // Filter out empty strings and 'null'
 
                     // If no valid projects after filtering, show dash
                     if (projects.length === 0) {
                       return (
-                        <span style={{ color: "#888", fontStyle: "normal" }}>-</span>
+                        <span style={{ color: "#888", fontStyle: "normal" }}>
+                          -
+                        </span>
                       );
                     }
 

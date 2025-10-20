@@ -24,7 +24,11 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
       direction="row"
       spacing={'8px'}
       sx={{
-        alignSelf: 'flex-end',
+        position: 'absolute',
+        top: 24,
+        right: 0,
+        zIndex: 1,
+        marginRight: '32px',
       }}
     >
       <Button

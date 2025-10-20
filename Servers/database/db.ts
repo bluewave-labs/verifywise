@@ -67,6 +67,7 @@ import { AutomationModel } from "../domain.layer/models/automation/automation.mo
 import { AutomationActionModel } from "../domain.layer/models/automationAction/automationAction.model";
 import { AutomationTriggerModel } from "../domain.layer/models/automationTrigger/automationTrigger.model";
 import { AutomationTriggerActionModel } from "../domain.layer/models/automationTriggerAction/automationTriggerAction.model";
+import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
 
 dotenv.config();
 
@@ -142,7 +143,8 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     AutomationModel,
     AutomationActionModel,
     AutomationTriggerModel,
-    AutomationTriggerActionModel
+    AutomationTriggerActionModel,
+    AIIncidentManagementModel,
   ],
 }) as Sequelize;
 

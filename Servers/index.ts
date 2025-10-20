@@ -46,6 +46,7 @@ import YAML from "yamljs";
 import { parseOrigins, testOrigin } from "./utils/parseOrigins.utils";
 import { frontEndUrl } from "./config/constants";
 import { addAllJobs } from "./jobs/producer";
+import aiIncidentRouter from "./routes/aiIncidentManagement.route";
 
 const swaggerDoc = YAML.load("./swagger.yaml");
 
@@ -137,6 +138,7 @@ try {
   (async () => {
     await addAllJobs();
   })();
+  app.use("/api/ai-incident-managements", aiIncidentRouter);
 
   app.listen(port, () => {
     console.log(`Server running on port http://${host}:${port}/`);

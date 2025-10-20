@@ -2,9 +2,9 @@
  * Integration status enum
  */
 export enum IntegrationStatus {
-  DISCONNECTED = 'disconnected',
-  CONNECTING = 'connecting',
-  CONNECTED = 'connected',
+  NOT_CONFIGURED = 'not configured',
+  CONFIGURING = 'configuring',
+  CONFIGURED = 'configured',
   ERROR = 'error',
 }
 

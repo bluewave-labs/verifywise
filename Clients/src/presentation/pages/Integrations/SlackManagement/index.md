@@ -7,9 +7,9 @@ This module manages the integration between VerifyWise and Slack workspaces, ena
 The Slack integration follows a modular architecture with clear separation of concerns:
 
 ```
-Slack/
+SlackManagement/
 ├── index.tsx                      # Main component, OAuth flow handler
-├── SlackIntegrations.tsx          # Integration list and management UI
+├── SlackIntegrationsTable.tsx    # Integration list and management UI
 ├── NotificationRoutingModal.tsx   # Notification type to channel mapping
 └── constants.ts                   # Notification type definitions
 ```
@@ -27,7 +27,7 @@ Slack/
 
 ## Components
 
-### Slack (index.tsx)
+### SlackManagement (index.tsx)
 
 The main entry point component that orchestrates the entire Slack integration flow.
 
@@ -38,7 +38,7 @@ The main entry point component that orchestrates the entire Slack integration fl
 - Displays loading states during authentication
 - Manages alert notifications with auto-hide
 - Enforces role-based permissions
-- Lazy loads SlackIntegrations component for performance
+- Lazy loads SlackIntegrationsTable component for performance
 
 **OAuth Scopes:**
 
@@ -79,12 +79,12 @@ Requires user role to be in `allowedRoles.slack.view` array.
 **Usage:**
 
 ```tsx
-<Slack />
+<SlackManagement />
 ```
 
 ---
 
-### SlackIntegrations
+### SlackIntegrationsTable
 
 Displays and manages a paginated table of all active Slack workspace integrations.
 
@@ -124,7 +124,7 @@ Displays and manages a paginated table of all active Slack workspace integration
 **Usage:**
 
 ```tsx
-<SlackIntegrations
+<SlackIntegrationsTable
   integrationData={integrations}
   showAlert={showAlert}
   refreshSlackIntegrations={refresh}

@@ -5,11 +5,9 @@ import ProgressBar from "../../ProjectCard/ProgressBar";
 import {
   progressStyle,
   projectCardSpecKeyStyle,
-  projectCardSpecsStyle,
   projectCardSpecValueyStyle,
   projectCardStyle,
   projectCardTitleStyle,
-  viewProjectButtonStyle,
   euAiActChipStyle,
   iso42001ChipStyle,
 } from "./style";

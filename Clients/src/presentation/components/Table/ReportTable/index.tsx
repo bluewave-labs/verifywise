@@ -29,20 +29,13 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
+import { IReportTablePropsExtended } from "../../../../domain/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
 );
 
-interface ReportTableProps {
-  columns: any[];
-  rows: any[];
-  removeReport: (id: number) => void;
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-}
-
-const ReportTable: React.FC<ReportTableProps> = ({
+const ReportTable: React.FC<IReportTablePropsExtended> = ({
   columns,
   rows,
   removeReport,

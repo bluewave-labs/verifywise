@@ -25,10 +25,9 @@ const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
 );
 import VendorRisksDialog from "../../VendorRisksDialog";
-import { VendorDetails } from "../../../pages/Vendors";
-import { User } from "../../../../domain/types/User";
 import allowedRoles from "../../../../application/constants/permissions";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { ITableWithPlaceholderProps } from "../../../../domain/interfaces/i.table";
 
 const titleOfTableColumns = [
   "name",
@@ -39,14 +38,7 @@ const titleOfTableColumns = [
   "",
 ];
 
-interface TableWithPlaceholderProps {
-  vendors: VendorDetails[];
-  users: User[];
-  onDelete: (vendorId: number) => void;
-  onEdit: (vendorId: number) => void;
-}
-
-const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
+const TableWithPlaceholder: React.FC<ITableWithPlaceholderProps> = ({
   users,
   vendors,
   onDelete,

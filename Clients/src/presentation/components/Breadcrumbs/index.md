@@ -242,7 +242,7 @@ export const routeMapping: Record<string, string> = {
   "/": "Dashboard",
   "/project-view": "Project Overview",
   "/vendors": "Vendor Management",
-  "/setting": "Settings",
+  "/settings": "Settings",
   // ... more mappings
 };
 ```

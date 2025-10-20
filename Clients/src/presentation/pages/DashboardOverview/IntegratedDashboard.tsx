@@ -50,6 +50,7 @@ import WidgetErrorBoundary from "../../components/Dashboard/WidgetErrorBoundary"
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { IStatusData } from "../../../domain/interfaces/i.chart";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -1358,7 +1359,7 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Users"
           value={usersMetrics?.total || 0}
-          onClick={() => navigate("/setting")}
+          onClick={() => navigate("/settings")}
           navigable={true}
           backgroundIcon={Users}
         />
@@ -1458,7 +1459,9 @@ const IntegratedDashboard: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, minHeight: "100vh" }}>
+    <Box sx={{ p: 3 }}>
+      <PageBreadcrumbs />
+
       {/* Password notification */}
       {showPasswordNotification && (
         <Suspense fallback={<div>Loading...</div>}>

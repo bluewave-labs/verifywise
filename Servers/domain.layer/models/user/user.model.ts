@@ -115,6 +115,12 @@ export class UserModel extends Model<UserModel> {
   })
   organization_id?: number;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  profile_photo_id?: number;
+
   /**
    * Creates a new user with validation and password hashing
    *

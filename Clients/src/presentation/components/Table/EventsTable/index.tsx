@@ -22,6 +22,7 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
+import { IEventsTableProps } from "../../../../domain/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -34,13 +35,6 @@ const TABLE_COLUMNS = [
   { id: "user_id", label: "USER (ID)" },
   { id: "timestamp", label: "TIMESTAMP" },
 ];
-
-interface EventsTableProps {
-  data: Event[];
-  users?: User[];
-  isLoading?: boolean;
-  paginated?: boolean;
-}
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
@@ -78,7 +72,7 @@ const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
   );
 };
 
-const EventsTable: React.FC<EventsTableProps> = ({
+const EventsTable: React.FC<IEventsTableProps> = ({
   data,
   users = [],
   isLoading,

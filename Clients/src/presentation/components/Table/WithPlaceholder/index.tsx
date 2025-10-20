@@ -21,7 +21,9 @@ import { formatDate } from "../../../tools/isoDateToString";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 import VendorRisksDialog from "../../VendorRisksDialog";
 import { VendorDetails } from "../../../pages/Vendors";
 import { User } from "../../../../domain/types/User";
@@ -58,15 +60,18 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
     null
   );
   const [showVendorRisks, setShowVendorRisks] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState<{ id: number; name: string } | null>(null);
-  const formattedUsers = users?.map((user:any) => ({
+  const [selectedVendor, setSelectedVendor] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
   }));
 
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
-  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName)
+  const isDeletingAllowed = allowedRoles.vendors.delete.includes(userRoleName);
 
   const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
@@ -84,10 +89,13 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
     setDropdownAnchor(null);
   }, []);
 
-  const openVendorRisksDialog = useCallback((vendorId: number, vendorName: string) => {
-    setSelectedVendor({ id: vendorId, name: vendorName });
-    setShowVendorRisks(true);
-  }, []);
+  const openVendorRisksDialog = useCallback(
+    (vendorId: number, vendorName: string) => {
+      setSelectedVendor({ id: vendorId, name: vendorName });
+      setShowVendorRisks(true);
+    },
+    []
+  );
 
   const closeVendorRisksDialog = useCallback(() => {
     setShowVendorRisks(false);
@@ -118,12 +126,12 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 ...singleTheme.tableStyles.primary.header.cell,
                 ...(index === titleOfTableColumns.length - 1
                   ? {
-                    position: "sticky",
-                    right: 0,
-                    zIndex: 10,
-                    backgroundColor:
-                      singleTheme.tableStyles.primary.header.backgroundColors,
-                  }
+                      position: "sticky",
+                      right: 0,
+                      zIndex: 10,
+                      backgroundColor:
+                        singleTheme.tableStyles.primary.header.backgroundColors,
+                    }
                   : {}),
               }}
               key={index}
@@ -148,15 +156,15 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                 key={index}
                 sx={{
                   ...singleTheme.tableStyles.primary.body.row,
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5',
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
                   },
-                  outline: 'none',
+                  outline: "none",
                 }}
                 onClick={() => onEdit(row.id)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     onEdit(row.id);
                   }
@@ -169,13 +177,11 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                   {row.vendor_name}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {
-                    row.assignee
-                      ? formattedUsers?.find(
-                          (user:any) => user._id === row.assignee
-                        )?.name || "Unassigned"
-                      : "Unassigned"
-                  }
+                  {row.assignee
+                    ? formattedUsers?.find(
+                        (user: any) => user._id === row.assignee
+                      )?.name || "Unassigned"
+                    : "Unassigned"}
                 </TableCell>
                 <TableCell sx={cellStyle}>{row.review_status}</TableCell>
                 <TableCell sx={cellStyle}>
@@ -205,17 +211,16 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
                     zIndex: 10,
                   }}
                 >
-                    <IconButton
-                      id={row.id}
-                      onDelete={() => onDelete(row.id)}
-                      onEdit={() => onEdit(row.id)}
-                      onMouseEvent={() => { }}
-                      warningTitle="Delete this vendor?"
-                      warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
-                      type="Vendor"
-                      canDelete={isDeletingAllowed} // pass down as a prop
+                  <IconButton
+                    id={row.id}
+                    onDelete={() => onDelete(row.id)}
+                    onEdit={() => onEdit(row.id)}
+                    onMouseEvent={() => {}}
+                    warningTitle="Delete this vendor?"
+                    warningMessage="When you delete this vendor, all data related to this vendor will be removed. This action is non-recoverable."
+                    type="Vendor"
+                    canDelete={isDeletingAllowed} // pass down as a prop
                   />
-
                 </TableCell>
               </TableRow>
             ))}
@@ -258,25 +263,25 @@ const TableWithPlaceholder: React.FC<TableWithPlaceholderProps> = ({
         </Stack>
       ) : (
         <TableContainer>
-          <Table
-            sx={
-              singleTheme.tableStyles.primary.frame
-            }
-          >
+          <Table sx={singleTheme.tableStyles.primary.frame}>
             {tableHeader}
             {tableBody}
             <TableFooter>
-              <TableRow sx={{
-                  '& .MuiTableCell-root.MuiTableCell-footer': {
+              <TableRow
+                sx={{
+                  "& .MuiTableCell-root.MuiTableCell-footer": {
                     paddingX: theme.spacing(8),
                     paddingY: theme.spacing(4),
-                  }}}>
+                  },
+                }}
+              >
                 <TableCell
-                  sx={{ 
+                  sx={{
                     paddingX: theme.spacing(2),
                     fontSize: 12,
-                    opacity: 0.7 }}
-                  >
+                    opacity: 0.7,
+                  }}
+                >
                   Showing {getRange} of {vendors?.length} vendor(s)
                 </TableCell>
                 <TablePagination

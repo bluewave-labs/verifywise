@@ -10,24 +10,14 @@ import React, { useState } from "react";
 import singleTheme from "../../../themes/v1SingleTheme";
 import TableHeader from "../TableHead";
 import { TITLE_OF_COLUMNS } from "../../LinkedRisks/constants";
-import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
 
 import LinkedRisksTableBody from "./TableBody";
 
 import { tableWrapper, emptyData, styles } from "../styles";
+import { ILinkedRisksTableProps } from "../../../../domain/interfaces/i.table";
 
-interface LinkedRisksTableProps {
-  projectRisksGroup: ProjectRisk[];
-  filteredRisksGroup: ProjectRisk[];
-  currentRisks: number[];
-  checkedRows: number[];
-  setCheckedRows: (checkedRows: number[]) => void;
-  deletedRisks: number[];
-  setDeletedRisks: (deletedRisks: number[]) => void;
-}
-
-const LinkedRisksTable: React.FC<LinkedRisksTableProps> = ({
+const LinkedRisksTable: React.FC<ILinkedRisksTableProps> = ({
   projectRisksGroup,
   filteredRisksGroup,
   currentRisks,

@@ -23,6 +23,7 @@ import {
   emptyData,
 } from "./styles";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { IFairnessTableProps } from "../../../../domain/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -30,18 +31,7 @@ const SelectorVertical = (props: any) => (
 
 const FairnessTableBody = lazy(() => import("./TableBody"));
 
-interface FairnessTableProps {
-  columns: any[];
-  rows: any[];
-  removeModel: {
-    onConfirm: (id: number) => void; // actually deletes
-  };
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  onShowDetails: (model: any) => void;
-}
-
-const FairnessTable: React.FC<FairnessTableProps> = ({
+const FairnessTable: React.FC<IFairnessTableProps> = ({
   columns,
   rows,
   removeModel,

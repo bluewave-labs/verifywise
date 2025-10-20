@@ -1,3 +1,4 @@
+import { FileData } from "../types/File";
 import { IEvent } from "./i.event";
 import { IUser } from "./iUser";
 
@@ -94,4 +95,9 @@ export interface IFairnessTableProps {
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   onShowDetails: (model: any) => void;
+}
+export interface IColumn {
+  id: number;
+  name: keyof FileData | string;
+  sx?: object;
 }

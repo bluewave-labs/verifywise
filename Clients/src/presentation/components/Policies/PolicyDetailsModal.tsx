@@ -438,6 +438,7 @@ const PolicyDetailModal: React.FC<Props> = ({
             borderRadius: 0,
             padding: "15px 20px",
             marginTop: "0",
+            overflow: "hidden",
           },
         }}
       >
@@ -463,7 +464,7 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={2} sx={{ marginBottom: "80px" }}>
+        <Stack spacing={2} sx={{ paddingBottom: "16px" }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -517,8 +518,7 @@ const PolicyDetailModal: React.FC<Props> = ({
             >
               <PlateContent
                 style={{
-                  height: "calc(100vh - 280px)", // Dynamic height: viewport minus header, form, toolbar, and save button area
-                  minHeight: "300px", // Minimum height for usability
+                  height: "calc(100vh - 310px)",
                   overflowY: "auto",
                   padding: "16px",
                   border: "1px solid #E0E0E0",
@@ -553,14 +553,17 @@ const PolicyDetailModal: React.FC<Props> = ({
         <Box
           sx={{
             position: "fixed",
-            bottom: 16,
-            right: 20,                      // match drawer padding
-            width: 430,                     // half of content width (860/2) to align with right column
-            p: 1,
-            backgroundColor: "#fff",        // give it a background to overlap content
+            bottom: 0,
+            right: 20,
+            left: "auto",
+            width: "calc(900px - 40px)",
+            pt: 2,
+            pb: "16px",
+            px: 2,
+            backgroundColor: "#fff",
             display: "flex",
             justifyContent: "flex-end",
-            zIndex: 1201,                   // above Drawer content
+            zIndex: 1201,
           }}
         >
           <CustomizableButton

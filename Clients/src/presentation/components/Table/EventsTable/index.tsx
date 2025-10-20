@@ -18,9 +18,14 @@ import Placeholder from "../../../assets/imgs/empty-state.svg";
 import { formatDateTime } from "../../../tools/isoDateToString";
 import { Event } from "../../../../domain/types/Event";
 import { User } from "../../../../domain/types/User";
-import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../../application/utils/paginationStorage";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 const TABLE_COLUMNS = [
   { id: "id", label: "ID" },
@@ -50,7 +55,10 @@ const EventTypeBadge: React.FC<{ eventType: Event["event_type"] }> = ({
     Error: { bg: "#FFE5D0", color: "#E64A19" },
   };
 
-  const style = eventTypeStyles[eventType] || { bg: "#E0E0E0", color: "#424242" };
+  const style = eventTypeStyles[eventType] || {
+    bg: "#E0E0E0",
+    color: "#424242",
+  };
 
   return (
     <span
@@ -78,8 +86,8 @@ const EventsTable: React.FC<EventsTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('eventTracker', DEFAULT_ROWS_PER_PAGE)
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("eventTracker", DEFAULT_ROWS_PER_PAGE)
   );
 
   // Format users data like other tables do
@@ -98,12 +106,11 @@ const EventsTable: React.FC<EventsTableProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('eventTracker', newRowsPerPage);
+      setPaginationRowCount("eventTracker", newRowsPerPage);
       setPage(0);
     },
     []
   );
-
 
   const tableHeader = useMemo(
     () => (
@@ -280,7 +287,9 @@ const EventsTable: React.FC<EventsTableProps> = ({
                 rowsPerPage={rowsPerPage}
                 rowsPerPageOptions={[5, 10, 15, 25]}
                 onRowsPerPageChange={handleChangeRowsPerPage}
-                ActionsComponent={(props) => <TablePaginationActions {...props} />}
+                ActionsComponent={(props) => (
+                  <TablePaginationActions {...props} />
+                )}
                 labelRowsPerPage="Rows per page"
                 labelDisplayedRows={({ page, count }) =>
                   `Page ${page + 1} of ${Math.max(

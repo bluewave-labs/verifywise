@@ -17,7 +17,10 @@ import IconButton from "../../IconButton";
 import { ExternalLink as LinkExternalIcon } from "lucide-react";
 import { handleDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
-import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../../application/utils/paginationStorage";
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
@@ -48,8 +51,8 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('evidences', DEFAULT_ROWS_PER_PAGE)
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("evidences", DEFAULT_ROWS_PER_PAGE)
   );
 
   useEffect(() => setPage(0), [data]);
@@ -62,15 +65,15 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('evidences', newRowsPerPage);
+      setPaginationRowCount("evidences", newRowsPerPage);
       setPage(0);
     },
-    [],
+    []
   );
 
   const paginatedRows = bodyData.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
   const handleRowClick = (item: FileData, event: React.MouseEvent) => {
@@ -78,32 +81,32 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
     switch (item.source) {
       case "Assessment tracker group":
         navigteToNewTab(
-          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&topicId=${item.parentId}&questionId=${item.metaId}`,
+          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&topicId=${item.parentId}&questionId=${item.metaId}`
         );
         break;
       case "Compliance tracker group":
         navigteToNewTab(
-          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`,
+          `/project-view?projectId=${item.projectId}&tab=frameworks&framework=eu-ai-act&controlId=${item.parentId}&subControlId=${item.metaId}&isEvidence=${item.isEvidence}`
         );
         break;
       case "Management system clauses group":
         navigteToNewTab(
-          `/framework?frameworkName=iso-42001&clauseId=${item.parentId}&subClauseId=${item.metaId}`,
+          `/framework?frameworkName=iso-42001&clauseId=${item.parentId}&subClauseId=${item.metaId}`
         );
         break;
       case "Main clauses group":
         navigteToNewTab(
-          `/framework?frameworkName=iso-27001&clause27001Id=${item.parentId}&subClause27001Id=${item.metaId}`,
+          `/framework?frameworkName=iso-27001&clause27001Id=${item.parentId}&subClause27001Id=${item.metaId}`
         );
         break;
       case "Reference controls group":
         navigteToNewTab(
-          `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexCategoryId=${item.metaId}`,
+          `/framework?frameworkName=iso-42001&annexId=${item.parentId}&annexCategoryId=${item.metaId}`
         );
         break;
       case "Annex controls group":
         navigteToNewTab(
-          `/framework?frameworkName=iso-27001&annex27001Id=${item.parentId}&annexControl27001Id=${item.metaId}`,
+          `/framework?frameworkName=iso-27001&annex27001Id=${item.parentId}&annexControl27001Id=${item.metaId}`
         );
         break;
       default:
@@ -156,7 +159,7 @@ const FileBasicTable: React.FC<FileBasicTableProps> = ({
                       alignItems: "flex-end",
                       gap: "4px",
                       textDecoration: "underline",
-                      "& svg": {visibility: "hidden"},
+                      "& svg": { visibility: "hidden" },
                       "&:hover": {
                         cursor: "pointer",
                         "& svg": { visibility: "visible" },

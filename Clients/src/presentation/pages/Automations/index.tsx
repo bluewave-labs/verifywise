@@ -59,6 +59,10 @@ const AutomationsPage: React.FC = () => {
       const triggersResponse = await CustomAxios.get('/automations/triggers');
       const triggers = triggersResponse.data.data;
 
+      // Fetch users to map emails back to user IDs
+      const usersResponse = await CustomAxios.get('/users');
+      const users = usersResponse.data.data;
+
       // Map backend automations to frontend format
       const mappedAutomations: Automation[] = await Promise.all(
         backendAutomations.map(async (backendAuto: any) => {
@@ -92,11 +96,17 @@ const AutomationsPage: React.FC = () => {
             // Parse params if string
             let parsedParams = typeof action.params === 'string' ? JSON.parse(action.params) : action.params || {};
 
-            // Convert 'to' array back to comma-separated string for textarea display
+            // Convert 'to' array of emails back to user IDs for the multi-select component
             if (parsedParams.to && Array.isArray(parsedParams.to)) {
+              // Map email addresses back to user IDs
+              const userIds = parsedParams.to.map((email: string) => {
+                const user = users.find((u: any) => u.email === email);
+                return user ? user.id : null;
+              }).filter((id: any) => id !== null);
+
               parsedParams = {
                 ...parsedParams,
-                to: parsedParams.to.join(', ')
+                to: userIds
               };
             }
 
@@ -547,6 +557,10 @@ This notification was sent on {{date_and_time}}.`;
       const actionsResponse = await CustomAxios.get(`/automations/actions/by-triggerId/${triggerData.id}`);
       const availableActions = actionsResponse.data.data;
 
+      // Fetch users to map user IDs to emails
+      const usersResponse = await CustomAxios.get('/users');
+      const users = usersResponse.data.data;
+
       // Prepare the actions data
       const processedActions = selectedAutomation.actions.map((action, index) => {
         // Find the action type ID
@@ -556,15 +570,34 @@ This notification was sent on {{date_and_time}}.`;
           throw new Error(`Action type "${action.type}" not found for this trigger`);
         }
 
-        // Process the configuration to ensure 'to' field is an array
+        // Process the configuration to ensure 'to' field is an array of emails
         const processedParams = { ...action.configuration };
 
-        // If 'to' field exists and is a string, split it into an array
-        if (processedParams.to && typeof processedParams.to === 'string') {
-          processedParams.to = processedParams.to
-            .split(',')
-            .map((email: string) => email.trim())
-            .filter((email: string) => email.length > 0);
+        // If 'to' field exists, convert it to an array of email addresses
+        if (processedParams.to) {
+          let recipientIds: string[] = [];
+
+          if (typeof processedParams.to === 'string') {
+            // Split by comma if it's a string
+            recipientIds = processedParams.to
+              .split(',')
+              .map((item: string) => item.trim())
+              .filter((item: string) => item.length > 0);
+          } else if (Array.isArray(processedParams.to)) {
+            // Already an array
+            recipientIds = processedParams.to;
+          }
+
+          // Convert user IDs to email addresses
+          processedParams.to = recipientIds.map((id: string) => {
+            // // Check if it's already an email address
+            // if (id.includes('@')) {
+            //   return id;
+            // }
+            // Otherwise, it's a user ID - look up the email
+            const user = users.find((u: any) => String(u.id) === String(id));
+            return user ? user.email : id;
+          }).filter((email: string) => email && email.length > 0);
         }
 
         return {
@@ -591,7 +624,7 @@ This notification was sent on {{date_and_time}}.`;
           console.log('Automation updated successfully!', response.data);
 
           // Refresh the automations list, preserving the current selection
-          await fetchAutomations(selectedAutomationId, false);
+          await fetchAutomations(selectedAutomationId!, false);
 
           // Show success toast
           setToast({

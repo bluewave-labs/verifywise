@@ -111,3 +111,8 @@ export interface IFileBasicTableProps {
   paginated?: boolean;
   table: string;
 }
+
+export interface IFileTableProps {
+  cols: any[];
+  files: FileData[];
+}

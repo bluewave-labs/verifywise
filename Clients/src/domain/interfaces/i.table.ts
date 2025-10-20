@@ -84,3 +84,14 @@ export interface IFairnessTableBodyProps {
     onConfirm: (id: number) => void;
   };
 }
+
+export interface IFairnessTableProps {
+  columns: any[];
+  rows: any[];
+  removeModel: {
+    onConfirm: (id: number) => void; // actually deletes
+  };
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+  onShowDetails: (model: any) => void;
+}

@@ -154,3 +154,10 @@ export interface ITableProps {
   setAnchorEl: (element: HTMLElement | null) => void;
   renderRow?: (row: any) => React.ReactNode; // ✅ NEW
 }
+
+export interface IReportTableProps {
+  rows: any[];
+  onRemoveReport: (id: number) => void;
+  page: number;
+  rowsPerPage: number;
+}

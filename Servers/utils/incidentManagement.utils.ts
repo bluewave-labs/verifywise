@@ -62,11 +62,7 @@ export const createNewIncidentQuery = async (
                     reporter: incident.reporter,
                     approval_status: incident.approval_status,
                     approved_by: incident.approved_by,
-                    categories_of_harm: Array.isArray(
-                        incident.categories_of_harm
-                    )
-                        ? `{${incident.categories_of_harm.join(",")}}` // makes a valid Postgres array literal
-                        : "{}", // sends an empty array if undefined/null
+                    categories_of_harm: JSON.stringify(incident.categories_of_harm),
                     affected_persons_groups: incident.affected_persons_groups,
                     description: incident.description,
                     relationship_causality: incident.relationship_causality,
@@ -139,11 +135,7 @@ export const updateIncidentByIdQuery = async (
                     reporter: incident.reporter,
                     approval_status: incident.approval_status,
                     approved_by: incident.approved_by,
-                    categories_of_harm: Array.isArray(
-                        incident.categories_of_harm
-                    )
-                        ? `{${incident.categories_of_harm.join(",")}}` // makes a valid Postgres array literal
-                        : "{}", // sends an empty array if undefined/null
+                    categories_of_harm: JSON.stringify(incident.categories_of_harm),
                     affected_persons_groups: incident.affected_persons_groups,
                     description: incident.description,
                     relationship_causality: incident.relationship_causality,

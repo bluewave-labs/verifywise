@@ -176,10 +176,10 @@ export async function createNewIncident(req: Request, res: Response) {
             approval_status: req.body.approval_status,
             approved_by: req.body.approved_by,
             categories_of_harm: req.body.categories_of_harm
-                ? String(req.body.categories_of_harm)
-                      .split(",")
-                      .map((s) => s.trim())
-                : [],
+            ? Array.isArray(req.body.categories_of_harm)
+                ? req.body.categories_of_harm
+                : req.body.categories_of_harm.split(",").map((s: string) => s.trim())
+            : [],
             affected_persons_groups: req.body.affected_persons_groups,
             description: req.body.description,
             relationship_causality: req.body.relationship_causality,

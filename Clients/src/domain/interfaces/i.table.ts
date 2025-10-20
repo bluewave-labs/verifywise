@@ -1,4 +1,5 @@
 import { FileData } from "../types/File";
+import { ProjectRisk } from "../types/ProjectRisk";
 import { IEvent } from "./i.event";
 import { IUser } from "./iUser";
 
@@ -115,4 +116,15 @@ export interface IFileBasicTableProps {
 export interface IFileTableProps {
   cols: any[];
   files: FileData[];
+}
+
+export interface ITableProps {
+  rows: ProjectRisk[];
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+  currentRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+  deletedRisks: number[];
+  setDeletedRisks: (deletedRisks: number[]) => void;
 }

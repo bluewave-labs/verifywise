@@ -699,7 +699,7 @@ This notification was sent on {{date_and_time}}.`;
             <Grid
               item
               xs={12}
-              md={showConfigurationPanel ? 3 : 4}
+              md={3}
               sx={{
                 height: '100%',
                 borderRight: `1px solid ${theme.palette.border.light}`,
@@ -728,7 +728,7 @@ This notification was sent on {{date_and_time}}.`;
             <Grid
               item
               xs={12}
-              md={showConfigurationPanel ? 6 : 8}
+              md={showConfigurationPanel ? 6 : 9}
               sx={{
                 height: '100%',
                 ...(showConfigurationPanel ? { borderRight: `1px solid ${theme.palette.border.light}` } : {}),

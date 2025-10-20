@@ -1,3 +1,4 @@
+import { VendorDetails } from "../../application/hooks/useVendors";
 import { FileData } from "../types/File";
 import { ProjectRisk } from "../types/ProjectRisk";
 import { IEvent } from "./i.event";
@@ -168,4 +169,13 @@ export interface IReportTablePropsExtended {
   removeReport: (id: number) => void;
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
+}
+
+export interface IRiskTableProps {
+  users: any;
+  vendors: VendorDetails[];
+  vendorRisks: any;
+  onDelete: (riskId: number) => void;
+  onEdit: (riskId: number) => void;
+  isDeletingAllowed?: boolean;
 }

@@ -1,3 +1,8 @@
+import { FileData } from "../types/File";
+import { ProjectRisk } from "../types/ProjectRisk";
+import { IEvent } from "./i.event";
+import { IUser } from "./iUser";
+
 export interface IAITrustCenterTableColumn {
   id: string;
   label: string;
@@ -63,4 +68,63 @@ export interface IEvaluationTableProps {
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   onShowDetails: (model: IEvaluationRow) => void;
+}
+
+export interface IEventsTableProps {
+  data: IEvent[];
+  users?: IUser[];
+  isLoading?: boolean;
+  paginated?: boolean;
+}
+
+export interface IFairnessTableBodyProps {
+  rows: any[];
+  page: number;
+  rowsPerPage: number;
+  onShowDetails: (model: any) => void;
+  onRemoveModel: {
+    onConfirm: (id: number) => void;
+  };
+}
+
+export interface IFairnessTableProps {
+  columns: any[];
+  rows: any[];
+  removeModel: {
+    onConfirm: (id: number) => void; // actually deletes
+  };
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+  onShowDetails: (model: any) => void;
+}
+export interface IColumn {
+  id: number;
+  name: keyof FileData | string;
+  sx?: object;
+}
+
+export interface IFileBasicTableProps {
+  data: {
+    rows: any[];
+    cols: IColumn[];
+  };
+  bodyData: FileData[];
+  paginated?: boolean;
+  table: string;
+}
+
+export interface IFileTableProps {
+  cols: any[];
+  files: FileData[];
+}
+
+export interface ITableProps {
+  rows: ProjectRisk[];
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+  currentRisks: number[];
+  checkedRows: number[];
+  setCheckedRows: (checkedRows: number[]) => void;
+  deletedRisks: number[];
+  setDeletedRisks: (deletedRisks: number[]) => void;
 }

@@ -21,28 +21,13 @@ import {
   getPaginationRowCount,
   setPaginationRowCount,
 } from "../../../../application/utils/paginationStorage";
+import { ITableProps } from "../../../../domain/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
 );
 
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-interface TableProps {
-  data: {
-    rows: any[];
-    cols: { id: string; name: string }[];
-  };
-  bodyData: any[];
-  paginated?: boolean;
-  reversed?: boolean;
-  table: string;
-  onRowClick?: (id: string) => void;
-  label?: string;
-  setSelectedRow: (row: any) => void;
-  setAnchorEl: (element: HTMLElement | null) => void;
-  renderRow?: (row: any) => React.ReactNode; // ✅ NEW
-}
 
 const CustomizablePolicyTable = ({
   data,
@@ -51,7 +36,7 @@ const CustomizablePolicyTable = ({
   setSelectedRow,
   setAnchorEl,
   renderRow,
-}: TableProps) => {
+}: ITableProps) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(() =>

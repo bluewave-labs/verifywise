@@ -13,13 +13,6 @@ import { ProjectRiskMitigation } from "../../../../domain/types/ProjectRisk";
 import { ProjectRiskMitigationTableBody } from "./ProjectRiskMitigationTableBody";
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
 
-export type Risk = {
-  id: number;
-  title: string;
-  status: string;
-  severity: string;
-};
-
 const TITLE_OF_COLUMNS = ["Component", "Type", ""];
 
 interface ProjectRiskMitigationTableProps {

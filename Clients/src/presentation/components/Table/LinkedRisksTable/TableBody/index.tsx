@@ -25,19 +25,9 @@ import {
   paginationSelect,
 } from "../../styles";
 import TablePaginationActions from "../../../TablePagination";
+import { ITableProps } from "../../../../../domain/interfaces/i.table";
 
-interface TableProps {
-  rows: ProjectRisk[];
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  currentRisks: number[];
-  checkedRows: number[];
-  setCheckedRows: (checkedRows: number[]) => void;
-  deletedRisks: number[];
-  setDeletedRisks: (deletedRisks: number[]) => void;
-}
-
-const LinkedRisksTableBody: React.FC<TableProps> = ({
+const LinkedRisksTableBody: React.FC<ITableProps> = ({
   rows,
   page,
   setCurrentPagingation,

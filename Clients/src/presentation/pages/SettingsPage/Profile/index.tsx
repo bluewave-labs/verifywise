@@ -5,7 +5,14 @@ import React, {
   useCallback,
   ChangeEvent,
 } from "react";
-import { Box, Divider, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  Divider,
+  Stack,
+  Typography,
+  Button as MUIButton,
+} from "@mui/material";
 import { useTheme } from "@mui/material";
 import Field from "../../../components/Inputs/Field";
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
@@ -25,8 +32,12 @@ import {
   deleteUserById,
   getUserById,
   updateUserById,
+  uploadUserProfilePhoto,
+  deleteUserProfilePhoto,
 } from "../../../../application/repository/user.repository";
 import { useAuth } from "../../../../application/hooks/useAuth";
+import { useProfilePhotoFetch } from "../../../../application/hooks/useProfilePhotoFetch";
+import Avatar from "../../../components/Avatar/VWAvatar";
 
 /**
  * ProfileForm component for managing user profile information.
@@ -86,6 +97,21 @@ const ProfileForm: React.FC = () => {
     saving;
 
   const logout = useLogout();
+  const { fetchProfilePhotoAsBlobUrl } = useProfilePhotoFetch();
+
+  // Profile Image states
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageRemoving, setImageRemoving] = useState(false);
+  const [isRemoveImageModalOpen, setIsRemoveImageModalOpen] = useState(false);
+  const [selectedImagePreview, setSelectedImagePreview] = useState<
+    string | null
+  >(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoadError, setImageLoadError] = useState(false);
+
+  // Refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * Update initial state reference when data changes
@@ -98,7 +124,7 @@ const ProfileForm: React.FC = () => {
         email: emailAddr,
       };
     },
-    []
+    [],
   );
 
   /**
@@ -121,7 +147,7 @@ const ProfileForm: React.FC = () => {
       updateInitialState(
         actualUserData?.name || "",
         actualUserData?.surname || "",
-        actualUserData?.email || ""
+        actualUserData?.email || "",
       );
     } catch (error) {
       console.log(error);
@@ -139,13 +165,38 @@ const ProfileForm: React.FC = () => {
   }, [fetchUserData]);
 
   /**
+   * Fetch user profile photo on component mount
+   */
+  useEffect(() => {
+    const fetchProfilePhoto = async () => {
+      if (!id) return;
+
+      setImageLoading(true);
+      try {
+        const photoUrl = await fetchProfilePhotoAsBlobUrl(id);
+        if (photoUrl) {
+          setImageUrl(photoUrl);
+          setImageLoadError(false);
+        }
+      } catch (error) {
+        console.error("Error fetching profile photo:", error);
+        setImageLoadError(true);
+      } finally {
+        setImageLoading(false);
+      }
+    };
+
+    fetchProfilePhoto();
+  }, [id, fetchProfilePhotoAsBlobUrl]);
+
+  /**
    * Show alert with auto-hide functionality
    */
   const showAlert = useCallback(
     (
       variant: "success" | "info" | "warning" | "error",
       title: string,
-      body: string
+      body: string,
     ) => {
       setAlert({
         variant,
@@ -159,7 +210,7 @@ const ProfileForm: React.FC = () => {
         setAlert((prev) => ({ ...prev, visible: false }));
       }, 3000);
     },
-    []
+    [],
   );
 
   /**
@@ -175,7 +226,7 @@ const ProfileForm: React.FC = () => {
       showAlert(
         "error",
         "Error",
-        "Validation errors occurred while saving the profile."
+        "Validation errors occurred while saving the profile.",
       );
       return;
     }
@@ -215,7 +266,7 @@ const ProfileForm: React.FC = () => {
         showAlert(
           "error",
           "Error",
-          "Failed to update profile. Please try again."
+          "Failed to update profile. Please try again.",
         );
       }
     } catch (error) {
@@ -229,7 +280,7 @@ const ProfileForm: React.FC = () => {
       showAlert(
         "error",
         "Error",
-        "Failed to update profile. Please try again."
+        "Failed to update profile. Please try again.",
       );
     } finally {
       setSaving(false);
@@ -275,11 +326,11 @@ const ProfileForm: React.FC = () => {
         2,
         50,
         false,
-        false
+        false,
       );
       setFirstnameError(validation.accepted ? null : validation.message);
     },
-    []
+    [],
   );
 
   /**
@@ -296,11 +347,11 @@ const ProfileForm: React.FC = () => {
         2,
         50,
         false,
-        false
+        false,
       );
       setLastnameError(validation.accepted ? null : validation.message);
     },
-    []
+    [],
   );
 
   /**
@@ -344,7 +395,7 @@ const ProfileForm: React.FC = () => {
         showAlert(
           "error",
           "Error",
-          "Failed to delete account. Please try again."
+          "Failed to delete account. Please try again.",
         );
       }
     } catch (error) {
@@ -357,7 +408,7 @@ const ProfileForm: React.FC = () => {
       showAlert(
         "error",
         "Error",
-        "Failed to delete account. Please try again."
+        "Failed to delete account. Please try again.",
       );
     } finally {
       setIsDeleteModalOpen(false);
@@ -365,201 +416,468 @@ const ProfileForm: React.FC = () => {
     }
   }, [id, logout, showAlert]);
 
+
+  // Utility function to clear preview and revoke URLs
+  const clearImagePreview = useCallback(() => {
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview);
+      setSelectedImagePreview(null);
+    }
+  }, [selectedImagePreview]);
+
+  // Handle Image file selection and upload
+  const handleImageChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      // Validate file
+      if (!file.type.startsWith("image/")) {
+        showAlert("error", "Invalid File", "Please select a valid image file");
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showAlert("error", "File Too Large", "File size must be less than 5MB");
+        return;
+      }
+
+      // Create preview
+      const previewUrl = URL.createObjectURL(file);
+      setSelectedImagePreview(previewUrl);
+      setImageUploading(true);
+
+      try {
+        // Upload the file
+        const response = await uploadUserProfilePhoto(id, file);
+
+        if (response && response.status === 200) {
+          // Fetch the newly uploaded photo
+          const photoUrl = await fetchProfilePhotoAsBlobUrl(id);
+          if (photoUrl) {
+            // Clear old imageUrl if it exists
+            if (imageUrl && imageUrl.startsWith("blob:")) {
+              URL.revokeObjectURL(imageUrl);
+            }
+            setImageUrl(photoUrl);
+            setImageLoadError(false);
+          }
+
+          clearImagePreview();
+          showAlert(
+            "success",
+            "Success",
+            "Profile photo uploaded successfully",
+          );
+        } else {
+          showAlert("error", "Error", "Failed to upload profile photo");
+        }
+      } catch (error) {
+        showAlert("error", "Error", "Failed to upload profile photo.");
+      } finally {
+        setImageUploading(false);
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    },
+    [id, showAlert, clearImagePreview, fetchProfilePhotoAsBlobUrl, imageUrl],
+  );
+
+  // Image removal handlers
+  const handleRemoveImage = useCallback(
+    () => setIsRemoveImageModalOpen(true),
+    [],
+  );
+  const handleRemoveImageCancel = useCallback(
+    () => setIsRemoveImageModalOpen(false),
+    [],
+  );
+
+  const handleRemoveImageConfirm = useCallback(async () => {
+    setImageRemoving(true);
+    try {
+      // Call API to delete profile photo
+      const response = await deleteUserProfilePhoto(id);
+
+      if (response && response.status === 200) {
+        // Clear Image and previews
+        if (imageUrl && imageUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(imageUrl);
+        }
+        setImageUrl(null);
+        setImageLoadError(false); // Reset error state
+        clearImagePreview();
+
+        setIsRemoveImageModalOpen(false);
+        showAlert(
+          "success",
+          "Image Removed",
+          "Profile photo removed successfully",
+        );
+      } else {
+        showAlert(
+          "error",
+          "Remove Failed",
+          "Failed to remove profile photo. Please try again.",
+        );
+      }
+    } catch (error) {
+      showAlert(
+        "error",
+        "Remove Failed",
+        "Failed to remove profile photo. Please try again.",
+      );
+    } finally {
+      setImageRemoving(false);
+    }
+  }, [id, imageUrl, clearImagePreview, showAlert]);
+
   return (
     <Box
       sx={{
-        position: "relative",
-        mt: 3,
-        width: { xs: "90%", md: "70%" },
-        maxWidth: "600px",
+        display: "flex",
+        gap: 10,
       }}
     >
-      {showToast && <CustomizableToast />}
+      <Box
+        sx={{
+          position: "relative",
+          mt: 3,
+          width: { xs: "90%", md: "70%" },
+          maxWidth: "600px",
+        }}
+      >
+        {showToast && <CustomizableToast />}
 
-      {loading && (
-        <CustomizableSkeleton
-          variant="rectangular"
-          width="100%"
-          height="300px"
-          minWidth={"100%"}
-          minHeight={300}
-          sx={{ borderRadius: 2 }}
-        />
-      )}
+        {loading && (
+          <CustomizableSkeleton
+            variant="rectangular"
+            width="100%"
+            height="300px"
+            minWidth={"100%"}
+            minHeight={300}
+            sx={{ borderRadius: 2 }}
+          />
+        )}
 
-      {alert.visible && (
-        <Alert
-          variant={alert.variant}
-          title={alert.title}
-          body={alert.body}
-          isToast={alert.isToast}
-          onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
-        />
-      )}
+        {alert.visible && (
+          <Alert
+            variant={alert.variant}
+            title={alert.title}
+            body={alert.body}
+            isToast={alert.isToast}
+            onClick={() => setAlert((prev) => ({ ...prev, visible: false }))}
+          />
+        )}
 
-      {!loading && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            flexDirection: { xs: "column", md: "row" },
-            mb: 3,
-            width: "100%",
-            mt: 20,
-          }}
-        >
-          <Box sx={{ width: { xs: "100%", md: "100%" } }}>
-            <Field
-              id="First name"
-              label="Name"
-              value={firstname}
-              onChange={handleFirstnameChange}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
-              disabled={saving}
-            />
-            {firstnameError && (
-              <Typography color="error" variant="caption">
-                {firstnameError}
+        {!loading && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              flexDirection: { xs: "column", md: "row" },
+              mb: 3,
+              width: "100%",
+              mt: 20,
+            }}
+          >
+            <Box sx={{ width: { xs: "100%", md: "100%" } }}>
+              <Field
+                id="First name"
+                label="Name"
+                value={firstname}
+                onChange={handleFirstnameChange}
+                sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
+                disabled={saving}
+              />
+              {firstnameError && (
+                <Typography color="error" variant="caption">
+                  {firstnameError}
+                </Typography>
+              )}
+
+              <Field
+                id="Last name"
+                label="Surname"
+                value={lastname}
+                onChange={handleLastnameChange}
+                sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
+                disabled={saving}
+              />
+              {lastnameError && (
+                <Typography color="error" variant="caption">
+                  {lastnameError}
+                </Typography>
+              )}
+
+              <Field
+                id="Email"
+                label="Email"
+                value={email}
+                onChange={handleEmailChange}
+                sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
+                disabled // Email is always disabled as mentioned in the original code
+              />
+              {emailError && (
+                <Typography color="error" variant="caption">
+                  {emailError}
+                </Typography>
+              )}
+
+              <Typography
+                variant="caption"
+                sx={{
+                  mt: 1,
+                  mb: { xs: 5, md: 0 },
+                  display: "block",
+                  color: "#667085",
+                }}
+              >
+                This is your current email address — it cannot be changed.
               </Typography>
-            )}
+            </Box>
+          </Box>
+        )}
 
-            <Field
-              id="Last name"
-              label="Surname"
-              value={lastname}
-              onChange={handleLastnameChange}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
-              disabled={saving}
-            />
-            {lastnameError && (
-              <Typography color="error" variant="caption">
-                {lastnameError}
-              </Typography>
-            )}
-
-            <Field
-              id="Email"
-              label="Email"
-              value={email}
-              onChange={handleEmailChange}
-              sx={{ mb: 5, backgroundColor: "#FFFFFF", maxWidth: "600px" }}
-              disabled // Email is always disabled as mentioned in the original code
-            />
-            {emailError && (
-              <Typography color="error" variant="caption">
-                {emailError}
-              </Typography>
-            )}
-
-            <Typography
-              variant="caption"
+        {!loading && (
+          <Stack
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <CustomizableButton
+              variant="contained"
+              text={saving ? "Saving..." : "Save"}
               sx={{
-                mt: 1,
-                mb: { xs: 5, md: 0 },
-                display: "block",
-                color: "#667085",
+                backgroundColor: "#13715B",
+                border: isSaveDisabled
+                  ? "1px solid rgba(0, 0, 0, 0.26)"
+                  : "1px solid #13715B",
+                gap: 2,
               }}
-            >
-              This is your current email address — it cannot be changed.
-            </Typography>
+              icon={<SaveIcon size={16} />}
+              onClick={handleSave}
+              isDisabled={isSaveDisabled}
+            />
+          </Stack>
+        )}
+
+        <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
+
+        {loading && (
+          <CustomizableSkeleton
+            variant="rectangular"
+            width="100%"
+            height="200px"
+            minWidth={"100%"}
+            minHeight={200}
+            sx={{ borderRadius: 2 }}
+          />
+        )}
+
+        {!loading && (
+          <Box>
+            <Stack>
+              <Typography
+                fontWeight={"600"}
+                gutterBottom
+                sx={{ mb: 2, mt: 10 }}
+              >
+                Delete account
+              </Typography>
+              <Typography
+                fontWeight={"400"}
+                variant="body2"
+                sx={{ mb: 8, mt: 4, color: "#667085" }}
+              >
+                Note that deleting your account will remove all data from our
+                system. This is permanent and non-recoverable.
+              </Typography>
+              <Stack
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                }}
+              >
+                <CustomizableButton
+                  sx={{
+                    width: { xs: "100%", sm: theme.spacing(80) },
+                    mb: theme.spacing(4),
+                    backgroundColor: "#DB504A",
+                    color: "#fff",
+                    border: `1px solid ${isAdmin ? "#C2C2C2" : "#DB504A"}`,
+                    gap: 2,
+                  }}
+                  icon={<DeleteIcon size={16} />}
+                  variant="contained"
+                  onClick={handleOpenDeleteDialog}
+                  text="Delete account"
+                  isDisabled={isAdmin}
+                />
+              </Stack>
+            </Stack>
+          </Box>
+        )}
+
+        {isDeleteModalOpen && (
+          <DualButtonModal
+            title="Confirm Delete"
+            body={
+              <Typography fontSize={13}>
+                Are you sure you want to delete your account? This action is
+                permanent and cannot be undone.
+              </Typography>
+            }
+            cancelText="Cancel"
+            proceedText="Delete"
+            onCancel={handleCloseDeleteDialog}
+            onProceed={handleDeleteAccount}
+            proceedButtonColor="error"
+            proceedButtonVariant="contained"
+          />
+        )}
+      </Box>
+      {/* Profile Image Upload Section */}
+      <Stack
+        sx={{ width: { xs: "100%", md: "40%" }, alignItems: "center", mt: 32 }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+          <Box
+            sx={{
+              width: 100,
+              height: 100,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "50%",
+              border: "2px dashed #ddd",
+              backgroundColor: "#fafafa",
+              position: "relative",
+              overflow: "hidden",
+              "&:hover": {
+                borderColor: "#999",
+                backgroundColor: "#f5f5f5",
+              },
+            }}
+          >
+            {imageUploading || imageLoading ? (
+              <CircularProgress size={24} />
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <Avatar
+                  user={{ firstname, lastname, pathToImage: !imageLoadError ? selectedImagePreview ?? imageUrl ?? "" : undefined }}
+                  size="medium"
+                  sx={{ width: 84, height: 84 }}
+                />
+              </Box>)}
           </Box>
         </Box>
-      )}
-
-      {!loading && (
-        <Stack
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <MUIButton
+            variant="text"
+            sx={{
+              fontSize: 12,
+              textTransform: "none",
+              color: imageUrl ? "#666" : "#ccc",
+              "&:hover": {
+                backgroundColor: imageUrl
+                  ? "rgba(102, 102, 102, 0.04)"
+                  : "transparent",
+              },
+            }}
+            onClick={handleRemoveImage}
+            disabled={
+              !imageUrl || imageRemoving || imageUploading || imageLoading
+            }
+          >
+            {imageRemoving ? (
+              <>
+                <CircularProgress size={16} sx={{ mr: 1 }} />
+                Removing...
+              </>
+            ) : (
+              "Delete"
+            )}
+          </MUIButton>
+          <MUIButton
+            variant="text"
+            component="label"
+            disableRipple
+            sx={{
+              fontSize: 12,
+              textTransform: "none",
+              color: "#13715B",
+              "&:hover": {
+                backgroundColor: "transparent !important",
+              },
+              "&:active": {
+                backgroundColor: "transparent !important",
+              },
+            }}
+            disabled={imageUploading || imageLoading}
+          >
+            {imageUploading ? (
+              <>
+                <CircularProgress size={16} sx={{ mr: 1 }} />
+                Uploading...
+              </>
+            ) : imageLoading ? (
+              <>
+                <CircularProgress size={16} sx={{ mr: 1 }} />
+                Loading...
+              </>
+            ) : (
+              "Update"
+            )}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml"
+              hidden
+              ref={fileInputRef}
+              onChange={handleImageChange}
+            />
+          </MUIButton>
+        </Box>
+        {/* Profile Image requirements info */}
+        <Typography
           sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "flex-end",
-            alignItems: "center",
+            fontSize: 11,
+            color: "#666",
+            textAlign: "center",
+            mt: 1,
+            lineHeight: 1.4,
           }}
         >
-          <CustomizableButton
-            variant="contained"
-            text={saving ? "Saving..." : "Save"}
-            sx={{
-              backgroundColor: "#13715B",
-              border: isSaveDisabled
-                ? "1px solid rgba(0, 0, 0, 0.26)"
-                : "1px solid #13715B",
-              gap: 2,
-            }}
-            icon={<SaveIcon size={16} />}
-            onClick={handleSave}
-            isDisabled={isSaveDisabled}
-          />
-        </Stack>
-      )}
-
-      <Divider sx={{ borderColor: "#C2C2C2", mt: theme.spacing(3) }} />
-
-      {loading && (
-        <CustomizableSkeleton
-          variant="rectangular"
-          width="100%"
-          height="200px"
-          minWidth={"100%"}
-          minHeight={200}
-          sx={{ borderRadius: 2 }}
-        />
-      )}
-
-      {!loading && (
-        <Box>
-          <Stack>
-            <Typography fontWeight={"600"} gutterBottom sx={{ mb: 2, mt: 10 }}>
-              Delete account
-            </Typography>
-            <Typography
-              fontWeight={"400"}
-              variant="body2"
-              sx={{ mb: 8, mt: 4, color: "#667085" }}
-            >
-              Note that deleting your account will remove all data from our
-              system. This is permanent and non-recoverable.
-            </Typography>
-            <Stack
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "flex-end",
-                alignItems: "center",
-              }}
-            >
-              <CustomizableButton
-                sx={{
-                  width: { xs: "100%", sm: theme.spacing(80) },
-                  mb: theme.spacing(4),
-                  backgroundColor: "#DB504A",
-                  color: "#fff",
-                  border: `1px solid ${isAdmin ? "#C2C2C2" : "#DB504A"}`,
-                  gap: 2,
-                }}
-                icon={<DeleteIcon size={16} />}
-                variant="contained"
-                onClick={handleOpenDeleteDialog}
-                text="Delete account"
-                isDisabled={isAdmin}
-              />
-            </Stack>
-          </Stack>
-        </Box>
-      )}
-
-      {isDeleteModalOpen && (
+          Recommended: 200×200px • Max size: 5MB • Formats: PNG, JPG, GIF, SVG
+        </Typography>
+      </Stack>
+      {isRemoveImageModalOpen && (
         <DualButtonModal
-          title="Confirm Delete"
+          title="Remove Profile Photo"
           body={
             <Typography fontSize={13}>
-              Are you sure you want to delete your account? This action is
-              permanent and cannot be undone.
+              Are you sure you want to remove your profile photo?
             </Typography>
           }
           cancelText="Cancel"
-          proceedText="Delete"
-          onCancel={handleCloseDeleteDialog}
-          onProceed={handleDeleteAccount}
+          proceedText="Remove"
+          onCancel={handleRemoveImageCancel}
+          onProceed={handleRemoveImageConfirm}
           proceedButtonColor="error"
           proceedButtonVariant="contained"
         />

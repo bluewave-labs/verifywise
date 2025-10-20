@@ -104,11 +104,17 @@ const ProjectFrameworks = ({
   useEffect(() => {
     if (!loading && projectFrameworks.length > 0 && !hasInitialized) {
       const validIds = projectFrameworks.map((fw: Framework) => Number(fw.id));
+      const subtabParam = searchParams.get("subtab");
 
       // If initialFrameworkId is provided and valid, use it
       if (initialFrameworkId && validIds.includes(initialFrameworkId)) {
         setSelectedFrameworkId(initialFrameworkId);
-        setTracker(searchParams.get("controlId") ? "compliance" : "assessment");
+        // Check for subtab parameter first, then controlId, default to assessment
+        if (subtabParam === "compliance" || subtabParam === "assessment") {
+          setTracker(subtabParam as TrackerTab);
+        } else {
+          setTracker(searchParams.get("controlId") ? "compliance" : "assessment");
+        }
       }
       // Otherwise, use the default logic
       else if (

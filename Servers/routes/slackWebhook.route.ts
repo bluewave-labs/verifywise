@@ -8,6 +8,7 @@ import {
   getSlackWebhookById,
   updateSlackWebhookById,
   sendSlackMessage,
+  deleteSlackWebhookById,
 } from "../controllers/slackWebhook.ctrl";
 
 // GET requests
@@ -17,6 +18,7 @@ router.get("/:id", authenticateJWT, getSlackWebhookById);
 // POST, PUT, DELETE requests
 router.post("/", authenticateJWT, createNewSlackWebhook);
 router.patch("/:id", authenticateJWT, updateSlackWebhookById);
+router.delete("/:id", authenticateJWT, deleteSlackWebhookById);
 
 // Send slack message
 router.post("/:id/send", authenticateJWT, sendSlackMessage);

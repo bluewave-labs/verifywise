@@ -1,7 +1,9 @@
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import Dashboard from "../../presentation/containers/Dashboard";
 import Home from "../../presentation/pages/Home";
 import Vendors from "../../presentation/pages/Vendors";
+import Integrations from "../../presentation/pages/Integrations";
+import SlackManagement from "../../presentation/pages/Integrations/SlackManagement";
 import Setting from "../../presentation/pages/SettingsPage";
 import Organization from "../../presentation/pages/SettingsPage/Organization";
 import RegisterAdmin from "../../presentation/pages/Authentication/RegisterAdmin";
@@ -51,7 +53,10 @@ export const createRoutes = (
       element={<Home onProjectUpdate={triggerSidebarReload} />}
     />
     <Route path="/vendors" element={<Vendors />} />
-    <Route path="/setting" element={<Setting />} />
+    <Route path="/integrations" element={<Integrations />} />
+    <Route path="/settings" element={<Setting />} />
+    <Route path="/integrations/slack" element={<SlackManagement />} />
+    <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
     <Route path="/test/project-view" element={<ProjectView />} />
     <Route path="/file-manager" element={<FileManager />} />

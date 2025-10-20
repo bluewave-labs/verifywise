@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import { Stack, useTheme, Divider } from "@mui/material";
 import Breadcrumbs from "./index";
 import { IPageBreadcrumbsProps } from "../../../domain/interfaces/i.breadcrumbs";
+import DashboardActionButtons from "../Layout/DashboardActionButtons";
 
 /**
  * A standardized PageBreadcrumbs component that follows the application's design patterns.
@@ -49,32 +50,43 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
           mt: 2,
           mb: 3,
           width: "100%",
+          position: "relative",
           ...sx,
         }}
       >
-        <Breadcrumbs
-          items={items}
-          autoGenerate={autoGenerate}
-          showCurrentPage={showCurrentPage}
-          homeLabel={homeLabel}
-          homePath={homePath}
-          truncateLabels={truncateLabels}
-          maxLabelLength={maxLabelLength}
-          onItemClick={onItemClick}
+        <Stack
+          direction="row"
           sx={{
-            py: 0.5,
-            px: 0,
+            width: "100%",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
             mb: 4,
-            "& .MuiBreadcrumbs-separator": {
-              color: theme.palette.text.disabled,
-              mx: 0.5,
-              fontSize: "14px",
-            },
-            "& .MuiBreadcrumbs-ol": {
-              flexWrap: "wrap",
-            },
           }}
-        />
+        >
+          <Breadcrumbs
+            items={items}
+            autoGenerate={autoGenerate}
+            showCurrentPage={showCurrentPage}
+            homeLabel={homeLabel}
+            homePath={homePath}
+            truncateLabels={truncateLabels}
+            maxLabelLength={maxLabelLength}
+            onItemClick={onItemClick}
+            sx={{
+              py: 0.5,
+              px: 0,
+              "& .MuiBreadcrumbs-separator": {
+                color: theme.palette.text.disabled,
+                mx: 0.5,
+                fontSize: "14px",
+              },
+              "& .MuiBreadcrumbs-ol": {
+                flexWrap: "wrap",
+              },
+            }}
+          />
+          <DashboardActionButtons hideOnMainDashboard={false} />
+        </Stack>
         {showDivider && <Divider sx={{ mb: 2 }} />}
       </Stack>
     );

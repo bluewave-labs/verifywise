@@ -67,3 +67,15 @@ export async function sendSlackMessage({ id }: { id: number }): Promise<any> {
   );
   return response.data;
 }
+
+export async function deleteSlackIntegration({id,}: {
+  id: number;
+}): Promise<any> {
+  try {
+    const response = await apiServices.delete(`/slackWebhooks/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    throw error;
+  }
+}

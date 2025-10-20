@@ -1,14 +1,15 @@
-import { TableHead, TableRow, TableCell } from '@mui/material';
-import singleTheme from '../../../themes/v1SingleTheme';
+import { TableHead, TableRow, TableCell } from "@mui/material";
+import singleTheme from "../../../themes/v1SingleTheme";
 
 const TableHeader = ({ columns }: { columns: any[] }) => {
   return (
     <>
       <TableHead
-      sx={{
-        backgroundColor:
-          singleTheme.tableStyles.primary.header.backgroundColors,
-      }}>
+        sx={{
+          backgroundColor:
+            singleTheme.tableStyles.primary.header.backgroundColors,
+        }}
+      >
         <TableRow sx={singleTheme.tableStyles.primary.header.row}>
           {columns.map((column, index) => (
             <TableCell
@@ -31,7 +32,7 @@ const TableHeader = ({ columns }: { columns: any[] }) => {
         </TableRow>
       </TableHead>
     </>
-  )
-}
+  );
+};
 
-export default TableHeader
+export default TableHeader;

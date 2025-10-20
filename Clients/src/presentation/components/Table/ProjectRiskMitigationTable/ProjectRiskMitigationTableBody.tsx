@@ -12,7 +12,9 @@ import { useCallback, useState } from "react";
 import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 import {
   paginationDropdown,
   paginationSelect,
@@ -61,15 +63,11 @@ export const ProjectRiskMitigationTableBody: React.FC<
     if (riskId) {
       if (riskData.type === "annexcategory") {
         navigteToNewTab(
-          `/framework?framework=iso-42001&annexId=${
-            riskData.parent_id
-          }&annexCategoryId=${riskData.meta_id}`
+          `/framework?framework=iso-42001&annexId=${riskData.parent_id}&annexCategoryId=${riskData.meta_id}`
         );
       } else if (riskData.type === "subclause") {
         navigteToNewTab(
-          `/framework?framework=iso-42001&clauseId=${
-            riskData.parent_id
-          }&subClauseId=${riskData.meta_id}`
+          `/framework?framework=iso-42001&clauseId=${riskData.parent_id}&subClauseId=${riskData.meta_id}`
         );
       } else if (riskData.type === "control") {
         navigteToNewTab(
@@ -77,21 +75,15 @@ export const ProjectRiskMitigationTableBody: React.FC<
         );
       } else if (riskData.type === "assessment") {
         navigteToNewTab(
-          `/project-view?projectId=${riskData.project_id}&tab=frameworks&framework=eu-ai-act&topicId=${
-            riskData.sup_id
-          }&questionId=${riskData.meta_id}`
+          `/project-view?projectId=${riskData.project_id}&tab=frameworks&framework=eu-ai-act&topicId=${riskData.sup_id}&questionId=${riskData.meta_id}`
         );
       } else if (riskData.type === "annexcontrol_27001") {
         navigteToNewTab(
-          `/framework?framework=iso-27001&annex27001Id=${
-            riskData.parent_id
-          }&annexControl27001Id=${riskData.meta_id}`
+          `/framework?framework=iso-27001&annex27001Id=${riskData.parent_id}&annexControl27001Id=${riskData.meta_id}`
         );
       } else if (riskData.type === "annexsubclause_27001") {
         navigteToNewTab(
-          `/framework?framework=iso-27001&clause27001Id=${
-            riskData.parent_id
-          }&subClause27001Id=${riskData.meta_id}`
+          `/framework?framework=iso-27001&clause27001Id=${riskData.parent_id}&subClause27001Id=${riskData.meta_id}`
         );
       }
     }

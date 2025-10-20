@@ -356,7 +356,7 @@ const Vendors = () => {
 
   return (
     <Stack className="vwhome" gap={0}>
-     <PageBreadcrumbs />
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -648,7 +648,7 @@ const Vendors = () => {
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-    </Stack>
+      </Stack>
   );
 };
 

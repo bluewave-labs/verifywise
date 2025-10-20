@@ -5,15 +5,9 @@ import { formatDate } from "../../../../tools/isoDateToString";
 import singleTheme from "../../../../themes/v1SingleTheme";
 import { styles } from "./styles";
 import { handleDownload } from "../../../../../application/tools/fileDownload";
+import { IReportTableProps } from "../../../../../domain/interfaces/i.table";
 
-interface TableProps {
-  rows: any[];
-  onRemoveReport: (id: number) => void;
-  page: number;
-  rowsPerPage: number;
-}
-
-const ReportTableBody: React.FC<TableProps> = ({
+const ReportTableBody: React.FC<IReportTableProps> = ({
   rows,
   onRemoveReport,
   page,

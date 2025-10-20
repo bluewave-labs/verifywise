@@ -3,16 +3,7 @@ import singleTheme from "../../../../themes/v1SingleTheme";
 import { Trash2 as DeleteIconGrey } from "lucide-react";
 import Button from "../../../../components/Button/index";
 import ConfirmableDeleteIconButton from "../../../../components/Modals/ConfirmableDeleteIconButton";
-
-interface FairnessTableBodyProps {
-  rows: any[];
-  page: number;
-  rowsPerPage: number;
-  onShowDetails: (model: any) => void;
-  onRemoveModel: {
-    onConfirm: (id: number) => void;
-  };
-}
+import { IFairnessTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
 const StatusBadge: React.FC<{
   status: "In Progress" | "Completed" | "Failed";
@@ -48,7 +39,7 @@ const StatusBadge: React.FC<{
   );
 };
 
-const FairnessTableBody: React.FC<FairnessTableBodyProps> = ({
+const FairnessTableBody: React.FC<IFairnessTableBodyProps> = ({
   rows,
   page,
   rowsPerPage,

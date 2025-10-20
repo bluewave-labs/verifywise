@@ -1,7 +1,9 @@
 import { VendorDetails } from "../../application/hooks/useVendors";
 import { FileData } from "../types/File";
 import { ProjectRisk } from "../types/ProjectRisk";
+import { User } from "../types/User";
 import { IEvent } from "./i.event";
+import { ITask } from "./i.task";
 import { IUser } from "./iUser";
 
 export interface IAITrustCenterTableColumn {
@@ -178,4 +180,15 @@ export interface IRiskTableProps {
   onDelete: (riskId: number) => void;
   onEdit: (riskId: number) => void;
   isDeletingAllowed?: boolean;
+}
+
+export interface ITasksTableProps {
+  tasks: ITask[];
+  users: User[];
+  onArchive: (taskId: number) => void;
+  onEdit: (task: ITask) => void;
+  onStatusChange: (taskId: number) => (newStatus: string) => Promise<boolean>;
+  statusOptions: string[];
+  isUpdateDisabled?: boolean;
+  onRowClick?: (task: ITask) => void;
 }

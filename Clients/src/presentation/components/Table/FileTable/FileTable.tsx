@@ -1,7 +1,10 @@
 import React, { useState, useMemo } from "react";
 import FileBasicTable from "../FilesBasicTable/FileBasicTable";
 import { Stack } from "@mui/material";
-import { ArrowUp as AscendingIcon, ArrowDown as DescendingIcon } from "lucide-react";
+import {
+  ArrowUp as AscendingIcon,
+  ArrowDown as DescendingIcon,
+} from "lucide-react";
 import EmptyState from "../../EmptyState";
 import { FileData } from "../../../../domain/types/File";
 

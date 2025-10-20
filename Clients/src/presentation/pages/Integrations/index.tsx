@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -9,12 +10,38 @@ import PageBreadcrumbs from '../../components/Breadcrumbs/PageBreadcrumbs';
 import IntegrationCard from '../../components/IntegrationCard';
 import { AVAILABLE_INTEGRATIONS } from '../../../config/integrations';
 import { Integration, IntegrationStatus, IntegrationConnectionHandler } from '../../../domain/types/integrations';
+import useSlackIntegrations from '../../../application/hooks/useSlackIntegrations';
+import { useAuth } from '../../../application/hooks/useAuth';
 
 const Integrations: React.FC = () => {
+  const navigate = useNavigate();
+  const { userId } = useAuth();
+  const { slackIntegrations } = useSlackIntegrations(userId);
   const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS.slice(0, 3)); // Only show first 3 integrations
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Update Slack integration status based on actual data
+  useEffect(() => {
+    if (slackIntegrations && slackIntegrations.length > 0) {
+      setIntegrations(prev =>
+        prev.map(int =>
+          int.id === 'slack'
+            ? { ...int, status: IntegrationStatus.CONFIGURED }
+            : int
+        )
+      );
+    } else {
+      setIntegrations(prev =>
+        prev.map(int =>
+          int.id === 'slack'
+            ? { ...int, status: IntegrationStatus.NOT_CONFIGURED }
+            : int
+        )
+      );
+    }
+  }, [slackIntegrations]);
 
   // Handle integration connection
   const handleConnect: IntegrationConnectionHandler = useCallback(async (integration: Integration) => {
@@ -25,24 +52,24 @@ const Integrations: React.FC = () => {
       // Simulate API call for connection
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Update integration status to connected
+      // Update integration status to configured
       setIntegrations(prev =>
         prev.map(int =>
           int.id === integration.id
-            ? { ...int, status: IntegrationStatus.CONNECTED, lastSyncAt: new Date() }
+            ? { ...int, status: IntegrationStatus.CONFIGURED, lastSyncAt: new Date() }
             : int
         )
       );
 
-      setSuccessMessage(`${integration.displayName} connected successfully!`);
+      setSuccessMessage(`${integration.displayName} configured successfully!`);
     } catch (err) {
-      setError(`Failed to connect to ${integration.displayName}. Please try again.`);
+      setError(`Failed to configure ${integration.displayName}. Please try again.`);
 
       // Update integration status to error
       setIntegrations(prev =>
         prev.map(int =>
           int.id === integration.id
-            ? { ...int, status: IntegrationStatus.ERROR, error: 'Connection failed' }
+            ? { ...int, status: IntegrationStatus.ERROR, error: 'Configuration failed' }
             : int
         )
       );
@@ -53,10 +80,12 @@ const Integrations: React.FC = () => {
 
   // Handle integration management
   const handleManage = useCallback((integration: Integration) => {
-    // Navigate to integration management page or open modal
-    console.log(`Managing ${integration.displayName}...`);
-    // TODO: Navigate to integration management page
-  }, []);
+    // Navigate to integration-specific management page
+    if (integration.id === 'slack') {
+      navigate('/integrations/slack');
+    }
+    // TODO: Add navigation for other integration management pages
+  }, [navigate]);
 
   // Close error snackbar
   const handleCloseError = () => {

@@ -45,7 +45,7 @@ export const routeMapping: Record<string, string> = {
   "/vendors": "Vendor Management",
 
   // Settings
-  "/setting": "Settings",
+  "/settings": "Settings",
   "/organization": "Organization Settings",
 
   // File management
@@ -121,7 +121,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/risk-management": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
 
   // Settings
-  "/setting": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+  "/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
   "/organization": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // File management

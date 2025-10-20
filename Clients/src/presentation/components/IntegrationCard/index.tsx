@@ -23,9 +23,9 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 
   const getStatusColor = (status: IntegrationStatus) => {
     switch (status) {
-      case IntegrationStatus.CONNECTED:
+      case IntegrationStatus.CONFIGURED:
         return 'success';
-      case IntegrationStatus.CONNECTING:
+      case IntegrationStatus.CONFIGURING:
         return 'warning';
       case IntegrationStatus.ERROR:
         return 'error';
@@ -36,11 +36,11 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 
   const getStatusIcon = (status: IntegrationStatus) => {
     switch (status) {
-      case IntegrationStatus.CONNECTED:
+      case IntegrationStatus.CONFIGURED:
         return <CheckIcon size={16} />;
       case IntegrationStatus.ERROR:
         return <ErrorIcon size={16} />;
-      case IntegrationStatus.DISCONNECTED:
+      case IntegrationStatus.NOT_CONFIGURED:
         return <DisconnectIcon size={16} />;
       default:
         return undefined;
@@ -51,12 +51,19 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     if (loading) return;
 
     try {
+      // For Slack, always navigate to management page
+      if (integration.id === 'slack') {
+        if (onManage) onManage(integration);
+        return;
+      }
+
+      // For other integrations, use the normal flow
       switch (integration.status) {
-        case IntegrationStatus.DISCONNECTED:
+        case IntegrationStatus.NOT_CONFIGURED:
         case IntegrationStatus.ERROR:
           if (onConnect) await onConnect(integration);
           break;
-        case IntegrationStatus.CONNECTED:
+        case IntegrationStatus.CONFIGURED:
           if (onManage) onManage(integration);
           break;
         default:
@@ -133,7 +140,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
             <Box sx={{ ml: 2 }}>
               <Chip
                 size="small"
-                label={integration.status === IntegrationStatus.CONNECTED ? "connected" : integration.status}
+                label={integration.status}
                 color={getStatusColor(integration.status)}
                 icon={getStatusIcon(integration.status)}
                 sx={{
@@ -216,9 +223,10 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                   mr: isHovered ? 1 : 0,
                 }}
               >
-                {integration.status === IntegrationStatus.CONNECTED ? "Manage" :
-                 integration.status === IntegrationStatus.CONNECTING ? "Connecting..." :
-                 integration.status === IntegrationStatus.ERROR ? "Retry" : "Connect"}
+                {integration.id === 'slack' ? "Manage" :
+                 integration.status === IntegrationStatus.CONFIGURED ? "Manage" :
+                 integration.status === IntegrationStatus.CONFIGURING ? "Configuring..." :
+                 integration.status === IntegrationStatus.ERROR ? "Retry" : "Configure"}
               </Typography>
               <ChevronRightIcon
                 size={20}

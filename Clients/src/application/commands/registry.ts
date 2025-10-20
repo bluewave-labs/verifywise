@@ -165,17 +165,8 @@ const NAVIGATION_COMMANDS: Command[] = [
     keywords: ['settings', 'config', 'preferences'],
     group: COMMAND_GROUPS[0],
     icon: Settings,
-    action: { type: 'navigate', payload: '/setting' }
-  },
-  {
-    id: 'nav-incident-management',
-    label: 'Incident Management',
-    description: 'EU AI Act Compliance Dashboard',
-    keywords: ['incident', 'management'],
-    group: COMMAND_GROUPS[0],
-    icon: AlertCircle,
-    action: { type: 'navigate', payload: '/ai-incident-managements' }
-  },
+    action: { type: 'navigate', payload: '/settings' }
+  }
 ]
 
 // Quick action commands - will be implemented later

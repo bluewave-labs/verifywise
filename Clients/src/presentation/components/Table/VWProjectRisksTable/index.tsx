@@ -17,7 +17,9 @@ import TablePaginationActions from "../../TablePagination";
 import { ChevronsUpDown } from "lucide-react";
 import { emptyStateStyles } from "../../../themes/components";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 import placeholderImage from "../../../assets/imgs/empty-state.svg";
 import VWProjectRisksTableHead from "./VWProjectRisksTableHead";
 import VWProjectRisksTableBody from "./VWProjectRisksTableBody";
@@ -72,7 +74,7 @@ const VWProjectRisksTable = ({
       setRowsPerPage(parseInt(event.target.value, 10));
       setPage(0);
     },
-    [],
+    []
   );
 
   return (
@@ -145,7 +147,7 @@ const VWProjectRisksTable = ({
                     labelDisplayedRows={({ page, count }) =>
                       `Page ${page + 1} of ${Math.max(
                         0,
-                        Math.ceil(count / rowsPerPage),
+                        Math.ceil(count / rowsPerPage)
                       )}`
                     }
                     sx={{

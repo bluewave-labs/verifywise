@@ -154,7 +154,7 @@ async function validateSlackOAuth(code: string): Promise<any> {
       client_id: process.env.SLACK_CLIENT_ID || "",
       client_secret: process.env.SLACK_CLIENT_SECRET || "",
       code: code,
-      redirect_uri: `${process.env.FRONTEND_URL}/setting/?activeTab=slack`,
+      redirect_uri: `${process.env.FRONTEND_URL}/integrations/slack`,
     };
     if (!url) {
       throw new Error("Slack API URL is not configured");

@@ -161,3 +161,11 @@ export interface IReportTableProps {
   page: number;
   rowsPerPage: number;
 }
+
+export interface IReportTablePropsExtended {
+  columns: any[];
+  rows: any[];
+  removeReport: (id: number) => void;
+  page: number;
+  setCurrentPagingation: (pageNo: number) => void;
+}

@@ -19,12 +19,12 @@ import TablePaginationActions from "../../TablePagination";
 import TableHeader from "../TableHead";
 import { ChevronsUpDown } from "lucide-react";
 import { ITask } from "../../../../domain/interfaces/i.task";
-import { User } from "../../../../domain/types/User";
 import CustomSelect from "../../CustomSelect";
 import IconButton from "../../IconButton";
 import RiskChip from "../../RiskLevel/RiskChip";
 
 import { TaskStatus } from "../../../../domain/enums/task.enum";
+import { ITasksTableProps } from "../../../../domain/interfaces/i.table";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
@@ -57,20 +57,9 @@ const titleOfTableColumns = [
   "Actions",
 ];
 
-interface TasksTableProps {
-  tasks: ITask[];
-  users: User[];
-  onArchive: (taskId: number) => void;
-  onEdit: (task: ITask) => void;
-  onStatusChange: (taskId: number) => (newStatus: string) => Promise<boolean>;
-  statusOptions: string[];
-  isUpdateDisabled?: boolean;
-  onRowClick?: (task: ITask) => void;
-}
-
 const TASKS_ROWS_PER_PAGE_KEY = "verifywise_tasks_rows_per_page";
 
-const TasksTable: React.FC<TasksTableProps> = ({
+const TasksTable: React.FC<ITasksTableProps> = ({
   tasks,
   users,
   onArchive,

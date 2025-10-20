@@ -1,3 +1,6 @@
+import { IEvent } from "./i.event";
+import { IUser } from "./iUser";
+
 export interface IAITrustCenterTableColumn {
   id: string;
   label: string;
@@ -63,4 +66,11 @@ export interface IEvaluationTableProps {
   page: number;
   setCurrentPagingation: (pageNo: number) => void;
   onShowDetails: (model: IEvaluationRow) => void;
+}
+
+export interface IEventsTableProps {
+  data: IEvent[];
+  users?: IUser[];
+  isLoading?: boolean;
+  paginated?: boolean;
 }

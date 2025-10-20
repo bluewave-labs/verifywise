@@ -17,9 +17,14 @@ import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.c
 import singleTheme from "../../../themes/v1SingleTheme";
 import { ChevronsUpDown } from "lucide-react";
 
-import { getPaginationRowCount, setPaginationRowCount } from "../../../../application/utils/paginationStorage";
+import {
+  getPaginationRowCount,
+  setPaginationRowCount,
+} from "../../../../application/utils/paginationStorage";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
 
 const DEFAULT_ROWS_PER_PAGE = 10;
 
@@ -49,11 +54,10 @@ const CustomizablePolicyTable = ({
 }: TableProps) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(() => 
-    getPaginationRowCount('policyManager', DEFAULT_ROWS_PER_PAGE)
+  const [rowsPerPage, setRowsPerPage] = useState(() =>
+    getPaginationRowCount("policyManager", DEFAULT_ROWS_PER_PAGE)
   );
-  const { setInputValues } =
-    useContext(VerifyWiseContext);
+  const { setInputValues } = useContext(VerifyWiseContext);
 
   useEffect(() => setPage(0), [data.rows.length]);
 
@@ -65,7 +69,7 @@ const CustomizablePolicyTable = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const newRowsPerPage = parseInt(event.target.value, 10);
       setRowsPerPage(newRowsPerPage);
-      setPaginationRowCount('policyManager', newRowsPerPage);
+      setPaginationRowCount("policyManager", newRowsPerPage);
       setPage(0);
     },
     []

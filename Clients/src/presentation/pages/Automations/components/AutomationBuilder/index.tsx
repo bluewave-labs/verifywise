@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import Button from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
+import Field from '../../../../components/Inputs/Field';
 import { Automation, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
 
 interface AutomationBuilderProps {
@@ -51,6 +52,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
   onSelectItem,
   onDeleteTrigger,
   onDeleteAction,
+  onUpdateAutomationName,
   onSave,
   isSaving,
 }) => {
@@ -301,6 +303,38 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
         position: 'relative',
       }}
     >
+      {/* Automation Name Header */}
+      <Box
+        sx={{
+          px: 3,
+          pt: 3,
+          pb: 2,
+          backgroundColor: 'transparent',
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: '320px',
+            p: 2,
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.border.light}`,
+          }}
+        >
+          <Field
+            label="Automation name"
+            value={automation.name}
+            onChange={(e) => onUpdateAutomationName(e.target.value)}
+            isRequired
+            sx={{
+              '& .MuiInputBase-root': {
+                backgroundColor: theme.palette.background.main,
+              },
+            }}
+          />
+        </Box>
+      </Box>
+
       {/* Content */}
       <Stack sx={{
         flex: 1,

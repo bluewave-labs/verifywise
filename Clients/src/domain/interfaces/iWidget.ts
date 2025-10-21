@@ -159,3 +159,13 @@ export interface IStatusDropdownProps {
   userRole?: string;
   statusOptions?: string[];
 }
+
+export interface ISearchBoxProps {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  sx?: SxProps<Theme>;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  disabled?: boolean;
+  fullWidth?: boolean;
+}

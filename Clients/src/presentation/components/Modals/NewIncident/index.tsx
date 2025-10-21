@@ -361,7 +361,10 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                 <CloseIcon />
                             </Box>
                         </Stack>
-                        <Divider sx={{ mb: 4 }} />
+                        <Divider sx={{
+                            mb: 4,
+                            mx: `calc(-1 * ${theme.spacing(10)})`,
+                        }} />
                     </>
                 )}
 

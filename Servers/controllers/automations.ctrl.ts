@@ -79,6 +79,7 @@ export const createAutomation = async (
     const triggerId = req.body.triggerId as number;
     const name = req.body.name as string;
     const actions = req.body.actions as Partial<ITenantAutomationAction>[];
+    const params = JSON.parse(req.body.params || "{}") as Record<string, any>;
 
     if (!triggerId || !name || !Array.isArray(actions) || actions.length === 0) {
       await transaction.rollback();
@@ -86,8 +87,7 @@ export const createAutomation = async (
     }
 
     const automation = await createAutomationQuery(
-      triggerId,
-      name,
+      { name, trigger_id: triggerId, params },
       actions,
       req.userId!,
       req.tenantId!,
@@ -118,7 +118,12 @@ export const updateAutomation = async (
 
     const automation = await updateAutomationByIdQuery(
       id,
-      { name: req.body.name, is_active: req.body.is_active, trigger_id: req.body.triggerId },
+      {
+        name: req.body.name,
+        is_active: req.body.is_active,
+        trigger_id: req.body.triggerId,
+        params: JSON.parse(req.body.params) || {} as Record<string, any>,
+      },
       actions,
       req.tenantId!,
       transaction

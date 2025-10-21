@@ -796,8 +796,8 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
     );`, { transaction });
 
 
-     // Create ai-incident-management table
-     await sequelize.query(`
+    // Create ai-incident-management table
+    await sequelize.query(`
       CREATE TABLE IF NOT EXISTS "${tenantHash}"."ai_incident_managements" (
         id SERIAL PRIMARY KEY,
         incident_id VARCHAR(255) NOT NULL UNIQUE,
@@ -841,6 +841,24 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       ALTER COLUMN incident_id 
       SET DEFAULT 'INC-' || nextval('"${tenantHash}".incident_id_seq');
     `, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".automations (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      trigger_id INTEGER REFERENCES public.automation_triggers(id) ON DELETE RESTRICT,
+      params JSONB DEFAULT '{}',
+      is_active BOOLEAN DEFAULT TRUE,
+      created_by INTEGER REFERENCES users(id),
+      created_at TIMESTAMP DEFAULT NOW()
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".automation_actions (
+      id SERIAL PRIMARY KEY,
+      automation_id INTEGER REFERENCES "${tenantHash}".automations(id) ON DELETE CASCADE,
+      action_type_id INTEGER REFERENCES public.automation_actions(id) ON DELETE RESTRICT,
+      params JSONB DEFAULT '{}',
+      "order" INTEGER DEFAULT 1
+    );`, { transaction });
   }
   catch (error) {
     throw error;

@@ -12,6 +12,7 @@ import {
   Chip,
   Box,
 } from "@mui/material";
+import { useState } from "react";
 import "./index.css";
 import { ChevronDown } from "lucide-react";
 
@@ -52,6 +53,8 @@ const CustomizableMultiSelect = ({
   sx,
 }: CustomizableMultiSelectProps) => {
   const theme = useTheme();
+  const [open, setOpen] = useState(false);
+
   const itemStyles = {
     fontSize: "var(--env-var-font-size-medium)",
     color: theme.palette.text.tertiary,
@@ -68,6 +71,15 @@ const CustomizableMultiSelect = ({
       target: { value: current, name: "vw-multi-select" },
     } as unknown as SelectChangeEvent<(string | number)[]>;
     onChange(syntheticEvent, null);
+  };
+
+  const handleChange = (
+    event: SelectChangeEvent<string | number | (string | number)[]>,
+    child: React.ReactNode
+  ) => {
+    onChange(event, child);
+    // Close the dropdown after selection
+    setOpen(false);
   };
 
   const renderValue = (value: unknown) => {
@@ -150,7 +162,10 @@ const CustomizableMultiSelect = ({
         id="vw-multi-select"
         className="select-component"
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
+        open={open}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
         multiple
         displayEmpty
         renderValue={renderValue}
@@ -209,37 +224,43 @@ const CustomizableMultiSelect = ({
             {placeholder}
           </MenuItem>
         )}
-        {items.map(
-          (item: {
-            _id: string | number;
-            name: string;
-            email?: string;
-            surname?: string;
-          }) => (
-            <MenuItem
-              value={getOptionValue ? getOptionValue(item) : item._id}
-              key={`${item._id}`}
-              sx={{
-                display: "flex",
-                ...itemStyles,
-                justifyContent: "space-between",
-                flexDirection: "row",
-                gap: 1,
-              }}
-            >
-              <span style={{ marginRight: 1 }}>{`${item.name} ${
-                item.surname ? item.surname : ""
-              }`}</span>
-              {item.email && (
-                <span
-                  style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
-                >
-                  {`${item.email}`}
-                </span>
-              )}
-            </MenuItem>
-          )
-        )}
+        {items
+          .filter((item) => {
+            const itemValue = getOptionValue ? getOptionValue(item) : item._id;
+            const selectedValues = Array.isArray(value) ? value : [value];
+            return !selectedValues.map(v => String(v)).includes(String(itemValue));
+          })
+          .map(
+            (item: {
+              _id: string | number;
+              name: string;
+              email?: string;
+              surname?: string;
+            }) => (
+              <MenuItem
+                value={getOptionValue ? getOptionValue(item) : item._id}
+                key={`${item._id}`}
+                sx={{
+                  display: "flex",
+                  ...itemStyles,
+                  justifyContent: "space-between",
+                  flexDirection: "row",
+                  gap: 1,
+                }}
+              >
+                <span style={{ marginRight: 1 }}>{`${item.name} ${
+                  item.surname ? item.surname : ""
+                }`}</span>
+                {item.email && (
+                  <span
+                    style={{ fontSize: 11, color: "#9d9d9d", marginLeft: "4px" }}
+                  >
+                    {`${item.email}`}
+                  </span>
+                )}
+              </MenuItem>
+            )
+          )}
       </MuiSelect>
       {error && (
         <Typography

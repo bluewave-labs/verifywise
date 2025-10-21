@@ -297,50 +297,58 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   const getTemplateVariables = () => {
     if (!trigger) return [];
 
+    // Common variables available for all triggers
     const commonVariables = [
       { var: '{{date_and_time}}', desc: 'Date and time of the event' },
+    ];
+
+    // Common vendor variables
+    const vendorVariables = [
+      { var: '{{vendor.name}}', desc: 'Name of the vendor' },
+      { var: '{{vendor.id}}', desc: 'Vendor ID' },
+      { var: '{{vendor.provides}}', desc: 'Services/products the vendor provides' },
+      { var: '{{vendor.website}}', desc: 'Vendor website URL' },
+      { var: '{{vendor.contact}}', desc: 'Vendor contact person name' },
+    ];
+
+    // Common model variables
+    const modelVariables = [
+      { var: '{{model.id}}', desc: 'Model ID' },
+      { var: '{{model.provider}}', desc: 'Model provider (e.g., OpenAI, Anthropic)' },
+      { var: '{{model.name}}', desc: 'Model name' },
+      { var: '{{model.version}}', desc: 'Model version' },
+      { var: '{{model.provider_model}}', desc: 'Full provider model string' },
+      { var: '{{model.approver}}', desc: 'Person who approved the model' },
+      { var: '{{model.capabilities}}', desc: 'Model capabilities' },
+      { var: '{{model.security_assessment}}', desc: 'Security assessment status (Yes/No)' },
+      { var: '{{model.status}}', desc: 'Model status (Pending/Approved/Restricted)' },
+      { var: '{{model.status_date}}', desc: 'Status date' },
+      { var: '{{model.reference_link}}', desc: 'Reference link' },
+      { var: '{{model.biases}}', desc: 'Known biases' },
+      { var: '{{model.limitations}}', desc: 'Model limitations' },
+      { var: '{{model.hosting_provider}}', desc: 'Hosting provider' },
+      { var: '{{model.used_in_projects}}', desc: 'Projects using this model' },
+      { var: '{{model.created_at}}', desc: 'Model creation date' },
     ];
 
     switch (trigger.type) {
       case 'vendor_added':
         return [
-          { var: '{{vendor.name}}', desc: 'Name of the vendor' },
-          { var: '{{vendor.id}}', desc: 'Vendor ID' },
-          { var: '{{vendor.provides}}', desc: 'Services/products the vendor provides' },
-          { var: '{{vendor.website}}', desc: 'Vendor website URL' },
-          { var: '{{vendor.contact}}', desc: 'Vendor contact person name' },
+          ...vendorVariables,
           ...commonVariables,
         ];
 
       case 'model_added':
         return [
-          { var: '{{model.id}}', desc: 'Model ID' },
-          { var: '{{model.provider}}', desc: 'Model provider (e.g., OpenAI, Anthropic)' },
-          { var: '{{model.name}}', desc: 'Model name' },
-          { var: '{{model.version}}', desc: 'Model version' },
-          { var: '{{model.provider_model}}', desc: 'Full provider model string' },
-          { var: '{{model.approver}}', desc: 'Person who approved the model' },
-          { var: '{{model.capabilities}}', desc: 'Model capabilities' },
-          { var: '{{model.security_assessment}}', desc: 'Security assessment status (Yes/No)' },
-          { var: '{{model.status}}', desc: 'Model status (Pending/Approved/Restricted)' },
-          { var: '{{model.status_date}}', desc: 'Status date' },
-          { var: '{{model.reference_link}}', desc: 'Reference link' },
-          { var: '{{model.biases}}', desc: 'Known biases' },
-          { var: '{{model.limitations}}', desc: 'Model limitations' },
-          { var: '{{model.hosting_provider}}', desc: 'Hosting provider' },
-          { var: '{{model.used_in_projects}}', desc: 'Projects using this model' },
-          { var: '{{model.created_at}}', desc: 'Model creation date' },
+          ...modelVariables,
           ...commonVariables,
         ];
 
       case 'vendor_review_date_approaching':
         return [
-          { var: '{{vendor_name}}', desc: 'Name of the vendor' },
-          { var: '{{vendor_id}}', desc: 'Vendor ID' },
-          { var: '{{review_date}}', desc: 'Scheduled review date' },
-          { var: '{{days_until_review}}', desc: 'Days remaining until review' },
-          { var: '{{last_review_date}}', desc: 'Date of last review' },
-          { var: '{{reviewer}}', desc: 'Assigned reviewer' },
+          ...vendorVariables,
+          { var: '{{vendor.review_date}}', desc: 'Scheduled review date' },
+          { var: '{{vendor.reviewer}}', desc: 'Assigned reviewer' },
           ...commonVariables,
         ];
 

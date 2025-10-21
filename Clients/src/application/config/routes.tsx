@@ -14,7 +14,6 @@ import ForgotPassword from "../../presentation/pages/Authentication/ForgotPasswo
 import ResetPassword from "../../presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "../../presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "../../presentation/pages/Authentication/ResetPasswordContinue";
-import ProjectView from "../../presentation/pages/ProjectView";
 import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
 import Playground from "../../presentation/pages";
@@ -37,6 +36,7 @@ import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
+import AutomationsPage from "../../presentation/pages/Automations";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -59,8 +59,7 @@ export const createRoutes = (
     <Route path="/integrations/slack" element={<SlackManagement />} />
     <Route path="/setting" element={<Navigate to="/settings" replace />} />
     <Route path="/organization" element={<Organization />} />
-    <Route path="/test/project-view" element={<ProjectView />} />
-    <Route path="/file-manager" element={<FileManager />} />
+      <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
     <Route index element={<IntegratedDashboard />} />
     <Route path="/overview" element={<VWHome />} />
@@ -77,6 +76,7 @@ export const createRoutes = (
     <Route path="/model-inventory" element={<ModelInventory />} />
     <Route path="/risk-management" element={<RiskManagement />} />
     <Route path="/tasks" element={<Tasks />} />
+    <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
   </Route>,
   <Route

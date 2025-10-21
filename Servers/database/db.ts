@@ -63,6 +63,10 @@ import { SubscriptionModel } from "../domain.layer/models/subscriptions/subscrip
 import { TasksModel } from "../domain.layer/models/tasks/tasks.model";
 import { TaskAssigneesModel } from "../domain.layer/models/taskAssignees/taskAssignees.model";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
+import { AutomationModel } from "../domain.layer/models/automation/automation.model";
+import { AutomationActionModel } from "../domain.layer/models/automationAction/automationAction.model";
+import { AutomationTriggerModel } from "../domain.layer/models/automationTrigger/automationTrigger.model";
+import { AutomationTriggerActionModel } from "../domain.layer/models/automationTriggerAction/automationTriggerAction.model";
 import { AIIncidentManagementModel } from "../domain.layer/models/incidentManagement/incidemtManagement.model";
 
 dotenv.config();
@@ -136,6 +140,10 @@ const sequelize = new Sequelize(conf.database!, conf.username!, conf.password, {
     TasksModel,
     TaskAssigneesModel,
     SlackWebhookModel,
+    AutomationModel,
+    AutomationActionModel,
+    AutomationTriggerModel,
+    AutomationTriggerActionModel,
     AIIncidentManagementModel,
   ],
 }) as Sequelize;

@@ -25,6 +25,7 @@ import {
   FolderTree,
   Layers,
   Puzzle,
+  Zap,
 } from "lucide-react";
 
 /**
@@ -70,6 +71,9 @@ export const routeMapping: Record<string, string> = {
 
   // Event tracking
   "/event-tracker": "Event Tracker",
+
+  // Automations
+  "/automations": "Automations",
 
   // Model inventory
   "/model-inventory": "Model Inventory",
@@ -149,6 +153,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Policy Manager
   "/policies": () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),
+
+  // Automations
+  "/automations": () => React.createElement(Zap, { size: 14, strokeWidth: 1.5 }),
 };
 
 /**

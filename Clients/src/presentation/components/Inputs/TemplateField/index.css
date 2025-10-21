@@ -1,0 +1,19 @@
+/* TemplateField styles */
+.template-field-dropdown {
+  animation: fadeIn 0.15s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.template-field-item {
+  transition: background-color 0.15s ease-in-out;
+}

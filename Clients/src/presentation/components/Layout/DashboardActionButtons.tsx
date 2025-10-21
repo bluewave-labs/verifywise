@@ -24,11 +24,7 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
       direction="row"
       spacing={'8px'}
       sx={{
-        position: 'absolute',
-        top: 24,
-        right: 0,
-        zIndex: 1,
-        marginRight: '32px',
+        // Removed absolute positioning to work with PageBreadcrumbs flex layout
       }}
     >
       <Button

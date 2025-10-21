@@ -358,7 +358,7 @@ const IncidentManagement: React.FC = () => {
 
     /** -------------------- RENDER -------------------- */
     return (
-        <Stack className="vwhome">
+        <Stack className="vwhome" gap={"16px"}>
             <PageBreadcrumbs />
 
             <HelperDrawer

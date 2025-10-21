@@ -687,9 +687,7 @@ This notification was sent on {{date_and_time}}.`;
                 onCreateAutomation={handleCreateAutomation}
                 onDeleteAutomation={handleDeleteAutomation}
                 onDiscardAutomation={handleDiscardAutomation}
-                onDuplicateAutomation={handleDuplicateAutomation}
                 onToggleAutomation={handleToggleAutomation}
-                onRenameAutomation={handleRenameAutomation}
                 onSearchChange={setSearchQuery}
               />
             </Grid>

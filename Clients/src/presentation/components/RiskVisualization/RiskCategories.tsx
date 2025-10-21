@@ -12,23 +12,10 @@ import {
   ChevronUp as ExpandLessIcon,
   ChevronDown as ExpandMoreIcon,
 } from "lucide-react";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import ButtonToggle from "../ButtonToggle";
 import { IRiskCategoriesProps } from "../../../domain/interfaces/i.risk";
-
-interface CategoryGroup {
-  name: string;
-  risks: ProjectRisk[];
-  count: number;
-  riskLevels: {
-    veryHigh: number;
-    high: number;
-    medium: number;
-    low: number;
-    veryLow: number;
-  };
-}
+import { ICategoryGroup } from "../../../domain/interfaces/i.categoryGroup";
 
 const RiskCategories: React.FC<IRiskCategoriesProps> = ({
   risks,
@@ -98,7 +85,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
   };
 
   const categorizedRisks = useMemo(() => {
-    const groups: { [key: string]: CategoryGroup } = {};
+    const groups: { [key: string]: ICategoryGroup } = {};
 
     risks.forEach((risk) => {
       let categories: string[] = [];
@@ -148,7 +135,7 @@ const RiskCategories: React.FC<IRiskCategoriesProps> = ({
     );
   };
 
-  const getMostCriticalLevel = (category: CategoryGroup) => {
+  const getMostCriticalLevel = (category: ICategoryGroup) => {
     if (category.riskLevels.veryHigh > 0)
       return { level: 20, color: getRiskLevelColor(20) };
     if (category.riskLevels.high > 0)

@@ -3,7 +3,7 @@ import { Grid, Container, Box, Stack, useTheme } from '@mui/material';
 import { Settings } from 'lucide-react';
 import AutomationList from './components/AutomationList';
 import AutomationBuilder from './components/AutomationBuilder';
-import AutomationDrawer from './components/AutomationDrawer';
+import ConfigurationPanel from './components/ConfigurationPanel';
 import { Automation, Trigger, Action, TriggerTemplate, ActionTemplate } from '../../../domain/types/Automation';
 import { mockTriggerTemplates, mockActionTemplates } from './data/mockData';
 import { generateId } from '../../../application/utils/generateId';
@@ -20,7 +20,6 @@ const AutomationsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [toast, setToast] = useState<{
     variant: "success" | "info" | "warning" | "error";
     body: string;
@@ -57,10 +56,6 @@ const AutomationsPage: React.FC = () => {
       const response = await CustomAxios.get('/automations');
       const backendAutomations = response.data.data;
 
-      // Fetch users to map emails back to user IDs
-      const usersResponse = await CustomAxios.get('/users');
-      const users = usersResponse.data.data;
-
       // Fetch triggers and actions to map IDs to types
       const triggersResponse = await CustomAxios.get('/automations/triggers');
       const triggers = triggersResponse.data.data;
@@ -82,19 +77,13 @@ const AutomationsPage: React.FC = () => {
           const detailResponse = await CustomAxios.get(`/automations/${backendAuto.id}`);
           const detailData = detailResponse.data.data;
 
-          // Parse trigger params if they exist
-          const paramsSource = detailData.params || backendAuto.params;
-          const triggerParams = paramsSource
-            ? (typeof paramsSource === 'string' ? JSON.parse(paramsSource) : paramsSource)
-            : {};
-
           // Map trigger to frontend format
           const frontendTrigger: Trigger | null = trigger ? {
             id: String(trigger.id),
             type: trigger.key,
             name: trigger.label,
             description: trigger.description || '',
-            configuration: triggerParams,
+            configuration: {},
           } : null;
 
           // Map actions to frontend format
@@ -104,13 +93,12 @@ const AutomationsPage: React.FC = () => {
             // Parse params if string
             let parsedParams = typeof action.params === 'string' ? JSON.parse(action.params) : action.params || {};
 
-            // Convert 'to' array of emails back to user IDs for the multi-select component
+            // Convert 'to' array back to comma-separated string for textarea display
             if (parsedParams.to && Array.isArray(parsedParams.to)) {
-              const userIds = parsedParams.to.map((email: string) => {
-                const user = users.find((u: any) => u.email === email);
-                return user ? user.id : null;
-              }).filter((id: any) => id !== null);
-              parsedParams = { ...parsedParams, to: userIds };
+              parsedParams = {
+                ...parsedParams,
+                to: parsedParams.to.join(', ')
+              };
             }
 
             return {
@@ -372,7 +360,6 @@ const AutomationsPage: React.FC = () => {
     // Auto-select the new trigger for configuration
     setSelectedItemId(newTrigger.id);
     setSelectedItemType('trigger');
-    setIsDrawerOpen(true);
   };
 
   const handleAddAction = (actionTemplate: ActionTemplate) => {
@@ -452,17 +439,11 @@ This notification was sent on {{date_and_time}}.`;
     // Auto-select the new action for configuration
     setSelectedItemId(newAction.id);
     setSelectedItemType('action');
-    setIsDrawerOpen(true);
   };
 
   const handleSelectItem = (itemId: string, itemType: 'trigger' | 'action') => {
     setSelectedItemId(itemId);
     setSelectedItemType(itemType);
-    setIsDrawerOpen(true);
-  };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
   };
 
   const handleDeleteTrigger = () => {
@@ -535,10 +516,6 @@ This notification was sent on {{date_and_time}}.`;
       // Check if this is an existing automation (has numeric ID from backend) or new (has generated string ID)
       const isExistingAutomation = !isNaN(Number(selectedAutomation.id));
 
-      // Fetch users to convert user IDs to emails
-      const usersResponse = await CustomAxios.get('/users');
-      const users = usersResponse.data.data;
-
       // First, get all triggers to find the trigger ID by type
       const triggersResponse = await CustomAxios.get('/automations/triggers');
       const triggers = triggersResponse.data.data;
@@ -563,17 +540,15 @@ This notification was sent on {{date_and_time}}.`;
           throw new Error(`Action type "${action.type}" not found for this trigger`);
         }
 
-        // Process the configuration
+        // Process the configuration to ensure 'to' field is an array
         const processedParams = { ...action.configuration };
 
-        // Convert 'to' field from user IDs to emails
-        if (processedParams.to && Array.isArray(processedParams.to)) {
+        // If 'to' field exists and is a string, split it into an array
+        if (processedParams.to && typeof processedParams.to === 'string') {
           processedParams.to = processedParams.to
-            .map((userId: number) => {
-              const user = users.find((u: any) => u.id === userId);
-              return user ? user.email : null;
-            })
-            .filter((email: string | null) => email !== null);
+            .split(',')
+            .map((email: string) => email.trim())
+            .filter((email: string) => email.length > 0);
         }
 
         return {
@@ -590,7 +565,6 @@ This notification was sent on {{date_and_time}}.`;
         const updateData = {
           triggerId: triggerData.id,
           name: selectedAutomation.name,
-          params: JSON.stringify(selectedAutomation.trigger.configuration || {}),
           actions: processedActions,
         };
 
@@ -615,7 +589,6 @@ This notification was sent on {{date_and_time}}.`;
         const automationData = {
           triggerId: triggerData.id,
           name: selectedAutomation.name,
-          params: JSON.stringify(selectedAutomation.trigger.configuration || {}),
           actions: processedActions,
         };
 
@@ -657,12 +630,15 @@ This notification was sent on {{date_and_time}}.`;
     }
   };
 
+  // Check if we should show configuration panel
+  const showConfigurationPanel = automations.length > 0 && (selectedItem || selectedAutomation);
+
   return (
     <Stack className="vwhome" gap={"16px"}>
       {/* Breadcrumbs with integrated action buttons and divider */}
       <PageBreadcrumbs />
 
-      <Container maxWidth={false} sx={{ height: 'calc(100vh - 100px)', px: 0 }}>
+      <Container maxWidth={false} sx={{ height: 'calc(100vh - 180px)', px: 0 }}>
         <Box
           sx={{
             height: '100%',
@@ -677,7 +653,7 @@ This notification was sent on {{date_and_time}}.`;
             <Grid
               item
               xs={12}
-              md={3}
+              md={showConfigurationPanel ? 3 : 4}
               sx={{
                 height: '100%',
                 borderRight: `1px solid ${theme.palette.border.light}`,
@@ -704,9 +680,10 @@ This notification was sent on {{date_and_time}}.`;
             <Grid
               item
               xs={12}
-              md={9}
+              md={showConfigurationPanel ? 6 : 8}
               sx={{
                 height: '100%',
+                ...(showConfigurationPanel ? { borderRight: `1px solid ${theme.palette.border.light}` } : {}),
                 background: 'linear-gradient(135deg, rgba(100,150,255,0.08) 0%, rgba(255,255,255,0) 100%), #F9FAF9 !important',
                 position: 'relative',
                 overflow: 'hidden',
@@ -746,21 +723,35 @@ This notification was sent on {{date_and_time}}.`;
                 <Settings size={350} strokeWidth={1} />
               </Box>
             </Grid>
+
+            {/* Right Panel - Configuration (conditional) */}
+            {showConfigurationPanel && (
+              <Grid
+                item
+                xs={12}
+                md={3}
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(135deg, rgba(200,200,200,0.08) 0%, rgba(255,255,255,0) 100%) !important',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <ConfigurationPanel
+                  selectedItem={selectedItem}
+                  selectedItemType={selectedItemType}
+                  trigger={selectedAutomation?.trigger ?? null}
+                  triggerTemplates={mockTriggerTemplates}
+                  actionTemplates={mockActionTemplates}
+                  onConfigurationChange={handleUpdateConfiguration}
+                  automationName={selectedAutomation?.name}
+                  onAutomationNameChange={(newName) => selectedAutomation && handleRenameAutomation(selectedAutomation.id, newName)}
+                />
+              </Grid>
+            )}
           </Grid>
         </Box>
       </Container>
-
-      {/* Automation Configuration Drawer */}
-      <AutomationDrawer
-        open={isDrawerOpen}
-        onClose={handleCloseDrawer}
-        selectedItem={selectedItem}
-        selectedItemType={selectedItemType}
-        trigger={selectedAutomation?.trigger ?? null}
-        triggerTemplates={mockTriggerTemplates}
-        actionTemplates={mockActionTemplates}
-        onConfigurationChange={handleUpdateConfiguration}
-      />
 
       {/* Toast Notification */}
       {toast && toast.visible && (

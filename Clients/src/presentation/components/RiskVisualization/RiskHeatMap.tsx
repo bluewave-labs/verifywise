@@ -1,15 +1,7 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Tooltip, Stack, useTheme } from "@mui/material";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { IRiskHeatMapProps } from "../../../domain/interfaces/i.risk";
-
-interface HeatMapCell {
-  likelihood: number;
-  severity: number;
-  risks: ProjectRisk[];
-  riskLevel: number;
-  color: string;
-}
+import { IHeatMapCell } from "../../../domain/interfaces/iWidget";
 
 const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
   risks,
@@ -66,10 +58,10 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
   };
 
   const heatMapData = useMemo(() => {
-    const grid: HeatMapCell[][] = [];
+    const grid: IHeatMapCell[][] = [];
 
     for (let severity = 5; severity >= 1; severity--) {
-      const row: HeatMapCell[] = [];
+      const row: IHeatMapCell[] = [];
       for (let likelihood = 1; likelihood <= 5; likelihood++) {
         const cellRisks = risks.filter((risk) => {
           const riskLikelihood = getLikelihoodNumeric(risk.likelihood);
@@ -110,7 +102,7 @@ const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
     return labels[likelihood];
   };
 
-  const renderCell = (cell: HeatMapCell) => {
+  const renderCell = (cell: IHeatMapCell) => {
     const isSelected =
       selectedRisk && cell.risks.some((r) => r.id === selectedRisk.id);
 

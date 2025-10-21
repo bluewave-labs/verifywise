@@ -47,7 +47,7 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
         role="navigation"
         aria-label="Page breadcrumb navigation"
         sx={{
-          mt: 2,
+          mt: 3,
           mb: 3,
           width: "100%",
           position: "relative",
@@ -61,6 +61,7 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
             justifyContent: "space-between",
             alignItems: "flex-end",
             mb: 4,
+            pt: 0,
           }}
         >
           <Breadcrumbs

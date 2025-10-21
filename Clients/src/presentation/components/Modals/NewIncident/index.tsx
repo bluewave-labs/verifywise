@@ -478,7 +478,12 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Stack>
 
                         {/* Harm Categories */}
-                        <FormLabel sx={{ color: theme.palette.text.primary }}>
+                        <FormLabel
+                            sx={{
+                                color: theme.palette.text.primary,
+                                fontSize: 13,
+                            }}
+                        >
                             Categories of Harm
                         </FormLabel>
                         <FormGroup row>

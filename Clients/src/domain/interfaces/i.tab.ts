@@ -10,3 +10,9 @@ export interface ITabBarProps {
   borderColor?: string;
   sx?: object;
 }
+
+export interface ITabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}

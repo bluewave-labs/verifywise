@@ -23,16 +23,7 @@ import {
 } from "@mui/material";
 import { ChevronDown as WhiteDownArrowIcon } from "lucide-react";
 import { getStatusColor } from "../../pages/ISO/style";
-
-interface StatusDropdownProps {
-  currentStatus: string;
-  onStatusChange: (newStatus: string) => Promise<boolean>;
-  disabled?: boolean;
-  size?: "small" | "medium";
-  allowedRoles?: string[];
-  userRole?: string;
-  statusOptions?: string[];
-}
+import { IStatusDropdownProps } from "../../../domain/interfaces/iWidget";
 
 const STATUS_OPTIONS = [
   "Not started",
@@ -45,7 +36,7 @@ const STATUS_OPTIONS = [
   "Needs rework",
 ];
 
-const StatusDropdown: React.FC<StatusDropdownProps> = ({
+const StatusDropdown: React.FC<IStatusDropdownProps> = ({
   currentStatus,
   onStatusChange,
   disabled = false,

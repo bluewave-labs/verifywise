@@ -35,17 +35,18 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     >
       <Button
         variant="contained"
-        startIcon={<Puzzle size={16} />}
+        size="small"
+        startIcon={<Puzzle size={14} />}
         onClick={() => navigate('/integrations')}
         sx={{
           background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
           color: 'white',
           fontWeight: 500,
-          fontSize: '13px',
-          height: '34px',
-          minHeight: '34px',
-          maxHeight: '34px',
-          padding: '0 16px',
+          fontSize: '12px',
+          height: '30px',
+          minHeight: '30px',
+          maxHeight: '30px',
+          padding: '0 14px',
           borderRadius: '4px',
           textTransform: 'none',
           boxShadow: '0 2px 4px rgba(139, 92, 246, 0.2)',
@@ -60,17 +61,18 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
       </Button>
       <Button
         variant="contained"
-        startIcon={<Zap size={16} />}
+        size="small"
+        startIcon={<Zap size={14} />}
         onClick={() => navigate('/automations')}
         sx={{
           background: 'linear-gradient(135deg, #FB923C 0%, #F97316 100%)',
           color: 'white',
           fontWeight: 500,
-          fontSize: '13px',
-          height: '34px',
-          minHeight: '34px',
-          maxHeight: '34px',
-          padding: '0 16px',
+          fontSize: '12px',
+          height: '30px',
+          minHeight: '30px',
+          maxHeight: '30px',
+          padding: '0 14px',
           borderRadius: '4px',
           textTransform: 'none',
           boxShadow: '0 2px 4px rgba(251, 146, 60, 0.2)',

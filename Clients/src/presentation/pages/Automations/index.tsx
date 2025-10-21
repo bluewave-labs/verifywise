@@ -80,13 +80,19 @@ const AutomationsPage: React.FC = () => {
           const detailResponse = await CustomAxios.get(`/automations/${backendAuto.id}`);
           const detailData = detailResponse.data.data;
 
+          // Parse trigger params from the automation (check both backendAuto and detailData)
+          const paramsSource = detailData.params || backendAuto.params;
+          const triggerParams = paramsSource
+            ? (typeof paramsSource === 'string' ? JSON.parse(paramsSource) : paramsSource)
+            : {};
+
           // Map trigger to frontend format
           const frontendTrigger: Trigger | null = trigger ? {
             id: String(trigger.id),
             type: trigger.key,
             name: trigger.label,
             description: trigger.description || '',
-            configuration: {},
+            configuration: triggerParams,
           } : null;
 
           // Map actions to frontend format
@@ -423,14 +429,18 @@ Model Details:
 This notification was sent on {{date_and_time}}.`;
           break;
         case 'vendor_review_date_approaching':
-          configuration.subject = 'Review for {{vendor_name}} due on {{review_date}}';
+          configuration.subject = 'Review for {{vendor.name}} due on {{review_date}}';
           configuration.body = `This is a reminder that a vendor review is approaching.
 
 Review Details:
-• Vendor: {{vendor_name}}
-• Vendor ID: {{vendor_id}}
+• Vendor Name: {{vendor.name}}
+• Vendor ID: {{vendor.id}}
+• Services/Products: {{vendor.provides}}
+• Website: {{vendor.website}}
+• Contact Person: {{vendor.contact}}
 • Scheduled Review Date: {{review_date}}
 • Days Until Review: {{days_until_review}}
+• Last Review Date: {{last_review_date}}
 • Assigned Reviewer: {{reviewer}}
 
 Please complete the review by the scheduled date.
@@ -614,6 +624,7 @@ This notification was sent on {{date_and_time}}.`;
         const updateData = {
           triggerId: triggerData.id,
           name: selectedAutomation.name,
+          params: JSON.stringify(selectedAutomation.trigger.configuration || {}),
           actions: processedActions,
         };
 
@@ -638,6 +649,7 @@ This notification was sent on {{date_and_time}}.`;
         const automationData = {
           triggerId: triggerData.id,
           name: selectedAutomation.name,
+          params: JSON.stringify(selectedAutomation.trigger.configuration || {}),
           actions: processedActions,
         };
 

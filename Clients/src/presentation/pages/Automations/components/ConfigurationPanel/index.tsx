@@ -139,7 +139,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         if (field.key === 'to' && selectedItemType === 'action') {
           // Convert value to array format expected by CustomizableMultiSelect
           const selectValue = Array.isArray(value) ? value :
-            (value && value !== '' ? value.split(',').map((v: string) => v.trim()).filter(v => v) : []);
+            (value && value !== '' ? value.split(',').map((v: string) => v.trim()).filter((v: string) => v) : []);
 
           // Transform users to have _id field expected by CustomizableMultiSelect
           const usersWithId = users.map(user => ({
@@ -338,12 +338,15 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
       case 'vendor_review_date_approaching':
         return [
-          { var: '{{vendor_name}}', desc: 'Name of the vendor' },
-          { var: '{{vendor_id}}', desc: 'Vendor ID' },
-          { var: '{{review_date}}', desc: 'Scheduled review date' },
-          { var: '{{days_until_review}}', desc: 'Days remaining until review' },
-          { var: '{{last_review_date}}', desc: 'Date of last review' },
-          { var: '{{reviewer}}', desc: 'Assigned reviewer' },
+          { var: '{{vendor.name}}', desc: 'Name of the vendor' },
+          { var: '{{vendor.id}}', desc: 'Vendor ID' },
+          { var: '{{vendor.provides}}', desc: 'Services/products the vendor provides' },
+          { var: '{{vendor.website}}', desc: 'Vendor website URL' },
+          { var: '{{vendor.contact}}', desc: 'Vendor contact person name' },
+          { var: '{{vendor.review_date}}', desc: 'Scheduled review date' },
+          // { var: '{{days_until_review}}', desc: 'Days remaining until review' },
+          // { var: '{{last_review_date}}', desc: 'Date of last review' },
+          { var: '{{vendor.reviewer}}', desc: 'Assigned reviewer' },
           ...commonVariables,
         ];
 

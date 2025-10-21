@@ -1,12 +1,7 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Tooltip, Stack, useTheme } from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
-
-interface RiskHeatMapProps {
-  risks: ProjectRisk[];
-  onRiskSelect?: (risk: ProjectRisk) => void;
-  selectedRisk?: ProjectRisk | null;
-}
+import { IRiskHeatMapProps } from "../../../domain/interfaces/i.risk";
 
 interface HeatMapCell {
   likelihood: number;
@@ -16,7 +11,7 @@ interface HeatMapCell {
   color: string;
 }
 
-const RiskHeatMap: React.FC<RiskHeatMapProps> = ({
+const RiskHeatMap: React.FC<IRiskHeatMapProps> = ({
   risks,
   onRiskSelect,
   selectedRisk,

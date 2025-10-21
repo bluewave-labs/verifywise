@@ -318,48 +318,51 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                 {/* Header */}
 
                 {mode !== "view" && (
-                    <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        mb={4}
-                    >
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                            <Typography
-                                fontWeight={600}
-                                color={theme.palette.text.primary}
-                            >
-                                {isEdit ? "Edit incident" : "Create new incident"}
-                            </Typography>
-                            {isEdit && values.incident_id && (
+                    <>
+                        <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            mb={3}
+                        >
+                            <Stack direction="row" alignItems="center" spacing={1}>
                                 <Typography
-                                    fontWeight={400}
-                                    fontSize={14}
-                                    sx={{
-                                        ml: 1,
-                                    }}
+                                    fontWeight={600}
+                                    color={theme.palette.text.primary}
                                 >
-                                    <Typography
-                                        component="span"
-                                        color={theme.palette.text.secondary}
-                                        fontSize={14}
-                                    >
-                                        (Incident ID:{" "}
-                                    </Typography>
-                                    <Typography
-                                        component="span"
-                                        color={theme.palette.text.tertiary}
-                                        fontSize={14}
-                                    >
-                                        {values.incident_id})
-                                    </Typography>
+                                    {isEdit ? "Edit incident" : "Create new incident"}
                                 </Typography>
-                            )}
+                                {isEdit && values.incident_id && (
+                                    <Typography
+                                        fontWeight={400}
+                                        fontSize={14}
+                                        sx={{
+                                            ml: 1,
+                                        }}
+                                    >
+                                        <Typography
+                                            component="span"
+                                            color={theme.palette.text.secondary}
+                                            fontSize={14}
+                                        >
+                                            (Incident ID:{" "}
+                                        </Typography>
+                                        <Typography
+                                            component="span"
+                                            color={theme.palette.text.tertiary}
+                                            fontSize={14}
+                                        >
+                                            {values.incident_id})
+                                        </Typography>
+                                    </Typography>
+                                )}
+                            </Stack>
+                            <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
+                                <CloseIcon />
+                            </Box>
                         </Stack>
-                        <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
-                            <CloseIcon />
-                        </Box>
-                    </Stack>
+                        <Divider sx={{ mb: 4 }} />
+                    </>
                 )}
 
                 <form onSubmit={handleSubmit}>

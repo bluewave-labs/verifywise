@@ -149,3 +149,13 @@ export interface IBannerProps {
   bannerText: string;
   bannerWidth: string;
 }
+
+export interface IStatusDropdownProps {
+  currentStatus: string;
+  onStatusChange: (newStatus: string) => Promise<boolean>;
+  disabled?: boolean;
+  size?: "small" | "medium";
+  allowedRoles?: string[];
+  userRole?: string;
+  statusOptions?: string[];
+}

@@ -27,3 +27,9 @@ export interface IRiskHeatMapProps {
   onRiskSelect?: (risk: ProjectRisk) => void;
   selectedRisk?: ProjectRisk | null;
 }
+
+export interface IRiskTimelineProps {
+  risks: ProjectRisk[];
+  selectedRisk?: ProjectRisk | null;
+  onRiskSelect?: (risk: ProjectRisk) => void;
+}

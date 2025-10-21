@@ -310,11 +310,11 @@ const ApiKeys = () => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    transition: "all 0.2s ease-in-out",
+                    transition: "all 0.3s ease-in-out",
                     cursor: "default",
                     boxShadow: hoveredTokenId === token.id ? "0 2px 8px rgba(19, 113, 91, 0.08)" : "none",
                     opacity: deletingTokenId === token.id ? 0 : 1,
-                    transform: deletingTokenId === token.id ? "translateX(-20px)" : "translateX(0)",
+                    transform: deletingTokenId === token.id ? "translateY(-20px)" : "translateY(0)",
                   }}
                 >
                 <Box sx={{ flex: 1 }}>

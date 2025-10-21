@@ -218,7 +218,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                   />
                 </TableCell>
               </TableRow>
-            })}
+            ))}
       </TableBody>
     ),
     [

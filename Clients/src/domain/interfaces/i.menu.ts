@@ -5,3 +5,8 @@ export interface IMenuItem {
   highlightPaths?: string[];
   taskCount?: number;
 }
+
+export interface IMenuGroup {
+  name: string;
+  items: IMenuItem[];
+}

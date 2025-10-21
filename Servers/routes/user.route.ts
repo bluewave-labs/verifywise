@@ -29,6 +29,9 @@
 
 import express from "express";
 const router = express.Router();
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
+
 import {
   checkUserExists,
   createNewUser,
@@ -42,6 +45,9 @@ import {
   calculateProgress,
   ChangePassword,
   refreshAccessToken,
+  uploadUserProfilePhoto,
+  getUserProfilePhoto,
+  deleteUserProfilePhoto,
 } from "../controllers/user.ctrl";
 import authenticateJWT from "../middleware/auth.middleware";
 
@@ -176,6 +182,13 @@ router.delete("/:id", authenticateJWT, deleteUserById);
 router.get("/check/exists", authenticateJWT, checkUserExists);
 
 router.get("/:id/calculate-progress", authenticateJWT, calculateProgress);
+
+/**
+ * Profile Photo Routes
+ */
+router.post("/:id/profile-photo", authenticateJWT, upload.single("photo"), uploadUserProfilePhoto);
+router.get("/:id/profile-photo", authenticateJWT, getUserProfilePhoto);
+router.delete("/:id/profile-photo", authenticateJWT, deleteUserProfilePhoto);
 
 export default router;
 

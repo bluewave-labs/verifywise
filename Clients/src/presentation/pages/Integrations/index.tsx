@@ -1,48 +1,86 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
+  Stack,
   Typography,
-  Alert,
-  Snackbar,
 } from '@mui/material';
+import { Suspense } from 'react';
 import PageBreadcrumbs from '../../components/Breadcrumbs/PageBreadcrumbs';
 import IntegrationCard from '../../components/IntegrationCard';
 import { AVAILABLE_INTEGRATIONS } from '../../../config/integrations';
 import { Integration, IntegrationStatus, IntegrationConnectionHandler } from '../../../domain/types/integrations';
+import Alert from '../../components/Alert';
+import useSlackIntegrations from '../../../application/hooks/useSlackIntegrations';
+import { useAuth } from '../../../application/hooks/useAuth';
 
 const Integrations: React.FC = () => {
+  const navigate = useNavigate();
+  const { userId } = useAuth();
+  const { slackIntegrations } = useSlackIntegrations(userId);
   const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS.slice(0, 3)); // Only show first 3 integrations
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    body: string;
+    visible: boolean;
+  } | null>(null);
+
+  // Update Slack integration status based on actual data
+  useEffect(() => {
+    if (slackIntegrations && slackIntegrations.length > 0) {
+      setIntegrations(prev =>
+        prev.map(int =>
+          int.id === 'slack'
+            ? { ...int, status: IntegrationStatus.CONFIGURED }
+            : int
+        )
+      );
+    } else {
+      setIntegrations(prev =>
+        prev.map(int =>
+          int.id === 'slack'
+            ? { ...int, status: IntegrationStatus.NOT_CONFIGURED }
+            : int
+        )
+      );
+    }
+  }, [slackIntegrations]);
 
   // Handle integration connection
   const handleConnect: IntegrationConnectionHandler = useCallback(async (integration: Integration) => {
     setLoadingStates(prev => ({ ...prev, [integration.id]: true }));
-    setError(null);
 
     try {
       // Simulate API call for connection
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Update integration status to connected
+      // Update integration status to configured
       setIntegrations(prev =>
         prev.map(int =>
           int.id === integration.id
-            ? { ...int, status: IntegrationStatus.CONNECTED, lastSyncAt: new Date() }
+            ? { ...int, status: IntegrationStatus.CONFIGURED, lastSyncAt: new Date() }
             : int
         )
       );
 
-      setSuccessMessage(`${integration.displayName} connected successfully!`);
+      setToast({
+        variant: "success",
+        body: `${integration.displayName} configured successfully!`,
+        visible: true,
+      });
     } catch (err) {
-      setError(`Failed to connect to ${integration.displayName}. Please try again.`);
+      setToast({
+        variant: "error",
+        body: `Failed to configure ${integration.displayName}. Please try again.`,
+        visible: true,
+      });
 
       // Update integration status to error
       setIntegrations(prev =>
         prev.map(int =>
           int.id === integration.id
-            ? { ...int, status: IntegrationStatus.ERROR, error: 'Connection failed' }
+            ? { ...int, status: IntegrationStatus.ERROR, error: 'Configuration failed' }
             : int
         )
       );
@@ -53,23 +91,30 @@ const Integrations: React.FC = () => {
 
   // Handle integration management
   const handleManage = useCallback((integration: Integration) => {
-    // Navigate to integration management page or open modal
-    console.log(`Managing ${integration.displayName}...`);
-    // TODO: Navigate to integration management page
-  }, []);
+    // Navigate to integration-specific management page
+    if (integration.id === 'slack') {
+      navigate('/integrations/slack');
+    }
+    // TODO: Add navigation for other integration management pages
+  }, [navigate]);
 
-  // Close error snackbar
-  const handleCloseError = () => {
-    setError(null);
+  // Close toast
+  const handleCloseToast = () => {
+    setToast(null);
   };
 
-  // Close success snackbar
-  const handleCloseSuccess = () => {
-    setSuccessMessage(null);
-  };
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (toast && toast.visible) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
       {/* Header */}
@@ -82,7 +127,7 @@ const Integrations: React.FC = () => {
         </Typography>
       </Box>
 
-  
+
       {/* Integration Cards Grid */}
       <Box sx={{ p: 2 }}>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
@@ -105,30 +150,18 @@ const Integrations: React.FC = () => {
 
         </Box>
 
-      {/* Error Snackbar */}
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-
-      {/* Success Snackbar */}
-      <Snackbar
-        open={!!successMessage}
-        autoHideDuration={4000}
-        onClose={handleCloseSuccess}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
-    </Box>
+      {/* VerifyWise Toast */}
+      {toast && toast.visible && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <Alert
+            variant={toast.variant}
+            body={toast.body}
+            isToast={true}
+            onClick={handleCloseToast}
+          />
+        </Suspense>
+      )}
+    </Stack>
   );
 };
 

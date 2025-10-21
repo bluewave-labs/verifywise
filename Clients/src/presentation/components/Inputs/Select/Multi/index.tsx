@@ -77,11 +77,7 @@ const CustomizableMultiSelect = ({
     );
     return (
       <Box sx={{
-        display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflowX: 'auto', '::-webkit-scrollbar': {
-          display: 'none',
-        },
-        '-ms-overflow-style': 'none', // IE and Edge
-        'scrollbar-width': 'none',
+        display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'flex-start'
       }}>
         {selectedItems.map((item) => {
           const idVal = getOptionValue ? getOptionValue(item) : item._id;
@@ -160,6 +156,19 @@ const CustomizableMultiSelect = ({
         renderValue={renderValue}
         IconComponent={() => <ChevronDown size={16} />}
         error={!!error}
+        sx={{
+          ...sx,
+          '& .MuiOutlinedInput-input': {
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 0.5,
+            alignItems: 'flex-start',
+            paddingTop: '16.5px',
+            paddingBottom: '16.5px',
+            minHeight: '56px', // Minimum height for single line
+            height: 'auto', // Allow height to grow dynamically
+          }
+        }}
         MenuProps={{
           disableScrollLock: true,
           PaperProps: {
@@ -186,7 +195,6 @@ const CustomizableMultiSelect = ({
             },
           },
         }}
-        sx={sx}
       >
         {placeholder && (
           <MenuItem

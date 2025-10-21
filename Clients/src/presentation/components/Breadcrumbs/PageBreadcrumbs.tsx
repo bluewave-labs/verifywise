@@ -47,36 +47,47 @@ const PageBreadcrumbs: React.FC<IPageBreadcrumbsProps> = memo(
         role="navigation"
         aria-label="Page breadcrumb navigation"
         sx={{
-          mt: 2,
+          mt: 4,
           mb: 3,
           width: "100%",
+          position: "relative",
           ...sx,
         }}
       >
-        <DashboardActionButtons />
-        <Breadcrumbs
-          items={items}
-          autoGenerate={autoGenerate}
-          showCurrentPage={showCurrentPage}
-          homeLabel={homeLabel}
-          homePath={homePath}
-          truncateLabels={truncateLabels}
-          maxLabelLength={maxLabelLength}
-          onItemClick={onItemClick}
+        <Stack
+          direction="row"
           sx={{
-            py: 0.5,
-            px: 0,
+            width: "100%",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
             mb: 4,
-            "& .MuiBreadcrumbs-separator": {
-              color: theme.palette.text.disabled,
-              mx: 0.5,
-              fontSize: "14px",
-            },
-            "& .MuiBreadcrumbs-ol": {
-              flexWrap: "wrap",
-            },
+            pt: 0,
           }}
-        />
+        >
+          <Breadcrumbs
+            items={items}
+            autoGenerate={autoGenerate}
+            showCurrentPage={showCurrentPage}
+            homeLabel={homeLabel}
+            homePath={homePath}
+            truncateLabels={truncateLabels}
+            maxLabelLength={maxLabelLength}
+            onItemClick={onItemClick}
+            sx={{
+              py: 0.5,
+              px: 0,
+              "& .MuiBreadcrumbs-separator": {
+                color: theme.palette.text.disabled,
+                mx: 0.5,
+                fontSize: "14px",
+              },
+              "& .MuiBreadcrumbs-ol": {
+                flexWrap: "wrap",
+              },
+            }}
+          />
+          <DashboardActionButtons hideOnMainDashboard={false} />
+        </Stack>
         {showDivider && <Divider sx={{ mb: 2 }} />}
       </Stack>
     );

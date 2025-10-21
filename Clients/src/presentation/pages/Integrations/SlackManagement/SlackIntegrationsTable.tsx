@@ -17,7 +17,6 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography,
   useTheme,
 } from "@mui/material";
 import { SlidersHorizontal } from "lucide-react";
@@ -27,13 +26,12 @@ import { deleteSlackIntegration, sendSlackMessage, updateSlackIntegration } from
 import { Suspense, useCallback, useState } from "react";
 import { formatDate } from "../../../tools/isoDateToString";
 import { SlackWebhook } from "../../../../application/hooks/useSlackIntegrations";
-import { vwhomeHeading } from "../../Home/1.0Home/style";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import NotificationRoutingModal from "./NotificationRoutingModal";
 import Popup from "../../../components/Popup";
 import IconButton from "../../../components/IconButton";
 
-interface SlackIntegrationsProps {
+interface SlackIntegrationsTableProps {
   integrationData: SlackWebhook[];
   showAlert: (
     variant: "success" | "info" | "warning" | "error",
@@ -44,12 +42,12 @@ interface SlackIntegrationsProps {
   slackUrl: string;
 }
 
-const SlackIntegrations = ({
+const SlackIntegrationsTable = ({
   integrationData,
   showAlert,
   refreshSlackIntegrations,
   slackUrl: url,
-}: SlackIntegrationsProps) => {
+}: SlackIntegrationsTableProps) => {
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(5); // Rows per page
   const theme = useTheme();
@@ -187,44 +185,32 @@ const SlackIntegrations = ({
         sx={{
           display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           mb: 3,
+          gap: 10,
         }}
       >
-        <Box>
-          <Typography sx={vwhomeHeading}>Integrations</Typography>
-        </Box>
-
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            gap: 10,
-          }}
-        >
-          {/* This is embeddable html provided by Slack */}
-          <a href={`${url}`}>
-            <img
-              alt="Add to Slack"
-              height="34"
-              width="139"
-              src="https://platform.slack-edge.com/img/add_to_slack.png"
-              srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
-            />
-          </a>
-          <CustomizableButton
-            variant="contained"
-            text="Configure"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 2,
-            }}
-            icon={<SliderIcon />}
-            onClick={handleOpenOrClose}
+        {/* This is embeddable html provided by Slack */}
+        <a href={`${url}`}>
+          <img
+            alt="Add to Slack"
+            height="34"
+            width="139"
+            src="https://platform.slack-edge.com/img/add_to_slack.png"
+            srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
           />
-        </Box>
+        </a>
+        <CustomizableButton
+          variant="contained"
+          text="Configure"
+          sx={{
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
+          }}
+          icon={<SliderIcon />}
+          onClick={handleOpenOrClose}
+        />
       </Stack>
       <TableContainer sx={{ overflowX: "auto" }}>
         <Table sx={{ ...singleTheme.tableStyles.primary.frame }}>
@@ -402,4 +388,4 @@ const SlackIntegrations = ({
   );
 };
 
-export default SlackIntegrations;
+export default SlackIntegrationsTable;

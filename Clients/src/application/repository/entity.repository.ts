@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   GetRequestParams,
   RequestParams,
@@ -81,7 +82,7 @@ export async function updateEntityById({
     });
     return response;
   } catch (error) {
-    throw error;
+    console.error("", error);
   }
 }
 
@@ -204,7 +205,7 @@ export async function generateReport({
 
     return response;
   } catch (error) {
-    throw error;
+    console.error("", error);
   }
 }
 
@@ -240,3 +241,29 @@ export const assignFrameworkToProject = async ({
     throw error;
   }
 };
+
+/**
+ * Archives an incident by updating its "isArchived" flag.
+ *
+ * @param {RequestParams} params - The parameters for the archive operation.
+ * @returns {Promise<any>} A promise that resolves to the response after archiving the incident.
+ * @throws Will throw an error if the archive operation fails.
+ */
+export async function archiveIncidentById({
+  routeUrl,
+  body,
+  headers,
+}: RequestParams): Promise<any> {
+  try {
+    // PATCH /incidents/:id/archive
+    const response = await apiServices.patch(`${routeUrl}/archive`, body, {
+      headers: { ...headers },
+    });
+    return response;
+  } catch (error) {
+    console.error("Error archiving incident:", error);
+    throw error;
+  }
+}
+
+

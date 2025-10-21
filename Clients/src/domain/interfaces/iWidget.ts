@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SelectChangeEvent, Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
@@ -28,6 +29,7 @@ export interface IconButtonProps {
   canDelete?: boolean;
   checkForRisks?: () => Promise<boolean>;
   onDeleteWithRisks?: (deleteRisks: boolean) => void;
+  onView?: () => void;
   onSendTest?: () => void;
   onToggleEnable?: () => void;
 }
@@ -94,6 +96,7 @@ export interface FieldProps {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
+  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
   width?: number | string;

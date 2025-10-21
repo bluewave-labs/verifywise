@@ -1,12 +1,10 @@
 import { Queue } from "bullmq";
 import logger from "../../utils/logger/fileLogger";
+import redisClient from "../../database/redis"
 
 // Create a new queue (connected to Redis using environment variable)
 export const notificationQueue = new Queue("slack-notifications", {
-  connection: {
-    host: process.env.REDIS_HOST || "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT || "6379", 10),
-  },
+  connection: redisClient,
 });
 
 export async function scheduleDailyNotification() {

@@ -1,18 +1,9 @@
 import React from "react";
 import { Box, InputBase, SxProps, Theme } from "@mui/material";
 import { Search } from "lucide-react";
+import { ISearchBoxProps } from "../../../../domain/interfaces/iWidget";
 
-export interface SearchBoxProps {
-  placeholder?: string;
-  value: string;
-  onChange: (value: string) => void;
-  sx?: SxProps<Theme>;
-  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
-  disabled?: boolean;
-  fullWidth?: boolean;
-}
-
-const SearchBox: React.FC<SearchBoxProps> = ({
+const SearchBox: React.FC<ISearchBoxProps> = ({
   placeholder = "Search...",
   value,
   onChange,

@@ -1,12 +1,7 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Stack, Chip } from "@mui/material";
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
-
-interface RiskTimelineProps {
-  risks: ProjectRisk[];
-  selectedRisk?: ProjectRisk | null;
-  onRiskSelect?: (risk: ProjectRisk) => void;
-}
+import { IRiskTimelineProps } from "../../../domain/interfaces/i.risk";
 
 interface TimelineEvent {
   id: string;
@@ -18,7 +13,10 @@ interface TimelineEvent {
   riskLevel: number;
 }
 
-const RiskTimeline: React.FC<RiskTimelineProps> = ({ risks, onRiskSelect }) => {
+const RiskTimeline: React.FC<IRiskTimelineProps> = ({
+  risks,
+  onRiskSelect,
+}) => {
   const getRiskLevelFromString = (level: string | number): number => {
     if (typeof level === "number") return level;
     const levelStr = level.trim().toLowerCase();

@@ -178,3 +178,13 @@ export interface IHeatMapCell {
   riskLevel: number;
   color: string;
 }
+
+export interface ITimelineEvent {
+  id: string;
+  date: Date;
+  type: "created" | "resolved" | "escalated" | "mitigated";
+  risk: ProjectRisk;
+  title: string;
+  description: string;
+  riskLevel: number;
+}

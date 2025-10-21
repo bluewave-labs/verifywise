@@ -1,17 +1,12 @@
 import React, { useState } from "react";
 import { Box } from "@mui/material";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import RiskHeatMap from "./RiskHeatMap";
 import RiskCategories from "./RiskCategories";
 import TabBar from "../TabBar/TabBar";
+import { ITabPanelProps } from "../../../domain/interfaces/i.tab";
+import { IRiskVisualizationTabsProps } from "../../../domain/interfaces/i.risk";
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
+function TabPanel(props: ITabPanelProps) {
   const { children, value, index, ...other } = props;
 
   return (
@@ -27,13 +22,7 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-interface RiskVisualizationTabsProps {
-  risks: ProjectRisk[];
-  selectedRisk?: ProjectRisk | null;
-  onRiskSelect?: (risk: ProjectRisk) => void;
-}
-
-const RiskVisualizationTabs: React.FC<RiskVisualizationTabsProps> = ({
+const RiskVisualizationTabs: React.FC<IRiskVisualizationTabsProps> = ({
   risks,
   selectedRisk,
   onRiskSelect,

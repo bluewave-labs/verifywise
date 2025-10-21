@@ -80,6 +80,7 @@ const ModelInventory: React.FC = () => {
   );
   const [modelRiskCategoryFilter, setModelRiskCategoryFilter] = useState("all");
   const [modelRiskLevelFilter, setModelRiskLevelFilter] = useState("all");
+  const [modelRiskStatusFilter, setModelRiskStatusFilter] = useState<'active' | 'deleted' | 'all'>('active');
   const [deletingModelRiskId, setDeletingModelRiskId] = useState<number | null>(
     null
   );
@@ -178,12 +179,12 @@ const ModelInventory: React.FC = () => {
   };
 
   // Function to fetch model risks data
-  const fetchModelRisksData = async (showLoading = true) => {
+  const fetchModelRisksData = async (showLoading = true, filter = modelRiskStatusFilter) => {
     if (showLoading) {
       setIsModelRisksLoading(true);
     }
     try {
-      const response = await getAllEntities({ routeUrl: "/modelRisks" });
+      const response = await getAllEntities({ routeUrl: `/modelRisks?filter=${filter}` });
       // Handle both direct array and {message, data} format
       let modelRisksData = [];
       if (Array.isArray(response)) {
@@ -242,6 +243,11 @@ const ModelInventory: React.FC = () => {
     fetchModelRisksData();
     fetchUsersData();
   }, []);
+
+  // Refetch model risks when filter changes
+  useEffect(() => {
+    fetchModelRisksData(true, modelRiskStatusFilter);
+  }, [modelRiskStatusFilter]);
 
   // Initialize and sync status filter with URL parameters
   useEffect(() => {
@@ -612,6 +618,10 @@ const ModelInventory: React.FC = () => {
     setModelRiskLevelFilter(event.target.value);
   };
 
+  const handleModelRiskStatusFilterChange = (event: any) => {
+    setModelRiskStatusFilter(event.target.value);
+  };
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
   };
@@ -840,6 +850,23 @@ const ModelInventory: React.FC = () => {
                       return selectedItem.name;
                     }
                     return `Risk level: ${selectedItem.name.toLowerCase()}`;
+                  }}
+                />
+                <SelectComponent
+                  id="risk-status-filter"
+                  value={modelRiskStatusFilter}
+                  items={[
+                    { _id: "active", name: "Active only" },
+                    { _id: "all", name: "Active + deleted" },
+                    { _id: "deleted", name: "Deleted only" },
+                  ]}
+                  onChange={handleModelRiskStatusFilterChange}
+                  sx={statusFilterSelectStyle}
+                  customRenderValue={(value, selectedItem) => {
+                    if (value === "active") {
+                      return selectedItem.name;
+                    }
+                    return `Status: ${selectedItem.name.toLowerCase()}`;
                   }}
                 />
               </Stack>

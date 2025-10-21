@@ -4,6 +4,7 @@ import { SelectChangeEvent, Theme } from "@mui/material";
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
 import { ChangeEvent } from "react";
+import { ProjectRisk } from "../types/ProjectRisk";
 
 /**
  * Props for the CloseButton component.
@@ -148,4 +149,42 @@ export interface IBannerProps {
   onClose: () => void;
   bannerText: string;
   bannerWidth: string;
+}
+
+export interface IStatusDropdownProps {
+  currentStatus: string;
+  onStatusChange: (newStatus: string) => Promise<boolean>;
+  disabled?: boolean;
+  size?: "small" | "medium";
+  allowedRoles?: string[];
+  userRole?: string;
+  statusOptions?: string[];
+}
+
+export interface ISearchBoxProps {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  sx?: SxProps<Theme>;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  disabled?: boolean;
+  fullWidth?: boolean;
+}
+
+export interface IHeatMapCell {
+  likelihood: number;
+  severity: number;
+  risks: ProjectRisk[];
+  riskLevel: number;
+  color: string;
+}
+
+export interface ITimelineEvent {
+  id: string;
+  date: Date;
+  type: "created" | "resolved" | "escalated" | "mitigated";
+  risk: ProjectRisk;
+  title: string;
+  description: string;
+  riskLevel: number;
 }

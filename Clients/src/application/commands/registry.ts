@@ -19,7 +19,8 @@ import {
   Settings,
   FolderTree,
   Layers,
-  Flag
+  Flag,
+  AlertCircle
 } from 'lucide-react'
 
 // Define command groups
@@ -212,8 +213,17 @@ icon: AlertTriangle,
     keywords: ['settings', 'config', 'preferences'],
     group: COMMAND_GROUPS[0],
     icon: Settings,
-    action: { type: 'navigate', payload: '/setting' }
-  }
+    action: { type: 'navigate', payload: '/settings' }
+  },
+  {
+    id: 'nav-incident-management',
+    label: 'Incident Management',
+    description: 'EU AI Act Compliance Dashboard',
+    keywords: ['incident', 'management'],
+    group: COMMAND_GROUPS[0],
+    icon: AlertCircle,
+    action: { type: 'navigate', payload: '/ai-incident-managements' }
+  },
 ]
 
 // Quick action commands - will be implemented later

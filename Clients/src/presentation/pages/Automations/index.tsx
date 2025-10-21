@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { Grid, Container, Box, useTheme } from '@mui/material';
+import { Grid, Container, Box, Stack, useTheme } from '@mui/material';
 import { Settings } from 'lucide-react';
 import AutomationList from './components/AutomationList';
 import AutomationBuilder from './components/AutomationBuilder';
@@ -9,6 +9,7 @@ import { mockTriggerTemplates, mockActionTemplates } from './data/mockData';
 import { generateId } from '../../../application/utils/generateId';
 import CustomAxios from '../../../infrastructure/api/customAxios';
 import Alert from '../../components/Alert';
+import PageBreadcrumbs from '../../components/Breadcrumbs/PageBreadcrumbs';
 
 const AutomationsPage: React.FC = () => {
   const theme = useTheme();
@@ -218,7 +219,6 @@ const AutomationsPage: React.FC = () => {
       console.log('Automation deleted successfully');
     } catch (error: any) {
       console.error('Error deleting automation:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete automation';
     }
   };
 
@@ -232,22 +232,6 @@ const AutomationsPage: React.FC = () => {
       setSelectedItemId(null);
       setSelectedItemType(null);
     }
-  };
-
-  const handleDuplicateAutomation = (automationId: string) => {
-    const originalAutomation = automations.find(a => a.id === automationId);
-    if (!originalAutomation) return;
-
-    const duplicatedAutomation: Automation = {
-      ...originalAutomation,
-      id: generateId(),
-      name: `${originalAutomation.name} (Copy)`,
-      isActive: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    setAutomations(prev => [duplicatedAutomation, ...prev]);
   };
 
   const handleToggleAutomation = async (automationId: string) => {
@@ -635,7 +619,7 @@ This notification was sent on {{date_and_time}}.`;
           console.log('Automation updated successfully!', response.data);
 
           // Refresh the automations list, preserving the current selection
-          await fetchAutomations(selectedAutomationId!, false);
+          await fetchAutomations(selectedAutomationId ?? undefined, false);
 
           // Show success toast
           setToast({
@@ -695,8 +679,11 @@ This notification was sent on {{date_and_time}}.`;
   const showConfigurationPanel = automations.length > 0 && (selectedItem || selectedAutomation);
 
   return (
-    <>
-      <Container maxWidth={false} sx={{ height: 'calc(100vh - 64px)', p: '32px' }}>
+    <Stack className="vwhome" gap={"16px"}>
+      {/* Breadcrumbs with integrated action buttons and divider */}
+      <PageBreadcrumbs />
+
+      <Container maxWidth={false} sx={{ height: 'calc(100vh - 180px)', px: 0 }}>
         <Box
           sx={{
             height: '100%',
@@ -729,9 +716,7 @@ This notification was sent on {{date_and_time}}.`;
                 onCreateAutomation={handleCreateAutomation}
                 onDeleteAutomation={handleDeleteAutomation}
                 onDiscardAutomation={handleDiscardAutomation}
-                onDuplicateAutomation={handleDuplicateAutomation}
                 onToggleAutomation={handleToggleAutomation}
-                onRenameAutomation={handleRenameAutomation}
                 onSearchChange={setSearchQuery}
               />
             </Grid>
@@ -824,7 +809,7 @@ This notification was sent on {{date_and_time}}.`;
           />
         </Suspense>
       )}
-    </>
+    </Stack>
   );
 };
 

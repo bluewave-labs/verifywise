@@ -25,6 +25,7 @@ import {
   FolderTree,
   Layers,
   Puzzle,
+  Zap,
 } from "lucide-react";
 
 /**
@@ -45,7 +46,7 @@ export const routeMapping: Record<string, string> = {
   "/vendors": "Vendor Management",
 
   // Settings
-  "/setting": "Settings",
+  "/settings": "Settings",
   "/organization": "Organization Settings",
 
   // File management
@@ -76,6 +77,9 @@ export const routeMapping: Record<string, string> = {
 
   // Model inventory
   "/model-inventory": "Model Inventory",
+
+  // Incident management
+  "/ai-incident-managements": "Incident Management",
 
   // Authentication
   "/login": "Sign In",
@@ -121,7 +125,7 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
   "/risk-management": () => React.createElement(AlertTriangle, { size: 14, strokeWidth: 1.5 }),
 
   // Settings
-  "/setting": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
+  "/settings": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
   "/organization": () => React.createElement(Settings, { size: 14, strokeWidth: 1.5 }),
 
   // File management
@@ -149,6 +153,9 @@ export const routeIconMapping: Record<string, () => React.ReactNode> = {
 
   // Policy Manager
   "/policies": () => React.createElement(Shield, { size: 14, strokeWidth: 1.5 }),
+
+  // Automations
+  "/automations": () => React.createElement(Zap, { size: 14, strokeWidth: 1.5 }),
 };
 
 /**
@@ -175,6 +182,11 @@ export const dynamicRoutePatterns = [
     pattern: /\/vendors\/[a-zA-Z0-9-]+/,
     label: "Vendor Details",
     description: "Specific vendor information",
+  },
+  {
+    pattern: /\/ai-incident-managements\/\d+/,
+    label: "Incident Management Details",
+    description: "Specific incident management information",
   },
 ] as const;
 

@@ -118,7 +118,7 @@ const VWAvatar = ({
 }: VWAvatarProps) => {
   const theme = useTheme();
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(Boolean(user.pathToImage));
+  const [imageLoading, setImageLoading] = useState(false);
 
   // Memoized computed values for performance
   const dimensions = useMemo(() => AVATAR_CONFIG.SIZES[size], [size]);

@@ -210,7 +210,6 @@ const CustomizableMultiSelect = ({
             },
           },
         }}
-        sx={sx}
       >
         {placeholder && (
           <MenuItem

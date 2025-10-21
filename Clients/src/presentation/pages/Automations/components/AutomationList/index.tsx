@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Stack,
   Typography,
@@ -15,7 +15,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import Button from '../../../../components/Button';
+
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import { SearchBox } from '../../../../components/Search';
 import Toggle from '../../../../components/Inputs/Toggle';
@@ -30,9 +30,7 @@ interface AutomationListProps {
   onCreateAutomation: () => void;
   onDeleteAutomation: (id: string) => void;
   onDiscardAutomation: (id: string) => void;
-  onDuplicateAutomation: (id: string) => void;
   onToggleAutomation: (id: string) => void;
-  onRenameAutomation: (id: string, newName: string) => void;
   onSearchChange: (query: string) => void;
 }
 
@@ -45,9 +43,7 @@ const AutomationList: React.FC<AutomationListProps> = ({
   onCreateAutomation,
   onDeleteAutomation,
   onDiscardAutomation,
-  onDuplicateAutomation,
   onToggleAutomation,
-  onRenameAutomation,
   onSearchChange,
 }) => {
   const theme = useTheme();
@@ -70,7 +66,7 @@ const AutomationList: React.FC<AutomationListProps> = ({
       }}
     >
       {/* Header */}
-      <Stack spacing={2} sx={{ p: '16px', borderBottom: `1px solid ${theme.palette.border.light}` }}>
+      <Stack spacing={2} sx={{ p: '16px' }}>
         <Typography variant="h6" sx={{ fontSize: '15px', fontWeight: 600 }}>
           Automations
         </Typography>

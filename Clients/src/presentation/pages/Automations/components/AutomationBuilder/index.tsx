@@ -2,36 +2,27 @@ import React from 'react';
 import {
   Stack,
   Typography,
-  Grid,
-  Card,
-  CardContent,
   IconButton,
   useTheme,
   Box,
   Divider,
-  Chip,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
-  TextField,
 } from '@mui/material';
 import {
   Plus,
   Trash2,
-  Settings,
   ArrowDown,
-  ArrowUp,
   Zap,
   Clock,
-  AlertTriangle,
   CornerDownRight,
   Check,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
-import InfoCard from '../../../../components/Cards/InfoCard';
-import { Automation, Trigger, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
+import { Automation, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
 
 interface AutomationBuilderProps {
   automation: Automation | null;
@@ -55,75 +46,17 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
   triggerTemplates,
   actionTemplates,
   selectedItemId,
-  selectedItemType,
   onAddTrigger,
   onAddAction,
   onSelectItem,
   onDeleteTrigger,
   onDeleteAction,
-  onUpdateAutomationName,
-  onUpdateAutomationDescription,
   onSave,
   isSaving,
 }) => {
   const theme = useTheme();
-  const [showAllTriggers, setShowAllTriggers] = React.useState(false);
-  const [showAllActions, setShowAllActions] = React.useState(false);
   const [triggerMenuAnchor, setTriggerMenuAnchor] = React.useState<null | HTMLElement>(null);
   const [actionMenuAnchor, setActionMenuAnchor] = React.useState<null | HTMLElement>(null);
-  const [isEditingName, setIsEditingName] = React.useState(false);
-  const [isEditingDescription, setIsEditingDescription] = React.useState(false);
-  const [editName, setEditName] = React.useState('');
-  const [editDescription, setEditDescription] = React.useState('');
-
-  const suggestedTriggers = triggerTemplates.slice(0, 3);
-  const suggestedActions = actionTemplates.slice(0, 3);
-
-  // Handle inline editing
-  const handleNameClick = () => {
-    if (automation) {
-      setEditName(automation.name);
-      setIsEditingName(true);
-    }
-  };
-
-  const handleDescriptionClick = () => {
-    if (automation) {
-      setEditDescription(automation.description || '');
-      setIsEditingDescription(true);
-    }
-  };
-
-  const handleNameSubmit = () => {
-    if (editName.trim() && automation) {
-      onUpdateAutomationName(editName.trim());
-    }
-    setIsEditingName(false);
-    setEditName('');
-  };
-
-  const handleDescriptionSubmit = () => {
-    if (automation) {
-      onUpdateAutomationDescription(editDescription.trim() || 'No description');
-    }
-    setIsEditingDescription(false);
-    setEditDescription('');
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent, isName: boolean) => {
-    if (e.key === 'Enter') {
-      if (isName) {
-        handleNameSubmit();
-      } else {
-        handleDescriptionSubmit();
-      }
-    } else if (e.key === 'Escape') {
-      setIsEditingName(false);
-      setIsEditingDescription(false);
-      setEditName('');
-      setEditDescription('');
-    }
-  };
 
   // Format trigger names for dropdown
   const formatTriggerName = (template: TriggerTemplate) => {
@@ -138,18 +71,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
     }
 
     // Convert other triggers to "When..." format
-    switch (template.type) {
-      case 'vendor_risk_high':
-        return 'When vendor risk severity is High';
-      case 'control_due_soon':
-        return 'When control due date approaches';
-      case 'project_member_added':
-        return 'When user added to project';
-      case 'project_risk_high':
-        return 'When a high risk is added';
-      default:
-        return `When ${template.name.toLowerCase()}`;
-    }
+    return `When ${template.name.toLowerCase()}`;
   };
 
   const handleTriggerMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -178,63 +100,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
     handleActionMenuClose();
   };
 
-  const getIconByName = (iconName: string) => {
-    // Map icon names to actual icons
-    const iconMap: Record<string, React.ReactNode> = {
-      AlertTriangle: <Zap size={20} />,
-      Calendar: <Zap size={20} />,
-      UserPlus: <Zap size={20} />,
-      AlertCircle: <Zap size={20} />,
-      Mail: <Zap size={20} />,
-      Plus: <Zap size={20} />,
-      Bell: <Zap size={20} />,
-      Clock: <Zap size={20} />,
-    };
-    return iconMap[iconName] || <Zap size={20} />;
-  };
-
-  const renderTriggerCard = (trigger: Trigger) => (
-    <Card
-      key={trigger.id}
-      sx={{
-        cursor: 'pointer',
-        border: selectedItemId === trigger.id ? `2px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.border.light}`,
-        '&:hover': {
-          borderColor: theme.palette.primary.main,
-          boxShadow: theme.shadows[2],
-        },
-      }}
-      onClick={() => onSelectItem(trigger.id, 'trigger')}
-    >
-      <CardContent sx={{ p: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Box sx={{ color: theme.palette.primary.main }}>
-            {getIconByName('AlertTriangle')}
-          </Box>
-          <Stack flex={1}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              {trigger.name}
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ fontSize: 12 }}>
-              {trigger.description}
-            </Typography>
-          </Stack>
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteTrigger();
-            }}
-            sx={{ color: theme.palette.error.main }}
-          >
-            <Trash2 size={16} />
-          </IconButton>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-
-  const renderActionCard = (action: Action, index: number) => (
+  const renderActionCard = (action: Action) => (
     <Box
       key={action.id}
       sx={{
@@ -277,78 +143,6 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
         <Trash2 size={16} />
       </IconButton>
     </Box>
-  );
-
-  const renderSuggestedTriggerCard = (template: TriggerTemplate) => (
-    <Card
-      key={template.type}
-      sx={{
-        cursor: 'pointer',
-        '&:hover': {
-          borderColor: theme.palette.primary.main,
-          boxShadow: theme.shadows[2],
-          transform: 'translateY(-2px)',
-        },
-        transition: 'all 0.2s ease-in-out',
-      }}
-      onClick={() => onAddTrigger(template)}
-    >
-      <CardContent sx={{ p: 2 }}>
-        <Stack spacing={1} alignItems="center" textAlign="center">
-          <Box sx={{ color: theme.palette.primary.main }}>
-            {getIconByName(template.icon)}
-          </Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: 13 }}>
-            {template.name}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" sx={{ fontSize: 11 }}>
-            {template.description}
-          </Typography>
-          <Chip
-            label={template.category}
-            size="small"
-            variant="outlined"
-            sx={{ fontSize: 9, textTransform: 'capitalize' }}
-          />
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-
-  const renderSuggestedActionCard = (template: ActionTemplate) => (
-    <Card
-      key={template.type}
-      sx={{
-        cursor: 'pointer',
-        '&:hover': {
-          borderColor: theme.palette.secondary.main,
-          boxShadow: theme.shadows[2],
-          transform: 'translateY(-2px)',
-        },
-        transition: 'all 0.2s ease-in-out',
-      }}
-      onClick={() => onAddAction(template)}
-    >
-      <CardContent sx={{ p: 2 }}>
-        <Stack spacing={1} alignItems="center" textAlign="center">
-          <Box sx={{ color: theme.palette.secondary.main }}>
-            {getIconByName(template.icon)}
-          </Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: 13 }}>
-            {template.name}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" sx={{ fontSize: 11 }}>
-            {template.description}
-          </Typography>
-          <Chip
-            label={template.category}
-            size="small"
-            variant="outlined"
-            sx={{ fontSize: 9, textTransform: 'capitalize' }}
-          />
-        </Stack>
-      </CardContent>
-    </Card>
   );
 
   if (!automation) {
@@ -677,7 +471,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                 <Stack spacing={2}>
                   {automation.actions.map((action, index) => (
                     <React.Fragment key={action.id}>
-                      {renderActionCard(action, index)}
+                      {renderActionCard(action)}
                       {index < automation.actions.length - 1 && (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
                           <ArrowDown size={16} color={theme.palette.text.disabled} />

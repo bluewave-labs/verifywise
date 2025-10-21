@@ -12,7 +12,7 @@ export const AVAILABLE_INTEGRATIONS: Integration[] = [
     description: 'Get real-time notifications about AI model updates, risk assessments, and compliance changes directly in your Slack workspace.',
     logo: '/assets/slack_logo.svg',
     category: IntegrationCategory.COMMUNICATION,
-    status: IntegrationStatus.DISCONNECTED,
+    status: IntegrationStatus.NOT_CONFIGURED,
     features: [
       'Notifications'
     ],
@@ -26,7 +26,7 @@ export const AVAILABLE_INTEGRATIONS: Integration[] = [
     description: 'Track and manage machine learning experiments, models, and deployments with comprehensive ML lifecycle management.',
     logo: '/assets/mlflow_logo.svg',
     category: IntegrationCategory.ML_OPS,
-    status: IntegrationStatus.DISCONNECTED,
+    status: IntegrationStatus.NOT_CONFIGURED,
     features: [
       'models',
       'model registry'
@@ -41,7 +41,7 @@ export const AVAILABLE_INTEGRATIONS: Integration[] = [
     description: 'Connect your repositories to monitor AI models, track code changes, and automate governance workflows.',
     logo: '/assets/github_logo.svg',
     category: IntegrationCategory.VERSION_CONTROL,
-    status: IntegrationStatus.DISCONNECTED,
+    status: IntegrationStatus.NOT_CONFIGURED,
     features: [
       'issue tracking'
     ],
@@ -55,7 +55,7 @@ export const AVAILABLE_INTEGRATIONS: Integration[] = [
     description: 'Monitor AI model performance, track system metrics, and get insights into your ML infrastructure.',
     logo: '/assets/datadog_logo.svg',
     category: IntegrationCategory.MONITORING,
-    status: IntegrationStatus.DISCONNECTED,
+    status: IntegrationStatus.NOT_CONFIGURED,
     features: [
       'Performance monitoring',
       'Custom metrics dashboards',
@@ -73,7 +73,7 @@ export const AVAILABLE_INTEGRATIONS: Integration[] = [
     description: 'Integrate with Jira to track AI model issues, manage governance tasks, and streamline workflows.',
     logo: '/assets/jira_logo.svg',
     category: IntegrationCategory.COMMUNICATION,
-    status: IntegrationStatus.DISCONNECTED,
+    status: IntegrationStatus.NOT_CONFIGURED,
     features: [
       'Issue tracking',
       'Task management',
@@ -101,10 +101,10 @@ export const getIntegrationById = (id: string): Integration | undefined => {
 };
 
 /**
- * Get connected integrations
+ * Get configured integrations
  */
-export const getConnectedIntegrations = (): Integration[] => {
-  return AVAILABLE_INTEGRATIONS.filter(integration => integration.status === IntegrationStatus.CONNECTED);
+export const getConfiguredIntegrations = (): Integration[] => {
+  return AVAILABLE_INTEGRATIONS.filter(integration => integration.status === IntegrationStatus.CONFIGURED);
 };
 
 /**

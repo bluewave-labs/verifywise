@@ -20,10 +20,8 @@
 
 .home-layout > div {
   max-width: 1400px;
-  padding: 24px;
   min-height: calc(100vh - 24px * 2);
   flex: 1;
-  padding-top: 35px;
 }
 .home-layout > div:has(> [class*="fallback__"]) .background-pattern-svg {
   position: absolute;

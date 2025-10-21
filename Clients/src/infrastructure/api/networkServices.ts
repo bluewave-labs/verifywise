@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @fileoverview This module provides a set of network services for making HTTP requests using CustomAxios.
  * It includes utility functions for logging requests and responses, as well as error handling.

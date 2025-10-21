@@ -1,33 +1,33 @@
-import React, { useCallback, useState } from 'react'
-import { ProjectRisk } from '../../../../../domain/types/ProjectRisk'
-import singleTheme from '../../../../themes/v1SingleTheme';
-import { TableBody, TableCell, TableRow, useTheme, Checkbox as MuiCheckbox, TableFooter, TablePagination, } from '@mui/material';
+import React, { useCallback, useState } from "react";
+import { ProjectRisk } from "../../../../../domain/types/ProjectRisk";
+import singleTheme from "../../../../themes/v1SingleTheme";
+import {
+  TableBody,
+  TableCell,
+  TableRow,
+  useTheme,
+  Checkbox as MuiCheckbox,
+  TableFooter,
+  TablePagination,
+} from "@mui/material";
 import { Square as CheckboxOutline } from "lucide-react";
 import { CheckSquare as CheckboxFilled } from "lucide-react";
 import { ChevronsUpDown } from "lucide-react";
 
-const SelectorVertical = (props: any) => <ChevronsUpDown size={16} {...props} />;
-import RiskChip from '../../../RiskLevel/RiskChip';
+const SelectorVertical = (props: any) => (
+  <ChevronsUpDown size={16} {...props} />
+);
+import RiskChip from "../../../RiskLevel/RiskChip";
 
 import {
-  paginationStyle, 
-  paginationDropdown, 
-  paginationSelect
+  paginationStyle,
+  paginationDropdown,
+  paginationSelect,
 } from "../../styles";
-import TablePaginationActions from '../../../TablePagination';
+import TablePaginationActions from "../../../TablePagination";
+import { IProjectRiskTableBodyProps } from "../../../../../domain/interfaces/i.table";
 
-interface TableProps {
-  rows: ProjectRisk[];
-  page: number;
-  setCurrentPagingation: (pageNo: number) => void;
-  currentRisks: number[];
-  checkedRows: number[];
-  setCheckedRows: (checkedRows: number[]) => void;
-  deletedRisks: number[];
-  setDeletedRisks: (deletedRisks: number[]) => void;
-}
-
-const LinkedRisksTableBody: React.FC<TableProps> = ({
+const LinkedRisksTableBody: React.FC<IProjectRiskTableBodyProps> = ({
   rows,
   page,
   setCurrentPagingation,
@@ -35,15 +35,18 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
   checkedRows,
   setCheckedRows,
   deletedRisks,
-  setDeletedRisks
+  setDeletedRisks,
 }) => {
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const theme = useTheme();  
+  const theme = useTheme();
 
-  const handleChangePage = useCallback((_: unknown, newPage: number) => {
-    setCurrentPagingation(newPage);
-  }, [setCurrentPagingation]);
+  const handleChangePage = useCallback(
+    (_: unknown, newPage: number) => {
+      setCurrentPagingation(newPage);
+    },
+    [setCurrentPagingation]
+  );
 
   const handleChangeRowsPerPage = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,19 +56,22 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
     [setRowsPerPage, setCurrentPagingation]
   );
 
-  const handleRowClick = (riskData: ProjectRisk, event: React.ChangeEvent | React.MouseEvent) => {
+  const handleRowClick = (
+    riskData: ProjectRisk,
+    event: React.ChangeEvent | React.MouseEvent
+  ) => {
     event.stopPropagation();
     const riskId = riskData.id;
 
     if (checkedRows.includes(riskId)) {
-      setCheckedRows(checkedRows.filter(id => id !== riskId));
+      setCheckedRows(checkedRows.filter((id) => id !== riskId));
       if (currentRisks.includes(riskId)) {
         setDeletedRisks([...deletedRisks, riskId]);
       }
     } else {
       setCheckedRows([...checkedRows, riskId]);
       if (deletedRisks.includes(riskId)) {
-        setDeletedRisks(deletedRisks.filter(id => id !== riskId));
+        setDeletedRisks(deletedRisks.filter((id) => id !== riskId));
       }
     }
   };
@@ -75,16 +81,20 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
       <TableBody>
         {rows &&
           rows
-          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((row: ProjectRisk, index: number) => (
-              <TableRow key={index} sx={singleTheme.tableStyles.primary.body.row} onClick={(e) => handleRowClick(row, e)}>
+              <TableRow
+                key={index}
+                sx={singleTheme.tableStyles.primary.body.row}
+                onClick={(e) => handleRowClick(row, e)}
+              >
                 <TableCell sx={cellStyle}>
                   <MuiCheckbox
                     size="small"
                     id="auto-fill"
                     checked={checkedRows.includes(row.id)}
                     onChange={(e) => handleRowClick(row, e)}
-                    onClick={(e) => e.stopPropagation()}  
+                    onClick={(e) => e.stopPropagation()}
                     checkedIcon={<CheckboxFilled size={16} />}
                     icon={<CheckboxOutline size={16} />}
                     sx={{
@@ -100,30 +110,35 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
                 <TableCell sx={cellStyle}>
                   {row.id ? row.id : page * rowsPerPage + index + 1}
                 </TableCell>
-                <TableCell>
-                  {row.risk_name ? row.risk_name : '-'}
-                </TableCell>
-                <TableCell sx={{maxWidth: '300px'}}>
-                  {row.risk_description ? row.risk_description : '-'}
+                <TableCell>{row.risk_name ? row.risk_name : "-"}</TableCell>
+                <TableCell sx={{ maxWidth: "300px" }}>
+                  {row.risk_description ? row.risk_description : "-"}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {row.risk_severity ? <RiskChip label={row.risk_severity} /> : '-'}
+                  {row.risk_severity ? (
+                    <RiskChip label={row.risk_severity} />
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {row.likelihood ? row.likelihood : '-'}
+                  {row.likelihood ? row.likelihood : "-"}
                 </TableCell>
                 <TableCell sx={cellStyle}>
-                  {row.risk_category ? row.risk_category : '-'}
+                  {row.risk_category ? row.risk_category : "-"}
                 </TableCell>
               </TableRow>
             ))}
       </TableBody>
       <TableFooter>
-        <TableRow sx={{
-          '& .MuiTableCell-root.MuiTableCell-footer': {
-            paddingX: theme.spacing(8),
-            paddingY: theme.spacing(4),
-          }}}>
+        <TableRow
+          sx={{
+            "& .MuiTableCell-root.MuiTableCell-footer": {
+              paddingX: theme.spacing(8),
+              paddingY: theme.spacing(4),
+            },
+          }}
+        >
           <TablePagination
             count={rows?.length}
             page={page}
@@ -134,7 +149,10 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
             ActionsComponent={(props) => <TablePaginationActions {...props} />}
             labelRowsPerPage="Risks per page"
             labelDisplayedRows={({ page, count }) =>
-              `Page ${page + 1} of ${Math.max(0, Math.ceil(count / rowsPerPage))}`
+              `Page ${page + 1} of ${Math.max(
+                0,
+                Math.ceil(count / rowsPerPage)
+              )}`
             }
             sx={paginationStyle}
             slotProps={{
@@ -158,7 +176,7 @@ const LinkedRisksTableBody: React.FC<TableProps> = ({
         </TableRow>
       </TableFooter>
     </>
-  )
-}
+  );
+};
 
-export default LinkedRisksTableBody
+export default LinkedRisksTableBody;

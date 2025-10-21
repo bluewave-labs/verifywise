@@ -30,9 +30,7 @@ interface AutomationListProps {
   onCreateAutomation: () => void;
   onDeleteAutomation: (id: string) => void;
   onDiscardAutomation: (id: string) => void;
-  onDuplicateAutomation: (id: string) => void;
   onToggleAutomation: (id: string) => void;
-  onRenameAutomation: (id: string, newName: string) => void;
   onSearchChange: (query: string) => void;
 }
 
@@ -45,9 +43,7 @@ const AutomationList: React.FC<AutomationListProps> = ({
   onCreateAutomation,
   onDeleteAutomation,
   onDiscardAutomation,
-  _onDuplicateAutomation,
   onToggleAutomation,
-  _onRenameAutomation,
   onSearchChange,
 }) => {
   const theme = useTheme();

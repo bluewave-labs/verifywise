@@ -2,13 +2,10 @@ import React from 'react';
 import {
   Stack,
   Typography,
-  Card,
-  CardContent,
   IconButton,
   useTheme,
   Box,
   Divider,
-  Chip,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -25,7 +22,7 @@ import {
 } from 'lucide-react';
 import Button from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
-import { Automation, Trigger, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
+import { Automation, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
 
 interface AutomationBuilderProps {
   automation: Automation | null;
@@ -101,21 +98,6 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
   const handleActionSelect = (template: ActionTemplate) => {
     onAddAction(template);
     handleActionMenuClose();
-  };
-
-  const getIconByName = (iconName: string) => {
-    // Map icon names to actual icons
-    const iconMap: Record<string, React.ReactNode> = {
-      AlertTriangle: <Zap size={20} />,
-      Calendar: <Zap size={20} />,
-      UserPlus: <Zap size={20} />,
-      AlertCircle: <Zap size={20} />,
-      Mail: <Zap size={20} />,
-      Plus: <Zap size={20} />,
-      Bell: <Zap size={20} />,
-      Clock: <Zap size={20} />,
-    };
-    return iconMap[iconName] || <Zap size={20} />;
   };
 
   const renderActionCard = (action: Action) => (

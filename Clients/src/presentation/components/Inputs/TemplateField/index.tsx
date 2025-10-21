@@ -111,7 +111,6 @@ const TemplateField = forwardRef(
     // Calculate dropdown position below the cursor
     const calculateDropdownPosition = (element: HTMLInputElement | HTMLTextAreaElement) => {
       const rect = element.getBoundingClientRect();
-      const _lineHeight = parseInt(window.getComputedStyle(element).lineHeight) || 20;
 
       // For multiline, estimate line based on cursor position
       // For single line, just position below the input

@@ -203,7 +203,6 @@ const AutomationsPage: React.FC = () => {
       console.log('Automation deleted successfully');
     } catch (error: any) {
       console.error('Error deleting automation:', error);
-      const _errorMessage = error.response?.data?.message || error.message || 'Failed to delete automation';
     }
   };
 

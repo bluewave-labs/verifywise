@@ -136,7 +136,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         if (field.key === 'to' && selectedItemType === 'action') {
           // Convert value to array format expected by CustomizableMultiSelect
           const selectValue = Array.isArray(value) ? value :
-            (value && value !== '' ? value.split(',').map((v: string | number) => v.toString().trim()).filter(v => v) : []);
+            (value && value !== '' ? value.split(',').map((v: string | number) => v.toString().trim()).filter((v: string | number) => v) : []);
 
           // Transform users to have _id field expected by CustomizableMultiSelect
           const usersWithId = users.map(user => ({

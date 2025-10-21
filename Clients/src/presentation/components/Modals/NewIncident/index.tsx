@@ -366,17 +366,28 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                     <Stack spacing={4} width="100%">
                         {/* SECTION 1: INCIDENT INFORMATION */}
                         <Stack spacing={3}>
-                            <Typography
-                                sx={{
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    color: theme.palette.text.secondary,
-                                    letterSpacing: '0.5px'
-                                }}
-                            >
-                                INCIDENT INFORMATION
-                            </Typography>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    INCIDENT INFORMATION
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (Basic incident details)
+                                </Typography>
+                            </Stack>
 
                             {/* Row: AI Project + Incident Type */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
@@ -506,21 +517,32 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
                         </Stack>
 
-                        <Divider />
+                        <Divider sx={{ mt: 2 }} />
 
                         {/* SECTION 2: IMPACT ASSESSMENT */}
                         <Stack spacing={3}>
-                            <Typography
-                                sx={{
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    color: theme.palette.text.secondary,
-                                    letterSpacing: '0.5px'
-                                }}
-                            >
-                                IMPACT ASSESSMENT
-                            </Typography>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    IMPACT ASSESSMENT
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (What was affected)
+                                </Typography>
+                            </Stack>
 
                             {/* Categories of harm */}
                             <FormLabel
@@ -607,21 +629,32 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             />
                         </Stack>
 
-                        <Divider />
+                        <Divider sx={{ mt: 2 }} />
 
                         {/* SECTION 3: RESPONSE & ACTIONS */}
                         <Stack spacing={3}>
-                            <Typography
-                                sx={{
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    color: theme.palette.text.secondary,
-                                    letterSpacing: '0.5px'
-                                }}
-                            >
-                                RESPONSE & ACTIONS
-                            </Typography>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    RESPONSE & ACTIONS
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (What was/will be done)
+                                </Typography>
+                            </Stack>
 
                             <Field
                                 id="immediate_mitigations"
@@ -647,21 +680,32 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             />
                         </Stack>
 
-                        <Divider />
+                        <Divider sx={{ mt: 2 }} />
 
                         {/* SECTION 4: APPROVAL & REPORTING */}
                         <Stack spacing={3}>
-                            <Typography
-                                sx={{
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    textTransform: 'uppercase',
-                                    color: theme.palette.text.secondary,
-                                    letterSpacing: '0.5px'
-                                }}
-                            >
-                                APPROVAL & REPORTING
-                            </Typography>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    APPROVAL & REPORTING
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (Approval workflow)
+                                </Typography>
+                            </Stack>
 
                             {/* Row: Approval Status + Approved By */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
@@ -729,7 +773,12 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                             />
                                         }
                                         label="This incident has an interim report"
-                                        sx={{ flex: 1 }}
+                                        sx={{
+                                            flex: 1,
+                                            "& .MuiFormControlLabel-label": {
+                                                fontSize: 13,
+                                            }
+                                        }}
                                         disabled={isViewMode}
                                     />
                                 </Stack>

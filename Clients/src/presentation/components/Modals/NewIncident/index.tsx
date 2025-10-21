@@ -355,8 +355,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             <Stack sx={{ gap: 2, width: "33%" }}>
                                 <SelectComponent
                                     id="ai_project"
-                                    label="AI Project"
-                                    placeholder="Select AI Project"
+                                    label="AI use case or framework"
+                                    placeholder="Select AI use case or framework"
                                     items={projectOptions}
                                     value={values.ai_project}
                                     onChange={handleSelectChange("ai_project")}

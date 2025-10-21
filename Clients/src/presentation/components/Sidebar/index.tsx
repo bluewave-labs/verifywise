@@ -97,7 +97,7 @@ const getMenuGroups = (): MenuGroup[] => [
         name: "Model Inventory",
         icon: <ListIcon size={16} strokeWidth={1.5} />,
         path: "/model-inventory",
-      }
+      },
     ],
   },
   {
@@ -223,7 +223,6 @@ const Sidebar = () => {
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
 
-
   const [openTasksCount, setOpenTasksCount] = useState(0);
 
   const menuGroups = getMenuGroups();
@@ -274,17 +273,21 @@ const Sidebar = () => {
   // Click outside to close drawer
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (slideoverOpen && drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+      if (
+        slideoverOpen &&
+        drawerRef.current &&
+        !drawerRef.current.contains(event.target as Node)
+      ) {
         closePopup();
       }
     };
 
     if (slideoverOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [slideoverOpen]);
 
@@ -377,7 +380,11 @@ const Sidebar = () => {
           dispatch(toggleSidebar());
         }}
       >
-        {collapsed ? <ChevronRight size={16} strokeWidth={1.5} /> : <ChevronLeft size={16} strokeWidth={1.5} />}
+        {collapsed ? (
+          <ChevronRight size={16} strokeWidth={1.5} />
+        ) : (
+          <ChevronLeft size={16} strokeWidth={1.5} />
+        )}
       </IconButton>
       {/* menu */}
       <List
@@ -429,8 +436,7 @@ const Sidebar = () => {
           >
             <ListItemButton
               disableRipple={
-                theme.components?.MuiListItemButton?.defaultProps
-                  ?.disableRipple
+                theme.components?.MuiListItemButton?.defaultProps?.disableRipple
               }
               className={
                 location.pathname === item.path ||
@@ -484,14 +490,16 @@ const Sidebar = () => {
                   width: "16px",
                   mr: 0,
                   "& svg": {
-                    color: location.pathname === item.path ||
+                    color:
+                      location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
                       customMenuHandler() === item.path
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
-                    stroke: location.pathname === item.path ||
+                    stroke:
+                      location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
@@ -501,7 +509,8 @@ const Sidebar = () => {
                     transition: "color 0.2s ease, stroke 0.2s ease",
                   },
                   "& svg path": {
-                    stroke: location.pathname === item.path ||
+                    stroke:
+                      location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
@@ -537,13 +546,14 @@ const Sidebar = () => {
                     height: collapsed ? "14px" : "18px",
                     fontSize: collapsed ? "8px" : "10px",
                     fontWeight: 500,
-                    backgroundColor: (
+                    backgroundColor:
                       location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
                       customMenuHandler() === item.path
-                    ) ? "#f8fafc" : "#e2e8f0", // lighter when active, blueish-grayish when inactive
+                        ? "#f8fafc"
+                        : "#e2e8f0", // lighter when active, blueish-grayish when inactive
                     color: "#475569", // darker text for contrast
                     borderRadius: collapsed ? "7px" : "9px",
                     minWidth: collapsed ? "14px" : "18px", // ensure minimum width
@@ -667,14 +677,16 @@ const Sidebar = () => {
                       width: "16px",
                       mr: 0,
                       "& svg": {
-                        color: location.pathname === item.path ||
+                        color:
+                          location.pathname === item.path ||
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
                           customMenuHandler() === item.path
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
-                        stroke: location.pathname === item.path ||
+                        stroke:
+                          location.pathname === item.path ||
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
@@ -684,7 +696,8 @@ const Sidebar = () => {
                         transition: "color 0.2s ease, stroke 0.2s ease",
                       },
                       "& svg path": {
-                        stroke: location.pathname === item.path ||
+                        stroke:
+                          location.pathname === item.path ||
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
@@ -795,17 +808,17 @@ const Sidebar = () => {
                   mr: 0,
                   "& svg": {
                     color: location.pathname.includes(item.path)
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
                     stroke: location.pathname.includes(item.path)
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
                     transition: "color 0.2s ease, stroke 0.2s ease",
                   },
                   "& svg path": {
                     stroke: location.pathname.includes(item.path)
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
+                      ? "#13715B !important"
+                      : `${theme.palette.text.tertiary} !important`,
                   },
                   "&:hover svg": {
                     color: "#13715B !important",
@@ -966,12 +979,22 @@ const Sidebar = () => {
             }}
           >
             {collapsed && (
-              <Box sx={{ mb: 1.5, pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
+              <Box
+                sx={{
+                  mb: 1.5,
+                  pb: 1,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                }}
+              >
                 <Typography component="span" fontWeight={500} fontSize="13px">
                   {user.name} {user.surname}
                 </Typography>
                 <Typography
-                  sx={{ textTransform: "capitalize", fontSize: "13px", color: theme.palette.text.secondary }}
+                  sx={{
+                    textTransform: "capitalize",
+                    fontSize: "13px",
+                    color: theme.palette.text.secondary,
+                  }}
                 >
                   {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
@@ -1046,7 +1069,9 @@ const Sidebar = () => {
                 }}
               >
                 <MessageSquare size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>Ask on Discord</Typography>
+                <Typography sx={{ fontSize: "13px" }}>
+                  Ask on Discord
+                </Typography>
               </ListItemButton>
 
               <ListItemButton

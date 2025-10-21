@@ -21,20 +21,28 @@ import { getAllVendorRisks } from "../repository/vendorRisk.repository";
 export const vendorRiskQueryKeys = {
   all: ['vendorRisks'] as const,
   lists: () => [...vendorRiskQueryKeys.all, 'list'] as const,
-  list: (filters: { projectId?: string | null; vendorId?: string | null }) =>
+  list: (filters: { projectId?: string | null; vendorId?: string | null; filter?: 'active' | 'deleted' | 'all' }) =>
     [...vendorRiskQueryKeys.lists(), filters] as const,
 };
 
-const useVendorRisks = ({ projectId, vendorId }: { projectId?: string | null; vendorId?: string | null }) => {
+const useVendorRisks = ({ 
+  projectId, 
+  vendorId, 
+  filter = 'active' 
+}: { 
+  projectId?: string | null; 
+  vendorId?: string | null; 
+  filter?: 'active' | 'deleted' | 'all';
+}) => {
   const {
     data: vendorRisks = [],
     isLoading: loadingVendorRisks,
     error,
     refetch: refetchVendorRisks,
   } = useQuery({
-    queryKey: vendorRiskQueryKeys.list({ projectId, vendorId }),
+    queryKey: vendorRiskQueryKeys.list({ projectId, vendorId, filter }),
     queryFn: async (): Promise<VendorRisk[]> => {
-      const response = await getAllVendorRisks();
+      const response = await getAllVendorRisks({ filter });
       return response?.data || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

@@ -78,6 +78,7 @@ const Vendors = () => {
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
@@ -92,6 +93,7 @@ const Vendors = () => {
   } = useVendorRisks({
     projectId: selectedProjectId?.toString(),
     vendorId: selectedVendorId?.toString(),
+    filter: filterStatus,
   });
 
   // Mutation hooks
@@ -305,6 +307,14 @@ const Vendors = () => {
     setSelectedVendorId(selectedId);
   };
 
+  const handleFilterStatusChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
+    const status = event.target.value as 'active' | 'deleted' | 'all';
+    setFilterStatus(status);
+  };
+
   // Get unique vendors from vendor risks data
   const vendorOptions = useMemo(() => {
     const uniqueVendors = new Map();
@@ -356,7 +366,7 @@ const Vendors = () => {
 
   return (
     <Stack className="vwhome" gap={0}>
-     <PageBreadcrumbs />
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}
@@ -565,6 +575,21 @@ const Vendors = () => {
                       borderRadius: theme.shape.borderRadius,
                     }}
                   />
+                  <Select
+                    id="filter-status"
+                    value={filterStatus}
+                    items={[
+                      { _id: "active", name: "Active only" },
+                      { _id: "all", name: "Active + deleted" },
+                      { _id: "deleted", name: "Deleted only" },
+                    ]}
+                    onChange={handleFilterStatusChange}
+                    sx={{
+                      width: "160px",
+                      minHeight: "34px",
+                      borderRadius: theme.shape.borderRadius,
+                    }}
+                  />
                 </Stack>
                 <CustomizableButton
                   variant="contained"
@@ -648,7 +673,7 @@ const Vendors = () => {
       {isSubmitting && (
         <CustomizableToast title="Processing your request. Please wait..." />
       )}
-    </Stack>
+      </Stack>
   );
 };
 

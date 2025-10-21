@@ -50,6 +50,7 @@ import WidgetErrorBoundary from "../../components/Dashboard/WidgetErrorBoundary"
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { IStatusData } from "../../../domain/interfaces/i.chart";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -781,11 +782,67 @@ const IntegratedDashboard: React.FC = () => {
   // Heights: Users/Reports/Projects/Evidence are always small (85px), others can be big (170px)
   const defaultLayouts: Layouts = {
     lg: [
-      // First row - 4 widgets (can be big = h:4)
+      // First row - Compliance score widget in top left, then 3 small widgets
       {
-        i: "models",
+        i: "compliance-score",
         x: 0,
         y: 0,
+        w: 3,
+        h: 8,
+        minW: 3,
+        maxW: 6,
+        minH: 8,
+        maxH: 12,
+      },
+      {
+        i: "projects",
+        x: 3,
+        y: 0,
+        w: 3,
+        h: 2,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 2,
+      },
+      {
+        i: "evidences",
+        x: 6,
+        y: 0,
+        w: 3,
+        h: 2,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 2,
+      },
+      {
+        i: "reports",
+        x: 9,
+        y: 0,
+        w: 3,
+        h: 2,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 2,
+      },
+      // Second row - users widget and 3 other widgets
+      {
+        i: "users",
+        x: 3,
+        y: 2,
+        w: 3,
+        h: 2,
+        minW: 3,
+        maxW: 3,
+        minH: 2,
+        maxH: 2,
+      },
+      {
+        i: "models",
+        x: 6,
+        y: 2,
         w: 3,
         h: 4,
         minW: 3,
@@ -795,28 +852,6 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "vendors",
-        x: 3,
-        y: 0,
-        w: 3,
-        h: 4,
-        minW: 3,
-        maxW: 6,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "vendor-risks",
-        x: 6,
-        y: 0,
-        w: 3,
-        h: 4,
-        minW: 3,
-        maxW: 6,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "trainings",
         x: 9,
         y: 0,
         w: 3,
@@ -826,11 +861,33 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
-      // Second row - 1 widget (can be big = h:4)
+      // Third row - 3 widgets
+      {
+        i: "vendor-risks",
+        x: 3,
+        y: 4,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 6,
+        minH: 2,
+        maxH: 4,
+      },
+      {
+        i: "trainings",
+        x: 3,
+        y: 8,
+        w: 3,
+        h: 4,
+        minW: 3,
+        maxW: 6,
+        minH: 2,
+        maxH: 4,
+      },
       {
         i: "policies",
-        x: 0,
-        y: 4,
+        x: 6,
+        y: 6,
         w: 3,
         h: 4,
         minW: 3,
@@ -840,10 +897,21 @@ const IntegratedDashboard: React.FC = () => {
       },
     ],
     md: [
-      // First row - 4 widgets (2.5 columns each for 10-column grid, fixed width, not resizable)
+      // First row - Compliance score widget in top left, then 3 small widgets
+      {
+        i: "compliance-score",
+        x: 0,
+        y: 0,
+        w: 2.5,
+        h: 8,
+        minW: 2.5,
+        maxW: 5,
+        minH: 8,
+        maxH: 12,
+      },
       {
         i: "projects",
-        x: 0,
+        x: 2.5,
         y: 0,
         w: 2.5,
         h: 2,
@@ -854,7 +922,7 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "evidences",
-        x: 2.5,
+        x: 5,
         y: 0,
         w: 2.5,
         h: 2,
@@ -865,17 +933,6 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "reports",
-        x: 5,
-        y: 0,
-        w: 2.5,
-        h: 2,
-        minW: 2.5,
-        maxW: 2.5,
-        minH: 2,
-        maxH: 2,
-      },
-      {
-        i: "users",
         x: 7.5,
         y: 0,
         w: 2.5,
@@ -885,10 +942,21 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 2,
       },
-      // Second row - 4 widgets
+      // Second row - users widget and 3 other widgets
+      {
+        i: "users",
+        x: 2.5,
+        y: 2,
+        w: 2.5,
+        h: 2,
+        minW: 2.5,
+        maxW: 2.5,
+        minH: 2,
+        maxH: 2,
+      },
       {
         i: "models",
-        x: 0,
+        x: 5,
         y: 2,
         w: 2.5,
         h: 4,
@@ -899,28 +967,6 @@ const IntegratedDashboard: React.FC = () => {
       },
       {
         i: "vendors",
-        x: 2.5,
-        y: 2,
-        w: 2.5,
-        h: 4,
-        minW: 2.5,
-        maxW: 5,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "vendor-risks",
-        x: 5,
-        y: 2,
-        w: 2.5,
-        h: 4,
-        minW: 2.5,
-        maxW: 5,
-        minH: 2,
-        maxH: 4,
-      },
-      {
-        i: "trainings",
         x: 7.5,
         y: 2,
         w: 2.5,
@@ -930,10 +976,32 @@ const IntegratedDashboard: React.FC = () => {
         minH: 2,
         maxH: 4,
       },
-      // Third row - 2 widgets
+      // Third row - 3 widgets
+      {
+        i: "vendor-risks",
+        x: 2.5,
+        y: 4,
+        w: 2.5,
+        h: 4,
+        minW: 2.5,
+        maxW: 5,
+        minH: 2,
+        maxH: 4,
+      },
+      {
+        i: "trainings",
+        x: 2.5,
+        y: 8,
+        w: 2.5,
+        h: 4,
+        minW: 2.5,
+        maxW: 5,
+        minH: 2,
+        maxH: 4,
+      },
       {
         i: "policies",
-        x: 0,
+        x: 5,
         y: 6,
         w: 2.5,
         h: 4,
@@ -944,11 +1012,22 @@ const IntegratedDashboard: React.FC = () => {
       },
     ],
     sm: [
-      // For small screens, 2 widgets per row (half width each)
+      // For small screens, compliance score at top then 2 widgets per row
+      {
+        i: "compliance-score",
+        x: 0,
+        y: 0,
+        w: 6,
+        h: 8,
+        minW: 3,
+        maxW: 6,
+        minH: 8,
+        maxH: 12,
+      },
       {
         i: "projects",
         x: 0,
-        y: 0,
+        y: 8,
         w: 3,
         h: 2,
         minW: 3,
@@ -959,7 +1038,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "evidences",
         x: 3,
-        y: 0,
+        y: 8,
         w: 3,
         h: 2,
         minW: 3,
@@ -970,7 +1049,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "reports",
         x: 0,
-        y: 2,
+        y: 10,
         w: 3,
         h: 2,
         minW: 3,
@@ -981,7 +1060,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "users",
         x: 3,
-        y: 2,
+        y: 10,
         w: 3,
         h: 2,
         minW: 3,
@@ -992,7 +1071,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "models",
         x: 0,
-        y: 4,
+        y: 12,
         w: 3,
         h: 4,
         minW: 3,
@@ -1003,7 +1082,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendors",
         x: 3,
-        y: 4,
+        y: 12,
         w: 3,
         h: 4,
         minW: 3,
@@ -1014,7 +1093,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "vendor-risks",
         x: 0,
-        y: 8,
+        y: 16,
         w: 3,
         h: 4,
         minW: 3,
@@ -1025,7 +1104,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "trainings",
         x: 3,
-        y: 8,
+        y: 16,
         w: 3,
         h: 4,
         minW: 3,
@@ -1036,7 +1115,7 @@ const IntegratedDashboard: React.FC = () => {
       {
         i: "policies",
         x: 0,
-        y: 12,
+        y: 20,
         w: 3,
         h: 4,
         minW: 3,
@@ -1358,7 +1437,7 @@ const IntegratedDashboard: React.FC = () => {
         <MetricCard
           title="Users"
           value={usersMetrics?.total || 0}
-          onClick={() => navigate("/setting")}
+          onClick={() => navigate("/settings")}
           navigable={true}
           backgroundIcon={Users}
         />
@@ -1458,7 +1537,9 @@ const IntegratedDashboard: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, minHeight: "100vh" }}>
+    <Box sx={{ pb: 3 }}>
+      <PageBreadcrumbs />
+
       {/* Password notification */}
       {showPasswordNotification && (
         <Suspense fallback={<div>Loading...</div>}>

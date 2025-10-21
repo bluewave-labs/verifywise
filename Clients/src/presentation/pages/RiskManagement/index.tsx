@@ -88,7 +88,7 @@ const RiskManagement = () => {
 
   // State for filtering
   const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [, setActiveFilters] = useState<any>(null);
+  const [activeFilters, setActiveFilters] = useState<any>(null);
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
 
   // Compute risk summary from fetched data
@@ -123,9 +123,9 @@ const RiskManagement = () => {
     };
   }, [projectRisks]);
 
-  const fetchProjectRisks = useCallback(async () => {
+  const fetchProjectRisks = useCallback(async (filter = 'active') => {
     try {
-      const response = await getAllProjectRisks();
+      const response = await getAllProjectRisks({ filter: filter as 'active' | 'deleted' | 'all' });
       setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
       setFilteredRisks(response.data); // Initialize filtered risks
@@ -285,6 +285,12 @@ const RiskManagement = () => {
   const handleRiskFilterChange = (filtered: ProjectRisk[], filters: any) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
+    
+    // If deletion status filter changes, refetch data from API
+    if (filters.deletionStatus !== (activeFilters?.deletionStatus || 'active')) {
+      setShowCustomizableSkeleton(true);
+      fetchProjectRisks(filters.deletionStatus);
+    }
   };
 
   return (

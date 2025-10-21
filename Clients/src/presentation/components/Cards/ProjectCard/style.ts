@@ -1,13 +1,11 @@
 export const projectCardStyle = {
   border: "1px solid #EAECF0",
   borderRadius: "4px",
-  padding: "10px",
-  pt: "15px",
+  padding: "16px",
   minWidth: 300,
   width: "100%",
   maxWidth: "100&",
-  gap: 10,
-  minHeight: "275px",
+  background: "linear-gradient(135deg, #FEFFFE 0%, #F8F9FA 100%)",
 };
 
 export const projectCardTitleStyle = {

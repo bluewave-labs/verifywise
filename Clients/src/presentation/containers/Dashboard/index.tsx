@@ -46,7 +46,7 @@ const Dashboard: FC<DashboardProps> = ({ reloadTrigger }) => {
       sx={{ backgroundColor: "#FCFCFD" }}
     >
       <Sidebar />
-      <Stack>
+      <Stack sx={{ pr: 14 }}>
         <DemoAppBanner />
         <Outlet />
       </Stack>

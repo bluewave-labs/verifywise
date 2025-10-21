@@ -1,17 +1,7 @@
 import React, { useMemo } from "react";
 import { Box, Typography, Stack, Chip } from "@mui/material";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { IRiskTimelineProps } from "../../../domain/interfaces/i.risk";
-
-interface TimelineEvent {
-  id: string;
-  date: Date;
-  type: "created" | "resolved" | "escalated" | "mitigated";
-  risk: ProjectRisk;
-  title: string;
-  description: string;
-  riskLevel: number;
-}
+import { ITimelineEvent } from "../../../domain/interfaces/iWidget";
 
 const RiskTimeline: React.FC<IRiskTimelineProps> = ({
   risks,
@@ -46,7 +36,7 @@ const RiskTimeline: React.FC<IRiskTimelineProps> = ({
   };
 
   const timelineEvents = useMemo(() => {
-    const events: TimelineEvent[] = [];
+    const events: ITimelineEvent[] = [];
 
     risks.forEach((risk) => {
       // Add creation event
@@ -99,7 +89,7 @@ const RiskTimeline: React.FC<IRiskTimelineProps> = ({
 
   // Group events by month for better organization
   const groupedEvents = useMemo(() => {
-    const groups: { [key: string]: TimelineEvent[] } = {};
+    const groups: { [key: string]: ITimelineEvent[] } = {};
 
     timelineEvents.forEach((event) => {
       const monthKey = event.date.toLocaleDateString("en-US", {

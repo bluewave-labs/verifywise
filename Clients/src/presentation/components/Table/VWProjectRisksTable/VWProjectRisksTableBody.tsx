@@ -66,6 +66,13 @@ const VWProjectRisksTableBody = ({
   const isDeletingAllowed =
     allowedRoles.projectRisks.delete.includes(userRoleName);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+  
+  const getCellStyle = (row: ProjectRisk) => ({
+    ...cellStyle,
+    ...(row.is_deleted && {
+      textDecoration: 'line-through',
+    })
+  });
   const handleEditRisk = (row: any, event?: React.SyntheticEvent) => {
     setSelectedRow(row);
     setInputValues(row);
@@ -117,11 +124,17 @@ const VWProjectRisksTableBody = ({
             .map((row: ProjectRisk, index: number) => (
               <TableRow
                 key={index}
-                sx={singleTheme.tableStyles.primary.body.row}
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  ...(row.is_deleted && {
+                    opacity: 0.7,
+                    backgroundColor: '#fafafa',
+                  })
+                }}
                 onClick={(e) => handleEditRisk(row, e)}
               >
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
@@ -133,7 +146,7 @@ const VWProjectRisksTableBody = ({
                     : "-"}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
@@ -143,7 +156,7 @@ const VWProjectRisksTableBody = ({
                     : "-"}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
@@ -151,7 +164,7 @@ const VWProjectRisksTableBody = ({
                   <RiskChip label={row.severity} />
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
@@ -159,7 +172,7 @@ const VWProjectRisksTableBody = ({
                   {row.likelihood ? row.likelihood : "-"}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
@@ -183,7 +196,7 @@ const VWProjectRisksTableBody = ({
                   )}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
@@ -191,7 +204,7 @@ const VWProjectRisksTableBody = ({
                   <RiskChip label={row.risk_level_autocalculated} />
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}
@@ -199,7 +212,7 @@ const VWProjectRisksTableBody = ({
                   {row.deadline ? formatDate(row.deadline.toString()) : "NA"}
                 </TableCell>
                 <TableCell
-                  sx={cellStyle}
+                  sx={getCellStyle(row)}
                   style={{
                     backgroundColor: flashRow === row.id ? "#e3f5e6" : "",
                   }}

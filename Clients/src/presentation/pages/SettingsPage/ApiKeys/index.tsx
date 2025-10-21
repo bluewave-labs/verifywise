@@ -6,6 +6,7 @@ import {
   Typography,
   IconButton,
   Chip,
+  Collapse,
 } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
@@ -44,6 +45,7 @@ const ApiKeys = () => {
   const [alert, setAlert] = useState<alertState | null>(null);
   const [copiedTokenId, setCopiedTokenId] = useState<number | null>(null);
   const [hoveredTokenId, setHoveredTokenId] = useState<number | null>(null);
+  const [deletingTokenId, setDeletingTokenId] = useState<number | null>(null);
 
   const showAlert = useCallback(
     (variant: alertState["variant"], title: string, body: string) => {
@@ -153,17 +155,25 @@ const ApiKeys = () => {
   const handleDeleteToken = useCallback(async () => {
     if (!tokenToDelete) return;
 
+    // Start animation
+    setDeletingTokenId(tokenToDelete.id);
+    setIsDeleteModalOpen(false);
+
     setIsLoading(true);
     try {
       await deleteApiToken({
         routeUrl: `/tokens/${tokenToDelete.id}`,
       });
 
-      showAlert("success", "Token Deleted", "API token deleted successfully");
-      await fetchTokens();
-      setIsDeleteModalOpen(false);
-      setTokenToDelete(null);
+      // Wait for animation to complete before removing from list
+      setTimeout(async () => {
+        showAlert("success", "Token Deleted", "API token deleted successfully");
+        await fetchTokens();
+        setDeletingTokenId(null);
+        setTokenToDelete(null);
+      }, 300);
     } catch (error) {
+      setDeletingTokenId(null);
       showAlert("error", "Error", "Failed to delete API token");
     } finally {
       setIsLoading(false);
@@ -284,23 +294,29 @@ const ApiKeys = () => {
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {tokens.map((token) => (
-              <Box
+              <Collapse
                 key={token.id}
-                onMouseEnter={() => setHoveredTokenId(token.id)}
-                onMouseLeave={() => setHoveredTokenId(null)}
-                sx={{
-                  border: "1.5px solid #eaecf0",
-                  borderRadius: "4px",
-                  p: 4,
-                  backgroundColor: hoveredTokenId === token.id ? "#f8fffe" : "#ffffff",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  transition: "all 0.2s ease-in-out",
-                  cursor: "default",
-                  boxShadow: hoveredTokenId === token.id ? "0 2px 8px rgba(19, 113, 91, 0.08)" : "none",
-                }}
+                in={deletingTokenId !== token.id}
+                timeout={300}
               >
+                <Box
+                  onMouseEnter={() => setHoveredTokenId(token.id)}
+                  onMouseLeave={() => setHoveredTokenId(null)}
+                  sx={{
+                    border: "1.5px solid #eaecf0",
+                    borderRadius: "4px",
+                    p: 4,
+                    backgroundColor: hoveredTokenId === token.id ? "#f8fffe" : "#ffffff",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    transition: "all 0.2s ease-in-out",
+                    cursor: "default",
+                    boxShadow: hoveredTokenId === token.id ? "0 2px 8px rgba(19, 113, 91, 0.08)" : "none",
+                    opacity: deletingTokenId === token.id ? 0 : 1,
+                    transform: deletingTokenId === token.id ? "translateX(-20px)" : "translateX(0)",
+                  }}
+                >
                 <Box sx={{ flex: 1 }}>
                   <Typography sx={{
                     fontSize: 14,
@@ -366,6 +382,7 @@ const ApiKeys = () => {
                   </IconButton>
                 </Box>
               </Box>
+              </Collapse>
             ))}
           </Box>
         )}

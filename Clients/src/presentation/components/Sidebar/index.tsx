@@ -59,21 +59,9 @@ import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
 import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
+import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 
-interface MenuItem {
-  name: string;
-  icon: React.ReactNode;
-  path: string;
-  highlightPaths?: string[];
-  taskCount?: number;
-}
-
-interface MenuGroup {
-  name: string;
-  items: MenuItem[];
-}
-
-const getMenuGroups = (): MenuGroup[] => [
+const getMenuGroups = (): IMenuGroup[] => [
   {
     name: "DISCOVERY",
     items: [
@@ -157,7 +145,7 @@ const getMenuGroups = (): MenuGroup[] => [
   },
 ];
 
-const topItems = (openTasksCount: number): MenuItem[] => [
+const topItems = (openTasksCount: number): IMenuItem[] => [
   {
     name: "Dashboard",
     icon: <Home size={16} strokeWidth={1.5} />,
@@ -171,7 +159,7 @@ const topItems = (openTasksCount: number): MenuItem[] => [
   },
 ];
 
-const other: MenuItem[] = [
+const other: IMenuItem[] = [
   {
     name: "Settings",
     icon: <Settings size={16} strokeWidth={1.5} />,

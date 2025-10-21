@@ -347,14 +347,20 @@ const ApiKeys = () => {
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       •
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#444444" }}>
-                      Created {formatDate(token.created_at)}
+                    <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      Created{" "}
+                      <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
+                        {formatDate(token.created_at)}
+                      </Typography>
                     </Typography>
                     <Typography sx={{ fontSize: 12, color: "#999999" }}>
                       •
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#444444" }}>
-                      {isTokenExpired(token.expires_at) ? "Expired" : "Expires"} {formatDate(token.expires_at)}
+                    <Typography sx={{ fontSize: 12, color: "#999999" }}>
+                      {isTokenExpired(token.expires_at) ? "Expired" : "Expires"}{" "}
+                      <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: "#000000" }}>
+                        {formatDate(token.expires_at)}
+                      </Typography>
                     </Typography>
                   </Box>
                 </Box>

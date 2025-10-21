@@ -1,19 +1,23 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { Stack, Button } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Puzzle, Zap } from 'lucide-react';
 
 interface DashboardActionButtonsProps {
   hideOnMainDashboard?: boolean;
 }
 
-const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
+const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
   hideOnMainDashboard = true
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if we're on the main dashboard
-  const isMainDashboard = window.location.pathname === '/' || window.location.pathname === '';
+  // Check if we're on the main dashboard - memoized to prevent unnecessary re-renders
+  const isMainDashboard = useMemo(
+    () => location.pathname === '/' || location.pathname === '',
+    [location.pathname]
+  );
 
   if (hideOnMainDashboard && isMainDashboard) {
     return null;
@@ -79,6 +83,8 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = ({
       </Button>
     </Stack>
   );
-};
+});
+
+DashboardActionButtons.displayName = 'DashboardActionButtons';
 
 export default DashboardActionButtons;

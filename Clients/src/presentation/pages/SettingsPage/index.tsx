@@ -76,15 +76,7 @@ export default function ProfilePage() {
 
   return (
     <Stack className="vwhome">
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ height: 45 }}
-      >
-        {" "}
-        <PageBreadcrumbs />{" "}
-      </Stack>
+      <PageBreadcrumbs />
       <HelperDrawer
         open={isHelperDrawerOpen}
         onClose={() => setIsHelperDrawerOpen(false)}

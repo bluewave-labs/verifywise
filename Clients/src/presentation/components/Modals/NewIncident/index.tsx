@@ -11,6 +11,7 @@ import {
     FormGroup,
     FormLabel,
     useTheme,
+    Divider,
 } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import CustomizableButton from "../../Button/CustomizableButton";
@@ -317,346 +318,500 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                 {/* Header */}
 
                 {mode !== "view" && (
-                    <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        mb={4}
-                    >
-                        <Typography fontWeight={600}>
-                            {isEdit ? "Edit Incident" : "Create New Incident"}
-                        </Typography>
-                        <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
-                            <CloseIcon />
-                        </Box>
-                    </Stack>
+                    <>
+                        <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            mb={3}
+                        >
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                                <Typography
+                                    fontWeight={600}
+                                    color={theme.palette.text.primary}
+                                >
+                                    {isEdit ? "Edit incident" : "Create new incident"}
+                                </Typography>
+                                {isEdit && values.incident_id && (
+                                    <Typography
+                                        fontWeight={400}
+                                        fontSize={14}
+                                        sx={{
+                                            ml: 1,
+                                        }}
+                                    >
+                                        <Typography
+                                            component="span"
+                                            color={theme.palette.text.secondary}
+                                            fontSize={14}
+                                        >
+                                            (Incident ID:{" "}
+                                        </Typography>
+                                        <Typography
+                                            component="span"
+                                            color={theme.palette.text.tertiary}
+                                            fontSize={14}
+                                        >
+                                            {values.incident_id})
+                                        </Typography>
+                                    </Typography>
+                                )}
+                            </Stack>
+                            <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
+                                <CloseIcon />
+                            </Box>
+                        </Stack>
+                        <Divider sx={{
+                            mb: 4,
+                            mx: `calc(-1 * ${theme.spacing(10)})`,
+                        }} />
+                    </>
                 )}
 
                 <form onSubmit={handleSubmit}>
-                    <Stack spacing={3} width="100%">
-                        {/* Row 1: AI Project + Incident Type */}
-                        <Stack direction={"row"} gap={theme.spacing(8)}>
-                            <Stack sx={{ gap: 2, width: "33%" }}>
-                                <Field
-                                    id="incident_id"
-                                    label="Incident ID"
-                                    value={
-                                        values.incident_id ||
-                                        "Will be auto-generated"
-                                    }
-                                    placeholder="Incident ID"
-                                    sx={{ flex: 1 }}
-                                    disabled
-                                />
-                            </Stack>
-                            <Stack sx={{ gap: 2, width: "33%" }}>
-                                <SelectComponent
-                                    id="ai_project"
-                                    label="AI Project"
-                                    placeholder="Select AI Project"
-                                    items={projectOptions}
-                                    value={values.ai_project}
-                                    onChange={handleSelectChange("ai_project")}
-                                    error={errors.ai_project}
-                                    isRequired
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            </Stack>
-                            <Stack sx={{ gap: 2, width: "33%" }}>
-                                <SelectComponent
-                                    id="type"
-                                    label="Incident Type"
-                                    placeholder="Select Incident Type"
-                                    items={incidentTypes.map((t) => ({
-                                        _id: t,
-                                        name: t,
-                                    }))}
-                                    value={values.type}
-                                    onChange={handleSelectChange("type")}
-                                    error={errors.type}
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            </Stack>
-                        </Stack>
-
-                        {/* Row 2: Severity + Status */}
-                        <Stack direction={"row"} gap={theme.spacing(8)}>
-                            <Stack sx={{ gap: 2, width: "50%" }}>
-                                <SelectComponent
-                                    id="severity"
-                                    label="Severity"
-                                    items={severityOptions}
-                                    placeholder="Select severity"
-                                    value={values.severity}
-                                    onChange={handleSelectChange("severity")}
-                                    error={errors.severity}
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            </Stack>
-                            <Stack sx={{ gap: 2, width: "50%" }}>
-                                <SelectComponent
-                                    id="status"
-                                    label="Status"
-                                    placeholder="Select status"
-                                    items={statusOptions}
-                                    value={values.status}
-                                    onChange={handleSelectChange("status")}
-                                    error={errors.status}
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            </Stack>
-                        </Stack>
-
-                        {/* Row 3: Occurred Date + Detected Date */}
-                        <Stack direction={"row"} gap={theme.spacing(8)}>
-                            <Suspense fallback={<div>Loading...</div>}>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
-                                    <DatePicker
-                                        label="Occurred Date"
-                                        date={dayjs(values.occurred_date)}
-                                        handleDateChange={handleDateChange(
-                                            "occurred_date"
-                                        )}
-                                        isRequired
-                                        error={errors.occurred_date}
-                                        sx={{ flex: 1 }}
-                                        disabled={isViewMode} //disabled if view model
-                                    />
-                                </Stack>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
-                                    <DatePicker
-                                        label="Detected Date"
-                                        date={dayjs(values.date_detected)}
-                                        handleDateChange={handleDateChange(
-                                            "detected_date"
-                                        )}
-                                        isRequired
-                                        error={errors.date_detected}
-                                        sx={{ flex: 1 }}
-                                        disabled={isViewMode} //disabled if view model
-                                    />
-                                </Stack>
-                            </Suspense>
-                        </Stack>
-
-                        {/* Row 4: Model/System Version + Reporter */}
-                        <Stack direction={"row"} gap={theme.spacing(8)}>
-                            <Stack sx={{ gap: 2, width: "50%" }}>
-                                <Field
-                                    id="model_version"
-                                    label="Model / System Version"
-                                    value={values.model_system_version || ""}
-                                    onChange={handleOnTextFieldChange(
-                                        "model_system_version"
-                                    )}
-                                    placeholder="Model/System version"
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            </Stack>
-                            <Stack sx={{ gap: 2, width: "50%" }}>
-                                <SelectComponent
-                                    id="reporter"
-                                    label="Reporter"
-                                    placeholder="Select reporter"
-                                    items={userOptions}
-                                    value={values.reporter}
-                                    onChange={handleSelectChange("reporter")}
-                                    error={errors.reporter}
-                                    isRequired
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            </Stack>
-                        </Stack>
-
-                        {/* Harm Categories */}
-                        <FormLabel>Categories of Harm</FormLabel>
-                        <FormGroup row>
-                            {harmCategories.map((category) => (
-                                <FormControlLabel
-                                    key={category}
-                                    control={
-                                        <Checkbox
-                                            checked={values.categories_of_harm.includes(
-                                                category
-                                            )}
-                                            onChange={() =>
-                                                handleHarmCategoryChange(
-                                                    category
-                                                )
-                                            }
-                                        />
-                                    }
-                                    label={category}
+                    <Stack spacing={4} width="100%">
+                        {/* SECTION 1: INCIDENT INFORMATION */}
+                        <Stack spacing={4}>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
                                     sx={{
-                                        mr: 2,
-                                        minWidth: 100,
-                                        "& .MuiFormControlLabel-label": {
-                                            fontSize: 13,
-                                        },
-
-                                        checkbox,
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
                                     }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            ))}
-                        </FormGroup>
-
-                        {errors.categories_of_harm && (
-                            <Typography
-                                color="error"
-                                sx={{ mt: 0.5, fontSize: 13 }}
-                            >
-                                {errors.categories_of_harm}
-                            </Typography>
-                        )}
-
-                        {/* Row 5: Approval Status + Approved By */}
-                        <Stack direction={"row"} gap={theme.spacing(8)}>
-                            <Stack sx={{ gap: 2, width: "50%" }}>
-                                <SelectComponent
-                                    id="approval_status"
-                                    placeholder="Select approval Status"
-                                    label="Approval Status"
-                                    items={approvalStatusOptions}
-                                    value={values.approval_status}
-                                    onChange={handleSelectChange(
-                                        "approval_status"
-                                    )}
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
+                                >
+                                    INCIDENT INFORMATION
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (Basic incident details)
+                                </Typography>
                             </Stack>
-                            <Stack sx={{ gap: 2, width: "50%" }}>
-                                <SelectComponent
-                                    id="approved_by"
-                                    label="Approved By"
-                                    placeholder="Select approver"
-                                    items={userOptions}
-                                    value={values.approved_by || ""}
-                                    onChange={handleSelectChange("approved_by")}
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
-                            </Stack>
-                        </Stack>
 
-                        {/* Row 6: Approval Date + Interim Report */}
-                        <Stack
-                            sx={{ justifyContent: "end", alignItems: "end" }}
-                            direction={"row"}
-                            gap={theme.spacing(8)}
-                        >
-                            <Suspense fallback={<div>Loading...</div>}>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
-                                    <DatePicker
-                                        label="Approval Date"
-                                        date={
-                                            values.approval_date
-                                                ? dayjs(values.approval_date)
-                                                : null
-                                        }
-                                        handleDateChange={(d) =>
-                                            setValues((prev) => ({
-                                                ...prev,
-                                                approval_date: d
-                                                    ? d.format("YYYY-MM-DD")
-                                                    : "",
-                                            }))
-                                        }
+                            {/* Row: AI Project + Incident Type */}
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <SelectComponent
+                                        id="ai_project"
+                                        label="AI use case or framework"
+                                        placeholder="Select AI use case or framework"
+                                        items={projectOptions}
+                                        value={values.ai_project}
+                                        onChange={handleSelectChange("ai_project")}
+                                        error={errors.ai_project}
+                                        isRequired
                                         sx={{ flex: 1 }}
-                                        disabled={isViewMode} //disabled if view model
+                                        disabled={isViewMode}
                                     />
                                 </Stack>
-                            </Suspense>
-                            <Stack sx={{ gap: 2, width: "50%" }}>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={values.interim_report}
-                                            onChange={handleSwitchChange(
-                                                "interim_report"
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <SelectComponent
+                                        id="type"
+                                        label="Incident type"
+                                        placeholder="Select incident type"
+                                        items={incidentTypes.map((t) => ({
+                                            _id: t,
+                                            name: t,
+                                        }))}
+                                        value={values.type}
+                                        onChange={handleSelectChange("type")}
+                                        error={errors.type}
+                                        sx={{ flex: 1 }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
+                            </Stack>
+
+                            {/* Row: Severity + Status */}
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <SelectComponent
+                                        id="severity"
+                                        label="Severity"
+                                        items={severityOptions}
+                                        placeholder="Select severity"
+                                        value={values.severity}
+                                        onChange={handleSelectChange("severity")}
+                                        error={errors.severity}
+                                        sx={{ flex: 1 }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <SelectComponent
+                                        id="status"
+                                        label="Status"
+                                        placeholder="Select status"
+                                        items={statusOptions}
+                                        value={values.status}
+                                        onChange={handleSelectChange("status")}
+                                        error={errors.status}
+                                        sx={{ flex: 1 }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
+                            </Stack>
+
+                            {/* Row: Occurred Date + Detected Date */}
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
+                                <Suspense fallback={<div>Loading...</div>}>
+                                    <Stack sx={{ gap: 3, width: "50%" }}>
+                                        <DatePicker
+                                            label="Occurred date"
+                                            date={dayjs(values.occurred_date)}
+                                            handleDateChange={handleDateChange(
+                                                "occurred_date"
                                             )}
-                                            color="success"
+                                            isRequired
+                                            error={errors.occurred_date}
+                                            sx={{ flex: 1 }}
+                                            disabled={isViewMode}
                                         />
-                                    }
-                                    label="Interim Report"
-                                    sx={{ flex: 1 }}
-                                    disabled={isViewMode} //disabled if view model
-                                />
+                                    </Stack>
+                                    <Stack sx={{ gap: 3, width: "50%" }}>
+                                        <DatePicker
+                                            label="Detected date"
+                                            date={dayjs(values.date_detected)}
+                                            handleDateChange={handleDateChange(
+                                                "detected_date"
+                                            )}
+                                            isRequired
+                                            error={errors.date_detected}
+                                            sx={{ flex: 1 }}
+                                            disabled={isViewMode}
+                                        />
+                                    </Stack>
+                                </Suspense>
+                            </Stack>
+
+                            {/* Row: Reporter + Model/System Version */}
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <SelectComponent
+                                        id="reporter"
+                                        label="Reporter"
+                                        placeholder="Select reporter"
+                                        items={userOptions}
+                                        value={values.reporter}
+                                        onChange={handleSelectChange("reporter")}
+                                        error={errors.reporter}
+                                        isRequired
+                                        sx={{ flex: 1 }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <Field
+                                        id="model_version"
+                                        label="Model / system version"
+                                        value={values.model_system_version || ""}
+                                        onChange={handleOnTextFieldChange(
+                                            "model_system_version"
+                                        )}
+                                        placeholder="Model/system version"
+                                        sx={{ flex: 1 }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
                             </Stack>
                         </Stack>
 
-                        {/* Other Fields */}
-                        <Field
-                            id="affected_persons"
-                            label="Affected Persons / Groups"
-                            value={values.affected_persons_groups || ""}
-                            onChange={handleOnTextFieldChange(
-                                "affected_persons_groups"
+                        <Box sx={{ py: 6 }}>
+                            <Divider sx={{
+                                mx: `calc(-1 * ${theme.spacing(10)})`,
+                            }} />
+                        </Box>
+
+                        {/* SECTION 2: IMPACT ASSESSMENT */}
+                        <Stack spacing={4}>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    IMPACT ASSESSMENT
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (What was affected)
+                                </Typography>
+                            </Stack>
+
+                            {/* Categories of harm */}
+                            <FormLabel
+                                sx={{
+                                    color: theme.palette.text.secondary,
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                }}
+                            >
+                                Categories of harm
+                            </FormLabel>
+                            <FormGroup row sx={{ gap: theme.spacing(3), flexWrap: 'nowrap' }}>
+                                {harmCategories.map((category) => (
+                                    <FormControlLabel
+                                        key={category}
+                                        control={
+                                            <Checkbox
+                                                checked={values.categories_of_harm.includes(
+                                                    category
+                                                )}
+                                                onChange={() =>
+                                                    handleHarmCategoryChange(
+                                                        category
+                                                    )
+                                                }
+                                            />
+                                        }
+                                        label={category}
+                                        sx={{
+                                            flex: 1,
+                                            mr: 0,
+                                            "& .MuiFormControlLabel-label": {
+                                                fontSize: 13,
+                                                color: theme.palette.text.primary,
+                                            },
+                                            checkbox,
+                                        }}
+                                        disabled={isViewMode}
+                                    />
+                                ))}
+                            </FormGroup>
+
+                            {errors.categories_of_harm && (
+                                <Typography
+                                    color="error"
+                                    sx={{ mt: 0.5, fontSize: 13 }}
+                                >
+                                    {errors.categories_of_harm}
+                                </Typography>
                             )}
-                            placeholder="List affected persons or groups"
-                            rows={2}
-                            disabled={isViewMode} //disabled if view model
-                        />
-                        <Field
-                            id="description"
-                            label="Description"
-                            value={values.description}
-                            onChange={handleOnTextFieldChange("description")}
-                            error={errors.description}
-                            placeholder="Describe the incident"
-                            rows={3}
-                            isRequired
-                            disabled={isViewMode} //disabled if view model
-                        />
-                        <Field
-                            id="relationship"
-                            label="Relationship / Causality"
-                            value={values.relationship_causality || ""}
-                            onChange={handleOnTextFieldChange(
-                                "relationship_causality"
-                            )}
-                            placeholder="Explain the relationship to AI system"
-                            rows={2}
-                            disabled={isViewMode} //disabled if view model
-                        />
-                        <Field
-                            id="immediate_mitigations"
-                            label="Immediate Mitigations Taken"
-                            value={values.immediate_mitigations || ""}
-                            onChange={handleOnTextFieldChange(
-                                "immediate_mitigations"
-                            )}
-                            placeholder="Describe immediate mitigations"
-                            rows={2}
-                            disabled={isViewMode} //disabled if view model
-                        />
-                        <Field
-                            id="planned_corrective_actions"
-                            label="Planned Corrective Actions"
-                            value={values.planned_corrective_actions || ""}
-                            onChange={handleOnTextFieldChange(
-                                "planned_corrective_actions"
-                            )}
-                            placeholder="Describe planned corrective actions"
-                            rows={2}
-                            disabled={isViewMode} //disabled if view model
-                        />
-                        <Field
-                            id="approval_notes"
-                            label="Approval Notes / Comments"
-                            value={values.approval_notes || ""}
-                            onChange={handleOnTextFieldChange("approval_notes")}
-                            placeholder="Add approval notes"
-                            rows={2}
-                            disabled={isViewMode} //disabled if view model
-                        />
+
+                            <Field
+                                id="affected_persons"
+                                label="Affected persons / groups"
+                                value={values.affected_persons_groups || ""}
+                                onChange={handleOnTextFieldChange(
+                                    "affected_persons_groups"
+                                )}
+                                placeholder="List affected persons or groups"
+                                rows={2}
+                                disabled={isViewMode}
+                            />
+                            <Field
+                                id="description"
+                                label="Description"
+                                value={values.description}
+                                onChange={handleOnTextFieldChange("description")}
+                                error={errors.description}
+                                placeholder="Describe the incident"
+                                rows={3}
+                                isRequired
+                                disabled={isViewMode}
+                            />
+                            <Field
+                                id="relationship"
+                                label="Relationship / causality"
+                                value={values.relationship_causality || ""}
+                                onChange={handleOnTextFieldChange(
+                                    "relationship_causality"
+                                )}
+                                placeholder="Explain the relationship to AI system"
+                                rows={2}
+                                disabled={isViewMode}
+                            />
+                        </Stack>
+
+                        <Box sx={{ py: 6 }}>
+                            <Divider sx={{
+                                mx: `calc(-1 * ${theme.spacing(10)})`,
+                            }} />
+                        </Box>
+
+                        {/* SECTION 3: RESPONSE & ACTIONS */}
+                        <Stack spacing={4}>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    RESPONSE & ACTIONS
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (What was/will be done)
+                                </Typography>
+                            </Stack>
+
+                            <Field
+                                id="immediate_mitigations"
+                                label="Immediate mitigations taken"
+                                value={values.immediate_mitigations || ""}
+                                onChange={handleOnTextFieldChange(
+                                    "immediate_mitigations"
+                                )}
+                                placeholder="Describe immediate mitigations"
+                                rows={2}
+                                disabled={isViewMode}
+                            />
+                            <Field
+                                id="planned_corrective_actions"
+                                label="Planned corrective actions"
+                                value={values.planned_corrective_actions || ""}
+                                onChange={handleOnTextFieldChange(
+                                    "planned_corrective_actions"
+                                )}
+                                placeholder="Describe planned corrective actions"
+                                rows={2}
+                                disabled={isViewMode}
+                            />
+                        </Stack>
+
+                        <Box sx={{ py: 6 }}>
+                            <Divider sx={{
+                                mx: `calc(-1 * ${theme.spacing(10)})`,
+                            }} />
+                        </Box>
+
+                        {/* SECTION 4: APPROVAL & REPORTING */}
+                        <Stack spacing={4}>
+                            <Stack direction="row" spacing={1} alignItems="baseline">
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        textTransform: 'uppercase',
+                                        color: theme.palette.text.secondary,
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    APPROVAL & REPORTING
+                                </Typography>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        fontWeight: 400,
+                                        color: theme.palette.text.tertiary,
+                                    }}
+                                >
+                                    (Approval workflow)
+                                </Typography>
+                            </Stack>
+
+                            {/* Row: Approval Status + Approved By */}
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <SelectComponent
+                                        id="approval_status"
+                                        placeholder="Select approval status"
+                                        label="Approval status"
+                                        items={approvalStatusOptions}
+                                        value={values.approval_status}
+                                        onChange={handleSelectChange(
+                                            "approval_status"
+                                        )}
+                                        sx={{ flex: 1 }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
+                                    <SelectComponent
+                                        id="approved_by"
+                                        label="Approved by"
+                                        placeholder="Select approver"
+                                        items={userOptions}
+                                        value={values.approved_by || ""}
+                                        onChange={handleSelectChange("approved_by")}
+                                        sx={{ flex: 1 }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
+                            </Stack>
+
+                            {/* Row: Approval Date + Interim Report */}
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
+                                <Suspense fallback={<div>Loading...</div>}>
+                                    <Stack sx={{ gap: 3, width: "50%" }}>
+                                        <DatePicker
+                                            label="Approval date"
+                                            date={
+                                                values.approval_date
+                                                    ? dayjs(values.approval_date)
+                                                    : null
+                                            }
+                                            handleDateChange={(d) =>
+                                                setValues((prev) => ({
+                                                    ...prev,
+                                                    approval_date: d
+                                                        ? d.format("YYYY-MM-DD")
+                                                        : "",
+                                                }))
+                                            }
+                                            sx={{ flex: 1 }}
+                                            disabled={isViewMode}
+                                        />
+                                    </Stack>
+                                </Suspense>
+                                <Stack sx={{ gap: 3, width: "50%", justifyContent: "flex-end" }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={values.interim_report}
+                                                onChange={handleSwitchChange(
+                                                    "interim_report"
+                                                )}
+                                                color="success"
+                                            />
+                                        }
+                                        label="This incident has an interim report"
+                                        sx={{
+                                            flex: 1,
+                                            "& .MuiFormControlLabel-label": {
+                                                fontSize: 13,
+                                            }
+                                        }}
+                                        disabled={isViewMode}
+                                    />
+                                </Stack>
+                            </Stack>
+
+                            <Field
+                                id="approval_notes"
+                                label="Approval notes / comments"
+                                value={values.approval_notes || ""}
+                                onChange={handleOnTextFieldChange("approval_notes")}
+                                placeholder="Add approval notes"
+                                rows={2}
+                                disabled={isViewMode}
+                            />
+                        </Stack>
                     </Stack>
 
                     {/* Buttons */}
@@ -685,8 +840,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     variant="contained"
                                     text={
                                         isEdit
-                                            ? "Update Incident"
-                                            : "Save Incident"
+                                            ? "Update incident"
+                                            : "Save incident"
                                     }
                                     icon={<SaveIconSVGWhite />}
                                     onClick={handleSubmit}

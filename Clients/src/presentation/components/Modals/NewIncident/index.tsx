@@ -487,7 +487,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         >
                             Categories of harm
                         </FormLabel>
-                        <FormGroup row sx={{ gap: theme.spacing(4) }}>
+                        <FormGroup row sx={{ gap: theme.spacing(3), flexWrap: 'nowrap' }}>
                             {harmCategories.map((category) => (
                                 <FormControlLabel
                                     key={category}
@@ -505,7 +505,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     }
                                     label={category}
                                     sx={{
-                                        minWidth: 150,
+                                        flex: 1,
+                                        mr: 0,
                                         "& .MuiFormControlLabel-label": {
                                             fontSize: 13,
                                             color: theme.palette.text.primary,

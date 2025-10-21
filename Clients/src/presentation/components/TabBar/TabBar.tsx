@@ -1,18 +1,6 @@
 import React, { useState } from "react";
 import { Box, Tab, Tabs, Paper } from "@mui/material";
-
-export interface TabBarProps {
-  tabs: string[];
-  value?: number;
-  onChange?: (event: React.SyntheticEvent, newValue: number) => void;
-  variant?: "standard" | "scrollable" | "fullWidth";
-  indicatorColor?: string;
-  textColor?: string;
-  selectedTextColor?: string;
-  backgroundColor?: string;
-  borderColor?: string;
-  sx?: object;
-}
+import { ITabBarProps } from "../../../domain/interfaces/i.tab";
 
 function a11yProps(index: number) {
   return {
@@ -21,7 +9,7 @@ function a11yProps(index: number) {
   };
 }
 
-const TabBar: React.FC<TabBarProps> = ({
+const TabBar: React.FC<ITabBarProps> = ({
   tabs,
   value: controlledValue,
   onChange,

@@ -218,22 +218,6 @@ const AutomationsPage: React.FC = () => {
     }
   };
 
-  const handleDuplicateAutomation = (automationId: string) => {
-    const originalAutomation = automations.find(a => a.id === automationId);
-    if (!originalAutomation) return;
-
-    const duplicatedAutomation: Automation = {
-      ...originalAutomation,
-      id: generateId(),
-      name: `${originalAutomation.name} (Copy)`,
-      isActive: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    setAutomations(prev => [duplicatedAutomation, ...prev]);
-  };
-
   const handleToggleAutomation = async (automationId: string) => {
     // Find the automation to get its current state
     const automation = automations.find(a => a.id === automationId);

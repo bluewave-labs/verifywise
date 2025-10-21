@@ -366,42 +366,42 @@ const IncidentManagement: React.FC = () => {
                 onClose={() => setIsHelperDrawerOpen(false)}
                 title="Incident Management"
                 description="Track, investigate, and resolve AI-related incidents efficiently"
-                whatItDoes="Maintain a **centralized log** of all AI incidents including *incident type*, *severity*, *reporter details*, and **current status**. Record *investigation notes*, *corrective actions*, and **approval workflow** for full traceability."
-                whyItMatters="Effective **incident management** ensures *regulatory compliance*, *operational reliability*, and **risk mitigation**. It helps your team respond to issues promptly, identify root causes, and prevent recurrence."
+                whatItDoes="Maintain a centralized log of all AI incidents including *incident type*, *severity*, *reporter details*, and *status*. Record *impact assessment*, *mitigations*, *corrective actions*, and *approval workflow* for full traceability."
+                whyItMatters="Effective incident management ensures *regulatory compliance*, *operational reliability*, and *risk mitigation*. It helps your team respond to issues promptly, identify root causes, and prevent recurrence."
                 quickActions={[
                     {
-                        label: "Log New Incident",
+                        label: "Add New Incident",
                         description:
-                            "Create a new incident record with full details including severity, type, and reporter information",
+                            "Create a new incident record with details like severity, type, categories of harm, and reporter",
                         primary: true,
+                    },
+                    {
+                        label: "Filter Incidents",
+                        description:
+                            "Use status, severity, and approval filters to find specific incidents quickly",
                     },
                     {
                         label: "Archive Incident",
                         description:
-                            "Move resolved incidents to archive for record-keeping while keeping active incidents visible",
-                    },
-                    {
-                        label: "Approve Incident Resolution",
-                        description:
-                            "Review and approve the resolution of incidents to ensure proper closure and compliance",
+                            "Archive resolved incidents to keep your active list clean while preserving records",
                     },
                 ]}
                 useCases={[
-                    "**Operational incidents** impacting AI system performance or outputs",
-                    "**Compliance incidents** requiring investigation and documentation for audits",
-                    "**Critical failures** in deployed AI models needing root cause analysis and mitigation",
+                    "Track incidents affecting health, safety, rights, property, or environment",
+                    "Document incidents requiring investigation and regulatory reporting",
+                    "Record mitigations and corrective actions for AI system failures",
                 ]}
                 keyFeatures={[
-                    "**Full incident lifecycle tracking** from logging to resolution",
-                    "**Severity and status management** for prioritizing incidents",
-                    "**Approval workflows** for reviewing and closing incidents",
-                    "**Search and filter capabilities** for quick incident retrieval",
+                    "Incident lifecycle tracking from logging through investigation to closure",
+                    "Severity and status filtering for quick incident prioritization",
+                    "Approval workflows with pending, approved, and rejected statuses",
+                    "Search and filter by status, severity, and approval status",
                 ]}
                 tips={[
-                    "Prioritize **high-severity incidents** to minimize impact on operations",
-                    "Keep **detailed investigation notes** for better accountability and reporting",
-                    "Use **archiving** to maintain a clean active incident list while preserving historical records",
-                    "Regularly **review incidents** to identify patterns and prevent recurrence",
+                    "Use severity levels to prioritize incidents needing immediate attention",
+                    "Document immediate mitigations and planned corrective actions",
+                    "Archive resolved incidents to maintain a clean active list",
+                    "Review incident patterns regularly to improve AI system reliability",
                 ]}
             />
 

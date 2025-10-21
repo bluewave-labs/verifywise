@@ -371,7 +371,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                 <form onSubmit={handleSubmit}>
                     <Stack spacing={4} width="100%">
                         {/* SECTION 1: INCIDENT INFORMATION */}
-                        <Stack spacing={3}>
+                        <Stack spacing={4}>
                             <Stack direction="row" spacing={1} alignItems="baseline">
                                 <Typography
                                     sx={{
@@ -530,7 +530,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Box>
 
                         {/* SECTION 2: IMPACT ASSESSMENT */}
-                        <Stack spacing={3}>
+                        <Stack spacing={4}>
                             <Stack direction="row" spacing={1} alignItems="baseline">
                                 <Typography
                                     sx={{
@@ -646,7 +646,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Box>
 
                         {/* SECTION 3: RESPONSE & ACTIONS */}
-                        <Stack spacing={3}>
+                        <Stack spacing={4}>
                             <Stack direction="row" spacing={1} alignItems="baseline">
                                 <Typography
                                     sx={{
@@ -701,7 +701,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Box>
 
                         {/* SECTION 4: APPROVAL & REPORTING */}
-                        <Stack spacing={3}>
+                        <Stack spacing={4}>
                             <Stack direction="row" spacing={1} alignItems="baseline">
                                 <Typography
                                     sx={{

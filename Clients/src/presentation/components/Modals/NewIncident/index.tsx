@@ -397,7 +397,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
 
                             {/* Row: AI Project + Incident Type */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="ai_project"
                                         label="AI use case or framework"
@@ -411,7 +411,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         disabled={isViewMode}
                                     />
                                 </Stack>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="type"
                                         label="Incident type"
@@ -431,7 +431,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
 
                             {/* Row: Severity + Status */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="severity"
                                         label="Severity"
@@ -444,7 +444,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         disabled={isViewMode}
                                     />
                                 </Stack>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="status"
                                         label="Status"
@@ -462,7 +462,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             {/* Row: Occurred Date + Detected Date */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
                                 <Suspense fallback={<div>Loading...</div>}>
-                                    <Stack sx={{ gap: 2, width: "50%" }}>
+                                    <Stack sx={{ gap: 3, width: "50%" }}>
                                         <DatePicker
                                             label="Occurred date"
                                             date={dayjs(values.occurred_date)}
@@ -475,7 +475,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                             disabled={isViewMode}
                                         />
                                     </Stack>
-                                    <Stack sx={{ gap: 2, width: "50%" }}>
+                                    <Stack sx={{ gap: 3, width: "50%" }}>
                                         <DatePicker
                                             label="Detected date"
                                             date={dayjs(values.date_detected)}
@@ -493,7 +493,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
 
                             {/* Row: Reporter + Model/System Version */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="reporter"
                                         label="Reporter"
@@ -507,7 +507,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         disabled={isViewMode}
                                     />
                                 </Stack>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <Field
                                         id="model_version"
                                         label="Model / system version"
@@ -727,7 +727,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
 
                             {/* Row: Approval Status + Approved By */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="approval_status"
                                         placeholder="Select approval status"
@@ -741,7 +741,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         disabled={isViewMode}
                                     />
                                 </Stack>
-                                <Stack sx={{ gap: 2, width: "50%" }}>
+                                <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="approved_by"
                                         label="Approved by"
@@ -758,7 +758,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             {/* Row: Approval Date + Interim Report */}
                             <Stack direction={"row"} gap={theme.spacing(8)}>
                                 <Suspense fallback={<div>Loading...</div>}>
-                                    <Stack sx={{ gap: 2, width: "50%" }}>
+                                    <Stack sx={{ gap: 3, width: "50%" }}>
                                         <DatePicker
                                             label="Approval date"
                                             date={
@@ -779,7 +779,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         />
                                     </Stack>
                                 </Suspense>
-                                <Stack sx={{ gap: 2, width: "50%", justifyContent: "flex-end" }}>
+                                <Stack sx={{ gap: 3, width: "50%", justifyContent: "flex-end" }}>
                                     <FormControlLabel
                                         control={
                                             <Switch

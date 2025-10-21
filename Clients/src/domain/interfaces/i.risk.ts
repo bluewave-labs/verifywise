@@ -33,3 +33,9 @@ export interface IRiskTimelineProps {
   selectedRisk?: ProjectRisk | null;
   onRiskSelect?: (risk: ProjectRisk) => void;
 }
+
+export interface IRiskVisualizationTabsProps {
+  risks: ProjectRisk[];
+  selectedRisk?: ProjectRisk | null;
+  onRiskSelect?: (risk: ProjectRisk) => void;
+}

@@ -323,7 +323,10 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         alignItems="center"
                         mb={4}
                     >
-                        <Typography fontWeight={600}>
+                        <Typography
+                            fontWeight={600}
+                            color={theme.palette.text.primary}
+                        >
                             {isEdit ? "Edit Incident" : "Create New Incident"}
                         </Typography>
                         <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
@@ -475,7 +478,9 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Stack>
 
                         {/* Harm Categories */}
-                        <FormLabel>Categories of Harm</FormLabel>
+                        <FormLabel sx={{ color: theme.palette.text.primary }}>
+                            Categories of Harm
+                        </FormLabel>
                         <FormGroup row>
                             {harmCategories.map((category) => (
                                 <FormControlLabel
@@ -498,8 +503,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                         minWidth: 100,
                                         "& .MuiFormControlLabel-label": {
                                             fontSize: 13,
+                                            color: theme.palette.text.primary,
                                         },
-
                                         checkbox,
                                     }}
                                     disabled={isViewMode} //disabled if view model

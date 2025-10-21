@@ -323,12 +323,38 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         alignItems="center"
                         mb={4}
                     >
-                        <Typography
-                            fontWeight={600}
-                            color={theme.palette.text.primary}
-                        >
-                            {isEdit ? "Edit incident" : "Create new incident"}
-                        </Typography>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                            <Typography
+                                fontWeight={600}
+                                color={theme.palette.text.primary}
+                            >
+                                {isEdit ? "Edit incident" : "Create new incident"}
+                            </Typography>
+                            {isEdit && values.incident_id && (
+                                <Typography
+                                    fontWeight={400}
+                                    fontSize={14}
+                                    sx={{
+                                        ml: 1,
+                                    }}
+                                >
+                                    <Typography
+                                        component="span"
+                                        color={theme.palette.text.secondary}
+                                        fontSize={14}
+                                    >
+                                        (Incident ID:{" "}
+                                    </Typography>
+                                    <Typography
+                                        component="span"
+                                        color={theme.palette.text.tertiary}
+                                        fontSize={14}
+                                    >
+                                        {values.incident_id})
+                                    </Typography>
+                                </Typography>
+                            )}
+                        </Stack>
                         <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
                             <CloseIcon />
                         </Box>
@@ -339,20 +365,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                     <Stack spacing={3} width="100%">
                         {/* Row 1: AI Project + Incident Type */}
                         <Stack direction={"row"} gap={theme.spacing(8)}>
-                            <Stack sx={{ gap: 2, width: "33%" }}>
-                                <Field
-                                    id="incident_id"
-                                    label="Incident ID"
-                                    value={
-                                        values.incident_id ||
-                                        "Will be auto-generated"
-                                    }
-                                    placeholder="Incident ID"
-                                    sx={{ flex: 1 }}
-                                    disabled
-                                />
-                            </Stack>
-                            <Stack sx={{ gap: 2, width: "33%" }}>
+                            <Stack sx={{ gap: 2, width: "50%" }}>
                                 <SelectComponent
                                     id="ai_project"
                                     label="AI use case or framework"
@@ -366,7 +379,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     disabled={isViewMode} //disabled if view model
                                 />
                             </Stack>
-                            <Stack sx={{ gap: 2, width: "33%" }}>
+                            <Stack sx={{ gap: 2, width: "50%" }}>
                                 <SelectComponent
                                     id="type"
                                     label="Incident type"

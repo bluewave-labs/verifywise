@@ -4,6 +4,7 @@ import { SelectChangeEvent, Theme } from "@mui/material";
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
 import { ChangeEvent } from "react";
+import { ProjectRisk } from "../types/ProjectRisk";
 
 /**
  * Props for the CloseButton component.
@@ -168,4 +169,12 @@ export interface ISearchBoxProps {
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
   disabled?: boolean;
   fullWidth?: boolean;
+}
+
+export interface IHeatMapCell {
+  likelihood: number;
+  severity: number;
+  risks: ProjectRisk[];
+  riskLevel: number;
+  color: string;
 }

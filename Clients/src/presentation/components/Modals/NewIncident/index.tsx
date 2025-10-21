@@ -327,7 +327,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             fontWeight={600}
                             color={theme.palette.text.primary}
                         >
-                            {isEdit ? "Edit Incident" : "Create New Incident"}
+                            {isEdit ? "Edit incident" : "Create new incident"}
                         </Typography>
                         <Box onClick={handleClose} sx={{ cursor: "pointer" }}>
                             <CloseIcon />
@@ -369,8 +369,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             <Stack sx={{ gap: 2, width: "33%" }}>
                                 <SelectComponent
                                     id="type"
-                                    label="Incident Type"
-                                    placeholder="Select Incident Type"
+                                    label="Incident type"
+                                    placeholder="Select incident type"
                                     items={incidentTypes.map((t) => ({
                                         _id: t,
                                         name: t,
@@ -419,7 +419,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             <Suspense fallback={<div>Loading...</div>}>
                                 <Stack sx={{ gap: 2, width: "50%" }}>
                                     <DatePicker
-                                        label="Occurred Date"
+                                        label="Occurred date"
                                         date={dayjs(values.occurred_date)}
                                         handleDateChange={handleDateChange(
                                             "occurred_date"
@@ -432,7 +432,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                 </Stack>
                                 <Stack sx={{ gap: 2, width: "50%" }}>
                                     <DatePicker
-                                        label="Detected Date"
+                                        label="Detected date"
                                         date={dayjs(values.date_detected)}
                                         handleDateChange={handleDateChange(
                                             "detected_date"
@@ -451,12 +451,12 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             <Stack sx={{ gap: 2, width: "50%" }}>
                                 <Field
                                     id="model_version"
-                                    label="Model / System Version"
+                                    label="Model / system version"
                                     value={values.model_system_version || ""}
                                     onChange={handleOnTextFieldChange(
                                         "model_system_version"
                                     )}
-                                    placeholder="Model/System version"
+                                    placeholder="Model/system version"
                                     sx={{ flex: 1 }}
                                     disabled={isViewMode} //disabled if view model
                                 />
@@ -480,11 +480,12 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         {/* Harm Categories */}
                         <FormLabel
                             sx={{
-                                color: theme.palette.text.primary,
+                                color: theme.palette.text.secondary,
                                 fontSize: 13,
+                                fontWeight: 500,
                             }}
                         >
-                            Categories of Harm
+                            Categories of harm
                         </FormLabel>
                         <FormGroup row>
                             {harmCategories.map((category) => (
@@ -531,8 +532,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             <Stack sx={{ gap: 2, width: "50%" }}>
                                 <SelectComponent
                                     id="approval_status"
-                                    placeholder="Select approval Status"
-                                    label="Approval Status"
+                                    placeholder="Select approval status"
+                                    label="Approval status"
                                     items={approvalStatusOptions}
                                     value={values.approval_status}
                                     onChange={handleSelectChange(
@@ -545,7 +546,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             <Stack sx={{ gap: 2, width: "50%" }}>
                                 <SelectComponent
                                     id="approved_by"
-                                    label="Approved By"
+                                    label="Approved by"
                                     placeholder="Select approver"
                                     items={userOptions}
                                     value={values.approved_by || ""}
@@ -565,7 +566,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             <Suspense fallback={<div>Loading...</div>}>
                                 <Stack sx={{ gap: 2, width: "50%" }}>
                                     <DatePicker
-                                        label="Approval Date"
+                                        label="Approval date"
                                         date={
                                             values.approval_date
                                                 ? dayjs(values.approval_date)
@@ -595,7 +596,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                             color="success"
                                         />
                                     }
-                                    label="Interim Report"
+                                    label="Interim report"
                                     sx={{ flex: 1 }}
                                     disabled={isViewMode} //disabled if view model
                                 />
@@ -605,7 +606,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         {/* Other Fields */}
                         <Field
                             id="affected_persons"
-                            label="Affected Persons / Groups"
+                            label="Affected persons / groups"
                             value={values.affected_persons_groups || ""}
                             onChange={handleOnTextFieldChange(
                                 "affected_persons_groups"
@@ -627,7 +628,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         />
                         <Field
                             id="relationship"
-                            label="Relationship / Causality"
+                            label="Relationship / causality"
                             value={values.relationship_causality || ""}
                             onChange={handleOnTextFieldChange(
                                 "relationship_causality"
@@ -638,7 +639,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         />
                         <Field
                             id="immediate_mitigations"
-                            label="Immediate Mitigations Taken"
+                            label="Immediate mitigations taken"
                             value={values.immediate_mitigations || ""}
                             onChange={handleOnTextFieldChange(
                                 "immediate_mitigations"
@@ -649,7 +650,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         />
                         <Field
                             id="planned_corrective_actions"
-                            label="Planned Corrective Actions"
+                            label="Planned corrective actions"
                             value={values.planned_corrective_actions || ""}
                             onChange={handleOnTextFieldChange(
                                 "planned_corrective_actions"
@@ -660,7 +661,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         />
                         <Field
                             id="approval_notes"
-                            label="Approval Notes / Comments"
+                            label="Approval notes / comments"
                             value={values.approval_notes || ""}
                             onChange={handleOnTextFieldChange("approval_notes")}
                             placeholder="Add approval notes"
@@ -695,8 +696,8 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     variant="contained"
                                     text={
                                         isEdit
-                                            ? "Update Incident"
-                                            : "Save Incident"
+                                            ? "Update incident"
+                                            : "Save incident"
                                     }
                                     icon={<SaveIconSVGWhite />}
                                     onClick={handleSubmit}

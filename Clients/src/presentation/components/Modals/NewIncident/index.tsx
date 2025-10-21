@@ -396,7 +396,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
 
                             {/* Row: AI Project + Incident Type */}
-                            <Stack direction={"row"} gap={theme.spacing(8)}>
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
                                 <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="ai_project"
@@ -430,7 +430,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
 
                             {/* Row: Severity + Status */}
-                            <Stack direction={"row"} gap={theme.spacing(8)}>
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
                                 <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="severity"
@@ -460,7 +460,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
 
                             {/* Row: Occurred Date + Detected Date */}
-                            <Stack direction={"row"} gap={theme.spacing(8)}>
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
                                 <Suspense fallback={<div>Loading...</div>}>
                                     <Stack sx={{ gap: 3, width: "50%" }}>
                                         <DatePicker
@@ -492,7 +492,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
 
                             {/* Row: Reporter + Model/System Version */}
-                            <Stack direction={"row"} gap={theme.spacing(8)}>
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
                                 <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="reporter"
@@ -726,7 +726,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
 
                             {/* Row: Approval Status + Approved By */}
-                            <Stack direction={"row"} gap={theme.spacing(8)}>
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
                                 <Stack sx={{ gap: 3, width: "50%" }}>
                                     <SelectComponent
                                         id="approval_status"
@@ -756,7 +756,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
 
                             {/* Row: Approval Date + Interim Report */}
-                            <Stack direction={"row"} gap={theme.spacing(8)}>
+                            <Stack direction={"row"} gap={theme.spacing(8)} sx={{ mt: 2 }}>
                                 <Suspense fallback={<div>Loading...</div>}>
                                     <Stack sx={{ gap: 3, width: "50%" }}>
                                         <DatePicker

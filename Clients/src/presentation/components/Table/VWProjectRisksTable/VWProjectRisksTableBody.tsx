@@ -1,4 +1,4 @@
-import { TableBody, TableCell, TableRow, Chip, Dialog } from "@mui/material";
+import { TableBody, TableCell, TableRow, Chip, Dialog, useTheme } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 import { Suspense, useContext, useEffect, useState } from "react";
 import { ProjectRisk } from "../../../../domain/types/ProjectRisk";
@@ -60,6 +60,7 @@ const VWProjectRisksTableBody = ({
   onDeleteRisk: (id: number) => void;
   flashRow: number | null;
 }) => {
+  const theme = useTheme();
   const { setInputValues } = useContext(VerifyWiseContext);
   const { userRoleName } = useAuth();
   const { users } = useUsers();
@@ -128,7 +129,7 @@ const VWProjectRisksTableBody = ({
                   ...singleTheme.tableStyles.primary.body.row,
                   ...(row.is_deleted && {
                     opacity: 0.7,
-                    backgroundColor: '#fafafa',
+                    backgroundColor: theme.palette.action?.hover || '#fafafa',
                   })
                 }}
                 onClick={(e) => handleEditRisk(row, e)}

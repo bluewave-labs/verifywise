@@ -55,6 +55,13 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+  
+  const getCellStyle = (row: IModelRisk) => ({
+    ...cellStyle,
+    ...(row.is_deleted && {
+      textDecoration: 'line-through',
+    })
+  });
 
   const formattedUsers = useMemo(() => {
     return users.map((user: User) => ({
@@ -140,21 +147,27 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
             .map((row: IModelRisk) => (
               <TableRow
                 key={row.id}
-                sx={singleTheme.tableStyles.primary.body.row}
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  ...(row.is_deleted && {
+                    opacity: 0.7,
+                    backgroundColor: theme.palette.action?.hover || '#fafafa',
+                  })
+                }}
                 onClick={() => onEdit(row.id!)}
               >
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                     {row.risk_name}
                   </Typography>
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   {row.risk_category}
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   <RiskChip label={row.risk_level} />
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   <Box
                     sx={{
                       display: "inline-flex",
@@ -179,10 +192,10 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                     </Typography>
                   </Box>
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   {getOwnerName(row.owner)}
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   {formatDate(row.target_date)}
                 </TableCell>
                 <TableCell
@@ -205,7 +218,7 @@ const ModelRisksTable: React.FC<ModelRisksTableProps> = ({
                   />
                 </TableCell>
               </TableRow>
-            ))}
+            })}
       </TableBody>
     ),
     [

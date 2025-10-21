@@ -19,16 +19,18 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
     [location.pathname]
   );
 
-  if (hideOnMainDashboard && isMainDashboard) {
-    return null;
-  }
+  // Instead of returning null (which causes layout shift), keep mounted but invisible
+  const shouldHide = hideOnMainDashboard && isMainDashboard;
 
   return (
     <Stack
       direction="row"
       spacing={'8px'}
       sx={{
-        // Removed absolute positioning to work with PageBreadcrumbs flex layout
+        visibility: shouldHide ? 'hidden' : 'visible',
+        opacity: shouldHide ? 0 : 1,
+        pointerEvents: shouldHide ? 'none' : 'auto',
+        transition: 'opacity 0.2s ease',
       }}
     >
       <Button

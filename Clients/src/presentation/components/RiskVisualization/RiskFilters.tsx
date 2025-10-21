@@ -1,33 +1,22 @@
 import React, { useState } from "react";
 import { Box, Stack } from "@mui/material";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
+import { IRiskFiltersProps } from "../../../domain/interfaces/i.risk";
+import { IFilterState } from "../../../domain/interfaces/i.filter";
 
-interface RiskFiltersProps {
-  risks: ProjectRisk[];
-  onFilterChange: (
-    filteredRisks: ProjectRisk[],
-    activeFilters: FilterState
-  ) => void;
-}
-
-interface FilterState {
-  riskLevel: string;
-  owner: string;
-  mitigationStatus: string;
-  deletionStatus: string;
-}
-
-const initialFilterState: FilterState = {
+const initialFilterState: IFilterState = {
   riskLevel: "all",
   owner: "all",
   mitigationStatus: "all",
   deletionStatus: "active",
 };
 
-const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
-  const [filters, setFilters] = useState<FilterState>(initialFilterState);
+const RiskFilters: React.FC<IRiskFiltersProps> = ({
+  risks,
+  onFilterChange,
+}) => {
+  const [filters, setFilters] = useState<IFilterState>(initialFilterState);
   const [users, setUsers] = useState<any[]>([]);
 
   // Fetch users on component mount
@@ -51,7 +40,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
     }
   }, [risks.length]);
 
-  const applyFilters = (newFilters: FilterState) => {
+  const applyFilters = (newFilters: IFilterState) => {
     let filteredRisks = [...risks];
 
     // Risk level filter
@@ -119,7 +108,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({ risks, onFilterChange }) => {
     onFilterChange(filteredRisks, newFilters);
   };
 
-  const handleFilterChange = (key: keyof FilterState, value: any) => {
+  const handleFilterChange = (key: keyof IFilterState, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     applyFilters(newFilters);

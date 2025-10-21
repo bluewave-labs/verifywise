@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { Grid, Container, Box, useTheme } from '@mui/material';
+import { Grid, Container, Box, Stack, useTheme } from '@mui/material';
 import { Settings } from 'lucide-react';
 import AutomationList from './components/AutomationList';
 import AutomationBuilder from './components/AutomationBuilder';
@@ -9,6 +9,7 @@ import { mockTriggerTemplates, mockActionTemplates } from './data/mockData';
 import { generateId } from '../../../application/utils/generateId';
 import CustomAxios from '../../../infrastructure/api/customAxios';
 import Alert from '../../components/Alert';
+import PageBreadcrumbs from '../../components/Breadcrumbs/PageBreadcrumbs';
 
 const AutomationsPage: React.FC = () => {
   const theme = useTheme();
@@ -650,8 +651,11 @@ This notification was sent on {{date_and_time}}.`;
   const showConfigurationPanel = automations.length > 0 && (selectedItem || selectedAutomation);
 
   return (
-    <>
-      <Container maxWidth={false} sx={{ height: 'calc(100vh - 64px)', p: '32px' }}>
+    <Stack className="vwhome" gap={"16px"}>
+      {/* Breadcrumbs with integrated action buttons and divider */}
+      <PageBreadcrumbs />
+
+      <Container maxWidth={false} sx={{ height: 'calc(100vh - 180px)', px: 0 }}>
         <Box
           sx={{
             height: '100%',
@@ -779,7 +783,7 @@ This notification was sent on {{date_and_time}}.`;
           />
         </Suspense>
       )}
-    </>
+    </Stack>
   );
 };
 

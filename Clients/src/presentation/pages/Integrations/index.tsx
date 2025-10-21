@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
+  Stack,
   Typography,
 } from '@mui/material';
 import { Suspense } from 'react';
@@ -113,7 +114,7 @@ const Integrations: React.FC = () => {
   }, [toast]);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Stack className="vwhome" gap={"16px"}>
       <PageBreadcrumbs />
 
       {/* Header */}
@@ -126,7 +127,7 @@ const Integrations: React.FC = () => {
         </Typography>
       </Box>
 
-  
+
       {/* Integration Cards Grid */}
       <Box sx={{ p: 2 }}>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
@@ -160,7 +161,7 @@ const Integrations: React.FC = () => {
           />
         </Suspense>
       )}
-    </Box>
+    </Stack>
   );
 };
 

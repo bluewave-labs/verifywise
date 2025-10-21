@@ -70,7 +70,7 @@ const AutomationList: React.FC<AutomationListProps> = ({
       }}
     >
       {/* Header */}
-      <Stack spacing={2} sx={{ p: '16px', borderBottom: `1px solid ${theme.palette.border.light}` }}>
+      <Stack spacing={2} sx={{ p: '16px' }}>
         <Typography variant="h6" sx={{ fontSize: '15px', fontWeight: 600 }}>
           Automations
         </Typography>

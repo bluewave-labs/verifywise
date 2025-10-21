@@ -523,10 +523,11 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             </Stack>
                         </Stack>
 
-                        <Divider sx={{
-                            my: 8,
-                            mx: `calc(-1 * ${theme.spacing(10)})`,
-                        }} />
+                        <Box sx={{ py: 6 }}>
+                            <Divider sx={{
+                                mx: `calc(-1 * ${theme.spacing(10)})`,
+                            }} />
+                        </Box>
 
                         {/* SECTION 2: IMPACT ASSESSMENT */}
                         <Stack spacing={3}>
@@ -638,10 +639,11 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             />
                         </Stack>
 
-                        <Divider sx={{
-                            my: 8,
-                            mx: `calc(-1 * ${theme.spacing(10)})`,
-                        }} />
+                        <Box sx={{ py: 6 }}>
+                            <Divider sx={{
+                                mx: `calc(-1 * ${theme.spacing(10)})`,
+                            }} />
+                        </Box>
 
                         {/* SECTION 3: RESPONSE & ACTIONS */}
                         <Stack spacing={3}>
@@ -692,10 +694,11 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                             />
                         </Stack>
 
-                        <Divider sx={{
-                            my: 8,
-                            mx: `calc(-1 * ${theme.spacing(10)})`,
-                        }} />
+                        <Box sx={{ py: 6 }}>
+                            <Divider sx={{
+                                mx: `calc(-1 * ${theme.spacing(10)})`,
+                            }} />
+                        </Box>
 
                         {/* SECTION 4: APPROVAL & REPORTING */}
                         <Stack spacing={3}>

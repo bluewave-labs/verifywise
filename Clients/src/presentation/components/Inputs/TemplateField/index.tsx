@@ -12,7 +12,6 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
   useTheme,
   Box,
 } from '@mui/material';
@@ -112,7 +111,7 @@ const TemplateField = forwardRef(
     // Calculate dropdown position below the cursor
     const calculateDropdownPosition = (element: HTMLInputElement | HTMLTextAreaElement) => {
       const rect = element.getBoundingClientRect();
-      const lineHeight = parseInt(window.getComputedStyle(element).lineHeight) || 20;
+      const _lineHeight = parseInt(window.getComputedStyle(element).lineHeight) || 20;
 
       // For multiline, estimate line based on cursor position
       // For single line, just position below the input
@@ -257,7 +256,7 @@ const TemplateField = forwardRef(
           value={value}
           onChange={handleInputChange}
           onFocus={onFocus}
-          onKeyDown={handleKeyDown}
+          onKeyDown={handleKeyDown as React.KeyboardEventHandler<HTMLDivElement>}
           placeholder={placeholder}
           multiline={type === 'description'}
           rows={type === 'description' ? (rows || 4) : 1}

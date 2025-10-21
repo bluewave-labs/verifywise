@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Stack,
   Typography,
@@ -15,7 +15,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import Button from '../../../../components/Button';
+
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import { SearchBox } from '../../../../components/Search';
 import Toggle from '../../../../components/Inputs/Toggle';
@@ -45,9 +45,9 @@ const AutomationList: React.FC<AutomationListProps> = ({
   onCreateAutomation,
   onDeleteAutomation,
   onDiscardAutomation,
-  onDuplicateAutomation,
+  _onDuplicateAutomation,
   onToggleAutomation,
-  onRenameAutomation,
+  _onRenameAutomation,
   onSearchChange,
 }) => {
   const theme = useTheme();

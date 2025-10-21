@@ -20,7 +20,6 @@ import {
   FolderTree,
   Layers,
   Flag,
-  Users as GroupOutlined,
   AlertCircle
 } from 'lucide-react'
 

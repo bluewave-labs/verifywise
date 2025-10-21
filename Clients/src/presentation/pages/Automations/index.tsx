@@ -203,7 +203,7 @@ const AutomationsPage: React.FC = () => {
       console.log('Automation deleted successfully');
     } catch (error: any) {
       console.error('Error deleting automation:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete automation';
+      const _errorMessage = error.response?.data?.message || error.message || 'Failed to delete automation';
     }
   };
 
@@ -592,7 +592,7 @@ This notification was sent on {{date_and_time}}.`;
           console.log('Automation updated successfully!', response.data);
 
           // Refresh the automations list, preserving the current selection
-          await fetchAutomations(selectedAutomationId, false);
+          await fetchAutomations(selectedAutomationId ?? undefined, false);
 
           // Show success toast
           setToast({

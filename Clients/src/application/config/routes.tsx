@@ -14,7 +14,6 @@ import ForgotPassword from "../../presentation/pages/Authentication/ForgotPasswo
 import ResetPassword from "../../presentation/pages/Authentication/ResetPassword";
 import SetNewPassword from "../../presentation/pages/Authentication/SetNewPassword";
 import ResetPasswordContinue from "../../presentation/pages/Authentication/ResetPasswordContinue";
-import ProjectView from "../../presentation/pages/ProjectView";
 import FileManager from "../../presentation/pages/FileManager";
 import Reporting from "../../presentation/pages/Reporting";
 import Playground from "../../presentation/pages";

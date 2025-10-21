@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Stack,
   Typography,
-  TextField,
   FormControl,
-  FormControlLabel,
-  Checkbox,
   Chip,
   useTheme,
   Divider,
@@ -13,7 +10,7 @@ import {
   Card,
   CardContent,
 } from '@mui/material';
-import { Settings, HelpCircle } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import Select from '../../../../components/Inputs/Select';
 import Toggle from '../../../../components/Inputs/Toggle';
 import Field from '../../../../components/Inputs/Field';
@@ -139,7 +136,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
         if (field.key === 'to' && selectedItemType === 'action') {
           // Convert value to array format expected by CustomizableMultiSelect
           const selectValue = Array.isArray(value) ? value :
-            (value && value !== '' ? value.split(',').map((v: string) => v.trim()).filter(v => v) : []);
+            (value && value !== '' ? value.split(',').map((v: string | number) => v.toString().trim()).filter(v => v) : []);
 
           // Transform users to have _id field expected by CustomizableMultiSelect
           const usersWithId = users.map(user => ({

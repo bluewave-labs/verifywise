@@ -15,12 +15,7 @@ import {
 import { ProjectRisk } from "../../../domain/types/ProjectRisk";
 import { getAllUsers } from "../../../application/repository/user.repository";
 import ButtonToggle from "../ButtonToggle";
-
-interface RiskCategoriesProps {
-  risks: ProjectRisk[];
-  selectedRisk?: ProjectRisk | null;
-  onRiskSelect?: (risk: ProjectRisk) => void;
-}
+import { IRiskCategoriesProps } from "../../../domain/interfaces/i.risk";
 
 interface CategoryGroup {
   name: string;
@@ -35,7 +30,7 @@ interface CategoryGroup {
   };
 }
 
-const RiskCategories: React.FC<RiskCategoriesProps> = ({
+const RiskCategories: React.FC<IRiskCategoriesProps> = ({
   risks,
   selectedRisk,
   onRiskSelect,

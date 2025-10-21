@@ -16,12 +16,14 @@ interface FilterState {
   riskLevel: string;
   owner: string;
   mitigationStatus: string;
+  deletionStatus: string;
 }
 
 const initialFilterState: FilterState = {
   riskLevel: "all",
   owner: "all",
   mitigationStatus: "all",
+  deletionStatus: "active",
 };
 
 const RiskFilters: React.FC<RiskFiltersProps> = ({
@@ -195,6 +197,19 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
                 ]}
                 onChange={(e) => handleFilterChange("mitigationStatus", e.target.value)}
                 sx={{ minWidth: 160 }}
+              />
+
+              <Select
+                id="deletion-status-filter"
+                label="Risk status"
+                value={filters.deletionStatus}
+                items={[ 
+                  { _id: "active", name: "Active only" },
+                  { _id: "all", name: "Active + deleted" },
+                  { _id: "deleted", name: "Deleted only" },
+                ]}
+                onChange={(e) => handleFilterChange("deletionStatus", e.target.value)}
+                sx={{ minWidth: 140 }}
               />
 
       </Stack>

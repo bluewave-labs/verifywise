@@ -66,7 +66,7 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   // New state for enhanced risk visualization
   const [selectedRisk, setSelectedRisk] = useState<ProjectRisk | null>(null);
   const [filteredRisks, setFilteredRisks] = useState<ProjectRisk[]>([]);
-  const [, setActiveFilters] = useState<any>(null);
+  const [activeFilters, setActiveFilters] = useState<any>(null);
 
   // Compute risk summary from fetched data
   const risksSummary = useMemo(() => {
@@ -100,10 +100,11 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
     };
   }, [projectRisks]);
 
-  const fetchProjectRisks = useCallback(async () => {
+  const fetchProjectRisks = useCallback(async (filter = 'active') => {
     try {
       const response = await getAllProjectRisksByProjectId({
         projectId: String(projectId),
+        filter: filter as 'active' | 'deleted' | 'all',
       });
       setShowCustomizableSkeleton(false);
       setProjectRisks(response.data);
@@ -212,6 +213,12 @@ const VWProjectRisks = ({ project }: { project?: Project }) => {
   const handleRiskFilterChange = (filtered: ProjectRisk[], filters: any) => {
     setFilteredRisks(filtered);
     setActiveFilters(filters);
+    
+    // If deletion status filter changes, refetch data from API
+    if (filters.deletionStatus !== (activeFilters?.deletionStatus || 'active')) {
+      setShowCustomizableSkeleton(true);
+      fetchProjectRisks(filters.deletionStatus);
+    }
   };
 
   return (

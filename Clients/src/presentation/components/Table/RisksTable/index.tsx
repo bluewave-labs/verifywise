@@ -54,6 +54,13 @@ const RiskTable: React.FC<IRiskTableProps> = ({
     null
   );
   const cellStyle = singleTheme.tableStyles.primary.body.cell;
+  
+  const getCellStyle = (row: VendorRisk) => ({
+    ...cellStyle,
+    ...(row.is_deleted && {
+      textDecoration: 'line-through',
+    })
+  });
   const formattedUsers = users?.map((user: any) => ({
     _id: user.id,
     name: `${user.name} ${user.surname}`,
@@ -156,11 +163,17 @@ const RiskTable: React.FC<IRiskTableProps> = ({
             .map((row: VendorRisk & { project_titles: string }) => (
               <TableRow
                 key={row.risk_id}
-                sx={singleTheme.tableStyles.primary.body.row}
+                sx={{
+                  ...singleTheme.tableStyles.primary.body.row,
+                  ...(row.is_deleted && {
+                    opacity: 0.7,
+                    backgroundColor: theme.palette.action?.hover || '#fafafa',
+                  })
+                }}
                 onClick={() => onEdit(row.risk_id!)}
               >
-                <TableCell sx={cellStyle}>{row.risk_description}</TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>{row.risk_description}</TableCell>
+                <TableCell sx={getCellStyle(row)}>
                   {
                     formattedVendors?.find(
                       (vendor: any) => vendor._id === row.vendor_id
@@ -169,7 +182,7 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                 </TableCell>
                 <TableCell
                   sx={{
-                    ...cellStyle,
+                    ...getCellStyle(row),
                     maxWidth: 200,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -261,18 +274,18 @@ const RiskTable: React.FC<IRiskTableProps> = ({
                     );
                   })()}
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   {
                     formattedUsers?.find(
                       (user: any) => user._id === row.action_owner
                     )?.name
                   }
                 </TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>
                   <RiskChip label={row.risk_severity} />
                 </TableCell>
-                <TableCell sx={cellStyle}>{row.likelihood}</TableCell>
-                <TableCell sx={cellStyle}>
+                <TableCell sx={getCellStyle(row)}>{row.likelihood}</TableCell>
+                <TableCell sx={getCellStyle(row)}>
                   <RiskChip label={row.risk_level} />
                 </TableCell>
                 <TableCell

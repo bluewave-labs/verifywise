@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useState, useMemo } from "react";
 import { Box, Stack } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import RisksCard from "../../components/Cards/RisksCard";
 import RiskFilters from "../../components/RiskVisualization/RiskFilters";
 import CustomizableButton from "../../components/Button/CustomizableButton";
@@ -50,6 +51,8 @@ const initialLoadingState: LoadingStatus = {
 
 
 const RiskManagement = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { userRoleName } = useAuth();
   const { users, loading: usersLoading } = useUsers();
   const [refreshKey, setRefreshKey] = useState(0); // Add refreshKey state
@@ -142,6 +145,19 @@ const RiskManagement = () => {
     setShowCustomizableSkeleton(true);
     fetchProjectRisks();
   }, [fetchProjectRisks, refreshKey]);
+
+  // Auto-open create risk popup when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      // Create a temporary button element to use as anchor
+      const tempButton = document.createElement('button');
+      setAnchor(tempButton as any);
+      setSelectedRow([]);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   /**
    * Handle actions for project risk modal

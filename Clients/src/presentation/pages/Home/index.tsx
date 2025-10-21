@@ -12,6 +12,7 @@ import React, {
   FC,
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Grid from "@mui/material/Grid2";
 import { styles } from "./styles";
@@ -173,12 +174,27 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   );
 
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const handleOpenOrClose = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
       setAnchor(anchor ? null : event.currentTarget);
     },
     [anchor]
   );
+
+  // Auto-open create modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      // Create a temporary button element to use as anchor
+      const tempButton = document.createElement('button');
+      setAnchor(tempButton as any);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const NoProjectsMessage = useMemo(() => {
     return (
@@ -204,9 +220,9 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                   closePopup={() => setAnchor(null)}
                 />
               }
-              openPopupButtonName="New Project"
-              popupTitle="Create new project"
-              popupSubtitle="Create a new project from scratch by filling in the following."
+              openPopupButtonName="New use case"
+              popupTitle="Create new use case"
+              popupSubtitle="Create a new use case from scratch by filling in the following."
               handleOpenOrClose={handleOpenOrClose}
               anchor={anchor}
               key={anchor ? "open" : "closed"}
@@ -214,7 +230,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
           </Suspense>
         </Stack>
         <NoProject
-          message='You have no projects, yet. Click on the "New Project" button to
+          message='You have no use cases, yet. Click on the "New use case" button to
             start one.'
         />
 
@@ -247,9 +263,9 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
               closePopup={() => setAnchor(null)}
             />
           }
-          openPopupButtonName="New project"
-          popupTitle="Create new project"
-          popupSubtitle="Create a new project from scratch by filling in the following."
+          openPopupButtonName="New use case"
+          popupTitle="Create new use case"
+          popupSubtitle="Create a new use case from scratch by filling in the following."
           handleOpenOrClose={handleOpenOrClose}
           anchor={anchor}
         />

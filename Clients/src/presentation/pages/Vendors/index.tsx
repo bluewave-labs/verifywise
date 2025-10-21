@@ -6,6 +6,7 @@ import {
   Tab,
   useTheme,
 } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
@@ -65,6 +66,8 @@ export type { VendorDetails };
 
 const Vendors = () => {
   const theme = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,6 +137,17 @@ const Vendors = () => {
       setRunVendorTour(true);
     }
   }, [allVisible]);
+
+  // Auto-open create vendor modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setIsOpen(true);
+      setSelectedVendor(null);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleDeleteVendor = async (vendorId: number) => {
     setIsSubmitting(true);

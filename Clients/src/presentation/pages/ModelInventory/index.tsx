@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setModelInventoryStatusFilter } from "../../../application/redux/ui/uiSlice";
 
@@ -56,6 +56,8 @@ import { ModelInventoryStatus } from "../../../domain/enums/modelInventory.enum"
 const Alert = React.lazy(() => import("../../components/Alert"));
 
 const ModelInventory: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [modelInventoryData, setModelInventoryData] = useState<
     IModelInventory[]
   >([]);
@@ -275,6 +277,18 @@ const ModelInventory: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  // Auto-open create model modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setIsNewModelInventoryModalOpen(true);
+      setSelectedModelInventory(null);
+      setSelectedModelInventoryId(null);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleNewModelInventoryClick = () => {
     setIsNewModelInventoryModalOpen(true);

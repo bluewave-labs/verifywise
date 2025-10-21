@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import {
@@ -29,6 +30,8 @@ import Alert from "../../components/Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 
 const PolicyDashboard: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
@@ -50,6 +53,17 @@ const PolicyDashboard: React.FC = () => {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  // Auto-open create policy modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setSelectedPolicy(null);
+      setShowModal(true);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleOpen = (id?: string) => {
     if (!id) {

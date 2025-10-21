@@ -13,6 +13,9 @@ import {
   Tooltip,
   alpha,
   useTheme,
+  MenuItem,
+  Select as MuiSelect,
+  SelectChangeEvent,
 } from "@mui/material";
 import {
   GripVertical,
@@ -29,6 +32,8 @@ import {
   ShieldAlert,
   GraduationCap,
   ScrollText,
+  Plus,
+  ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -771,6 +776,39 @@ const IntegratedDashboard: React.FC = () => {
 
   // User name state
   const [userName, setUserName] = useState<string>("");
+
+  // Add New dropdown state
+  const [addNewValue, setAddNewValue] = useState("");
+
+  // Handle Add New dropdown change
+  const handleAddNewChange = (event: SelectChangeEvent<string>) => {
+    const selectedValue = event.target.value;
+    setAddNewValue(selectedValue);
+
+    // Navigate based on selection with state to trigger modal opening
+    switch (selectedValue) {
+      case "use-case":
+        navigate("/overview", { state: { openCreateModal: true } });
+        break;
+      case "vendor":
+        navigate("/vendors", { state: { openCreateModal: true } });
+        break;
+      case "model":
+        navigate("/model-inventory", { state: { openCreateModal: true } });
+        break;
+      case "risk":
+        navigate("/risk-management", { state: { openCreateModal: true } });
+        break;
+      case "policy":
+        navigate("/policies", { state: { openCreateModal: true } });
+        break;
+      default:
+        break;
+    }
+
+    // Reset selection after navigation
+    setTimeout(() => setAddNewValue(""), 100);
+  };
 
   // Generate time-based greeting
   const greeting = useMemo(() => {
@@ -1591,6 +1629,92 @@ const IntegratedDashboard: React.FC = () => {
 
         {/* Edit Mode Controls */}
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          {/* Add New Dropdown */}
+          <MuiSelect
+            value={addNewValue}
+            onChange={handleAddNewChange}
+            displayEmpty
+            renderValue={() => (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Plus size={16} strokeWidth={1.5} />
+                <Typography sx={{ fontSize: "13px", fontWeight: 500 }}>
+                  Add new...
+                </Typography>
+              </Box>
+            )}
+            IconComponent={(props) => (
+              <ChevronDown
+                {...props}
+                size={16}
+                strokeWidth={1.5}
+              />
+            )}
+            MenuProps={{
+              disableScrollLock: true,
+              PaperProps: {
+                sx: {
+                  borderRadius: theme.shape.borderRadius || 4,
+                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+                  mt: 0.5,
+                  "& .MuiMenuItem-root": {
+                    fontSize: 13,
+                    color: theme.palette.text?.primary || "#000",
+                    py: 1.5,
+                    px: 2,
+                    "&:hover": {
+                      backgroundColor: theme.palette.action?.hover || "#f5f5f5",
+                    },
+                    "&.Mui-selected": {
+                      backgroundColor: "transparent",
+                      "&:hover": {
+                        backgroundColor: theme.palette.action?.hover || "#f5f5f5",
+                      },
+                    },
+                  },
+                },
+              },
+            }}
+            sx={{
+              minWidth: 140,
+              height: 36,
+              fontSize: 13,
+              backgroundColor: "#13715B",
+              color: "#fff",
+              borderRadius: "4px",
+              "& .MuiSelect-select": {
+                padding: "8px 12px",
+                display: "flex",
+                alignItems: "center",
+              },
+              "& fieldset": {
+                border: "none",
+              },
+              "&:hover fieldset": {
+                border: "none",
+              },
+              "&.Mui-focused fieldset": {
+                border: "none",
+              },
+              "& .MuiSelect-icon": {
+                color: "#fff",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                position: "absolute",
+              },
+              "&:hover": {
+                backgroundColor: "#0f604d",
+                opacity: 0.95,
+              },
+            }}
+          >
+            <MenuItem value="use-case">Use case</MenuItem>
+            <MenuItem value="vendor">Vendor</MenuItem>
+            <MenuItem value="model">Model</MenuItem>
+            <MenuItem value="risk">Risk</MenuItem>
+            <MenuItem value="policy">Policy</MenuItem>
+          </MuiSelect>
+
           {editMode && (
             <Typography
               variant="body2"

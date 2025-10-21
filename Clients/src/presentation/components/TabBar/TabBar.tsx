@@ -17,7 +17,7 @@ export interface TabBarProps {
 function a11yProps(index: number) {
   return {
     id: `tab-${index}`,
-    'aria-controls': `tabpanel-${index}`,
+    "aria-controls": `tabpanel-${index}`,
   };
 }
 
@@ -45,47 +45,43 @@ const TabBar: React.FC<TabBarProps> = ({
   };
 
   return (
-    <Paper 
-      elevation={0} 
-      sx={{ 
+    <Paper
+      elevation={0}
+      sx={{
         backgroundColor,
         border: `1px solid ${borderColor}`,
         borderRadius: 2,
-        boxShadow: 'none',
-        ...sx
+        boxShadow: "none",
+        ...sx,
       }}
     >
       <Box sx={{ borderBottom: `1px solid ${borderColor}` }}>
-        <Tabs 
-          value={value} 
-          onChange={handleChange} 
+        <Tabs
+          value={value}
+          onChange={handleChange}
           variant={variant}
-          TabIndicatorProps={{ 
-            style: { backgroundColor: indicatorColor } 
+          TabIndicatorProps={{
+            style: { backgroundColor: indicatorColor },
           }}
           sx={{
             px: 2,
-            '& .MuiTab-root': {
+            "& .MuiTab-root": {
               color: textColor,
               fontWeight: 500,
-              textTransform: 'none',
+              textTransform: "none",
               minWidth: 120,
-              '&.Mui-selected': {
+              "&.Mui-selected": {
                 color: selectedTextColor,
                 fontWeight: 600,
               },
-              '& .MuiTouchRipple-root': {
-                display: 'none',
-              }
-            }
+              "& .MuiTouchRipple-root": {
+                display: "none",
+              },
+            },
           }}
         >
           {tabs.map((tab, index) => (
-            <Tab 
-              key={index}
-              label={tab} 
-              {...a11yProps(index)} 
-            />
+            <Tab key={index} label={tab} {...a11yProps(index)} />
           ))}
         </Tabs>
       </Box>

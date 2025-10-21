@@ -1537,7 +1537,7 @@ const IntegratedDashboard: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, pt: 0 }}>
+    <Box sx={{ pb: 3 }}>
       <PageBreadcrumbs />
 
       {/* Password notification */}

@@ -487,7 +487,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         >
                             Categories of harm
                         </FormLabel>
-                        <FormGroup row>
+                        <FormGroup row sx={{ gap: theme.spacing(4) }}>
                             {harmCategories.map((category) => (
                                 <FormControlLabel
                                     key={category}
@@ -505,8 +505,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                     }
                                     label={category}
                                     sx={{
-                                        mr: 2,
-                                        minWidth: 100,
+                                        minWidth: 150,
                                         "& .MuiFormControlLabel-label": {
                                             fontSize: 13,
                                             color: theme.palette.text.primary,
@@ -596,7 +595,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                                             color="success"
                                         />
                                     }
-                                    label="Interim report"
+                                    label="This incident has an interim report"
                                     sx={{ flex: 1 }}
                                     disabled={isViewMode} //disabled if view model
                                 />

@@ -21,3 +21,9 @@ export interface IRiskFiltersProps {
     activeFilters: IFilterState
   ) => void;
 }
+
+export interface IRiskHeatMapProps {
+  risks: ProjectRisk[];
+  onRiskSelect?: (risk: ProjectRisk) => void;
+  selectedRisk?: ProjectRisk | null;
+}

@@ -524,7 +524,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Stack>
 
                         <Divider sx={{
-                            mt: 2,
+                            my: 5,
                             mx: `calc(-1 * ${theme.spacing(10)})`,
                         }} />
 
@@ -639,7 +639,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Stack>
 
                         <Divider sx={{
-                            mt: 2,
+                            my: 5,
                             mx: `calc(-1 * ${theme.spacing(10)})`,
                         }} />
 
@@ -693,7 +693,7 @@ const SideDrawerIncident: FC<SideDrawerIncidentProps> = ({
                         </Stack>
 
                         <Divider sx={{
-                            mt: 2,
+                            my: 5,
                             mx: `calc(-1 * ${theme.spacing(10)})`,
                         }} />
 

@@ -1,5 +1,5 @@
 import { PageTourStep } from "../../components/PageTour";
-import { Layout, AlertTriangle, Settings, BarChart3, FileText } from "lucide-react";
+import { Layout, AlertTriangle, BarChart3, FileText } from "lucide-react";
 
 const ProjectViewSteps: PageTourStep[] = [
   {

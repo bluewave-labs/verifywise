@@ -42,13 +42,6 @@ const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) =>
     }
   };
 
-  const buttonStyle = {
-    fontSize: "13px",
-    fontWeight: 400,
-    gap: "8px",
-    padding: "10px 16px",
-  };
-
   const tooltipRenderer = (tooltipProps: TooltipRenderProps) => {
     return (
       <CustomStepWrapper
@@ -95,7 +88,7 @@ const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) =>
         }}
       />
       <Joyride
-        steps={steps as Step[]}
+        steps={steps as unknown as Step[]}
         run={shouldRun}
         continuous
         hideCloseButton

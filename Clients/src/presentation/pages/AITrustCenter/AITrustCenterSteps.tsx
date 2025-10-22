@@ -1,5 +1,5 @@
 import { PageTourStep } from "../../components/PageTour";
-import { Eye, Layout, FileText } from "lucide-react";
+import { Eye, Layout } from "lucide-react";
 
 const AITrustCenterSteps: PageTourStep[] = [
   {

@@ -1,5 +1,5 @@
 import { PageTourStep } from "../../components/PageTour";
-import { Plus, GripVertical, Lock, LayoutGrid, BarChart3 } from "lucide-react";
+import { Plus, Lock, LayoutGrid, BarChart3 } from "lucide-react";
 
 const DashboardSteps: PageTourStep[] = [
   {

@@ -11,8 +11,6 @@ import {
   Button,
   Typography,
   Stack,
-  Popover,
-  Backdrop,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -57,9 +55,6 @@ export default function FairnessDashboard() {
     }
     return "uploads";
   });
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [showBackdrop, setShowBackdrop] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [datasetFile, setDatasetFile] = useState<File | null>(null);
@@ -154,13 +149,6 @@ export default function FairnessDashboard() {
     sensitiveColumn: false,
   });
 
-  const handleDotClick = () => {
-    if (hasInteracted) return;
-    setAnchorEl(buttonRef.current);
-    setShowBackdrop(true);
-    setHasInteracted(true);
-  };
-
   const handleShowDetails = useCallback(
     (model: FairnessModel) => {
       if (model?.id) {
@@ -175,11 +163,6 @@ export default function FairnessDashboard() {
     },
     [navigate]
   );
-
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-    setShowBackdrop(false);
-  };
 
   const resetForm = () => {
     setDialogOpen(false);

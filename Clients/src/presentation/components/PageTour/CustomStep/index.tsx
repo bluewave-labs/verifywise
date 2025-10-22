@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Button, IconButton } from "@mui/material";
-import { Sparkles, X } from "lucide-react";
+import { X } from "lucide-react";
 import { TooltipRenderProps } from "react-joyride";
 
 interface CustomStepProps {
@@ -17,16 +17,14 @@ export const CustomStepWrapper: React.FC<CustomStepWrapperProps> = ({
   content,
   continuous,
   index,
-  step,
   backProps,
-  closeProps,
   primaryProps,
   skipProps,
   tooltipProps,
   isLastStep,
   size,
 }) => {
-  const { header, body, icon } = content;
+  const { header, body } = content;
 
   return (
     <Box
@@ -117,7 +115,7 @@ export const CustomStepWrapper: React.FC<CustomStepWrapperProps> = ({
             fontSize: "12px",
           }}
         >
-          {index + 1} of {size}
+          {(index ?? 0) + 1} of {size}
         </Typography>
 
         {/* Buttons */}
@@ -178,7 +176,7 @@ export const CustomStepWrapper: React.FC<CustomStepWrapperProps> = ({
 };
 
 // Keep the old component for backwards compatibility
-const CustomStep: React.FC<CustomStepProps> = ({ header, body, icon }) => (
+const CustomStep: React.FC<CustomStepProps> = () => (
   <Box>
     {/* This is just a placeholder - the actual rendering is done by CustomStepWrapper */}
     <Box sx={{ display: "none" }} />

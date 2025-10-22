@@ -74,6 +74,7 @@ const STYLES = {
     backgroundColor: 'transparent',
     borderRadius: 0,
     border: 'none',
+    boxShadow: 'none',
   },
   button: {
     backgroundColor: COLORS.PRIMARY,
@@ -670,7 +671,7 @@ export default function BiasAndFairnessResultsPage() {
                     <Paper
                       elevation={0}
                       sx={{
-                        p: 3,
+                        p: 2,
                         ...STYLES.paper
                       }}
                     >
@@ -799,7 +800,7 @@ export default function BiasAndFairnessResultsPage() {
                     <Paper
                       elevation={0}
                       sx={{
-                        p: 3,
+                        p: 2,
                         ...STYLES.paper
                       }}
                     >

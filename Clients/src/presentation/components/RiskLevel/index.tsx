@@ -2,7 +2,10 @@ import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
 import { Likelihood, Severity } from "./constants";
-import { riskSeverityItems, likelihoodItems } from "../AddNewRiskForm/projectRiskValue";
+import {
+  riskSeverityItems,
+  likelihoodItems,
+} from "../AddNewRiskForm/projectRiskValue";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
 
@@ -14,7 +17,9 @@ interface RiskLevelFormValues {
 interface RiskLevelProps {
   likelihood: number;
   riskSeverity: number;
-  handleOnSelectChange: (field: keyof RiskLevelFormValues) => (event: SelectChangeEvent<string | number>) => void;
+  handleOnSelectChange: (
+    field: keyof RiskLevelFormValues
+  ) => (event: SelectChangeEvent<string | number>) => void;
   disabled?: boolean;
 }
 
@@ -38,16 +43,21 @@ const RiskLevel: FC<RiskLevelProps> = ({
   const theme = useTheme();
 
   // Get the selected likelihood and severity names from the items
-  const selectedLikelihood = likelihoodItems.find(item => item._id === likelihood);
-  const selectedSeverity = riskSeverityItems.find(item => item._id === riskSeverity);
+  const selectedLikelihood = likelihoodItems.find(
+    (item) => item._id === likelihood
+  );
+  const selectedSeverity = riskSeverityItems.find(
+    (item) => item._id === riskSeverity
+  );
 
   // Calculate risk level using RiskCalculator
-  const riskLevel = selectedLikelihood && selectedSeverity 
-    ? RiskCalculator.getRiskLevel(
-        selectedLikelihood.name as RiskLikelihood,
-        selectedSeverity.name as RiskSeverity
-      )
-    : { level: "", color: "" };
+  const riskLevel =
+    selectedLikelihood && selectedSeverity
+      ? RiskCalculator.getRiskLevel(
+          selectedLikelihood.name as RiskLikelihood,
+          selectedSeverity.name as RiskSeverity
+        )
+      : { level: "", color: "" };
 
   return (
     <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 12.5 }}>

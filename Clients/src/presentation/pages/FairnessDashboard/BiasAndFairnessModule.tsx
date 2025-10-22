@@ -382,6 +382,7 @@ export default function BiasAndFairnessModule() {
         <CustomizableButton
           variant="outlined"
           text="Demo"
+          data-joyride-id="demo-evaluation-button"
           sx={{
             backgroundColor: "transparent",
             border: "1px solid #13715B",
@@ -395,6 +396,7 @@ export default function BiasAndFairnessModule() {
         <CustomizableButton
           variant="contained"
           text="New Evaluation"
+          data-joyride-id="new-evaluation-button"
           sx={{
             backgroundColor: "#13715B",
             border: "1px solid #13715B",

@@ -38,6 +38,8 @@ import { createIncidentManagement } from "../../../application/repository/incide
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import IncidentStatusCard from "./IncidentStatusCard";
+import PageTour from "../../components/PageTour";
+import IncidentManagementSteps from "./IncidentManagementSteps";
 
 const Alert = React.lazy(() => import("../../components/Alert"));
 
@@ -445,8 +447,9 @@ const IncidentManagement: React.FC = () => {
                 </Stack>
 
                 {/* Incident by Status Cards */}
+                {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}
                 {incidentsData.length > 0 && (
-                    <Box>
+                    <Box data-joyride-id="incident-status-cards">
                         <IncidentStatusCard incidents={incidentsData} />
                     </Box>
                 )}
@@ -456,58 +459,66 @@ const IncidentManagement: React.FC = () => {
                     direction="row"
                     justifyContent="space-between"
                     alignItems="center"
+                    spacing={4}
                     sx={incidentFilterRow}
                 >
-                    <Stack direction="row" spacing={8} alignItems="center">
-                        <SelectComponent
-                            id="status-filter"
-                            value={statusFilter}
-                            items={statusOptions}
-                            onChange={(e: any) =>
-                                setStatusFilter(e.target.value)
-                            }
-                            sx={incidentStatusSelect}
-                            customRenderValue={(value, selectedItem) => {
-                                if (value === "all") {
-                                    return selectedItem.name;
+                    <Stack direction="row" spacing={6} alignItems="center">
+                        <div data-joyride-id="incident-status-filter">
+                            <SelectComponent
+                                id="status-filter"
+                                value={statusFilter}
+                                items={statusOptions}
+                                onChange={(e: any) =>
+                                    setStatusFilter(e.target.value)
                                 }
-                                return `Status: ${selectedItem.name.toLowerCase()}`;
-                            }}
-                        />
+                                sx={incidentStatusSelect}
+                                customRenderValue={(value, selectedItem) => {
+                                    if (value === "all") {
+                                        return selectedItem.name;
+                                    }
+                                    return `Status: ${selectedItem.name.toLowerCase()}`;
+                                }}
+                            />
+                        </div>
 
-                        <SelectComponent
-                            id="severity-filter"
-                            value={severityFilter}
-                            items={severityOptions}
-                            onChange={(e: any) =>
-                                setSeverityFilter(e.target.value)
-                            }
-                            sx={incidentStatusSelect}
-                            customRenderValue={(value, selectedItem) => {
-                                if (value === "all") {
-                                    return selectedItem.name;
+                        <div data-joyride-id="incident-severity-filter">
+                            <SelectComponent
+                                id="severity-filter"
+                                value={severityFilter}
+                                items={severityOptions}
+                                onChange={(e: any) =>
+                                    setSeverityFilter(e.target.value)
                                 }
-                                return `Severity: ${selectedItem.name.toLowerCase()}`;
-                            }}
-                        />
-                        <SelectComponent
-                            id="approval-filter"
-                            value={approvalFilter}
-                            items={approvalOptions}
-                            onChange={(e: any) =>
-                                setApprovalFilter(e.target.value)
-                            }
-                            sx={incidentStatusSelect}
-                            customRenderValue={(value, selectedItem) => {
-                                if (value === "all") {
-                                    return selectedItem.name;
+                                sx={incidentStatusSelect}
+                                customRenderValue={(value, selectedItem) => {
+                                    if (value === "all") {
+                                        return selectedItem.name;
+                                    }
+                                    return `Severity: ${selectedItem.name.toLowerCase()}`;
+                                }}
+                            />
+                        </div>
+
+                        <div data-joyride-id="incident-approval-filter">
+                            <SelectComponent
+                                id="approval-filter"
+                                value={approvalFilter}
+                                items={approvalOptions}
+                                onChange={(e: any) =>
+                                    setApprovalFilter(e.target.value)
                                 }
-                                return `Approval status: ${selectedItem.name.toLowerCase()}`;
-                            }}
-                        />
+                                sx={incidentStatusSelect}
+                                customRenderValue={(value, selectedItem) => {
+                                    if (value === "all") {
+                                        return selectedItem.name;
+                                    }
+                                    return `Approval status: ${selectedItem.name.toLowerCase()}`;
+                                }}
+                            />
+                        </div>
 
                         {/* Search box */}
-                        <Box sx={incidentSearchBox(isSearchBarVisible)}>
+                        <Box sx={incidentSearchBox(isSearchBarVisible)} data-joyride-id="incident-search">
                             <IconButton
                                 disableRipple
                                 disableFocusRipple
@@ -536,14 +547,16 @@ const IncidentManagement: React.FC = () => {
                         </Box>
                     </Stack>
 
-                    <CustomizableButton
-                        variant="contained"
-                        sx={addNewIncidentButton}
-                        text="Add new incident"
-                        icon={<AddCircleOutlineIcon />}
-                        onClick={handleNewIncidentClick}
-                        isDisabled={isCreatingDisabled}
-                    />
+                    <Box data-joyride-id="add-incident-button">
+                        <CustomizableButton
+                            variant="contained"
+                            sx={addNewIncidentButton}
+                            text="Add new incident"
+                            icon={<AddCircleOutlineIcon />}
+                            onClick={handleNewIncidentClick}
+                            isDisabled={isCreatingDisabled}
+                        />
+                    </Box>
                 </Stack>
 
                 <IncidentTable
@@ -611,6 +624,8 @@ const IncidentManagement: React.FC = () => {
                 isEdit={!!selectedIncident}
                 mode={mode}
             />
+
+            <PageTour steps={IncidentManagementSteps} run={!isLoading} tourKey="incident-management-tour" />
         </Stack>
     );
 };

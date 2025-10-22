@@ -23,6 +23,8 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageHeader from "../../components/Layout/PageHeader";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import PageTour from "../../components/PageTour";
+import RiskManagementSteps from "./RiskManagementSteps";
 
 const TITLE_OF_COLUMNS = [
   "RISK NAME", // value from risk tab
@@ -372,7 +374,7 @@ const RiskManagement = () => {
         </Suspense>
       )}
       {isLoading.loading && <CustomizableToast title={isLoading.message} />}
-      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }}>
+      <Stack className="risk-management-row" sx={{ display: "flex", flexDirection: "row", gap: 10 }} data-joyride-id="risk-summary-cards">
         <RisksCard risksSummary={risksSummary} />
       </Stack>
 
@@ -387,39 +389,45 @@ const RiskManagement = () => {
           justifyContent="space-between"
           alignItems="flex-end"
         >
-          <RiskFilters
-            risks={projectRisks}
-            onFilterChange={handleRiskFilterChange}
-          />
+          <div data-joyride-id="risk-filters">
+            <RiskFilters
+              risks={projectRisks}
+              onFilterChange={handleRiskFilterChange}
+            />
+          </div>
           <Stack direction="row" gap={4}>
-            <CustomizableButton
-              variant="contained"
-              text="Insert from AI risks database"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleAIModalOpen}
-              icon={<AddCircleOutlineIcon size={16} />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
-            <CustomizableButton
-              variant="contained"
-              text="Add new risk"
-              sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
-                gap: 2,
-              }}
-              onClick={handleOpenOrClose}
-              icon={<AddCircleOutlineIcon size={16} />}
-              isDisabled={
-                !allowedRoles.projectRisks.create.includes(userRoleName)
-              }
-            />
+            <div data-joyride-id="import-ai-risks-button">
+              <CustomizableButton
+                variant="contained"
+                text="Insert from AI risks database"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                onClick={handleAIModalOpen}
+                icon={<AddCircleOutlineIcon size={16} />}
+                isDisabled={
+                  !allowedRoles.projectRisks.create.includes(userRoleName)
+                }
+              />
+            </div>
+            <div data-joyride-id="add-risk-button">
+              <CustomizableButton
+                variant="contained"
+                text="Add new risk"
+                sx={{
+                  backgroundColor: "#13715B",
+                  border: "1px solid #13715B",
+                  gap: 2,
+                }}
+                onClick={handleOpenOrClose}
+                icon={<AddCircleOutlineIcon size={16} />}
+                isDisabled={
+                  !allowedRoles.projectRisks.create.includes(userRoleName)
+                }
+              />
+            </div>
           </Stack>
         </Stack>
 
@@ -512,6 +520,8 @@ const RiskManagement = () => {
           anchor={aiRiskAnchor}
         />
       )}
+
+      <PageTour steps={RiskManagementSteps} run={true} tourKey="risk-management-tour" />
       </Stack>
     </Stack>
   );

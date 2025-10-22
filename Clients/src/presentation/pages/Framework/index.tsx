@@ -25,6 +25,8 @@ import PageHeader from "../../components/Layout/PageHeader";
 import ButtonToggle from "../../components/ButtonToggle";
 import FrameworkDashboard from "./Dashboard";
 import FrameworkSettings from "./Settings";
+import PageTour from "../../components/PageTour";
+import FrameworkSteps from "./FrameworkSteps";
 
 // Tab styles following ProjectFrameworks pattern
 const tabStyle = {
@@ -347,6 +349,7 @@ const Framework = () => {
           <TabContext value={iso27001TabValue}>
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
+                data-joyride-id="framework-clause-tabs"
                 onChange={handleIso27001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
                 sx={tabListStyle}
@@ -414,6 +417,7 @@ const Framework = () => {
           <TabContext value={iso42001TabValue}>
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
               <TabList
+                data-joyride-id="framework-clause-tabs"
                 onChange={handleIso42001TabChange}
                 TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
                 sx={tabListStyle}
@@ -555,7 +559,7 @@ const Framework = () => {
       {/* Only show framework content if organizational project exists */}
       {organizationalProject && (
         <TabContext value={mainTabValue}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }} data-joyride-id="framework-main-tabs">
             <TabList
               onChange={handleMainTabChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
@@ -583,17 +587,19 @@ const Framework = () => {
           </Box>
 
           <TabPanel value="dashboard" sx={tabPanelStyle}>
-            <FrameworkDashboard
-              organizationalProject={organizationalProject}
-              filteredFrameworks={filteredFrameworks}
-            />
+            <Box data-joyride-id="framework-dashboard">
+              <FrameworkDashboard
+                organizationalProject={organizationalProject}
+                filteredFrameworks={filteredFrameworks}
+              />
+            </Box>
           </TabPanel>
 
           <TabPanel value="controls" sx={tabPanelStyle}>
             <Stack className="frameworks-switch" spacing={3}>
               {/* Framework toggle (ISO 27001/ISO 42001 selectors) */}
               {organizationalProject && filteredFrameworks.length > 0 && (
-                <Box>
+                <Box data-joyride-id="framework-toggle">
                   <ButtonToggle
                     options={filteredFrameworks.map((framework, index) => ({
                       value: index.toString(),
@@ -627,6 +633,9 @@ const Framework = () => {
       {!organizationalProject && (
         <NoProject message="No Organizational Project Found. Create a new organizational project to manage ISO 27001 and ISO 42001 frameworks for your organization." />
       )}
+
+      {/* Page Tour */}
+      <PageTour steps={FrameworkSteps} run={true} tourKey="framework-tour" />
     </Stack>
   );
 };

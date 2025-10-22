@@ -469,6 +469,7 @@ const Vendors = () => {
             <TabList
               onChange={handleChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              data-joyride-id="vendor-list-tab"
               sx={{
                 minHeight: "20px",
                 "& .MuiTabs-flexContainer": { columnGap: "34px" },

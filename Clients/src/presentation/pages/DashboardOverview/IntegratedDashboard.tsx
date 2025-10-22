@@ -56,6 +56,8 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { IStatusData } from "../../../domain/interfaces/i.chart";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
+import PageTour from "../../components/PageTour";
+import DashboardSteps from "./DashboardSteps";
 
 const Alert = lazy(() => import("../../components/Alert"));
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -1617,6 +1619,7 @@ const IntegratedDashboard: React.FC = () => {
             }
           >
             <IconButton
+              data-joyride-id="edit-mode-toggle"
               onClick={() => setEditMode(!editMode)}
               color="primary"
               size="medium"
@@ -1646,6 +1649,7 @@ const IntegratedDashboard: React.FC = () => {
 
           {/* Add New Dropdown */}
           <MuiSelect
+            data-joyride-id="add-new-dropdown"
             value={addNewValue}
             onChange={handleAddNewChange}
             displayEmpty
@@ -1909,9 +1913,10 @@ const IntegratedDashboard: React.FC = () => {
       `}</style>
 
       {/* Grid Layout */}
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
+      <Box data-joyride-id="dashboard-widgets">
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={layouts}
         onLayoutChange={handleLayoutChange}
         onResize={handleResize}
         onResizeStop={handleResizeStop}
@@ -1933,6 +1938,7 @@ const IntegratedDashboard: React.FC = () => {
         {widgets.map((widget) => (
           <Card
             key={widget.id}
+            data-joyride-id={widget.id === "projects" ? "widget-card" : undefined}
             sx={{
               height: "100%",
               display: "flex",
@@ -1979,6 +1985,10 @@ const IntegratedDashboard: React.FC = () => {
           </Card>
         ))}
       </ResponsiveGridLayout>
+      </Box>
+
+      {/* Page Tour */}
+      <PageTour steps={DashboardSteps} run={true} tourKey="dashboard-tour" />
     </Box>
   );
 };

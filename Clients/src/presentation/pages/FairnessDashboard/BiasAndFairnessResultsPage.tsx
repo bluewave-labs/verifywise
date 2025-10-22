@@ -24,6 +24,7 @@ const Plot = createPlotlyComponent(Plotly);
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import MetricInfoIcon from "../../components/MetricInfoIcon";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
@@ -523,7 +524,7 @@ export default function BiasAndFairnessResultsPage() {
 
 
   return (
-    <Stack className="vwhome" gap="20px">
+    <Stack className="vwhome" gap="20px" pb={4}>
       <PageBreadcrumbs
         items={[
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} /> },
@@ -1121,52 +1122,26 @@ export default function BiasAndFairnessResultsPage() {
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6" sx={STYLES.bodyText}>Raw JSON data</Typography>
               <Box display="flex" gap={2}>
-                <Button
+                <CustomizableButton
                   variant="contained"
+                  text="Copy data"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    border: "1px solid #13715B",
+                  }}
+                  icon={<CopyIcon size={16} />}
                   onClick={handleCopyJSON}
-                  startIcon={<CopyIcon size={16} />}
-                  sx={{
-                    backgroundColor: COLORS.PRIMARY,
-                    border: `1px solid ${COLORS.PRIMARY}`,
-                    color: 'white',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    px: 2,
-                    py: 1,
-                    boxShadow: 'none !important',
-                    '&:hover': {
-                      backgroundColor: COLORS.PRIMARY,
-                      opacity: 0.9,
-                      boxShadow: 'none !important'
-                    }
-                  }}
-                >
-                  Copy data
-                </Button>
-                <Button
+                />
+                <CustomizableButton
                   variant="contained"
-                  onClick={handleDownloadJSON}
-                  startIcon={<DownloadIcon size={16} />}
+                  text="Download data"
                   sx={{
-                    backgroundColor: COLORS.PRIMARY,
-                    border: `1px solid ${COLORS.PRIMARY}`,
-                    color: 'white',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    px: 2,
-                    py: 1,
-                    boxShadow: 'none !important',
-                    '&:hover': {
-                      backgroundColor: COLORS.PRIMARY,
-                      opacity: 0.9,
-                      boxShadow: 'none !important'
-                    }
+                    backgroundColor: "#13715B",
+                    border: "1px solid #13715B",
                   }}
-                >
-                  Download data
-                </Button>
+                  icon={<DownloadIcon size={16} />}
+                  onClick={handleDownloadJSON}
+                />
               </Box>
             </Box>
             <Divider sx={{ mb: 2 }} />

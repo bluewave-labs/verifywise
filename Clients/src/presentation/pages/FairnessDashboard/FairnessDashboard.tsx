@@ -11,8 +11,6 @@ import {
   Button,
   Typography,
   Stack,
-  Popover,
-  Backdrop,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -35,6 +33,8 @@ import HelperIcon from "../../components/HelperIcon";
 import BiasAndFairnessModule from "./BiasAndFairnessModule";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
 import PageHeader from "../../components/Layout/PageHeader";
+import PageTour from "../../components/PageTour";
+import BiasAndFairnessSteps from "./BiasAndFairnessSteps";
 
 
 export type FairnessModel = {
@@ -55,9 +55,6 @@ export default function FairnessDashboard() {
     }
     return "uploads";
   });
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [showBackdrop, setShowBackdrop] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [datasetFile, setDatasetFile] = useState<File | null>(null);
@@ -105,7 +102,6 @@ export default function FairnessDashboard() {
     fetchMetrics();
   }, []);
 
-  const buttonRef = useRef(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
   const datasetInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -152,13 +148,6 @@ export default function FairnessDashboard() {
     sensitiveColumn: false,
   });
 
-  const handleDotClick = () => {
-    if (hasInteracted) return;
-    setAnchorEl(buttonRef.current);
-    setShowBackdrop(true);
-    setHasInteracted(true);
-  };
-
   const handleShowDetails = useCallback(
     (model: FairnessModel) => {
       if (model?.id) {
@@ -173,11 +162,6 @@ export default function FairnessDashboard() {
     },
     [navigate]
   );
-
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-    setShowBackdrop(false);
-  };
 
   const resetForm = () => {
     setDialogOpen(false);
@@ -325,7 +309,7 @@ export default function FairnessDashboard() {
       )}
 
       <TabContext value={tab}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }} data-joyride-id="fairness-tabs">
           <TabList
             onChange={(_, newVal) => setTab(newVal)}
             TabIndicatorProps={{
@@ -353,14 +337,13 @@ export default function FairnessDashboard() {
             display="flex"
             justifyContent="flex-end"
             mb={3}
-            position="relative"
           >
             <Button
-              ref={buttonRef}
               variant="contained"
               startIcon={<AddCircleOutlineIcon size={16} />}
               disableRipple
               onClick={() => setDialogOpen(true)}
+              data-joyride-id="validate-fairness-button"
               sx={{
                 backgroundColor: "#13715B",
                 color: "white",
@@ -373,52 +356,10 @@ export default function FairnessDashboard() {
                   "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
                 lineHeight: 1.75,
                 minWidth: "64px",
-                position: "relative",
-                zIndex: 2,
               }}
             >
               Validate fairness
             </Button>
-            {!hasInteracted && (
-              <Box
-                onClick={handleDotClick}
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  backgroundColor: "#1976d2",
-                  position: "absolute",
-                  top: -8,
-                  right: -8,
-                  cursor: "pointer",
-                  zIndex: 3,
-                  animation: "pulse 1.5s infinite",
-                  "@keyframes pulse": {
-                    "0%": { transform: "scale(0.8)", opacity: 1 },
-                    "100%": { transform: "scale(2.4)", opacity: 0 },
-                  },
-                }}
-              />
-            )}
-            <Popover
-              open={Boolean(anchorEl)}
-              anchorEl={anchorEl}
-              onClose={handlePopoverClose}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              disableRestoreFocus
-            >
-              <Box sx={{ p: 2, maxWidth: 300 }}>
-                <Typography variant="body2">
-                  Click "Validate fairness" to start a new fairness validation.
-                </Typography>
-              </Box>
-            </Popover>
-            <Backdrop
-              open={showBackdrop}
-              sx={{ zIndex: 1, backgroundColor: "rgba(0, 0, 0, 0.3)" }}
-              onClick={handlePopoverClose}
-            />
           </Box>
 
           <FairnessTable
@@ -621,6 +562,8 @@ export default function FairnessDashboard() {
       {showToastNotification && (
         <CustomizableToast title="Uploading the model. Please wait, this process may take some time..." />
       )}
+
+      <PageTour steps={BiasAndFairnessSteps} run={true} tourKey="bias-fairness-tour" />
     </Stack>
   );
 }

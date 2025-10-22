@@ -6,6 +6,7 @@ import {
   Tab,
   useTheme,
 } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import TableWithPlaceholder from "../../components/Table/WithPlaceholder/index";
 import RiskTable from "../../components/Table/RisksTable";
@@ -65,6 +66,8 @@ export type { VendorDetails };
 
 const Vendors = () => {
   const theme = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +81,7 @@ const Vendors = () => {
   const [selectedRisk, setSelectedRisk] = useState<ExistingRisk | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
   const [selectedVendorId, setSelectedVendorId] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<'active' | 'deleted' | 'all'>('active');
 
   // TanStack Query hooks
   const { data: projects = [] } = useProjects();
@@ -92,6 +96,7 @@ const Vendors = () => {
   } = useVendorRisks({
     projectId: selectedProjectId?.toString(),
     vendorId: selectedVendorId?.toString(),
+    filter: filterStatus,
   });
 
   // Mutation hooks
@@ -132,6 +137,17 @@ const Vendors = () => {
       setRunVendorTour(true);
     }
   }, [allVisible]);
+
+  // Auto-open create vendor modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setIsOpen(true);
+      setSelectedVendor(null);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleDeleteVendor = async (vendorId: number) => {
     setIsSubmitting(true);
@@ -305,6 +321,14 @@ const Vendors = () => {
     setSelectedVendorId(selectedId);
   };
 
+  const handleFilterStatusChange = (
+    event: SelectChangeEvent<string | number>,
+    _child: React.ReactNode
+  ) => {
+    const status = event.target.value as 'active' | 'deleted' | 'all';
+    setFilterStatus(status);
+  };
+
   // Get unique vendors from vendor risks data
   const vendorOptions = useMemo(() => {
     const uniqueVendors = new Map();
@@ -445,6 +469,7 @@ const Vendors = () => {
             <TabList
               onChange={handleChange}
               TabIndicatorProps={{ style: { backgroundColor: "#13715B" } }}
+              data-joyride-id="vendor-list-tab"
               sx={{
                 minHeight: "20px",
                 "& .MuiTabs-flexContainer": { columnGap: "34px" },
@@ -561,6 +586,21 @@ const Vendors = () => {
                     onChange={handleVendorChange}
                     sx={{
                       width: "180px",
+                      minHeight: "34px",
+                      borderRadius: theme.shape.borderRadius,
+                    }}
+                  />
+                  <Select
+                    id="filter-status"
+                    value={filterStatus}
+                    items={[
+                      { _id: "active", name: "Active only" },
+                      { _id: "all", name: "Active + deleted" },
+                      { _id: "deleted", name: "Deleted only" },
+                    ]}
+                    onChange={handleFilterStatusChange}
+                    sx={{
+                      width: "160px",
                       minHeight: "34px",
                       borderRadius: theme.shape.borderRadius,
                     }}

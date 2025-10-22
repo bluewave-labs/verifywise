@@ -8,7 +8,6 @@ import NoProject from "../NoProject/NoProject";
 import ViewToggle from "../ViewToggle";
 import { usePersistedViewMode } from "../../hooks/usePersistedViewMode";
 
-import { Project } from "../../../domain/types/Project";
 import {
   searchBoxStyle,
   inputStyle,
@@ -16,13 +15,9 @@ import {
   noProjectsTextStyle,
   vwhomeBodyProjectsGrid,
 } from "./style";
+import { IProjectListProps } from "../../../domain/interfaces/i.project";
 
-interface ProjectListProps {
-  projects: Project[];
-  newProjectButton?: React.ReactNode;
-}
-
-const ProjectList = ({ projects, newProjectButton }: ProjectListProps) => {
+const ProjectList = ({ projects, newProjectButton }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [viewMode, setViewMode] = usePersistedViewMode(

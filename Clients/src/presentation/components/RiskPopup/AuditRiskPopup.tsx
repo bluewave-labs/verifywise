@@ -2,17 +2,9 @@ import { Stack, Typography } from "@mui/material";
 import CustomizableButton from "../Button/CustomizableButton";
 import { AuditRiskTable } from "../Table/AuditRiskTable/AuditRiskTable";
 import { useState } from "react";
+import { IAuditRiskModalProps } from "../../../domain/interfaces/iRiskForm";
 
-interface AuditRiskModalProps {
-  onClose: () => void;
-  risks: number[];
-  _deletedRisks: number[];
-  _setDeletedRisks: (deletedRisks: number[]) => void;
-  _selectedRisks: number[];
-  _setSelectedRisks: (selectedRisks: number[]) => void;
-}
-
-export const AuditRiskPopup: React.FC<AuditRiskModalProps> = ({
+export const AuditRiskPopup: React.FC<IAuditRiskModalProps> = ({
   onClose,
   risks,
   _deletedRisks,

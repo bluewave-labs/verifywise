@@ -9,23 +9,12 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../Alert";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
+import {
+  IGenerateReportProps,
+  IInputProps,
+} from "../../../../domain/interfaces/iWidget";
 
-interface GenerateReportProps {
-  onClose: () => void;
-  onReportGenerated?: () => void;
-  reportType: 'project' | 'organization' | null;
-}
-
-interface InputProps {
-  report_type: string;
-  report_name: string;
-  project: number;
-  framework: number;
-  projectFrameworkId: number;
-  reportType?: 'project' | 'organization' | null;
-}
-
-const GenerateReportPopup: React.FC<GenerateReportProps> = ({
+const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   onClose,
   onReportGenerated,
   reportType,
@@ -53,7 +42,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }, 3000);
   };
 
-  const handleGenerateReport = async (input: InputProps) => {
+  const handleGenerateReport = async (input: IInputProps) => {
     const currentProject = projects?.find(
       (project: { id: number | null }) => project.id === input.project
     );
@@ -63,9 +52,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
       return;
     }
     setIsReportRequest(true);
-    const owner = users.find(
-      (user: any) => user.id === currentProject.owner
-    );
+    const owner = users.find((user: any) => user.id === currentProject.owner);
     const currentProjectOwner = owner ? `${owner.name} ${owner.surname}` : "";
     let reportTypeLabel = input.report_type;
     switch (input.report_type) {
@@ -147,9 +134,6 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
         component="form"
       >
         <IconButton onClick={handleOnCloseModal} sx={styles.iconButton}>
-
-
-
           <CloseGreyIcon size={16} />
         </IconButton>
         {isReportRequest ? (
@@ -158,7 +142,10 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
           </Suspense>
         ) : (
           <Suspense fallback={<div>Loading...</div>}>
-            <GenerateReportFrom onGenerate={handleGenerateReport} reportType={reportType} />
+            <GenerateReportFrom
+              onGenerate={handleGenerateReport}
+              reportType={reportType}
+            />
           </Suspense>
         )}
       </Box>

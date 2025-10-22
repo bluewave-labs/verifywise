@@ -1,12 +1,9 @@
 import React from "react";
 import { Stack, Typography } from "@mui/material";
 import { styles } from "./styles";
+import { IStatusProps } from "../../../../../domain/interfaces/i.status";
 
-interface StatusProps {
-  statusCode: number;
-}
-
-const DownloadReportForm: React.FC<StatusProps> = ({ statusCode }) => {
+const DownloadReportForm: React.FC<IStatusProps> = ({ statusCode }) => {
   return (
     <>
       {statusCode === 200 ? (

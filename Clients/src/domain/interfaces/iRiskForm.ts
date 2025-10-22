@@ -62,3 +62,12 @@ export interface IRiskFormErrors {
   applicableProjects?: string;
   applicableFrameworks?: string;
 }
+
+export interface IAuditRiskModalProps {
+  onClose: () => void;
+  risks: number[];
+  _deletedRisks: number[];
+  _setDeletedRisks: (deletedRisks: number[]) => void;
+  _selectedRisks: number[];
+  _setSelectedRisks: (selectedRisks: number[]) => void;
+}

@@ -11,7 +11,7 @@ import {
   Divider,
   Button,
   Stack,
-  Alert,
+  Alert as MuiAlert,
   Tooltip,
   IconButton,
 } from "@mui/material";
@@ -482,7 +482,7 @@ export default function BiasAndFairnessResultsPage() {
   if (error) {
     return (
       <Box display="flex" flexDirection="column" alignItems="center" mt={6} gap={2}>
-        <Alert severity="error" sx={{ maxWidth: 600 }}>
+        <MuiAlert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="body1" sx={{ mb: 1 }}>
             {error}
           </Typography>
@@ -491,7 +491,7 @@ export default function BiasAndFairnessResultsPage() {
               Attempt {retryCount + 1} of 3. Would you like to try again?
             </Typography>
           )}
-        </Alert>
+        </MuiAlert>
         {retryCount < 3 ? (
                 <Button
                   variant="contained"
@@ -670,13 +670,13 @@ export default function BiasAndFairnessResultsPage() {
                 </Typography>
 
                 {/* Fairness Legend and Info */}
-                <Alert severity="info" sx={{ mb: 3 }}>
+                <MuiAlert severity="info" sx={{ mb: 3 }}>
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     <strong>Plot interpretation:</strong> Values closer to 0 indicate better fairness.
                     Green bars show good fairness (&lt;{FAIRNESS_THRESHOLD_MODERATE}), yellow shows moderate bias ({FAIRNESS_THRESHOLD_MODERATE}-{FAIRNESS_THRESHOLD_SIGNIFICANT}),
                     and red shows significant bias (&gt;{FAIRNESS_THRESHOLD_SIGNIFICANT}).
                   </Typography>
-                </Alert>
+                </MuiAlert>
 
                 {/* Sex Metrics */}
                 {Object.keys(sexMetrics).length > 0 && (
@@ -1069,14 +1069,15 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Available</Typography>
                 <Stack spacing={3}>
                   {(metricsCfg.all_available_metrics || []).map(m => (
-                    <Box key={m} sx={{ 
+                    <Box key={m} sx={{
                       border: '1px solid #eaecf0',
                       borderRadius: 2,
                       backgroundColor: "#FFFFFF",
-                      padding: "11px 36px 11px 14px",
+                      padding: "7.7px 25.2px 7.7px 9.8px",
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 0.5
+                      gap: 0.5,
+                      height: '70%'
                     }}>
                       <input 
                         type="checkbox" 

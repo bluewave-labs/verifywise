@@ -6,11 +6,11 @@ from src.eval_engine.evaluation.evaluator import FairnessEvaluator
 
 if __name__ == "__main__":
     config_manager = ConfigManager()
-    # inference_pipeline = InferencePipeline(config_manager)
-    # inference_pipeline.run()
+    inference_pipeline = InferencePipeline(config_manager)
+    inference_pipeline.run()
 
-    # post_processor = PostProcessor(config_manager)
-    # post_processor.run()
+    post_processor = PostProcessor(config_manager)
+    post_processor.run()
 
     evaluator = FairnessEvaluator(config_manager)
     evaluator.run()

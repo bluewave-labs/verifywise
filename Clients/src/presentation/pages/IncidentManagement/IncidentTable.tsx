@@ -104,7 +104,7 @@ export const getIncidentChipProps = (value: string) => {
 const cellStyle = singleTheme.tableStyles.primary.body.cell;
 
 const TABLE_COLUMNS = [
-    { id: "incident_id", label: "INCIDENT ID" },
+    { id: "incident_id", label: "INCIDENT ID", width: "100px" },
     { id: "ai_project", label: "AI PROJECT" },
     { id: "type", label: "TYPE" },
     { id: "severity", label: "SEVERITY" },
@@ -198,8 +198,11 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                             sx={{
                                 ...singleTheme.tableStyles.primary.header.cell,
                                 ...(column.id === "incident_id" && {
-                                    width: "90px",
-                                    maxWidth: "90px",
+                                    width: "100px",
+                                    minWidth: "100px",
+                                    maxWidth: "100px",
+                                    paddingLeft: theme.spacing(2),
+                                    paddingRight: theme.spacing(2),
                                 }),
                                 ...(column.id === "actions" && {
                                     position: "sticky",
@@ -245,8 +248,18 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                     onEdit?.(incident.id?.toString(), "edit")
                                 }
                             >
-                                <TableCell sx={{ ...cellStyle, width: "90px", maxWidth: "90px" }}>
-                                    {incident.incident_id}{" "}
+                                <TableCell sx={{
+                                    ...cellStyle,
+                                    width: "100px",
+                                    minWidth: "100px",
+                                    maxWidth: "100px",
+                                    paddingLeft: theme.spacing(2),
+                                    paddingRight: theme.spacing(2),
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap"
+                                }}>
+                                    {incident.incident_id}
                                 </TableCell>
                                 <TableCell sx={cellStyle}>
                                     <TooltipCell value={incident.ai_project} />
@@ -365,7 +378,19 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
 
     return (
         <TableContainer sx={{ overflowX: "auto" }}>
-            <Table sx={singleTheme.tableStyles.primary.frame}>
+            <Table sx={{...singleTheme.tableStyles.primary.frame, tableLayout: "fixed"}}>
+                <colgroup>
+                    <col style={{ width: "100px" }} />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <col />
+                    <col style={{ width: "60px" }} />
+                </colgroup>
                 {tableHeader}
                 {tableBody}
                 {paginated && (

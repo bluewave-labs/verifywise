@@ -203,3 +203,7 @@ export interface IInputProps {
   projectFrameworkId: number;
   reportType?: "project" | "organization" | null;
 }
+
+export interface IHeaderProps {
+  onHelperClick?: () => void;
+}

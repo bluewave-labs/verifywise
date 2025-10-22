@@ -102,7 +102,6 @@ export default function FairnessDashboard() {
     fetchMetrics();
   }, []);
 
-  const buttonRef = useRef(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
   const datasetInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();

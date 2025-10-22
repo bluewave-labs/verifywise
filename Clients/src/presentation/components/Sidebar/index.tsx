@@ -171,7 +171,8 @@ const managementItems: IMenuItem[] = [
   },
 ];
 
-const other: IMenuItem[] = [];
+// Reserved for future use
+// const other: IMenuItem[] = [];
 
 const DEFAULT_USER: User = {
   id: 1,

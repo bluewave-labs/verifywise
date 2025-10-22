@@ -198,8 +198,8 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                             sx={{
                                 ...singleTheme.tableStyles.primary.header.cell,
                                 ...(column.id === "incident_id" && {
-                                    width: "90px",
-                                    maxWidth: "90px",
+                                    width: "110px",
+                                    maxWidth: "110px",
                                 }),
                                 ...(column.id === "actions" && {
                                     position: "sticky",
@@ -245,7 +245,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                     onEdit?.(incident.id?.toString(), "edit")
                                 }
                             >
-                                <TableCell sx={{ ...cellStyle, width: "90px", maxWidth: "90px" }}>
+                                <TableCell sx={{ ...cellStyle, width: "110px", maxWidth: "110px" }}>
                                     {incident.incident_id}{" "}
                                 </TableCell>
                                 <TableCell sx={cellStyle}>
@@ -371,7 +371,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                 {paginated && (
                     <TableFooter>
                         <TableRow sx={incidentFooterRow(theme)}>
-                            <TableCell sx={incidentShowingText(theme)}>
+                            <TableCell colSpan={3} sx={incidentShowingText(theme)}>
                                 Showing {getRange} of {data?.length} incident(s)
                             </TableCell>
                             <TablePagination

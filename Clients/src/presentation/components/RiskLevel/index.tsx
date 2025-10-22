@@ -1,24 +1,19 @@
 import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
-import { Likelihood, Severity } from "./constants";
 import {
   riskSeverityItems,
   likelihoodItems,
 } from "../AddNewRiskForm/projectRiskValue";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
-
-interface RiskLevelFormValues {
-  likelihood: Likelihood;
-  riskSeverity: Severity;
-}
+import { IRiskLevelFormValues } from "../../../domain/interfaces/iRiskForm";
 
 interface RiskLevelProps {
   likelihood: number;
   riskSeverity: number;
   handleOnSelectChange: (
-    field: keyof RiskLevelFormValues
+    field: keyof IRiskLevelFormValues
   ) => (event: SelectChangeEvent<string | number>) => void;
   disabled?: boolean;
 }

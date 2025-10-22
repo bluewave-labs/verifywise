@@ -218,6 +218,9 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (item === "remove" && type === "Task") {
       return "Archive";
     }
+    if (item === "archive" && type === "Incident") {
+      return "Archive incident";
+    }
     return item.charAt(0).toUpperCase() + item.slice(1);
   };
 

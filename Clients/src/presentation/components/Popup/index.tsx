@@ -1,21 +1,11 @@
 import { Button, Typography, useTheme, Stack } from "@mui/material";
 import { X as ClearIcon } from "lucide-react";
-import React from "react";
 import { FC } from "react";
 import { Unstable_Popup as BasePopup } from "@mui/base/Unstable_Popup";
 import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandling";
+import { IPopupProps } from "../../../domain/interfaces/iWidget";
 
-interface PopupProps {
-  popupId: string;
-  popupContent: React.ReactNode;
-  openPopupButtonName: string;
-  popupTitle: string;
-  popupSubtitle?: string;
-  handleOpenOrClose?: (event: React.MouseEvent<HTMLElement>) => void;
-  anchor: null | HTMLElement;
-}
-
-const Popup: FC<PopupProps> = ({
+const Popup: FC<IPopupProps> = ({
   popupId,
   popupContent,
   openPopupButtonName,

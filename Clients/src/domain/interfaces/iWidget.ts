@@ -212,3 +212,13 @@ export interface IProtectedRouteProps {
   Component: ComponentType<any>;
   [key: string]: any;
 }
+
+export interface IPopupProps {
+  popupId: string;
+  popupContent: React.ReactNode;
+  openPopupButtonName: string;
+  popupTitle: string;
+  popupSubtitle?: string;
+  handleOpenOrClose?: (event: React.MouseEvent<HTMLElement>) => void;
+  anchor: null | HTMLElement;
+}

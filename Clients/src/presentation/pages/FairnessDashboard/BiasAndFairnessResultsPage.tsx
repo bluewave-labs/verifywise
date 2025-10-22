@@ -524,7 +524,7 @@ export default function BiasAndFairnessResultsPage() {
 
 
   return (
-    <Stack className="vwhome" gap="20px" pb={4}>
+    <Stack className="vwhome" gap="20px" pb={8}>
       <PageBreadcrumbs
         items={[
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} /> },
@@ -1086,35 +1086,16 @@ export default function BiasAndFairnessResultsPage() {
           </Grid>
           <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 6, pt: 3, borderTop: '1px solid #e5e7eb' }}>
             <Typography variant="body2" sx={{ color: '#6b7280' }}>Select metrics to include/exclude on the Plots & Graphs.</Typography>
-            <Button
+            <CustomizableButton
               variant="contained"
-              onClick={handleApplySelection}
-              disabled={!hasDraftChanges}
-              size="small"
+              text="Apply Selection"
               sx={{
-                backgroundColor: COLORS.PRIMARY,
-                border: `1px solid ${COLORS.PRIMARY}`,
-                color: 'white',
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '13px',
-                px: 3,
-                py: 1,
-                boxShadow: 'none !important',
-                '&:hover': {
-                  backgroundColor: COLORS.PRIMARY,
-                  opacity: 0.9,
-                  boxShadow: 'none !important'
-                },
-                '&:disabled': {
-                  backgroundColor: '#e0e0e0',
-                  border: '1px solid #e0e0e0',
-                  color: '#9e9e9e'
-                }
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
               }}
-            >
-              Apply Selection
-            </Button>
+              onClick={handleApplySelection}
+              isDisabled={!hasDraftChanges}
+            />
           </Box>
 
           {/* Raw JSON Section */}

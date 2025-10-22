@@ -188,3 +188,9 @@ export interface ITimelineEvent {
   description: string;
   riskLevel: number;
 }
+
+export interface IGenerateReportProps {
+  onClose: () => void;
+  onReportGenerated?: () => void;
+  reportType: "project" | "organization" | null;
+}

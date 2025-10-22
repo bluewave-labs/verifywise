@@ -77,8 +77,11 @@ VerifyWise is designed for:
   - Model inventory and model risks that keeps a list of models used and risks
   - Policy manager to create and manage internal company AI policies
   - Risk and control mappings for EU AI Act, ISO 42001 and ISO 27001
-  - Detailed eports
+  - Detailed reports
   - Event logs (audits) for enterprise organizations
+  - AI incident management
+  - Integrations (currently Slack is supported, more on the way)
+  - Automations 
   - Google OAuth2 support for authentication
 
 ## Roadmap
@@ -87,8 +90,9 @@ VerifyWise is designed for:
 - Mappings between frameworks
 - Automated reports
 - Integration with 3rd party platforms
-- Slack notifications
 - Better email notifications
+- MLFlow integration
+- Confluence integration
 
 ## Installation
 

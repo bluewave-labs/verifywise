@@ -523,17 +523,15 @@ export default function BiasAndFairnessResultsPage() {
 
   return (
     <Stack className="vwhome" gap="20px">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }}>
-        <PageBreadcrumbs 
-          items={[
-            { label: "Dashboard", path: "/" },
-            { label: "Bias & Fairness", path: "/fairness-dashboard#biasModule" },
-            { label: "Results", path: "" }
-          ]}
-          autoGenerate={false}
-          sx={{ fontSize: 13 }}
-        />
-      </Stack>
+      <PageBreadcrumbs
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Bias & Fairness", path: "/fairness-dashboard#biasModule" },
+          { label: "Results", path: "" }
+        ]}
+        autoGenerate={false}
+        sx={{ fontSize: 13 }}
+      />
 
       {/* Header Section */}
       <Box>

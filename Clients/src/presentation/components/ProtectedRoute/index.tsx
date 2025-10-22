@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
-import { ComponentType, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
   setUserExists,
@@ -9,13 +9,9 @@ import {
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../Toast";
 import { extractUserToken } from "../../../application/tools/extractToken";
+import { IProtectedRouteProps } from "../../../domain/interfaces/iWidget";
 
-interface ProtectedRouteProps {
-  Component: ComponentType<any>;
-  [key: string]: any;
-}
-
-const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
   const authState = useSelector(
     (state: { auth: { authToken: string; userExists: boolean } }) => state.auth
   );

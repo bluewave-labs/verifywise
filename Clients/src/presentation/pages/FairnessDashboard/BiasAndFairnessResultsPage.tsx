@@ -16,7 +16,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon, Home, Scale } from "lucide-react";
+import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon, Home, Scale, Database, Bot, Layers, Hash, CheckCircle2, Calendar } from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
@@ -1217,7 +1217,10 @@ export default function BiasAndFairnessResultsPage() {
                       padding: "8px 36px 14px 14px",
                       minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Dataset</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Database size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Dataset</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.dataset_name || metrics?.results?.metadata?.dataset || "N/A"}
                       </Typography>
@@ -1231,7 +1234,10 @@ export default function BiasAndFairnessResultsPage() {
                       padding: "8px 36px 14px 14px",
                       minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Model</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Bot size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Model</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.model_name || metrics?.results?.metadata?.model || "N/A"}
                       </Typography>
@@ -1245,7 +1251,10 @@ export default function BiasAndFairnessResultsPage() {
                       padding: "8px 36px 14px 14px",
                       minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Task Type</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Layers size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Task Type</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {(metrics?.model_task || metrics?.results?.metadata?.model_task || "N/A").toString().replace('_', ' ')}
                       </Typography>
@@ -1263,7 +1272,10 @@ export default function BiasAndFairnessResultsPage() {
                       padding: "8px 36px 14px 14px",
                       minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Evaluation ID</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Hash size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Evaluation ID</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.eval_id || "N/A"}
                       </Typography>
@@ -1277,7 +1289,10 @@ export default function BiasAndFairnessResultsPage() {
                       padding: "8px 36px 14px 14px",
                       minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Status</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <CheckCircle2 size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Status</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", height: '24px', display: 'flex', alignItems: 'center' }}>
                         {metrics?.status || "N/A"}
                       </Typography>
@@ -1291,7 +1306,10 @@ export default function BiasAndFairnessResultsPage() {
                       padding: "8px 36px 14px 14px",
                       minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Created</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Calendar size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Created</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.created_at ? new Date(metrics.created_at).toLocaleDateString('en-US', {
                           year: 'numeric',

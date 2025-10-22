@@ -12,25 +12,48 @@ import {
   getPreviousQuestion,
   getVisibleQuestions,
 } from "./questions.config";
-import { QuestionId, IQuestionnaireAnswers } from "./iQuestion";
-import { useState } from "react";
+import {
+  QuestionId,
+  IQuestionnaireAnswers,
+  ClassificationResult,
+} from "./iQuestion";
+import { useCallback, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import RiskAnalysisQuestion from "./RiskAnalysisQuestion";
+import Result from "./Result";
+import { classifyRisk } from "../../../utils/riskClassification";
+import { updateProject } from "../../../../application/repository/project.repository";
+import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
 
 interface RiskAnalysisModalProps {
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
+  projectId: string;
+  setAlert: (
+    alert: {
+      variant: "success" | "info" | "warning" | "error";
+      title?: string;
+      body: string;
+      isToast: boolean;
+      visible: boolean;
+    } | null,
+  ) => void;
+  updateClassification: (classification: string) => void;
 }
 
 const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
   isOpen,
   setIsOpen,
+  projectId,
+  setAlert,
+  updateClassification,
 }) => {
   const theme = useTheme();
   const [currentQuestionId, setCurrentQuestionId] = useState<QuestionId>("Q1");
   const [answers, setAnswers] = useState<IQuestionnaireAnswers>({});
   const [showResults, setShowResults] = useState<boolean>(false);
-
+  const [classification, setClassification] =
+    useState<ClassificationResult | null>(null);
   // Get current question
   const visibleQuestions = getVisibleQuestions(answers);
   const currentQuestion = visibleQuestions.find(
@@ -65,7 +88,71 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
   };
 
   const handleShowResults = () => {
+    const finalClassification = classifyRisk(answers);
+    setClassification(finalClassification);
     setShowResults(true);
+  };
+
+  const handleRestartAsssessment = () => {
+    setAnswers({});
+    setCurrentQuestionId("Q1");
+    setShowResults(false);
+    setClassification(null);
+  };
+
+  const getRiskClassificationType = (level: string) => {
+    switch (level) {
+      case "HIGH_RISK":
+        return AiRiskClassification.HIGH_RISK;
+      case "LIMITED_RISK":
+        return AiRiskClassification.LIMITED_RISK;
+      case "MINIMAL_RISK":
+        return AiRiskClassification.MINIMAL_RISK;
+      default:
+        return "";
+    }
+  };
+
+  const handleSaveConfirm = useCallback(async () => {
+    if (!classification) return;
+
+    const selectedRiskClass = getRiskClassificationType(classification.level);
+
+    await updateProject({
+      id: Number(projectId),
+      body: {
+        id: projectId,
+        ai_risk_classification: selectedRiskClass,
+      },
+    }).then((response) => {
+      if (response.status === 202) {
+        setAlert({
+          variant: "success",
+          body: "Project updated successfully",
+          isToast: true,
+          visible: true,
+        });
+        setTimeout(() => {
+          setAlert(null);
+          handleClose();
+          updateClassification(selectedRiskClass);
+        }, 2000);
+      } else if (response.status === 400) {
+        setAlert({
+          variant: "error",
+          body: response.data.data.message,
+          isToast: true,
+          visible: true,
+        });
+      }
+    });
+  }, [projectId, setAlert, classification]);
+
+  const handleSave = () => {
+    handleSaveConfirm();
+    setTimeout(() => {
+      setAlert(null);
+    }, 1500);
   };
 
   return (
@@ -115,8 +202,13 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
           </IconButton>
         </Stack>
 
-        {showResults ? (
-          <></>
+        {showResults && classification ? (
+          <Result
+            classification={classification}
+            answers={answers}
+            onRestart={handleRestartAsssessment}
+            onSave={handleSave}
+          />
         ) : (
           <>
             {/* Content */}

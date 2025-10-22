@@ -44,3 +44,21 @@ export interface IQuestion {
   isRequired: boolean;
   showCondition?: (answers: IQuestionnaireAnswers) => boolean;
 }
+
+export type RiskClassification =
+  | "PROHIBITED"
+  | "HIGH_RISK"
+  | "LIMITED_RISK"
+  | "MINIMAL_RISK"
+  | "PENDING";
+
+export interface ClassificationResult {
+  level: RiskClassification;
+}
+
+export interface ResultsDisplayProps {
+  classification: ClassificationResult;
+  answers: IQuestionnaireAnswers;
+  onRestart?: () => void;
+  onSave?: () => void;
+}

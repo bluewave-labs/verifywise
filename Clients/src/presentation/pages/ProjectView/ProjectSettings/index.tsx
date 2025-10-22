@@ -1367,6 +1367,17 @@ const ProjectSettings = React.memo(
         <RiskAnalysisModal
           isOpen={isRiskModalOpen}
           setIsOpen={setIsRiskModalOpen}
+          projectId={projectId}
+          setAlert={setAlert}
+          updateClassification={(classification: string) =>
+            setValues({
+              ...values,
+              riskClassification:
+                riskClassificationItems.find(
+                  (item) => item.name === classification,
+                )?._id || 1,
+            })
+          }
         />
       </Stack>
     );

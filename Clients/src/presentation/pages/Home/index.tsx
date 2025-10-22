@@ -17,7 +17,6 @@ import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Grid from "@mui/material/Grid2";
 import { styles } from "./styles";
 import { postAutoDrivers } from "../../../application/repository/entity.repository";
-import { ProjectCardProps } from "../../components/ProjectCard";
 import useProjectStatus, {
   Assessments,
   Controls,
@@ -31,6 +30,7 @@ import { AlertProps } from "../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../application/tools/alertUtils";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getAllProjects } from "../../../application/repository/project.repository";
+import { IProjectCardProps } from "../../../domain/interfaces/i.project";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));
@@ -47,7 +47,7 @@ const useProjects = (
   newProjectData: object,
   resetIsNewProject: () => void
 ) => {
-  const [projects, setProjects] = useState<ProjectCardProps[] | null>(null);
+  const [projects, setProjects] = useState<IProjectCardProps[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -188,7 +188,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
   useEffect(() => {
     if (location.state?.openCreateModal) {
       // Create a temporary button element to use as anchor
-      const tempButton = document.createElement('button');
+      const tempButton = document.createElement("button");
       setAnchor(tempButton as any);
 
       // Clear the navigation state to prevent re-opening on subsequent navigations
@@ -404,7 +404,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
             >
               {projects.length <= 3 ? (
                 <>
-                  {projects.map((item: ProjectCardProps) => (
+                  {projects.map((item: IProjectCardProps) => (
                     <Box
                       key={item.id}
                       sx={{ width: projects.length === 1 ? "50%" : "100%" }}
@@ -428,7 +428,7 @@ const Home: FC<HomeProps> = ({ onProjectUpdate }) => {
                     spacing={{ xs: 2, md: 3 }}
                     columns={{ xs: 4, sm: 8, md: 12 }}
                   >
-                    {projects.map((item: ProjectCardProps) => (
+                    {projects.map((item: IProjectCardProps) => (
                       <Grid key={item.id} size={{ xs: 4, sm: 8, md: 4 }}>
                         <ProjectCard
                           {...item}

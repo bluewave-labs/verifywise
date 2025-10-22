@@ -3,7 +3,7 @@ import { SelectChangeEvent, Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
-import { ChangeEvent } from "react";
+import { ChangeEvent, ComponentType } from "react";
 import { ProjectRisk } from "../types/ProjectRisk";
 
 /**
@@ -206,4 +206,9 @@ export interface IInputProps {
 
 export interface IHeaderProps {
   onHelperClick?: () => void;
+}
+
+export interface IProtectedRouteProps {
+  Component: ComponentType<any>;
+  [key: string]: any;
 }

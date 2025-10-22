@@ -16,7 +16,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
+import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon, Home, Scale } from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
@@ -526,8 +526,8 @@ export default function BiasAndFairnessResultsPage() {
     <Stack className="vwhome" gap="20px">
       <PageBreadcrumbs
         items={[
-          { label: "Dashboard", path: "/" },
-          { label: "Bias & Fairness", path: "/fairness-dashboard#biasModule" },
+          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} /> },
+          { label: "Bias & Fairness", path: "/fairness-dashboard#biasModule", icon: <Scale size={14} strokeWidth={1.5} /> },
           { label: "Results", path: "" }
         ]}
         autoGenerate={false}
@@ -986,14 +986,15 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Chosen</Typography>
               <Stack spacing={3}>
                 {(metricsCfg.user_selected_metrics || []).map(m => (
-                  <Box key={m} sx={{ 
+                  <Box key={m} sx={{
                     border: '1px solid #eaecf0',
                     borderRadius: 2,
                     backgroundColor: "#FFFFFF",
-                    padding: "11px 36px 11px 14px",
+                    padding: "7.7px 25.2px 7.7px 9.8px",
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5
+                    gap: 0.5,
+                    height: '70%'
                   }}>
                     <input 
                       type="checkbox" 
@@ -1020,14 +1021,15 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Recommended</Typography>
               <Stack spacing={3}>
                 {(metricsCfg.fairness_compass_recommended_metrics || []).map(m => (
-                  <Box key={m} sx={{ 
+                  <Box key={m} sx={{
                     border: '1px solid #eaecf0',
                     borderRadius: 2,
                     backgroundColor: "#FFFFFF",
-                    padding: "11px 36px 11px 14px",
+                    padding: "7.7px 25.2px 7.7px 9.8px",
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5
+                    gap: 0.5,
+                    height: '70%'
                   }}>
                     <input 
                       type="checkbox" 
@@ -1083,18 +1085,30 @@ export default function BiasAndFairnessResultsPage() {
           </Grid>
           <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 6, pt: 3, borderTop: '1px solid #e5e7eb' }}>
             <Typography variant="body2" sx={{ color: '#6b7280' }}>Select metrics to include/exclude on the Plots & Graphs.</Typography>
-            <Button 
-              variant="contained" 
-              onClick={handleApplySelection} 
+            <Button
+              variant="contained"
+              onClick={handleApplySelection}
               disabled={!hasDraftChanges}
               size="small"
-              sx={{ 
-                px: 3, 
-                py: 1, 
+              sx={{
+                backgroundColor: COLORS.PRIMARY,
+                border: `1px solid ${COLORS.PRIMARY}`,
+                color: 'white',
+                textTransform: 'none',
+                fontWeight: 600,
                 fontSize: '15px',
+                px: 3,
+                py: 1,
                 boxShadow: 'none !important',
                 '&:hover': {
+                  backgroundColor: COLORS.PRIMARY,
+                  opacity: 0.9,
                   boxShadow: 'none !important'
+                },
+                '&:disabled': {
+                  backgroundColor: '#e0e0e0',
+                  border: '1px solid #e0e0e0',
+                  color: '#9e9e9e'
                 }
               }}
             >

@@ -3,7 +3,11 @@ import {
   MitigationFormValues,
   RiskFormValues,
 } from "../../presentation/components/AddNewRiskForm/interface";
-import { Likelihood } from "../enums/likelihood.enum";
+import {
+  Likelihood,
+  RiskLevelSeverity,
+  RiskLevelLikelihood,
+} from "../enums/likelihood.enum";
 import { Severity } from "../enums/severity.enum";
 import { User } from "../types/User";
 
@@ -70,4 +74,9 @@ export interface IAuditRiskModalProps {
   _setDeletedRisks: (deletedRisks: number[]) => void;
   _selectedRisks: number[];
   _setSelectedRisks: (selectedRisks: number[]) => void;
+}
+
+export interface IRiskLevelFormValues {
+  likelihood: RiskLevelLikelihood;
+  riskSeverity: RiskLevelSeverity;
 }

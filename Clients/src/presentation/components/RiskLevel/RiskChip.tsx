@@ -10,7 +10,7 @@ interface RiskChipProps {
 const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
   // Return chip if label is provided
   if (label) {
-    const normalizedLabel = label?.toLowerCase().trim() ?? '';
+    const normalizedLabel = label?.toLowerCase().trim() ?? "";
     const backgroundColor = useMemo(
       () => getSeverityColorByText(normalizedLabel),
       [normalizedLabel]
@@ -32,4 +32,4 @@ const RiskChip: React.FC<RiskChipProps> = React.memo(({ label }) => {
   return <span>-</span>;
 });
 
-export default RiskChip; 
+export default RiskChip;

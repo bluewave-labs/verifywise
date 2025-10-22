@@ -90,3 +90,7 @@ export interface IRiskLevelProps {
   ) => (event: SelectChangeEvent<string | number>) => void;
   disabled?: boolean;
 }
+
+export interface IRiskChipProps {
+  label?: string;
+}

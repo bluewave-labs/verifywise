@@ -47,7 +47,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
   const theme = useTheme();
   const navigate = useNavigateSearch();
   const { users } = useUsers();
-  const ownerUser: User = users.find((user: User) => user.id.toString() === owner) ?? ({} as User);
+  const ownerUser: User =
+    users.find((user: User) => user.id.toString() === owner) ?? ({} as User);
 
   const {
     controlsProgress,

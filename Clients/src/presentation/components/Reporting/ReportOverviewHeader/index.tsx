@@ -1,12 +1,9 @@
 import React from "react";
 import HelperIcon from "../../HelperIcon";
 import PageHeader from "../../Layout/PageHeader";
+import { IHeaderProps } from "../../../../domain/interfaces/iWidget";
 
-interface HeaderProps {
-  onHelperClick?: () => void;
-}
-
-const ReportingHeader: React.FC<HeaderProps> = ({ onHelperClick }) => {
+const ReportingHeader: React.FC<IHeaderProps> = ({ onHelperClick }) => {
   return (
     <PageHeader
       title="Reporting"

@@ -1,4 +1,4 @@
-import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
 import {
@@ -7,16 +7,7 @@ import {
 } from "../AddNewRiskForm/projectRiskValue";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
-import { IRiskLevelFormValues } from "../../../domain/interfaces/iRiskForm";
-
-interface RiskLevelProps {
-  likelihood: number;
-  riskSeverity: number;
-  handleOnSelectChange: (
-    field: keyof IRiskLevelFormValues
-  ) => (event: SelectChangeEvent<string | number>) => void;
-  disabled?: boolean;
-}
+import { IRiskLevelProps } from "../../../domain/interfaces/iRiskForm";
 
 /**
  * RiskLevel component displays a form to select the likelihood and severity of a risk,
@@ -29,7 +20,7 @@ interface RiskLevelProps {
  * @param {function} props.handleOnSelectChange - The function to handle changes in the select inputs.
  * @returns {JSX.Element} The rendered RiskLevel component.
  */
-const RiskLevel: FC<RiskLevelProps> = ({
+const RiskLevel: FC<IRiskLevelProps> = ({
   likelihood,
   riskSeverity,
   handleOnSelectChange,

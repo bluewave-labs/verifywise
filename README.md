@@ -8,9 +8,9 @@
 
 <img src="https://github.com/user-attachments/assets/27640e05-0180-4b3d-ad80-3914d00d0eb2">
 
-[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses harness the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security.
+[VerifyWise](https://verifywise.ai) is a source available AI governance platform designed to help businesses use the power of AI safely and responsibly. Our platform ensures compliance and robust AI management without compromising on security. 
 
-We are democratizing AI best practices with an open-source solution that can be hosted on-premises, giving you complete control over your AI governance.
+We are democratizing AI best practices with a solution that can be hosted on-premises, giving you complete control over your AI governance.
 
 ## Quick links
 
@@ -41,18 +41,6 @@ Policy manager
 
 <img width="1634" height="901" alt="image" src="https://github.com/user-attachments/assets/d2260c04-9ab9-4d5b-b0f7-e9a68487e9c0" />
 
-
-## Who is it for?
-
-The platform simplifies AI governance for organizations, helping them manage risks, ensure regulatory compliance, and promote responsible AI practices throughout their operations.
-
-VerifyWise is designed for:
-
-- **Businesses**: From those considering AI adoption to organizations developing proprietary AI at scale.
-- **Compliance officers**: Professionals ensuring adherence to EU AI Act regulations and internal policies.
-- **Risk management teams**: Groups tasked with identifying and mitigating AI-related risks.
-- **Legal and privacy teams**: Professionals addressing the legal and ethical implications of AI use.
-- **AI developers**: Teams working on AI projects who need to ensure compliance and responsible development.
 
 ## Features
 

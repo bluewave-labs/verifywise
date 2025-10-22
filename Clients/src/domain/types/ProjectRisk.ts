@@ -92,4 +92,6 @@ export type ProjectRisk = {
   recommendations?: string;
   projects?: number[];
   frameworks?: number[];
+  is_deleted?: boolean;
+  deleted_at?: Date;
 };

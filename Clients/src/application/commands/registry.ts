@@ -2,10 +2,13 @@ import { Command, CommandGroup, CommandContext, CommandRegistry } from './types'
 import allowedRoles from '../constants/permissions'
 import {
   Home,
-  Flag,
+  Building2,
+  GitBranch,
+  Folder,
+  Activity,
+  Users,
   AlertTriangle,
   Building,
-  List as ListIcon,
   GraduationCap,
   FileText,
   BarChart3,
@@ -16,7 +19,8 @@ import {
   Settings,
   FolderTree,
   Layers,
-  Users as GroupOutlined
+  Flag,
+  AlertCircle
 } from 'lucide-react'
 
 // Define command groups
@@ -59,6 +63,15 @@ const NAVIGATION_COMMANDS: Command[] = [
     action: { type: 'navigate', payload: '/overview' }
   },
   {
+    id: 'nav-tasks',
+    label: 'Tasks',
+    description: 'Task management',
+    keywords: ['tasks', 'todo', 'assignments'],
+    group: COMMAND_GROUPS[0],
+    icon: AlertTriangle,
+    action: { type: 'navigate', payload: '/risk-management' }
+  },
+  {
     id: 'nav-framework',
     label: 'Organizational view',
     description: 'Organizational framework view',
@@ -73,7 +86,7 @@ const NAVIGATION_COMMANDS: Command[] = [
     description: 'Manage vendor relationships',
     keywords: ['suppliers', 'partners', 'third-party'],
     group: COMMAND_GROUPS[0],
-    icon: Building,
+    icon: Building2,
     action: { type: 'navigate', payload: '/vendors' }
   },
   {
@@ -82,7 +95,7 @@ const NAVIGATION_COMMANDS: Command[] = [
     description: 'AI/ML model management',
     keywords: ['models', 'ai', 'ml', 'machine learning'],
     group: COMMAND_GROUPS[0],
-    icon: ListIcon,
+    icon: GitBranch,
     action: { type: 'navigate', payload: '/model-inventory' }
   },
   {
@@ -91,7 +104,43 @@ const NAVIGATION_COMMANDS: Command[] = [
     description: 'Manage and monitor risks',
     keywords: ['risks', 'threats', 'vulnerabilities'],
     group: COMMAND_GROUPS[0],
-    icon: AlertTriangle,
+    icon: GraduationCap,
+    action: { type: 'navigate', payload: '/training' }
+  },
+  {
+    id: 'nav-file-manager',
+    label: 'File Manager',
+    description: 'Evidence and documents',
+    keywords: ['files', 'documents', 'evidence'],
+    group: COMMAND_GROUPS[0],
+    icon: Folder,
+    action: { type: 'navigate', payload: '/file-manager' }
+  },
+  {
+    id: 'nav-event-tracker',
+    label: 'Event Tracker',
+    description: 'Event tracking and audit logs',
+    keywords: ['logs', 'events', 'audit', 'monitoring', 'watch', 'tower'],
+    group: COMMAND_GROUPS[0],
+    icon: Activity,
+    action: { type: 'navigate', payload: '/event-tracker' }
+  },
+  {
+    id: 'nav-framework',
+    label: 'Framework',
+    description: 'Organizational framework view',
+    keywords: ['compliance', 'frameworks', 'iso', 'eu ai act', 'organizational'],
+    group: COMMAND_GROUPS[0],
+    icon: Building,
+    action: { type: 'navigate', payload: '/framework' }
+  },
+{
+    id: 'nav-risk-management',
+    label: 'Risk Management',
+    description: 'Manage and monitor risks',
+    keywords: ['risks', 'threats', 'vulnerabilities'],
+    group: COMMAND_GROUPS[0],    
+icon: AlertTriangle,
     action: { type: 'navigate', payload: '/risk-management' }
   },
   {
@@ -165,7 +214,16 @@ const NAVIGATION_COMMANDS: Command[] = [
     group: COMMAND_GROUPS[0],
     icon: Settings,
     action: { type: 'navigate', payload: '/settings' }
-  }
+  },
+  {
+    id: 'nav-incident-management',
+    label: 'Incident Management',
+    description: 'EU AI Act Compliance Dashboard',
+    keywords: ['incident', 'management'],
+    group: COMMAND_GROUPS[0],
+    icon: AlertCircle,
+    action: { type: 'navigate', payload: '/ai-incident-managements' }
+  },
 ]
 
 // Quick action commands - will be implemented later
@@ -182,7 +240,7 @@ const ADMIN_COMMANDS: Command[] = [
     description: 'User and team management',
     keywords: ['team', 'users', 'members'],
     group: COMMAND_GROUPS[4],
-    icon: GroupOutlined,
+    icon: Users,
     action: { type: 'function', payload: { name: 'navigateToSettingsTab', params: 'team' } },
     requiredRole: ['Admin'],
     scope: 'projects.editTeamMembers'

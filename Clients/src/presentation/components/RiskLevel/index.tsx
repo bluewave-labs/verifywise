@@ -1,22 +1,13 @@
-import { SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { FC } from "react";
 import Select from "../Inputs/Select";
-import { Likelihood, Severity } from "./constants";
-import { riskSeverityItems, likelihoodItems } from "../AddNewRiskForm/projectRiskValue";
+import {
+  riskSeverityItems,
+  likelihoodItems,
+} from "../AddNewRiskForm/projectRiskValue";
 import { RiskCalculator } from "../../tools/riskCalculator";
 import { RiskLikelihood, RiskSeverity } from "./riskValues";
-
-interface RiskLevelFormValues {
-  likelihood: Likelihood;
-  riskSeverity: Severity;
-}
-
-interface RiskLevelProps {
-  likelihood: number;
-  riskSeverity: number;
-  handleOnSelectChange: (field: keyof RiskLevelFormValues) => (event: SelectChangeEvent<string | number>) => void;
-  disabled?: boolean;
-}
+import { IRiskLevelProps } from "../../../domain/interfaces/iRiskForm";
 
 /**
  * RiskLevel component displays a form to select the likelihood and severity of a risk,
@@ -29,7 +20,7 @@ interface RiskLevelProps {
  * @param {function} props.handleOnSelectChange - The function to handle changes in the select inputs.
  * @returns {JSX.Element} The rendered RiskLevel component.
  */
-const RiskLevel: FC<RiskLevelProps> = ({
+const RiskLevel: FC<IRiskLevelProps> = ({
   likelihood,
   riskSeverity,
   handleOnSelectChange,
@@ -38,16 +29,21 @@ const RiskLevel: FC<RiskLevelProps> = ({
   const theme = useTheme();
 
   // Get the selected likelihood and severity names from the items
-  const selectedLikelihood = likelihoodItems.find(item => item._id === likelihood);
-  const selectedSeverity = riskSeverityItems.find(item => item._id === riskSeverity);
+  const selectedLikelihood = likelihoodItems.find(
+    (item) => item._id === likelihood
+  );
+  const selectedSeverity = riskSeverityItems.find(
+    (item) => item._id === riskSeverity
+  );
 
   // Calculate risk level using RiskCalculator
-  const riskLevel = selectedLikelihood && selectedSeverity 
-    ? RiskCalculator.getRiskLevel(
-        selectedLikelihood.name as RiskLikelihood,
-        selectedSeverity.name as RiskSeverity
-      )
-    : { level: "", color: "" };
+  const riskLevel =
+    selectedLikelihood && selectedSeverity
+      ? RiskCalculator.getRiskLevel(
+          selectedLikelihood.name as RiskLikelihood,
+          selectedSeverity.name as RiskSeverity
+        )
+      : { level: "", color: "" };
 
   return (
     <Stack sx={{ flexDirection: "row", columnGap: 12.5, mb: 12.5 }}>

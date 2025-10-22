@@ -3,9 +3,14 @@ import {
   MitigationFormValues,
   RiskFormValues,
 } from "../../presentation/components/AddNewRiskForm/interface";
-import { Likelihood } from "../enums/likelihood.enum";
+import {
+  Likelihood,
+  RiskLevelSeverity,
+  RiskLevelLikelihood,
+} from "../enums/likelihood.enum";
 import { Severity } from "../enums/severity.enum";
 import { User } from "../types/User";
+import { SelectChangeEvent } from "@mui/material";
 
 export interface AddNewRiskFormProps {
   closePopup: () => void;
@@ -61,4 +66,31 @@ export interface IRiskFormErrors {
   reviewNotes?: string;
   applicableProjects?: string;
   applicableFrameworks?: string;
+}
+
+export interface IAuditRiskModalProps {
+  onClose: () => void;
+  risks: number[];
+  _deletedRisks: number[];
+  _setDeletedRisks: (deletedRisks: number[]) => void;
+  _selectedRisks: number[];
+  _setSelectedRisks: (selectedRisks: number[]) => void;
+}
+
+export interface IRiskLevelFormValues {
+  likelihood: RiskLevelLikelihood;
+  riskSeverity: RiskLevelSeverity;
+}
+
+export interface IRiskLevelProps {
+  likelihood: number;
+  riskSeverity: number;
+  handleOnSelectChange: (
+    field: keyof IRiskLevelFormValues
+  ) => (event: SelectChangeEvent<string | number>) => void;
+  disabled?: boolean;
+}
+
+export interface IRiskChipProps {
+  label?: string;
 }

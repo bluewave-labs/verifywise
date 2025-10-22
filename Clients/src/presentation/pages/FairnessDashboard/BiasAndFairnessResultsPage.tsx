@@ -672,7 +672,10 @@ export default function BiasAndFairnessResultsPage() {
                       elevation={0}
                       sx={{
                         p: 2,
-                        ...STYLES.paper
+                        border: `1px solid ${COLORS.BORDER}`,
+                        borderRadius: 2,
+                        backgroundColor: COLORS.BACKGROUND,
+                        boxShadow: 'none',
                       }}
                     >
                       <Typography
@@ -801,7 +804,10 @@ export default function BiasAndFairnessResultsPage() {
                       elevation={0}
                       sx={{
                         p: 2,
-                        ...STYLES.paper
+                        border: `1px solid ${COLORS.BORDER}`,
+                        borderRadius: 2,
+                        backgroundColor: COLORS.BACKGROUND,
+                        boxShadow: 'none',
                       }}
                     >
                       <Typography

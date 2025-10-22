@@ -12,21 +12,17 @@ import {
   useTheme,
 } from "@mui/material";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
-import { Project } from "../../../domain/types/Project";
 import singleTheme from "../../themes/v1SingleTheme";
 import TablePaginationActions from "../../components/TablePagination";
 import placeholderImage from "../../assets/imgs/empty-state.svg";
 import { ChevronsUpDown } from "lucide-react";
+import { IProjectTableViewProps } from "../../../domain/interfaces/i.project";
 
 const SelectorVertical = (props: any) => (
   <ChevronsUpDown size={16} {...props} />
 );
 
-interface ProjectTableViewProps {
-  projects: Project[];
-}
-
-const ProjectTableView: React.FC<ProjectTableViewProps> = ({ projects }) => {
+const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
   const theme = useTheme();
   const navigate = useNavigateSearch();
   const [page, setPage] = useState(0);

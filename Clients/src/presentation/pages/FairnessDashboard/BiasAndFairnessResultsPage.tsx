@@ -1096,7 +1096,7 @@ export default function BiasAndFairnessResultsPage() {
                 color: 'white',
                 textTransform: 'none',
                 fontWeight: 600,
-                fontSize: '15px',
+                fontSize: '13px',
                 px: 3,
                 py: 1,
                 boxShadow: 'none !important',

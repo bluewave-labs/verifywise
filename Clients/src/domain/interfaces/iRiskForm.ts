@@ -10,6 +10,7 @@ import {
 } from "../enums/likelihood.enum";
 import { Severity } from "../enums/severity.enum";
 import { User } from "../types/User";
+import { SelectChangeEvent } from "@mui/material";
 
 export interface AddNewRiskFormProps {
   closePopup: () => void;
@@ -79,4 +80,13 @@ export interface IAuditRiskModalProps {
 export interface IRiskLevelFormValues {
   likelihood: RiskLevelLikelihood;
   riskSeverity: RiskLevelSeverity;
+}
+
+export interface IRiskLevelProps {
+  likelihood: number;
+  riskSeverity: number;
+  handleOnSelectChange: (
+    field: keyof IRiskLevelFormValues
+  ) => (event: SelectChangeEvent<string | number>) => void;
+  disabled?: boolean;
 }

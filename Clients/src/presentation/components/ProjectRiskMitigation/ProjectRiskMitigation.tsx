@@ -1,19 +1,9 @@
 import { Stack, Typography } from "@mui/material";
 import { X as ClearIcon } from "lucide-react";
 import { ProjectRiskMitigationTable } from "../Table/ProjectRiskMitigationTable/ProjectRiskMitigationTable";
-import { ProjectRiskMitigation as ProjectRiskMitigationType } from "../../../domain/types/ProjectRisk";
+import { IProjectRiskMitigationProps } from "../../../domain/interfaces/i.project";
 
-interface ProjectRiskMitigationProps {
-  onClose: () => void;
-  annexCategories: ProjectRiskMitigationType[];
-  subClauses: ProjectRiskMitigationType[];
-  assessments: ProjectRiskMitigationType[];
-  controls: ProjectRiskMitigationType[];
-  annexControls_27001: ProjectRiskMitigationType[];
-  subClauses_27001: ProjectRiskMitigationType[];
-}
-
-export const ProjectRiskMitigation: React.FC<ProjectRiskMitigationProps> = ({
+export const ProjectRiskMitigation: React.FC<IProjectRiskMitigationProps> = ({
   onClose,
   annexCategories,
   subClauses,

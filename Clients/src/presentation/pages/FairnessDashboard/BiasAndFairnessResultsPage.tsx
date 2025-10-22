@@ -1121,38 +1121,52 @@ export default function BiasAndFairnessResultsPage() {
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6" sx={STYLES.bodyText}>Raw JSON data</Typography>
               <Box display="flex" gap={2}>
-                <IconButton
+                <Button
+                  variant="contained"
                   onClick={handleCopyJSON}
+                  startIcon={<CopyIcon size={16} />}
                   sx={{
-                    width: '36px',
-                    height: '36px',
                     backgroundColor: COLORS.PRIMARY,
+                    border: `1px solid ${COLORS.PRIMARY}`,
                     color: 'white',
-                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    px: 2,
+                    py: 1,
+                    boxShadow: 'none !important',
                     '&:hover': {
                       backgroundColor: COLORS.PRIMARY,
-                      opacity: 0.9
+                      opacity: 0.9,
+                      boxShadow: 'none !important'
                     }
                   }}
                 >
-                  <CopyIcon size={24} />
-                </IconButton>
-                <IconButton
+                  Copy data
+                </Button>
+                <Button
+                  variant="contained"
                   onClick={handleDownloadJSON}
+                  startIcon={<DownloadIcon size={16} />}
                   sx={{
-                    width: '36px',
-                    height: '36px',
                     backgroundColor: COLORS.PRIMARY,
+                    border: `1px solid ${COLORS.PRIMARY}`,
                     color: 'white',
-                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    px: 2,
+                    py: 1,
+                    boxShadow: 'none !important',
                     '&:hover': {
                       backgroundColor: COLORS.PRIMARY,
-                      opacity: 0.9
+                      opacity: 0.9,
+                      boxShadow: 'none !important'
                     }
                   }}
                 >
-                  <DownloadIcon size={24} />
-                </IconButton>
+                  Download data
+                </Button>
               </Box>
             </Box>
             <Divider sx={{ mb: 2 }} />

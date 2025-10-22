@@ -9,23 +9,12 @@ import { handleAlert } from "../../../../application/tools/alertUtils";
 import Alert from "../../Alert";
 import { useProjects } from "../../../../application/hooks/useProjects";
 import useUsers from "../../../../application/hooks/useUsers";
+import {
+  IGenerateReportProps,
+  IInputProps,
+} from "../../../../domain/interfaces/iWidget";
 
-interface GenerateReportProps {
-  onClose: () => void;
-  onReportGenerated?: () => void;
-  reportType: "project" | "organization" | null;
-}
-
-interface InputProps {
-  report_type: string;
-  report_name: string;
-  project: number;
-  framework: number;
-  projectFrameworkId: number;
-  reportType?: "project" | "organization" | null;
-}
-
-const GenerateReportPopup: React.FC<GenerateReportProps> = ({
+const GenerateReportPopup: React.FC<IGenerateReportProps> = ({
   onClose,
   onReportGenerated,
   reportType,
@@ -53,7 +42,7 @@ const GenerateReportPopup: React.FC<GenerateReportProps> = ({
     }, 3000);
   };
 
-  const handleGenerateReport = async (input: InputProps) => {
+  const handleGenerateReport = async (input: IInputProps) => {
     const currentProject = projects?.find(
       (project: { id: number | null }) => project.id === input.project
     );

@@ -194,3 +194,12 @@ export interface IGenerateReportProps {
   onReportGenerated?: () => void;
   reportType: "project" | "organization" | null;
 }
+
+export interface IInputProps {
+  report_type: string;
+  report_name: string;
+  project: number;
+  framework: number;
+  projectFrameworkId: number;
+  reportType?: "project" | "organization" | null;
+}

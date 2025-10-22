@@ -190,6 +190,7 @@ export const incidentShowingText = (theme: Theme) => ({
     fontSize: 11,
     opacity: 0.7,
     fontWeight: 400,
+    whiteSpace: 'nowrap' as const,
 });
 
 export const incidentPaginationMenu = (theme: Theme) => ({

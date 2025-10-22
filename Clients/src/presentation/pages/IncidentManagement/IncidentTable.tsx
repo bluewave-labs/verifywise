@@ -126,7 +126,8 @@ interface IncidentTableProps {
     archivedId?: string | null;
 }
 
-const DEFAULT_ROWS_PER_PAGE = 5;
+const DEFAULT_ROWS_PER_PAGE = 10;
+const STORAGE_KEY = 'incident-table-rows-per-page';
 
 const TooltipCell: React.FC<{ value?: string | null }> = ({ value }) => {
     const displayValue = value || "-";
@@ -150,7 +151,12 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
 }) => {
     const theme = useTheme();
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+
+    // Initialize rowsPerPage from localStorage or default
+    const [rowsPerPage, setRowsPerPage] = useState(() => {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? parseInt(stored, 10) : DEFAULT_ROWS_PER_PAGE;
+    });
 
     const handleChangePage = useCallback(
         (_: unknown, newPage: number) => setPage(newPage),
@@ -158,7 +164,9 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
     );
     const handleChangeRowsPerPage = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
-            setRowsPerPage(parseInt(event.target.value, 10));
+            const newRowsPerPage = parseInt(event.target.value, 10);
+            setRowsPerPage(newRowsPerPage);
+            localStorage.setItem(STORAGE_KEY, newRowsPerPage.toString());
             setPage(0);
         },
         []

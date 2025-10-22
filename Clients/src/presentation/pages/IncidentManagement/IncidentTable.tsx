@@ -197,6 +197,10 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                             key={column.id}
                             sx={{
                                 ...singleTheme.tableStyles.primary.header.cell,
+                                ...(column.id === "incident_id" && {
+                                    width: "120px",
+                                    maxWidth: "120px",
+                                }),
                                 ...(column.id === "actions" && {
                                     position: "sticky",
                                     right: 0,
@@ -241,7 +245,7 @@ const IncidentTable: React.FC<IncidentTableProps> = ({
                                     onEdit?.(incident.id?.toString(), "edit")
                                 }
                             >
-                                <TableCell sx={cellStyle}>
+                                <TableCell sx={{ ...cellStyle, width: "120px", maxWidth: "120px" }}>
                                     {incident.incident_id}{" "}
                                 </TableCell>
                                 <TableCell sx={cellStyle}>

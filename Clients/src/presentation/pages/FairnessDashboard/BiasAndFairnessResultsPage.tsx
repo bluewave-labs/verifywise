@@ -622,8 +622,14 @@ export default function BiasAndFairnessResultsPage() {
                             sx={{
                               backgroundColor: isGood ? COLORS.SUCCESS : COLORS.WARNING,
                               color: 'white',
-                              fontWeight: 600,
-                              fontSize: '0.75rem'
+                              fontWeight: 500,
+                              fontSize: '11px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
+                              borderRadius: '4px',
+                              '& .MuiChip-label': {
+                                padding: '4px 8px',
+                              },
                             }}
                           />
                         </Box>

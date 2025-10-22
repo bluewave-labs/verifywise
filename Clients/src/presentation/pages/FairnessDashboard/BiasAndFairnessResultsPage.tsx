@@ -25,6 +25,7 @@ import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairn
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import MetricInfoIcon from "../../components/MetricInfoIcon";
 import CustomizableButton from "../../components/Button/CustomizableButton";
+import Alert from "../../components/Alert";
 import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
@@ -212,6 +213,7 @@ export default function BiasAndFairnessResultsPage() {
   const [explorerDraftSelection, setExplorerDraftSelection] = useState<Record<string, boolean>>({});
   const [showFullJSON, setShowFullJSON] = useState(false);
   const [showMetricTooltip, setShowMetricTooltip] = useState<string | null>(null);
+  const [showCopyToast, setShowCopyToast] = useState(false);
 
   // Extract metadata from config_data - move this before functions that use it
   const performance: Record<string, number> = metrics?.results?.performance || {};
@@ -367,10 +369,10 @@ export default function BiasAndFairnessResultsPage() {
     try {
       const json = JSON.stringify(metrics?.results || {}, null, 2);
       await navigator.clipboard.writeText(json);
-      // Could add a toast notification here for success feedback
+      setShowCopyToast(true);
+      setTimeout(() => setShowCopyToast(false), 3000);
     } catch (error) {
       console.error('Failed to copy JSON:', error);
-      // Could add a toast notification here for error feedback
     }
   }, [metrics]);
 
@@ -525,6 +527,16 @@ export default function BiasAndFairnessResultsPage() {
 
   return (
     <Stack className="vwhome" gap="20px" pb={8}>
+      {showCopyToast && (
+        <Alert
+          variant="success"
+          title="Success"
+          body="All data copied to clipboard"
+          isToast={true}
+          onClick={() => setShowCopyToast(false)}
+        />
+      )}
+
       <PageBreadcrumbs
         items={[
           { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} /> },

@@ -191,6 +191,7 @@ export const incidentShowingText = (theme: Theme) => ({
     opacity: 0.7,
     fontWeight: 400,
     whiteSpace: 'nowrap' as const,
+    // Note: This will be replaced by singleTheme.tableStyles.primary.footer.cell in the future
 });
 
 export const incidentPaginationMenu = (theme: Theme) => ({

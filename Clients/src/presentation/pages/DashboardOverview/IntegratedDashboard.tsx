@@ -1602,6 +1602,48 @@ const IntegratedDashboard: React.FC = () => {
 
         {/* Edit Mode Controls */}
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          {editMode && (
+            <Typography
+              variant="body2"
+              color="primary"
+              sx={{ fontWeight: 500, fontSize: "13px" }}
+            >
+              Edit mode active
+            </Typography>
+          )}
+          <Tooltip
+            title={
+              editMode ? "Lock layout (view mode)" : "Unlock layout (edit mode)"
+            }
+          >
+            <IconButton
+              onClick={() => setEditMode(!editMode)}
+              color="primary"
+              size="medium"
+            >
+              {editMode ? (
+                <LockOpen
+                  size={20}
+                  color="#344054"
+                  strokeWidth={1.5}
+                />
+              ) : (
+                <Lock
+                  size={20}
+                  color="#344054"
+                  strokeWidth={1.5}
+                />
+              )}
+            </IconButton>
+          </Tooltip>
+          {editMode && (
+            <Tooltip title="Reset Layout">
+              <IconButton onClick={resetLayout} size="small">
+                <RefreshCw size={20} />
+              </IconButton>
+            </Tooltip>
+          )}
+
           {/* Add New Dropdown */}
           <MuiSelect
             value={addNewValue}
@@ -1687,48 +1729,6 @@ const IntegratedDashboard: React.FC = () => {
             <MenuItem value="risk">Risk</MenuItem>
             <MenuItem value="policy">Policy</MenuItem>
           </MuiSelect>
-
-          {editMode && (
-            <Typography
-              variant="body2"
-              color="primary"
-              sx={{ fontWeight: 500, fontSize: "13px" }}
-            >
-              Edit mode active
-            </Typography>
-          )}
-          <Tooltip
-            title={
-              editMode ? "Lock layout (view mode)" : "Unlock layout (edit mode)"
-            }
-          >
-            <IconButton
-              onClick={() => setEditMode(!editMode)}
-              color="primary"
-              size="medium"
-            >
-              {editMode ? (
-                <LockOpen
-                  size={20}
-                  color="#344054"
-                  strokeWidth={1.5}
-                />
-              ) : (
-                <Lock
-                  size={20}
-                  color="#344054"
-                  strokeWidth={1.5}
-                />
-              )}
-            </IconButton>
-          </Tooltip>
-          {editMode && (
-            <Tooltip title="Reset Layout">
-              <IconButton onClick={resetLayout} size="small">
-                <RefreshCw size={20} />
-              </IconButton>
-            </Tooltip>
-          )}
         </Box>
       </Stack>
 

@@ -2,7 +2,10 @@ import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 import { ComponentType, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { setUserExists, clearAuthState } from "../../../application/redux/auth/authSlice";
+import {
+  setUserExists,
+  clearAuthState,
+} from "../../../application/redux/auth/authSlice";
 import { getAllEntities } from "../../../application/repository/entity.repository"; // Import the checkUserExists function
 import CustomizableToast from "../Toast";
 import { extractUserToken } from "../../../application/tools/extractToken";
@@ -41,7 +44,7 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
           routeUrl: "/users/check/exists",
         });
         const userExists = response ?? false;
-        
+
         // If we have a token, validate it's still valid
         if (authState.authToken && authState.authToken.trim() !== "") {
           const user = extractUserToken(authState.authToken);
@@ -51,7 +54,10 @@ const ProtectedRoute = ({ Component, ...rest }: ProtectedRouteProps) => {
               routeUrl: `/users/${user?.id}`,
             });
           } catch (tokenError) {
-            console.warn("Token validation failed, clearing auth state:", tokenError);
+            console.warn(
+              "Token validation failed, clearing auth state:",
+              tokenError
+            );
             dispatch(clearAuthState());
           }
         }

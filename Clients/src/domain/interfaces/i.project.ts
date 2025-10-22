@@ -1,4 +1,5 @@
 import { Project } from "../types/Project";
+import { ProjectRiskMitigation } from "../types/ProjectRisk";
 
 export interface IProjectListProps {
   projects: Project[];
@@ -7,4 +8,14 @@ export interface IProjectListProps {
 
 export interface IProjectTableViewProps {
   projects: Project[];
+}
+
+export interface IProjectRiskMitigationProps {
+  onClose: () => void;
+  annexCategories: ProjectRiskMitigation[];
+  subClauses: ProjectRiskMitigation[];
+  assessments: ProjectRiskMitigation[];
+  controls: ProjectRiskMitigation[];
+  annexControls_27001: ProjectRiskMitigation[];
+  subClauses_27001: ProjectRiskMitigation[];
 }

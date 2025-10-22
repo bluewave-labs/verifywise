@@ -199,12 +199,9 @@ const PolicyDashboard: React.FC = () => {
         />
 
         {/* Policy by Status Cards */}
-        {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}
-        {policies.length > 0 && (
-          <Box data-joyride-id="policy-status-cards">
-            <PolicyStatusCard policies={policies} />
-          </Box>
-        )}
+        <Box data-joyride-id="policy-status-cards">
+          <PolicyStatusCard policies={policies} />
+        </Box>
 
         {/* Filter + Search + Add Button row */}
         <Stack

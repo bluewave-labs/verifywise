@@ -447,12 +447,9 @@ const IncidentManagement: React.FC = () => {
                 </Stack>
 
                 {/* Incident by Status Cards */}
-                {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}
-                {incidentsData.length > 0 && (
-                    <Box data-joyride-id="incident-status-cards">
-                        <IncidentStatusCard incidents={incidentsData} />
-                    </Box>
-                )}
+                <Box data-joyride-id="incident-status-cards">
+                    <IncidentStatusCard incidents={incidentsData} />
+                </Box>
 
                 {/* Filters Row */}
                 <Stack

@@ -1221,16 +1221,17 @@ export default function BiasAndFairnessResultsPage() {
               >
                 Evaluation information
               </Typography>
-              <Grid container spacing={1}>
+              <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Stack spacing={1}>
+                  <Stack spacing={2}>
                     <Box sx={{
                       border: '1px solid #eaecf0',
                       borderRadius: 2,
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Dataset</Typography>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
@@ -1243,7 +1244,8 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Model</Typography>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
@@ -1256,7 +1258,8 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Task Type</Typography>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
@@ -1266,14 +1269,15 @@ export default function BiasAndFairnessResultsPage() {
                   </Stack>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Stack spacing={1}>
+                  <Stack spacing={2}>
                     <Box sx={{
                       border: '1px solid #eaecf0',
                       borderRadius: 2,
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Evaluation ID</Typography>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
@@ -1286,7 +1290,8 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Status</Typography>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", height: '24px', display: 'flex', alignItems: 'center' }}>
@@ -1299,7 +1304,8 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
                       <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Created</Typography>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Stack, Box, Typography, Tooltip } from "@mui/material";
-import { Info as InfoIcon, Upload as UploadIcon } from "lucide-react";
+import { Stack, Box, Typography } from "@mui/material";
+import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -209,13 +209,6 @@ const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
         <Typography variant="h5" fontWeight="600" fontSize={16}>
           Evidences & documents
         </Typography>
-        <Tooltip title="This page shows all files uploaded to the system" arrow>
-          <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-            <InfoIcon size={16} style={{ color: "#666" }} />
-          </Box>
-        </Tooltip>
-      </Stack>
-      <Stack direction="row" spacing={2} alignItems="center">
         {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
       </Stack>
     </Stack>

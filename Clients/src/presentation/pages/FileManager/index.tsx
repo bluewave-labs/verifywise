@@ -140,7 +140,6 @@ const FileManager: React.FC = (): JSX.Element => {
       />
       <FileManagerHeader
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
-        onUploadClick={handleUploadClick}
       />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
@@ -153,7 +152,7 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
             <Select
               id="project-filter"
               value={selectedProject || "all"}
@@ -172,6 +171,17 @@ const FileManager: React.FC = (): JSX.Element => {
                 bgcolor: "#fff",
               }}
             />
+            <CustomizableButton
+              variant="contained"
+              text="Upload new file"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 2,
+              }}
+              icon={<UploadIcon size={16} />}
+              onClick={handleUploadClick}
+            />
           </Box>
           <Box sx={boxStyles}>
             <FileTable cols={COLUMNS} files={filteredFiles} />
@@ -188,12 +198,10 @@ const FileManager: React.FC = (): JSX.Element => {
  */
 interface FileManagerHeaderProps {
   onHelperClick?: () => void;
-  onUploadClick?: () => void;
 }
 
 const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
   onHelperClick,
-  onUploadClick,
 }) => (
   <Stack spacing={2}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
@@ -208,17 +216,6 @@ const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
         </Tooltip>
       </Stack>
       <Stack direction="row" spacing={2} alignItems="center">
-        <CustomizableButton
-          variant="contained"
-          text="Upload new file"
-          sx={{
-            backgroundColor: "#13715B",
-            border: "1px solid #13715B",
-            gap: 2,
-          }}
-          icon={<UploadIcon size={16} />}
-          onClick={onUploadClick}
-        />
         {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
       </Stack>
     </Stack>

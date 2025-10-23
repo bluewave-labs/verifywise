@@ -1,0 +1,334 @@
+import React, { useState, useRef } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  Typography,
+  IconButton,
+  Button,
+  LinearProgress,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
+import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "lucide-react";
+import { uploadFileToManager } from "../../../../application/repository/file.repository";
+
+interface FileManagerUploadModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+}
+
+interface UploadedFileInfo {
+  file: File;
+  status: "pending" | "uploading" | "success" | "error";
+  progress: number;
+  error?: string;
+}
+
+const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
+  open,
+  onClose,
+  onSuccess,
+}) => {
+  const [fileList, setFileList] = useState<UploadedFileInfo[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      addFiles(Array.from(files));
+    }
+  };
+
+  const addFiles = (files: File[]) => {
+    const newFiles = files.map((file) => ({
+      file,
+      status: "pending" as const,
+      progress: 0,
+    }));
+    setFileList((prev) => [...prev, ...newFiles]);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setFileList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpload = async () => {
+    if (fileList.length === 0) return;
+
+    setIsUploading(true);
+
+    for (let i = 0; i < fileList.length; i++) {
+      if (fileList[i].status !== "pending") continue;
+
+      try {
+        // Update status to uploading
+        setFileList((prev) =>
+          prev.map((item, idx) =>
+            idx === i ? { ...item, status: "uploading" as const, progress: 50 } : item
+          )
+        );
+
+        // Upload the file
+        await uploadFileToManager({ file: fileList[i].file });
+
+        // Update status to success
+        setFileList((prev) =>
+          prev.map((item, idx) =>
+            idx === i ? { ...item, status: "success" as const, progress: 100 } : item
+          )
+        );
+      } catch (error: any) {
+        // Update status to error
+        setFileList((prev) =>
+          prev.map((item, idx) =>
+            idx === i
+              ? {
+                  ...item,
+                  status: "error" as const,
+                  progress: 0,
+                  error: error.message || "Upload failed",
+                }
+              : item
+          )
+        );
+      }
+    }
+
+    setIsUploading(false);
+
+    // Check if all uploads were successful
+    const allSuccess = fileList.every((item) => item.status === "success");
+    if (allSuccess && onSuccess) {
+      onSuccess();
+      handleClose();
+    }
+  };
+
+  const handleClose = () => {
+    if (!isUploading) {
+      setFileList([]);
+      onClose();
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      addFiles(Array.from(files));
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "success":
+        return "#4CAF50";
+      case "error":
+        return "#F44336";
+      case "uploading":
+        return "#2196F3";
+      default:
+        return "#666";
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" fontWeight={600}>
+            Upload Files
+          </Typography>
+          <IconButton onClick={handleClose} disabled={isUploading} size="small">
+            <CloseIcon size={20} />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      <DialogContent>
+        <Stack spacing={3}>
+          {/* Drag and Drop Area */}
+          <Box
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            sx={{
+              border: `2px dashed ${isDragging ? "#13715B" : "#D1D5DB"}`,
+              borderRadius: "8px",
+              padding: "32px",
+              textAlign: "center",
+              backgroundColor: isDragging ? "#F0F9FF" : "#FAFAFA",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+            }}
+            onClick={handleBrowseClick}
+          >
+            <Stack spacing={2} alignItems="center">
+              <UploadIcon size={48} color={isDragging ? "#13715B" : "#9CA3AF"} />
+              <Typography variant="body1" fontWeight={500}>
+                Drag and drop files here
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                or click to browse
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Supports: Documents (PDF, DOC, DOCX, XLS, XLSX, CSV, MD), Images (JPEG, PNG,
+                GIF, WEBP, SVG), Videos (MP4, MOV, AVI)
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Maximum file size: 30MB
+              </Typography>
+            </Stack>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              style={{ display: "none" }}
+            />
+          </Box>
+
+          {/* File List */}
+          {fileList.length > 0 && (
+            <Box>
+              <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                Selected Files ({fileList.length})
+              </Typography>
+              <List sx={{ maxHeight: "300px", overflow: "auto" }}>
+                {fileList.map((item, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      border: "1px solid #E5E7EB",
+                      borderRadius: "4px",
+                      mb: 1,
+                      backgroundColor: "#FAFAFA",
+                    }}
+                    secondaryAction={
+                      item.status === "pending" && (
+                        <IconButton
+                          edge="end"
+                          onClick={() => handleRemoveFile(index)}
+                          disabled={isUploading}
+                          size="small"
+                        >
+                          <DeleteIcon size={16} />
+                        </IconButton>
+                      )
+                    }
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" fontWeight={500}>
+                          {item.file.name}
+                        </Typography>
+                      }
+                      secondary={
+                        <Stack spacing={0.5}>
+                          <Typography variant="caption" color="text.secondary">
+                            {formatFileSize(item.file.size)}
+                          </Typography>
+                          {item.status === "uploading" && (
+                            <LinearProgress variant="indeterminate" sx={{ mt: 0.5 }} />
+                          )}
+                          {item.status === "success" && (
+                            <Typography variant="caption" sx={{ color: "#4CAF50" }}>
+                              Uploaded successfully
+                            </Typography>
+                          )}
+                          {item.status === "error" && (
+                            <Typography variant="caption" sx={{ color: "#F44336" }}>
+                              {item.error || "Upload failed"}
+                            </Typography>
+                          )}
+                        </Stack>
+                      }
+                    />
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        backgroundColor: getStatusColor(item.status),
+                        ml: 1,
+                      }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
+
+          {/* Action Buttons */}
+          <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Button variant="outlined" onClick={handleClose} disabled={isUploading}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleUpload}
+              disabled={fileList.length === 0 || isUploading}
+              sx={{
+                backgroundColor: "#13715B",
+                "&:hover": {
+                  backgroundColor: "#0F5A48",
+                },
+              }}
+            >
+              {isUploading ? "Uploading..." : "Upload"}
+            </Button>
+          </Stack>
+        </Stack>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default FileManagerUploadModal;

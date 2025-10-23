@@ -27,25 +27,26 @@ export const useUserFilesMetaData = () => {
           signal: abortController.signal,
         });
 
-        if (filesResponse && Array.isArray(filesResponse)) {
+        // Handle file-manager response structure
+        if (filesResponse?.success && filesResponse?.data?.files) {
           setFilesData(
-            filesResponse.map((file) => ({
+            filesResponse.data.files.map((file: any) => ({
               id: file.id,
               fileName: file.filename,
-              uploadDate: file.uploaded_time
-                ? new Date(file.uploaded_time).toLocaleDateString()
+              uploadDate: file.upload_date
+                ? new Date(file.upload_date).toLocaleDateString()
                 : "Invalid Date",
               uploader:
                 `${file.uploader_name ?? ""} ${
                   file.uploader_surname ?? ""
                 }`.trim() || "N/A",
-              source: file.source,
-              projectTitle: file.project_title,
-              projectId: file.project_id.toString(),
-              parentId: file.parent_id,
-              subId: file.sub_id,
-              metaId: file.meta_id,
-              isEvidence: file.is_evidence,
+              source: "File Manager",
+              projectTitle: "N/A",
+              projectId: "all",
+              parentId: null,
+              subId: null,
+              metaId: null,
+              isEvidence: false,
             })),
           );
         } else {

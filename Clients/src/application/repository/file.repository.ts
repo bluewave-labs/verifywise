@@ -30,3 +30,31 @@ export async function getUserFilesMetaData({
 }
 
 
+/**
+ * Upload a file to the file manager
+ *
+ * @param {File} file - The file to upload
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<any>} Upload response with file metadata
+ */
+export async function uploadFileToManager({
+  file,
+  signal,
+}: {
+  file: File;
+  signal?: AbortSignal;
+}): Promise<any> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await apiServices.post("/file-manager", formData, {
+    signal,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
+}
+
+

@@ -15,6 +15,7 @@ import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
 import CustomizableButton from "../../components/Button/CustomizableButton";
+import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 
 const COLUMN_NAMES = [
   "File",
@@ -52,12 +53,7 @@ const FileManager: React.FC = (): JSX.Element => {
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
-
-  // Handle upload button click
-  const handleUploadClick = () => {
-    // TODO: Implement file upload dialog/modal
-    console.log("Upload new file clicked");
-  };
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch projects for the dropdown
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
@@ -68,7 +64,17 @@ const FileManager: React.FC = (): JSX.Element => {
   >("all");
 
   // Fetch files based on selected project
-  const { filesData, loading: loadingFiles } = useUserFilesMetaData();
+  const { filesData, loading: loadingFiles, refetch } = useUserFilesMetaData();
+
+  // Handle upload button click
+  const handleUploadClick = () => {
+    setIsUploadModalOpen(true);
+  };
+
+  // Handle upload success - refetch files
+  const handleUploadSuccess = () => {
+    refetch();
+  };
   const filteredFiles = useMemo(() => {
     if (selectedProject === "all" || selectedProject === null) {
       return filesData;
@@ -104,6 +110,11 @@ const FileManager: React.FC = (): JSX.Element => {
           setRunFileTour(false);
         }}
         tourKey="file-tour"
+      />
+      <FileManagerUploadModal
+        open={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={handleUploadSuccess}
       />
       <HelperDrawer
         open={isHelperDrawerOpen}

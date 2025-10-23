@@ -14,6 +14,7 @@
  */
 
 import { Request, Response } from "express";
+import "multer";
 import { STATUS_CODE } from "../utils/statusCode.utils";
 import {
   uploadFileToManager,

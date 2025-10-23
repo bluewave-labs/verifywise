@@ -74,7 +74,7 @@ const dark = createTheme({
     divider: "#eaecf0",
   },
   shape: {
-    borderRadius: 2,
+    borderRadius: 4,
   },
   boxShadow: shadow,
   components: {

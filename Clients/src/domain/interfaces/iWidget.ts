@@ -3,7 +3,7 @@ import { SelectChangeEvent, Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
-import { ChangeEvent } from "react";
+import { ChangeEvent, ComponentType } from "react";
 import { ProjectRisk } from "../types/ProjectRisk";
 
 /**
@@ -187,4 +187,38 @@ export interface ITimelineEvent {
   title: string;
   description: string;
   riskLevel: number;
+}
+
+export interface IGenerateReportProps {
+  onClose: () => void;
+  onReportGenerated?: () => void;
+  reportType: "project" | "organization" | null;
+}
+
+export interface IInputProps {
+  report_type: string;
+  report_name: string;
+  project: number;
+  framework: number;
+  projectFrameworkId: number;
+  reportType?: "project" | "organization" | null;
+}
+
+export interface IHeaderProps {
+  onHelperClick?: () => void;
+}
+
+export interface IProtectedRouteProps {
+  Component: ComponentType<any>;
+  [key: string]: any;
+}
+
+export interface IPopupProps {
+  popupId: string;
+  popupContent: React.ReactNode;
+  openPopupButtonName: string;
+  popupTitle: string;
+  popupSubtitle?: string;
+  handleOpenOrClose?: (event: React.MouseEvent<HTMLElement>) => void;
+  anchor: null | HTMLElement;
 }

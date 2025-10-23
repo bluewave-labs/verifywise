@@ -11,12 +11,12 @@ import {
   Divider,
   Button,
   Stack,
-  Alert,
+  Alert as MuiAlert,
   Tooltip,
   IconButton,
 } from "@mui/material";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
+import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon, Home, Scale, Database, Bot, Layers, Hash, CheckCircle2, Calendar } from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
@@ -24,6 +24,8 @@ const Plot = createPlotlyComponent(Plotly);
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import MetricInfoIcon from "../../components/MetricInfoIcon";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import Alert from "../../components/Alert";
 import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
@@ -74,6 +76,7 @@ const STYLES = {
     backgroundColor: 'transparent',
     borderRadius: 0,
     border: 'none',
+    boxShadow: 'none',
   },
   button: {
     backgroundColor: COLORS.PRIMARY,
@@ -210,6 +213,7 @@ export default function BiasAndFairnessResultsPage() {
   const [explorerDraftSelection, setExplorerDraftSelection] = useState<Record<string, boolean>>({});
   const [showFullJSON, setShowFullJSON] = useState(false);
   const [showMetricTooltip, setShowMetricTooltip] = useState<string | null>(null);
+  const [showCopyToast, setShowCopyToast] = useState(false);
 
   // Extract metadata from config_data - move this before functions that use it
   const performance: Record<string, number> = metrics?.results?.performance || {};
@@ -365,10 +369,10 @@ export default function BiasAndFairnessResultsPage() {
     try {
       const json = JSON.stringify(metrics?.results || {}, null, 2);
       await navigator.clipboard.writeText(json);
-      // Could add a toast notification here for success feedback
+      setShowCopyToast(true);
+      setTimeout(() => setShowCopyToast(false), 3000);
     } catch (error) {
       console.error('Failed to copy JSON:', error);
-      // Could add a toast notification here for error feedback
     }
   }, [metrics]);
 
@@ -478,7 +482,7 @@ export default function BiasAndFairnessResultsPage() {
   if (error) {
     return (
       <Box display="flex" flexDirection="column" alignItems="center" mt={6} gap={2}>
-        <Alert severity="error" sx={{ maxWidth: 600 }}>
+        <MuiAlert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="body1" sx={{ mb: 1 }}>
             {error}
           </Typography>
@@ -487,7 +491,7 @@ export default function BiasAndFairnessResultsPage() {
               Attempt {retryCount + 1} of 3. Would you like to try again?
             </Typography>
           )}
-        </Alert>
+        </MuiAlert>
         {retryCount < 3 ? (
                 <Button
                   variant="contained"
@@ -522,18 +526,26 @@ export default function BiasAndFairnessResultsPage() {
 
 
   return (
-    <Stack className="vwhome" gap="20px">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }}>
-        <PageBreadcrumbs 
-          items={[
-            { label: "Dashboard", path: "/" },
-            { label: "Bias & Fairness", path: "/fairness-dashboard#biasModule" },
-            { label: "Results", path: "" }
-          ]}
-          autoGenerate={false}
-          sx={{ fontSize: 13 }}
+    <Stack className="vwhome" gap="20px" pb={8}>
+      {showCopyToast && (
+        <Alert
+          variant="success"
+          title="Success"
+          body="All data copied to clipboard"
+          isToast={true}
+          onClick={() => setShowCopyToast(false)}
         />
-      </Stack>
+      )}
+
+      <PageBreadcrumbs
+        items={[
+          { label: "Dashboard", path: "/", icon: <Home size={14} strokeWidth={1.5} /> },
+          { label: "Bias & Fairness", path: "/fairness-dashboard#biasModule", icon: <Scale size={14} strokeWidth={1.5} /> },
+          { label: "Results", path: "" }
+        ]}
+        autoGenerate={false}
+        sx={{ fontSize: 13 }}
+      />
 
       {/* Header Section */}
       <Box>
@@ -624,8 +636,14 @@ export default function BiasAndFairnessResultsPage() {
                             sx={{
                               backgroundColor: isGood ? COLORS.SUCCESS : COLORS.WARNING,
                               color: 'white',
-                              fontWeight: 600,
-                              fontSize: '0.75rem'
+                              fontWeight: 500,
+                              fontSize: '11px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
+                              borderRadius: '4px',
+                              '& .MuiChip-label': {
+                                padding: '4px 8px',
+                              },
                             }}
                           />
                         </Box>
@@ -652,13 +670,13 @@ export default function BiasAndFairnessResultsPage() {
                 </Typography>
 
                 {/* Fairness Legend and Info */}
-                <Alert severity="info" sx={{ mb: 3 }}>
+                <MuiAlert severity="info" sx={{ mb: 3 }}>
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     <strong>Plot interpretation:</strong> Values closer to 0 indicate better fairness.
                     Green bars show good fairness (&lt;{FAIRNESS_THRESHOLD_MODERATE}), yellow shows moderate bias ({FAIRNESS_THRESHOLD_MODERATE}-{FAIRNESS_THRESHOLD_SIGNIFICANT}),
                     and red shows significant bias (&gt;{FAIRNESS_THRESHOLD_SIGNIFICANT}).
                   </Typography>
-                </Alert>
+                </MuiAlert>
 
                 {/* Sex Metrics */}
                 {Object.keys(sexMetrics).length > 0 && (
@@ -666,8 +684,12 @@ export default function BiasAndFairnessResultsPage() {
                     <Paper
                       elevation={0}
                       sx={{
-                        p: 3,
-                        ...STYLES.paper
+                        py: 2,
+                        px: 4,
+                        border: `1px solid ${COLORS.BORDER}`,
+                        borderRadius: 2,
+                        backgroundColor: COLORS.BACKGROUND,
+                        boxShadow: 'none',
                       }}
                     >
                       <Typography
@@ -795,8 +817,12 @@ export default function BiasAndFairnessResultsPage() {
                     <Paper
                       elevation={0}
                       sx={{
-                        p: 3,
-                        ...STYLES.paper
+                        py: 2,
+                        px: 4,
+                        border: `1px solid ${COLORS.BORDER}`,
+                        borderRadius: 2,
+                        backgroundColor: COLORS.BACKGROUND,
+                        boxShadow: 'none',
                       }}
                     >
                       <Typography
@@ -975,14 +1001,15 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Chosen</Typography>
               <Stack spacing={3}>
                 {(metricsCfg.user_selected_metrics || []).map(m => (
-                  <Box key={m} sx={{ 
+                  <Box key={m} sx={{
                     border: '1px solid #eaecf0',
                     borderRadius: 2,
                     backgroundColor: "#FFFFFF",
-                    padding: "11px 36px 11px 14px",
+                    padding: "7.7px 25.2px 7.7px 9.8px",
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5
+                    gap: 0.5,
+                    height: '70%'
                   }}>
                     <input 
                       type="checkbox" 
@@ -992,7 +1019,7 @@ export default function BiasAndFairnessResultsPage() {
                       aria-describedby={`${m}-description`}
                       style={{ marginRight: '8px' }}
                     />
-                    <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
+                    <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '13px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
                     <Tooltip 
                       title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                       placement="top"
@@ -1009,14 +1036,15 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Recommended</Typography>
               <Stack spacing={3}>
                 {(metricsCfg.fairness_compass_recommended_metrics || []).map(m => (
-                  <Box key={m} sx={{ 
+                  <Box key={m} sx={{
                     border: '1px solid #eaecf0',
                     borderRadius: 2,
                     backgroundColor: "#FFFFFF",
-                    padding: "11px 36px 11px 14px",
+                    padding: "7.7px 25.2px 7.7px 9.8px",
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5
+                    gap: 0.5,
+                    height: '70%'
                   }}>
                     <input 
                       type="checkbox" 
@@ -1024,7 +1052,7 @@ export default function BiasAndFairnessResultsPage() {
                       onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} 
                       style={{ marginRight: '8px' }}
                     />
-                    <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
+                    <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '13px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
                     <Tooltip 
                       title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                       placement="top"
@@ -1041,14 +1069,15 @@ export default function BiasAndFairnessResultsPage() {
               <Typography variant="body1" sx={{ mb: 2, ...STYLES.bodyText }}>Available</Typography>
                 <Stack spacing={3}>
                   {(metricsCfg.all_available_metrics || []).map(m => (
-                    <Box key={m} sx={{ 
+                    <Box key={m} sx={{
                       border: '1px solid #eaecf0',
                       borderRadius: 2,
                       backgroundColor: "#FFFFFF",
-                      padding: "11px 36px 11px 14px",
+                      padding: "7.7px 25.2px 7.7px 9.8px",
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 0.5
+                      gap: 0.5,
+                      height: '70%'
                     }}>
                       <input 
                         type="checkbox" 
@@ -1056,7 +1085,7 @@ export default function BiasAndFairnessResultsPage() {
                         onChange={() => setExplorerDraftSelection(prev => ({ ...prev, [m]: !prev[m] }))} 
                         style={{ marginRight: '8px' }}
                       />
-                      <Typography variant="body2" sx={{ color: '#1c2130', fontSize: '15px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
+                      <Typography variant="body2" sx={{ color: COLORS.TEXT_PRIMARY, fontSize: '13px', fontWeight: 500, textAlign: 'left', marginRight: '10px' }}>{m.replace(/_/g, ' ')}</Typography>
                       <Tooltip 
                         title={metricDescriptions[m as keyof typeof metricDescriptions] || "No description available."} 
                         placement="top"
@@ -1072,23 +1101,16 @@ export default function BiasAndFairnessResultsPage() {
           </Grid>
           <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 6, pt: 3, borderTop: '1px solid #e5e7eb' }}>
             <Typography variant="body2" sx={{ color: '#6b7280' }}>Select metrics to include/exclude on the Plots & Graphs.</Typography>
-            <Button 
-              variant="contained" 
-              onClick={handleApplySelection} 
-              disabled={!hasDraftChanges}
-              size="small"
-              sx={{ 
-                px: 3, 
-                py: 1, 
-                fontSize: '15px',
-                boxShadow: 'none !important',
-                '&:hover': {
-                  boxShadow: 'none !important'
-                }
+            <CustomizableButton
+              variant="contained"
+              text="Apply Selection"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
               }}
-            >
-              Apply Selection
-            </Button>
+              onClick={handleApplySelection}
+              isDisabled={!hasDraftChanges}
+            />
           </Box>
 
           {/* Raw JSON Section */}
@@ -1096,38 +1118,26 @@ export default function BiasAndFairnessResultsPage() {
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6" sx={STYLES.bodyText}>Raw JSON data</Typography>
               <Box display="flex" gap={2}>
-                <IconButton
+                <CustomizableButton
+                  variant="contained"
+                  text="Copy data"
+                  sx={{
+                    backgroundColor: "#13715B",
+                    border: "1px solid #13715B",
+                  }}
+                  icon={<CopyIcon size={16} />}
                   onClick={handleCopyJSON}
+                />
+                <CustomizableButton
+                  variant="contained"
+                  text="Download data"
                   sx={{
-                    width: '36px',
-                    height: '36px',
-                    backgroundColor: COLORS.PRIMARY,
-                    color: 'white',
-                    borderRadius: '8px',
-                    '&:hover': {
-                      backgroundColor: COLORS.PRIMARY,
-                      opacity: 0.9
-                    }
+                    backgroundColor: "#13715B",
+                    border: "1px solid #13715B",
                   }}
-                >
-                  <CopyIcon size={24} />
-                </IconButton>
-                <IconButton
+                  icon={<DownloadIcon size={16} />}
                   onClick={handleDownloadJSON}
-                  sx={{
-                    width: '36px',
-                    height: '36px',
-                    backgroundColor: COLORS.PRIMARY,
-                    color: 'white',
-                    borderRadius: '8px',
-                    '&:hover': {
-                      backgroundColor: COLORS.PRIMARY,
-                      opacity: 0.9
-                    }
-                  }}
-                >
-                  <DownloadIcon size={24} />
-                </IconButton>
+                />
               </Box>
             </Box>
             <Divider sx={{ mb: 2 }} />
@@ -1210,18 +1220,22 @@ export default function BiasAndFairnessResultsPage() {
               >
                 Evaluation information
               </Typography>
-              <Grid container spacing={1}>
+              <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Stack spacing={1}>
+                  <Stack spacing={2}>
                     <Box sx={{
                       border: '1px solid #eaecf0',
                       borderRadius: 2,
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Dataset</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Database size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Dataset</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.dataset_name || metrics?.results?.metadata?.dataset || "N/A"}
                       </Typography>
@@ -1232,9 +1246,13 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Model</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Bot size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Model</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.model_name || metrics?.results?.metadata?.model || "N/A"}
                       </Typography>
@@ -1245,9 +1263,13 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Task Type</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Layers size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Task Type</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {(metrics?.model_task || metrics?.results?.metadata?.model_task || "N/A").toString().replace('_', ' ')}
                       </Typography>
@@ -1255,16 +1277,20 @@ export default function BiasAndFairnessResultsPage() {
                   </Stack>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Stack spacing={1}>
+                  <Stack spacing={2}>
                     <Box sx={{
                       border: '1px solid #eaecf0',
                       borderRadius: 2,
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Evaluation ID</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Hash size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Evaluation ID</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.eval_id || "N/A"}
                       </Typography>
@@ -1275,9 +1301,13 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Status</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <CheckCircle2 size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Status</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748", height: '24px', display: 'flex', alignItems: 'center' }}>
                         {metrics?.status || "N/A"}
                       </Typography>
@@ -1288,9 +1318,13 @@ export default function BiasAndFairnessResultsPage() {
                       backgroundColor: "#FFFFFF",
                       minWidth: 228,
                       width: "100%",
-                      padding: "8px 36px 14px 14px"
+                      padding: "8px 36px 14px 14px",
+                      minHeight: '72px'
                     }}>
-                      <Typography sx={{ fontSize: '12px', color: "#8594AC", pb: "2px" }}>Created</Typography>
+                      <Box display="flex" alignItems="center" gap={1} pb="2px">
+                        <Calendar size={14} strokeWidth={1.5} style={{ color: "#8594AC" }} />
+                        <Typography sx={{ fontSize: '12px', color: "#8594AC" }}>Created</Typography>
+                      </Box>
                       <Typography sx={{ fontSize: '13px', fontWeight: 600, color: "#2D3748" }}>
                         {metrics?.created_at ? new Date(metrics.created_at).toLocaleDateString('en-US', {
                           year: 'numeric',

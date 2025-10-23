@@ -18,7 +18,7 @@ import {
   IQuestionnaireAnswers,
   ClassificationResult,
 } from "./iQuestion";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import RiskAnalysisQuestion from "./RiskAnalysisQuestion";
 import Result from "./Result";
@@ -56,6 +56,55 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
   const [showResults, setShowResults] = useState<boolean>(false);
   const [classification, setClassification] =
     useState<ClassificationResult | null>(null);
+
+  // LocalStorage key for this project's risk analysis
+  const STORAGE_KEY = `riskAnalysis_${projectId}`;
+
+  // Load saved progress from localStorage on mount
+  useEffect(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const { answers: savedAnswers, currentQuestionId: savedQuestionId } =
+          JSON.parse(savedData);
+        if (savedAnswers) {
+          setAnswers(savedAnswers);
+        }
+        if (savedQuestionId) {
+          setCurrentQuestionId(savedQuestionId);
+        }
+      } catch (error) {
+        console.error("Failed to load saved risk analysis progress:", error);
+      }
+    }
+  }, [projectId, STORAGE_KEY]);
+
+  const saveAnswerToLocalStorage = useCallback(
+    (id: string) => {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            answers,
+            currentQuestionId: id,
+          }),
+        );
+      } catch (error) {
+        console.error("Failed to save risk analysis progress:", error);
+      }
+    },
+    [answers, STORAGE_KEY],
+  );
+
+  // Clear localStorage for this project
+  const clearSavedProgress = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error("Failed to clear saved risk analysis progress:", error);
+    }
+  }, [STORAGE_KEY]);
+
   // Get current question
   const visibleQuestions = getVisibleQuestions(answers);
   const currentQuestion = visibleQuestions.find(
@@ -82,6 +131,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
     const nextQuestion = getNextQuestion(currentQuestionId, answers);
     if (nextQuestion) {
       setCurrentQuestionId(nextQuestion.id);
+      saveAnswerToLocalStorage(nextQuestion.id);
     }
   };
 
@@ -89,6 +139,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
     const prevQuestion = getPreviousQuestion(currentQuestionId, answers);
     if (prevQuestion) {
       setCurrentQuestionId(prevQuestion.id);
+      saveAnswerToLocalStorage(prevQuestion.id);
     }
   };
 
@@ -103,6 +154,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
     setCurrentQuestionId("Q1");
     setShowResults(false);
     setClassification(null);
+    clearSavedProgress();
   };
 
   const getRiskClassificationType = (level: string) => {
@@ -131,6 +183,7 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
       },
     }).then((response) => {
       if (response.status === 202) {
+        clearSavedProgress(); // Clear localStorage after successful save
         setAlert({
           variant: "success",
           body: "Project updated successfully",
@@ -151,7 +204,13 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
         });
       }
     });
-  }, [projectId, setAlert, classification]);
+  }, [
+    projectId,
+    setAlert,
+    classification,
+    clearSavedProgress,
+    updateClassification,
+  ]);
 
   const handleSave = () => {
     handleSaveConfirm();

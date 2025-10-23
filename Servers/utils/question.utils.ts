@@ -55,21 +55,21 @@ export const getQuestionByIdQuery = async (
   } as QuestionModel & { evidence_files: string[] };
 };
 
-export interface RequestWithFile extends Request {
-  files?:
-  | UploadedFile[]
-  | {
-    [key: string]: UploadedFile[];
-  };
-  file?: UploadedFile;
-}
-
 export interface UploadedFile {
   fieldname: string;
   originalname: string;
   mimetype: string;
   buffer: Buffer;
 }
+
+export type RequestWithFile = Omit<Request, 'file' | 'files'> & {
+  files?:
+  | UploadedFile[]
+  | {
+    [key: string]: UploadedFile[];
+  };
+  file?: UploadedFile;
+};
 
 export const createNewQuestionQuery = async (
   question: QuestionModel,

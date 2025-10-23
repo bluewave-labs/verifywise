@@ -107,7 +107,14 @@ export const biasAndFairnessService = {
   /**
    * Gets all bias and fairness evaluations
    */
-  async getAllBiasFairnessEvaluations(): Promise<Record<string, unknown>[]> {
+  async getAllBiasFairnessEvaluations(): Promise<Array<{
+    eval_id: string;
+    model_name: string;
+    dataset_name: string;
+    status: string;
+    created_at?: string;
+    [key: string]: unknown;
+  }>> {
     const response = await CustomAxios.get("/bias_and_fairness/evaluations", {
       timeout: 60000, // 1 minute timeout
     });

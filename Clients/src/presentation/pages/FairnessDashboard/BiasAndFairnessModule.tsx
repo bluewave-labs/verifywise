@@ -155,7 +155,7 @@ export default function BiasAndFairnessModule() {
       if (pendingEvaluations.length > 0) {
         // Poll status for pending evaluations
         pendingEvaluations.forEach(evaluation => {
-          if (evaluation.eval_id) {
+          if (evaluation.eval_id && typeof evaluation.eval_id === 'string') {
             pollEvaluationStatus(evaluation.eval_id);
           }
         });

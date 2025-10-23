@@ -1180,7 +1180,7 @@ export default function BiasAndFairnessResultsPage() {
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",
                   }}
-                  icon={<CopyIcon size={16} />}
+                  startIcon={<CopyIcon size={16} />}
                   onClick={handleCopyJSON}
                 />
                 <CustomizableButton
@@ -1190,7 +1190,7 @@ export default function BiasAndFairnessResultsPage() {
                     backgroundColor: "#13715B",
                     border: "1px solid #13715B",
                   }}
-                  icon={<DownloadIcon size={16} />}
+                  startIcon={<DownloadIcon size={16} />}
                   onClick={handleDownloadJSON}
                 />
               </Box>
@@ -1230,7 +1230,7 @@ export default function BiasAndFairnessResultsPage() {
                       }
                     }}
                   >
-                    <ExpandMoreIcon size={20} style={{ marginTop: '3px', marginLeft: '4px' }} />
+                    <ExpandMoreIcon size={20} />
                   </IconButton>
                 </Box>
               )}
@@ -1249,7 +1249,7 @@ export default function BiasAndFairnessResultsPage() {
                       }
                     }}
                   >
-                    <ExpandLessIcon size={20} style={{ marginRight: '3px', marginTop: '-2px' }} />
+                    <ExpandLessIcon size={20} />
                   </IconButton>
                 </Box>
               )}

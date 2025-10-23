@@ -1577,6 +1577,10 @@ export default function BiasAndFairnessResultsPage() {
               </Typography>
               <Typography variant="body2" sx={{ mb: 4, color: COLORS.TEXT_SECONDARY }}>
                 Explore comprehensive visual analysis of fairness metrics across different dimensions.
+                <br /><br />
+                <strong>Note:</strong> Advanced visualizations require raw prediction data from the evaluation.
+                These visualizations will be automatically generated when the complete evaluation data is available.
+                Each visualization provides unique insights into different aspects of fairness and bias in your model.
               </Typography>
 
               {/* Demographic Parity Visualization */}
@@ -2324,12 +2328,6 @@ export default function BiasAndFairnessResultsPage() {
                 </Paper>
               </Box>
 
-              {/* Info Alert */}
-              <Alert 
-                variant="info" 
-                title="Note"
-                body="Advanced visualizations require raw prediction data from the evaluation. These visualizations will be automatically generated when the complete evaluation data is available. Each visualization provides unique insights into different aspects of fairness and bias in your model."
-              />
             </Box>
           </Stack>
         </TabPanel>

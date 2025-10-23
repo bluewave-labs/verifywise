@@ -258,6 +258,7 @@ const RiskTimeline: React.FC<IRiskTimelineProps> = ({
                           color: getRiskLevelColor(event.riskLevel),
                           fontWeight: 500,
                           fontSize: 11,
+                          borderRadius: 4,
                           border: `1px solid ${getRiskLevelColor(
                             event.riskLevel
                           )}40`,

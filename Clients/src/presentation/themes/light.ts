@@ -78,7 +78,7 @@ const light = createTheme({
     divider: "#eaecf0",
   },
   shape: {
-    borderRadius: 4,
+    borderRadius: 2,
   },
   boxShadow: shadow,
   components: {

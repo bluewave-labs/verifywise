@@ -104,11 +104,24 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
 
     setIsUploading(false);
 
-    // Check if all uploads were successful
-    const allSuccess = fileList.every((item) => item.status === "success");
-    if (allSuccess && onSuccess) {
+    // Check if any uploads were successful before filtering
+    const anySuccess = fileList.some((item) => item.status === "success");
+
+    // Remove successfully uploaded files
+    setFileList((prev) => {
+      const filtered = prev.filter((item) => item.status !== "success");
+
+      // If no files remain (all were successful), close the modal
+      if (filtered.length === 0) {
+        setTimeout(() => handleClose(), 500); // Small delay to show success before closing
+      }
+
+      return filtered;
+    });
+
+    // Trigger refresh if any uploads were successful
+    if (anySuccess && onSuccess) {
       onSuccess();
-      handleClose();
     }
   };
 
@@ -252,7 +265,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                       backgroundColor: "#FAFAFA",
                     }}
                     secondaryAction={
-                      item.status === "pending" && (
+                      item.status !== "uploading" && (
                         <IconButton
                           edge="end"
                           onClick={() => handleRemoveFile(index)}

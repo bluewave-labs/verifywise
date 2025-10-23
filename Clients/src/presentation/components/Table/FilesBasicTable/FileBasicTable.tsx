@@ -119,7 +119,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     ...col.sx,
                   }}
                 >
-                  {col.name.toString().toUpperCase()}
+                  {typeof col.name === 'string' ? col.name.toUpperCase() : col.name}
                 </TableCell>
               ))}
             </TableRow>

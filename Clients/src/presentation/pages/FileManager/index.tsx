@@ -195,10 +195,18 @@ const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
   onHelperClick,
   onUploadClick,
 }) => (
-  <PageHeader
-    title="Evidences & documents"
-    description="This table lists all the files uploaded to the system."
-    rightContent={
+  <Stack spacing={2}>
+    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+      <Stack direction="row" alignItems="center" spacing={1} pt={2}>
+        <Typography variant="h5" fontWeight="600" fontSize={16}>
+          Evidences & documents
+        </Typography>
+        <Tooltip title="This page shows all files uploaded to the system" arrow>
+          <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+            <InfoIcon size={16} style={{ color: "#666" }} />
+          </Box>
+        </Tooltip>
+      </Stack>
       <Stack direction="row" spacing={2} alignItems="center">
         <Button
           variant="contained"
@@ -220,8 +228,11 @@ const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
         </Button>
         {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
       </Stack>
-    }
-  />
+    </Stack>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      This table lists all the files uploaded to the system.
+    </Typography>
+  </Stack>
 );
 
 export default FileManager;

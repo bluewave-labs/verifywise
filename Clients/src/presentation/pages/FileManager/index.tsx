@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Stack, Box, Typography } from "@mui/material";
+import { Stack, Box, Typography, Button } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -51,6 +51,12 @@ const FileManager: React.FC = (): JSX.Element => {
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+
+  // Handle upload button click
+  const handleUploadClick = () => {
+    // TODO: Implement file upload dialog/modal
+    console.log("Upload new file clicked");
+  };
 
   // Fetch projects for the dropdown
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
@@ -133,6 +139,7 @@ const FileManager: React.FC = (): JSX.Element => {
       />
       <FileManagerHeader
         onHelperClick={() => setIsHelperDrawerOpen(!isHelperDrawerOpen)}
+        onUploadClick={handleUploadClick}
       />
       {/* Project filter dropdown */}
       {loadingProjects || loadingFiles ? (
@@ -180,16 +187,38 @@ const FileManager: React.FC = (): JSX.Element => {
  */
 interface FileManagerHeaderProps {
   onHelperClick?: () => void;
+  onUploadClick?: () => void;
 }
 
 const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
   onHelperClick,
+  onUploadClick,
 }) => (
   <PageHeader
-    title="Evidence & documents"
+    title="Evidences & documents"
     description="This table lists all the files uploaded to the system."
     rightContent={
-      onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Button
+          variant="contained"
+          onClick={onUploadClick}
+          sx={{
+            backgroundColor: "#FF4081",
+            color: "#fff",
+            textTransform: "none",
+            borderRadius: "8px",
+            padding: "8px 16px",
+            fontWeight: 500,
+            fontSize: "14px",
+            "&:hover": {
+              backgroundColor: "#E91E63",
+            },
+          }}
+        >
+          Upload new file
+        </Button>
+        {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
+      </Stack>
     }
   />
 );

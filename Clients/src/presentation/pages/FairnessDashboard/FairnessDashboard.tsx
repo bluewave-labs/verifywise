@@ -333,12 +333,13 @@ export default function FairnessDashboard() {
             }}
             sx={styles.tabList}
           >
-            <Tab
+            {/* ML evaluator tab - commented out for now */}
+            {/* <Tab
               label="ML evaluator"
               value="uploads"
               disableRipple
               sx={{ textTransform: "none !important" }}
-            />
+            /> */}
             <Tab
               label="LLM evaluator"
               value="biasModule"

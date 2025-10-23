@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import {
   Box,
   Typography,
@@ -11,7 +11,6 @@ import {
   Divider,
   Button,
   Stack,
-  Alert,
   Tooltip,
   IconButton,
 } from "@mui/material";
@@ -19,12 +18,15 @@ import { TabContext, TabList, TabPanel } from "@mui/lab";
 import { Copy as CopyIcon, Download as DownloadIcon, ChevronDown as ExpandMoreIcon, ChevronUp as ExpandLessIcon } from "lucide-react";
 import { BarChart } from "@mui/x-charts";
 import createPlotlyComponent from 'react-plotly.js/factory';
+import Editor from '@monaco-editor/react';
+import * as yaml from 'js-yaml';
 import Plotly from 'plotly.js-basic-dist';
 const Plot = createPlotlyComponent(Plotly);
 import { biasAndFairnessService } from "../../../infrastructure/api/biasAndFairnessService";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import MetricInfoIcon from "../../components/MetricInfoIcon";
 import ErrorModal from "../../components/Modals/Error";
+import Alert from "../../components/Alert";
 import { styles } from "./styles";
 import { tabPanelStyle } from "../Vendors/style";
 
@@ -167,6 +169,7 @@ interface ResultsResponse {
   model_name?: string;
   model_task?: string;
   created_at?: string;
+  config_data?: string;
 }
 
 const metricDescriptions: { [metric: string]: string } = {
@@ -209,6 +212,18 @@ export default function BiasAndFairnessResultsPage() {
   const [explorerDraftSelection, setExplorerDraftSelection] = useState<Record<string, boolean>>({});
   const [showFullJSON, setShowFullJSON] = useState(false);
   const [showMetricTooltip, setShowMetricTooltip] = useState<string | null>(null);
+  
+  // Configuration editing states
+  const [isConfigEditMode, setIsConfigEditMode] = useState(false);
+  const [editedConfig, setEditedConfig] = useState<string>("");
+  const [configValidationErrors, setConfigValidationErrors] = useState<Array<{ path: string; msg: string }>>([]);
+  const [isValidatingConfig, setIsValidatingConfig] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const [alert, setAlert] = useState<{
+    variant: "success" | "info" | "warning" | "error";
+    title?: string;
+    body: string;
+  } | null>(null);
 
   // Extract metadata from config_data - move this before functions that use it
   const performance: Record<string, number> = metrics?.results?.performance || {};
@@ -423,7 +438,7 @@ export default function BiasAndFairnessResultsPage() {
         }
       } else {
         const data = await biasAndFairnessService.getBiasFairnessEvaluation(id as string);
-        setMetrics(data);
+        setMetrics(data as unknown as ResultsResponse);
       }
     } catch (error) {
       console.error('Failed to fetch metrics:', error);
@@ -456,6 +471,76 @@ export default function BiasAndFairnessResultsPage() {
     }
   }, [metrics]);
 
+  // Configuration editing handlers
+  const handleEnterEditMode = () => {
+    if (metrics?.config_data) {
+      try {
+        const configObj = typeof metrics.config_data === 'string' 
+          ? JSON.parse(metrics.config_data) 
+          : metrics.config_data;
+        const yamlText = yaml.dump(configObj, { indent: 2, lineWidth: -1 });
+        setEditedConfig(yamlText);
+        setIsConfigEditMode(true);
+        setConfigValidationErrors([]);
+      } catch (error) {
+        console.error("Error converting config to YAML:", error);
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsConfigEditMode(false);
+    setEditedConfig("");
+    setConfigValidationErrors([]);
+  };
+
+
+  const handleSaveConfig = async () => {
+    if (!metrics?.eval_id) return;
+    
+    setIsSavingConfig(true);
+    setConfigValidationErrors([]);
+    
+    try {
+      // First validate
+      const result = await biasAndFairnessService.validateConfig(editedConfig);
+      
+      if (!result.valid) {
+        setConfigValidationErrors(result.errors);
+        setIsSavingConfig(false);
+        return;
+      }
+      
+      // Convert YAML to JSON and save
+      const configObj = yaml.load(editedConfig) as Record<string, unknown>;
+      await biasAndFairnessService.updateEvaluationConfig(metrics.eval_id, configObj);
+      
+      // Update local state
+      setMetrics({
+        ...metrics,
+        config_data: JSON.stringify(configObj)
+      });
+      
+      setIsConfigEditMode(false);
+      setConfigValidationErrors([]);
+      setAlert({
+        variant: "success",
+        title: "Configuration Updated",
+        body: "Configuration updated successfully and re-evaluation has started! 🔄"
+      });
+      
+      // Hide alert after 5 seconds
+      setTimeout(() => setAlert(null), 5000);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to save configuration";
+      setConfigValidationErrors([{ 
+        path: "save", 
+        msg: message
+      }]);
+    } finally {
+      setIsSavingConfig(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -476,8 +561,20 @@ export default function BiasAndFairnessResultsPage() {
 
 
   return (
-    <Stack className="vwhome" gap="20px">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 10 }}>
+    <>
+      <Stack className="vwhome" gap="20px">
+        {alert && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Alert
+              variant={alert.variant}
+              title={alert.title}
+              body={alert.body}
+              isToast={true}
+              onClick={() => setAlert(null)}
+            />
+          </Suspense>
+        )}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 40, mb: 2 }}>
         <PageBreadcrumbs 
           items={[
             { label: "Dashboard", path: "/" },
@@ -611,15 +708,6 @@ export default function BiasAndFairnessResultsPage() {
                   Fairness metrics by protected attribute
                 </Typography>
 
-                {/* Fairness Legend and Info */}
-                <Alert severity="info" sx={{ mb: 3 }}>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>Plot interpretation:</strong> Values closer to 0 indicate better fairness.
-                    Green bars show good fairness (&lt;{FAIRNESS_THRESHOLD_MODERATE}), yellow shows moderate bias ({FAIRNESS_THRESHOLD_MODERATE}-{FAIRNESS_THRESHOLD_SIGNIFICANT}),
-                    and red shows significant bias (&gt;{FAIRNESS_THRESHOLD_SIGNIFICANT}).
-                  </Typography>
-                </Alert>
-
                 {/* Sex Metrics */}
                 {Object.keys(sexMetrics).length > 0 && (
                   <Box mb={4}>
@@ -748,6 +836,15 @@ export default function BiasAndFairnessResultsPage() {
                     </Paper>
                   </Box>
                 )}
+
+                {/* Plot Interpretation */}
+                <Box sx={{ mb: 3, p: 2, backgroundColor: '#f8f9fa', borderRadius: 1, border: '1px solid #e9ecef' }}>
+                  <Typography variant="body2" sx={{ color: '#374151', fontSize: '13px', lineHeight: 1.5 }}>
+                    <strong>Plot interpretation:</strong> Values closer to 0 indicate better fairness.
+                    Green bars show good fairness (&lt;{FAIRNESS_THRESHOLD_MODERATE}), yellow shows moderate bias ({FAIRNESS_THRESHOLD_MODERATE}-{FAIRNESS_THRESHOLD_SIGNIFICANT}),
+                    and red shows significant bias (&gt;{FAIRNESS_THRESHOLD_SIGNIFICANT}).
+                  </Typography>
+                </Box>
 
                 {/* Race Metrics */}
                 {Object.keys(raceMetrics).length > 0 && (
@@ -1296,9 +1393,172 @@ export default function BiasAndFairnessResultsPage() {
               </Grid>
             </Box>
 
-            <Typography variant="body2" sx={{ color: COLORS.TEXT_SECONDARY }}>
-              Configure default thresholds, sampling, and integration settings. (Coming soon)
-            </Typography>
+            {/* Configuration Section */}
+            <Box mb={4}>
+              <Typography
+                variant="h2"
+                component="div"
+                sx={{
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  color: COLORS.TEXT_PRIMARY,
+                  mb: 2,
+                }}
+              >
+                Evaluation configuration
+              </Typography>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                <Typography variant="body2" sx={{ color: COLORS.TEXT_SECONDARY }}>
+                  {isConfigEditMode 
+                    ? "Edit and validate your configuration (YAML format)" 
+                    : "The configuration used for this evaluation"}
+                </Typography>
+                <Box display="flex" gap={2}>
+                  {metrics?.config_data && !isConfigEditMode && (
+                    <>
+                      <IconButton
+                        onClick={() => {
+                          const configText = JSON.stringify(
+                            typeof metrics.config_data === 'string' 
+                              ? JSON.parse(metrics.config_data) 
+                              : metrics.config_data, 
+                            null, 
+                            2
+                          );
+                          navigator.clipboard.writeText(configText);
+                        }}
+                        sx={{
+                          width: '36px',
+                          height: '36px',
+                          backgroundColor: COLORS.PRIMARY,
+                          color: 'white',
+                          borderRadius: '50%',
+                          '&:hover': {
+                            backgroundColor: COLORS.PRIMARY
+                          }
+                        }}
+                      >
+                        <CopyIcon size={18} />
+                      </IconButton>
+                      <Button
+                        variant="contained"
+                        onClick={handleEnterEditMode}
+                        sx={{
+                          textTransform: 'none',
+                          background: 'linear-gradient(135deg, #13715B 0%, #0F5A4A 100%)',
+                          color: 'white',
+                          fontWeight: 500,
+                          fontSize: '13px',
+                          height: '36px',
+                          minHeight: '36px',
+                          maxHeight: '36px',
+                          padding: '0 18px',
+                          borderRadius: '4px',
+                          boxShadow: '0 2px 4px rgba(19, 113, 91, 0.2)',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #13715B 0%, #0F5A4A 100%)',
+                          }
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </>
+                  )}
+                </Box>
+              </Box>
+              
+              {/* Validation Errors Display */}
+              {configValidationErrors.length > 0 && (
+                <Alert 
+                  variant="error" 
+                  title="Validation Errors"
+                  body={configValidationErrors.map(error => `• ${error.path}: ${error.msg}`).join('\n')}
+                />
+              )}
+              
+              {metrics?.config_data ? (
+                <Box>
+                  <Box sx={{
+                    border: '1px solid #e9ecef',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    backgroundColor: '#ffffff',
+                  }}>
+                    <Editor
+                      height="600px"
+                      defaultLanguage={isConfigEditMode ? "yaml" : "json"}
+                      value={isConfigEditMode ? editedConfig : JSON.stringify(
+                        typeof metrics.config_data === 'string' 
+                          ? JSON.parse(metrics.config_data) 
+                          : metrics.config_data, 
+                        null, 
+                        2
+                      )}
+                      onChange={(value) => isConfigEditMode && setEditedConfig(value || "")}
+                      theme="vs"
+                      options={{
+                        readOnly: !isConfigEditMode,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        fontSize: 13,
+                        lineNumbers: 'on',
+                        renderLineHighlight: isConfigEditMode ? 'all' : 'none',
+                        scrollbar: {
+                          vertical: 'auto',
+                          horizontal: 'auto',
+                          verticalScrollbarSize: 10,
+                          horizontalScrollbarSize: 10
+                        },
+                        folding: true,
+                        automaticLayout: true,
+                        tabSize: 2,
+                      }}
+                    />
+                  </Box>
+                  {isConfigEditMode && (
+                    <Box display="flex" justifyContent="flex-end" mt={2} gap={2}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={handleCancelEdit}
+                        disabled={isSavingConfig}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={handleSaveConfig}
+                        disabled={isSavingConfig}
+                        sx={{ 
+                          textTransform: 'none',
+                          backgroundColor: COLORS.PRIMARY,
+                          '&:hover': {
+                            backgroundColor: COLORS.PRIMARY
+                          }
+                        }}
+                      >
+                        {isSavingConfig ? <CircularProgress size={20} color="inherit" /> : "Save config"}
+                      </Button>
+                    </Box>
+                  )}
+                </Box>
+              ) : (
+                <Box sx={{
+                  p: 3,
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <Typography sx={{ color: COLORS.TEXT_MUTED }}>
+                    No configuration data available for this evaluation
+                  </Typography>
+                </Box>
+              )}
+            </Box>
           </Box>
         </TabPanel>
 
@@ -2065,13 +2325,11 @@ export default function BiasAndFairnessResultsPage() {
               </Box>
 
               {/* Info Alert */}
-              <Alert severity="info" sx={{ mt: 4 }}>
-                <Typography variant="body2">
-                  <strong>Note:</strong> Advanced visualizations require raw prediction data from the evaluation.
-                  These visualizations will be automatically generated when the complete evaluation data is available.
-                  Each visualization provides unique insights into different aspects of fairness and bias in your model.
-                </Typography>
-              </Alert>
+              <Alert 
+                variant="info" 
+                title="Note"
+                body="Advanced visualizations require raw prediction data from the evaluation. These visualizations will be automatically generated when the complete evaluation data is available. Each visualization provides unique insights into different aspects of fairness and bias in your model."
+              />
             </Box>
           </Stack>
         </TabPanel>
@@ -2083,5 +2341,6 @@ export default function BiasAndFairnessResultsPage() {
         handleClose={() => setIsErrorModalOpen(false)}
       />
     </Stack>
+    </>
   );
 }

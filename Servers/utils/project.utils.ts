@@ -11,6 +11,10 @@ import { ProjectFrameworksModel } from "../domain.layer/models/projectFrameworks
 import { frameworkDeletionMap } from "../types/framework.type";
 import { IProjectAttributes } from "../domain.layer/interfaces/i.project";
 import { IRoleAttributes } from "../domain.layer/interfaces/i.role";
+import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
+import { replaceTemplateVariables } from "./automation/automation.utils";
+import { enqueueAutomationAction } from "../services/automations/automationProducer";
+import { buildProjectReplacements } from "./automation/project.automation.utils";
 
 interface GetUserProjectsOptions {
   userId: number;
@@ -298,6 +302,44 @@ export const createNewProjectQuery = async (
     );
     (createdProject.dataValues as any)["framework"].push(framework);
   }
+
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'project_added' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "project_added") {
+      const owner_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: createdProject.dataValues.owner },
+          transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildProjectReplacements({ ...createdProject.dataValues, owner_name: owner_name[0][0].full_name });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+
   return createdProject;
 };
 
@@ -645,18 +687,18 @@ export const calculateVendirRisks = async (
  * @returns Array of user IDs that are currently members of the project
  */
 export const getCurrentProjectMembers = async (
-    projectId: number,
-    tenant: string,
-    transaction?: Transaction
+  projectId: number,
+  tenant: string,
+  transaction?: Transaction
 ): Promise<number[]> => {
-    const currentMembersResult = await sequelize.query(
-        `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
-        {
-            replacements: { project_id: projectId },
-            type: QueryTypes.SELECT,
-            transaction,
-        }
-    );
-    return (currentMembersResult as any[]).map((m) => m.user_id);
+  const currentMembersResult = await sequelize.query(
+    `SELECT user_id FROM "${tenant}".projects_members WHERE project_id = :project_id`,
+    {
+      replacements: { project_id: projectId },
+      type: QueryTypes.SELECT,
+      transaction,
+    }
+  );
+  return (currentMembersResult as any[]).map((m) => m.user_id);
 };
 

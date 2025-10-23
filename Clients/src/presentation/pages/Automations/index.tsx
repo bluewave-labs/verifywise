@@ -350,6 +350,18 @@ const AutomationsPage: React.FC = () => {
           return 'Vendor add automation';
         case 'model_added':
           return 'Model add automation';
+        case 'project_added':
+          return 'Project add automation';
+        case 'task_added':
+          return 'Task add automation';
+        case 'risk_added':
+          return 'Risk add automation';
+        case 'training_added':
+          return 'Training add automation';
+        case 'policy_added':
+          return 'Policy add automation';
+        case 'incident_added':
+          return 'Incident add automation';
         case 'vendor_review_date_approaching':
           return 'Vendor review automation';
         default:
@@ -409,6 +421,126 @@ Model Details:
 • Provider: {{model.provider}}
 • Version: {{model.version}}
 • Status: {{model.status}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'project_added':
+          configuration.subject = 'New project "{{project.title}}" has been created';
+          configuration.body = `A new project has been added to the system.
+
+Project Details:
+• Project Title: {{project.title}}
+• Project ID: {{project.id}}
+• Goal: {{project.goal}}
+• Owner: {{project.owner}}
+• Start Date: {{project.start_date}}
+• AI Risk Classification: {{project.ai_risk_classification}}
+• Type of High-Risk Role: {{project.type_of_high_risk_role}}
+• Status: {{project.status}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'task_added':
+          configuration.subject = 'New task "{{task.title}}" has been created';
+          configuration.body = `A new task has been added to the system.
+
+Task Details:
+• Task Title: {{task.title}}
+• Task ID: {{task.id}}
+• Description: {{task.description}}
+• Creator: {{task.creator}}
+• Assignees: {{task.assignees}}
+• Due Date: {{task.due_date}}
+• Priority: {{task.priority}}
+• Status: {{task.status}}
+• Categories: {{task.categories}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'risk_added':
+          configuration.subject = 'New risk "{{risk.name}}" has been identified';
+          configuration.body = `A new risk has been added to the system.
+
+Risk Details:
+• Risk Name: {{risk.name}}
+• Risk ID: {{risk.id}}
+• Description: {{risk.description}}
+• Risk Owner: {{risk.owner}}
+• AI Lifecycle Phase: {{risk.ai_lifecycle_phase}}
+• Category: {{risk.category}}
+• Likelihood: {{risk.likelihood}}
+• Severity: {{risk.severity}}
+• Risk Level: {{risk.risk_level}}
+• Current Risk Level: {{risk.current_risk_level}}
+• Mitigation Status: {{risk.mitigation_status}}
+• Deadline: {{risk.deadline}}
+• Approval Status: {{risk.approval_status}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'training_added':
+          configuration.subject = 'New training "{{training.name}}" has been scheduled';
+          configuration.body = `A new training has been added to the system.
+
+Training Details:
+• Training Name: {{training.name}}
+• Description: {{training.description}}
+• Duration: {{training.duration}}
+• Provider: {{training.provider}}
+• Department: {{training.department}}
+• Status: {{training.status}}
+• Number of People: {{training.number_of_people}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'policy_added':
+          configuration.subject = 'New policy "{{policy.title}}" has been created';
+          configuration.body = `A new policy has been added to the system.
+
+Policy Details:
+• Policy Title: {{policy.title}}
+• Content: {{policy.content}}
+• Status: {{policy.status}}
+• Tags: {{policy.tags}}
+• Next Review Date: {{policy.next_review_date}}
+• Author: {{policy.author}}
+• Assigned Reviewers: {{policy.reviewers}}
+
+This notification was sent on {{date_and_time}}.`;
+          break;
+        case 'incident_added':
+          configuration.subject = 'New incident has been reported';
+          configuration.body = `A new incident has been reported in the system.
+
+Incident Details:
+• AI Project: {{incident.ai_project}}
+• Type: {{incident.type}}
+• Severity: {{incident.severity}}
+• Status: {{incident.status}}
+• Date Occurred: {{incident.occurred_date}}
+• Date Detected: {{incident.date_detected}}
+• Reporter: {{incident.reporter}}
+• Categories of Harm: {{incident.categories_of_harm}}
+• Affected Persons/Groups: {{incident.affected_persons_groups}}
+
+Description:
+{{incident.description}}
+
+Relationship/Causality:
+{{incident.relationship_causality}}
+
+Immediate Mitigations:
+{{incident.immediate_mitigations}}
+
+Planned Corrective Actions:
+{{incident.planned_corrective_actions}}
+
+Model/System Version: {{incident.model_system_version}}
+
+Approval Status: {{incident.approval_status}}
+Approved By: {{incident.approved_by}}
+Approval Date: {{incident.approval_date}}
+Interim Report: {{incident.interim_report}}
 
 This notification was sent on {{date_and_time}}.`;
           break;

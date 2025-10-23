@@ -331,6 +331,92 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
       { var: '{{model.created_at}}', desc: 'Model creation date' },
     ];
 
+    // Common project variables
+    const projectVariables = [
+      { var: '{{project.id}}', desc: 'Project ID' },
+      { var: '{{project.title}}', desc: 'Project title' },
+      { var: '{{project.goal}}', desc: 'Project goal' },
+      { var: '{{project.owner}}', desc: 'Project owner' },
+      { var: '{{project.start_date}}', desc: 'Project start date' },
+      { var: '{{project.ai_risk_classification}}', desc: 'AI risk classification' },
+      { var: '{{project.type_of_high_risk_role}}', desc: 'Type of high-risk role' },
+      { var: '{{project.status}}', desc: 'Project status' },
+    ];
+
+    // Common task variables
+    const taskVariables = [
+      { var: '{{task.id}}', desc: 'Task ID' },
+      { var: '{{task.title}}', desc: 'Task title' },
+      { var: '{{task.description}}', desc: 'Task description' },
+      { var: '{{task.creator}}', desc: 'Task creator' },
+      { var: '{{task.assignees}}', desc: 'Task assignees' },
+      { var: '{{task.due_date}}', desc: 'Task due date' },
+      { var: '{{task.priority}}', desc: 'Task priority' },
+      { var: '{{task.status}}', desc: 'Task status' },
+      { var: '{{task.categories}}', desc: 'Task categories' },
+    ];
+
+    // Common risk variables
+    const riskVariables = [
+      { var: '{{risk.id}}', desc: 'Risk ID' },
+      { var: '{{risk.name}}', desc: 'Risk name' },
+      { var: '{{risk.description}}', desc: 'Risk description' },
+      { var: '{{risk.owner}}', desc: 'Risk owner' },
+      { var: '{{risk.ai_lifecycle_phase}}', desc: 'AI lifecycle phase' },
+      { var: '{{risk.category}}', desc: 'Risk category' },
+      { var: '{{risk.likelihood}}', desc: 'Likelihood' },
+      { var: '{{risk.severity}}', desc: 'Severity' },
+      { var: '{{risk.risk_level}}', desc: 'Risk level (auto-calculated)' },
+      { var: '{{risk.current_risk_level}}', desc: 'Current risk level' },
+      { var: '{{risk.mitigation_status}}', desc: 'Mitigation status' },
+      { var: '{{risk.deadline}}', desc: 'Mitigation deadline' },
+      { var: '{{risk.approval_status}}', desc: 'Approval status' },
+    ];
+
+    // Common training variables
+    const trainingVariables = [
+      { var: '{{training.name}}', desc: 'Training name' },
+      { var: '{{training.description}}', desc: 'Training description' },
+      { var: '{{training.duration}}', desc: 'Training duration' },
+      { var: '{{training.provider}}', desc: 'Training provider' },
+      { var: '{{training.department}}', desc: 'Department' },
+      { var: '{{training.status}}', desc: 'Training status' },
+      { var: '{{training.number_of_people}}', desc: 'Number of people' },
+    ];
+
+    // Common policy variables
+    const policyVariables = [
+      { var: '{{policy.title}}', desc: 'Policy title' },
+      { var: '{{policy.content}}', desc: 'Policy content' },
+      { var: '{{policy.status}}', desc: 'Policy status' },
+      { var: '{{policy.tags}}', desc: 'Policy tags' },
+      { var: '{{policy.next_review_date}}', desc: 'Next review date' },
+      { var: '{{policy.author}}', desc: 'Policy author' },
+      { var: '{{policy.reviewers}}', desc: 'Assigned reviewers' },
+    ];
+
+    // Common incident variables
+    const incidentVariables = [
+      { var: '{{incident.ai_project}}', desc: 'AI Project' },
+      { var: '{{incident.type}}', desc: 'Incident type' },
+      { var: '{{incident.severity}}', desc: 'Severity level' },
+      { var: '{{incident.status}}', desc: 'Incident status' },
+      { var: '{{incident.occurred_date}}', desc: 'Date occurred' },
+      { var: '{{incident.date_detected}}', desc: 'Date detected' },
+      { var: '{{incident.reporter}}', desc: 'Reporter name' },
+      { var: '{{incident.categories_of_harm}}', desc: 'Categories of harm' },
+      { var: '{{incident.affected_persons_groups}}', desc: 'Affected persons/groups' },
+      { var: '{{incident.description}}', desc: 'Incident description' },
+      { var: '{{incident.relationship_causality}}', desc: 'Relationship/causality' },
+      { var: '{{incident.immediate_mitigations}}', desc: 'Immediate mitigations' },
+      { var: '{{incident.planned_corrective_actions}}', desc: 'Planned corrective actions' },
+      { var: '{{incident.model_system_version}}', desc: 'Model/system version' },
+      { var: '{{incident.approval_status}}', desc: 'Approval status' },
+      { var: '{{incident.approved_by}}', desc: 'Approved by' },
+      { var: '{{incident.approval_date}}', desc: 'Approval date' },
+      { var: '{{incident.interim_report}}', desc: 'Interim report flag' },
+    ];
+
     switch (trigger.type) {
       case 'vendor_added':
         return [
@@ -341,6 +427,42 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
       case 'model_added':
         return [
           ...modelVariables,
+          ...commonVariables,
+        ];
+
+      case 'project_added':
+        return [
+          ...projectVariables,
+          ...commonVariables,
+        ];
+
+      case 'task_added':
+        return [
+          ...taskVariables,
+          ...commonVariables,
+        ];
+
+      case 'risk_added':
+        return [
+          ...riskVariables,
+          ...commonVariables,
+        ];
+
+      case 'training_added':
+        return [
+          ...trainingVariables,
+          ...commonVariables,
+        ];
+
+      case 'policy_added':
+        return [
+          ...policyVariables,
+          ...commonVariables,
+        ];
+
+      case 'incident_added':
+        return [
+          ...incidentVariables,
           ...commonVariables,
         ];
 

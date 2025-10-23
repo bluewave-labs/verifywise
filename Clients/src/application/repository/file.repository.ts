@@ -23,7 +23,7 @@ export async function getUserFilesMetaData({
 }: {
   signal?: AbortSignal;
 } = {}): Promise<any> {
-  const response = await apiServices.get("/files", {
+  const response = await apiServices.get("/file-manager", {
     signal,
   });
   return response.data;

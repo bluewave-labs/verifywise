@@ -13,6 +13,7 @@ export const useUserFilesMetaData = () => {
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     // Create an AbortController for request cancellation
@@ -71,7 +72,11 @@ export const useUserFilesMetaData = () => {
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [refetchTrigger]);
 
-  return { filesData, loading, error };
+  const refetch = () => {
+    setRefetchTrigger((prev) => prev + 1);
+  };
+
+  return { filesData, loading, error, refetch };
 };

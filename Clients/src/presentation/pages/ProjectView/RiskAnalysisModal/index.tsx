@@ -11,6 +11,7 @@ import {
   getNextQuestion,
   getPreviousQuestion,
   getVisibleQuestions,
+  getProgress,
 } from "./questions.config";
 import {
   QuestionId,
@@ -21,6 +22,7 @@ import { useCallback, useState } from "react";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import RiskAnalysisQuestion from "./RiskAnalysisQuestion";
 import Result from "./Result";
+import ProgressTracker from "./ProgressTracker";
 import { classifyRisk } from "../../../utils/riskClassification";
 import { updateProject } from "../../../../application/repository/project.repository";
 import { AiRiskClassification } from "../../../../domain/enums/aiRiskClassification.enum";
@@ -60,6 +62,9 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
     (q) => q.id === currentQuestionId,
   );
   const finalQuestion = currentQuestionId === "Q5";
+
+  // Calculate progress
+  const progress = getProgress(currentQuestionId, answers);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -211,6 +216,12 @@ const RiskAnalysisModal: React.FC<RiskAnalysisModalProps> = ({
           />
         ) : (
           <>
+            {/* Progress Tracker */}
+            <ProgressTracker
+              currentStep={progress.current}
+              totalSteps={progress.total}
+            />
+
             {/* Content */}
             <Stack spacing={3}>
               {currentQuestion ? (

@@ -297,3 +297,21 @@ export const getPreviousQuestion = (
 
   return visibleQuestions[currentIndex - 1];
 };
+
+/**
+ * Get progress information for the current questionnaire state
+ */
+export const getProgress = (
+  currentQuestionId: QuestionId,
+  answers: IQuestionnaireAnswers,
+): { current: number; total: number } => {
+  const visibleQuestions = getVisibleQuestions(answers);
+  const currentIndex = visibleQuestions.findIndex(
+    (q) => q.id === currentQuestionId,
+  );
+
+  return {
+    current: currentIndex >= 0 ? currentIndex + 1 : 1,
+    total: visibleQuestions.length,
+  };
+};

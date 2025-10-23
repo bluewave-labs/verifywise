@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Stack, Box, Typography, Button, Tooltip } from "@mui/material";
-import { Info as InfoIcon } from "lucide-react";
+import { Stack, Box, Typography, Tooltip } from "@mui/material";
+import { Info as InfoIcon, Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
@@ -14,7 +14,7 @@ import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
-import PageHeader from "../../components/Layout/PageHeader";
+import CustomizableButton from "../../components/Button/CustomizableButton";
 
 const COLUMN_NAMES = [
   "File",
@@ -208,24 +208,17 @@ const FileManagerHeader: React.FC<FileManagerHeaderProps> = ({
         </Tooltip>
       </Stack>
       <Stack direction="row" spacing={2} alignItems="center">
-        <Button
+        <CustomizableButton
           variant="contained"
-          onClick={onUploadClick}
+          text="Upload new file"
           sx={{
-            backgroundColor: "#FF4081",
-            color: "#fff",
-            textTransform: "none",
-            borderRadius: "8px",
-            padding: "8px 16px",
-            fontWeight: 500,
-            fontSize: "14px",
-            "&:hover": {
-              backgroundColor: "#E91E63",
-            },
+            backgroundColor: "#13715B",
+            border: "1px solid #13715B",
+            gap: 2,
           }}
-        >
-          Upload new file
-        </Button>
+          icon={<UploadIcon size={16} />}
+          onClick={onUploadClick}
+        />
         {onHelperClick && <HelperIcon onClick={onHelperClick} size="small" />}
       </Stack>
     </Stack>

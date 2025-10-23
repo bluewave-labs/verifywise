@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PolicyTable from "../../components/Policies/PolicyTable";
 import PolicyDetailModal from "../../components/Policies/PolicyDetailsModal";
 import {
@@ -12,6 +13,8 @@ import CustomizableButton from "../../components/Button/CustomizableButton";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
+import PageTour from "../../components/PageTour";
+import PolicySteps from "./PolicySteps";
 import {
   deletePolicy,
   getAllPolicies,
@@ -29,6 +32,8 @@ import Alert from "../../components/Alert";
 import { AlertProps } from "../../../domain/interfaces/iAlert";
 
 const PolicyDashboard: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
@@ -40,16 +45,29 @@ const PolicyDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [alert, setAlert] = useState<AlertProps | null>(null);
+  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
 
   const fetchAll = async () => {
     const [pRes, tRes] = await Promise.all([getAllPolicies(), getAllTags()]);
     setPolicies(pRes);
     setTags(tRes);
+    setIsInitialLoadComplete(true);
   };
 
   useEffect(() => {
     fetchAll();
   }, []);
+
+  // Auto-open create policy modal when navigating from "Add new..." dropdown
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setSelectedPolicy(null);
+      setShowModal(true);
+
+      // Clear the navigation state to prevent re-opening on subsequent navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleOpen = (id?: string) => {
     if (!id) {
@@ -181,8 +199,9 @@ const PolicyDashboard: React.FC = () => {
         />
 
         {/* Policy by Status Cards */}
+        {/* TODO: Refactor to always show cards (like Model Inventory) to prevent layout shift and beacon positioning issues */}
         {policies.length > 0 && (
-          <Box>
+          <Box data-joyride-id="policy-status-cards">
             <PolicyStatusCard policies={policies} />
           </Box>
         )}
@@ -196,22 +215,24 @@ const PolicyDashboard: React.FC = () => {
           sx={{ width: "100%" }}
         >
           {/* Left side: Dropdown + Search together */}
-          <Stack direction="row" spacing={4} alignItems="center">
+          <Stack direction="row" spacing={6} alignItems="center">
             {/* Dropdown Filter */}
-            <Select
-              id="policy-status"
-              value={statusFilter}
-              items={statusOptions}
-              onChange={(e: any) => setStatusFilter(e.target.value)}
-              sx={{
-                minWidth: "180px",
-                height: "34px",
-                bgcolor: "#fff",
-              }}
-            />
+            <div data-joyride-id="policy-status-filter">
+              <Select
+                id="policy-status"
+                value={statusFilter}
+                items={statusOptions}
+                onChange={(e: any) => setStatusFilter(e.target.value)}
+                sx={{
+                  minWidth: "180px",
+                  height: "34px",
+                  bgcolor: "#fff",
+                }}
+              />
+            </div>
 
             {/* Expandable Search */}
-            <Box sx={searchBoxStyle(isSearchBarVisible)}>
+            <Box sx={searchBoxStyle(isSearchBarVisible)} data-joyride-id="policy-search">
               <IconButton
                 disableRipple
                 disableFocusRipple
@@ -237,18 +258,20 @@ const PolicyDashboard: React.FC = () => {
           </Stack>
 
           {/* Right side: Add New Policy Button */}
-          <CustomizableButton
-            variant="contained"
-            text="Add new policy"
-            sx={{
-              backgroundColor: "#13715B",
-              border: "1px solid #13715B",
-              gap: 3,
-              height: "fit-content",
-            }}
-            icon={<AddCircleOutlineIcon size={16} />}
-            onClick={handleAddNewPolicy}
-          />
+          <Box data-joyride-id="add-policy-button">
+            <CustomizableButton
+              variant="contained"
+              text="Add new policy"
+              sx={{
+                backgroundColor: "#13715B",
+                border: "1px solid #13715B",
+                gap: 3,
+                height: "fit-content",
+              }}
+              icon={<AddCircleOutlineIcon size={16} />}
+              onClick={handleAddNewPolicy}
+            />
+          </Box>
         </Stack>
 
       {/* Table / Empty state */}
@@ -292,6 +315,8 @@ const PolicyDashboard: React.FC = () => {
           onClick={() => setAlert(null)}
         />
       )}
+
+      <PageTour steps={PolicySteps} run={isInitialLoadComplete} tourKey="policy-tour" />
     </Stack>
   );
 };

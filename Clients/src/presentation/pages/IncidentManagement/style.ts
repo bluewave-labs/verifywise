@@ -26,7 +26,7 @@ export const incidentStatusSelect = {
 export const addNewIncidentButton = {
     backgroundColor: "#13715B",
     border: "1px solid #13715B",
-    gap: "20px",
+    gap: "8px",
 };
 
 // Summary component styles (IncidentSummary.tsx)
@@ -190,6 +190,8 @@ export const incidentShowingText = (theme: Theme) => ({
     fontSize: 11,
     opacity: 0.7,
     fontWeight: 400,
+    whiteSpace: 'nowrap' as const,
+    // Note: This will be replaced by singleTheme.tableStyles.primary.footer.cell in the future
 });
 
 export const incidentPaginationMenu = (theme: Theme) => ({

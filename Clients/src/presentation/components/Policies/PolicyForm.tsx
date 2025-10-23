@@ -42,7 +42,12 @@ const statuses: FormData["status"][] = [
   "Deprecated",
 ];
 
-const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) => {
+const PolicyForm: React.FC<Props> = ({
+  formData,
+  setFormData,
+  tags,
+  errors,
+}) => {
   const theme = useTheme();
   const { users } = useUsers();
 
@@ -97,7 +102,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
           <Stack sx={{ width: "50%" }}>
             <DatePicker
               label="Next review date"
-              date={formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null}
+              date={
+                formData.nextReviewDate ? dayjs(formData.nextReviewDate) : null
+              }
               handleDateChange={handleDateChange}
               sx={{
                 width: "100%",
@@ -137,7 +144,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
       <Stack direction="row" justifyContent="space-between" spacing={4}>
         {/* Team Members */}
         <Stack sx={{ gap: 2, width: "50%" }}>
-          <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}>
+          <Typography
+            sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          >
             Team members
           </Typography>
           <Autocomplete
@@ -146,8 +155,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
             size="small"
             value={formData.assignedReviewers}
             options={
-              users.filter((user) =>
-                !formData.assignedReviewers.some((u) => u.id === user.id)
+              users.filter(
+                (user) =>
+                  !formData.assignedReviewers.some((u) => u.id === user.id)
               ) || []
             }
             noOptionsText={
@@ -240,7 +250,9 @@ const PolicyForm: React.FC<Props> = ({ formData, setFormData, tags, errors }) =>
 
         {/* Tags */}
         <Stack sx={{ gap: 2, width: "50%" }}>
-          <Typography sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}>
+          <Typography
+            sx={{ fontSize: theme.typography.fontSize, fontWeight: 500 }}
+          >
             Tags
           </Typography>
           <Autocomplete

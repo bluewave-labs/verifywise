@@ -60,6 +60,10 @@ const AutomationsPage: React.FC = () => {
       const triggersResponse = await CustomAxios.get('/automations/triggers');
       const triggers = triggersResponse.data.data;
 
+      // Fetch users to map emails back to user IDs
+      const usersResponse = await CustomAxios.get('/users');
+      const users = usersResponse.data.data;
+
       // Map backend automations to frontend format
       const mappedAutomations: Automation[] = await Promise.all(
         backendAutomations.map(async (backendAuto: any) => {
@@ -77,13 +81,19 @@ const AutomationsPage: React.FC = () => {
           const detailResponse = await CustomAxios.get(`/automations/${backendAuto.id}`);
           const detailData = detailResponse.data.data;
 
+          // Parse trigger params from the automation (check both backendAuto and detailData)
+          const paramsSource = detailData.params || backendAuto.params;
+          const triggerParams = paramsSource
+            ? (typeof paramsSource === 'string' ? JSON.parse(paramsSource) : paramsSource)
+            : {};
+
           // Map trigger to frontend format
           const frontendTrigger: Trigger | null = trigger ? {
             id: String(trigger.id),
             type: trigger.key,
             name: trigger.label,
             description: trigger.description || '',
-            configuration: {},
+            configuration: triggerParams,
           } : null;
 
           // Map actions to frontend format
@@ -93,11 +103,17 @@ const AutomationsPage: React.FC = () => {
             // Parse params if string
             let parsedParams = typeof action.params === 'string' ? JSON.parse(action.params) : action.params || {};
 
-            // Convert 'to' array back to comma-separated string for textarea display
+            // Convert 'to' array of emails back to user IDs for the multi-select component
             if (parsedParams.to && Array.isArray(parsedParams.to)) {
+              // Map email addresses back to user IDs
+              const userIds = parsedParams.to.map((email: string) => {
+                const user = users.find((u: any) => u.email === email);
+                return user ? user.id : null;
+              }).filter((id: any) => id !== null);
+
               parsedParams = {
                 ...parsedParams,
-                to: parsedParams.to.join(', ')
+                to: userIds
               };
             }
 
@@ -397,14 +413,18 @@ Model Details:
 This notification was sent on {{date_and_time}}.`;
           break;
         case 'vendor_review_date_approaching':
-          configuration.subject = 'Review for {{vendor_name}} due on {{review_date}}';
+          configuration.subject = 'Review for {{vendor.name}} due on {{review_date}}';
           configuration.body = `This is a reminder that a vendor review is approaching.
 
 Review Details:
-• Vendor: {{vendor_name}}
-• Vendor ID: {{vendor_id}}
+• Vendor Name: {{vendor.name}}
+• Vendor ID: {{vendor.id}}
+• Services/Products: {{vendor.provides}}
+• Website: {{vendor.website}}
+• Contact Person: {{vendor.contact}}
 • Scheduled Review Date: {{review_date}}
 • Days Until Review: {{days_until_review}}
+• Last Review Date: {{last_review_date}}
 • Assigned Reviewer: {{reviewer}}
 
 Please complete the review by the scheduled date.
@@ -531,6 +551,10 @@ This notification was sent on {{date_and_time}}.`;
       const actionsResponse = await CustomAxios.get(`/automations/actions/by-triggerId/${triggerData.id}`);
       const availableActions = actionsResponse.data.data;
 
+      // Fetch users to map user IDs to emails
+      const usersResponse = await CustomAxios.get('/users');
+      const users = usersResponse.data.data;
+
       // Prepare the actions data
       const processedActions = selectedAutomation.actions.map((action, index) => {
         // Find the action type ID
@@ -540,15 +564,34 @@ This notification was sent on {{date_and_time}}.`;
           throw new Error(`Action type "${action.type}" not found for this trigger`);
         }
 
-        // Process the configuration to ensure 'to' field is an array
+        // Process the configuration to ensure 'to' field is an array of emails
         const processedParams = { ...action.configuration };
 
-        // If 'to' field exists and is a string, split it into an array
-        if (processedParams.to && typeof processedParams.to === 'string') {
-          processedParams.to = processedParams.to
-            .split(',')
-            .map((email: string) => email.trim())
-            .filter((email: string) => email.length > 0);
+        // If 'to' field exists, convert it to an array of email addresses
+        if (processedParams.to) {
+          let recipientIds: string[] = [];
+
+          if (typeof processedParams.to === 'string') {
+            // Split by comma if it's a string
+            recipientIds = processedParams.to
+              .split(',')
+              .map((item: string) => item.trim())
+              .filter((item: string) => item.length > 0);
+          } else if (Array.isArray(processedParams.to)) {
+            // Already an array
+            recipientIds = processedParams.to;
+          }
+
+          // Convert user IDs to email addresses
+          processedParams.to = recipientIds.map((id: string) => {
+            // // Check if it's already an email address
+            // if (id.includes('@')) {
+            //   return id;
+            // }
+            // Otherwise, it's a user ID - look up the email
+            const user = users.find((u: any) => String(u.id) === String(id));
+            return user ? user.email : id;
+          }).filter((email: string) => email && email.length > 0);
         }
 
         return {
@@ -565,6 +608,7 @@ This notification was sent on {{date_and_time}}.`;
         const updateData = {
           triggerId: triggerData.id,
           name: selectedAutomation.name,
+          params: JSON.stringify(selectedAutomation.trigger.configuration || {}),
           actions: processedActions,
         };
 
@@ -589,6 +633,7 @@ This notification was sent on {{date_and_time}}.`;
         const automationData = {
           triggerId: triggerData.id,
           name: selectedAutomation.name,
+          params: JSON.stringify(selectedAutomation.trigger.configuration || {}),
           actions: processedActions,
         };
 
@@ -653,7 +698,7 @@ This notification was sent on {{date_and_time}}.`;
             <Grid
               item
               xs={12}
-              md={showConfigurationPanel ? 3 : 4}
+              md={3}
               sx={{
                 height: '100%',
                 borderRight: `1px solid ${theme.palette.border.light}`,
@@ -680,7 +725,7 @@ This notification was sent on {{date_and_time}}.`;
             <Grid
               item
               xs={12}
-              md={showConfigurationPanel ? 6 : 8}
+              md={showConfigurationPanel ? 6 : 9}
               sx={{
                 height: '100%',
                 ...(showConfigurationPanel ? { borderRight: `1px solid ${theme.palette.border.light}` } : {}),

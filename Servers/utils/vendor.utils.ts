@@ -23,7 +23,7 @@ export const getAllVendorsQuery = async (
       model: VendorModel,
     }
   );
-  for (let vendor of vendors as (VendorModel & { projects: number[] })[]) {
+  for (let vendor of vendors as (VendorModel & { projects: number[], reviewer_name: string })[]) {
     const projects = await sequelize.query(
       `SELECT project_id FROM "${tenant}".vendors_projects WHERE vendor_id = :vendor_id`,
       {
@@ -33,6 +33,15 @@ export const getAllVendorsQuery = async (
       }
     );
     vendor["projects"] = projects.map((p) => p.project_id);
+
+    const reviewer_name = await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :reviewer_id`,
+      {
+        replacements: { reviewer_id: vendor.reviewer },
+      }
+    ) as [{ full_name: string }[], number];
+    vendor["reviewer_name"] =
+      reviewer_name[0].length > 0 ? reviewer_name[0][0].full_name : "";
   }
   return vendors;
 };

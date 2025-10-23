@@ -656,6 +656,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                 onClick={onSave}
                 isDisabled={isSaving}
                 loading={isSaving}
+                sx={{ minWidth: 200 }}
               >
                 {isSaving ? 'Saving...' : 'Save this automation'}
               </CustomizableButton>

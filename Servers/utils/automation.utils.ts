@@ -67,8 +67,7 @@ export const getAutomationByIdQuery = async (id: number, tenant: string) => {
 }
 
 export const createAutomationQuery = async (
-  triggerId: number,
-  name: string,
+  automationMeta: Partial<IAutomation>,
   actions: Partial<ITenantAutomationAction>[],
   userId: number,
   tenant: string,
@@ -76,10 +75,10 @@ export const createAutomationQuery = async (
 ) => {
   const _automation = await sequelize.query(
     `INSERT INTO "${tenant}".automations(
-      name, trigger_id, created_by) VALUES (
-      :name, :triggerId, :userId) RETURNING *;`,
+      name, trigger_id, params, created_by) VALUES (
+      :name, :trigger_id, :params, :userId) RETURNING *;`,
     {
-      replacements: { name, triggerId, userId }, transaction
+      replacements: { ...automationMeta, params: JSON.stringify(automationMeta.params), userId }, transaction
     }
   ) as [ITenantAutomationAction[], number];
   const automation = _automation[0][0] as unknown as (ITenantAutomationAction & { actions: ITenantAutomationAction[] });
@@ -121,14 +120,18 @@ export const updateAutomationByIdQuery = async (
 ) => {
   let automation = null;
   const updatedAutomation: Partial<IAutomation> = {};
-  console.log("Current Automation Data:", currentAutomation);
   const setClause = [
     "name",
     "trigger_id",
+    "params",
     "is_active"
   ].filter((field) => {
     if (field === "is_active" && currentAutomation[field as keyof IAutomation] !== undefined) {
       (updatedAutomation as any)[field] = currentAutomation[field as keyof IAutomation];
+      return true;
+    }
+    if (field === "params" && currentAutomation[field as keyof IAutomation] !== undefined) {
+      (updatedAutomation as any)[field] = JSON.stringify(currentAutomation[field as keyof IAutomation]);
       return true;
     }
     if (currentAutomation[field as keyof IAutomation] !== undefined && currentAutomation[field as keyof IAutomation]) {

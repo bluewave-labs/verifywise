@@ -31,7 +31,7 @@ export enum IncidentType {
 export enum HarmCategory {
     HEALTH = "Health",
     SAFETY = "Safety",
-    FUNDAMENTAL_RIGHTS = "Fundamental rights",
+    FUNDAMENTAL_RIGHTS = "Rights",
     PROPERTY = "Property",
     ENVIRONMENT = "Environment",
 }

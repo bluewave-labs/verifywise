@@ -32,3 +32,14 @@ export interface IProjectCardProps {
   controls: Controls;
   last_updated: string;
 }
+
+export interface IProjectFiltersProps {
+  projects: any[];
+  onFilterChange: (filteredProjects: any[], filters: any) => void;
+}
+
+export interface IProjectListProps {
+  projects: Project[];
+  newProjectButton?: React.ReactNode;
+  onFilterChange?: (filteredProjects: Project[], filters: any) => void;
+}

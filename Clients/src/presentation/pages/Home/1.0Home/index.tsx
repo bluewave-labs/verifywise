@@ -7,7 +7,6 @@ import {
   vwhomeHeading,
 } from "./style";
 import { VerifyWiseContext } from "../../../../application/contexts/VerifyWise.context";
-import CustomizableToast from "../../../components/Toast";
 import Alert from "../../../components/Alert";
 import { FrameworkTypeEnum } from "../../../components/Forms/ProjectForm/constants";
 import ProjectForm from "../../../components/Forms/ProjectForm";
@@ -24,8 +23,6 @@ import PageBreadcrumbs from "../../../components/Breadcrumbs/PageBreadcrumbs";
 import CustomizableButton from "../../../components/Button/CustomizableButton";
 import allowedRoles from "../../../../application/constants/permissions";
 import { CirclePlus as AddCircleOutlineIcon } from "lucide-react";
-import { postAutoDrivers } from "../../../../application/repository/entity.repository";
-import { logEngine } from "../../../../application/tools/log.engine";
 
 
 const Home = () => {
@@ -43,14 +40,16 @@ const Home = () => {
     useState<boolean>(false);
   const [refreshProjectsFlag, setRefreshProjectsFlag] =
     useState<boolean>(false);
-  const [showToastNotification, setShowToastNotification] = useState<boolean>(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const { dashboard, fetchDashboard } = useDashboard();
 
   useEffect(() => {
     if (dashboard) {
-      setProjects(dashboard.projects_list.filter((p) => !p.is_organizational));
+      const allProjects = dashboard.projects_list.filter((p) => !p.is_organizational);
+      setProjects(allProjects);
+      setFilteredProjects(allProjects);
     }
   }, [dashboard]);
 
@@ -98,59 +97,10 @@ const Home = () => {
     setRefreshProjectsFlag((prev) => !prev);
   };
 
-
-  const handleGenerateDemoDataClick = async () => {
-    setShowToastNotification(true);
-    try {
-      const response = await postAutoDrivers();
-      if (response.status === 201) {
-        logEngine({
-          type: "info",
-          message: "Demo data generated successfully.",
-        });
-        setAlertState({
-          variant: "success",
-          body: "Demo data generated successfully.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 3000);
-
-        await fetchDashboard();
-        setShowToastNotification(false);
-        window.location.reload();
-      } else {
-        logEngine({
-          type: "error",
-          message: "Failed to generate demo data.",
-        });
-        setAlertState({
-          variant: "error",
-          body: "Failed to generate demo data.",
-        });
-        setTimeout(() => {
-          setAlertState(undefined);
-        }, 3000);
-      }
-      setShowToastNotification(false);
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      logEngine({
-        type: "error",
-        message: `An error occurred: ${errorMessage}`,
-      });
-      setAlertState({
-        variant: "error",
-        body: `An error occurred: ${errorMessage}`,
-      });
-      setTimeout(() => {
-        setAlertState(undefined);
-      }, 3000);
-    } finally {
-      setShowToastNotification(false);
-      setRefreshProjectsFlag((prev) => !prev);
-    }
+  const handleFilterChange = (filtered: Project[], filters: any) => {
+    setFilteredProjects(filtered);
   };
+
 
   return (
     <Stack className="vwhome" gap={"16px"}>
@@ -197,10 +147,7 @@ const Home = () => {
           onClick={() => setAlertState(undefined)}
         />
       )}
-      {showToastNotification && (
-        <CustomizableToast title="Generating demo data. Please wait, this process may take some time..." />
-      )}
-      {/* Use Cases Header */}
+            {/* Use Cases Header */}
       <Stack spacing={2}>
         <Stack direction="row" alignItems="center" spacing={1} sx={vwhomeBody}>
           <Typography sx={vwhomeHeading}>Use cases</Typography>
@@ -217,6 +164,7 @@ const Home = () => {
       {/* Projects List */}
       <ProjectList
         projects={projects}
+        onFilterChange={handleFilterChange}
         newProjectButton={
           <Stack direction="row" spacing={2}>
             <div data-joyride-id="new-project-button" ref={newProjectButtonRef}>
@@ -235,24 +183,7 @@ const Home = () => {
                 }
               />
             </div>
-            {allowedRoles.projects.create.includes(userRoleName) && (
-              <CustomizableButton
-                variant="outlined"
-                text="Create Demo Data"
-                sx={{
-                  borderColor: "#13715B",
-                  color: "#13715B",
-                  gap: 2,
-                  "&:hover": {
-                    borderColor: "#13715B",
-                    backgroundColor: "rgba(19, 113, 91, 0.04)",
-                  },
-                }}
-                onClick={handleGenerateDemoDataClick}
-                isDisabled={showToastNotification}
-              />
-            )}
-          </Stack>
+            </Stack>
         }
       />
 

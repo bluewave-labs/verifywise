@@ -30,6 +30,7 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
 
   const columns = [
     { id: "title", label: "Use case title", minWidth: 200 },
+    { id: "status", label: "Use Case Status", minWidth: 130 },
     { id: "risk", label: "AI Risk Level", minWidth: 130 },
     { id: "role", label: "Role", minWidth: 150 },
     { id: "startDate", label: "Start Date", minWidth: 120 },
@@ -55,6 +56,41 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
           return { bg: "#c8e6c9", color: "#388e3c" }; // light green bg, dark green text
         default:
           return { bg: "#f5f5f5", color: "#9e9e9e" }; // default grey
+      }
+    })();
+
+    return {
+      backgroundColor: style.bg,
+      color: style.color,
+      padding: "4px 8px",
+      borderRadius: "4px !important",
+      fontWeight: 500,
+      fontSize: "11px",
+      textTransform: "uppercase" as const,
+      display: "inline-block" as const,
+      letterSpacing: "0.5px",
+    };
+  };
+
+  const getStatusColor = (status: string | undefined) => {
+    const style = (() => {
+      switch (status?.toLowerCase()) {
+        case "not started":
+          return { bg: "#f5f5f5", color: "#757575" }; // light grey bg, dark grey text
+        case "in progress":
+          return { bg: "#e3f2fd", color: "#1976d2" }; // light blue bg, dark blue text
+        case "under review":
+          return { bg: "#fff3e0", color: "#f57c00" }; // light orange bg, dark orange text
+        case "completed":
+          return { bg: "#e8f5e8", color: "#2e7d32" }; // light green bg, dark green text
+        case "closed":
+          return { bg: "#f3e5f5", color: "#7b1fa2" }; // light purple bg, dark purple text
+        case "on hold":
+          return { bg: "#fff8e1", color: "#f9a825" }; // light yellow bg, dark yellow text
+        case "rejected":
+          return { bg: "#ffebee", color: "#c62828" }; // light red bg, dark red text
+        default:
+          return { bg: "#f5f5f5", color: "#757575" }; // default grey
       }
     })();
 
@@ -198,6 +234,12 @@ const ProjectTableView: React.FC<IProjectTableViewProps> = ({ projects }) => {
                 }}
               >
                 {project.project_title}
+              </TableCell>
+
+              <TableCell sx={singleTheme.tableStyles.primary.body.cell}>
+                <span style={getStatusColor(project.status)}>
+                  {project.status || "Not Started"}
+                </span>
               </TableCell>
 
               <TableCell sx={singleTheme.tableStyles.primary.body.cell}>

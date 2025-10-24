@@ -47,10 +47,11 @@ export async function uploadFileToManager({
   const formData = new FormData();
   formData.append("file", file);
 
+  // Delete Content-Type header to let axios auto-detect and set the proper boundary
   const response = await apiServices.post("/file-manager", formData, {
     signal,
     headers: {
-      "Content-Type": "multipart/form-data",
+      "Content-Type": undefined,
     },
   });
 

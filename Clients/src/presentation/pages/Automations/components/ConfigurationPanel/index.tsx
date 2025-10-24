@@ -167,6 +167,11 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
         // Use TemplateField for subject and body with variable autocomplete
         if (isTemplateField && selectedItemType === 'action') {
+          // Check if this is the body field and trigger is set to "Updated" - if so, disable editing
+          const isUpdateTrigger = trigger?.configuration?.changeType === 'Updated';
+          const isBodyField = field.key === 'body';
+          const shouldDisableBody = isUpdateTrigger && isBodyField;
+
           return (
             <TemplateField
               key={field.key}
@@ -181,6 +186,7 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
               isRequired={field.required}
               variables={templateVariables}
               ref={inputRef}
+              disabled={shouldDisableBody}
             />
           );
         }
@@ -297,15 +303,45 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   const getTemplateVariables = () => {
     if (!trigger) return [];
 
+    // Check if this is an update trigger
+    const isUpdateTrigger = trigger.configuration?.changeType === 'Updated';
+
+    // Helper function to add old_* versions of variables for update triggers
+    const addOldVariables = (variables: Array<{ var: string; desc: string }>) => {
+      if (!isUpdateTrigger) return variables;
+
+      const withOldVariables: Array<{ var: string; desc: string }> = [];
+
+      variables.forEach(item => {
+        // Add the current/new variable
+        withOldVariables.push(item);
+
+        // Add the old_ version (skip date_and_time and other non-entity fields)
+        if (!item.var.includes('date_and_time')) {
+          const oldVar = item.var.replace('{{', '{{old_');
+          withOldVariables.push({
+            var: oldVar,
+            desc: `${item.desc} (before update)`
+          });
+        }
+      });
+
+      return withOldVariables;
+    };
+
     // Common variables available for all triggers
     const commonVariables = [
       { var: '{{date_and_time}}', desc: 'Date and time of the event' },
     ];
 
+    // Add changes_summary for update triggers
+    const updateSpecificVariables = isUpdateTrigger
+      ? [{ var: '{{changes_summary}}', desc: 'Auto-generated summary of changed fields (shows old → new for changed fields, current value for unchanged)' }]
+      : [];
+
     // Common vendor variables
     const vendorVariables = [
       { var: '{{vendor.name}}', desc: 'Name of the vendor' },
-      { var: '{{vendor.id}}', desc: 'Vendor ID' },
       { var: '{{vendor.provides}}', desc: 'Services/products the vendor provides' },
       { var: '{{vendor.website}}', desc: 'Vendor website URL' },
       { var: '{{vendor.contact}}', desc: 'Vendor contact person name' },
@@ -313,7 +349,6 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
     // Common model variables
     const modelVariables = [
-      { var: '{{model.id}}', desc: 'Model ID' },
       { var: '{{model.provider}}', desc: 'Model provider (e.g., OpenAI, Anthropic)' },
       { var: '{{model.name}}', desc: 'Model name' },
       { var: '{{model.version}}', desc: 'Model version' },
@@ -333,7 +368,6 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
     // Common project variables
     const projectVariables = [
-      { var: '{{project.id}}', desc: 'Project ID' },
       { var: '{{project.title}}', desc: 'Project title' },
       { var: '{{project.goal}}', desc: 'Project goal' },
       { var: '{{project.owner}}', desc: 'Project owner' },
@@ -345,7 +379,6 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
     // Common task variables
     const taskVariables = [
-      { var: '{{task.id}}', desc: 'Task ID' },
       { var: '{{task.title}}', desc: 'Task title' },
       { var: '{{task.description}}', desc: 'Task description' },
       { var: '{{task.creator}}', desc: 'Task creator' },
@@ -358,7 +391,6 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
     // Common risk variables
     const riskVariables = [
-      { var: '{{risk.id}}', desc: 'Risk ID' },
       { var: '{{risk.name}}', desc: 'Risk name' },
       { var: '{{risk.description}}', desc: 'Risk description' },
       { var: '{{risk.owner}}', desc: 'Risk owner' },
@@ -414,55 +446,64 @@ const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
       { var: '{{incident.approval_status}}', desc: 'Approval status' },
       { var: '{{incident.approved_by}}', desc: 'Approved by' },
       { var: '{{incident.approval_date}}', desc: 'Approval date' },
+      { var: '{{incident.approval_notes}}', desc: 'Approval notes' },
       { var: '{{incident.interim_report}}', desc: 'Interim report flag' },
     ];
 
     switch (trigger.type) {
-      case 'vendor_added':
+      case 'vendor_updated':
         return [
-          ...vendorVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(vendorVariables),
           ...commonVariables,
         ];
 
-      case 'model_added':
+      case 'model_updated':
         return [
-          ...modelVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(modelVariables),
           ...commonVariables,
         ];
 
-      case 'project_added':
+      case 'project_updated':
         return [
-          ...projectVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(projectVariables),
           ...commonVariables,
         ];
 
-      case 'task_added':
+      case 'task_updated':
         return [
-          ...taskVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(taskVariables),
           ...commonVariables,
         ];
 
-      case 'risk_added':
+      case 'risk_updated':
         return [
-          ...riskVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(riskVariables),
           ...commonVariables,
         ];
 
-      case 'training_added':
+      case 'training_updated':
         return [
-          ...trainingVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(trainingVariables),
           ...commonVariables,
         ];
 
-      case 'policy_added':
+      case 'policy_updated':
         return [
-          ...policyVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(policyVariables),
           ...commonVariables,
         ];
 
-      case 'incident_added':
+      case 'incident_updated':
         return [
-          ...incidentVariables,
+          ...updateSpecificVariables,
+          ...addOldVariables(incidentVariables),
           ...commonVariables,
         ];
 

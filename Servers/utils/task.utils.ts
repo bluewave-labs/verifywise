@@ -12,7 +12,7 @@ import {
   ValidationException
 } from "../domain.layer/exceptions/custom.exception";
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
-import { buildTaskReplacements } from "./automation/task.automation.utils";
+import { buildTaskReplacements, buildTaskUpdateReplacements } from "./automation/task.automation.utils";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
 
@@ -386,6 +386,21 @@ export const getTaskByIdQuery = async (
     );
     (task.dataValues as any)["assignees"] = assignees.map((a: any) => a.user_id);
 
+    const creator_name = await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
+      {
+        replacements: { creator_id: task.dataValues.creator_id }
+      }
+    ) as [{ full_name: string }[], number];
+    (task.dataValues as any)["creator_name"] = creator_name[0][0].full_name;
+    const assignee_names = await sequelize.query(
+      `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
+      {
+        replacements: { assignee_ids: (task.dataValues as any)["assignees"] }
+      }
+    ) as [{ full_name: string }[], number];
+    (task.dataValues as any)["assignee_names"] = assignee_names[0].map(a => a.full_name);
+
     return task;
   }
 
@@ -532,6 +547,62 @@ export const updateTaskByIdQuery = async (
 
     // Add assignees to the response
     (updatedTask.dataValues as any)["assignees"] = assignees;
+  } else {
+    // Retain existing assignees in the response
+    const existingAssignees = await sequelize.query(
+      `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+      {
+        replacements: { task_id: updatedTask.id },
+        mapToModel: true,
+        model: TaskAssigneesModel,
+      }
+    );
+    (updatedTask.dataValues as any)["assignees"] = existingAssignees.map((a: any) => a.user_id);
+  }
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "task_updated") {
+      const creator_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
+        {
+          replacements: { creator_id: updatedTask.dataValues.creator_id }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+      const assignee_names = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
+        {
+          replacements: { assignee_ids: (updatedTask.dataValues as any)["assignees"] }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildTaskUpdateReplacements(existingTask, {
+        ...updatedTask.dataValues,
+        creator_name: creator_name[0][0].full_name,
+        assignee_names: assignee_names[0].map(a => a.full_name).join(', ')
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
   }
 
   return updatedTask;
@@ -573,17 +644,72 @@ export const deleteTaskByIdQuery = async (
   }
 
   // Soft delete by setting status to DELETED
-  await sequelize.query(
-    `UPDATE "${tenant}".tasks SET status = :status WHERE id = :id`,
+  const result = await sequelize.query(
+    `UPDATE "${tenant}".tasks SET status = :status WHERE id = :id RETURNING *;`,
     {
       replacements: {
         status: TaskStatus.DELETED,
         id: id,
       },
-      type: QueryTypes.UPDATE,
+      // type: QueryTypes.UPDATE,
       transaction,
     }
+  ) as [TasksModel[], number];
+  const deletedTask = result[0][0];
+  const existingAssignees = await sequelize.query(
+    `SELECT user_id FROM "${tenant}".task_assignees WHERE task_id = :task_id`,
+    {
+      replacements: { task_id: id },
+      mapToModel: true,
+      model: TaskAssigneesModel,
+    }
   );
+  (deletedTask as any)["assignees"] = existingAssignees.map((a: any) => a.user_id);
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'task_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "task_deleted") {
+      const creator_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :creator_id;`,
+        {
+          replacements: { creator_id: deletedTask.creator_id }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+      const assignee_names = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id IN (:assignee_ids);`,
+        {
+          replacements: { assignee_ids: (deletedTask as any)["assignees"] }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildTaskReplacements({
+        ...deletedTask,
+        creator_name: creator_name[0][0].full_name,
+        assignee_names: assignee_names[0].map(a => a.full_name).join(', ')
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
 
   return true;
 };

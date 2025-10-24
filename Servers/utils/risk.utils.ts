@@ -7,7 +7,7 @@ import { IProjectFrameworks } from "../domain.layer/interfaces/i.projectFramewor
 import { TenantAutomationActionModel } from "../domain.layer/models/tenantAutomationAction/tenantAutomationAction.model";
 import { replaceTemplateVariables } from "./automation/automation.utils";
 import { enqueueAutomationAction } from "../services/automations/automationProducer";
-import { buildRiskReplacements } from "./automation/risk.automation.utils";
+import { buildRiskReplacements, buildRiskUpdateReplacements } from "./automation/risk.automation.utils";
 
 type Mitigation = { id: number, meta_id: number, parent_id: number, sup_id: string, title: string, sub_id: number, project_id: number };
 
@@ -276,6 +276,20 @@ export const getRiskByIdQuery = async (
   ) as [IRisk[], number];
   const projectRisk = result[0][0];
   if (!projectRisk) return null;
+  const owner_name = await sequelize.query(
+    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+    {
+      replacements: { owner_id: projectRisk.risk_owner }
+    }
+  ) as [{ full_name: string }[], number];
+  (projectRisk as any).owner_name = owner_name[0][0].full_name;
+  const approver_name = await sequelize.query(
+    `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+    {
+      replacements: { approver_id: projectRisk.risk_approval }
+    }
+  ) as [{ full_name: string }[], number];
+  (projectRisk as any).approver_name = approver_name[0][0].full_name;
 
   (projectRisk as any).projects = [];
   (projectRisk as any).frameworks = [];
@@ -549,6 +563,7 @@ export const updateRiskByIdQuery = async (
   tenant: string,
   transaction: Transaction
 ): Promise<RiskModel | null> => {
+  const existingRisk = await getRiskByIdQuery(id, tenant, true);
   const updateProjectRisk: Partial<Record<keyof RiskModel, any>> = {};
   const setClause = [
     "risk_name",
@@ -743,7 +758,53 @@ export const updateRiskByIdQuery = async (
       await createFrameworkRiskLink(projectRisk.frameworks, id, tenant, transaction);
     }
   }
-  return result[0];
+  const updatedRisk = result[0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'risk_updated' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "risk_updated") {
+      const owner_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: updatedRisk.dataValues.risk_owner }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+      const approver_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+        {
+          replacements: { approver_id: updatedRisk.dataValues.risk_approval }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildRiskUpdateReplacements(existingRisk, {
+        ...updatedRisk.dataValues,
+        owner_name: owner_name[0][0].full_name,
+        approver_name: approver_name[0][0].full_name,
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+  return updatedRisk;
 };
 
 export const deleteRiskByIdQuery = async (
@@ -756,10 +817,56 @@ export const deleteRiskByIdQuery = async (
     {
       replacements: { id },
       mapToModel: true,
-      model: RiskModel,
-      type: QueryTypes.UPDATE,
+      // model: RiskModel,
+      // type: QueryTypes.UPDATE,
       transaction,
     }
-  );
-  return result.length > 0;
+  ) as [RiskModel[], number];
+  const deletedRisk = result[0][0];
+  const automations = await sequelize.query(
+    `SELECT
+      pat.key AS trigger_key,
+      paa.key AS action_key,
+      aa.*
+    FROM public.automation_triggers pat JOIN "${tenant}".automations a ON a.trigger_id = pat.id JOIN "${tenant}".automation_actions aa ON a.id = aa.automation_id JOIN public.automation_actions paa ON aa.action_type_id = paa.id WHERE pat.key = 'risk_deleted' AND a.is_active ORDER BY aa."order" ASC;`, { transaction }
+  ) as [(TenantAutomationActionModel & { trigger_key: string, action_key: string })[], number];
+  if (automations[0].length > 0) {
+    const automation = automations[0][0];
+    if (automation["trigger_key"] === "risk_deleted") {
+      const owner_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :owner_id;`,
+        {
+          replacements: { owner_id: deletedRisk.risk_owner }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+      const approver_name = await sequelize.query(
+        `SELECT name || ' ' || surname AS full_name FROM public.users WHERE id = :approver_id;`,
+        {
+          replacements: { approver_id: deletedRisk.risk_approval }, transaction
+        }
+      ) as [{ full_name: string }[], number];
+
+      const params = automation.params!;
+
+      // Build replacements
+      const replacements = buildRiskReplacements({
+        ...deletedRisk,
+        owner_name: owner_name[0][0].full_name,
+        approver_name: approver_name[0][0].full_name,
+      });
+
+      // Replace variables in subject and body
+      const processedParams = {
+        ...params,
+        subject: replaceTemplateVariables(params.subject || '', replacements),
+        body: replaceTemplateVariables(params.body || '', replacements)
+      };
+
+      // Enqueue with processed params
+      await enqueueAutomationAction(automation.action_key, processedParams);
+    } else {
+      console.warn(`No matching trigger found for key: ${automation["trigger_key"]}`);
+    }
+  }
+  return result[0].length > 0;
 };

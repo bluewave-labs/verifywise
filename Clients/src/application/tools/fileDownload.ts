@@ -1,5 +1,5 @@
 import { generateReport } from "../repository/entity.repository";
-import { getFileById, downloadFileFromManager } from "../repository/file.repository";
+import { getFileById, downloadFileFromManager, deleteFileFromManager } from "../repository/file.repository";
 
 interface GenerateReportProps {
   projectId: number | null;
@@ -111,6 +111,52 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
   } catch (error) {
     console.error("*** Error generating report", error);
     return 500;
+  }
+};
+
+export const handleFileDelete = async (
+  fileId: string,
+  fileName: string,
+  onSuccess?: () => void
+) => {
+  try {
+    // Confirm deletion with user
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${fileName}"?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    const response = await deleteFileFromManager({
+      id: typeof fileId === "string" ? fileId : String(fileId),
+    });
+
+    console.log("File deleted successfully:", response);
+    alert(`File "${fileName}" has been deleted successfully.`);
+
+    // Call onSuccess callback if provided (e.g., to refresh the file list)
+    if (onSuccess) {
+      onSuccess();
+    }
+  } catch (error: any) {
+    // Extract user-friendly error message
+    let errorMessage = "Failed to delete file. You may not have permission to delete this file.";
+
+    if (error?.message?.includes("not found")) {
+      errorMessage = "File not found on the server. It may have already been deleted.\n\nPlease refresh the page to update the file list.";
+    } else if (error?.message?.includes("permission") || error?.message?.includes("denied")) {
+      errorMessage = "You don't have permission to delete this file.";
+    } else if (error?.statusCode === 404) {
+      errorMessage = "File not found on the server. It may have already been deleted.\n\nPlease refresh the page to update the file list.";
+    } else if (error?.statusCode === 403) {
+      errorMessage = "Access denied. You don't have permission to delete this file.";
+    }
+
+    console.error("Error deleting file from file manager:", error);
+    alert(errorMessage);
+    throw error;
   }
 };
 

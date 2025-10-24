@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { BarChart3, Filter, Database, AlertTriangle } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const RiskManagementSteps: PageTourStep[] = [
+const RiskManagementSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="risk-summary-cards"]',
     content: {

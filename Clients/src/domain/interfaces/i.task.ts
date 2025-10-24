@@ -39,3 +39,36 @@ export interface TaskFilters {
   assignee: "all" | string;
   category: "all" | string;
 }
+
+export interface ICreateTaskFormValues {
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  due_date: string;
+  assignees: Array<{
+    id: number;
+    name: string;
+    surname: string;
+    email: string;
+  }>;
+  categories: string[];
+}
+
+export interface ICreateTaskProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onSuccess?: (data: ICreateTaskFormValues) => void;
+  initialData?: ITask;
+  mode?: "create" | "edit";
+}
+
+export interface ICreateTaskFormErrors {
+  title?: string;
+  description?: string;
+  priority?: string;
+  status?: string;
+  due_date?: string;
+  assignees?: string;
+  categories?: string;
+}

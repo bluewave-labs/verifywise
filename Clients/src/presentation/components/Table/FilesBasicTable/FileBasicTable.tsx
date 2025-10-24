@@ -15,7 +15,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
 import { ExternalLink as LinkExternalIcon } from "lucide-react";
-import { handleDownload, handleFileManagerDownload } from "../../../../application/tools/fileDownload";
+import { handleDownload, handleFileManagerDownload, handleFileDelete } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
 import {
   getPaginationRowCount,
@@ -34,6 +34,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
   bodyData,
   paginated = false,
   table,
+  onFileDeleted,
 }) => {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -177,7 +178,11 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     type="evidence"
                     onEdit={() => {}}
                     onDownload={() => handleFileDownload(row)}
-                    onDelete={() => {}}
+                    onDelete={() => {
+                      if (row.source === "File Manager") {
+                        handleFileDelete(row.id, row.fileName, onFileDeleted);
+                      }
+                    }}
                     warningTitle="Are you sure you want to download this file?"
                     warningMessage="This action will download the file to your local machine."
                     onMouseEvent={() => {}}

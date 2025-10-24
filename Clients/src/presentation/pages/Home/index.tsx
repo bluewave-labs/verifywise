@@ -30,6 +30,7 @@ import { handleAlert } from "../../../application/tools/alertUtils";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getAllProjects } from "../../../application/repository/project.repository";
 import { IProjectCardProps } from "../../../domain/interfaces/i.project";
+import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 
 // Lazy load components
 const ProjectCard = lazy(() => import("../../components/ProjectCard"));

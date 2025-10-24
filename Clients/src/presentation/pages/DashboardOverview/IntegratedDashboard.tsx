@@ -69,14 +69,14 @@ const getTimeBasedGreeting = (userName?: string, userToken?: any): { icon: React
   const month = now.getMonth() + 1; // getMonth() returns 0-11
   const day = now.getDate();
 
-  // Get display name - prioritize fresh user data over token
+  // Get display name - prioritize token for consistency over API data
   let displayName = 'there';
-  if (userName) {
-    displayName = userName;
-  } else if (userToken?.name) {
-    displayName = userToken.name; // Only first name from token
+  if (userToken?.name) {
+    displayName = userToken.name; // Always use token name first (consistent)
+  } else if (userName) {
+    displayName = userName; // Fallback to API data if token name unavailable
   } else if (userToken?.email) {
-    displayName = userToken.email.split('@')[0];
+    displayName = userToken.email.split('@')[0]; // Last resort - email prefix
   }
 
   // Check for international special days

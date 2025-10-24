@@ -64,6 +64,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
     if (fileList.length === 0) return;
 
     setIsUploading(true);
+    let successCount = 0;
 
     for (let i = 0; i < fileList.length; i++) {
       if (fileList[i].status !== "pending") continue;
@@ -76,8 +77,19 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
           )
         );
 
-        // Upload the file
-        await uploadFileToManager({ file: fileList[i].file });
+        // Upload the file and validate response
+        const response = await uploadFileToManager({ file: fileList[i].file });
+
+        // Validate server response structure
+        // Backend returns: { message: "Created", data: { id, filename, ... } }
+        if (!response || !response.data) {
+          throw new Error("Server failed to store the file. Please try again.");
+        }
+
+        // Verify the uploaded file has an ID (successfully stored in database)
+        if (!response.data.id) {
+          throw new Error("File uploaded but not stored properly. Please contact support.");
+        }
 
         // Update status to success
         setFileList((prev) =>
@@ -85,7 +97,29 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
             idx === i ? { ...item, status: "success" as const, progress: 100 } : item
           )
         );
+
+        successCount++;
+
+        // Trigger immediate refresh after each successful upload
+        if (onSuccess) {
+          onSuccess();
+        }
       } catch (error: any) {
+        // Extract user-friendly error message
+        let errorMessage = "Upload failed";
+
+        if (error?.message) {
+          errorMessage = error.message;
+        } else if (error?.statusCode === 413) {
+          errorMessage = "File too large (max 30MB)";
+        } else if (error?.statusCode === 415) {
+          errorMessage = "Unsupported file type";
+        } else if (error?.statusCode === 403) {
+          errorMessage = "Permission denied";
+        } else if (error?.statusCode === 500) {
+          errorMessage = "Server error. Please try again.";
+        }
+
         // Update status to error
         setFileList((prev) =>
           prev.map((item, idx) =>
@@ -94,7 +128,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                   ...item,
                   status: "error" as const,
                   progress: 0,
-                  error: error.message || "Upload failed",
+                  error: errorMessage,
                 }
               : item
           )
@@ -104,25 +138,19 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
 
     setIsUploading(false);
 
-    // Check if any uploads were successful before filtering
-    const anySuccess = fileList.some((item) => item.status === "success");
+    // Remove successfully uploaded files after a short delay
+    setTimeout(() => {
+      setFileList((prev) => {
+        const filtered = prev.filter((item) => item.status !== "success");
 
-    // Remove successfully uploaded files
-    setFileList((prev) => {
-      const filtered = prev.filter((item) => item.status !== "success");
+        // If no files remain (all were successful), close the modal
+        if (filtered.length === 0 && successCount > 0) {
+          setTimeout(() => handleClose(), 500);
+        }
 
-      // If no files remain (all were successful), close the modal
-      if (filtered.length === 0) {
-        setTimeout(() => handleClose(), 500); // Small delay to show success before closing
-      }
-
-      return filtered;
-    });
-
-    // Trigger refresh if any uploads were successful
-    if (anySuccess && onSuccess) {
-      onSuccess();
-    }
+        return filtered;
+      });
+    }, 800); // Show success state for 800ms before removing
   };
 
   const handleClose = () => {

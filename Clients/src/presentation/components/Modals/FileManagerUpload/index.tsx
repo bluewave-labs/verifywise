@@ -153,7 +153,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
 
         return filtered;
       });
-    }, 500); // Show success state for 800ms before removing
+    }, 500); // Show a success state for 500 ms before removing
   };
 
   const handleClose = () => {

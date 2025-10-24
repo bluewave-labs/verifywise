@@ -9,17 +9,11 @@ import {
   Typography,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
+import { IConfirmableDeleteIconButtonProps } from "../../../../domain/interfaces/i.customs";
 
-interface Props {
-  id: number | string;
-  onConfirm: (id: number | string) => void;
-  title?: string;
-  message?: string;
-  customIcon?: React.ReactNode; // e.g., your <img src={trash} ... />
-  disabled?: boolean;
-}
-
-const ConfirmableDeleteIconButton: React.FC<Props> = ({
+const ConfirmableDeleteIconButton: React.FC<
+  IConfirmableDeleteIconButtonProps
+> = ({
   id,
   onConfirm,
   title = "Delete this item?",

@@ -1,5 +1,5 @@
 import { generateReport } from "../repository/entity.repository";
-import { getFileById } from "../repository/file.repository";
+import { getFileById, downloadFileFromManager } from "../repository/file.repository";
 
 interface GenerateReportProps {
   projectId: number | null;
@@ -28,6 +28,48 @@ export const handleDownload = async (fileId: string, fileName: string) => {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Error downloading file:", error);
+    throw error;
+  }
+};
+
+export const handleFileManagerDownload = async (
+  fileId: string,
+  fileName: string,
+  onError?: (message: string) => void
+) => {
+  try {
+    const response = await downloadFileFromManager({
+      id: typeof fileId === 'string' ? fileId : String(fileId),
+    });
+
+    // Check if response is valid
+    if (!response || response.size === 0) {
+      const errorMsg = "File not found or empty. It may have been deleted.";
+      console.error(errorMsg);
+      if (onError) onError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    const blob = new Blob([response], { type: response.type });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (error: any) {
+    const errorMessage = error?.message || "Failed to download file. The file may have been deleted or you don't have permission.";
+    console.error("Error downloading file from file manager:", error);
+
+    if (onError) {
+      onError(errorMessage);
+    } else {
+      // Fallback: show browser alert if no error handler provided
+      alert(errorMessage);
+    }
+
     throw error;
   }
 };

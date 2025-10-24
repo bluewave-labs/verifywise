@@ -110,11 +110,10 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         }
       } catch (error: any) {
         // Extract user-friendly error message
+        // Check HTTP status codes first (most specific), then fallback to generic message
         let errorMessage = "Upload failed";
 
-        if (error?.message) {
-          errorMessage = error.message;
-        } else if (error?.statusCode === 413) {
+        if (error?.statusCode === 413) {
           errorMessage = `File too large (max ${MAX_FILE_SIZE_MB}MB)`;
         } else if (error?.statusCode === 415) {
           errorMessage = "Unsupported file type";
@@ -122,6 +121,8 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
           errorMessage = "Permission denied";
         } else if (error?.statusCode === 500) {
           errorMessage = "Server error. Please try again.";
+        } else if (error?.message) {
+          errorMessage = error.message;
         }
 
         // Update status to error

@@ -1,6 +1,6 @@
 import { generateReport } from "../repository/entity.repository";
 import { getFileById, downloadFileFromManager, deleteFileFromManager } from "../repository/file.repository";
-import { triggerBrowserDownload } from "../../presentation/utils/browserDownload.utils";
+import { triggerBrowserDownload, extractFilenameFromHeaders } from "../../presentation/utils/browserDownload.utils";
 
 interface GenerateReportProps {
   projectId: number | null;
@@ -92,18 +92,16 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps): Prom
     });
 
     if (response.status === 200) {
-      // Extract filename from Content-Disposition header
-      const headerContent = response.headers.get('Content-Disposition');
-      const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
-      const fileName = fileAttachment.map(m => m[1]);
+      // Extract filename from Content-Disposition header (DRY: using shared utility)
+      const filename = extractFilenameFromHeaders(response.headers, 'report');
 
       // Get blob content and content type
       const blobFileContent = response.data;
       const responseType = response.headers.get('Content-Type');
 
-      // Create blob and trigger download (DRY: using shared utility)
+      // Create blob and trigger download
       const blob = new Blob([blobFileContent], { type: responseType || undefined });
-      triggerBrowserDownload(blob, fileName[0] || 'report');
+      triggerBrowserDownload(blob, filename);
 
       return response.status;
     } else {

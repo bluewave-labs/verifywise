@@ -80,3 +80,24 @@ export async function downloadFileFromManager({
 }
 
 
+/**
+ * Delete a file from the file manager
+ *
+ * @param {string} id - The file ID to delete
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<any>} Delete response
+ */
+export async function deleteFileFromManager({
+  id,
+  signal,
+}: {
+  id: string;
+  signal?: AbortSignal;
+}): Promise<any> {
+  const response = await apiServices.delete(`/file-manager/${id}`, {
+    signal,
+  });
+  return response.data;
+}
+
+

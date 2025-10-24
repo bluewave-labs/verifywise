@@ -60,7 +60,9 @@ export const createRoutes = (
     <Route path="/organization" element={<Organization />} />
     <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
-    <Route index element={<Playground />} />
+    <Route index element={<Home onProjectUpdate={triggerSidebarReload} />} />
+    <Route path="/playground" element={<Playground />} />
+    <Route path="/test" element={<Home onProjectUpdate={triggerSidebarReload} />} />
     <Route path="/overview" element={<VWHome />} />
     <Route path="/project-view" element={<VWProjectView />} />
     <Route path="/framework" element={<Framework />} />

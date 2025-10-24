@@ -17,6 +17,7 @@ import {
 import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
 import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB } from "../../../../application/constants/fileManager";
+import { formatBytes } from "../../../../application/tools/fileUtil";
 
 interface FileManagerUploadModalProps {
   open: boolean;
@@ -202,14 +203,6 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "success":
@@ -316,7 +309,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                       secondary={
                         <Stack spacing={0.5}>
                           <Typography variant="caption" color="text.secondary">
-                            {formatFileSize(item.file.size)}
+                            {formatBytes(item.file.size)}
                           </Typography>
                           {item.status === "uploading" && (
                             <LinearProgress variant="indeterminate" sx={{ mt: 0.5 }} />

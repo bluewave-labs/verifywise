@@ -27,3 +27,8 @@ export interface ICustomModalProps {
   subControlTlts: string[];
   onConfirm: () => void;
 }
+
+export interface IDeleteAccountConfirmationProps {
+  open: boolean;
+  onClose: () => void;
+}

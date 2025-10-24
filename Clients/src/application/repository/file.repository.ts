@@ -1,5 +1,26 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 
+// Type definitions for API responses
+interface FileMetadata {
+  id: string;
+  filename: string;
+  size: number;
+  mimeType: string;
+  uploadedAt: string;
+  [key: string]: any;
+}
+
+interface FileManagerResponse {
+  success: boolean;
+  data: {
+    files: FileMetadata[];
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+    };
+  };
+}
 
 export async function getFileById({
   id,
@@ -10,7 +31,7 @@ export async function getFileById({
   signal?: AbortSignal;
   responseType?: string;
 }): Promise<any> {
-  const response = await apiServices.get(`/files/${id}`, {
+  const response = await apiServices.get<any>(`/files/${id}`, {
     signal,
     responseType,
   });
@@ -29,7 +50,7 @@ export async function getUserFilesMetaData({
 }: {
   signal?: AbortSignal;
 } = {}): Promise<any[]> {
-  const response = await apiServices.get("/file-manager", {
+  const response = await apiServices.get<FileManagerResponse>("/file-manager", {
     signal,
   });
 
@@ -57,7 +78,7 @@ export async function uploadFileToManager({
   formData.append("file", file);
 
   // Delete Content-Type header to let axios auto-detect and set the proper boundary
-  const response = await apiServices.post("/file-manager", formData, {
+  const response = await apiServices.post<any>("/file-manager", formData, {
     signal,
     headers: {
       "Content-Type": undefined,
@@ -82,7 +103,7 @@ export async function downloadFileFromManager({
   id: string;
   signal?: AbortSignal;
 }): Promise<any> {
-  const response = await apiServices.get(`/file-manager/${id}`, {
+  const response = await apiServices.get<Blob>(`/file-manager/${id}`, {
     signal,
     responseType: "blob",
   });
@@ -104,7 +125,7 @@ export async function deleteFileFromManager({
   id: string;
   signal?: AbortSignal;
 }): Promise<any> {
-  const response = await apiServices.delete(`/file-manager/${id}`, {
+  const response = await apiServices.delete<any>(`/file-manager/${id}`, {
     signal,
   });
   return response.data;

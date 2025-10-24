@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { Layout, AlertTriangle, BarChart3, FileText } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const ProjectViewSteps: PageTourStep[] = [
+const ProjectViewSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="project-tabs"]',
     content: {

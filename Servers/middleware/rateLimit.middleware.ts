@@ -38,9 +38,12 @@ export const fileOperationsLimiter = rateLimit({
   // Skip failed requests
   skipFailedRequests: false,
   // Use IP address for rate limiting
+  // Express's req.ip is populated from X-Forwarded-For based on trust proxy setting
   keyGenerator: (req) => {
-    // Use X-Forwarded-For header if behind a proxy, otherwise use req.ip
-    return req.headers['x-forwarded-for'] as string || req.ip || 'unknown';
+    if (!req.ip) {
+      throw new Error('Unable to identify client IP for rate limiting');
+    }
+    return req.ip;
   },
 });
 
@@ -58,8 +61,12 @@ export const generalApiLimiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
+  // Express's req.ip is populated from X-Forwarded-For based on trust proxy setting
   keyGenerator: (req) => {
-    return req.headers['x-forwarded-for'] as string || req.ip || 'unknown';
+    if (!req.ip) {
+      throw new Error('Unable to identify client IP for rate limiting');
+    }
+    return req.ip;
   },
 });
 
@@ -77,7 +84,11 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
+  // Express's req.ip is populated from X-Forwarded-For based on trust proxy setting
   keyGenerator: (req) => {
-    return req.headers['x-forwarded-for'] as string || req.ip || 'unknown';
+    if (!req.ip) {
+      throw new Error('Unable to identify client IP for rate limiting');
+    }
+    return req.ip;
   },
 });

@@ -83,13 +83,15 @@ const upload = multer({
  * Catches file size limit errors and file type rejection errors
  */
 const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
-  // Clean up temporary file if it exists
+  // Clean up temporary file if it exists (async, non-blocking)
   if (req.file?.path) {
-    try {
-      fs.unlinkSync(req.file.path);
-    } catch (cleanupError) {
-      console.error("Failed to clean up temporary file:", cleanupError);
-    }
+    // Fire-and-forget async cleanup to avoid blocking
+    fs.promises.unlink(req.file.path).catch((cleanupError) => {
+      // Ignore ENOENT (file already deleted), but log other errors
+      if (cleanupError.code !== 'ENOENT') {
+        console.error("Failed to clean up temporary file:", cleanupError);
+      }
+    });
   }
 
   if (err instanceof multer.MulterError) {

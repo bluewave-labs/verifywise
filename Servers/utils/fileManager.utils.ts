@@ -201,17 +201,22 @@ export const getFilesByOrganization = async (
 
   // Annotate each file with existsOnDisk flag instead of filtering
   // This preserves pagination and lets the controller/UI decide visibility
-  const filesWithExistence = (files as any[]).map((file) => {
-    let existsOnDisk = false;
-    try {
-      const filePath = path.resolve(process.cwd(), file.file_path);
-      existsOnDisk = fs.existsSync(filePath);
-    } catch (error) {
-      console.error(`Error checking file existence for ${file.filename}:`, error);
-      existsOnDisk = false;
-    }
-    return { ...file, existsOnDisk };
-  });
+  // Use Promise.all for parallel async file existence checks (non-blocking)
+  const filesWithExistence = await Promise.all(
+    (files as any[]).map(async (file) => {
+      let existsOnDisk = false;
+      try {
+        const filePath = path.resolve(process.cwd(), file.file_path);
+        // Use fs.promises.access for async check (non-blocking)
+        await fs.promises.access(filePath, fs.constants.F_OK);
+        existsOnDisk = true;
+      } catch (error) {
+        // File doesn't exist or not accessible
+        existsOnDisk = false;
+      }
+      return { ...file, existsOnDisk };
+    })
+  );
 
   // Return database total for accurate pagination
   return { files: filesWithExistence as FileManagerMetadata[], total: totalDbCount };

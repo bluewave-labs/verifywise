@@ -320,8 +320,10 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
       return res.status(400).json(STATUS_CODE[400]("Invalid file path"));
     }
 
-    // Check if file exists on disk before attempting to stream
-    if (!fs.existsSync(filePath)) {
+    // Check if file exists on disk before attempting to stream (async to avoid blocking)
+    try {
+      await fs.promises.access(filePath, fs.constants.F_OK);
+    } catch (error) {
       await logFailure({
         eventType: "Read",
         description: `File not found on disk: ${filePath}. Database record exists but file is missing.`,

@@ -186,8 +186,6 @@ const FileManager: React.FC = (): JSX.Element => {
               variant="contained"
               text="Upload new file"
               sx={{
-                backgroundColor: "#13715B",
-                border: "1px solid #13715B",
                 gap: 2,
               }}
               icon={<UploadIcon size={16} />}

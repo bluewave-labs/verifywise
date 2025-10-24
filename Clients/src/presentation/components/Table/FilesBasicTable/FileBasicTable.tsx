@@ -183,8 +183,8 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                         handleFileDelete(row.id, row.fileName, onFileDeleted);
                       }
                     }}
-                    warningTitle="Are you sure you want to download this file?"
-                    warningMessage="This action will download the file to your local machine."
+                    warningTitle="Are you sure you want to delete this file?"
+                    warningMessage="This action will permanently delete the file and cannot be undone."
                     onMouseEvent={() => {}}
                   />
                 </TableCell>

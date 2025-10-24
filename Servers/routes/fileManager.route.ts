@@ -85,15 +85,22 @@ const upload = multer({
 const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
   // Clean up temporary file if it exists (async, non-blocking)
   if (req.file?.path) {
-    // Validate path containment to prevent directory traversal attacks
-    const resolvedPath = path.resolve(req.file.path);
-    const resolvedTempDir = path.resolve(tempDir);
-    const relativePath = path.relative(resolvedTempDir, resolvedPath);
-    const isContained = !relativePath.startsWith("..") &&
-                        !path.isAbsolute(relativePath) &&
-                        resolvedPath.startsWith(resolvedTempDir + path.sep);
+    // Secure containment validation using realpathSync to resolve symlinks
+    let resolvedPath: string;
+    let resolvedTempDir: string;
 
-    if (isContained) {
+    try {
+      // Resolve real paths (follows symlinks) to prevent directory traversal via symlinks
+      resolvedTempDir = fs.realpathSync(tempDir);
+      resolvedPath = fs.realpathSync(req.file.path);
+    } catch (e) {
+      // Unable to resolve file/directory (file may not exist), skip cleanup
+      console.warn(`Failed to resolve path for cleanup: ${req.file.path}`, e);
+      return;
+    }
+
+    // Only clean up if the file is strictly within the temp directory
+    if (resolvedPath.startsWith(resolvedTempDir + path.sep)) {
       // Fire-and-forget async cleanup to avoid blocking
       fs.promises.unlink(resolvedPath).catch((cleanupError) => {
         // Ignore ENOENT (file already deleted), but log other errors

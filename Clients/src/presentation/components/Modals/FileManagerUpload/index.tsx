@@ -331,6 +331,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                           )}
                         </Stack>
                       }
+                      secondaryTypographyProps={{ component: 'div' }}
                     />
                     <Box
                       sx={{

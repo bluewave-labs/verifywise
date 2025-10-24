@@ -73,11 +73,9 @@ const FileManager: React.FC = (): JSX.Element => {
   const [filesData, setFilesData] = useState<FileData[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(initialLoading);
 
-  // Sync initial data from hook to local state
+  // Sync initial data from hook to local state (always sync, even if empty)
   useEffect(() => {
-    if (initialFilesData.length > 0) {
-      setFilesData(initialFilesData);
-    }
+    setFilesData(initialFilesData);
     setLoadingFiles(initialLoading);
   }, [initialFilesData, initialLoading]);
 

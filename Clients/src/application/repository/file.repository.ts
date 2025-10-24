@@ -18,15 +18,24 @@ export async function getFileById({
 }
 
 
+/**
+ * Get all files metadata for the current user's organization
+ *
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<any[]>} Array of file metadata
+ */
 export async function getUserFilesMetaData({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<any> {
+} = {}): Promise<any[]> {
   const response = await apiServices.get("/file-manager", {
     signal,
   });
-  return response.data;
+
+  // Extract files array from API response wrapper (Clean Architecture)
+  // Server returns: { success: true, data: { files: [...], pagination: {...} } }
+  return response.data?.data?.files || [];
 }
 
 

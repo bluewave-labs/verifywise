@@ -12,24 +12,33 @@ import { FileData } from "../../domain/types/File";
 /**
  * Transforms raw file data from API to application FileData format
  *
+ * Handles missing or malformed data gracefully with defensive checks.
+ * Server response fields: id, filename, size, mimetype, upload_date, uploaded_by,
+ * uploader_name, uploader_surname, existsOnDisk
+ *
  * @param {any} file - Raw file data from API
  * @returns {FileData} Formatted file data for application use
  */
-export const transformFileData = (file: any): FileData => ({
-  id: file.id,
-  fileName: file.filename,
-  uploadDate: file.uploaded_time
-    ? new Date(file.uploaded_time).toLocaleDateString()
-    : "Invalid Date",
-  uploader: `${file.uploader_name ?? ""} ${file.uploader_surname ?? ""}`.trim() || "N/A",
-  source: file.source,
-  projectTitle: file.project_title,
-  projectId: file.project_id.toString(),
-  parentId: file.parent_id,
-  subId: file.sub_id,
-  metaId: file.meta_id,
-  isEvidence: file.is_evidence,
-});
+export const transformFileData = (file: any): FileData => {
+  // Server sends 'upload_date' not 'uploaded_time'
+  const uploadDate = file.upload_date || file.uploaded_time;
+
+  return {
+    id: file.id ?? "",
+    fileName: file.filename ?? "Unknown",
+    uploadDate: uploadDate
+      ? new Date(uploadDate).toLocaleDateString()
+      : "Invalid Date",
+    uploader: `${file.uploader_name ?? ""} ${file.uploader_surname ?? ""}`.trim() || "N/A",
+    source: file.source ?? "File Manager",
+    projectTitle: file.project_title ?? "N/A",
+    projectId: file.project_id != null ? String(file.project_id) : "0",
+    parentId: file.parent_id ?? null,
+    subId: file.sub_id ?? null,
+    metaId: file.meta_id ?? null,
+    isEvidence: file.is_evidence ?? false,
+  };
+};
 
 /**
  * Transforms an array of raw file data to FileData format

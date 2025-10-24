@@ -54,3 +54,11 @@ export interface ICreateTaskFormValues {
   }>;
   categories: string[];
 }
+
+export interface ICreateTaskProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onSuccess?: (data: ICreateTaskFormValues) => void;
+  initialData?: ITask;
+  mode?: "create" | "edit";
+}

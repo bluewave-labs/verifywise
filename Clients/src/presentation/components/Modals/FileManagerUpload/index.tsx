@@ -12,6 +12,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  useTheme,
 } from "@mui/material";
 import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
@@ -35,6 +36,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const theme = useTheme();
   const [fileList, setFileList] = useState<UploadedFileInfo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -211,13 +213,13 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "success":
-        return "#4CAF50";
+        return theme.palette.success.main;
       case "error":
-        return "#F44336";
+        return theme.palette.error.main;
       case "uploading":
-        return "#2196F3";
+        return theme.palette.info.main;
       default:
-        return "#666";
+        return theme.palette.text.secondary;
     }
   };
 
@@ -242,18 +244,18 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             sx={{
-              border: `2px dashed ${isDragging ? "#13715B" : "#D1D5DB"}`,
+              border: `2px dashed ${isDragging ? theme.palette.primary.main : theme.palette.grey[300]}`,
               borderRadius: "8px",
               padding: "32px",
               textAlign: "center",
-              backgroundColor: isDragging ? "#F0F9FF" : "#FAFAFA",
+              backgroundColor: isDragging ? theme.palette.primary.light : theme.palette.grey[50],
               cursor: "pointer",
               transition: "all 0.3s ease",
             }}
             onClick={handleBrowseClick}
           >
             <Stack spacing={2} alignItems="center">
-              <UploadIcon size={48} color={isDragging ? "#13715B" : "#9CA3AF"} />
+              <UploadIcon size={48} color={isDragging ? theme.palette.primary.main : theme.palette.text.disabled} />
               <Typography variant="body1" fontWeight={500}>
                 Drag and drop files here
               </Typography>
@@ -287,10 +289,10 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                   <ListItem
                     key={index}
                     sx={{
-                      border: "1px solid #E5E7EB",
+                      border: `1px solid ${theme.palette.grey[300]}`,
                       borderRadius: "4px",
                       mb: 1,
-                      backgroundColor: "#FAFAFA",
+                      backgroundColor: theme.palette.grey[50],
                     }}
                     secondaryAction={
                       item.status !== "uploading" && (
@@ -320,12 +322,12 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                             <LinearProgress variant="indeterminate" sx={{ mt: 0.5 }} />
                           )}
                           {item.status === "success" && (
-                            <Typography variant="caption" sx={{ color: "#4CAF50" }}>
+                            <Typography variant="caption" sx={{ color: theme.palette.success.main }}>
                               Uploaded successfully
                             </Typography>
                           )}
                           {item.status === "error" && (
-                            <Typography variant="caption" sx={{ color: "#F44336" }}>
+                            <Typography variant="caption" sx={{ color: theme.palette.error.main }}>
                               {item.error || "Upload failed"}
                             </Typography>
                           )}
@@ -358,9 +360,9 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
               onClick={handleUpload}
               disabled={fileList.length === 0 || isUploading}
               sx={{
-                backgroundColor: "#13715B",
+                backgroundColor: theme.palette.primary.main,
                 "&:hover": {
-                  backgroundColor: "#0F5A48",
+                  backgroundColor: theme.palette.primary.dark,
                 },
               }}
             >

@@ -13,7 +13,7 @@ fairlearn==0.12.0
 langfair==0.6.6
 
 # Deep learning and transformers
-torch==2.7.1
+torch==2.8.0
 transformers==4.53.2
 sentence-transformers==2.7.0
 huggingface-hub==0.33.4

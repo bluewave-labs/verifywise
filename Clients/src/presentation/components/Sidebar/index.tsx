@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Box,
   Divider,
@@ -11,6 +12,8 @@ import {
   Typography,
   Chip,
   Drawer,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import "./index.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +26,7 @@ import { toggleSidebar } from "../../../application/redux/ui/uiSlice";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Home,
   Flag,
   MoreVertical,
@@ -42,6 +46,8 @@ import {
   List as ListIcon,
   FolderTree,
   Layers,
+  AlertCircle,
+  FolderCog,
 } from "lucide-react";
 
 import Logo from "../../assets/imgs/logo.png";
@@ -57,21 +63,9 @@ import ReadyToSubscribeBox from "../ReadyToSubscribeBox/ReadyToSubscribeBox";
 import { User } from "../../../domain/types/User";
 import { getAllTasks } from "../../../application/repository/task.repository";
 import { TaskStatus } from "../../../domain/enums/task.enum";
+import { IMenuGroup, IMenuItem } from "../../../domain/interfaces/i.menu";
 
-interface MenuItem {
-  name: string;
-  icon: React.ReactNode;
-  path: string;
-  highlightPaths?: string[];
-  taskCount?: number;
-}
-
-interface MenuGroup {
-  name: string;
-  items: MenuItem[];
-}
-
-const getMenuGroups = (): MenuGroup[] => [
+const getMenuGroups = (): IMenuGroup[] => [
   {
     name: "DISCOVERY",
     items: [
@@ -142,15 +136,15 @@ const getMenuGroups = (): MenuGroup[] => [
         path: "/policies",
       },
       {
-        name: "Event Tracker",
-        icon: <Telescope size={16} strokeWidth={1.5} />,
-        path: "/event-tracker",
+        name: "Incident Management",
+        icon: <AlertCircle size={16} strokeWidth={1.5} />,
+        path: "/ai-incident-managements",
       },
     ],
   },
 ];
 
-const topItems = (openTasksCount: number): MenuItem[] => [
+const topItems = (openTasksCount: number): IMenuItem[] => [
   {
     name: "Dashboard",
     icon: <Home size={16} strokeWidth={1.5} />,
@@ -164,13 +158,21 @@ const topItems = (openTasksCount: number): MenuItem[] => [
   },
 ];
 
-const other: MenuItem[] = [
+const managementItems: IMenuItem[] = [
+  {
+    name: "Event Tracker",
+    icon: <Telescope size={16} strokeWidth={1.5} />,
+    path: "/event-tracker",
+  },
   {
     name: "Settings",
     icon: <Settings size={16} strokeWidth={1.5} />,
-    path: "/setting",
+    path: "/settings",
   },
 ];
+
+// Reserved for future use
+// const other: IMenuItem[] = [];
 
 const DEFAULT_USER: User = {
   id: 1,
@@ -193,6 +195,7 @@ const Sidebar = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [slideoverOpen, setSlideoverOpen] = useState(false);
+  const [managementAnchorEl, setManagementAnchorEl] = useState<null | HTMLElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const logout = useLogout();
 
@@ -215,7 +218,6 @@ const Sidebar = () => {
   };
 
   const collapsed = useSelector((state: any) => state.ui?.sidebar?.collapsed);
-
 
   const [openTasksCount, setOpenTasksCount] = useState(0);
 
@@ -267,17 +269,21 @@ const Sidebar = () => {
   // Click outside to close drawer
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (slideoverOpen && drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+      if (
+        slideoverOpen &&
+        drawerRef.current &&
+        !drawerRef.current.contains(event.target as Node)
+      ) {
         closePopup();
       }
     };
 
     if (slideoverOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [slideoverOpen]);
 
@@ -370,7 +376,11 @@ const Sidebar = () => {
           dispatch(toggleSidebar());
         }}
       >
-        {collapsed ? <ChevronRight size={16} strokeWidth={1.5} /> : <ChevronLeft size={16} strokeWidth={1.5} />}
+        {collapsed ? (
+          <ChevronRight size={16} strokeWidth={1.5} />
+        ) : (
+          <ChevronLeft size={16} strokeWidth={1.5} />
+        )}
       </IconButton>
       {/* menu */}
       <List
@@ -422,8 +432,7 @@ const Sidebar = () => {
           >
             <ListItemButton
               disableRipple={
-                theme.components?.MuiListItemButton?.defaultProps
-                  ?.disableRipple
+                theme.components?.MuiListItemButton?.defaultProps?.disableRipple
               }
               className={
                 location.pathname === item.path ||
@@ -440,24 +449,40 @@ const Sidebar = () => {
                 gap: theme.spacing(4),
                 borderRadius: theme.shape.borderRadius,
                 px: theme.spacing(4),
-                backgroundColor:
+                background:
                   location.pathname === item.path ||
                   item.highlightPaths?.some((p: string) =>
                     location.pathname.startsWith(p)
                   ) ||
                   customMenuHandler() === item.path
-                    ? "#E8E8E8" // darker highlight background
+                    ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                     : "transparent",
+                border:
+                  location.pathname === item.path ||
+                  item.highlightPaths?.some((p: string) =>
+                    location.pathname.startsWith(p)
+                  ) ||
+                  customMenuHandler() === item.path
+                    ? "1px solid #D8D8D8"
+                    : "1px solid transparent",
 
                 "&:hover": {
-                  backgroundColor:
+                  background:
                     location.pathname === item.path ||
                     item.highlightPaths?.some((p: string) =>
                       location.pathname.startsWith(p)
                     ) ||
                     customMenuHandler() === item.path
-                      ? "#E8E8E8" // keep same color if already selected
-                      : "#F9F9F9", // hover color only if not selected
+                      ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                      : "#F9F9F9",
+                  border:
+                    location.pathname === item.path ||
+                    item.highlightPaths?.some((p: string) =>
+                      location.pathname.startsWith(p)
+                    ) ||
+                    customMenuHandler() === item.path
+                      ? "1px solid #D8D8D8"
+                      : "1px solid transparent",
                 },
                 "&:hover svg": {
                   color: "#13715B !important",
@@ -477,14 +502,16 @@ const Sidebar = () => {
                   width: "16px",
                   mr: 0,
                   "& svg": {
-                    color: location.pathname === item.path ||
+                    color:
+                      location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
                       customMenuHandler() === item.path
                         ? "#13715B !important"
                         : `${theme.palette.text.tertiary} !important`,
-                    stroke: location.pathname === item.path ||
+                    stroke:
+                      location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
@@ -494,7 +521,8 @@ const Sidebar = () => {
                     transition: "color 0.2s ease, stroke 0.2s ease",
                   },
                   "& svg path": {
-                    stroke: location.pathname === item.path ||
+                    stroke:
+                      location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
@@ -530,13 +558,14 @@ const Sidebar = () => {
                     height: collapsed ? "14px" : "18px",
                     fontSize: collapsed ? "8px" : "10px",
                     fontWeight: 500,
-                    backgroundColor: (
+                    backgroundColor:
                       location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
                       customMenuHandler() === item.path
-                    ) ? "#f8fafc" : "#e2e8f0", // lighter when active, blueish-grayish when inactive
+                        ? "#f8fafc"
+                        : "#e2e8f0", // lighter when active, blueish-grayish when inactive
                     color: "#475569", // darker text for contrast
                     borderRadius: collapsed ? "7px" : "9px",
                     minWidth: collapsed ? "14px" : "18px", // ensure minimum width
@@ -623,24 +652,40 @@ const Sidebar = () => {
                     gap: theme.spacing(4),
                     borderRadius: theme.shape.borderRadius,
                     px: theme.spacing(4),
-                    backgroundColor:
+                    background:
                       location.pathname === item.path ||
                       item.highlightPaths?.some((p: string) =>
                         location.pathname.startsWith(p)
                       ) ||
                       customMenuHandler() === item.path
-                        ? "#E8E8E8" // darker highlight background
+                        ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
                         : "transparent",
+                    border:
+                      location.pathname === item.path ||
+                      item.highlightPaths?.some((p: string) =>
+                        location.pathname.startsWith(p)
+                      ) ||
+                      customMenuHandler() === item.path
+                        ? "1px solid #D8D8D8"
+                        : "1px solid transparent",
 
                     "&:hover": {
-                      backgroundColor:
+                      background:
                         location.pathname === item.path ||
                         item.highlightPaths?.some((p: string) =>
                           location.pathname.startsWith(p)
                         ) ||
                         customMenuHandler() === item.path
-                          ? "#E8E8E8" // keep same color if already selected
-                          : "#F9F9F9", // hover color only if not selected
+                          ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                          : "#F9F9F9",
+                      border:
+                        location.pathname === item.path ||
+                        item.highlightPaths?.some((p: string) =>
+                          location.pathname.startsWith(p)
+                        ) ||
+                        customMenuHandler() === item.path
+                          ? "1px solid #D8D8D8"
+                          : "1px solid transparent",
                     },
                     "&:hover svg": {
                       color: "#13715B !important",
@@ -660,14 +705,16 @@ const Sidebar = () => {
                       width: "16px",
                       mr: 0,
                       "& svg": {
-                        color: location.pathname === item.path ||
+                        color:
+                          location.pathname === item.path ||
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
                           customMenuHandler() === item.path
                             ? "#13715B !important"
                             : `${theme.palette.text.tertiary} !important`,
-                        stroke: location.pathname === item.path ||
+                        stroke:
+                          location.pathname === item.path ||
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
@@ -677,7 +724,8 @@ const Sidebar = () => {
                         transition: "color 0.2s ease, stroke 0.2s ease",
                       },
                       "& svg path": {
-                        stroke: location.pathname === item.path ||
+                        stroke:
+                          location.pathname === item.path ||
                           item.highlightPaths?.some((p: string) =>
                             location.pathname.startsWith(p)
                           ) ||
@@ -712,62 +760,88 @@ const Sidebar = () => {
         ))}
       </List>
       <Divider sx={{ my: theme.spacing(4) }} />
-      {/* other */}
+      {/* Management Section */}
       <List
         component={"nav"}
-        aria-labelledby="nested-other-subheader"
+        aria-labelledby="nested-management-subheader"
         sx={{
           px: theme.spacing(8),
           flexShrink: 0,
         }}
       >
-        {other.map((item) => (
-          <Tooltip
-            sx={{ fontSize: 13 }}
-            key={item.path}
-            placement="right"
-            title={collapsed ? item.name : ""}
-            slotProps={{
-              popper: {
-                modifiers: [
-                  {
-                    name: "offset",
-                    options: {
-                      offset: [0, -16],
-                    },
+        {/* Management Dropdown Button */}
+        <Tooltip
+          sx={{ fontSize: 13 }}
+          placement="right"
+          title={collapsed ? "Management" : ""}
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: "offset",
+                  options: {
+                    offset: [0, -16],
                   },
-                ],
+                },
+              ],
+            },
+          }}
+          disableInteractive
+        >
+          <ListItemButton
+            disableRipple={
+              theme.components?.MuiListItemButton?.defaultProps?.disableRipple
+            }
+            onClick={(event) => setManagementAnchorEl(event.currentTarget)}
+            sx={{
+              height: "32px",
+              gap: theme.spacing(4),
+              borderRadius: theme.shape.borderRadius,
+              px: theme.spacing(4),
+              background: managementItems.some(item => location.pathname.includes(item.path))
+                ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                : "transparent",
+              border: managementItems.some(item => location.pathname.includes(item.path))
+                ? "1px solid #D8D8D8"
+                : "1px solid transparent",
+              "&:hover": {
+                background: managementItems.some(item => location.pathname.includes(item.path))
+                  ? "linear-gradient(135deg, #ECECEC 0%, #E4E4E4 100%)"
+                  : "#F9F9F9",
+                border: managementItems.some(item => location.pathname.includes(item.path))
+                  ? "1px solid #D8D8D8"
+                  : "1px solid transparent",
+              },
+              "&:hover svg": {
+                color: "#13715B !important",
+                stroke: "#13715B !important",
+              },
+              "&:hover svg path": {
+                stroke: "#13715B !important",
               },
             }}
-            disableInteractive
           >
-            <ListItemButton
-              disableRipple={
-                theme.components?.MuiListItemButton?.defaultProps?.disableRipple
-              }
-              className={
-                location.pathname.includes(item.path) ? "selected-path" : ""
-              }
-              onClick={() => {
-                if (item.name === "Feedback" || item.name.includes("Discord")) {
-                  window.open(item.path, "_blank", "noreferrer");
-                } else {
-                  navigate(`${item.path}`);
-                }
-              }}
+            <ListItemIcon
               sx={{
-                height: "32px",
-                gap: theme.spacing(4),
-                borderRadius: theme.shape.borderRadius,
-                px: theme.spacing(4),
-                backgroundColor:
-                  location.pathname === item.path ? "#E8E8E8" : "transparent",
-
-                "&:hover": {
-                  backgroundColor:
-                    location.pathname === item.path
-                      ? "#E8E8E8" // keep same color if already selected
-                      : "#F9F9F9", // hover color only if not selected
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                width: "16px",
+                mr: 0,
+                "& svg": {
+                  color: managementItems.some(item => location.pathname.includes(item.path))
+                    ? "#13715B !important"
+                    : `${theme.palette.text.tertiary} !important`,
+                  stroke: managementItems.some(item => location.pathname.includes(item.path))
+                    ? "#13715B !important"
+                    : `${theme.palette.text.tertiary} !important`,
+                  transition: "color 0.2s ease, stroke 0.2s ease",
+                },
+                "& svg path": {
+                  stroke: managementItems.some(item => location.pathname.includes(item.path))
+                    ? "#13715B !important"
+                    : `${theme.palette.text.tertiary} !important`,
                 },
                 "&:hover svg": {
                   color: "#13715B !important",
@@ -778,51 +852,126 @@ const Sidebar = () => {
                 },
               }}
             >
-              <ListItemIcon
+              <FolderCog size={16} strokeWidth={1.5} />
+            </ListItemIcon>
+            <ListItemText
+              sx={{
+                "& .MuiListItemText-primary": {
+                  fontSize: "13px",
+                },
+              }}
+            >
+              Management
+            </ListItemText>
+            <ChevronDown
+              size={16}
+              strokeWidth={1.5}
+              style={{
+                transform: managementAnchorEl ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+              }}
+            />
+          </ListItemButton>
+        </Tooltip>
+
+        {/* Management Dropdown Menu */}
+        <Menu
+          anchorEl={managementAnchorEl}
+          open={Boolean(managementAnchorEl)}
+          onClose={() => setManagementAnchorEl(null)}
+          anchorOrigin={{
+            vertical: "top",
+            horizontal: "left",
+          }}
+          transformOrigin={{
+            vertical: "bottom",
+            horizontal: "left",
+          }}
+          slotProps={{
+            paper: {
+              sx: {
+                width: managementAnchorEl ? managementAnchorEl.offsetWidth : "auto",
+                borderRadius: theme.shape.borderRadius,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                border: `1px solid ${theme.palette.divider}`,
+                mt: -1,
+              },
+            },
+          }}
+        >
+          {managementItems.map((item) => (
+            <MenuItem
+              key={item.path}
+              onClick={() => {
+                navigate(item.path);
+                setManagementAnchorEl(null);
+              }}
+              sx={{
+                display: "flex",
+                gap: theme.spacing(4),
+                px: theme.spacing(4),
+                py: 0,
+                height: "32px",
+                fontSize: "13px",
+                borderRadius: theme.shape.borderRadius,
+                "&:hover": {
+                  backgroundColor: "#F9F9F9",
+                },
+                "&:hover svg": {
+                  color: "#13715B !important",
+                  stroke: "#13715B !important",
+                },
+                "&:hover svg path": {
+                  stroke: "#13715B !important",
+                },
+              }}
+            >
+              <Box
                 sx={{
-                  minWidth: 0,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "flex-start",
-                  width: "16px",
-                  mr: 0,
-                  "& svg": {
-                    color: location.pathname.includes(item.path)
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
-                    stroke: location.pathname.includes(item.path)
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
-                    transition: "color 0.2s ease, stroke 0.2s ease",
-                  },
-                  "& svg path": {
-                    stroke: location.pathname.includes(item.path)
-                        ? "#13715B !important"
-                        : `${theme.palette.text.tertiary} !important`,
-                  },
-                  "&:hover svg": {
-                    color: "#13715B !important",
-                    stroke: "#13715B !important",
-                  },
-                  "&:hover svg path": {
-                    stroke: "#13715B !important",
-                  },
+                  gap: "12px",
+                  width: "100%",
                 }}
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                sx={{
-                  "& .MuiListItemText-primary": {
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "16px",
+                    height: "16px",
+                    flexShrink: 0,
+                    "& svg": {
+                      color: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                      stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                      transition: "color 0.2s ease, stroke 0.2s ease",
+                    },
+                    "& svg path": {
+                      stroke: location.pathname.includes(item.path)
+                        ? "#13715B !important"
+                        : `${theme.palette.text.tertiary} !important`,
+                    },
+                  }}
+                >
+                  {item.icon}
+                </Box>
+                <Typography
+                  sx={{
                     fontSize: "13px",
-                  },
-                }}
-              >
-                {item.name}
-              </ListItemText>
-            </ListItemButton>
-          </Tooltip>
-        ))}
+                    color: theme.palette.text.secondary,
+                  }}
+                >
+                  {item.name}
+                </Typography>
+              </Box>
+            </MenuItem>
+          ))}
+        </Menu>
       </List>
       {!collapsed && (
         <Box
@@ -959,12 +1108,22 @@ const Sidebar = () => {
             }}
           >
             {collapsed && (
-              <Box sx={{ mb: 1.5, pb: 1, borderBottom: `1px solid ${theme.palette.divider}` }}>
+              <Box
+                sx={{
+                  mb: 1.5,
+                  pb: 1,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                }}
+              >
                 <Typography component="span" fontWeight={500} fontSize="13px">
                   {user.name} {user.surname}
                 </Typography>
                 <Typography
-                  sx={{ textTransform: "capitalize", fontSize: "13px", color: theme.palette.text.secondary }}
+                  sx={{
+                    textTransform: "capitalize",
+                    fontSize: "13px",
+                    color: theme.palette.text.secondary,
+                  }}
                 >
                   {ROLES[user.roleId as keyof typeof ROLES]}
                 </Typography>
@@ -1039,7 +1198,9 @@ const Sidebar = () => {
                 }}
               >
                 <MessageSquare size={16} strokeWidth={1.5} />
-                <Typography sx={{ fontSize: "13px" }}>Ask on Discord</Typography>
+                <Typography sx={{ fontSize: "13px" }}>
+                  Ask on Discord
+                </Typography>
               </ListItemButton>
 
               <ListItemButton

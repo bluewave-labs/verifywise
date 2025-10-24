@@ -1,5 +1,5 @@
 import { sequelize } from "../database/db";
-import { Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import { ISlackWebhook } from "../domain.layer/interfaces/i.slackWebhook";
 import { SlackWebhookModel } from "../domain.layer/models/slackNotification/slackWebhook.model";
 
@@ -124,4 +124,21 @@ export const updateSlackWebhookByIdQuery = async (
   });
 
   return result[0];
+};
+
+export const deleteSlackWebhookByIdQuery = async (
+  id: number,
+  transaction: Transaction
+): Promise<Boolean> => {
+  const result = await sequelize.query(
+    `DELETE FROM public.slack_webhooks WHERE id = :id RETURNING *`,
+    {
+      replacements: { id },
+      mapToModel: true,
+      model: SlackWebhookModel,
+      type: QueryTypes.DELETE,
+      transaction,
+    }
+  );
+  return result.length > 0;
 };

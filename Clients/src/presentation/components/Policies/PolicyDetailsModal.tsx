@@ -2,7 +2,7 @@ import React, { CSSProperties, useEffect, useState } from "react";
 import PolicyForm, { FormData } from "./PolicyForm";
 import { Policy } from "../../../domain/types/Policy";
 import { Plate, PlateContent, createPlateEditor } from "platejs/react";
-import { AutoformatPlugin } from '@platejs/autoformat';
+import { AutoformatPlugin } from "@platejs/autoformat";
 import InsertImageModal from "../Modals/InsertImageModal/InsertImageModal";
 import InsertLinkModal from "../Modals/InsertLinkModal/InsertLinkModal";
 
@@ -13,10 +13,16 @@ import {
   H1Plugin,
   H2Plugin,
   H3Plugin,
-  StrikethroughPlugin
+  StrikethroughPlugin,
 } from "@platejs/basic-nodes/react";
-import { ListPlugin, BulletedListPlugin, NumberedListPlugin, ListItemPlugin, ListItemContentPlugin } from '@platejs/list-classic/react';
-import { TextAlignPlugin } from '@platejs/basic-styles/react';
+import {
+  ListPlugin,
+  BulletedListPlugin,
+  NumberedListPlugin,
+  ListItemPlugin,
+  ListItemContentPlugin,
+} from "@platejs/list-classic/react";
+import { TextAlignPlugin } from "@platejs/basic-styles/react";
 import { serializeHtml } from "platejs";
 import {
   Underline,
@@ -32,25 +38,52 @@ import {
   AlignRight,
   Image,
   Redo2,
-  Undo2
+  Undo2,
 } from "lucide-react";
 
 // Custom number components for heading levels (Lucide doesn't have numbered heading icons)
 const LooksOne = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">1</text>
+    <text
+      x="50%"
+      y="50%"
+      dominantBaseline="middle"
+      textAnchor="middle"
+      fontSize="12"
+      fontWeight="600"
+    >
+      1
+    </text>
   </svg>
 );
 
 const LooksTwo = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">2</text>
+    <text
+      x="50%"
+      y="50%"
+      dominantBaseline="middle"
+      textAnchor="middle"
+      fontSize="12"
+      fontWeight="600"
+    >
+      2
+    </text>
   </svg>
 );
 
 const LooksThree = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fontSize="12" fontWeight="600">3</text>
+    <text
+      x="50%"
+      y="50%"
+      dominantBaseline="middle"
+      textAnchor="middle"
+      fontSize="12"
+      fontWeight="600"
+    >
+      3
+    </text>
   </svg>
 );
 
@@ -72,7 +105,6 @@ import { useModalKeyHandling } from "../../../application/hooks/useModalKeyHandl
 import { linkPlugin } from "../PlatePlugins/CustomLinkPlugin";
 import { imagePlugin, insertImage } from "../PlatePlugins/CustomImagePlugin";
 import { insertLink } from "../PlatePlugins/CustomLinkPlugin";
-
 
 interface Props {
   policy: Policy | null;
@@ -104,7 +136,7 @@ const PolicyDetailModal: React.FC<Props> = ({
   const [openImage, setOpenImage] = useState(false);
 
   // const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Track toggle state for toolbar buttons
   type ToolbarKey =
     | "bold"
@@ -124,24 +156,26 @@ const PolicyDetailModal: React.FC<Props> = ({
     | "link"
     | "image";
 
-  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>({
-    bold: false,
-    italic: false,
-    underline: false,
-    h1: false,
-    h2: false,
-    h3: false,
-    undo: false,
-    redo: false,
-    strike: false,
-    ol: false,
-    ul: false,
-    "align-left": false,
-    "align-center": false,
-    "align-right": false,
-    link: false,
-    image: false,
-  });
+  const [toolbarState, setToolbarState] = useState<Record<ToolbarKey, boolean>>(
+    {
+      bold: false,
+      italic: false,
+      underline: false,
+      h1: false,
+      h2: false,
+      h3: false,
+      undo: false,
+      redo: false,
+      strike: false,
+      ol: false,
+      ul: false,
+      "align-left": false,
+      "align-center": false,
+      "align-right": false,
+      link: false,
+      image: false,
+    }
+  );
 
   useModalKeyHandling({
     isOpen: true,
@@ -201,46 +235,54 @@ const PolicyDetailModal: React.FC<Props> = ({
   });
 
   // Create the editor with plugins
-  const [editor] = useState(() =>
-    createPlateEditor({
-      plugins: [
-        BoldPlugin,
-        ItalicPlugin,
-        UnderlinePlugin,
-        H1Plugin,
-        H2Plugin,
-        H3Plugin,
-        StrikethroughPlugin,
-        imagePlugin,
-        linkPlugin,
-    ListPlugin,
-    BulletedListPlugin.configure({
-      shortcuts: { toggle: { keys: 'mod+alt+5' } },
-    }),
-    NumberedListPlugin.configure({
-      shortcuts: { toggle: { keys: 'mod+alt+6' } },
-    }),
-    ListItemPlugin,
-    ListItemContentPlugin,
-        TextAlignPlugin.configure({
-          inject: {
-            nodeProps: {
-              nodeKey: 'align',
-              defaultNodeValue: 'start',
-              styleKey: 'textAlign',
-              validNodeValues: ['start', 'left', 'center', 'right', 'end', 'justify'],
+  const [editor] = useState(
+    () =>
+      createPlateEditor({
+        plugins: [
+          BoldPlugin,
+          ItalicPlugin,
+          UnderlinePlugin,
+          H1Plugin,
+          H2Plugin,
+          H3Plugin,
+          StrikethroughPlugin,
+          imagePlugin,
+          linkPlugin,
+          ListPlugin,
+          BulletedListPlugin.configure({
+            shortcuts: { toggle: { keys: "mod+alt+5" } },
+          }),
+          NumberedListPlugin.configure({
+            shortcuts: { toggle: { keys: "mod+alt+6" } },
+          }),
+          ListItemPlugin,
+          ListItemContentPlugin,
+          TextAlignPlugin.configure({
+            inject: {
+              nodeProps: {
+                nodeKey: "align",
+                defaultNodeValue: "start",
+                styleKey: "textAlign",
+                validNodeValues: [
+                  "start",
+                  "left",
+                  "center",
+                  "right",
+                  "end",
+                  "justify",
+                ],
+              },
+              targetPlugins: ["h1", "h2", "h3", "p"],
             },
-            targetPlugins: ['h1', 'h2', 'h3', 'p'],
-          },
-        }),
-        AutoformatPlugin.configure({
-          options: {
-            rules: [],
-          },
-        }),
-      ],
-      value: [{ type: 'p', children: [{ text: '' }] }],
-    }) as any
+          }),
+          AutoformatPlugin.configure({
+            options: {
+              rules: [],
+            },
+          }),
+        ],
+        value: [{ type: "p", children: [{ text: "" }] }],
+      }) as any
   );
 
   useEffect(() => {
@@ -277,17 +319,72 @@ const PolicyDetailModal: React.FC<Props> = ({
     icon: React.ReactNode;
     action: () => void;
   }> = [
-    { key: "undo", title: "Undo", icon: <Undo2 size={16} />, action: () => editor.tf.undo() },
-    { key: "redo", title: "Redo", icon: <Redo2 size={16} />, action: () => editor.tf.redo() },
-    { key: "h1", title: "Heading 1", icon: <LooksOne />, action: () => editor.tf.h1.toggle() },
-    { key: "h2", title: "Heading 2", icon: <LooksTwo />, action: () => editor.tf.h2.toggle() },
-    { key: "h3", title: "Heading 3", icon: <LooksThree />, action: () => editor.tf.h3.toggle() },
-    { key: "bold", title: "Bold", icon: <FormatBold />, action: () => editor.tf.bold.toggle() },
-    { key: "italic", title: "Italic", icon: <FormatItalic />, action: () => editor.tf.italic.toggle() },
-    { key: "underline", title: "Underline", icon: <FormatUnderlined />, action: () => editor.tf.underline.toggle() },
-    { key: "strike", title: "Strikethrough", icon: <Strikethrough size={16} />, action: () => editor.tf.strikethrough.toggle() },
-    { key: "ol", title: "Numbered List", icon: <ListOrdered size={16} />, action: () => editor.tf.ol.toggle() },
-    { key: "ul", title: "Bulleted List", icon: <List size={16} />, action: () => editor.tf.ul.toggle() },
+    {
+      key: "undo",
+      title: "Undo",
+      icon: <Undo2 size={16} />,
+      action: () => editor.tf.undo(),
+    },
+    {
+      key: "redo",
+      title: "Redo",
+      icon: <Redo2 size={16} />,
+      action: () => editor.tf.redo(),
+    },
+    {
+      key: "h1",
+      title: "Heading 1",
+      icon: <LooksOne />,
+      action: () => editor.tf.h1.toggle(),
+    },
+    {
+      key: "h2",
+      title: "Heading 2",
+      icon: <LooksTwo />,
+      action: () => editor.tf.h2.toggle(),
+    },
+    {
+      key: "h3",
+      title: "Heading 3",
+      icon: <LooksThree />,
+      action: () => editor.tf.h3.toggle(),
+    },
+    {
+      key: "bold",
+      title: "Bold",
+      icon: <FormatBold />,
+      action: () => editor.tf.bold.toggle(),
+    },
+    {
+      key: "italic",
+      title: "Italic",
+      icon: <FormatItalic />,
+      action: () => editor.tf.italic.toggle(),
+    },
+    {
+      key: "underline",
+      title: "Underline",
+      icon: <FormatUnderlined />,
+      action: () => editor.tf.underline.toggle(),
+    },
+    {
+      key: "strike",
+      title: "Strikethrough",
+      icon: <Strikethrough size={16} />,
+      action: () => editor.tf.strikethrough.toggle(),
+    },
+    {
+      key: "ol",
+      title: "Numbered List",
+      icon: <ListOrdered size={16} />,
+      action: () => editor.tf.ol.toggle(),
+    },
+    {
+      key: "ul",
+      title: "Bulleted List",
+      icon: <List size={16} />,
+      action: () => editor.tf.ul.toggle(),
+    },
     {
       key: "align-left",
       title: "Align Left",
@@ -306,8 +403,18 @@ const PolicyDetailModal: React.FC<Props> = ({
       icon: <AlignRight size={16} />,
       action: () => editor.tf.textAlign.setNodes("right"),
     },
-    { key: "link", title: "Insert Link", icon: <Link size={16} />, action: () => setOpenLink(true)},
-    { key: "image", title: "Insert Image", icon: <Image size={16} />,   action: () => setOpenImage(true)},
+    {
+      key: "link",
+      title: "Insert Link",
+      icon: <Link size={16} />,
+      action: () => setOpenLink(true),
+    },
+    {
+      key: "image",
+      title: "Insert Image",
+      icon: <Image size={16} />,
+      action: () => setOpenImage(true),
+    },
   ];
 
   useEffect(() => {
@@ -363,27 +470,28 @@ const PolicyDetailModal: React.FC<Props> = ({
       console.error("Full error object:", err);
       console.error("Original error:", err?.originalError);
       console.error("Original error response:", err?.originalError?.response);
-      
+
       // Handle server validation errors - the CustomException is in originalError
-      const errorData = err?.originalError?.response || err?.response?.data || err?.response;
+      const errorData =
+        err?.originalError?.response || err?.response?.data || err?.response;
       console.error("Error data:", errorData);
-      
+
       if (errorData?.errors) {
         console.error("Processing server errors:", errorData.errors);
         const serverErrors: FormErrors = {};
         errorData.errors.forEach((error: any) => {
           console.error("Processing error:", error);
-          if (error.field === 'title') {
+          if (error.field === "title") {
             serverErrors.title = error.message;
-          } else if (error.field === 'status') {
+          } else if (error.field === "status") {
             serverErrors.status = error.message;
-          } else if (error.field === 'tags') {
+          } else if (error.field === "tags") {
             serverErrors.tags = error.message;
-          } else if (error.field === 'content_html') {
+          } else if (error.field === "content_html") {
             serverErrors.content = error.message;
-          } else if (error.field === 'next_review_date') {
+          } else if (error.field === "next_review_date") {
             serverErrors.nextReviewDate = error.message;
-          } else if (error.field === 'assigned_reviewer_ids') {
+          } else if (error.field === "assigned_reviewer_ids") {
             serverErrors.assignedReviewers = error.message;
           }
         });
@@ -426,7 +534,7 @@ const PolicyDetailModal: React.FC<Props> = ({
       <Drawer
         open={true}
         onClose={(_event, reason) => {
-          if (reason !== 'backdropClick') {
+          if (reason !== "backdropClick") {
             onClose();
           }
         }}
@@ -438,6 +546,7 @@ const PolicyDetailModal: React.FC<Props> = ({
             borderRadius: 0,
             padding: "15px 20px",
             marginTop: "0",
+            overflow: "hidden",
           },
         }}
       >
@@ -455,7 +564,8 @@ const PolicyDetailModal: React.FC<Props> = ({
               {isNew ? "Create new policy" : formData.title}
             </Typography>
           </Stack>
-          <CloseGreyIcon size={16}
+          <CloseGreyIcon
+            size={16}
             style={{ color: "#98A2B3", cursor: "pointer" }}
             onClick={onClose}
           />
@@ -463,7 +573,7 @@ const PolicyDetailModal: React.FC<Props> = ({
 
         <Divider sx={{ my: 2 }} />
 
-        <Stack spacing={2} sx={{ marginBottom: "80px" }}>
+        <Stack spacing={2} sx={{ paddingBottom: "16px" }}>
           <PolicyForm
             formData={formData}
             setFormData={setFormData}
@@ -486,15 +596,22 @@ const PolicyDetailModal: React.FC<Props> = ({
                   <IconButton
                     onClick={() => {
                       action?.();
-                      setToolbarState(prev => ({ ...prev, [key]: !prev[key] }));
+                      setToolbarState((prev) => ({
+                        ...prev,
+                        [key]: !prev[key],
+                      }));
                     }}
                     size="small"
                     sx={{
                       padding: "6px",
                       borderRadius: "3px",
-                      backgroundColor: toolbarState[key] ? "#E0F7FA" : "#FFFFFF",
+                      backgroundColor: toolbarState[key]
+                        ? "#E0F7FA"
+                        : "#FFFFFF",
                       border: "1px solid",
-                      borderColor: toolbarState[key] ? "#13715B" : "transparent",
+                      borderColor: toolbarState[key]
+                        ? "#13715B"
+                        : "transparent",
                       "&:hover": {
                         backgroundColor: "#F5F5F5",
                       },
@@ -516,28 +633,31 @@ const PolicyDetailModal: React.FC<Props> = ({
               }
             >
               <PlateContent
-                style={{
-                  height: "calc(100vh - 280px)", // Dynamic height: viewport minus header, form, toolbar, and save button area
-                  minHeight: "300px", // Minimum height for usability
-                  overflowY: "auto",
-                  padding: "16px",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "3px",
-                  backgroundColor: "#FFFFFF",
-                  fontSize: theme.typography.fontSize,
-                  color: theme.palette.text.primary,
-                  boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
-                  "&:focus": {
-                    outline: "none",
-                  }
-                } as CSSProperties}
+                style={
+                  {
+                    height: "calc(100vh - 310px)",
+                    overflowY: "auto",
+                    padding: "16px",
+                    border: "1px solid #E0E0E0",
+                    borderRadius: "3px",
+                    backgroundColor: "#FFFFFF",
+                    fontSize: theme.typography.fontSize,
+                    color: theme.palette.text.primary,
+                    boxShadow: "0px 1px 2px rgba(16, 24, 40, 0.05)",
+                    "&:focus": {
+                      outline: "none",
+                    },
+                  } as CSSProperties
+                }
                 placeholder="Start typing..."
               />
             </Plate>
             {errors.content && (
               <Typography
                 component="span"
-                color={theme.palette.status?.error?.text || theme.palette.error.main}
+                color={
+                  theme.palette.status?.error?.text || theme.palette.error.main
+                }
                 sx={{
                   opacity: 0.8,
                   fontSize: 11,
@@ -553,14 +673,17 @@ const PolicyDetailModal: React.FC<Props> = ({
         <Box
           sx={{
             position: "fixed",
-            bottom: 16,
-            right: 20,                      // match drawer padding
-            width: 430,                     // half of content width (860/2) to align with right column
-            p: 1,
-            backgroundColor: "#fff",        // give it a background to overlap content
+            bottom: 0,
+            right: 20,
+            left: "auto",
+            width: "calc(900px - 40px)",
+            pt: 2,
+            pb: "16px",
+            px: 2,
+            backgroundColor: "#fff",
             display: "flex",
             justifyContent: "flex-end",
-            zIndex: 1201,                   // above Drawer content
+            zIndex: 1201,
           }}
         >
           <CustomizableButton

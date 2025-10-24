@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SelectChangeEvent, Theme } from "@mui/material";
 
 import { SxProps } from "@mui/material";
 import { Dayjs } from "dayjs";
-import { ChangeEvent } from "react";
+import { ChangeEvent, ComponentType } from "react";
+import { ProjectRisk } from "../types/ProjectRisk";
 
 /**
  * Props for the CloseButton component.
@@ -28,6 +30,9 @@ export interface IconButtonProps {
   canDelete?: boolean;
   checkForRisks?: () => Promise<boolean>;
   onDeleteWithRisks?: (deleteRisks: boolean) => void;
+  onView?: () => void;
+  onSendTest?: () => void;
+  onToggleEnable?: () => void;
 }
 
 export interface AutoCompleteOption {
@@ -92,6 +97,7 @@ export interface FieldProps {
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
+  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
   disabled?: boolean;
   width?: number | string;
@@ -143,4 +149,76 @@ export interface IBannerProps {
   onClose: () => void;
   bannerText: string;
   bannerWidth: string;
+}
+
+export interface IStatusDropdownProps {
+  currentStatus: string;
+  onStatusChange: (newStatus: string) => Promise<boolean>;
+  disabled?: boolean;
+  size?: "small" | "medium";
+  allowedRoles?: string[];
+  userRole?: string;
+  statusOptions?: string[];
+}
+
+export interface ISearchBoxProps {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  sx?: SxProps<Theme>;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  disabled?: boolean;
+  fullWidth?: boolean;
+}
+
+export interface IHeatMapCell {
+  likelihood: number;
+  severity: number;
+  risks: ProjectRisk[];
+  riskLevel: number;
+  color: string;
+}
+
+export interface ITimelineEvent {
+  id: string;
+  date: Date;
+  type: "created" | "resolved" | "escalated" | "mitigated";
+  risk: ProjectRisk;
+  title: string;
+  description: string;
+  riskLevel: number;
+}
+
+export interface IGenerateReportProps {
+  onClose: () => void;
+  onReportGenerated?: () => void;
+  reportType: "project" | "organization" | null;
+}
+
+export interface IInputProps {
+  report_type: string;
+  report_name: string;
+  project: number;
+  framework: number;
+  projectFrameworkId: number;
+  reportType?: "project" | "organization" | null;
+}
+
+export interface IHeaderProps {
+  onHelperClick?: () => void;
+}
+
+export interface IProtectedRouteProps {
+  Component: ComponentType<any>;
+  [key: string]: any;
+}
+
+export interface IPopupProps {
+  popupId: string;
+  popupContent: React.ReactNode;
+  openPopupButtonName: string;
+  popupTitle: string;
+  popupSubtitle?: string;
+  handleOpenOrClose?: (event: React.MouseEvent<HTMLElement>) => void;
+  anchor: null | HTMLElement;
 }

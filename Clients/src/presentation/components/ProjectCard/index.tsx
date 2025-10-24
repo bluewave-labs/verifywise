@@ -6,21 +6,9 @@ import { Btn, Card, styles, SubtitleValue, Title } from "./styles";
 import useNavigateSearch from "../../../application/hooks/useNavigateSearch";
 import useUsers from "../../../application/hooks/useUsers";
 import getProjectData from "../../../application/tools/getProjectData";
-import {
-  Assessments,
-  Controls,
-} from "../../../application/hooks/useProjectStatus";
 import { formatDate } from "../../tools/isoDateToString";
 import { User } from "../../../domain/types/User";
-
-export interface ProjectCardProps {
-  id: number;
-  project_title: string;
-  owner: string;
-  assessments: Assessments;
-  controls: Controls;
-  last_updated: string;
-}
+import { IProjectCardProps } from "../../../domain/interfaces/i.project";
 
 const ProgressBarRender: FC<{
   progress: string | null;
@@ -36,7 +24,7 @@ const ProgressBarRender: FC<{
   </>
 ));
 
-const ProjectCard: FC<ProjectCardProps> = ({
+const ProjectCard: FC<IProjectCardProps> = ({
   id,
   project_title,
   owner,
@@ -47,7 +35,8 @@ const ProjectCard: FC<ProjectCardProps> = ({
   const theme = useTheme();
   const navigate = useNavigateSearch();
   const { users } = useUsers();
-  const ownerUser: User = users.find((user: User) => user.id.toString() === owner) ?? ({} as User);
+  const ownerUser: User =
+    users.find((user: User) => user.id.toString() === owner) ?? ({} as User);
 
   const {
     controlsProgress,
@@ -102,7 +91,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
             theme.components?.MuiButton?.defaultProps?.disableRipple
           }
           onClick={() =>
-            navigate("/test/project-view", { projectId: id.toString() })
+            navigate("/project-view", { projectId: id.toString() })
           }
         >
           View project

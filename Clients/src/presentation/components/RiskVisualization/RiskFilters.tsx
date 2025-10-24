@@ -1,34 +1,22 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Stack,
-} from "@mui/material";
-import { ProjectRisk } from "../../../domain/types/ProjectRisk";
+import { Box, Stack } from "@mui/material";
 import Select from "../Inputs/Select";
 import { getAllUsers } from "../../../application/repository/user.repository";
+import { IRiskFiltersProps } from "../../../domain/interfaces/i.risk";
+import { IFilterState } from "../../../domain/interfaces/i.filter";
 
-interface RiskFiltersProps {
-  risks: ProjectRisk[];
-  onFilterChange: (filteredRisks: ProjectRisk[], activeFilters: FilterState) => void;
-}
-
-interface FilterState {
-  riskLevel: string;
-  owner: string;
-  mitigationStatus: string;
-}
-
-const initialFilterState: FilterState = {
+const initialFilterState: IFilterState = {
   riskLevel: "all",
   owner: "all",
   mitigationStatus: "all",
+  deletionStatus: "active",
 };
 
-const RiskFilters: React.FC<RiskFiltersProps> = ({
+const RiskFilters: React.FC<IRiskFiltersProps> = ({
   risks,
   onFilterChange,
 }) => {
-  const [filters, setFilters] = useState<FilterState>(initialFilterState);
+  const [filters, setFilters] = useState<IFilterState>(initialFilterState);
   const [users, setUsers] = useState<any[]>([]);
 
   // Fetch users on component mount
@@ -41,7 +29,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
         console.error("Error fetching users:", error);
       }
     };
-    
+
     fetchUsers();
   }, []);
 
@@ -52,31 +40,43 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     }
   }, [risks.length]);
 
-  const applyFilters = (newFilters: FilterState) => {
+  const applyFilters = (newFilters: IFilterState) => {
     let filteredRisks = [...risks];
 
     // Risk level filter
     if (newFilters.riskLevel !== "all") {
       filteredRisks = filteredRisks.filter((risk) => {
-        const currentRiskLevel = (risk.current_risk_level || risk.risk_level_autocalculated || "").toLowerCase();
-        
+        const currentRiskLevel = (
+          risk.current_risk_level ||
+          risk.risk_level_autocalculated ||
+          ""
+        ).toLowerCase();
+
         switch (newFilters.riskLevel) {
           case "veryHigh":
             return currentRiskLevel.includes("very high");
           case "high":
-            return currentRiskLevel.includes("high") && !currentRiskLevel.includes("very high");
+            return (
+              currentRiskLevel.includes("high") &&
+              !currentRiskLevel.includes("very high")
+            );
           case "medium":
             return currentRiskLevel.includes("medium");
           case "low":
-            return currentRiskLevel.includes("low") && !currentRiskLevel.includes("very low");
+            return (
+              currentRiskLevel.includes("low") &&
+              !currentRiskLevel.includes("very low")
+            );
           case "veryLow":
-            return currentRiskLevel.includes("very low") || currentRiskLevel.includes("no risk");
+            return (
+              currentRiskLevel.includes("very low") ||
+              currentRiskLevel.includes("no risk")
+            );
           default:
             return true;
         }
       });
     }
-
 
     // Owner filter
     if (newFilters.owner !== "all") {
@@ -89,7 +89,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     if (newFilters.mitigationStatus !== "all") {
       filteredRisks = filteredRisks.filter((risk) => {
         const mitigationStatus = risk.mitigation_status?.toLowerCase();
-        
+
         switch (newFilters.mitigationStatus) {
           case "completed":
             return mitigationStatus === "completed";
@@ -105,27 +105,31 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
       });
     }
 
-
     onFilterChange(filteredRisks, newFilters);
   };
 
-  const handleFilterChange = (key: keyof FilterState, value: any) => {
+  const handleFilterChange = (key: keyof IFilterState, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     applyFilters(newFilters);
   };
 
-
   // Helper function to get user name by ID
   const getUserNameById = (userId: string): string => {
-    const user = users.find(u => u.id.toString() === userId.toString());
+    const user = users.find((u) => u.id.toString() === userId.toString());
     if (user) {
       // Try different possible field name combinations
-      const firstName = user.firstName || user.first_name || user.name?.split(' ')[0] || '';
-      const lastName = user.lastName || user.last_name || user.surname || user.name?.split(' ')[1] || '';
-      
+      const firstName =
+        user.firstName || user.first_name || user.name?.split(" ")[0] || "";
+      const lastName =
+        user.lastName ||
+        user.last_name ||
+        user.surname ||
+        user.name?.split(" ")[1] ||
+        "";
+
       const fullName = `${firstName} ${lastName}`.trim();
-      
+
       // Return full name if available, otherwise fallback to email, then user ID
       return fullName || user.email || `User ${userId}`;
     }
@@ -134,7 +138,7 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
 
   const getUniqueOwners = () => {
     const ownerIds = new Set<string>();
-    risks.forEach(risk => {
+    risks.forEach((risk) => {
       if (risk.risk_owner) {
         ownerIds.add(risk.risk_owner.toString());
       }
@@ -142,9 +146,9 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
 
     return Array.from(ownerIds)
       .sort()
-      .map(ownerId => ({
+      .map((ownerId) => ({
         id: ownerId,
-        name: getUserNameById(ownerId)
+        name: getUserNameById(ownerId),
       }));
   };
 
@@ -154,49 +158,66 @@ const RiskFilters: React.FC<RiskFiltersProps> = ({
     <Box>
       {/* Filter Dropdowns */}
       <Stack direction="row" spacing="16px" alignItems="flex-end">
-              <Select
-                id="risk-level-filter"
-                label="Risk Level"
-                value={filters.riskLevel}
-                items={[
-                  { _id: "all", name: "All Levels" },
-                  { _id: "veryHigh", name: "Very High" },
-                  { _id: "high", name: "High" },
-                  { _id: "medium", name: "Medium" },
-                  { _id: "low", name: "Low" },
-                  { _id: "veryLow", name: "Very Low" },
-                ]}
-                onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
-                sx={{ minWidth: 140 }}
-              />
+        <Select
+          id="risk-level-filter"
+          label="Risk Level"
+          value={filters.riskLevel}
+          items={[
+            { _id: "all", name: "All Levels" },
+            { _id: "veryHigh", name: "Very High" },
+            { _id: "high", name: "High" },
+            { _id: "medium", name: "Medium" },
+            { _id: "low", name: "Low" },
+            { _id: "veryLow", name: "Very Low" },
+          ]}
+          onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
+          sx={{ minWidth: 140 }}
+        />
 
-              <Select
-                id="owner-filter"
-                label="Owner"
-                value={filters.owner}
-                items={[
-                  { _id: "all", name: "All Owners" },
-                  ...uniqueOwners.map(owner => ({ _id: owner.id, name: owner.name }))
-                ]}
-                onChange={(e) => handleFilterChange("owner", e.target.value)}
-                sx={{ minWidth: 140 }}
-              />
+        <Select
+          id="owner-filter"
+          label="Owner"
+          value={filters.owner}
+          items={[
+            { _id: "all", name: "All Owners" },
+            ...uniqueOwners.map((owner) => ({
+              _id: owner.id,
+              name: owner.name,
+            })),
+          ]}
+          onChange={(e) => handleFilterChange("owner", e.target.value)}
+          sx={{ minWidth: 140 }}
+        />
 
-              <Select
-                id="mitigation-status-filter"
-                label="Mitigation Status"
-                value={filters.mitigationStatus}
-                items={[
-                  { _id: "all", name: "All Statuses" },
-                  { _id: "completed", name: "Completed" },
-                  { _id: "in_progress", name: "In Progress" },
-                  { _id: "pending", name: "Pending" },
-                  { _id: "none", name: "No Mitigations" },
-                ]}
-                onChange={(e) => handleFilterChange("mitigationStatus", e.target.value)}
-                sx={{ minWidth: 160 }}
-              />
+        <Select
+          id="mitigation-status-filter"
+          label="Mitigation Status"
+          value={filters.mitigationStatus}
+          items={[
+            { _id: "all", name: "All Statuses" },
+            { _id: "completed", name: "Completed" },
+            { _id: "in_progress", name: "In Progress" },
+            { _id: "pending", name: "Pending" },
+            { _id: "none", name: "No Mitigations" },
+          ]}
+          onChange={(e) =>
+            handleFilterChange("mitigationStatus", e.target.value)
+          }
+          sx={{ minWidth: 160 }}
+        />
 
+        <Select
+          id="deletion-status-filter"
+          label="Risk status"
+          value={filters.deletionStatus}
+          items={[
+            { _id: "active", name: "Active only" },
+            { _id: "all", name: "Active + deleted" },
+            { _id: "deleted", name: "Deleted only" },
+          ]}
+          onChange={(e) => handleFilterChange("deletionStatus", e.target.value)}
+          sx={{ minWidth: 140 }}
+        />
       </Stack>
     </Box>
   );

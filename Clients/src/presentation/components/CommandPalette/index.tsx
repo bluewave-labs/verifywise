@@ -71,7 +71,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChange }) =
       switch (funcName) {
         case 'navigateToSettingsTab':
           // Navigate to settings page with specific tab
-          navigate('/setting', { state: { activeTab: params } })
+          navigate('/settings', { state: { activeTab: params } })
           break
         default:
           console.log('Execute function:', funcName, params)

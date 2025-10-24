@@ -158,6 +158,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       date_of_assessment timestamp with time zone NOT NULL,
       is_demo boolean NOT NULL DEFAULT false,
       created_at timestamp without time zone NOT NULL DEFAULT now(),
+      updated_at timestamp without time zone NOT NULL DEFAULT now(),
+      is_deleted boolean NOT NULL DEFAULT false,
+      deleted_at timestamp without time zone,
       CONSTRAINT projectrisks_pkey PRIMARY KEY (id),
       CONSTRAINT projectrisks_risk_owner_fkey FOREIGN KEY (risk_owner)
         REFERENCES public.users (id) MATCH SIMPLE
@@ -269,6 +272,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       risk_level character varying(255) NOT NULL,
       is_demo boolean NOT NULL DEFAULT false,
       created_at timestamp without time zone NOT NULL DEFAULT now(),
+      updated_at timestamp without time zone NOT NULL DEFAULT now(),
+      is_deleted boolean NOT NULL DEFAULT false,
+      deleted_at timestamp without time zone,
       CONSTRAINT vendorrisks_pkey PRIMARY KEY (id),
       CONSTRAINT vendorrisks_vendor_id_fkey FOREIGN KEY (vendor_id)
         REFERENCES "${tenantHash}".vendors (id) MATCH SIMPLE
@@ -697,7 +703,9 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
         threshold VARCHAR(255),
         model_id INTEGER REFERENCES "${tenantHash}".model_inventories(id) ON DELETE CASCADE,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN NOT NULL DEFAULT false,
+        deleted_at TIMESTAMP
       );`, { transaction });
 
     // Create task ENUM types if they don't exist
@@ -785,6 +793,71 @@ export const createNewTenant = async (organization_id: number, transaction: Tran
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       expires_at TIMESTAMPTZ,
       created_by INTEGER REFERENCES public.users(id) ON DELETE SET NULL
+    );`, { transaction });
+
+
+    // Create ai-incident-management table
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS "${tenantHash}"."ai_incident_managements" (
+        id SERIAL PRIMARY KEY,
+        incident_id VARCHAR(255) NOT NULL UNIQUE,
+        ai_project VARCHAR(255) NOT NULL,
+        type VARCHAR(255) NOT NULL,
+        severity VARCHAR(20) NOT NULL,
+        occurred_date TIMESTAMP NOT NULL,
+        date_detected TIMESTAMP NOT NULL,
+        reporter VARCHAR(255) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'Open',
+        categories_of_harm JSON NOT NULL,
+        affected_persons_groups TEXT,
+        description TEXT NOT NULL,
+        relationship_causality TEXT,
+        immediate_mitigations TEXT,
+        planned_corrective_actions TEXT,
+        model_system_version VARCHAR(255),
+        interim_report BOOLEAN NOT NULL DEFAULT FALSE,
+        approval_status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+        approved_by VARCHAR(255),
+        approval_date TIMESTAMP,
+        approval_notes TEXT,
+        archived BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `, { transaction });
+
+    // Add indexes
+    await sequelize.query(`
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_severity_idx" ON "${tenantHash}"."ai_incident_managements" (severity);
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_status_idx" ON "${tenantHash}"."ai_incident_managements" (status);
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_approval_status_idx" ON "${tenantHash}"."ai_incident_managements" (approval_status);
+      CREATE INDEX IF NOT EXISTS "${tenantHash}_created_at_idx" ON "${tenantHash}"."ai_incident_managements" (created_at);
+    `, { transaction });
+
+    // Create and attach incident_id sequence 
+    await sequelize.query(`
+      CREATE SEQUENCE IF NOT EXISTS "${tenantHash}".incident_id_seq START 1;
+      ALTER TABLE "${tenantHash}".ai_incident_managements
+      ALTER COLUMN incident_id 
+      SET DEFAULT 'INC-' || nextval('"${tenantHash}".incident_id_seq');
+    `, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".automations (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      trigger_id INTEGER REFERENCES public.automation_triggers(id) ON DELETE RESTRICT,
+      params JSONB DEFAULT '{}',
+      is_active BOOLEAN DEFAULT TRUE,
+      created_by INTEGER REFERENCES users(id),
+      created_at TIMESTAMP DEFAULT NOW()
+    );`, { transaction });
+
+    await sequelize.query(`CREATE TABLE "${tenantHash}".automation_actions (
+      id SERIAL PRIMARY KEY,
+      automation_id INTEGER REFERENCES "${tenantHash}".automations(id) ON DELETE CASCADE,
+      action_type_id INTEGER REFERENCES public.automation_actions(id) ON DELETE RESTRICT,
+      params JSONB DEFAULT '{}',
+      "order" INTEGER DEFAULT 1
     );`, { transaction });
   }
   catch (error) {

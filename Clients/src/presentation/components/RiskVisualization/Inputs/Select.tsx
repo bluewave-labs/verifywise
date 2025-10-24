@@ -23,14 +23,15 @@ const Select: React.FC<SelectProps> = ({
   if (isHidden) return null;
 
   return (
-    <FormControl 
-      size="small" 
+    <FormControl
+      size="small"
       sx={{ minWidth: 140, ...sx }}
       error={!!error}
       required={isRequired}
     >
       <InputLabel id={`${id}-label`}>
-        {label}{isRequired && ' *'}
+        {label}
+        {isRequired && " *"}
       </InputLabel>
       <MuiSelect
         labelId={`${id}-label`}
@@ -53,7 +54,9 @@ const Select: React.FC<SelectProps> = ({
         ))}
       </MuiSelect>
       {error && (
-        <div style={{ color: '#d32f2f', fontSize: '0.75rem', marginTop: '4px' }}>
+        <div
+          style={{ color: "#d32f2f", fontSize: "0.75rem", marginTop: "4px" }}
+        >
           {error}
         </div>
       )}

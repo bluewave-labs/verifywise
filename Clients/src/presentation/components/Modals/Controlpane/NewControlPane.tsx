@@ -142,7 +142,7 @@ const NewControlPane = ({
   useEffect(() => {
     if (subControlId && data.subControls && data.subControls?.length > 0) {
       const subControl = data.subControls.find(
-        (sc) => sc.id === Number(subControlId),
+        (sc) => sc.id === Number(subControlId)
       );
       if (subControl) {
         const sorted = (data.subControls || [])
@@ -155,7 +155,7 @@ const NewControlPane = ({
             ? "Overview"
             : isEvidence === "true"
             ? "Evidence"
-            : "Auditor Feedback",
+            : "Auditor Feedback"
         );
       }
     }
@@ -191,11 +191,11 @@ const NewControlPane = ({
 
   const handleSubControlStateChange = (
     index: number,
-    newState: Partial<Subcontrol>,
+    newState: Partial<Subcontrol>
   ) => {
     setState((prevState) => {
       const updatedSubControls = prevState.subControls!.map((sc, i) =>
-        i === index ? { ...sc, ...newState } : { ...sc },
+        i === index ? { ...sc, ...newState } : { ...sc }
       );
       return { ...prevState, subControls: updatedSubControls };
     });
@@ -218,7 +218,7 @@ const NewControlPane = ({
 
   const getUploadFilesForSubcontrol = (
     subcontrolId: string,
-    type: "evidence" | "feedback",
+    type: "evidence" | "feedback"
   ) => {
     return uploadFiles[subcontrolId]?.[type] || [];
   };
@@ -226,7 +226,7 @@ const NewControlPane = ({
   const setUploadFilesForSubcontrol = (
     subcontrolId: string,
     type: "evidence" | "feedback",
-    files: FileData[],
+    files: FileData[]
   ) => {
     setUploadFiles((prev) => ({
       ...prev,
@@ -262,11 +262,11 @@ const NewControlPane = ({
         "due_date",
         state.due_date
           ? new Date(state.due_date).toISOString().split("T")[0]
-          : "",
+          : ""
       );
       formData.append(
         "implementation_details",
-        state.implementation_details || "",
+        state.implementation_details || ""
       );
       formData.append("order_no", state.order_no?.toString() || "");
 
@@ -619,7 +619,7 @@ const NewControlPane = ({
                 >
                   {section}
                 </Button>
-              ),
+              )
             )}
           </Stack>
           <Box>
@@ -685,13 +685,13 @@ const NewControlPane = ({
                 onDeletedFilesChange={setDeletedFilesIds}
                 uploadFiles={getUploadFilesForSubcontrol(
                   state.subControls![selectedTab].id?.toString() || "",
-                  "evidence",
+                  "evidence"
                 )}
                 onUploadFilesChange={(files) =>
                   setUploadFilesForSubcontrol(
                     state.subControls![selectedTab].id?.toString() || "",
                     "evidence",
-                    files,
+                    files
                   )
                 }
                 readOnly={isEditingDisabled}
@@ -724,13 +724,13 @@ const NewControlPane = ({
                 onDeletedFilesChange={setDeletedFilesIds}
                 uploadFiles={getUploadFilesForSubcontrol(
                   state.subControls![selectedTab].id?.toString() || "",
-                  "feedback",
+                  "feedback"
                 )}
                 onUploadFilesChange={(files) =>
                   setUploadFilesForSubcontrol(
                     state.subControls![selectedTab].id?.toString() || "",
                     "feedback",
-                    files,
+                    files
                   )
                 }
                 readOnly={isAuditingDisabled}

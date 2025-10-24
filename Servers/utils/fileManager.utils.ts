@@ -155,21 +155,7 @@ export const getFilesByOrganization = async (
 
   const { limit, offset } = options;
 
-  // Get total count
-  const countQuery = `
-    SELECT COUNT(*) as count
-    FROM "${tenant}".file_manager
-    WHERE org_id = :orgId
-  `;
-
-  const countResult = await sequelize.query(countQuery, {
-    replacements: { orgId },
-    type: QueryTypes.SELECT,
-  });
-
-  const total = parseInt((countResult[0] as any).count);
-
-  // Get files with uploader info
+  // Get files with uploader info and file_path
   let query = `
     SELECT
       fm.id,
@@ -178,6 +164,7 @@ export const getFilesByOrganization = async (
       fm.mimetype,
       fm.upload_date,
       fm.uploaded_by,
+      fm.file_path,
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM "${tenant}".file_manager fm
@@ -198,7 +185,36 @@ export const getFilesByOrganization = async (
     type: QueryTypes.SELECT,
   });
 
-  return { files: files as FileManagerMetadata[], total };
+  // Filter out files that don't exist on disk
+  const existingFiles = (files as any[]).filter((file) => {
+    try {
+      const filePath = path.resolve(process.cwd(), file.file_path);
+      return fs.existsSync(filePath);
+    } catch (error) {
+      console.error(`Error checking file existence for ${file.filename}:`, error);
+      return false;
+    }
+  });
+
+  // Get accurate count of existing files
+  const totalCountQuery = `
+    SELECT COUNT(*) as count
+    FROM "${tenant}".file_manager
+    WHERE org_id = :orgId
+  `;
+
+  const countResult = await sequelize.query(totalCountQuery, {
+    replacements: { orgId },
+    type: QueryTypes.SELECT,
+  });
+
+  const totalDbCount = parseInt((countResult[0] as any).count);
+
+  // If we're filtering by existence, the total may be less than DB count
+  // For simplicity, return the count of existing files found
+  const total = existingFiles.length;
+
+  return { files: existingFiles as FileManagerMetadata[], total };
 };
 
 /**

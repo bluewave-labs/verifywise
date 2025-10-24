@@ -314,6 +314,18 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
       return res.status(400).json(STATUS_CODE[400]("Invalid file path"));
     }
 
+    // Check if file exists on disk before attempting to stream
+    if (!fs.existsSync(filePath)) {
+      await logFailure({
+        eventType: "Read",
+        description: `File not found on disk: ${filePath}. Database record exists but file is missing.`,
+        functionName: "downloadFile",
+        fileName: "fileManager.ctrl.ts",
+        error: new Error("File not found on disk"),
+      });
+      return res.status(404).json(STATUS_CODE[404]("File not found. The file may have been deleted."));
+    }
+
     // Stream file safely with proper error handling
     try {
       // Set headers for file download

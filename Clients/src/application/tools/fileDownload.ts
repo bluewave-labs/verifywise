@@ -34,8 +34,7 @@ export const handleDownload = async (fileId: string, fileName: string) => {
 
 export const handleFileManagerDownload = async (
   fileId: string,
-  fileName: string,
-  onError?: (message: string) => void
+  fileName: string
 ) => {
   try {
     const response = await downloadFileFromManager({
@@ -44,9 +43,9 @@ export const handleFileManagerDownload = async (
 
     // Check if response is valid
     if (!response || response.size === 0) {
-      const errorMsg = "File not found or empty. It may have been deleted.";
+      const errorMsg = "File not found or empty. It may have been deleted from the server.";
       console.error(errorMsg);
-      if (onError) onError(errorMsg);
+      alert(errorMsg + "\n\nPlease refresh the page to update the file list.");
       throw new Error(errorMsg);
     }
 
@@ -60,16 +59,22 @@ export const handleFileManagerDownload = async (
     a.remove();
     URL.revokeObjectURL(url);
   } catch (error: any) {
-    const errorMessage = error?.message || "Failed to download file. The file may have been deleted or you don't have permission.";
-    console.error("Error downloading file from file manager:", error);
+    // Extract user-friendly error message
+    let errorMessage = "Failed to download file. The file may have been deleted or you don't have permission.";
 
-    if (onError) {
-      onError(errorMessage);
-    } else {
-      // Fallback: show browser alert if no error handler provided
-      alert(errorMessage);
+    // Check if it's a CustomException with specific message
+    if (error?.message?.includes("not found")) {
+      errorMessage = "File not found on the server. It may have been manually deleted.\n\nPlease refresh the page to update the file list.";
+    } else if (error?.message?.includes("permission")) {
+      errorMessage = "You don't have permission to download this file.";
+    } else if (error?.statusCode === 404) {
+      errorMessage = "File not found on the server. It may have been deleted.\n\nPlease refresh the page to update the file list.";
+    } else if (error?.statusCode === 403) {
+      errorMessage = "Access denied. You don't have permission to download this file.";
     }
 
+    console.error("Error downloading file from file manager:", error);
+    alert(errorMessage);
     throw error;
   }
 };

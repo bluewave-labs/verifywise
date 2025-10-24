@@ -15,7 +15,7 @@ import singleTheme from "../../../themes/v1SingleTheme";
 import { useState, useEffect, useCallback } from "react";
 import IconButton from "../../IconButton";
 import { ExternalLink as LinkExternalIcon } from "lucide-react";
-import { handleDownload } from "../../../../application/tools/fileDownload";
+import { handleDownload, handleFileManagerDownload } from "../../../../application/tools/fileDownload";
 import { FileData } from "../../../../domain/types/File";
 import {
   getPaginationRowCount,
@@ -95,8 +95,21 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
           `/framework?frameworkName=iso-27001&annex27001Id=${item.parentId}&annexControl27001Id=${item.metaId}`
         );
         break;
+      case "File Manager":
+        // File Manager files don't have a source to navigate to
+        console.log("File Manager file - no source navigation available");
+        break;
       default:
         console.warn("Unknown source type:", item.source);
+    }
+  };
+
+  const handleFileDownload = (item: FileData) => {
+    // Use different download function based on source
+    if (item.source === "File Manager") {
+      handleFileManagerDownload(item.id, item.fileName);
+    } else {
+      handleDownload(item.id, item.fileName);
     }
   };
 
@@ -163,7 +176,7 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     id={Number(row.id)}
                     type="evidence"
                     onEdit={() => {}}
-                    onDownload={() => handleDownload(row.id, row.fileName)}
+                    onDownload={() => handleFileDownload(row)}
                     onDelete={() => {}}
                     warningTitle="Are you sure you want to download this file?"
                     warningMessage="This action will download the file to your local machine."

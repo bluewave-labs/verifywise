@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { CirclePlus, BarChart3, Filter, Search } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const TasksSteps: PageTourStep[] = [
+const TasksSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="add-task-button"]',
     content: {

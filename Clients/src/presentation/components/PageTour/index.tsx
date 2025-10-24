@@ -2,25 +2,14 @@ import Joyride, { Step, TooltipRenderProps } from "react-joyride";
 import React, { useEffect, useState } from "react";
 import { CustomStepWrapper } from "./CustomStep";
 import { Global } from "@emotion/react";
+import { IPageTourProps } from "../../../domain/interfaces/i.tour";
 
-interface PageTourProps {
-  steps: PageTourStep[];
-  run: boolean;
-  onFinish?: () => void;
-  tourKey: string;
-}
-
-export interface PageTourStep {
-  target: string;
-  content: {
-    header?: string;
-    body: string;
-    icon?: React.ReactNode;
-  };
-  placement?: "left" | "right" | "top" | "bottom" | "top-start" | "bottom-start" | "bottom-end" | "top-end";
-}
-
-const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) => {
+const PageTour: React.FC<IPageTourProps> = ({
+  steps,
+  run,
+  onFinish,
+  tourKey,
+}) => {
   const [shouldRun, setShouldRun] = useState(false);
 
   useEffect(() => {
@@ -55,35 +44,35 @@ const PageTour: React.FC<PageTourProps> = ({ steps, run, onFinish, tourKey }) =>
     <>
       <Global
         styles={{
-          '.__floater__arrow polygon': {
-            fill: '#1f1f23 !important',
+          ".__floater__arrow polygon": {
+            fill: "#1f1f23 !important",
           },
-          '.react-joyride__tooltip': {
-            filter: 'drop-shadow(0 8px 32px rgba(0, 0, 0, 0.3))',
-            animation: 'fadeIn 0.3s ease-in-out',
+          ".react-joyride__tooltip": {
+            filter: "drop-shadow(0 8px 32px rgba(0, 0, 0, 0.3))",
+            animation: "fadeIn 0.3s ease-in-out",
           },
-          '@keyframes fadeIn': {
-            '0%': {
+          "@keyframes fadeIn": {
+            "0%": {
               opacity: 0,
-              transform: 'scale(0.95)',
+              transform: "scale(0.95)",
             },
-            '100%': {
+            "100%": {
               opacity: 1,
-              transform: 'scale(1)',
+              transform: "scale(1)",
             },
           },
-          '@keyframes fadeOut': {
-            '0%': {
+          "@keyframes fadeOut": {
+            "0%": {
               opacity: 1,
-              transform: 'scale(1)',
+              transform: "scale(1)",
             },
-            '100%': {
+            "100%": {
               opacity: 0,
-              transform: 'scale(0.95)',
+              transform: "scale(0.95)",
             },
           },
-          '.react-joyride__tooltip--closing': {
-            animation: 'fadeOut 0.2s ease-in-out',
+          ".react-joyride__tooltip--closing": {
+            animation: "fadeOut 0.2s ease-in-out",
           },
         }}
       />

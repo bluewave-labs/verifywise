@@ -13,7 +13,6 @@ import React, {
 } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import Grid from "@mui/material/Grid2";
 import { styles } from "./styles";
 import { postAutoDrivers } from "../../../application/repository/entity.repository";

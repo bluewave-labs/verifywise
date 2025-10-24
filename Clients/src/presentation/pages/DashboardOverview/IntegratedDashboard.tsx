@@ -16,6 +16,7 @@ import {
   MenuItem,
   Select as MuiSelect,
   SelectChangeEvent,
+  Checkbox,
 } from "@mui/material";
 import {
   GripVertical,
@@ -34,6 +35,7 @@ import {
   ScrollText,
   Plus,
   ChevronDown,
+  Eye,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -42,6 +44,7 @@ import { useDashboardMetrics } from "../../../application/hooks/useDashboardMetr
 import { cardStyles } from "../../themes";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { getUserById } from "../../../application/repository/user.repository";
+import VerifyWiseMultiSelect from "../../components/VerifyWiseMultiSelect";
 import StatusDonutChart from "../../components/Charts/StatusDonutChart";
 import { getDefaultStatusDistribution } from "../../utils/statusColors";
 import {
@@ -782,6 +785,37 @@ const IntegratedDashboard: React.FC = () => {
   // Add New dropdown state
   const [addNewValue, setAddNewValue] = useState("");
 
+  // Show/Hide selector state
+  const [showHideSelector, setShowHideSelector] = useState(false);
+
+  // Load visible cards from localStorage on initial render
+  const getInitialVisibleCards = (): Set<string> => {
+    if (typeof window !== 'undefined') {
+      const savedCards = localStorage.getItem('dashboard-visible-cards');
+      if (savedCards) {
+        try {
+          return new Set(JSON.parse(savedCards));
+        } catch (error) {
+          console.error('Error parsing saved visible cards:', error);
+        }
+      }
+    }
+    return new Set(["projects", "evidences", "reports", "users", "models", "vendors", "vendor-risks", "trainings", "policies"]);
+  };
+
+  const [visibleCards, setVisibleCards] = useState<Set<string>>(getInitialVisibleCards());
+
+  // Save visible cards to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('dashboard-visible-cards', JSON.stringify(Array.from(visibleCards)));
+      } catch (error) {
+        console.error('Error saving visible cards to localStorage:', error);
+      }
+    }
+  }, [visibleCards]);
+
   // Handle Add New dropdown change
   const handleAddNewChange = (event: SelectChangeEvent<string>) => {
     const selectedValue = event.target.value;
@@ -810,6 +844,19 @@ const IntegratedDashboard: React.FC = () => {
 
     // Reset selection after navigation
     setTimeout(() => setAddNewValue(""), 100);
+  };
+
+  // Handle card visibility toggle
+  const handleCardVisibilityToggle = (cardId: string) => {
+    setVisibleCards((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId);
+      } else {
+        newSet.add(cardId);
+      }
+      return newSet;
+    });
   };
 
   // Generate time-based greeting
@@ -1380,11 +1427,7 @@ const IntegratedDashboard: React.FC = () => {
     [enforceLayoutItemConstraints]
   );
 
-  const resetLayout = () => {
-    setLayouts(defaultLayouts);
-    localStorage.removeItem("verifywise_integrated_dashboard_layouts");
-  };
-
+  
   if (loading) {
     return (
       <Box
@@ -1615,12 +1658,22 @@ const IntegratedDashboard: React.FC = () => {
           )}
           <Tooltip
             title={
-              editMode ? "Lock layout (view mode)" : "Unlock layout (edit mode)"
+              editMode
+                ? "Lock layout (view mode)"
+                : "Unlock layout (edit mode) - Click again to show/hide cards"
             }
           >
             <IconButton
               data-joyride-id="edit-mode-toggle"
-              onClick={() => setEditMode(!editMode)}
+              onClick={() => {
+                if (editMode) {
+                  setEditMode(false);
+                  setShowHideSelector(false);
+                } else {
+                  setEditMode(true);
+                  setShowHideSelector(true);
+                }
+              }}
               color="primary"
               size="medium"
             >
@@ -1639,14 +1692,23 @@ const IntegratedDashboard: React.FC = () => {
               )}
             </IconButton>
           </Tooltip>
-          {editMode && (
-            <Tooltip title="Reset Layout">
-              <IconButton onClick={resetLayout} size="small">
-                <RefreshCw size={20} />
-              </IconButton>
-            </Tooltip>
+
+          {/* Show/Hide Selector - appears when lock is clicked once */}
+          {showHideSelector && (
+            <VerifyWiseMultiSelect
+              options={widgets.map((widget) => ({
+                value: widget.id,
+                label: widget.title,
+              }))}
+              selectedValues={Array.from(visibleCards)}
+              onChange={(values) => setVisibleCards(new Set(values))}
+              placeholder="Show/hide cards"
+              minWidth={120}
+              height={32}
+            />
           )}
 
+  
           {/* Add New Dropdown */}
           <MuiSelect
             data-joyride-id="add-new-dropdown"
@@ -1695,18 +1757,25 @@ const IntegratedDashboard: React.FC = () => {
             }}
             sx={{
               minWidth: 140,
-              height: 36,
+              height: 32, // Standardized medium height
               fontSize: 13,
               backgroundColor: "#13715B",
               color: "#fff",
               borderRadius: "4px",
               "& .MuiSelect-select": {
-                padding: "8px 12px",
+                padding: "8px 16px", // Standardized padding
                 display: "flex",
                 alignItems: "center",
+                minHeight: "32px",
+                fontSize: 13,
+                fontWeight: 500,
               },
               "& fieldset": {
                 border: "none",
+              },
+              "&:hover": {
+                backgroundColor: "#0f604d", // Darker shade on hover
+                boxShadow: "0px 2px 4px rgba(19, 113, 91, 0.2)",
               },
               "&:hover fieldset": {
                 border: "none",
@@ -1935,55 +2004,57 @@ const IntegratedDashboard: React.FC = () => {
         autoSize={true}
         isBounded={true}
       >
-        {widgets.map((widget) => (
-          <Card
-            key={widget.id}
-            data-joyride-id={widget.id === "projects" ? "widget-card" : undefined}
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              boxShadow: "none",
-              border: `1px solid #DCDFE3`,
-              backgroundColor: "inherit",
-              "& .MuiCard-root": {
+        {widgets
+          .filter((widget) => visibleCards.has(widget.id))
+          .map((widget) => (
+            <Card
+              key={widget.id}
+              data-joyride-id={widget.id === "projects" ? "widget-card" : undefined}
+              sx={{
                 height: "100%",
-                margin: 0,
-              },
-            }}
-          >
-            {editMode && (
-              <CardHeader
-                className="widget-card-header"
-                sx={{
-                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                  py: 1,
-                  px: 2,
-                  "& .MuiCardHeader-title": {
-                    fontSize: "0.875rem",
-                    fontWeight: 500,
-                  },
-                }}
-                avatar={
-                  <GripVertical
-                    size={16}
-                    color={alpha(theme.palette.text.secondary, 0.6)}
-                  />
-                }
-                title={widget.title}
-              />
-            )}
-            <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
-              <WidgetErrorBoundary
-                widgetId={widget.id}
-                widgetTitle={widget.title}
-              >
-                {widget.content}
-              </WidgetErrorBoundary>
-            </Box>
-          </Card>
-        ))}
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                boxShadow: "none",
+                border: `1px solid #DCDFE3`,
+                backgroundColor: "inherit",
+                "& .MuiCard-root": {
+                  height: "100%",
+                  margin: 0,
+                },
+              }}
+            >
+              {editMode && (
+                <CardHeader
+                  className="widget-card-header"
+                  sx={{
+                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                    py: 1,
+                    px: 2,
+                    "& .MuiCardHeader-title": {
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                    },
+                  }}
+                  avatar={
+                    <GripVertical
+                      size={16}
+                      color={alpha(theme.palette.text.secondary, 0.6)}
+                    />
+                  }
+                  title={widget.title}
+                />
+              )}
+              <Box sx={{ flexGrow: 1, p: 0, height: "100%" }}>
+                <WidgetErrorBoundary
+                  widgetId={widget.id}
+                  widgetTitle={widget.title}
+                >
+                  {widget.content}
+                </WidgetErrorBoundary>
+              </Box>
+            </Card>
+          ))}
       </ResponsiveGridLayout>
       </Box>
 

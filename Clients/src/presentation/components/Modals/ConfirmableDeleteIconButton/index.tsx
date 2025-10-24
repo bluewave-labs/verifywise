@@ -6,7 +6,7 @@ import {
   DialogActions,
   Button,
   IconButton,
-  Typography
+  Typography,
 } from "@mui/material";
 import singleTheme from "../../../themes/v1SingleTheme";
 
@@ -25,14 +25,18 @@ const ConfirmableDeleteIconButton: React.FC<Props> = ({
   title = "Delete this item?",
   message = "This action is non-recoverable.",
   customIcon,
-  disabled = false
+  disabled = false,
 }) => {
   const [open, setOpen] = useState(false);
   const COLOR = singleTheme.textStyles.pageDescription.color;
 
   return (
     <>
-      <IconButton disabled={disabled} onClick={() => setOpen(true)} sx={{ padding: 0, ml: 5 }}>
+      <IconButton
+        disabled={disabled}
+        onClick={() => setOpen(true)}
+        sx={{ padding: 0, ml: 5 }}
+      >
         {customIcon}
       </IconButton>
       <Dialog open={open} onClose={() => setOpen(false)}>
@@ -40,7 +44,9 @@ const ConfirmableDeleteIconButton: React.FC<Props> = ({
           <strong>{title}</strong>
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: "14px", color: COLOR }}>{message}</Typography>
+          <Typography sx={{ fontSize: "14px", color: COLOR }}>
+            {message}
+          </Typography>
         </DialogContent>
         <DialogActions
           sx={{
@@ -63,7 +69,7 @@ const ConfirmableDeleteIconButton: React.FC<Props> = ({
               color: COLOR,
               px: 3,
               py: 1.5,
-              '&:focus': { outline: 'none' },
+              "&:focus": { outline: "none" },
             }}
           >
             Cancel
@@ -78,7 +84,7 @@ const ConfirmableDeleteIconButton: React.FC<Props> = ({
               ...singleTheme.buttons.error.contained,
               px: 3,
               py: 1.5,
-              minWidth: "120px"
+              minWidth: "120px",
             }}
           >
             Delete

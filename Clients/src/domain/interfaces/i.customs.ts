@@ -18,3 +18,12 @@ export interface IConfirmableDeleteIconButtonProps {
   customIcon?: React.ReactNode; // e.g., your <img src={trash} ... />
   disabled?: boolean;
 }
+
+export interface ICustomModalProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  title: any;
+  content: any;
+  subControlTlts: string[];
+  onConfirm: () => void;
+}

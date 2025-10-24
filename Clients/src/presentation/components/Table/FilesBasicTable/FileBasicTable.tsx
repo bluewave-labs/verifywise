@@ -180,11 +180,11 @@ const FileBasicTable: React.FC<IFileBasicTableProps> = ({
                     onDownload={() => handleFileDownload(row)}
                     onDelete={() => {
                       if (row.source === "File Manager") {
-                        handleFileDelete(row.id, row.fileName, onFileDeleted);
+                        handleFileDelete(row.id, onFileDeleted);
                       }
                     }}
-                    warningTitle="Are you sure you want to delete this file?"
-                    warningMessage="This action will permanently delete the file and cannot be undone."
+                    warningTitle={row.source === "File Manager" ? "Are you sure you want to delete this file?" : undefined}
+                    warningMessage={row.source === "File Manager" ? "This action will permanently delete the file and cannot be undone." : undefined}
                     onMouseEvent={() => {}}
                   />
                 </TableCell>

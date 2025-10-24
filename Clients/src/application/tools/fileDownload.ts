@@ -116,25 +116,14 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
 
 export const handleFileDelete = async (
   fileId: string,
-  fileName: string,
   onSuccess?: () => void
 ) => {
   try {
-    // Confirm deletion with user
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete "${fileName}"?\n\nThis action cannot be undone.`
-    );
-
-    if (!confirmDelete) {
-      return;
-    }
-
     const response = await deleteFileFromManager({
       id: typeof fileId === "string" ? fileId : String(fileId),
     });
 
     console.log("File deleted successfully:", response);
-    alert(`File "${fileName}" has been deleted successfully.`);
 
     // Call onSuccess callback if provided (e.g., to refresh the file list)
     if (onSuccess) {

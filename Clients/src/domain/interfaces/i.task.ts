@@ -62,3 +62,13 @@ export interface ICreateTaskProps {
   initialData?: ITask;
   mode?: "create" | "edit";
 }
+
+export interface ICreateTaskFormErrors {
+  title?: string;
+  description?: string;
+  priority?: string;
+  status?: string;
+  due_date?: string;
+  assignees?: string;
+  categories?: string;
+}

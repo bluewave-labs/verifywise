@@ -1,5 +1,16 @@
+/**
+ * @fileoverview File Download and Delete Operations
+ *
+ * Application layer handlers for file operations.
+ * Uses presentation layer utilities for browser download and centralized error handling.
+ *
+ * @module application/tools/fileDownload
+ */
+
 import { generateReport } from "../repository/entity.repository";
 import { getFileById, downloadFileFromManager, deleteFileFromManager } from "../repository/file.repository";
+import { triggerBrowserDownload, extractFilenameFromHeaders } from "../../presentation/utils/browserDownload.utils";
+import { getFileErrorMessage } from "../utils/fileErrorHandler.utils";
 
 interface GenerateReportProps {
   projectId: number | null;
@@ -11,27 +22,35 @@ interface GenerateReportProps {
   projectFrameworkId: number;
 }
 
+/**
+ * Downloads a file by ID (general file download)
+ *
+ * @param {string} fileId - The file identifier
+ * @param {string} fileName - The name to save the file as
+ * @throws {Error} If download fails
+ */
 export const handleDownload = async (fileId: string, fileName: string) => {
   try {
-   const response = await getFileById({
+    const response = await getFileById({
       id: typeof fileId === 'string' ? fileId : String(fileId),
       responseType: "blob",
     });
+
     const blob = new Blob([response], { type: response.type });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    triggerBrowserDownload(blob, fileName);
   } catch (error) {
     console.error("Error downloading file:", error);
     throw error;
   }
 };
 
+/**
+ * Downloads a file from the file manager
+ *
+ * @param {string} fileId - The file identifier
+ * @param {string} fileName - The name to save the file as
+ * @throws {Error} If download fails
+ */
 export const handleFileManagerDownload = async (
   fileId: string,
   fileName: string
@@ -41,44 +60,27 @@ export const handleFileManagerDownload = async (
       id: typeof fileId === 'string' ? fileId : String(fileId),
     });
 
-    // Check if response is valid
+    // Validate response
     if (!response || response.size === 0) {
-      const errorMsg = "File not found or empty. It may have been deleted from the server.";
-      console.error(errorMsg);
-      alert(errorMsg + "\n\nPlease refresh the page to update the file list.");
-      throw new Error(errorMsg);
+      throw new Error("File not found or empty");
     }
 
     const blob = new Blob([response], { type: response.type });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    triggerBrowserDownload(blob, fileName);
   } catch (error: any) {
-    // Extract user-friendly error message
-    let errorMessage = "Failed to download file. The file may have been deleted or you don't have permission.";
-
-    // Check if it's a CustomException with specific message
-    if (error?.message?.includes("not found")) {
-      errorMessage = "File not found on the server. It may have been manually deleted.\n\nPlease refresh the page to update the file list.";
-    } else if (error?.message?.includes("permission")) {
-      errorMessage = "You don't have permission to download this file.";
-    } else if (error?.statusCode === 404) {
-      errorMessage = "File not found on the server. It may have been deleted.\n\nPlease refresh the page to update the file list.";
-    } else if (error?.statusCode === 403) {
-      errorMessage = "Access denied. You don't have permission to download this file.";
-    }
-
+    const errorMessage = getFileErrorMessage(error, "download");
     console.error("Error downloading file from file manager:", error);
     alert(errorMessage);
     throw error;
   }
 };
 
+/**
+ * Generates and auto-downloads a report
+ *
+ * @param {GenerateReportProps} requestBody - Report generation parameters
+ * @returns {Promise<number>} HTTP status code
+ */
 export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
   try {
     const response = await generateReport({
@@ -87,33 +89,34 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
     });
 
     if (response.status === 200) {
-      const headerContent = response.headers.get('Content-Disposition');
-      const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
-      const fileName = fileAttachment.map(m => m[1]);
+      const fileName = extractFilenameFromHeaders(
+        response.headers,
+        `${requestBody.reportName}.pdf`
+      );
 
-      const blobFileContent = response.data;
-      const responseType = response.headers.get('Content-Type');
+      const blob = new Blob([response.data], {
+        type: response.headers.get('Content-Type') || 'application/pdf'
+      });
 
-      const blob = new Blob([blobFileContent], { type: responseType });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName[0];
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      triggerBrowserDownload(blob, fileName);
       return response.status;
     } else {
-      console.error("--- Error downloading report");
+      console.error("Error downloading report - status:", response.status);
       return response.status;
     }
   } catch (error) {
-    console.error("*** Error generating report", error);
+    console.error("Error generating report:", error);
     return 500;
   }
 };
 
+/**
+ * Deletes a file from the file manager
+ *
+ * @param {string} fileId - The file identifier
+ * @param {Function} [onSuccess] - Callback to execute on successful deletion
+ * @throws {Error} If deletion fails
+ */
 export const handleFileDelete = async (
   fileId: string,
   onSuccess?: () => void
@@ -130,19 +133,7 @@ export const handleFileDelete = async (
       onSuccess();
     }
   } catch (error: any) {
-    // Extract user-friendly error message
-    let errorMessage = "Failed to delete file. You may not have permission to delete this file.";
-
-    if (error?.message?.includes("not found")) {
-      errorMessage = "File not found on the server. It may have already been deleted.\n\nPlease refresh the page to update the file list.";
-    } else if (error?.message?.includes("permission") || error?.message?.includes("denied")) {
-      errorMessage = "You don't have permission to delete this file.";
-    } else if (error?.statusCode === 404) {
-      errorMessage = "File not found on the server. It may have already been deleted.\n\nPlease refresh the page to update the file list.";
-    } else if (error?.statusCode === 403) {
-      errorMessage = "Access denied. You don't have permission to delete this file.";
-    }
-
+    const errorMessage = getFileErrorMessage(error, "delete");
     console.error("Error deleting file from file manager:", error);
     alert(errorMessage);
     throw error;

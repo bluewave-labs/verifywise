@@ -20,6 +20,7 @@ import {
   getFileById,
   getFilesByOrganization,
   logFileAccess,
+  deleteFile,
 } from "../utils/fileManager.utils";
 import { validateFileUpload, formatFileSize } from "../utils/validations/fileManagerValidation.utils";
 import { logProcessing, logSuccess, logFailure } from "../utils/logger/logHelper";
@@ -365,6 +366,99 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
       eventType: "Read",
       description: "Failed to download file",
       functionName: "downloadFile",
+      fileName: "fileManager.ctrl.ts",
+      error: error as Error,
+    });
+    return res.status(500).json(STATUS_CODE[500]("Internal server error"));
+  }
+};
+
+/**
+ * Delete file from file manager
+ *
+ * DELETE /file-manager/:id
+ *
+ * @param {Request} req - Express request with file ID in params
+ * @param {Response} res - Express response
+ * @returns {Promise<Response>} Success message or error
+ */
+export const removeFile = async (req: Request, res: Response): Promise<any> => {
+  const fileId = parseInt(req.params.id, 10);
+
+  // Validate file ID is a valid integer
+  if (!Number.isFinite(fileId) || fileId !== parseInt(req.params.id, 10)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
+  const userId = Number(req.userId);
+  const orgId = Number(req.organizationId);
+  const tenant = req.tenantId || "";
+
+  logProcessing({
+    description: `Starting file deletion for file ID ${fileId}`,
+    functionName: "removeFile",
+    fileName: "fileManager.ctrl.ts",
+  });
+
+  try {
+    // Get file metadata to verify access
+    const file = await getFileById(fileId, tenant);
+
+    if (!file) {
+      await logSuccess({
+        eventType: "Delete",
+        description: `File not found: ID ${fileId}`,
+        functionName: "removeFile",
+        fileName: "fileManager.ctrl.ts",
+      });
+      return res.status(404).json(STATUS_CODE[404]({}));
+    }
+
+    // Verify file belongs to user's organization
+    if (file.org_id !== orgId) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Unauthorized deletion attempt for file ${fileId}`,
+        functionName: "removeFile",
+        fileName: "fileManager.ctrl.ts",
+        error: new Error("Access denied"),
+      });
+      return res.status(403).json(STATUS_CODE[403]("Access denied"));
+    }
+
+    // Delete the file
+    const deleted = await deleteFile(fileId, tenant);
+
+    if (!deleted) {
+      await logFailure({
+        eventType: "Delete",
+        description: `Failed to delete file ${fileId}`,
+        functionName: "removeFile",
+        fileName: "fileManager.ctrl.ts",
+        error: new Error("Failed to delete file"),
+      });
+      return res.status(500).json(STATUS_CODE[500]("Failed to delete file"));
+    }
+
+    await logSuccess({
+      eventType: "Delete",
+      description: `File deleted successfully: ${file.filename}`,
+      functionName: "removeFile",
+      fileName: "fileManager.ctrl.ts",
+      userId,
+    });
+
+    return res.status(200).json(
+      STATUS_CODE[200]({
+        message: "File deleted successfully",
+        fileId,
+      })
+    );
+  } catch (error) {
+    await logFailure({
+      eventType: "Delete",
+      description: "Failed to delete file",
+      functionName: "removeFile",
       fileName: "fileManager.ctrl.ts",
       error: error as Error,
     });

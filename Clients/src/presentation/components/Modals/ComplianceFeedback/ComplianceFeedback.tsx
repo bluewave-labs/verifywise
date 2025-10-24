@@ -14,19 +14,7 @@ import { AlertProps } from "../../../../domain/interfaces/iAlert";
 import { handleAlert } from "../../../../application/tools/alertUtils";
 import { FileData } from "../../../../domain/types/File";
 import Uppy from "@uppy/core";
-
-interface AuditorFeedbackProps {
-  activeSection?: string;
-  feedback: string | undefined;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  files: FileData[];
-  onFilesChange?: (files: FileData[]) => void;
-  deletedFilesIds: number[];
-  onDeletedFilesChange: (ids: number[]) => void;
-  uploadFiles: FileData[];
-  onUploadFilesChange: (files: FileData[]) => void;
-  readOnly?: boolean;
-}
+import { IAuditorFeedbackProps } from "../../../../domain/interfaces/i.editor";
 
 const parseFileData = (file: FileData | string): FileData => {
   if (typeof file === "string") {
@@ -44,7 +32,7 @@ const parseFileData = (file: FileData | string): FileData => {
   return file;
 };
 
-const AuditorFeedback: React.FC<AuditorFeedbackProps> = ({
+const AuditorFeedback: React.FC<IAuditorFeedbackProps> = ({
   activeSection,
   feedback,
   onChange,

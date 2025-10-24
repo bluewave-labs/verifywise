@@ -8,6 +8,8 @@
 .home-layout aside {
   position: sticky;
   height: 100vh;
+  width: 230px;
+  min-width: 230px;
   max-width: 230px;
   top: 0;
   left: 0;

@@ -248,10 +248,15 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
  * @returns {Promise<Response>} File content with appropriate headers
  */
 export const downloadFile = async (req: Request, res: Response): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
   const fileId = parseInt(req.params.id, 10);
 
-  // Validate file ID is a valid integer
-  if (!Number.isFinite(fileId) || fileId !== parseInt(req.params.id, 10)) {
+  // Validate parsed file ID is a safe integer
+  if (!Number.isSafeInteger(fileId)) {
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
   }
 
@@ -383,10 +388,15 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
  * @returns {Promise<Response>} Success message or error
  */
 export const removeFile = async (req: Request, res: Response): Promise<any> => {
+  // Validate file ID is numeric-only string before parsing
+  if (!/^\d+$/.test(req.params.id)) {
+    return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
+  }
+
   const fileId = parseInt(req.params.id, 10);
 
-  // Validate file ID is a valid integer
-  if (!Number.isFinite(fileId) || fileId !== parseInt(req.params.id, 10)) {
+  // Validate parsed file ID is a safe integer
+  if (!Number.isSafeInteger(fileId)) {
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
   }
 

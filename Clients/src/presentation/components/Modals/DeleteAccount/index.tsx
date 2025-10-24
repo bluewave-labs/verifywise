@@ -8,11 +8,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import Banner from "../Banner/index";
-
-interface DeleteAccountConfirmationProps {
-  open: boolean;
-  onClose: () => void;
-}
+import { IDeleteAccountConfirmationProps } from "../../../../domain/interfaces/i.customs";
 
 /**
  * A functional React component that renders a confirmation dialog for deleting an account.
@@ -33,7 +29,7 @@ interface DeleteAccountConfirmationProps {
  * @param {function} onClose - Callback function to close the dialog when the user clicks cancel or delete.
  * @returns {JSX.Element} The rendered DeleteAccountConfirmation component.
  */
-const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
+const DeleteAccountConfirmation: React.FC<IDeleteAccountConfirmationProps> = ({
   open,
   onClose,
 }) => {

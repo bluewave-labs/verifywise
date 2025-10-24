@@ -96,7 +96,31 @@ export const SUPPORTED_FILE_TYPES_STRING = getSupportedFileTypesString();
  * @returns {{ valid: boolean; error?: string }} Validation result
  */
 export const validateFile = (file: File): { valid: boolean; error?: string } => {
-  // Check file size
+  // Check if file exists (defensive check for null/undefined)
+  if (!file) {
+    return {
+      valid: false,
+      error: "No file provided",
+    };
+  }
+
+  // Check if file has a name (defensive check for malformed File object)
+  if (!file.name || file.name.trim() === "") {
+    return {
+      valid: false,
+      error: "File name is missing",
+    };
+  }
+
+  // Check if file is empty (zero bytes)
+  if (file.size === 0) {
+    return {
+      valid: false,
+      error: "File is empty",
+    };
+  }
+
+  // Check file size against maximum allowed
   if (file.size > MAX_FILE_SIZE_BYTES) {
     return {
       valid: false,
@@ -104,11 +128,13 @@ export const validateFile = (file: File): { valid: boolean; error?: string } => 
     };
   }
 
-  // Check file type
-  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+  // Check file type (with defensive check for missing MIME type)
+  if (!file.type || !ALLOWED_MIME_TYPES.has(file.type)) {
     return {
       valid: false,
-      error: "Unsupported file type",
+      error: file.type
+        ? "Unsupported file type"
+        : "File type could not be determined",
     };
   }
 

@@ -66,4 +66,3 @@ export const handleAutoDownload = async (requestBody: GenerateReportProps) => {
     return 500;
   }
 };
-

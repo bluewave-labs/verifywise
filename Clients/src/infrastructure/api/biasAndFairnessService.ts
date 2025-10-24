@@ -82,7 +82,7 @@ export const biasAndFairnessService = {
 
     const response = await CustomAxios.post("/bias_and_fairness/evaluate", formData, {
       headers: {
-        "Content-Type": undefined, // Let axios auto-detect and set proper boundary
+        "Content-Type": "multipart/form-data",
       },
       timeout: 300000, // 5 minutes timeout
     });

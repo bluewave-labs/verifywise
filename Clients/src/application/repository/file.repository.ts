@@ -58,3 +58,25 @@ export async function uploadFileToManager({
 }
 
 
+/**
+ * Download a file from the file manager
+ *
+ * @param {string} id - The file ID to download
+ * @param {AbortSignal} signal - Optional abort signal for cancellation
+ * @returns {Promise<any>} File blob response
+ */
+export async function downloadFileFromManager({
+  id,
+  signal,
+}: {
+  id: string;
+  signal?: AbortSignal;
+}): Promise<any> {
+  const response = await apiServices.get(`/file-manager/${id}`, {
+    signal,
+    responseType: "blob",
+  });
+  return response.data;
+}
+
+

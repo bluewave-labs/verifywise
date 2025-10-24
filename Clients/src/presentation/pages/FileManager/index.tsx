@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Stack, Box, Typography } from "@mui/material";
 import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -7,6 +7,8 @@ import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen"
 import FileSteps from "./FileSteps";
 import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
+import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
@@ -14,6 +16,7 @@ import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
+import { FileData } from "../../../domain/types/File";
 import CustomizableButton from "../../components/Button/CustomizableButton";
 import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
 
@@ -63,8 +66,34 @@ const FileManager: React.FC = (): JSX.Element => {
     string | number | null
   >("all");
 
-  // Fetch files based on selected project
-  const { filesData, loading: loadingFiles, refetch } = useUserFilesMetaData();
+  // Use hook for initial data load (keeps hook unchanged as requested)
+  const { filesData: initialFilesData, loading: initialLoading } = useUserFilesMetaData();
+
+  // Local state to manage files (allows manual refresh)
+  const [filesData, setFilesData] = useState<FileData[]>([]);
+  const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+
+  // Sync initial data from hook to local state
+  useEffect(() => {
+    if (initialFilesData.length > 0) {
+      setFilesData(initialFilesData);
+    }
+    setLoadingFiles(initialLoading);
+  }, [initialFilesData, initialLoading]);
+
+  // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
+  const refetch = useCallback(async () => {
+    try {
+      setLoadingFiles(true);
+      const response = await getUserFilesMetaData();
+      setFilesData(transformFilesData(response));
+    } catch (error) {
+      console.error("Error refetching files:", error);
+      setFilesData([]);
+    } finally {
+      setLoadingFiles(false);
+    }
+  }, []);
 
   // Handle upload button click
   const handleUploadClick = () => {

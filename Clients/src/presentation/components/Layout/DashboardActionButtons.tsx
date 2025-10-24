@@ -42,10 +42,11 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
           color: 'white',
           fontWeight: 500,
-          fontSize: '13px', // Standardized font size
-          height: '32px', // Standardized medium height
-          minHeight: '32px',
-          padding: '8px 16px', // Standardized padding
+          fontSize: '12px',
+          height: '30px',
+          minHeight: '30px',
+          maxHeight: '30px',
+          padding: '0 14px',
           borderRadius: '4px',
           textTransform: 'none',
           boxShadow: '0 2px 4px rgba(139, 92, 246, 0.2)',
@@ -67,10 +68,11 @@ const DashboardActionButtons: React.FC<DashboardActionButtonsProps> = memo(({
           background: 'linear-gradient(135deg, #FB923C 0%, #F97316 100%)',
           color: 'white',
           fontWeight: 500,
-          fontSize: '13px', // Standardized font size
-          height: '32px', // Standardized medium height
-          minHeight: '32px',
-          padding: '8px 16px', // Standardized padding
+          fontSize: '12px',
+          height: '30px',
+          minHeight: '30px',
+          maxHeight: '30px',
+          padding: '0 14px',
           borderRadius: '4px',
           textTransform: 'none',
           boxShadow: '0 2px 4px rgba(251, 146, 60, 0.2)',

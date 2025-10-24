@@ -8,7 +8,7 @@ export interface IRichTextEditorProps {
   isEditable?: boolean;
 }
 
-export interface AuditorFeedbackProps {
+export interface IAuditorFeedbackProps {
   activeSection?: string;
   feedback: string | undefined;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

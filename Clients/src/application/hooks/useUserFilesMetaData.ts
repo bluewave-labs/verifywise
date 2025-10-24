@@ -8,49 +8,70 @@
 import { useState, useEffect } from "react";
 import { FileData } from "../../domain/types/File";
 import { getUserFilesMetaData } from "../repository/file.repository";
-import { transformFilesData } from "../utils/fileTransform.utils";
 
 export const useUserFilesMetaData = () => {
-    const [filesData, setFilesData] = useState<FileData[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
+  const [filesData, setFilesData] = useState<FileData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-    useEffect(() => {
-        // Create an AbortController for request cancellation
-        const abortController = new AbortController();
+  useEffect(() => {
+    // Create an AbortController for request cancellation
+    const abortController = new AbortController();
 
-        const fetchFilesData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const filesResponse = await getUserFilesMetaData({
-                    signal: abortController.signal,
-                });
+    const fetchFilesData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const filesResponse = await getUserFilesMetaData({
+          signal: abortController.signal,
+        });
 
-                // Transform and set files data using shared utility (DRY)
-                setFilesData(transformFilesData(filesResponse));
-            } catch (error: unknown) {
-                // Check if the error is due to aborting the request
-                if (error instanceof Error && error.name === "AbortError") {
-                    // Ignore abort errors
-                    return;
-                }
-                setError(
-                    error instanceof Error ? error : new Error("Unknown error occurred"),
-                );
-                setFilesData([]);
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (filesResponse && Array.isArray(filesResponse)) {
+          setFilesData(
+            filesResponse.map((file) => ({
+              id: file.id,
+              fileName: file.filename,
+              uploadDate: file.uploaded_time
+                ? new Date(file.uploaded_time).toLocaleDateString()
+                : "Invalid Date",
+              uploader:
+                `${file.uploader_name ?? ""} ${
+                  file.uploader_surname ?? ""
+                }`.trim() || "N/A",
+              source: file.source,
+              projectTitle: file.project_title,
+              projectId: file.project_id.toString(),
+              parentId: file.parent_id,
+              subId: file.sub_id,
+              metaId: file.meta_id,
+              isEvidence: file.is_evidence,
+            })),
+          );
+        } else {
+          setFilesData([]);
+        }
+      } catch (error: unknown) {
+        // Check if the error is due to aborting the request
+        if (error instanceof Error && error.name === "AbortError") {
+          // Ignore abort errors
+          return;
+        }
+        setError(
+          error instanceof Error ? error : new Error("Unknown error occurred"),
+        );
+        setFilesData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        fetchFilesData();
+    fetchFilesData();
 
-        // Cleanup function to abort the request when component unmounts or projectID changes
-        return () => {
-            abortController.abort();
-        };
-    }, []);
+    // Cleanup function to abort the request when component unmounts or projectID changes
+    return () => {
+      abortController.abort();
+    };
+  }, []);
 
-    return { filesData, loading, error };
+  return { filesData, loading, error };
 };

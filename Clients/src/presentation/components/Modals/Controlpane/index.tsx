@@ -14,18 +14,9 @@ import { X as CloseIcon } from "lucide-react";
 import React, { useState } from "react";
 import DropDowns from "../../Inputs/Dropdowns";
 import AuditorFeedback from "../ComplianceFeedback/ComplianceFeedback";
+import { ICustomModalProps } from "../../../../domain/interfaces/i.customs";
 
-interface CustomModalProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  title: any;
-  content: any;
-  subControlTlts: string[];
-  onConfirm: () => void;
-  //Promise<{ status: number; data: any }>;
-}
-
-const CustomModal: React.FC<CustomModalProps> = ({
+const CustomModal: React.FC<ICustomModalProps> = ({
   isOpen,
   setIsOpen,
   title,

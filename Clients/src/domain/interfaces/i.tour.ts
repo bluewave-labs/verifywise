@@ -15,3 +15,10 @@ export interface IPageTourStep {
     | "bottom-end"
     | "top-end";
 }
+
+export interface IPageTourProps {
+  steps: IPageTourStep[];
+  run: boolean;
+  onFinish?: () => void;
+  tourKey: string;
+}

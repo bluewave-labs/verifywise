@@ -37,6 +37,7 @@ import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
+import ButtonShowcase from "../../presentation/components/ButtonShowcase";
 
 export const createRoutes = (
   triggerSidebar: boolean,
@@ -79,6 +80,7 @@ export const createRoutes = (
     <Route path="/automations" element={<AutomationsPage />} />
     <Route path="/ai-incident-managements" element={<IncidentManagement />} />
   </Route>,
+  <Route key="button-showcase" path="/button-showcase" element={<ButtonShowcase />} />,
   <Route
     key="admin-reg"
     path="/admin-reg"

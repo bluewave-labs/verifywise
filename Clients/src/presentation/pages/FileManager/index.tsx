@@ -195,7 +195,7 @@ const FileManager: React.FC = (): JSX.Element => {
             />
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} />
+            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={refetch} />
           </Box>
         </Stack>
       )}

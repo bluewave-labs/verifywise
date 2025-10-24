@@ -22,7 +22,11 @@ import SelectComponent from "../../Inputs/Select";
 import { ChevronDown as GreyDownArrowIcon } from "lucide-react";
 import { Save as SaveIcon, X as CloseIcon } from "lucide-react";
 import CustomizableButton from "../../Button/CustomizableButton";
-import { ITask } from "../../../../domain/interfaces/i.task";
+import {
+  ICreateTaskFormErrors,
+  ICreateTaskFormValues,
+  ICreateTaskProps,
+} from "../../../../domain/interfaces/i.task";
 import dayjs, { Dayjs } from "dayjs";
 import { datePickerStyle } from "../../Forms/ProjectForm/style";
 import useUsers from "../../../../application/hooks/useUsers";
@@ -30,40 +34,7 @@ import { useModalKeyHandling } from "../../../../application/hooks/useModalKeyHa
 import { checkStringValidation } from "../../../../application/validations/stringValidation";
 import { TaskPriority, TaskStatus } from "../../../../domain/enums/task.enum";
 
-interface CreateTaskProps {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  onSuccess?: (data: CreateTaskFormValues) => void;
-  initialData?: ITask;
-  mode?: "create" | "edit";
-}
-
-interface CreateTaskFormValues {
-  title: string;
-  description: string;
-  priority: TaskPriority;
-  status: TaskStatus;
-  due_date: string;
-  assignees: Array<{
-    id: number;
-    name: string;
-    surname: string;
-    email: string;
-  }>;
-  categories: string[];
-}
-
-interface CreateTaskFormErrors {
-  title?: string;
-  description?: string;
-  priority?: string;
-  status?: string;
-  due_date?: string;
-  assignees?: string;
-  categories?: string;
-}
-
-const initialState: CreateTaskFormValues = {
+const initialState: ICreateTaskFormValues = {
   title: "",
   description: "",
   priority: TaskPriority.MEDIUM,
@@ -85,7 +56,7 @@ const statusOptions = [
   { _id: TaskStatus.COMPLETED, name: "Completed" },
 ];
 
-const CreateTask: FC<CreateTaskProps> = ({
+const CreateTask: FC<ICreateTaskProps> = ({
   isOpen,
   setIsOpen,
   onSuccess,
@@ -94,8 +65,8 @@ const CreateTask: FC<CreateTaskProps> = ({
 }) => {
   const theme = useTheme();
   const { users } = useUsers();
-  const [values, setValues] = useState<CreateTaskFormValues>(initialState);
-  const [errors, setErrors] = useState<CreateTaskFormErrors>({});
+  const [values, setValues] = useState<ICreateTaskFormValues>(initialState);
+  const [errors, setErrors] = useState<ICreateTaskFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -176,7 +147,7 @@ const CreateTask: FC<CreateTaskProps> = ({
   }, [isOpen, mode, initialData, users]);
 
   const handleOnTextFieldChange = useCallback(
-    (prop: keyof CreateTaskFormValues) =>
+    (prop: keyof ICreateTaskFormValues) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         setValues((prev) => ({ ...prev, [prop]: value }));
@@ -186,7 +157,7 @@ const CreateTask: FC<CreateTaskProps> = ({
   );
 
   const handleOnSelectChange = useCallback(
-    (prop: keyof CreateTaskFormValues) => (event: any) => {
+    (prop: keyof ICreateTaskFormValues) => (event: any) => {
       const value = event.target.value;
       setValues((prev) => ({ ...prev, [prop]: value }));
       setErrors((prev) => ({ ...prev, [prop]: "" }));
@@ -226,7 +197,7 @@ const CreateTask: FC<CreateTaskProps> = ({
   }, []);
 
   const validateForm = (): boolean => {
-    const newErrors: CreateTaskFormErrors = {};
+    const newErrors: ICreateTaskFormErrors = {};
 
     const title = checkStringValidation("Task title", values.title, 1, 64);
     if (!title.accepted) {

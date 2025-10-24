@@ -145,12 +145,12 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
 
         // If no files remain (all were successful), close the modal
         if (filtered.length === 0 && successCount > 0) {
-          setTimeout(() => handleClose(), 500);
+          setTimeout(() => handleClose(), 300);
         }
 
         return filtered;
       });
-    }, 800); // Show success state for 800ms before removing
+    }, 500); // Show success state for 800ms before removing
   };
 
   const handleClose = () => {

@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
-import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB } from "../../../../application/constants/fileManager";
+import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB, validateFile } from "../../../../application/constants/fileManager";
 import { formatBytes } from "../../../../application/tools/fileUtil";
 
 interface FileManagerUploadModalProps {
@@ -52,11 +52,28 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   };
 
   const addFiles = (files: File[]) => {
-    const newFiles = files.map((file) => ({
-      file,
-      status: "pending" as const,
-      progress: 0,
-    }));
+    // Validate each file and create entries with appropriate status (DRY: using shared validateFile)
+    const newFiles = files.map((file) => {
+      const validation = validateFile(file);
+
+      if (!validation.valid) {
+        // File failed validation - mark as error with validation message
+        return {
+          file,
+          status: "error" as const,
+          progress: 0,
+          error: validation.error,
+        };
+      }
+
+      // File passed validation - mark as pending for upload
+      return {
+        file,
+        status: "pending" as const,
+        progress: 0,
+      };
+    });
+
     setFileList((prev) => [...prev, ...newFiles]);
   };
 
@@ -65,12 +82,15 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
   };
 
   const handleUpload = async () => {
-    if (fileList.length === 0) return;
+    // Only upload files with "pending" status (i.e., valid files)
+    const validFilesCount = fileList.filter((f) => f.status === "pending").length;
+    if (validFilesCount === 0) return;
 
     setIsUploading(true);
     let successCount = 0;
 
     for (let i = 0; i < fileList.length; i++) {
+      // Skip files that failed client-side validation or already uploaded
       if (fileList[i].status !== "pending") continue;
 
       try {
@@ -217,6 +237,9 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
     }
   };
 
+  // Check if there are any valid files to upload
+  const hasValidFiles = fileList.some((f) => f.status === "pending");
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
@@ -352,7 +375,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
             <Button
               variant="contained"
               onClick={handleUpload}
-              disabled={fileList.length === 0 || isUploading}
+              disabled={!hasValidFiles || isUploading}
               sx={{
                 backgroundColor: theme.palette.primary.main,
                 "&:hover": {

@@ -19,6 +19,38 @@ export const MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024;
 export const MAX_FILE_SIZE_MB = 30;
 
 /**
+ * Allowed MIME types for file uploads
+ * Must match server-side ALLOWED_MIME_TYPES in:
+ * Servers/utils/validations/fileManagerValidation.utils.ts
+ */
+export const ALLOWED_MIME_TYPES = new Set([
+  // Documents
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/csv",
+  "text/markdown",
+  // Images
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/bmp",
+  "image/tiff",
+  // Videos
+  "video/mp4",
+  "video/mpeg",
+  "video/quicktime",
+  "video/x-msvideo",
+  "video/x-ms-wmv",
+  "video/webm",
+  "video/x-matroska",
+]);
+
+/**
  * Allowed file extensions grouped by category
  * This mirrors the server-side ALLOWED_MIME_TYPES configuration
  */
@@ -56,3 +88,29 @@ export const getSupportedFileTypesString = (): string => {
  * Use this in components to avoid recalculating on every render
  */
 export const SUPPORTED_FILE_TYPES_STRING = getSupportedFileTypesString();
+
+/**
+ * Validates a file against size and type constraints
+ *
+ * @param {File} file - The file to validate
+ * @returns {{ valid: boolean; error?: string }} Validation result
+ */
+export const validateFile = (file: File): { valid: boolean; error?: string } => {
+  // Check file size
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return {
+      valid: false,
+      error: `File too large (max ${MAX_FILE_SIZE_MB}MB)`,
+    };
+  }
+
+  // Check file type
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    return {
+      valid: false,
+      error: "Unsupported file type",
+    };
+  }
+
+  return { valid: true };
+};

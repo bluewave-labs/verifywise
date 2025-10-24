@@ -21,14 +21,14 @@
  * triggerBrowserDownload(blob, 'report.pdf');
  */
 export const triggerBrowserDownload = (blob: Blob, filename: string): void => {
-    const url = window.URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.URL.revokeObjectURL(url);
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
 };
 
 /**
@@ -39,14 +39,14 @@ export const triggerBrowserDownload = (blob: Blob, filename: string): void => {
  * @returns {string} Extracted or fallback filename
  */
 export const extractFilenameFromHeaders = (
-    headers: Headers,
-    fallback: string = "download"
+  headers: Headers,
+  fallback: string = "download"
 ): string => {
-    const headerContent = headers.get("Content-Disposition");
-    if (!headerContent) return fallback;
+  const headerContent = headers.get("Content-Disposition");
+  if (!headerContent) return fallback;
 
-    const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
-    const filenames = fileAttachment.map((m) => m[1]);
+  const fileAttachment = [...headerContent.matchAll(/"([^"]+)"/g)];
+  const filenames = fileAttachment.map((m) => m[1]);
 
-    return filenames[0] || fallback;
+  return filenames[0] || fallback;
 };

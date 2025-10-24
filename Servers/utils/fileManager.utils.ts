@@ -155,7 +155,21 @@ export const getFilesByOrganization = async (
 
   const { limit, offset } = options;
 
-  // Get files with uploader info and file_path
+  // Get total count
+  const countQuery = `
+    SELECT COUNT(*) as count
+    FROM "${tenant}".file_manager
+    WHERE org_id = :orgId
+  `;
+
+  const countResult = await sequelize.query(countQuery, {
+    replacements: { orgId },
+    type: QueryTypes.SELECT,
+  });
+
+  const total = parseInt((countResult[0] as any).count);
+
+  // Get files with uploader info
   let query = `
     SELECT
       fm.id,
@@ -164,7 +178,6 @@ export const getFilesByOrganization = async (
       fm.mimetype,
       fm.upload_date,
       fm.uploaded_by,
-      fm.file_path,
       u.name AS uploader_name,
       u.surname AS uploader_surname
     FROM "${tenant}".file_manager fm
@@ -185,36 +198,7 @@ export const getFilesByOrganization = async (
     type: QueryTypes.SELECT,
   });
 
-  // Get database count for accurate pagination
-  const totalCountQuery = `
-    SELECT COUNT(*) as count
-    FROM "${tenant}".file_manager
-    WHERE org_id = :orgId
-  `;
-
-  const countResult = await sequelize.query(totalCountQuery, {
-    replacements: { orgId },
-    type: QueryTypes.SELECT,
-  });
-
-  const totalDbCount = parseInt((countResult[0] as any).count);
-
-  // Annotate each file with existsOnDisk flag instead of filtering
-  // This preserves pagination and lets the controller/UI decide visibility
-  const filesWithExistence = (files as any[]).map((file) => {
-    let existsOnDisk = false;
-    try {
-      const filePath = path.resolve(process.cwd(), file.file_path);
-      existsOnDisk = fs.existsSync(filePath);
-    } catch (error) {
-      console.error(`Error checking file existence for ${file.filename}:`, error);
-      existsOnDisk = false;
-    }
-    return { ...file, existsOnDisk };
-  });
-
-  // Return database total for accurate pagination
-  return { files: filesWithExistence as FileManagerMetadata[], total: totalDbCount };
+  return { files: files as FileManagerMetadata[], total };
 };
 
 /**

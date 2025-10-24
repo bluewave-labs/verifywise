@@ -192,7 +192,7 @@ const IconButton: React.FC<IconButtonProps> = ({
     if (type === "report") {
       return ["download", "remove"];
     } else if (type === "evidence") {
-      return ["download", "remove"];
+      return ["download"];
     } else if (type === "Resource") {
       return ["edit", "make visible", "download", "remove"];
     } else if (type === "Vendor") {

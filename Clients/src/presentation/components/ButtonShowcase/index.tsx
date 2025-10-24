@@ -21,9 +21,212 @@ const ButtonShowcase: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Button Component Showcase
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
         Test all button variants and their states for consistency
       </Typography>
+
+      {/* Design System Documentation */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Design System Documentation
+        </Typography>
+        <Stack spacing={3}>
+          {/* Button Heights */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>Button Heights:</Typography>
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Small:</strong> 28px (padding: 6px 12px, font-size: 12px)
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Medium:</strong> 32px (padding: 8px 16px, font-size: 13px)
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Large:</strong> 40px (padding: 10px 20px, font-size: 14px)
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* Font Sizes & Weights */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>Typography System:</Typography>
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Small:</strong> 12px (font-weight: 400-500)
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '13px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Medium:</strong> 13px (font-weight: 500)
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '14px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Large:</strong> 14px (font-weight: 500)
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* Spacing System */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>Spacing System:</Typography>
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Component Gap:</strong> 8px (spacing={1})
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Section Gap:</strong> 16px (spacing={2})
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Container Padding:</strong> 24px
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* Border Radius */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>Border Radius:</Typography>
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Default:</strong> 4px (borderRadius: "4px")
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Icon Buttons:</strong> 50% (width: height, borderRadius: '50%')
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* Color Palette */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>Color Palette:</Typography>
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Primary:</strong> #13715B
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Primary Hover:</strong> #0f604d
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Secondary:</strong> #6B7280
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Secondary Hover:</strong> #4B5563
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* Transitions */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>Transitions:</Typography>
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Standard:</strong> 0.2s ease (transition: 'all 0.2s ease')
+              </Box>
+              <Box sx={{
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>Hover Effect:</strong> box-shadow 0px 2px 4px rgba(19, 113, 91, 0.2)
+              </Box>
+            </Stack>
+          </Box>
+        </Stack>
+      </Paper>
 
       {/* Primary Buttons */}
       <Paper sx={{ p: 3, mb: 3 }}>

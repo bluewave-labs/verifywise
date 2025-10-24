@@ -1775,10 +1775,6 @@ const IntegratedDashboard: React.FC = () => {
                 transform: "translateY(-50%)",
                 position: "absolute",
               },
-              "&:hover": {
-                backgroundColor: "#0f604d",
-                opacity: 0.95,
-              },
             }}
           >
             <MenuItem value="use-case">Use case</MenuItem>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Typography, Stack, Divider, Paper, Container } from '@mui/material';
-import { Plus, Eye, Filter, Edit3, Lock, Unlock, ChevronDown, Save, Trash2, Download, Upload } from 'lucide-react';
+import { Box, Typography, Stack, Paper, Container } from '@mui/material';
+import { Plus, Eye, Filter, Edit3, Lock, Unlock, Save, Trash2, Download, Upload } from 'lucide-react';
 import CustomizableButton from '../Button/CustomizableButton';
 import VerifyWiseMultiSelect from '../VerifyWiseMultiSelect';
 import ViewToggle from '../ViewToggle';

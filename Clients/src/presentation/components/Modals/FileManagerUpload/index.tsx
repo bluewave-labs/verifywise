@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { Upload as UploadIcon, X as CloseIcon, Trash2 as DeleteIcon } from "lucide-react";
 import { uploadFileToManager } from "../../../../application/repository/file.repository";
+import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB } from "../../../../application/constants/fileManager";
 
 interface FileManagerUploadModalProps {
   open: boolean;
@@ -111,7 +112,7 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         if (error?.message) {
           errorMessage = error.message;
         } else if (error?.statusCode === 413) {
-          errorMessage = "File too large (max 30MB)";
+          errorMessage = `File too large (max ${MAX_FILE_SIZE_MB}MB)`;
         } else if (error?.statusCode === 415) {
           errorMessage = "Unsupported file type";
         } else if (error?.statusCode === 403) {
@@ -260,11 +261,10 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
                 or click to browse
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Supports: Documents (PDF, DOC, DOCX, XLS, XLSX, CSV, MD), Images (JPEG, PNG,
-                GIF, WEBP, SVG), Videos (MP4, MOV, AVI)
+                Supports: {SUPPORTED_FILE_TYPES_STRING}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Maximum file size: 30MB
+                Maximum file size: {MAX_FILE_SIZE_MB}MB
               </Typography>
             </Stack>
             <input

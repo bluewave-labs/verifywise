@@ -85,13 +85,26 @@ const upload = multer({
 const handleMulterError = (err: any, req: Request, res: Response, next: NextFunction) => {
   // Clean up temporary file if it exists (async, non-blocking)
   if (req.file?.path) {
-    // Fire-and-forget async cleanup to avoid blocking
-    fs.promises.unlink(req.file.path).catch((cleanupError) => {
-      // Ignore ENOENT (file already deleted), but log other errors
-      if (cleanupError.code !== 'ENOENT') {
-        console.error("Failed to clean up temporary file:", cleanupError);
-      }
-    });
+    // Validate path containment to prevent directory traversal attacks
+    const resolvedPath = path.resolve(req.file.path);
+    const resolvedTempDir = path.resolve(tempDir);
+    const relativePath = path.relative(resolvedTempDir, resolvedPath);
+    const isContained = !relativePath.startsWith("..") &&
+                        !path.isAbsolute(relativePath) &&
+                        resolvedPath.startsWith(resolvedTempDir + path.sep);
+
+    if (isContained) {
+      // Fire-and-forget async cleanup to avoid blocking
+      fs.promises.unlink(resolvedPath).catch((cleanupError) => {
+        // Ignore ENOENT (file already deleted), but log other errors
+        if (cleanupError.code !== 'ENOENT') {
+          console.error("Failed to clean up temporary file:", cleanupError);
+        }
+      });
+    } else {
+      // Log security violation attempt
+      console.warn(`Security: Blocked cleanup attempt outside temp directory. Path: ${resolvedPath}, Allowed: ${resolvedTempDir}`);
+    }
   }
 
   if (err instanceof multer.MulterError) {

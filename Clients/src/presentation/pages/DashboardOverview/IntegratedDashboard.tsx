@@ -16,9 +16,11 @@ import {
   MenuItem,
   Select as MuiSelect,
   SelectChangeEvent,
+  Checkbox,
 } from "@mui/material";
 import {
   GripVertical,
+  RefreshCw,
   Lock,
   LockOpen,
   ChevronRight,
@@ -33,6 +35,7 @@ import {
   ScrollText,
   Plus,
   ChevronDown,
+  Eye,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
@@ -843,7 +846,19 @@ const IntegratedDashboard: React.FC = () => {
     setTimeout(() => setAddNewValue(""), 100);
   };
 
-  
+  // Handle card visibility toggle
+  const handleCardVisibilityToggle = (cardId: string) => {
+    setVisibleCards((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId);
+      } else {
+        newSet.add(cardId);
+      }
+      return newSet;
+    });
+  };
+
   // Generate time-based greeting
   const greeting = useMemo(() => {
     return getTimeBasedGreeting(userName, userToken);

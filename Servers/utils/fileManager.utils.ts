@@ -185,18 +185,7 @@ export const getFilesByOrganization = async (
     type: QueryTypes.SELECT,
   });
 
-  // Filter out files that don't exist on disk
-  const existingFiles = (files as any[]).filter((file) => {
-    try {
-      const filePath = path.resolve(process.cwd(), file.file_path);
-      return fs.existsSync(filePath);
-    } catch (error) {
-      console.error(`Error checking file existence for ${file.filename}:`, error);
-      return false;
-    }
-  });
-
-  // Get accurate count of existing files
+  // Get database count for accurate pagination
   const totalCountQuery = `
     SELECT COUNT(*) as count
     FROM "${tenant}".file_manager
@@ -210,11 +199,22 @@ export const getFilesByOrganization = async (
 
   const totalDbCount = parseInt((countResult[0] as any).count);
 
-  // If we're filtering by existence, the total may be less than DB count
-  // For simplicity, return the count of existing files found
-  const total = existingFiles.length;
+  // Annotate each file with existsOnDisk flag instead of filtering
+  // This preserves pagination and lets the controller/UI decide visibility
+  const filesWithExistence = (files as any[]).map((file) => {
+    let existsOnDisk = false;
+    try {
+      const filePath = path.resolve(process.cwd(), file.file_path);
+      existsOnDisk = fs.existsSync(filePath);
+    } catch (error) {
+      console.error(`Error checking file existence for ${file.filename}:`, error);
+      existsOnDisk = false;
+    }
+    return { ...file, existsOnDisk };
+  });
 
-  return { files: existingFiles as FileManagerMetadata[], total };
+  // Return database total for accurate pagination
+  return { files: filesWithExistence as FileManagerMetadata[], total: totalDbCount };
 };
 
 /**

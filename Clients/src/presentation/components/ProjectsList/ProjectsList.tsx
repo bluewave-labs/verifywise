@@ -18,6 +18,7 @@ import {
   noProjectsTextStyle,
   vwhomeBodyProjectsGrid,
 } from "./style";
+import { SxProps, Theme } from "@mui/material";
 
 const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");

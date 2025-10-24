@@ -440,14 +440,13 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
     const deleted = await deleteFile(fileId, tenant);
 
     if (!deleted) {
-      await logFailure({
+      await logSuccess({
         eventType: "Delete",
-        description: `Failed to delete file ${fileId}`,
+        description: `File not found during deletion: ID ${fileId}`,
         functionName: "removeFile",
         fileName: "fileManager.ctrl.ts",
-        error: new Error("Failed to delete file"),
       });
-      return res.status(500).json(STATUS_CODE[500]("Failed to delete file"));
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
     await logSuccess({

@@ -123,11 +123,6 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         );
 
         successCount++;
-
-        // Trigger immediate refresh after each successful upload
-        if (onSuccess) {
-          onSuccess();
-        }
       } catch (error: any) {
         // Extract user-friendly error message
         // Check HTTP status codes first (most specific), then fallback to generic message
@@ -162,6 +157,11 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
     }
 
     setIsUploading(false);
+
+    // Trigger refresh once after all uploads complete (avoid multiple refetches)
+    if (successCount > 0 && onSuccess) {
+      onSuccess();
+    }
 
     // Remove successfully uploaded files after a short delay
     setTimeout(() => {

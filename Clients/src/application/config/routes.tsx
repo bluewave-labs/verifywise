@@ -25,6 +25,7 @@ import IncidentManagement from "../../presentation/pages/IncidentManagement";
 import Framework from "../../presentation/pages/Framework";
 import Tasks from "../../presentation/pages/Tasks";
 import IntegratedDashboard from "../../presentation/pages/DashboardOverview/IntegratedDashboard";
+import EnhancedDashboard from "../../presentation/pages/DashboardOverview/EnhancedDashboard";
 import RiskManagement from "../../presentation/pages/RiskManagement";
 import AutomationsPage from "../../presentation/pages/Automations";
 import RegisterAdmin from "../../presentation/pages/Authentication/RegisterAdmin";
@@ -60,7 +61,7 @@ export const createRoutes = (
     <Route path="/organization" element={<Organization />} />
     <Route path="/file-manager" element={<FileManager />} />
     <Route path="/reporting" element={<Reporting />} />
-    <Route index element={<IntegratedDashboard />} />
+    <Route index element={<EnhancedDashboard />} />
     <Route path="/playground" element={<Playground />} />
     <Route path="/overview" element={<VWHome />} />
     <Route path="/test" element={<Home onProjectUpdate={triggerSidebarReload} />} />

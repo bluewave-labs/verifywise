@@ -56,6 +56,15 @@ const riskClassificationItems = [
   { _id: 3, name: AiRiskClassification.MINIMAL_RISK },
 ];
 
+const geographyItems = [
+  { _id: 1, name: "Global" },
+  { _id: 2, name: "Europe" },
+  { _id: 3, name: "North America" },
+  { _id: 4, name: "South America" },
+  { _id: 5, name: "Asia" },
+  { _id: 6, name: "Africa" },
+];
+
 const highRiskRoleItems = [
   { _id: 1, name: HighRiskRole.DEPLOYER },
   { _id: 2, name: HighRiskRole.PROVIDER },
@@ -94,6 +103,7 @@ interface FormValues {
   startDate: string;
   riskClassification: number;
   typeOfHighRiskRole: number;
+  geography: number;
   monitoredRegulationsAndStandards: {
     _id: number;
     name: string;
@@ -112,6 +122,7 @@ interface FormErrors {
   riskClassification?: string;
   typeOfHighRiskRole?: string;
   monitoredRegulationsAndStandards?: string;
+  geography?: string;
 }
 
 const initialState: FormValues = {
@@ -123,6 +134,7 @@ const initialState: FormValues = {
   startDate: "",
   riskClassification: 0,
   typeOfHighRiskRole: 0,
+  geography: 1,
   monitoredRegulationsAndStandards: [{ _id: 1, name: "EU AI Act" }],
 };
 
@@ -180,7 +192,8 @@ const ProjectSettings = React.memo(
         values.riskClassification !==
           initialValuesRef.current.riskClassification ||
         values.typeOfHighRiskRole !==
-          initialValuesRef.current.typeOfHighRiskRole;
+          initialValuesRef.current.typeOfHighRiskRole ||
+        values.geography !== initialValuesRef.current.geography;
 
       // Only consider framework changes if we're not in the middle of a framework operation
       const frameworksModified =
@@ -276,6 +289,7 @@ const ProjectSettings = React.memo(
                 item.name.toLowerCase() ===
                 project.type_of_high_risk_role.toLowerCase()
             )?._id || 0,
+          geography: project.geography ?? 1,
           monitoredRegulationsAndStandards: frameworksForProject,
         };
         initialValuesRef.current = returnedData;
@@ -582,6 +596,11 @@ const ProjectSettings = React.memo(
         newErrors.startDate = startDate.message;
       }
 
+      const geography = selectValidation("Geography", values.geography);
+      if (!geography.accepted) {
+        newErrors.geography = geography.message;
+      }
+
       const owner = selectValidation("Owner", values.owner);
       if (!owner.accepted) {
         newErrors.owner = owner.message;
@@ -663,6 +682,10 @@ const ProjectSettings = React.memo(
         (reg) => reg.name
       );
 
+      const selectedGeography = geographyItems.find(
+        (item) => item._id === values.geography
+      )?._id || "";
+
       await updateProject({
         id: Number(projectId),
         body: {
@@ -674,6 +697,7 @@ const ProjectSettings = React.memo(
           ai_risk_classification: selectedRiskClass,
           type_of_high_risk_role: selectedHighRiskRole,
           goal: values.goal,
+          geography: selectedGeography,
           status: selectedStatus,
           monitored_regulations_and_standards: selectedRegulations,
           last_updated: new Date().toISOString(),
@@ -1040,6 +1064,15 @@ const ProjectSettings = React.memo(
               }}
               isRequired
               error={errors.startDate}
+            />
+            <Select
+              id="geography-type-input"
+              label="Geography"
+              value={values.geography}
+              onChange={handleOnSelectChange("geography")}
+              items={geographyItems}
+              sx={{ width: "150px", backgroundColor: theme.palette.background.main }}
+              isRequired
             />
             <Stack gap="5px" sx={{ mt: "6px" }}>
               <Typography

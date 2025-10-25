@@ -23,6 +23,7 @@ export type Project = {
     name: string;
   }[];
   monitored_regulations_and_standards: string[];
+  geography?: number;
   is_organizational?: boolean;
   status?: "Not started" | "In progress" | "Under review" | "Completed" | "Closed" | "On hold" | "Rejected";
   // vendors: string[];

@@ -9,7 +9,6 @@
   position: sticky;
   height: 100vh;
   width: 230px;
-  min-width: 230px;
   max-width: 230px;
   top: 0;
   left: 0;
@@ -24,6 +23,8 @@
   max-width: 1400px;
   min-height: calc(100vh - 24px * 2);
   flex: 1;
+  padding: 24px;
+  padding-bottom: 40px;
 }
 .home-layout > div:has(> [class*="fallback__"]) .background-pattern-svg {
   position: absolute;

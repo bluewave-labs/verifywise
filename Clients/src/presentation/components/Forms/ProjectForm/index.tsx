@@ -86,6 +86,7 @@ const ProjectForm = ({
         framework_type: projectToEdit.is_organizational
           ? FrameworkTypeEnum.OrganizationWide
           : FrameworkTypeEnum.ProjectBased,
+        geography: projectToEdit.geography || 1,
       };
     }
     return {

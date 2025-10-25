@@ -33,6 +33,32 @@ import Button from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
 import { Automation, Action, TriggerTemplate, ActionTemplate } from '../../../../../domain/types/Automation';
 
+// Icon mapping for trigger types
+const getTriggerIcon = (triggerType: string) => {
+  switch (triggerType) {
+    case 'vendor_updated':
+      return 'Building';
+    case 'model_updated':
+      return 'List';
+    case 'project_updated':
+      return 'FolderTree';
+    case 'task_updated':
+      return 'CheckSquare';
+    case 'risk_updated':
+      return 'AlertTriangle';
+    case 'training_updated':
+      return 'GraduationCap';
+    case 'policy_updated':
+      return 'Shield';
+    case 'incident_updated':
+      return 'AlertCircle';
+    case 'vendor_review_date_approaching':
+      return 'Clock';
+    default:
+      return 'Settings';
+  }
+};
+
 interface AutomationBuilderProps {
   automation: Automation | null;
   triggerTemplates: TriggerTemplate[];
@@ -365,7 +391,10 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
             <Stack direction="row" alignItems="center" spacing={1}>
               {automation.trigger ? (
                 <>
-                  <Settings size={16} strokeWidth={1.5} color={theme.palette.primary.main} />
+                  {(() => {
+                    const IconName = getTriggerIcon(automation.trigger.type) as any;
+                    return <IconName size={16} strokeWidth={1.5} color={theme.palette.primary.main} />;
+                  })()}
                   <Typography color="primary" sx={{ fontSize: '13px', fontWeight: 500 }}>
                     {automation.trigger.name}
                   </Typography>
@@ -447,11 +476,10 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 12 }}>
-                      {template.type.includes('scheduled') || template.type.includes('time') ? (
-                        <Clock size={20} strokeWidth={1.5} color={theme.palette.primary.main} />
-                      ) : (
-                        <Mail size={20} strokeWidth={1.5} color={theme.palette.grey[400]} />
-                      )}
+                      {(() => {
+                        const IconName = getTriggerIcon(template.type) as any;
+                        return <IconName size={20} strokeWidth={1.5} color={theme.palette.primary.main} />;
+                      })()}
                     </ListItemIcon>
                     <ListItemText
                       primary={formatTriggerName(template)}

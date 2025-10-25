@@ -25,7 +25,7 @@ import {
   Shield,
   AlertCircle,
   GraduationCap,
-  ListIcon,
+  List,
   FolderTree,
   Building,
 } from 'lucide-react';
@@ -237,7 +237,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Calendar size={24} strokeWidth={1.5} color={theme.palette.info.main} />
+                <Clock size={24} strokeWidth={1.5} color={theme.palette.info.main} />
               </Box>
               <Stack>
                 <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>

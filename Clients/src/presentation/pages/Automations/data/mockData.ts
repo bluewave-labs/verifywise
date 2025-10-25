@@ -2,22 +2,196 @@ import { TriggerTemplate, ActionTemplate } from '../../../../domain/types/Automa
 
 export const mockTriggerTemplates: TriggerTemplate[] = [
   {
-    type: 'vendor_added',
-    name: 'When a vendor is added',
-    description: 'Triggered when a new vendor is added',
+    type: 'vendor_updated',
+    name: 'When a vendor is changed',
+    description: 'Triggered when a vendor is changed',
     category: 'vendor',
     icon: 'Building',
-    defaultConfiguration: {},
-    configurationSchema: [],
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
   },
   {
-    type: 'model_added',
-    name: 'When a model is added',
-    description: 'Triggered when a new model is added',
+    type: 'model_updated',
+    name: 'When a model is changed',
+    description: 'Triggered when a model is changed',
     category: 'project',
     icon: 'Box',
-    defaultConfiguration: {},
-    configurationSchema: [],
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
+  },
+  {
+    type: 'project_updated',
+    name: 'When a project is changed',
+    description: 'Triggered when a project is changed',
+    category: 'project',
+    icon: 'FolderPlus',
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
+  },
+  {
+    type: 'task_updated',
+    name: 'When a task is changed',
+    description: 'Triggered when a task is changed',
+    category: 'task',
+    icon: 'CheckSquare',
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
+  },
+  {
+    type: 'risk_updated',
+    name: 'When a risk is changed',
+    description: 'Triggered when a risk is changed',
+    category: 'risk',
+    icon: 'AlertTriangle',
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
+  },
+  {
+    type: 'training_updated',
+    name: 'When a training is changed',
+    description: 'Triggered when a training is changed',
+    category: 'training',
+    icon: 'GraduationCap',
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
+  },
+  {
+    type: 'policy_updated',
+    name: 'When a policy is changed',
+    description: 'Triggered when a policy is changed',
+    category: 'policy',
+    icon: 'FileText',
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
+  },
+  {
+    type: 'incident_updated',
+    name: 'When an incident is changed',
+    description: 'Triggered when an incident is changed',
+    category: 'incident',
+    icon: 'AlertCircle',
+    defaultConfiguration: {
+      changeType: 'Added',
+    },
+    configurationSchema: [
+      {
+        key: 'changeType',
+        label: 'Type of Change',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'Added', label: 'Added' },
+          { value: 'Updated', label: 'Updated' },
+          { value: 'Deleted', label: 'Deleted' },
+        ],
+        helpText: 'Select the type of change that triggers this automation',
+      },
+    ],
   },
   {
     type: 'vendor_review_date_approaching',
@@ -86,6 +260,6 @@ export const mockActionTemplates: ActionTemplate[] = [
         helpText: 'Use {{variable_name}} for dynamic content. Available variables depend on the trigger.',
       },
     ],
-    compatibleTriggers: ['vendor_added', 'model_added', 'vendor_review_date_approaching'],
+    compatibleTriggers: ['vendor_updated', 'model_updated', 'project_updated', 'task_updated', 'risk_updated', 'training_updated', 'policy_updated', 'incident_updated', 'vendor_review_date_approaching'],
   },
 ];

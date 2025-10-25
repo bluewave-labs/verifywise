@@ -171,8 +171,15 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
         }}
         sx={{
           position: 'absolute',
-          right: 16,
+          top: -8,
+          right: -8,
+          backgroundColor: theme.palette.background.paper,
           color: theme.palette.error.main,
+          boxShadow: theme.shadows[2],
+          '&:hover': {
+            backgroundColor: theme.palette.error.light,
+            color: 'white',
+          },
         }}
       >
         <Trash2 size={16} />
@@ -475,7 +482,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 12 }}>
+                    <ListItemIcon sx={{ minWidth: 6 }}>
                       {(() => {
                         const IconComponent = getTriggerIcon(template.type);
                         return <IconComponent size={20} strokeWidth={1.5} color={theme.palette.primary.main} />;
@@ -695,7 +702,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                 loading={isSaving}
                 sx={{ minWidth: 200 }}
               >
-                {isSaving ? 'Saving...' : 'Save this automation'}
+                {'Save this automation'}
               </CustomizableButton>
             </Box>
           </>

@@ -30,7 +30,7 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
     name: 'When a model is changed',
     description: 'Triggered when a model is changed',
     category: 'project',
-    icon: 'ListIcon',
+    icon: 'List',
     defaultConfiguration: {
       changeType: 'Added',
     },

@@ -21,7 +21,6 @@ import {
   CornerDownRight,
   Check,
   AlertTriangle,
-  FileText,
   Shield,
   AlertCircle,
   GraduationCap,

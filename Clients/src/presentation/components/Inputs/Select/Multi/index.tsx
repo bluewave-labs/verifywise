@@ -165,15 +165,16 @@ const CustomizableMultiSelect = ({
         >
           {label}
           {required && (
-            <Typography
+            <Box
+              component="span"
               className="required"
               sx={{
                 ml: theme.spacing(1),
-                color: `${theme.palette.error.text}`,
+                color: theme.palette.error.text,
               }}
             >
               *
-            </Typography>
+            </Box>
           )}
         </Typography>
       )}

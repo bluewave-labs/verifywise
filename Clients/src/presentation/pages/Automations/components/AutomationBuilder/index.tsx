@@ -21,13 +21,13 @@ import {
   CornerDownRight,
   Check,
   AlertTriangle,
-  FileText,
   Shield,
   AlertCircle,
   GraduationCap,
   List,
   FolderTree,
   Building,
+  CheckSquare,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
@@ -37,25 +37,25 @@ import { Automation, Action, TriggerTemplate, ActionTemplate } from '../../../..
 const getTriggerIcon = (triggerType: string) => {
   switch (triggerType) {
     case 'vendor_updated':
-      return 'Building';
+      return Building;
     case 'model_updated':
-      return 'List';
+      return List;
     case 'project_updated':
-      return 'FolderTree';
+      return FolderTree;
     case 'task_updated':
-      return 'CheckSquare';
+      return CheckSquare;
     case 'risk_updated':
-      return 'AlertTriangle';
+      return AlertTriangle;
     case 'training_updated':
-      return 'GraduationCap';
+      return GraduationCap;
     case 'policy_updated':
-      return 'Shield';
+      return Shield;
     case 'incident_updated':
-      return 'AlertCircle';
+      return AlertCircle;
     case 'vendor_review_date_approaching':
-      return 'Clock';
+      return Clock;
     default:
-      return 'Settings';
+      return Settings;
   }
 };
 
@@ -392,8 +392,8 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
               {automation.trigger ? (
                 <>
                   {(() => {
-                    const IconName = getTriggerIcon(automation.trigger.type) as any;
-                    return <IconName size={16} strokeWidth={1.5} color={theme.palette.primary.main} />;
+                    const IconComponent = getTriggerIcon(automation.trigger.type);
+                    return <IconComponent size={16} strokeWidth={1.5} color={theme.palette.primary.main} />;
                   })()}
                   <Typography color="primary" sx={{ fontSize: '13px', fontWeight: 500 }}>
                     {automation.trigger.name}
@@ -477,8 +477,8 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                   >
                     <ListItemIcon sx={{ minWidth: 12 }}>
                       {(() => {
-                        const IconName = getTriggerIcon(template.type) as any;
-                        return <IconName size={20} strokeWidth={1.5} color={theme.palette.primary.main} />;
+                        const IconComponent = getTriggerIcon(template.type);
+                        return <IconComponent size={20} strokeWidth={1.5} color={theme.palette.primary.main} />;
                       })()}
                     </ListItemIcon>
                     <ListItemText

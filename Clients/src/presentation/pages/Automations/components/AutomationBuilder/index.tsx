@@ -15,10 +15,19 @@ import {
   Plus,
   Trash2,
   ArrowDown,
-  Zap,
+  Mail,
+  Settings,
   Clock,
   CornerDownRight,
   Check,
+  AlertTriangle,
+  FileText,
+  Shield,
+  AlertCircle,
+  GraduationCap,
+  ListIcon,
+  FolderTree,
+  Building,
 } from 'lucide-react';
 import Button from '../../../../components/Button';
 import CustomizableButton from '../../../../components/Button/CustomizableButton';
@@ -123,7 +132,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
       onClick={() => onSelectItem(action.id, 'action')}
     >
       <Stack direction="row" alignItems="center" spacing={1}>
-        <Zap size={16} strokeWidth={1.5} color={theme.palette.primary.main} />
+        <Mail size={16} strokeWidth={1.5} color={theme.palette.primary.main} />
         <Typography sx={{ fontSize: '13px', fontWeight: 500 }}>
           {action.name}
         </Typography>
@@ -170,7 +179,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
             mb: 1.5,
           }}
         >
-          <Zap size={48} strokeWidth={1} color={theme.palette.primary.main} />
+          <Settings size={48} strokeWidth={1} color={theme.palette.primary.main} />
         </Box>
 
         {/* Title */}
@@ -204,7 +213,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Zap size={24} strokeWidth={1.5} color={theme.palette.warning.main} />
+                <AlertTriangle size={24} strokeWidth={1.5} color={theme.palette.warning.main} />
               </Box>
               <Stack>
                 <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>
@@ -228,7 +237,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Zap size={24} strokeWidth={1.5} color={theme.palette.info.main} />
+                <Calendar size={24} strokeWidth={1.5} color={theme.palette.info.main} />
               </Box>
               <Stack>
                 <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>
@@ -252,7 +261,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Zap size={24} strokeWidth={1.5} color={theme.palette.success.main} />
+                <Mail size={24} strokeWidth={1.5} color={theme.palette.success.main} />
               </Box>
               <Stack>
                 <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>
@@ -276,7 +285,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                   flexShrink: 0,
                 }}
               >
-                <Zap size={24} strokeWidth={1.5} color={theme.palette.error.main} />
+                <AlertTriangle size={24} strokeWidth={1.5} color={theme.palette.error.main} />
               </Box>
               <Stack>
                 <Typography sx={{ fontSize: '13px', fontWeight: 600 }}>
@@ -356,7 +365,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
             <Stack direction="row" alignItems="center" spacing={1}>
               {automation.trigger ? (
                 <>
-                  <Zap size={16} strokeWidth={1.5} color={theme.palette.primary.main} />
+                  <Settings size={16} strokeWidth={1.5} color={theme.palette.primary.main} />
                   <Typography color="primary" sx={{ fontSize: '13px', fontWeight: 500 }}>
                     {automation.trigger.name}
                   </Typography>
@@ -441,7 +450,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                       {template.type.includes('scheduled') || template.type.includes('time') ? (
                         <Clock size={20} strokeWidth={1.5} color={theme.palette.primary.main} />
                       ) : (
-                        <Zap size={20} strokeWidth={1.5} color={theme.palette.grey[400]} />
+                        <Mail size={20} strokeWidth={1.5} color={theme.palette.grey[400]} />
                       )}
                     </ListItemIcon>
                     <ListItemText
@@ -581,7 +590,7 @@ const AutomationBuilder: React.FC<AutomationBuilderProps> = ({
                       }}
                     >
                       <ListItemIcon sx={{ minWidth: 12 }}>
-                        <Zap size={20} strokeWidth={1.5} color={theme.palette.grey[400]} />
+                        <Mail size={20} strokeWidth={1.5} color={theme.palette.grey[400]} />
                       </ListItemIcon>
                       <ListItemText
                         primary={template.name}

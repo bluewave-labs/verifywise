@@ -30,7 +30,7 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
     name: 'When a model is changed',
     description: 'Triggered when a model is changed',
     category: 'project',
-    icon: 'Box',
+    icon: 'ListIcon',
     defaultConfiguration: {
       changeType: 'Added',
     },
@@ -54,7 +54,7 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
     name: 'When a project is changed',
     description: 'Triggered when a project is changed',
     category: 'project',
-    icon: 'FolderPlus',
+    icon: 'FolderTree',
     defaultConfiguration: {
       changeType: 'Added',
     },
@@ -150,7 +150,7 @@ export const mockTriggerTemplates: TriggerTemplate[] = [
     name: 'When a policy is changed',
     description: 'Triggered when a policy is changed',
     category: 'policy',
-    icon: 'FileText',
+    icon: 'Shield',
     defaultConfiguration: {
       changeType: 'Added',
     },

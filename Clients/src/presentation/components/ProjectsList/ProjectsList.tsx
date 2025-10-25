@@ -12,8 +12,6 @@ import { IProjectListProps } from "../../../domain/interfaces/i.project";
 import { IProjectFilterState } from "../../../domain/interfaces/i.project.filter";
 
 import {
-  searchBoxStyle,
-  inputStyle,
   projectWrapperStyle,
   noProjectsTextStyle,
   vwhomeBodyProjectsGrid,
@@ -213,7 +211,7 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
                   { _id: "limited", name: "Limited Risk" },
                   { _id: "minimal", name: "Minimal Risk" },
                 ]}
-                onChange={(e) => handleFilterChange("riskLevel", e.target.value)}
+                onChange={(e) => handleFilterChange("riskLevel", e.target.value.toString())}
                 sx={{ minWidth: 140 }}
               />
 
@@ -228,7 +226,7 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
                     name: owner.name,
                   })),
                 ]}
-                onChange={(e) => handleFilterChange("owner", e.target.value)}
+                onChange={(e) => handleFilterChange("owner", e.target.value.toString())}
                 sx={{ minWidth: 140 }}
               />
 
@@ -243,7 +241,7 @@ const ProjectList = ({ projects, newProjectButton, onFilterChange }: IProjectLis
                     name: status.name,
                   })),
                 ]}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
+                onChange={(e) => handleFilterChange("status", e.target.value.toString())}
                 sx={{ minWidth: 140 }}
               />
 

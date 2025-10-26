@@ -19,6 +19,7 @@ import * as fs from "fs";
 import { promisify } from "util";
 import { randomBytes } from "crypto";
 import { sanitizeFilename } from "./validations/fileManagerValidation.utils";
+import logger from "./logger/fileLogger";
 
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
@@ -106,7 +107,7 @@ export const uploadFileToManager = async (
     } catch (unlinkError: any) {
       // Ignore ENOENT (file already deleted), but log other errors
       if (unlinkError.code !== 'ENOENT') {
-        console.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePath}`, unlinkError);
+        logger.error(`Failed to cleanup orphaned file after DB error: ${permanentFilePath}`, unlinkError);
       }
     }
     // Rethrow original database error
@@ -289,7 +290,7 @@ export const deleteFile = async (fileId: number, tenant: string): Promise<boolea
 
   if (!isContained) {
     const error = `Security violation: Attempted to delete file outside tenant directory. Target: ${targetPath}, Base: ${baseDir}`;
-    console.error(error);
+    logger.error(error);
     throw new Error(error);
   }
 
@@ -303,12 +304,12 @@ export const deleteFile = async (fileId: number, tenant: string): Promise<boolea
   } catch (error: any) {
     // Only tolerate ENOENT (file already deleted/doesn't exist)
     if (error.code === 'ENOENT') {
-      console.warn(`Physical file already deleted or not found: ${targetPath}`);
+      logger.warn(`Physical file already deleted or not found: ${targetPath}`);
     } else {
       // Other errors are concerning - log and track them
       diskDeletionFailed = true;
       diskDeletionError = error;
-      console.error(`Failed to delete physical file: ${targetPath}`, error);
+      logger.error(`Failed to delete physical file: ${targetPath}`, error);
     }
   }
 

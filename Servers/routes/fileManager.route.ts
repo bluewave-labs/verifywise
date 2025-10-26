@@ -27,6 +27,7 @@ import { STATUS_CODE } from "../utils/statusCode.utils";
 import * as path from "path";
 import * as fs from "fs";
 import { ALLOWED_MIME_TYPES } from "../utils/validations/fileManagerValidation.utils";
+import logger from "../utils/logger/fileLogger";
 
 const router = express.Router();
 
@@ -100,16 +101,16 @@ const handleMulterError = (err: any, req: Request, res: Response, next: NextFunc
         fs.promises.unlink(resolvedPath).catch((cleanupError) => {
           // Ignore ENOENT (file already deleted), but log other errors
           if (cleanupError.code !== 'ENOENT') {
-            console.error("Failed to clean up temporary file:", cleanupError);
+            logger.error("Failed to clean up temporary file:", cleanupError);
           }
         });
       } else {
         // Log security violation attempt
-        console.warn("Security: Blocked cleanup attempt outside temp directory. Path: %s, Allowed: %s", resolvedPath, resolvedTempDir);
+        logger.warn(`Security: Blocked cleanup attempt outside temp directory. Path: ${resolvedPath}, Allowed: ${resolvedTempDir}`);
       }
     } catch (e) {
       // Unable to resolve file/directory (file may not exist), skip cleanup and continue
-      console.warn("Failed to resolve path for cleanup: %s", req.file.path, e);
+      logger.warn(`Failed to resolve path for cleanup: ${req.file.path}`, e);
       // Do not return - continue to error handling below
     }
   }

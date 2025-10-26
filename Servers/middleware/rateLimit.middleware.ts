@@ -15,6 +15,7 @@
 import rateLimit, { Options } from 'express-rate-limit';
 import { STATUS_CODE } from '../utils/statusCode.utils';
 import { Request, Response } from 'express';
+import logger from '../utils/logger/fileLogger';
 
 /**
  * Rate limit configuration with time window and request limits
@@ -53,7 +54,7 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
 const createRateLimitHandler = (message: string) => {
   return (req: Request, res: Response) => {
     const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
-    console.warn(`Rate limit exceeded for IP ${clientIp}: ${message}`);
+    logger.warn(`Rate limit exceeded for IP ${clientIp} on ${req.path}: ${message}`);
     res.status(429).json(STATUS_CODE[429](message));
   };
 };

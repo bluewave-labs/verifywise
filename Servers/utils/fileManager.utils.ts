@@ -260,11 +260,12 @@ export const logFileAccess = async (
 };
 
 /**
- * Deletes a file from the system
+ * Deletes a file from the system (both database and physical file)
  *
  * @param {number} fileId - File ID
  * @param {string} tenant - Tenant hash
- * @returns {Promise<boolean>} True if file was deleted
+ * @returns {Promise<boolean>} True if file was deleted successfully
+ * @throws {Error} If security violation or partial deletion failure occurs
  */
 export const deleteFile = async (fileId: number, tenant: string): Promise<boolean> => {
   if (!/^[a-zA-Z0-9_]+$/.test(tenant)) throw new Error("Invalid tenant identifier");
@@ -292,11 +293,23 @@ export const deleteFile = async (fileId: number, tenant: string): Promise<boolea
     throw new Error(error);
   }
 
+  // Track deletion status for both operations
+  let diskDeletionFailed = false;
+  let diskDeletionError: Error | null = null;
+
+  // Delete physical file first
   try {
     await unlink(targetPath);
-  } catch (error) {
-    console.error(`Failed to delete physical file: ${targetPath}`, error);
-    // Continue with database deletion even if file doesn't exist
+  } catch (error: any) {
+    // Only tolerate ENOENT (file already deleted/doesn't exist)
+    if (error.code === 'ENOENT') {
+      console.warn(`Physical file already deleted or not found: ${targetPath}`);
+    } else {
+      // Other errors are concerning - log and track them
+      diskDeletionFailed = true;
+      diskDeletionError = error;
+      console.error(`Failed to delete physical file: ${targetPath}`, error);
+    }
   }
 
   // Delete from database
@@ -311,7 +324,16 @@ export const deleteFile = async (fileId: number, tenant: string): Promise<boolea
     type: QueryTypes.SELECT,
   });
 
-  return Array.isArray(result) && result.length > 0;
+  const dbDeletionSucceeded = Array.isArray(result) && result.length > 0;
+
+  // If database deletion succeeded but disk deletion failed, we have a problem
+  if (dbDeletionSucceeded && diskDeletionFailed) {
+    throw new Error(
+      `Partial deletion: Database record deleted but physical file removal failed: ${diskDeletionError?.message || 'Unknown error'}`
+    );
+  }
+
+  return dbDeletionSucceeded;
 };
 
 /**

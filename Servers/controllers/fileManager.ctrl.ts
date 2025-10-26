@@ -32,6 +32,72 @@ import { promisify } from "util";
 const pipelineAsync = promisify(pipeline);
 
 /**
+ * Helper function to clean up temporary files
+ * @param {string | undefined} filePath - Path to temporary file
+ */
+const cleanupTempFile = async (filePath: string | undefined): Promise<void> => {
+  if (!filePath) return;
+
+  try {
+    await fs.promises.unlink(filePath);
+  } catch (error: any) {
+    if (error.code !== 'ENOENT') {
+      console.error("Failed to clean up temporary file:", error);
+    }
+  }
+};
+
+/**
+ * Helper function to validate and parse request authentication data
+ * @param {Request} req - Express request
+ * @param {Response} res - Express response
+ * @returns {{ userId: number; orgId: number; tenant: string } | null} Parsed values or null if validation fails
+ */
+const validateAndParseAuth = (req: Request, res: Response): { userId: number; orgId: number; tenant: string } | null => {
+  const userId = Number(req.userId);
+  const orgId = Number(req.organizationId);
+  const tenant = req.tenantId || "";
+
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+    res.status(400).json(STATUS_CODE[400]("Invalid user ID"));
+    return null;
+  }
+
+  if (!Number.isSafeInteger(orgId) || orgId <= 0) {
+    res.status(400).json(STATUS_CODE[400]("Invalid organization ID"));
+    return null;
+  }
+
+  return { userId, orgId, tenant };
+};
+
+/**
+ * Helper function to check if user has permission for a specific action
+ * Provides defense-in-depth security layer in addition to route middleware
+ *
+ * @param {Request} req - Express request with role information
+ * @param {string} action - Action to check permission for (e.g., 'delete', 'upload')
+ * @param {string[]} allowedRoles - Roles allowed to perform this action
+ * @returns {boolean} True if user has permission
+ */
+const hasPermission = (req: Request, action: string, allowedRoles: string[]): boolean => {
+  const userRole = (req as any).role;
+
+  if (!userRole) {
+    console.warn(`Permission check failed for action '${action}': No role found in request`);
+    return false;
+  }
+
+  const hasAccess = allowedRoles.includes(userRole);
+
+  if (!hasAccess) {
+    console.warn(`Permission denied: User with role '${userRole}' attempted '${action}' action. Allowed roles: [${allowedRoles.join(', ')}]`);
+  }
+
+  return hasAccess;
+};
+
+/**
  * Upload file to file manager
  *
  * POST /file-manager
@@ -66,28 +132,25 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     // Store temp file path for cleanup
     tempFilePath = file.path;
 
-    const userId = Number(req.userId);
-    const orgId = Number(req.organizationId);
-    const tenant = req.tenantId || "";
+    // Validate authentication
+    const auth = validateAndParseAuth(req, res);
+    if (!auth) {
+      await cleanupTempFile(tempFilePath);
+      return; // Response already sent by validateAndParseAuth
+    }
 
+    const { userId, orgId, tenant } = auth;
+
+    // Validate tenant format
     if (!/^[a-zA-Z0-9_]+$/.test(tenant)) {
-      // Clean up temp file before returning error
-      if (tempFilePath) {
-        try {
-          await fs.promises.unlink(tempFilePath);
-        } catch (unlinkError: any) {
-          if (unlinkError.code !== 'ENOENT') {
-            console.error("Failed to clean up temporary file:", unlinkError);
-          }
-        }
-      }
+      await cleanupTempFile(tempFilePath);
       return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
     }
 
     // Validate file type and size
-    // Note: Role authorization is already handled by route middleware
     const validation = validateFileUpload(file);
     if (!validation.valid) {
+      await cleanupTempFile(tempFilePath);
       await logFailure({
         eventType: "Create",
         description: `File validation failed: ${validation.error}`,
@@ -95,16 +158,6 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
         fileName: "fileManager.ctrl.ts",
         error: new Error(validation.error),
       });
-      // Clean up temp file before returning error
-      if (tempFilePath) {
-        try {
-          await fs.promises.unlink(tempFilePath);
-        } catch (unlinkError: any) {
-          if (unlinkError.code !== 'ENOENT') {
-            console.error("Failed to clean up temporary file:", unlinkError);
-          }
-        }
-      }
       return res.status(400).json(STATUS_CODE[400](validation.error));
     }
 
@@ -112,15 +165,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     const uploadedFile = await uploadFileToManager(file, userId, orgId, tenant);
 
     // Clean up temp file after successful processing
-    if (tempFilePath) {
-      try {
-        await fs.promises.unlink(tempFilePath);
-      } catch (unlinkError: any) {
-        if (unlinkError.code !== 'ENOENT') {
-          console.error("Failed to clean up temporary file:", unlinkError);
-        }
-      }
-    }
+    await cleanupTempFile(tempFilePath);
 
     await logSuccess({
       eventType: "Create",
@@ -142,15 +187,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
     );
   } catch (error) {
     // Clean up temp file on error
-    if (tempFilePath) {
-      try {
-        await fs.promises.unlink(tempFilePath);
-      } catch (unlinkError: any) {
-        if (unlinkError.code !== 'ENOENT') {
-          console.error("Failed to clean up temporary file:", unlinkError);
-        }
-      }
-    }
+    await cleanupTempFile(tempFilePath);
 
     await logFailure({
       eventType: "Create",
@@ -177,8 +214,11 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
  * @returns {Promise<Response>} List of files with metadata
  */
 export const listFiles = async (req: Request, res: Response): Promise<any> => {
-  const orgId = Number(req.organizationId);
-  const tenant = req.tenantId || "";
+  // Validate authentication
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return; // Response already sent
+
+  const { userId, orgId, tenant } = auth;
 
   // Parse pagination parameters
   const page = req.query.page ? Number(req.query.page) : undefined;
@@ -260,9 +300,11 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
   }
 
-  const userId = Number(req.userId);
-  const orgId = Number(req.organizationId);
-  const tenant = req.tenantId || "";
+  // Validate authentication
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return; // Response already sent
+
+  const { userId, orgId, tenant } = auth;
 
   logProcessing({
     description: `Starting file download for file ID ${fileId}`,
@@ -275,17 +317,18 @@ export const downloadFile = async (req: Request, res: Response): Promise<any> =>
     const file = await getFileById(fileId, tenant);
 
     if (!file) {
-      await logSuccess({
+      await logFailure({
         eventType: "Read",
         description: `File not found: ID ${fileId}`,
         functionName: "downloadFile",
         fileName: "fileManager.ctrl.ts",
+        error: new Error("File not found"),
       });
-      return res.status(404).json(STATUS_CODE[404]({}));
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
-    // Verify file belongs to user's organization
-    if (file.org_id !== orgId) {
+    // Verify file belongs to user's organization (ensure type consistency)
+    if (Number(file.org_id) !== orgId) {
       await logFailure({
         eventType: "Read",
         description: `Unauthorized access attempt to file ${fileId}`,
@@ -402,9 +445,23 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
     return res.status(400).json(STATUS_CODE[400]("Invalid file ID"));
   }
 
-  const userId = Number(req.userId);
-  const orgId = Number(req.organizationId);
-  const tenant = req.tenantId || "";
+  // Validate authentication
+  const auth = validateAndParseAuth(req, res);
+  if (!auth) return; // Response already sent
+
+  const { userId, orgId, tenant } = auth;
+
+  // Defense-in-depth: Verify user has delete permission (in addition to route middleware)
+  if (!hasPermission(req, 'delete:file', ['Admin', 'Reviewer', 'Editor'])) {
+    await logFailure({
+      eventType: "Delete",
+      description: `Unauthorized role attempted to delete file ${fileId}`,
+      functionName: "removeFile",
+      fileName: "fileManager.ctrl.ts",
+      error: new Error("Insufficient permissions"),
+    });
+    return res.status(403).json(STATUS_CODE[403]("Insufficient permissions to delete files"));
+  }
 
   logProcessing({
     description: `Starting file deletion for file ID ${fileId}`,
@@ -417,17 +474,18 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
     const file = await getFileById(fileId, tenant);
 
     if (!file) {
-      await logSuccess({
+      await logFailure({
         eventType: "Delete",
         description: `File not found: ID ${fileId}`,
         functionName: "removeFile",
         fileName: "fileManager.ctrl.ts",
+        error: new Error("File not found"),
       });
-      return res.status(404).json(STATUS_CODE[404]({}));
+      return res.status(404).json(STATUS_CODE[404]("File not found"));
     }
 
-    // Verify file belongs to user's organization
-    if (file.org_id !== orgId) {
+    // Verify file belongs to user's organization (ensure type consistency)
+    if (Number(file.org_id) !== orgId) {
       await logFailure({
         eventType: "Delete",
         description: `Unauthorized deletion attempt for file ${fileId}`,
@@ -438,15 +496,35 @@ export const removeFile = async (req: Request, res: Response): Promise<any> => {
       return res.status(403).json(STATUS_CODE[403]("Access denied"));
     }
 
-    // Delete the file
-    const deleted = await deleteFile(fileId, tenant);
+    // Delete the file (both DB and disk)
+    let deleted: boolean;
+    try {
+      deleted = await deleteFile(fileId, tenant);
+    } catch (error: any) {
+      // Handle partial deletion failure (DB deleted but disk failed)
+      if (error.message?.includes("Partial deletion")) {
+        await logFailure({
+          eventType: "Delete",
+          description: `Partial deletion failure for file ${fileId}: ${error.message}`,
+          functionName: "removeFile",
+          fileName: "fileManager.ctrl.ts",
+          error: error as Error,
+        });
+        return res.status(500).json(
+          STATUS_CODE[500]("File database record deleted but physical file removal failed. Please contact support.")
+        );
+      }
+      // Re-throw other errors to be handled by outer catch
+      throw error;
+    }
 
     if (!deleted) {
-      await logSuccess({
+      await logFailure({
         eventType: "Delete",
         description: `File not found during deletion: ID ${fileId}`,
         functionName: "removeFile",
         fileName: "fileManager.ctrl.ts",
+        error: new Error("File not found during deletion"),
       });
       return res.status(404).json(STATUS_CODE[404]("File not found"));
     }

@@ -165,9 +165,10 @@ router.post(
  * @query   page - Page number (optional)
  * @query   pageSize - Items per page (optional)
  * @returns {200} List of files with metadata and pagination
+ * @returns {429} Too many requests - rate limit exceeded
  * @returns {500} Server error
  */
-router.get("/", authenticateJWT, listFiles);
+router.get("/", fileOperationsLimiter, authenticateJWT, listFiles);
 
 /**
  * @route   GET /file-manager/:id

@@ -32,15 +32,37 @@ import { promisify } from "util";
 const pipelineAsync = promisify(pipeline);
 
 /**
- * Helper function to clean up temporary files
+ * Helper function to clean up temporary files with path validation
+ * Prevents path traversal attacks by validating file is within temp directory
+ *
  * @param {string | undefined} filePath - Path to temporary file
  */
 const cleanupTempFile = async (filePath: string | undefined): Promise<void> => {
   if (!filePath) return;
 
   try {
-    await fs.promises.unlink(filePath);
+    // Define expected temp directory
+    const tempDir = path.resolve(process.cwd(), "uploads", "temp");
+
+    // Resolve real paths to prevent symlink attacks
+    const resolvedTempDir = fs.realpathSync(tempDir);
+    const resolvedFilePath = fs.realpathSync(filePath);
+
+    // Validate path containment to prevent directory traversal
+    const relativePath = path.relative(resolvedTempDir, resolvedFilePath);
+    const isContained = !relativePath.startsWith("..") &&
+                        !path.isAbsolute(relativePath) &&
+                        resolvedFilePath.startsWith(resolvedTempDir + path.sep);
+
+    if (!isContained) {
+      console.error(`Security: Attempted to delete file outside temp directory. Path: ${filePath}`);
+      return;
+    }
+
+    // Safe to delete - file is within temp directory
+    await fs.promises.unlink(resolvedFilePath);
   } catch (error: any) {
+    // Ignore ENOENT (file already deleted or doesn't exist)
     if (error.code !== 'ENOENT') {
       console.error("Failed to clean up temporary file:", error);
     }

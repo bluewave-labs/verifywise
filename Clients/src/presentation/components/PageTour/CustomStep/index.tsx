@@ -1,19 +1,12 @@
 import React from "react";
 import { Box, Typography, Button, IconButton } from "@mui/material";
 import { X } from "lucide-react";
-import { TooltipRenderProps } from "react-joyride";
+import {
+  ICustomStepProps,
+  ICustomStepWrapperProps,
+} from "../../../../domain/interfaces/i.customs";
 
-interface CustomStepProps {
-  header?: string;
-  body: string;
-  icon?: React.ReactNode;
-}
-
-interface CustomStepWrapperProps extends TooltipRenderProps {
-  content: CustomStepProps;
-}
-
-export const CustomStepWrapper: React.FC<CustomStepWrapperProps> = ({
+export const CustomStepWrapper: React.FC<ICustomStepWrapperProps> = ({
   content,
   continuous,
   index,
@@ -167,7 +160,8 @@ export const CustomStepWrapper: React.FC<CustomStepWrapperProps> = ({
           width: 100,
           height: 100,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(19, 113, 91, 0.2) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle, rgba(19, 113, 91, 0.2) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -176,7 +170,7 @@ export const CustomStepWrapper: React.FC<CustomStepWrapperProps> = ({
 };
 
 // Keep the old component for backwards compatibility
-const CustomStep: React.FC<CustomStepProps> = () => (
+const CustomStep: React.FC<ICustomStepProps> = () => (
   <Box>
     {/* This is just a placeholder - the actual rendering is done by CustomStepWrapper */}
     <Box sx={{ display: "none" }} />

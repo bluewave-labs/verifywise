@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { CirclePlus, Filter } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const TrainingSteps: PageTourStep[] = [
+const TrainingSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="add-training-button"]',
     content: {

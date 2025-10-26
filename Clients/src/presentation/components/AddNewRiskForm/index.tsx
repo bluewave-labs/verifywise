@@ -649,8 +649,6 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
           formData.deletedLinkedFrameworks = originalFrameworks.length > 0 && currentFrameworks.length === 0;
         }
 
-        console.log('Changed fields:', changedFields);
-        console.log('Sending only:', formData);
       } else {
         // For creates, send all fields
         formData = buildFormData(
@@ -694,18 +692,15 @@ const AddNewRiskForm: FC<AddNewRiskFormProps> = ({
         // Handle CustomException from networkServices
         if (error instanceof Error && error.name === "CustomException") {
           const customError = error as any; // Cast to access custom properties
-          console.log("CustomException response:", customError.response);
           
           let errorMessage = error.message || "Unknown error occurred";
           
           // Handle validation errors from CustomException response
           if (customError.response && customError.response.errors && Array.isArray(customError.response.errors)) {
-            console.log("Processing validation errors:", customError.response.errors);
             const fieldErrors = customError.response.errors.map((err: any) => 
               `• ${err.message}`
             ).join('\n');
             errorMessage = `${errorMessage}:\n${fieldErrors}`;
-            console.log("Final error message:", errorMessage);
           }
           
           onError(errorMessage);

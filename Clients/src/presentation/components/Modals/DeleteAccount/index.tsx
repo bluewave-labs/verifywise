@@ -8,11 +8,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import Banner from "../Banner/index";
-
-interface DeleteAccountConfirmationProps {
-  open: boolean;
-  onClose: () => void;
-}
+import { IDeleteAccountConfirmationProps } from "../../../../domain/interfaces/i.customs";
 
 /**
  * A functional React component that renders a confirmation dialog for deleting an account.
@@ -33,7 +29,7 @@ interface DeleteAccountConfirmationProps {
  * @param {function} onClose - Callback function to close the dialog when the user clicks cancel or delete.
  * @returns {JSX.Element} The rendered DeleteAccountConfirmation component.
  */
-const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
+const DeleteAccountConfirmation: React.FC<IDeleteAccountConfirmationProps> = ({
   open,
   onClose,
 }) => {
@@ -64,7 +60,7 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
             height: "240px", // Custom height
             maxWidth: "none", // Disable the default maxWidth behavior
             padding: "32px",
-            overflowY: 'none'
+            overflowY: "none",
           },
         }}
       >
@@ -74,10 +70,10 @@ const DeleteAccountConfirmation: React.FC<DeleteAccountConfirmationProps> = ({
         >
           {"Are you sure you want to delete this account?"}
         </DialogTitle>
-        <DialogContent sx={{ padding: 0, overflowY: 'hidden' }}>
+        <DialogContent sx={{ padding: 0, overflowY: "hidden" }}>
           <DialogContentText
             id="alert-dialog-description"
-            sx={{ padding: 0, overflowY: 'hidden', fontSize: '13px' }}
+            sx={{ padding: 0, overflowY: "hidden", fontSize: "13px" }}
           >
             When you delete this file, all the links associated with the file
             will also be removed. Note that this is a non-reversible action.

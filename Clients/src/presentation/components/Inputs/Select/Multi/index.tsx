@@ -89,7 +89,26 @@ const CustomizableMultiSelect = ({
     );
     return (
       <Box sx={{
-        display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'flex-start'
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 0.5,
+        alignItems: 'flex-start',
+        maxHeight: '90px',
+        overflowY: 'auto',
+        width: '100%',
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(0, 0, 0, 0.2)',
+          borderRadius: '3px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: 'rgba(0, 0, 0, 0.3)',
+        },
       }}>
         {selectedItems.map((item) => {
           const idVal = getOptionValue ? getOptionValue(item) : item._id;
@@ -146,15 +165,16 @@ const CustomizableMultiSelect = ({
         >
           {label}
           {required && (
-            <Typography
+            <Box
+              component="span"
               className="required"
               sx={{
                 ml: theme.spacing(1),
-                color: `${theme.palette.error.text}`,
+                color: theme.palette.error.text,
               }}
             >
               *
-            </Typography>
+            </Box>
           )}
         </Typography>
       )}
@@ -174,14 +194,8 @@ const CustomizableMultiSelect = ({
         sx={{
           ...sx,
           '& .MuiOutlinedInput-input': {
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 0.5,
-            alignItems: 'flex-start',
             paddingTop: '16.5px',
             paddingBottom: '16.5px',
-            minHeight: '56px', // Minimum height for single line
-            height: 'auto', // Allow height to grow dynamically
           }
         }}
         MenuProps={{

@@ -74,20 +74,13 @@ const ProtectedRoute = ({ Component, ...rest }: IProtectedRouteProps) => {
     return <CustomizableToast title="Loading..." />; // Show a loading indicator while checking user existence
   }
 
-  console.log(
-    "Multi-tenant mode active - processing route:",
-    location.pathname
-  );
-
   // Always allow access to login and register routes in multi-tenant mode
   if (location.pathname === "/login" || location.pathname === "/register") {
-    console.log("Allowing access to login/register route");
     return <Component {...rest} />;
   }
 
   // Redirect to login if trying to access "/admin-reg" (legacy route)
   if (location.pathname === "/admin-reg") {
-    console.log("Redirecting admin-reg to login");
     return <Navigate to="/login" />;
   }
 

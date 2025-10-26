@@ -72,7 +72,6 @@ React.useEffect(() => {
 }, [htmlValue, editor]);
 
 
-console.log('htmlValue', htmlValue);
 
   return (
     <Plate editor={editor} onChange={({ value }) => onSlateChange?.(value)}>

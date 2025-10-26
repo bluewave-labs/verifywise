@@ -31,43 +31,83 @@ import { promisify } from "util";
 
 const pipelineAsync = promisify(pipeline);
 
+
 /**
- * Helper function to clean up temporary files with path validation
- * Prevents path traversal attacks by validating file is within temp directory
+ * Safely deletes a temporary file.
  *
- * @param {string | undefined} filePath - Path to temporary file
+ * Security Measures:
+ * 1. Extracts only the filename (prevents directory traversal)
+ * 2. Whitelists safe characters (alphanumeric, underscore, hyphen, dot)
+ * 3. Reconstructs path from trusted temp directory
+ * 4. Resolves symlinks and ensures containment within temp directory
+ * 5. Uses async FS methods to avoid blocking
+ *
+ * @param {string | undefined} filePath - Original file path from multer
  */
 const cleanupTempFile = async (filePath: string | undefined): Promise<void> => {
-  if (!filePath) return;
+    if (!filePath) return;
 
-  try {
-    // Define expected temp directory
-    const tempDir = path.resolve(process.cwd(), "uploads", "temp");
+    try {
+        const tempDir = path.resolve(process.cwd(), "uploads", "temp");
+        const filename = path.basename(filePath);
 
-    // Resolve real paths to prevent symlink attacks
-    const resolvedTempDir = fs.realpathSync(tempDir);
-    const resolvedFilePath = fs.realpathSync(filePath);
+        // Only allow safe characters in filename
+        if (!/^[a-zA-Z0-9_\-\.]+$/.test(filename)) {
+            logFailure({
+                eventType: "Error",
+                description: `Invalid filename detected during temp cleanup: ${filename}`,
+                functionName: "cleanupTempFile",
+                fileName: "fileManager.ctrl.ts",
+                error: new Error("Unsafe filename"),
+            });
+            return;
+        }
 
-    // Validate path containment to prevent directory traversal
-    const relativePath = path.relative(resolvedTempDir, resolvedFilePath);
-    const isContained = !relativePath.startsWith("..") &&
-                        !path.isAbsolute(relativePath) &&
-                        resolvedFilePath.startsWith(resolvedTempDir + path.sep);
+        // Reconstruct path using only trusted components
+        const safePath = path.join(tempDir, filename);
 
-    if (!isContained) {
-      console.error(`Security: Attempted to delete file outside temp directory. Path: ${filePath}`);
-      return;
+        // Resolve real paths to prevent symlink attacks
+        const [realTempDir, realFilePath] = await Promise.all([
+            fs.promises.realpath(tempDir),
+            fs.promises
+                .realpath(safePath)
+                .catch((err) => {
+                    if (err.code === "ENOENT") return null; // file doesn't exist
+                    throw err;
+                }),
+        ]);
+
+        // If file does not exist, exit
+        if (!realFilePath) return;
+
+        // Ensure file is strictly within the temp directory
+        if (!realFilePath.startsWith(realTempDir + path.sep)) {
+            logFailure({
+                eventType: "Error",
+                description: `Attempt to delete outside temp directory blocked: ${realFilePath}`,
+                functionName: "cleanupTempFile",
+                fileName: "fileManager.ctrl.ts",
+                error: new Error("Path containment violation"),
+            });
+            return;
+        }
+
+        // Safe to delete
+        await fs.promises.unlink(realFilePath);
+    } catch (error: any) {
+        if (error.code !== "ENOENT") {
+            logFailure({
+                eventType: "Error",
+                description: "Failed to clean up temporary file",
+                functionName: "cleanupTempFile",
+                fileName: "fileManager.ctrl.ts",
+                error,
+            });
+        }
     }
-
-    // Safe to delete - file is within temp directory
-    await fs.promises.unlink(resolvedFilePath);
-  } catch (error: any) {
-    // Ignore ENOENT (file already deleted or doesn't exist)
-    if (error.code !== 'ENOENT') {
-      console.error("Failed to clean up temporary file:", error);
-    }
-  }
 };
+
+
 
 /**
  * Helper function to validate and parse request authentication data

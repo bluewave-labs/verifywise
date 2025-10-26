@@ -23,10 +23,14 @@ export interface FileManagerResponse {
 }
 
 export interface FileUploadResponse {
-  success: boolean;
   message: string;
   data: {
-    file: FileMetadata;
+    id: number;
+    filename: string;
+    size: number;
+    mimetype: string;
+    upload_date: string;
+    uploaded_by: string;
   };
 }
 

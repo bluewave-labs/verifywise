@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Stack, Box, Typography } from "@mui/material";
+import { Upload as UploadIcon } from "lucide-react";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
 import PageTour from "../../components/PageTour";
 import useMultipleOnScreen from "../../../application/hooks/useMultipleOnScreen";
 import FileSteps from "./FileSteps";
 import CustomizableSkeleton from "../../components/Skeletons";
 import { useUserFilesMetaData } from "../../../application/hooks/useUserFilesMetaData";
+import { getUserFilesMetaData } from "../../../application/repository/file.repository";
+import { transformFilesData } from "../../../application/utils/fileTransform.utils";
 import { useProjects } from "../../../application/hooks/useProjects";
 import FileTable from "../../components/Table/FileTable/FileTable";
 import { filesTableFrame, filesTablePlaceholder } from "./styles";
@@ -13,7 +16,11 @@ import Select from "../../components/Inputs/Select";
 import HelperDrawer from "../../components/HelperDrawer";
 import HelperIcon from "../../components/HelperIcon";
 import { Project } from "../../../domain/types/Project";
+import { FileData } from "../../../domain/types/File";
 import PageHeader from "../../components/Layout/PageHeader";
+import CustomizableButton from "../../components/Button/CustomizableButton";
+import FileManagerUploadModal from "../../components/Modals/FileManagerUpload";
+import { logEngine } from "../../../application/tools/log.engine";
 
 const COLUMN_NAMES = [
   "File",
@@ -51,6 +58,7 @@ const FileManager: React.FC = (): JSX.Element => {
     countToTrigger: 1,
   });
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Fetch projects for the dropdown
   const { data: projects = [], isLoading: loadingProjects } = useProjects();
@@ -60,8 +68,45 @@ const FileManager: React.FC = (): JSX.Element => {
     string | number | null
   >("all");
 
-  // Fetch files based on selected project
-  const { filesData, loading: loadingFiles } = useUserFilesMetaData();
+  // Use hook for initial data load (keeps hook unchanged as requested)
+  const { filesData: initialFilesData, loading: initialLoading } = useUserFilesMetaData();
+
+  // Local state to manage files (allows manual refresh)
+  const [filesData, setFilesData] = useState<FileData[]>([]);
+  const [loadingFiles, setLoadingFiles] = useState(initialLoading);
+
+  // Sync initial data from hook to local state (always sync, even if empty)
+  useEffect(() => {
+    setFilesData(initialFilesData);
+    setLoadingFiles(initialLoading);
+  }, [initialFilesData, initialLoading]);
+
+  // Manual refetch function (KISS: direct repository call with shared transform utility - DRY)
+  const refetch = useCallback(async () => {
+    try {
+      setLoadingFiles(true);
+      const response = await getUserFilesMetaData();
+      setFilesData(transformFilesData(response));
+    } catch (error) {
+      logEngine({
+        type: "error",
+        message: `Error refetching files: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+      setFilesData([]);
+    } finally {
+      setLoadingFiles(false);
+    }
+  }, []);
+
+  // Handle upload button click
+  const handleUploadClick = () => {
+    setIsUploadModalOpen(true);
+  };
+
+  // Handle upload success - refetch files
+  const handleUploadSuccess = () => {
+    refetch();
+  };
   const filteredFiles = useMemo(() => {
     if (selectedProject === "all" || selectedProject === null) {
       return filesData;
@@ -97,6 +142,11 @@ const FileManager: React.FC = (): JSX.Element => {
           setRunFileTour(false);
         }}
         tourKey="file-tour"
+      />
+      <FileManagerUploadModal
+        open={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={handleUploadSuccess}
       />
       <HelperDrawer
         open={isHelperDrawerOpen}
@@ -145,7 +195,7 @@ const FileManager: React.FC = (): JSX.Element => {
         </>
       ) : (
         <Stack gap={"16px"}>
-          <Box sx={{ display: "flex", justifyContent: "flex-start", width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
             <Select
               id="project-filter"
               value={selectedProject || "all"}
@@ -164,9 +214,18 @@ const FileManager: React.FC = (): JSX.Element => {
                 bgcolor: "#fff",
               }}
             />
+            <CustomizableButton
+              variant="contained"
+              text="Upload new file"
+              sx={{
+                gap: 2,
+              }}
+              icon={<UploadIcon size={16} />}
+              onClick={handleUploadClick}
+            />
           </Box>
           <Box sx={boxStyles}>
-            <FileTable cols={COLUMNS} files={filteredFiles} />
+            <FileTable cols={COLUMNS} files={filteredFiles} onFileDeleted={refetch} />
           </Box>
         </Stack>
       )}

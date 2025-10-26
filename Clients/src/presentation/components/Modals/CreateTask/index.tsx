@@ -86,10 +86,7 @@ const CreateTask: FC<ICreateTaskProps> = ({
         assignees: (() => {
           if (!initialData.assignees || !users) return [];
 
-          // Debug: Log the actual data structure
-          console.log("Initial assignees data:", initialData.assignees);
-          console.log("Users data:", users);
-
+          
           // Handle both possible data structures
           return initialData.assignees
             .map((assignee) => {

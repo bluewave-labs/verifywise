@@ -1,16 +1,15 @@
 import { apiServices } from "../../infrastructure/api/networkServices";
 
 // Type definitions for API responses
-interface FileMetadata {
+export interface FileMetadata {
   id: string;
   filename: string;
   size: number;
   mimeType: string;
   uploadedAt: string;
-  [key: string]: any;
 }
 
-interface FileManagerResponse {
+export interface FileManagerResponse {
   success: boolean;
   data: {
     files: FileMetadata[];
@@ -22,6 +21,14 @@ interface FileManagerResponse {
   };
 }
 
+export interface FileUploadResponse {
+  success: boolean;
+  message: string;
+  data: {
+    file: FileMetadata;
+  };
+}
+
 export async function getFileById({
   id,
   signal,
@@ -30,7 +37,7 @@ export async function getFileById({
   id: string;
   signal?: AbortSignal;
   responseType?: string;
-}): Promise<any> {
+}): Promise<Blob> {
   const response = await apiServices.get<any>(`/files/${id}`, {
     signal,
     responseType,
@@ -43,20 +50,20 @@ export async function getFileById({
  * Get all files metadata for the current user's organization
  *
  * @param {AbortSignal} signal - Optional abort signal for cancellation
- * @returns {Promise<any[]>} Array of file metadata
+ * @returns {Promise<FileMetadata[]>} Array of file metadata
  */
 export async function getUserFilesMetaData({
   signal,
 }: {
   signal?: AbortSignal;
-} = {}): Promise<any[]> {
+} = {}): Promise<FileMetadata[]> {
   const response = await apiServices.get<FileManagerResponse>("/file-manager", {
     signal,
   });
 
   // Extract files array from API response wrapper (Clean Architecture)
   // Server returns: { success: true, data: { files: [...], pagination: {...} } }
-  return response.data?.data?.files || [];
+  return (response.data?.data?.files as FileMetadata[]) || [];
 }
 
 
@@ -65,7 +72,7 @@ export async function getUserFilesMetaData({
  *
  * @param {File} file - The file to upload
  * @param {AbortSignal} signal - Optional abort signal for cancellation
- * @returns {Promise<any>} Upload response with file metadata
+ * @returns {Promise<FileUploadResponse>} Upload response with file metadata
  */
 export async function uploadFileToManager({
   file,
@@ -73,12 +80,12 @@ export async function uploadFileToManager({
 }: {
   file: File;
   signal?: AbortSignal;
-}): Promise<any> {
+}): Promise<FileUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
   // Delete Content-Type header to let axios auto-detect and set the proper boundary
-  const response = await apiServices.post<any>("/file-manager", formData, {
+  const response = await apiServices.post<FileUploadResponse>("/file-manager", formData, {
     signal,
     headers: {
       "Content-Type": undefined,
@@ -94,7 +101,7 @@ export async function uploadFileToManager({
  *
  * @param {string} id - The file ID to download
  * @param {AbortSignal} signal - Optional abort signal for cancellation
- * @returns {Promise<any>} File blob response
+ * @returns {Promise<Blob>} File blob response
  */
 export async function downloadFileFromManager({
   id,
@@ -102,7 +109,7 @@ export async function downloadFileFromManager({
 }: {
   id: string;
   signal?: AbortSignal;
-}): Promise<any> {
+}): Promise<Blob> {
   const response = await apiServices.get<Blob>(`/file-manager/${id}`, {
     signal,
     responseType: "blob",

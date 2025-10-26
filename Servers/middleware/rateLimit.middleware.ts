@@ -77,11 +77,9 @@ const getClientIp = (req: Request): string => {
     return req.socket.remoteAddress;
   }
 
-  // Generate unique identifier to prevent all unknown IPs from sharing the same bucket
-  // This is a security measure - each unidentifiable request gets its own bucket
-  const uniqueId = `unknown-${randomBytes(16).toString('hex')}`;
-  console.warn(`Rate limiter: Unable to determine client IP, using unique identifier: ${uniqueId}`);
-  return uniqueId;
+  // Reject requests without identifiable IPs
+  console.error(`Rate limiter: Unable to determine client IP for request to ${req.path}`);
+  throw new Error('Unable to identify client IP for rate limiting');
 };
 
 /**

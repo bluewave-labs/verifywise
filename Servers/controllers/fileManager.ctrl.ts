@@ -130,6 +130,12 @@ const validateAndParseAuth = (req: Request, res: Response): { userId: number; or
     return null;
   }
 
+  // Tenant format validation
+  if (!/^[a-zA-Z0-9_]+$/.test(tenant)) {
+     res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
+     return null;
+  }
+
   return { userId, orgId, tenant };
 };
 
@@ -203,11 +209,6 @@ export const uploadFile = async (req: Request, res: Response): Promise<any> => {
 
     const { userId, orgId, tenant } = auth;
 
-    // Validate tenant format
-    if (!/^[a-zA-Z0-9_]+$/.test(tenant)) {
-      await cleanupTempFile(tempFilePath);
-      return res.status(400).json(STATUS_CODE[400]("Invalid tenant identifier"));
-    }
 
     // Validate file type and size
     const validation = validateFileUpload(file);

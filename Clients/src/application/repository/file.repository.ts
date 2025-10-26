@@ -7,6 +7,7 @@ export interface FileMetadata {
   size: number;
   mimeType: string;
   uploadedAt: string;
+  uploadedBy: string;
 }
 
 export interface FileManagerResponse {

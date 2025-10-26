@@ -310,24 +310,24 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
       description: `Retrieved ${files.length} files for organization ${orgId}`,
       functionName: "listFiles",
       fileName: "fileManager.ctrl.ts",
-      userId: Number(req.userId),
+      userId,
     });
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        files: files.map((file) => ({
-          ...file,
-          formattedSize: formatFileSize(file.size),
-        })),
-        pagination: {
-          total,
-          page: validPage || 1,
-          pageSize: validPageSize || total,
-          totalPages: validPageSize ? Math.ceil(total / validPageSize) : 1,
-        },
-      },
-    });
+      return res.status(200).json(
+          STATUS_CODE[200]({
+              files: files.map((file) => ({
+                  ...file,
+                  formattedSize: formatFileSize(file.size),
+              })),
+              pagination: {
+                  total,
+                  page: validPage || 1,
+                  pageSize: validPageSize || total,
+                  totalPages: validPageSize ? Math.ceil(total / validPageSize) : 1,
+              },
+          })
+      );
+
   } catch (error) {
     await logFailure({
       eventType: "Read",

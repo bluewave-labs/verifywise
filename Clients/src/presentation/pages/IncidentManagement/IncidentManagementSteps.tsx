@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { BarChart3, Filter, ShieldAlert, AlertCircle } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const IncidentManagementSteps: PageTourStep[] = [
+const IncidentManagementSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="add-incident-button"]',
     content: {

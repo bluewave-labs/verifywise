@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { Eye, Layout } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const AITrustCenterSteps: PageTourStep[] = [
+const AITrustCenterSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="trust-center-tabs"]',
     content: {

@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { FileText, Building2, Filter } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const ReportingSteps: PageTourStep[] = [
+const ReportingSteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="generate-project-report-button"]',
     content: {

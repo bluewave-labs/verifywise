@@ -1,7 +1,7 @@
-import { PageTourStep } from "../../components/PageTour";
 import { BarChart3, Filter, Search, PlusCircle } from "lucide-react";
+import { IPageTourStep } from "../../../domain/interfaces/i.tour";
 
-const ModelInventorySteps: PageTourStep[] = [
+const ModelInventorySteps: IPageTourStep[] = [
   {
     target: '[data-joyride-id="add-model-button"]',
     content: {

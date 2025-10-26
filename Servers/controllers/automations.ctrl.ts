@@ -122,7 +122,7 @@ export const updateAutomation = async (
         name: req.body.name,
         is_active: req.body.is_active,
         trigger_id: req.body.triggerId,
-        params: JSON.parse(req.body.params) || {} as Record<string, any>,
+        params: JSON.parse(req.body.params || '{}') as Record<string, any>,
       },
       actions,
       req.tenantId!,

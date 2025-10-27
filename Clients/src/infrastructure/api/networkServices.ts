@@ -49,7 +49,7 @@ const handleError = (error: any) => {
     } else {
       return new CustomException(
         error.message || "An unknown error occurred",
-        undefined,
+        error.status || undefined,
         undefined
       );
     }

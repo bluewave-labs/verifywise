@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,12 @@ import { uploadFileToManager } from "../../../../application/repository/file.rep
 import { SUPPORTED_FILE_TYPES_STRING, MAX_FILE_SIZE_MB, validateFile } from "../../../../application/constants/fileManager";
 import { formatBytes } from "../../../../application/tools/fileUtil";
 import { getFileErrorMessage } from "../../../../application/utils/fileErrorHandler.utils";
-import { logEngine } from "../../../../application/tools/log.engine";
+import { secureLogError } from "../../../../application/utils/secureLogger.utils"; // SECURITY: No PII
+
+// Constants (DRY + Maintainability)
+const UPLOAD_CONTEXT = 'FileManagerUpload';
+const AUTO_CLOSE_DELAY_MS = 500;
+const SUCCESS_DISPLAY_TIME_MS = 300;
 
 interface FileManagerUploadModalProps {
   open: boolean;
@@ -27,9 +32,11 @@ interface FileManagerUploadModalProps {
   onSuccess?: () => void;
 }
 
+type UploadStatus = "pending" | "uploading" | "success" | "error";
+
 interface UploadedFileInfo {
   file: File;
-  status: "pending" | "uploading" | "success" | "error";
+  status: UploadStatus;
   progress: number;
   error?: string;
 }
@@ -125,17 +132,15 @@ const FileManagerUploadModal: React.FC<FileManagerUploadModalProps> = ({
         );
 
         successCount++;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Use centralized error handler (DRY principle)
         const errorMessage = getFileErrorMessage(error, "upload");
 
-        // Log error using logEngine instead of console.error
-        logEngine({
-          type: "error",
-          message: `File upload failed: ${fileList[i].file.name} - ${errorMessage}`,
-        });
+        // SECURITY FIX: Use secure logger (no PII leak) instead of logEngine
+        // logEngine includes user ID/email/name which violates GDPR/compliance
+        secureLogError('File upload failed', UPLOAD_CONTEXT);
 
-        // Update status to error
+        // Update status to error with user-facing message
         setFileList((prev) =>
           prev.map((item, idx) =>
             idx === i

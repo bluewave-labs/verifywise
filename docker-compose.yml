@@ -48,6 +48,7 @@ services:
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
       - FAIRNESS_AND_BIAS_URL=http://bias_and_fairness_backend:8000
+      - REDIS_URL=redis://redis:6379/0
       - DO_SPACES_REGION=$DO_SPACES_REGION
       - DO_SPACES_BUCKET=$DO_SPACES_BUCKET
       - DO_SPACES_ENDPOINT=$DO_SPACES_ENDPOINT
@@ -55,8 +56,6 @@ services:
       - DO_SPACES_SECRET=$DO_SPACES_SECRET
       - LOG_DO_PREFIX=$LOG_DO_PREFIX
       - LOG_COMPRESSION_ENABLED=$LOG_COMPRESSION_ENABLED
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
   frontend:
     depends_on:
       - backend
@@ -78,8 +77,7 @@ services:
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
       - JWT_SECRET=$JWT_SECRET
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
     restart: unless-stopped
   bias_and_fairness_backend:
     depends_on:

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { Box, Stack, Fade } from "@mui/material";
 import PageBreadcrumbs from "../../components/Breadcrumbs/PageBreadcrumbs";
@@ -109,10 +111,13 @@ const ModelInventory: React.FC = () => {
   const [isHelperDrawerOpen, setIsHelperDrawerOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("models"); // "models" = Models, "model-risks" = Model Risks
 
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+   // Determine the active tab based on the URL
+   const currentPath = location.pathname;
+   const activeTab = currentPath.includes("model-risks") ? "model-risks" : "models";
 
   // Calculate summary from data
   const summary: Summary = {
@@ -639,7 +644,11 @@ const ModelInventory: React.FC = () => {
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue);
+    if (newValue === "models") {
+      navigate("/model-inventory");
+    } else if (newValue === "model-risks") {
+      navigate("/model-inventory/model-risks");
+    }
   };
 
   return (

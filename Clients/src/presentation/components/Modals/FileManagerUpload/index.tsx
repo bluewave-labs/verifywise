@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +23,6 @@ import { secureLogError } from "../../../../application/utils/secureLogger.utils
 
 // Constants (DRY + Maintainability)
 const UPLOAD_CONTEXT = 'FileManagerUpload';
-const AUTO_CLOSE_DELAY_MS = 500;
-const SUCCESS_DISPLAY_TIME_MS = 300;
 
 interface FileManagerUploadModalProps {
   open: boolean;

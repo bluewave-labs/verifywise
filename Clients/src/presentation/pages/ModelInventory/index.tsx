@@ -916,6 +916,7 @@ const ModelInventory: React.FC = () => {
               onDelete={handleDeleteModelRisk}
               deletingId={deletingModelRiskId}
               users={users}
+              models={modelInventoryData}
             />
           </>
         )}

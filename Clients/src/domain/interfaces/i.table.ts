@@ -1,4 +1,3 @@
-import { VendorDetails } from "../../application/hooks/useVendors";
 import { FileData } from "../types/File";
 import { ProjectRisk } from "../types/ProjectRisk";
 import { User } from "../types/User";
@@ -6,6 +5,20 @@ import { IEvent } from "./i.event";
 import { ITask } from "./i.task";
 import { IUser } from "./iUser";
 
+export interface VendorDetails {
+  id?: number;
+  projects: number[];
+  vendor_name: string;
+  vendor_provides: string;
+  website: string;
+  vendor_contact_person: string;
+  review_result: string;
+  review_status: string;
+  reviewer: string;
+  risk_status: string;
+  review_date: string;
+  assignee: string;
+}
 export interface IAITrustCenterTableColumn {
   id: string;
   label: string;

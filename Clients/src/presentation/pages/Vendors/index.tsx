@@ -39,7 +39,6 @@ import HelperIcon from "../../components/HelperIcon";
 import {
   useVendors,
   useDeleteVendor,
-  VendorDetails,
 } from "../../../application/hooks/useVendors";
 import { useProjects } from "../../../application/hooks/useProjects";
 import { useDeleteVendorRisk } from "../../../application/hooks/useVendorRiskMutations";
@@ -60,9 +59,6 @@ interface ExistingRisk {
   action_plan: string;
   vendor_id: string;
 }
-
-// Export VendorDetails interface for use in other components
-export type { VendorDetails };
 
 const Vendors = () => {
   const theme = useTheme();

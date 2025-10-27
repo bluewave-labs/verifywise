@@ -1076,6 +1076,22 @@ This notification was sent on {{date_and_time}}.`
       return;
     }
 
+    // Validate that send_email actions have recipients
+    const sendEmailActions = selectedAutomation.actions.filter(action => action.type === 'send_email');
+    for (const action of sendEmailActions) {
+      const recipients = action.configuration?.to;
+      const hasRecipients = Array.isArray(recipients) && recipients.length > 0;
+
+      if (!hasRecipients) {
+        setToast({
+          variant: "error",
+          body: "Please add at least one recipient to the Send Email action before saving.",
+          visible: true
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       // Check if this is an existing automation (has numeric ID from backend) or new (has generated string ID)

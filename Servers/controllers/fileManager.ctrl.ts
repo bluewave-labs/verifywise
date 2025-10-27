@@ -318,13 +318,18 @@ export const listFiles = async (req: Request, res: Response): Promise<any> => {
       return res.status(200).json(
           STATUS_CODE[200]({
               files: files.map((file) => ({
-                  ...file,
+                  id: file.id,
+                  filename: file.filename,
+                  size: file.size,
                   formattedSize: formatFileSize(file.size),
+                  mimetype: file.mimetype,          // optional
+                  upload_date: file.upload_date,
+                  uploaded_by: file.uploaded_by,
               })),
               pagination: {
                   total,
-                  page: validPage || 1,
-                  pageSize: validPageSize || total,
+                  page: validPage,
+                  pageSize: validPageSize,
                   totalPages: validPageSize ? Math.ceil(total / validPageSize) : 1,
               },
           })
